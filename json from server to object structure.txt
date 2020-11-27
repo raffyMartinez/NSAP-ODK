@@ -1,0 +1,144 @@
+// Root myDeserializedClass = JsonConvert.DeserializeObject<Root>(myJsonResponse); 
+    public class SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat    {
+        public string soak_time_group/soaktime_tracking_group/soak_time_repeat/time_set_string { get; set; } 
+        public string soak_time_group/soaktime_tracking_group/soak_time_repeat/decimal_set_time { get; set; } 
+        public string soak_time_group/soaktime_tracking_group/soak_time_repeat/wpt_set { get; set; } 
+        public string soak_time_group/soaktime_tracking_group/soak_time_repeat/calculate_haul_hint { get; set; } 
+        public DateTime soak_time_group/soaktime_tracking_group/soak_time_repeat/haul_time { get; set; } 
+        public DateTime soak_time_group/soaktime_tracking_group/soak_time_repeat/set_time { get; set; } 
+        public string soak_time_group/soaktime_tracking_group/soak_time_repeat/calculate_set_hint { get; set; } 
+        public string soak_time_group/soaktime_tracking_group/soak_time_repeat/wpt_haul { get; set; } 
+    }
+
+    public class CatchCompGroupCatchCompositionRepeatGmsRepeat    {
+        public string catch_comp_group/catch_composition_repeat/gms_repeat/gms_group/sex { get; set; } 
+        public string catch_comp_group/catch_composition_repeat/gms_repeat/gms_group/individual_weight { get; set; } 
+        public string catch_comp_group/catch_composition_repeat/gms_repeat/gms_group/individual_length { get; set; } 
+        public string catch_comp_group/catch_composition_repeat/gms_repeat/gms_group/gms_repeat_001 { get; set; } 
+        public string catch_comp_group/catch_composition_repeat/gms_repeat/gms_group/stomach_content_wt { get; set; } 
+    }
+
+    public class CatchCompGroupCatchCompositionRepeatLengthFreqRepeat    {
+        public string catch_comp_group/catch_composition_repeat/length_freq_repeat/group_LF/length_class { get; set; } 
+        public string catch_comp_group/catch_composition_repeat/length_freq_repeat/group_LF/freq { get; set; } 
+    }
+
+    public class CatchCompGroupCatchCompositionRepeat    {
+        public string catch_comp_group/catch_composition_repeat/speciesname_group/taxa { get; set; } 
+        public string catch_comp_group/catch_composition_repeat/sum_wt_from_lenwt { get; set; } 
+        public List<CatchCompGroupCatchCompositionRepeatGmsRepeat> catch_comp_group/catch_composition_repeat/gms_repeat { get; set; } 
+        public string catch_comp_group/catch_composition_repeat/speciesname_group/len_max_hint { get; set; } 
+        public string catch_comp_group/catch_composition_repeat/speciesname_group/species_name_selected { get; set; } 
+        public string catch_comp_group/catch_composition_repeat/speciesname_group/select_spName { get; set; } 
+        public string catch_comp_group/catch_composition_repeat/max_size_hint { get; set; } 
+        public string catch_comp_group/catch_composition_repeat/speciesname_group/species_notfish { get; set; } 
+        public string catch_comp_group/catch_composition_repeat/speciesname_group/sp_id { get; set; } 
+        public string catch_comp_group/catch_composition_repeat/speciesname_group/len_max { get; set; } 
+        public string catch_comp_group/catch_composition_repeat/speciesname_group/species_wt { get; set; } 
+        public string catch_comp_group/catch_composition_repeat/speciesname_group/size_type_name { get; set; } 
+        public string catch_comp_group/catch_composition_repeat/speciesname_group/species_csv_source { get; set; } 
+        public string catch_comp_group/catch_composition_repeat/sum_wt_from_lenwt_coalesce { get; set; } 
+        public string catch_comp_group/catch_composition_repeat/speciesname_group/species_sample_wt { get; set; } 
+        public List<CatchCompGroupCatchCompositionRepeatLengthFreqRepeat> catch_comp_group/catch_composition_repeat/length_freq_repeat { get; set; } 
+    }
+
+    public class ValidationStatus    {
+    }
+
+    public class GridCoordGroupBingoRepeat    {
+        public string grid_coord_group/bingo_repeat/bingo_group/col_name { get; set; } 
+        public string grid_coord_group/bingo_repeat/bingo_group/bingo_complete { get; set; } 
+        public string grid_coord_group/bingo_repeat/bingo_group/major_grid { get; set; } 
+        public string grid_coord_group/bingo_repeat/bingo_group/row_name { get; set; } 
+    }
+
+    public class EffortsGroupEffortRepeat    {
+        public string efforts_group/effort_repeat/group_effort/selected_effort_measure { get; set; } 
+        public string efforts_group/effort_repeat/group_effort/response_type { get; set; } 
+        public string efforts_group/effort_repeat/group_effort/effort_spec_name { get; set; } 
+        public string efforts_group/effort_repeat/group_effort/effort_intensity { get; set; } 
+        public string efforts_group/effort_repeat/group_effort/effort_type { get; set; } 
+    }
+
+    public class MyArray    {
+        public List<object> _notes { get; set; } 
+        public string today { get; set; } 
+        public string soak_time_group/soaktime_tracking_group/gps { get; set; } 
+        public string soak_time_group/soaktime_tracking_group/decimal_arrive_date { get; set; } 
+        public string grid_coord_group/utmZone { get; set; } 
+        public string intronote { get; set; } 
+        public string _bamboo_dataset_id { get; set; } 
+        public List<object> _tags { get; set; } 
+        public string catch_comp_group/sum_species_weight { get; set; } 
+        public string vessel_sampling/nsap_region { get; set; } 
+        public string grid_coord_group/inlandgrid_csv { get; set; } 
+        public string _xform_id_string { get; set; } 
+        public string fishing_vessel_group/select_vessel { get; set; } 
+        public string sampling_date_string { get; set; } 
+        public string meta/instanceID { get; set; } 
+        public string fma_number { get; set; } 
+        public List<SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat> soak_time_group/soaktime_tracking_group/soak_time_repeat { get; set; } 
+        public string fishing_vessel_group/search_or_showall { get; set; } 
+        public string grid_coord_group/include_bingo { get; set; } 
+        public string vessel_sampling/select_landingsite { get; set; } 
+        public string soak_time_group/include_soak_time { get; set; } 
+        public string fishing_vessel_group/search_column { get; set; } 
+        public string catch_comp_group/sum_species_weight_coalesce { get; set; } 
+        public DateTime start { get; set; } 
+        public string decimal_sampling_date { get; set; } 
+        public string fishing_vessel_group/gear_code { get; set; } 
+        public string catch_comp_group/count_catch_comp { get; set; } 
+        public string _status { get; set; } 
+        public DateTime soak_time_group/soaktime_tracking_group/time_depart_landingsite { get; set; } 
+        public DateTime vessel_sampling/sampling_date { get; set; } 
+        public List<CatchCompGroupCatchCompositionRepeat> catch_comp_group/catch_composition_repeat { get; set; } 
+        public string soak_time_group/soaktime_tracking_group/depart_date_string { get; set; } 
+        public string vessel_sampling/fishing_ground { get; set; } 
+        public string efforts_group/include_effort { get; set; } 
+        public string vessel_sampling/region_enumerator_text { get; set; } 
+        public string catch_comp_group/include_catchcomp { get; set; } 
+        public string grid_coord_group/majorgrid_csv { get; set; } 
+        public string fishing_vessel_group/search_mode { get; set; } 
+        public ValidationStatus _validation_status { get; set; } 
+        public string soak_time_group/soaktime_tracking_group/decimal_depart_date { get; set; } 
+        public string soak_time_group/soaktime_tracking_group/arrive_date_string { get; set; } 
+        public string fishing_vessel_group/gear_name { get; set; } 
+        public List<GridCoordGroupBingoRepeat> grid_coord_group/bingo_repeat { get; set; } 
+        public string vessel_sampling/select_enumerator { get; set; } 
+        public string catch_comp_group/length_type { get; set; } 
+        public string catch_comp_group/has_gms { get; set; } 
+        public string fishing_vessel_group/vessel_csv_source { get; set; } 
+        public string fishing_vessel_group/search_value { get; set; } 
+        public string vessel_catch/catch_total { get; set; } 
+        public string vessel_sampling/landing_site { get; set; } 
+        public string fishing_vessel_group/fish_sector { get; set; } 
+        public string __version__ { get; set; } 
+        public List<object> _attachments { get; set; } 
+        public string vessel_sampling/gear_used { get; set; } 
+        public string vessel_sampling/fma_in_region { get; set; } 
+        public string user_name { get; set; } 
+        public List<EffortsGroupEffortRepeat> efforts_group/effort_repeat { get; set; } 
+        public string soak_time_group/include_tracking { get; set; } 
+        public string vessel_sampling/select_gear { get; set; } 
+        public List<object> _geolocation { get; set; } 
+        public object _submitted_by { get; set; } 
+        public string _uuid { get; set; } 
+        public string vessel_catch/trip_isSuccess { get; set; } 
+        public string fishing_vessel_group/boat_used { get; set; } 
+        public DateTime _submission_time { get; set; } 
+        public DateTime soak_time_group/soaktime_tracking_group/time_arrive_landingsite { get; set; } 
+        public string formhub/uuid { get; set; } 
+        public int _id { get; set; } 
+        public string device_id { get; set; } 
+        public string vessel_catch/catch_sampled { get; set; } 
+        public string fishing_vessel_group/boat_used_text { get; set; } 
+        public string vessel_sampling/region_enumerator { get; set; } 
+        public string vessel_catch/boxes_sampled { get; set; } 
+        public string vessel_catch/boxes_total { get; set; } 
+        public string vessel_catch/raising_factor { get; set; } 
+    }
+
+    public class Root    {
+        public List<MyArray> MyArray { get; set; } 
+    }
+

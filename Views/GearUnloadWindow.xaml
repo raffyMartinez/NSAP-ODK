@@ -1,0 +1,67 @@
+﻿<Window x:Class="NSAP_ODK.Views.GearUnloadWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NSAP_ODK.Views"
+        mc:Ignorable="d"
+        Closing="OnWindowClosing"
+        Title="GearUnloadWindow" Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition/>
+            <RowDefinition Height="20"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="100"/>
+        </Grid.ColumnDefinitions>
+        
+        <Label x:Name="LabelTitle" Content="Label titie" HorizontalAlignment="Left" Margin="5 0"/>
+
+
+        <TabControl Grid.Row="1" x:Name="TabControl" Margin="10">
+            <TabItem Header="Vessel unload">
+                <Grid>
+                    <DataGrid  x:Name="GridVesselUnload" IsReadOnly="True" ItemsSource="{Binding}" 
+                  AutoGenerateColumns="False" MouseDoubleClick="OnGridDoubleClick" SelectionChanged="OnGridSelectionChanged"
+                  Loaded="OnWindowLoaded" Margin="5"/>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Number of boats and sum of catch">
+                <Grid>
+                    <Grid.RowDefinitions>
+
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+
+                    </Grid.RowDefinitions>
+                    <WrapPanel Grid.Row="0" VerticalAlignment="Bottom" Margin="0 10">
+                        <Label Content="Total number of boats landed" Margin="50 5 5 5" HorizontalContentAlignment="Right" Width="170"/>
+                        <TextBox x:Name="textBoxBoats" Height="30" Width="100" Margin="20 5"/>
+                    </WrapPanel>
+                    <WrapPanel Grid.Row="1" VerticalAlignment="Top" Margin="0 10">
+                        <Label Content="Total weight of catch landed" Margin="50 5 5 5" HorizontalContentAlignment="Right" Width="170"/>
+                        <TextBox x:Name="textBoxCatch" Height ="30" Width="100" Margin="20 5"/>
+                    </WrapPanel>
+                    <WrapPanel VerticalAlignment="Center" Grid.Row="2" HorizontalAlignment="Center">
+                        <Button Content="Save" x:Name="ButtonSaveBoatsCatch" Click="OnButtonCLick" Width="80" Height="30" />
+                    </WrapPanel>
+                     
+                    
+                    
+                </Grid>
+            </TabItem>
+            
+        </TabControl>
+
+
+        <StackPanel Grid.Column="1" Grid.Row="1">
+            <Button Content="Close" Margin="20 20 20 10 " Height="30" Click="OnButtonCLick" x:Name="ButtonClose"/>
+        </StackPanel>
+
+    </Grid>
+</Window>

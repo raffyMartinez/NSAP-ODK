@@ -1,0 +1,415 @@
+﻿using Newtonsoft.Json;
+using NSAP_ODK.Utilities;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.Linq;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace NSAP_ODK.Entities
+{
+    public class ResponseSpeciesDetail
+    {
+        public int Count { get; set; }
+        public int Returned { get; set; }
+        public string Error { get; set; }
+        public IList<SpeciesDetail> Data { get; set; }
+    }
+
+    public class ResponseTaxa
+    {
+        public int Count { get; set; }
+        public int Returned { get; set; }
+        public string Error { get; set; }
+        public IList<SpecData> Data { get; set; }
+    }
+
+    public class SpeciesDetail
+    {
+        public string Family { get; set; }
+        public string SpecCode { get; set; }
+        public string Genus { get; set; }
+        public string Species { get; set; }
+        public string SpeciesRefNo { get; set; }
+        public string Author { get; set; }
+        public string FBname { get; set; }
+        public string PicPreferredName { get; set; }
+        public string PicPreferredNameM { get; set; }
+        public string PicPreferredNameF { get; set; }
+        public string PicPreferredNameJ { get; set; }
+        public string FamCode { get; set; }
+        public string Subfamily { get; set; }
+        public string GenCode { get; set; }
+        public string SubGenCode { get; set; }
+        public string BodyShapeI { get; set; }
+        public string Source { get; set; }
+        public string AuthorRef { get; set; }
+        public string Remark { get; set; }
+        public string TaxIssue { get; set; }
+        public string Fresh { get; set; }
+        public string Brack { get; set; }
+        public string Saltwater { get; set; }
+        public string DemersPelag { get; set; }
+        public object Amphibious { get; set; }
+        public object AmphibiousRef { get; set; }
+        public string AnaCat { get; set; }
+        public string MigratRef { get; set; }
+        public string DepthRangeShallow { get; set; }
+        public string DepthRangeDeep { get; set; }
+        public string DepthRangeRef { get; set; }
+        public string DepthRangeComShallow { get; set; }
+        public string DepthRangeComDeep { get; set; }
+        public string DepthComRef { get; set; }
+        public string LongevityWild { get; set; }
+        public string LongevityWildRef { get; set; }
+        public string LongevityCaptive { get; set; }
+        public string LongevityCapRef { get; set; }
+        public string Vulnerability { get; set; }
+
+        //this is max length
+        public string Length { get; set; }
+
+        public string LTypeMaxM { get; set; }
+        public string LengthFemale { get; set; }
+        public string LTypeMaxF { get; set; }
+        public string MaxLengthRef { get; set; }
+
+        //this is common length
+        public string CommonLength { get; set; }
+
+        public string LTypeComM { get; set; }
+        public string CommonLengthF { get; set; }
+        public string LTypeComF { get; set; }
+        public string CommonLengthRef { get; set; }
+        public string Weight { get; set; }
+        public string WeightFemale { get; set; }
+        public string MaxWeightRef { get; set; }
+        public string Pic { get; set; }
+        public string PictureFemale { get; set; }
+        public string LarvaPic { get; set; }
+        public string EggPic { get; set; }
+        public string ImportanceRef { get; set; }
+        public string Importance { get; set; }
+        public string PriceCateg { get; set; }
+        public string PriceReliability { get; set; }
+        public string Remarks7 { get; set; }
+        public string LandingStatistics { get; set; }
+        public string Landings { get; set; }
+        public string MainCatchingMethod { get; set; }
+        public string II { get; set; }
+        public string MSeines { get; set; }
+        public string MGillnets { get; set; }
+        public string MCastnets { get; set; }
+        public string MTraps { get; set; }
+        public string MSpears { get; set; }
+        public string MTrawls { get; set; }
+        public string MDredges { get; set; }
+        public string MLiftnets { get; set; }
+        public string MHooksLines { get; set; }
+        public string MOther { get; set; }
+        public string UsedforAquaculture { get; set; }
+        public string LifeCycle { get; set; }
+        public string AquacultureRef { get; set; }
+        public string UsedasBait { get; set; }
+        public string BaitRef { get; set; }
+        public string Aquarium { get; set; }
+        public string AquariumFishII { get; set; }
+        public string AquariumRef { get; set; }
+        public string GameFish { get; set; }
+        public string GameRef { get; set; }
+        public string Dangerous { get; set; }
+        public string DangerousRef { get; set; }
+        public string Electrogenic { get; set; }
+        public string ElectroRef { get; set; }
+        public string Complete { get; set; }
+        public string GoogleImage { get; set; }
+        public string Comments { get; set; }
+        public string Profile { get; set; }
+        public string PD50 { get; set; }
+        public string Emblematic { get; set; }
+        public string Entered { get; set; }
+        public string DateEntered { get; set; }
+        public string Modified { get; set; }
+        public string DateModified { get; set; }
+        public string Expert { get; set; }
+        public string DateChecked { get; set; }
+        public string TS { get; set; }
+        public string image { get; set; }
+    }
+
+    public class SpecData
+    {
+        public string SpecCode { get; set; }
+        public string Genus { get; set; }
+        public string Species { get; set; }
+        public string SpeciesRefNo { get; set; }
+        public string Author { get; set; }
+        public string FBname { get; set; }
+
+        public string FamCode { get; set; }
+        public string GenCode { get; set; }
+        public string SubGenCode { get; set; }
+
+        public string Remark { get; set; }
+        public string SubFamily { get; set; }
+        public string Family { get; set; }
+        public string Order { get; set; }
+        public string Class { get; set; }
+    }
+
+    public class ResultQueryAPI
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; }
+
+        public SpeciesDetail SpeciesDetail { get; set; }
+    }
+
+    public class FishSpeciesViewModel
+    {
+        private static HttpClient client = new HttpClient();
+        public ObservableCollection<FishSpecies> SpeciesCollection { get; set; }
+        private FishSpeciesRepository Specieses { get; set; }
+
+        public FishSpeciesViewModel()
+        {
+            Specieses = new FishSpeciesRepository();
+            SpeciesCollection = new ObservableCollection<FishSpecies>(Specieses.Specieses);
+            SpeciesCollection.CollectionChanged += Species_CollectionChanged;
+        }
+
+        public int NextRecordNumber
+        {
+            get
+            {
+                if (SpeciesCollection.Count == 0)
+                {
+                    return 1;
+                }
+                else
+                {
+                    //return SpeciesCollection.Max(t => t.RowNumber) + 1;
+                    return Specieses.MaxRecordNumber() + 1;
+                }
+            }
+        }
+
+        public async Task<ResultQueryAPI> GetSpeciesDataFromAPI(FishSpecies sp, bool updateDatabase = false)
+        {
+            ResultQueryAPI rq;
+            if (sp.SpeciesCode != null)
+            {
+                rq = await GetSpeciesDetailEx(sp);
+            }
+            else
+            {
+                rq = await GetSpeciesDetail(sp);
+            }
+            if (updateDatabase)
+            {
+                sp.Importance = rq.SpeciesDetail.Importance;
+                if (sp.SpeciesCode == null)
+                {
+                    sp.Family = rq.SpeciesDetail.Family;
+                    sp.SpeciesCode = int.Parse(rq.SpeciesDetail.SpecCode);
+                }
+                sp.MainCatchingMethod = rq.SpeciesDetail.MainCatchingMethod;
+                if (double.TryParse(rq.SpeciesDetail.CommonLength, out double cl))
+                {
+                    sp.LengthCommon = cl;
+                }
+                if (double.TryParse(rq.SpeciesDetail.Length, out double l))
+                {
+                    sp.LengthMax = l;
+                }
+                if (rq.SpeciesDetail.LTypeMaxM != null)
+                {
+                    sp.LengthType = NSAPEntities.SizeTypeViewModel.GetSizeType(rq.SpeciesDetail.LTypeMaxM);
+                }
+                else if (rq.SpeciesDetail.LTypeMaxF != null)
+                {
+                    sp.LengthType = NSAPEntities.SizeTypeViewModel.GetSizeType(rq.SpeciesDetail.LTypeMaxF);
+                }
+                UpdateRecordInRepo(sp);
+            }
+            return rq;
+        }
+
+        public async Task<ResultQueryAPI> GetSpeciesDetailEx(FishSpecies sp)
+        {
+            ResponseSpeciesDetail specDetail;
+            try
+            {
+                var bytes = await client.GetByteArrayAsync($"https://fishbase.ropensci.org/species/{sp.SpeciesCode}?");
+                Encoding encoding = Encoding.GetEncoding("utf-8");
+                string response = encoding.GetString(bytes, 0, bytes.Length);
+                specDetail = JsonConvert.DeserializeObject<ResponseSpeciesDetail>(response);
+            }
+            catch (HttpRequestException hex)
+            {
+                return new ResultQueryAPI() { Success = false, Message = hex.Message, SpeciesDetail = null };
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+                return new ResultQueryAPI() { Success = false, Message = ex.Message, SpeciesDetail = null };
+            }
+            return new ResultQueryAPI() { Success = true, Message = "", SpeciesDetail = specDetail.Data[0] };
+        }
+
+        private static async Task<ResultQueryAPI> GetSpeciesDetail(FishSpecies sp)
+        {
+            ResponseSpeciesDetail specDetail;
+            try
+            {
+                var bytes = await client.GetByteArrayAsync($"https://fishbase.ropensci.org/taxa?Genus={sp.GenericName}&Species={sp.SpecificName}");
+                Encoding encoding = Encoding.GetEncoding("utf-8");
+                string response = encoding.GetString(bytes, 0, bytes.Length);
+                var specFromTaxa = JsonConvert.DeserializeObject<ResponseTaxa>(response);
+
+                bytes = await client.GetByteArrayAsync($"https://fishbase.ropensci.org/species/{specFromTaxa.Data[0].SpecCode}?");
+                encoding = Encoding.GetEncoding("utf-8");
+                response = encoding.GetString(bytes, 0, bytes.Length);
+                specDetail = JsonConvert.DeserializeObject<ResponseSpeciesDetail>(response);
+                specDetail.Data[0].Family = specFromTaxa.Data[0].Family;
+            }
+            catch (HttpRequestException hex)
+            {
+                return new ResultQueryAPI() { Success = false, Message = hex.Message, SpeciesDetail = null };
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+                return new ResultQueryAPI() { Success = false, Message = ex.Message, SpeciesDetail = null };
+            }
+            return new ResultQueryAPI() { Success = true, Message = "", SpeciesDetail = specDetail.Data[0] };
+        }
+
+        public List<FishSpecies> GetAllSpecies()
+        {
+            return SpeciesCollection.ToList();
+        }
+
+        public FishSpecies GetSpecies(int rowNo)
+        {
+            return SpeciesCollection.FirstOrDefault(n => n.SpeciesCode == rowNo);
+        }
+
+        private void Species_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            switch (e.Action)
+            {
+                case NotifyCollectionChangedAction.Add:
+                    {
+                        int newIndex = e.NewStartingIndex;
+                        Specieses.Add(SpeciesCollection[newIndex]);
+                    }
+                    break;
+
+                case NotifyCollectionChangedAction.Remove:
+                    {
+                        List<FishSpecies> tempListOfRemovedItems = e.OldItems.OfType<FishSpecies>().ToList();
+                        Specieses.Delete(tempListOfRemovedItems[0].RowNumber);
+                    }
+                    break;
+
+                case NotifyCollectionChangedAction.Replace:
+                    {
+                        List<FishSpecies> tempListOfFishers = e.NewItems.OfType<FishSpecies>().ToList();
+                        Specieses.Update(tempListOfFishers[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                    }
+                    break;
+            }
+        }
+
+        public int Count
+        {
+            get { return SpeciesCollection.Count; }
+        }
+
+        public void AddRecordToRepo(FishSpecies species)
+        {
+            if (species == null)
+                throw new ArgumentNullException("Error: The argument is Null");
+
+            SpeciesCollection.Add(species);
+        }
+
+        public void UpdateRecordInRepo(FishSpecies species)
+        {
+            if (species.RowNumber == 0)
+                throw new Exception("Error: ID cannot be null");
+
+            int index = 0;
+            while (index < SpeciesCollection.Count)
+            {
+                if (SpeciesCollection[index].RowNumber == species.RowNumber)
+                {
+                    SpeciesCollection[index] = species;
+                    break;
+                }
+                index++;
+            }
+        }
+
+        public void DeleteRecordFromRepo(int id)
+        {
+            if (id == 0)
+                throw new Exception("Record ID cannot be null");
+
+            int index = 0;
+            while (index < SpeciesCollection.Count)
+            {
+                if (SpeciesCollection[index].RowNumber == id)
+                {
+                    SpeciesCollection.RemoveAt(index);
+                    break;
+                }
+                index++;
+            }
+        }
+
+        public bool SpeciesNameExist(string genus, string species)
+        {
+            foreach (FishSpecies fs in SpeciesCollection)
+            {
+                if (fs.GenericName == genus && fs.SpecificName == species)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public EntityValidationResult ValidateFishSpecies(FishSpecies species, bool isNew, string oldGenus, string oldSpecies)
+        {
+            EntityValidationResult evr = new EntityValidationResult();
+
+            if (string.IsNullOrEmpty(species.SpecificName) || string.IsNullOrEmpty(species.GenericName))
+            {
+                evr.AddMessage("Generic and specific names must not be empty");
+            }
+            else if (isNew && SpeciesNameExist(species.GenericName, species.SpecificName))
+            {
+                evr.AddMessage("Species name already used");
+            }
+
+            if (species.Family == null)
+            {
+                evr.AddMessage("Family cannot be empty");
+            }
+
+            if (!isNew && species.GenericName.Length > 0 && species.SpecificName.Length > 0
+                && oldGenus != species.GenericName && oldSpecies != species.SpecificName
+                && SpeciesNameExist(oldGenus, oldSpecies))
+            {
+                evr.AddMessage("Species name already used");
+            }
+
+            return evr;
+        }
+    }
+}

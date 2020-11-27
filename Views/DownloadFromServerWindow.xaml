@@ -1,0 +1,94 @@
+﻿<Window x:Class="NSAP_ODK.Views.DownloadFromServerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NSAP_ODK.Views"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        mc:Ignorable="d"
+        Closing="OnFormClosing" Loaded="OnFormLoaded"
+        Title="DownloadFromServerWindow" Height="450" Width="800">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="150"/>
+        </Grid.ColumnDefinitions>
+        
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="50"/>
+            <RowDefinition/>
+            <RowDefinition Height="30"/>
+        </Grid.RowDefinitions>
+        <Label Content="Download submitted forms from server" VerticalAlignment="Center" Margin="10 0"/>
+        <StatusBar Grid.Row="4">
+            <ProgressBar Width="200" Height="18" VerticalAlignment="Center" x:Name="ProgressBar"/>
+            <Label x:Name="labelProgress" Margin="10 0 0 0" Height="25" Content="This is a progress bar label"/>
+        </StatusBar>
+        <WrapPanel Grid.Row="1" Orientation="Vertical">
+            <Label Content="User name" VerticalAlignment="Center" Margin="10 10"/>
+            <TextBox x:Name="TextBoxUserName" VerticalAlignment="Center" Width="150" Margin="10 10" Height="25"/>
+            <Label Content="Password" VerticalAlignment="Center" Margin="10 10"/>
+            <!--<TextBox x:Name="TextBoxPassword" VerticalAlignment="Center" Width="150" Margin="10 10" Height="25"/>-->
+            <PasswordBox x:Name="TextBoxPassword" VerticalAlignment="Center" Width="150" Margin="10 10" Height="25"/>
+        </WrapPanel>
+            <Button Grid.Row="2" Width="100" Margin="10" Content="Login" x:Name="ButtonLogin" Click="OnButtonClick" Height="25"/>
+        <StackPanel Grid.Column="1" Grid.Row="1" Grid.RowSpan="4">
+            <Button Content="Close" Height="25" Width="100" x:Name="ButtonClose" Click="OnButtonClick" Margin="10" />
+        </StackPanel>
+        <Border BorderBrush="Gray" BorderThickness="1" Grid.Row="3" Margin="2">
+            <Grid Grid.Row="3" x:Name="GridGrids">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="150" />
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <TreeView x:Name="treeForms" SelectedItemChanged="OnTreeItemChanged" Margin="5"/>
+                <xctk:PropertyGrid  x:Name="propertyGrid" Grid.Column="1" Margin="5" ShowSearchBox="False" ShowSortOptions="False" ShowTitle="False" ShowSummary="False" Visibility="Collapsed"/>
+                <DataGrid Grid.Column="1" x:Name="dataGrid" Margin="5" ItemsSource="{Binding}" Visibility="Collapsed"/>
+                <Grid Grid.Column="1" Margin="5" x:Name="gridDownload" Visibility="Visible">
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition Height="40"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel x:Name="stackPanelDownload">
+                        <WrapPanel>
+                            <Label Content="Download option" Margin="10,5"/>
+                            <ComboBox Width="200" Margin="10 5" SelectionChanged="OnComboSelectionChanged" x:Name="comboboxDownloadOption">
+                                <ComboBoxItem Content="Excel file" Tag="excel"/>
+                                <ComboBoxItem Content="Database query" Tag="json"/>
+                            </ComboBox>
+                        </WrapPanel>
+                        <StackPanel x:Name="stackPanelJSON" CanVerticallyScroll="True">
+                            <RadioButton Content="Download all submissions" Margin="10 5" Checked="OnButtonChecked" Tag="all" x:Name="rbAll"/>
+                            <RadioButton Content="Get all not downloaded" Margin="10 5"  Checked="OnButtonChecked" Tag="all_not_downloaded"/>
+                            <RadioButton Content="Specify date range" Margin="10 5"  Checked="OnButtonChecked" Tag="specify_date_range"/>
+                            <WrapPanel x:Name="panelDateRange">
+                                <Label Content="Start:" Margin="10 5"/>
+                                <xctk:DateTimePicker x:Name="dateStart" Width="150" Margin="5 7" TimePickerVisibility="Collapsed" Format="ShortDate"/>
+                                <Label Content="End:" Margin="30 5 5 5"/>
+                                <xctk:DateTimePicker x:Name="dateEnd" Width="150" Margin="5 7" TimePickerVisibility="Collapsed" Format="ShortDate"/>
+                            </WrapPanel>
+                            <RadioButton Content="Specify start date with a limit to number of records returned" Margin="10 5" Checked="OnButtonChecked" Tag="specify_range_records"/>
+                            <WrapPanel x:Name="panelStartDateRecords">
+                                <Label Content="Start:" Margin="10 5"/>
+                                <xctk:DateTimePicker x:Name="dateStart2" Width="150" Margin="5 7" TimePickerVisibility="Collapsed" Format="ShortDate"/>
+                                <Label Content="Limit:" Margin="30 5 5 5"/>
+                                <TextBox Width="50" Margin="5 7" x:Name="TextBoxLimit"/>
+                            </WrapPanel>
+                            <CheckBox Content="Filter by user name" x:Name="CheckFilterUser" Margin="10 10" Checked="OnCheckStateChange" Unchecked="OnCheckStateChange"/>
+                            <WrapPanel x:Name="panelFilterByUser">
+                                <Label Content="User name:" Margin="30 5 5 5"/>
+                                <ComboBox Width="200" Margin="5 7" x:Name="ComboUser"/>
+                            </WrapPanel>
+                            <CheckBox Content="Limit to tracked operations" x:Name="CheckLimitoTracked" Margin="10 10" Checked="OnCheckStateChange" Unchecked="OnCheckStateChange"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <Button Grid.Row="1" Content="Download" Width="100" Height="25" x:Name="ButtonDownload" Click="OnButtonClick"/>
+                </Grid>
+
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

@@ -1,0 +1,48 @@
+﻿<Window x:Class="NSAP_ODK.Views.SelectRegionWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NSAP_ODK.Views"
+        mc:Ignorable="d"
+        Closing="ClosingTrigger"
+        Title="SelectRegionWindow" Height="496.324" Width="634.559">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="4*"/>
+
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Label Content="Select one or more regions" VerticalAlignment="Center"/>
+        <StackPanel Grid.Row="2" Grid.Column="0" x:Name="PanelSelectRegion">
+            <CheckBox Content="Region 1 - Ilocos" Margin="50 5 5 5" x:Name="r1"/>
+            <CheckBox Content="Region 2 - Cagayan Valley" Margin="50 5 5 5" x:Name="r2"/>
+            <CheckBox Content="Region 3 - Central Luzon" Margin="50 5 5 5" x:Name="r3"/>
+            <CheckBox Content="Region 4a - CALABARZON" Margin="50 5 5 5" x:Name="r4a"/>
+            <CheckBox Content="Region 4b - MIMAROPA" Margin="50 5 5 5" x:Name="r4b"/>
+            <CheckBox Content="Region 5 - Bicol" Margin="50 5 5 5" x:Name="r5"/>
+            <CheckBox Content="Region 6 - Western Visayas" Margin="50 5 5 5" x:Name="r6"/>
+            <CheckBox Content="Region 7 - Central Visayas" Margin="50 5 5 5" x:Name="r7"/>
+            <CheckBox Content="Region 8 - Eastern Visayas" Margin="50 5 5 5" x:Name="r8"/>
+            <CheckBox Content="Region 9 - Zamboanga Peninsula" Margin="50 5 5 5" x:Name="r9"/>
+            <CheckBox Content="Region 10 - Northern Mindanao" Margin="50 5 5 5" x:Name="r10"/>
+            <CheckBox Content="Region 11 - Davao" Margin="50 5 5 5" x:Name="r11"/>
+            <CheckBox Content="Region 12 - Soccsksargen" Margin="50 5 5 5" x:Name="r12"/>
+            <CheckBox Content="Region 13 - Caraga " Margin="50 5 5 5" x:Name="r13"/>
+            <CheckBox Content="BARMM - Bangsamoro Autonomous Region in Muslim Mindanao" Margin="50 5 5 5" x:Name="rBARMM"/>
+        </StackPanel>
+        <StackPanel Grid.Row="2" Grid.Column="2">
+            <Button Content="Ok" Height="30" Margin="20,10,15,10" x:Name="ButtonOk" Click="OnButtoClicked"/>
+            <Button Content="Cancel" Height="30" Margin="20,5,15,10" x:Name="ButtonCancel" Click="OnButtoClicked"/>
+            <Button Content="Select all" Height="30" Margin="20,25,15,10" x:Name="ButtonSelectAll" Click="OnButtoClicked"/>
+            <Button Content="Select none" Height="30" Margin="20,5,15,10" x:Name="ButtonSelectNone" Click="OnButtoClicked"/>
+        </StackPanel>
+        
+
+
+    </Grid>
+</Window>

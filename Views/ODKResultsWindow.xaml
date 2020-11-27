@@ -1,0 +1,67 @@
+﻿<Window x:Class="NSAP_ODK.Views.ODKResultsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NSAP_ODK.Views"
+        Closing="OnWindowClosing"
+        mc:Ignorable="d" Loaded="OnWindowLoaded"
+        Title="ODKResultsWindow" Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition/>
+            <RowDefinition Height="30"/>
+        </Grid.RowDefinitions>
+        <Menu VerticalAlignment="Center">
+            <MenuItem Header="File" x:Name="menuFileHeader" >
+                <MenuItem Header="Download from server" x:Name="menuDownloadFromServer" Click="OnMenuClick"/>
+                <MenuItem Header="Import ODK excel" x:Name="menuImport" Click="OnMenuClick"/>
+                <MenuItem Header="Test" x:Name="menuTest" Click="OnMenuClick"/>
+                <Separator/>
+                <MenuItem Header="Upload to database" x:Name="menuUpload" Click="OnMenuClick"/>
+                <MenuItem Header="Save to Excel" x:Name="menuSaveToExcel" Click="OnMenuClick" Visibility="Collapsed"/>
+                <Separator/>
+                <MenuItem Header="Clear tables" x:Name="menuClearTables" Click="OnMenuClick" Visibility="Collapsed"/>
+                <MenuItem Header="Close" x:Name="menuClose" Click="OnMenuClick"/>
+            </MenuItem>
+            <MenuItem Header="View" x:Name="menuView">
+                <MenuItem Header="Effort" x:Name="menuViewEffort"  IsCheckable="True" Checked="OnMenuItemChecked" Tag="effort"/>
+                <MenuItem Header="Fishing ground grid" x:Name="menuViewGrid"  IsCheckable="True" Checked="OnMenuItemChecked"  Tag="grid"/>
+                <MenuItem Header="Soak time" x:Name="menuViewSoakTime"  IsCheckable="True" Checked="OnMenuItemChecked" Tag="soakTime"/>
+                <MenuItem Header="Effort specifications" x:Name="menuViewEffortSpecs"  IsCheckable="True" Checked="OnMenuItemChecked" Tag="effortSpecs"/>
+                <MenuItem Header="Catch composition" x:Name="menuViewCatchComposition"  IsCheckable="True" Checked="OnMenuItemChecked" Tag="catchComposition"/>
+                <MenuItem Header="Lengths" x:Name="menuViewLengths"  IsCheckable="True" Checked="OnMenuItemChecked" Tag="lengths"/>
+                <MenuItem Header="Length-Weight" x:Name="menuViewLengthWeights"  IsCheckable="True" Checked="OnMenuItemChecked" Tag="lengthWeight"/>
+                <MenuItem Header="Length frequency" x:Name="menuViewLengthFreq"  IsCheckable="True" Checked="OnMenuItemChecked" Tag="lengthFreq"/>
+                <MenuItem Header="Length, weight, sex and GMS" x:Name="menuViewGMS"  IsCheckable="True" Checked="OnMenuItemChecked" Tag="gms"/>
+                <Separator/>
+                <MenuItem Header="Duplicated effort specifications" x:Name="menuDuplicatedEffortSpecs"  IsCheckable="True" Checked="OnMenuItemChecked" Tag="duplicatedEffort" IsEnabled="False"/>
+                <MenuItem Header="Duplicated catch composition" x:Name="menuDuplicatedCatchComp"  IsCheckable="True" Checked="OnMenuItemChecked" Tag="duplicatedCatchComp" IsEnabled="False"/>
+                <MenuItem Header="Duplicated length frequency" x:Name="menuDuplicatedLF"  IsCheckable="True" Checked="OnMenuItemChecked" Tag="duplicatedLenFreq" IsEnabled="False"/>
+            </MenuItem>
+        </Menu>
+        <DataGrid x:Name="dataGridExcel" RowHeaderWidth="NaN" Grid.Row="1" ItemsSource="{Binding}" AutoGenerateColumns="False" 
+                  IsReadOnly="True" SelectionChanged="OnDataGridSelectionChanged" LoadingRow="OnDataGridLoadingRow">
+            <DataGrid.CellStyle>
+                <Style TargetType="DataGridCell">
+                    <Setter Property="Padding" Value="3" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type DataGridCell}">
+                                <Border Padding="{TemplateBinding Padding}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                                    <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </DataGrid.CellStyle>
+        </DataGrid>
+        <StatusBar x:Name="statusBar" Grid.Row="2">
+            <ProgressBar Width="200" Height="18" x:Name="progressBar"/>
+            <Label x:Name="labelProgress" Margin="10 0 0 0" Height="25" Content="This is a progress bar label"/>
+            <Label x:Name="labelDuplicated" Margin="10 0 0 0" Height="25" Content="This is a progress bar label"/>
+        </StatusBar> 
+    </Grid>
+</Window>

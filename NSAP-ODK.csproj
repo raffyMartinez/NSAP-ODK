@@ -1,0 +1,430 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{8054761F-F78F-4E3F-A177-85263E70FFF8}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>NSAP_ODK</RootNamespace>
+    <AssemblyName>NSAP-ODK</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="BouncyCastle.Crypto, Version=1.8.6.0, Culture=neutral, PublicKeyToken=0e99375e54769942, processorArchitecture=MSIL">
+      <HintPath>packages\Portable.BouncyCastle.1.8.6\lib\net40\BouncyCastle.Crypto.dll</HintPath>
+    </Reference>
+    <Reference Include="ClosedXML">
+      <HintPath>..\..\..\FAD3\bin\Debug\ClosedXML.dll</HintPath>
+    </Reference>
+    <Reference Include="DocumentFormat.OpenXml, Version=2.7.2.0, Culture=neutral, PublicKeyToken=8fb06cb64d019a17, processorArchitecture=MSIL">
+      <HintPath>packages\DocumentFormat.OpenXml.2.7.2\lib\net46\DocumentFormat.OpenXml.dll</HintPath>
+    </Reference>
+    <Reference Include="ExcelNumberFormat, Version=1.0.10.0, Culture=neutral, PublicKeyToken=23c6f5d73be07eca, processorArchitecture=MSIL">
+      <HintPath>packages\ExcelNumberFormat.1.0.10\lib\net20\ExcelNumberFormat.dll</HintPath>
+    </Reference>
+    <Reference Include="FastMember, Version=1.5.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\FastMember.1.5.0\lib\net461\FastMember.dll</HintPath>
+    </Reference>
+    <Reference Include="Gavaghan.Geodesy">
+      <HintPath>Entities\gpx\3rdParty\Gavaghan.Geodesy.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.SharpZipLib, Version=1.2.0.246, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
+      <HintPath>packages\SharpZipLib.1.2.0\lib\net45\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="NPOI, Version=2.5.1.0, Culture=neutral, PublicKeyToken=0df73ec7942b34e1, processorArchitecture=MSIL">
+      <HintPath>packages\NPOI.2.5.1\lib\net45\NPOI.dll</HintPath>
+    </Reference>
+    <Reference Include="Npoi.Mapper, Version=3.5.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Npoi.Mapper.3.5.0\lib\net45\Npoi.Mapper.dll</HintPath>
+    </Reference>
+    <Reference Include="NPOI.OOXML, Version=2.5.1.0, Culture=neutral, PublicKeyToken=0df73ec7942b34e1, processorArchitecture=MSIL">
+      <HintPath>packages\NPOI.2.5.1\lib\net45\NPOI.OOXML.dll</HintPath>
+    </Reference>
+    <Reference Include="NPOI.OpenXml4Net, Version=2.5.1.0, Culture=neutral, PublicKeyToken=0df73ec7942b34e1, processorArchitecture=MSIL">
+      <HintPath>packages\NPOI.2.5.1\lib\net45\NPOI.OpenXml4Net.dll</HintPath>
+    </Reference>
+    <Reference Include="NPOI.OpenXmlFormats, Version=2.5.1.0, Culture=neutral, PublicKeyToken=0df73ec7942b34e1, processorArchitecture=MSIL">
+      <HintPath>packages\NPOI.2.5.1\lib\net45\NPOI.OpenXmlFormats.dll</HintPath>
+    </Reference>
+    <Reference Include="Ookii.Dialogs.Wpf, Version=1.0.0.0, Culture=neutral, PublicKeyToken=66aa232afad40158, processorArchitecture=MSIL">
+      <HintPath>packages\Ookii.Dialogs.Wpf.1.1.0\lib\net45\Ookii.Dialogs.Wpf.dll</HintPath>
+    </Reference>
+    <Reference Include="RestSharp, Version=106.11.4.0, Culture=neutral, PublicKeyToken=598062e77f915f75, processorArchitecture=MSIL">
+      <HintPath>packages\RestSharp.106.11.4\lib\net452\RestSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Design" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.FileSystem.Primitives, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.IO.FileSystem.Primitives.4.0.1\lib\net46\System.IO.FileSystem.Primitives.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.IO.Packaging, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.IO.Packaging.4.0.0\lib\net46\System.IO.Packaging.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xaml">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="Xceed.Wpf.AvalonDock, Version=4.0.0.0, Culture=neutral, PublicKeyToken=3e4669d2f30244f4, processorArchitecture=MSIL">
+      <HintPath>packages\Extended.Wpf.Toolkit.4.0.1\lib\net40\Xceed.Wpf.AvalonDock.dll</HintPath>
+    </Reference>
+    <Reference Include="Xceed.Wpf.AvalonDock.Themes.Aero, Version=4.0.0.0, Culture=neutral, PublicKeyToken=3e4669d2f30244f4, processorArchitecture=MSIL">
+      <HintPath>packages\Extended.Wpf.Toolkit.4.0.1\lib\net40\Xceed.Wpf.AvalonDock.Themes.Aero.dll</HintPath>
+    </Reference>
+    <Reference Include="Xceed.Wpf.AvalonDock.Themes.Metro, Version=4.0.0.0, Culture=neutral, PublicKeyToken=3e4669d2f30244f4, processorArchitecture=MSIL">
+      <HintPath>packages\Extended.Wpf.Toolkit.4.0.1\lib\net40\Xceed.Wpf.AvalonDock.Themes.Metro.dll</HintPath>
+    </Reference>
+    <Reference Include="Xceed.Wpf.AvalonDock.Themes.VS2010, Version=4.0.0.0, Culture=neutral, PublicKeyToken=3e4669d2f30244f4, processorArchitecture=MSIL">
+      <HintPath>packages\Extended.Wpf.Toolkit.4.0.1\lib\net40\Xceed.Wpf.AvalonDock.Themes.VS2010.dll</HintPath>
+    </Reference>
+    <Reference Include="Xceed.Wpf.Toolkit, Version=4.0.0.0, Culture=neutral, PublicKeyToken=3e4669d2f30244f4, processorArchitecture=MSIL">
+      <HintPath>packages\Extended.Wpf.Toolkit.4.0.1\lib\net40\Xceed.Wpf.Toolkit.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Compile Include="Entities\Database\CatchLenFreq.cs" />
+    <Compile Include="Entities\Database\CatchMaturityViewModel.cs" />
+    <Compile Include="Entities\Database\CatchMaturityRepository.cs" />
+    <Compile Include="Entities\Database\CatchLengthViewModel.cs" />
+    <Compile Include="Entities\Database\CatchLengthRepository.cs" />
+    <Compile Include="Entities\Database\CatchLengthWeightViewModel .cs" />
+    <Compile Include="Entities\Database\CatchLenWeightRepository.cs" />
+    <Compile Include="Entities\Database\CatchLenFreqRepository.cs" />
+    <Compile Include="Entities\Database\CatchLenFreqViewModel.cs" />
+    <Compile Include="Entities\Database\CatchLength.cs" />
+    <Compile Include="Entities\Database\CatchLengthWeight.cs" />
+    <Compile Include="Entities\Database\CatchMaturity.cs" />
+    <Compile Include="Entities\Database\DownloadFromServerEventArg.cs" />
+    <Compile Include="Entities\Database\EntitiesToDataTables.cs" />
+    <Compile Include="Entities\Database\FishingCalendarViewModel.cs" />
+    <Compile Include="Entities\Database\FishingGroundGrid.cs" />
+    <Compile Include="Entities\Database\FishingGroundGridRepository.cs" />
+    <Compile Include="Entities\Database\FishingGroundGridViewModel.cs" />
+    <Compile Include="Entities\Database\GearSoak.cs" />
+    <Compile Include="Entities\Database\GearSoakRepository.cs" />
+    <Compile Include="Entities\Database\GearSoakViewModel.cs" />
+    <Compile Include="Entities\Database\GearUnload.cs" />
+    <Compile Include="Entities\Database\GearUnloadRepository.cs" />
+    <Compile Include="Entities\Database\GearUnloadViewModel.cs" />
+    <Compile Include="Entities\Database\GPSItemsSource.cs" />
+    <Compile Include="Entities\Database\GPXparser\Track.cs" />
+    <Compile Include="Entities\Database\GPXparser\Waypoint.cs" />
+    <Compile Include="Entities\Database\LandingSiteSamplingViewModel.cs" />
+    <Compile Include="Entities\Database\DownloadToDatabaseHistory.cs" />
+    <Compile Include="Entities\Database\UploadToDbEventArg.cs" />
+    <Compile Include="Entities\Database\VesselCatch.cs" />
+    <Compile Include="Entities\Database\VesselCatchRepository.cs" />
+    <Compile Include="Entities\Database\VesselCatchViewModel.cs" />
+    <Compile Include="Entities\Database\VesselEffort.cs" />
+    <Compile Include="Entities\Database\VesselEffortRepository.cs" />
+    <Compile Include="Entities\Database\VesselEffortViewModel.cs" />
+    <Compile Include="Entities\Database\VesselUnload.cs" />
+    <Compile Include="Entities\Database\VesselUnloadRepository.cs" />
+    <Compile Include="Entities\Database\VesselUnloadServerRepository.cs" />
+    <Compile Include="Entities\Database\VesselUnloadViewModel.cs" />
+    <Compile Include="Entities\DateTimePickerWithTime.cs" />
+    <Compile Include="Entities\ExcelBingoGroup.cs" />
+    <Compile Include="Entities\ExcelCatchComposition.cs" />
+    <Compile Include="Entities\ExcelEffortRepeat.cs" />
+    <Compile Include="Entities\ExcelGMS.cs" />
+    <Compile Include="Entities\ExcelLenFreq.cs" />
+    <Compile Include="Entities\ExcelLengthList.cs" />
+    <Compile Include="Entities\ExcelLengthWeight.cs" />
+    <Compile Include="Entities\ExcelMainSheet.cs" />
+    <Compile Include="Entities\ExcelSoakTime.cs" />
+    <Compile Include="Entities\FishingVesselInRegionItemsSource.cs" />
+    <Compile Include="Entities\Grid25InlandLocationRepo.cs" />
+    <Compile Include="Entities\Grid25InlandLocationViewModel.cs" />
+    <Compile Include="Entities\Grid25InlandLocation.cs" />
+    <Compile Include="Entities\Database\LandingSiteSampling.cs" />
+    <Compile Include="Entities\Database\LandingSiteSamplingRepository.cs" />
+    <Compile Include="Entities\KoboForms.cs" />
+    <Compile Include="Entities\MajorGridFMA.cs" />
+    <Compile Include="Entities\MajorGridFMARepository.cs" />
+    <Compile Include="Entities\MajorGridFMAViewModel.cs" />
+    <Compile Include="Entities\RegionEnumeratorItemsSource.cs" />
+    <Compile Include="Entities\RegionLandingSiteItemsSource.cs" />
+    <Compile Include="Entities\SectorTypeItemsSource.cs" />
+    <Compile Include="Entities\SerializeGear.cs" />
+    <Compile Include="ISO_Classes\Coordinate.cs" />
+    <Compile Include="Entities\DateTimePickerEditor.cs" />
+    <Compile Include="Entities\EffortSpecification.cs" />
+    <Compile Include="Entities\EffortSpecificationItemsSource.cs" />
+    <Compile Include="Entities\EffortSpecificationRepository.cs" />
+    <Compile Include="Entities\EffortSpecificationViewModel.cs" />
+    <Compile Include="Entities\EffortValueTypeItemsSource.cs" />
+    <Compile Include="Entities\Engine.cs" />
+    <Compile Include="Entities\EngineRepository.cs" />
+    <Compile Include="Entities\EngineViewModel.cs" />
+    <Compile Include="Entities\EntityValidationMessage.cs" />
+    <Compile Include="Entities\EntityValidationResult.cs" />
+    <Compile Include="Entities\FishFamilyItemsSource.cs" />
+    <Compile Include="Entities\FishingGround.cs" />
+    <Compile Include="Entities\FishingGroundItemsSource.cs" />
+    <Compile Include="Entities\FishingGroundRepository.cs" />
+    <Compile Include="Entities\FishingGroundViewModel.cs" />
+    <Compile Include="Entities\FishingVessel.cs" />
+    <Compile Include="Entities\FishingVesselItemsSource.cs" />
+    <Compile Include="Entities\FishingVesselRepository.cs" />
+    <Compile Include="Entities\FishingVesselViewModel.cs" />
+    <Compile Include="Entities\FMA.cs" />
+    <Compile Include="Entities\FMAItemsSource.cs" />
+    <Compile Include="Entities\FMARepository.cs" />
+    <Compile Include="Entities\FMAViewModel.cs" />
+    <Compile Include="Entities\Gear.cs" />
+    <Compile Include="Entities\GearEffortSpecification.cs" />
+    <Compile Include="Entities\GearEffortSpecificationRepository.cs" />
+    <Compile Include="Entities\GearEffortSpecificationViewModel.cs" />
+    <Compile Include="Entities\GearItemsSource.cs" />
+    <Compile Include="Entities\GenericGearItemsSource.cs" />
+    <Compile Include="Entities\GearRepository.cs" />
+    <Compile Include="Entities\GearViewModel.cs" />
+    <Compile Include="Entities\GenerateCSV.cs" />
+    <Compile Include="Entities\GPS.cs" />
+    <Compile Include="Entities\GPSRepository.cs" />
+    <Compile Include="Entities\GPSViewModel.cs" />
+    <Compile Include="Entities\Grid25GridCell.cs" />
+    <Compile Include="Entities\Grid25SubGrid.cs" />
+    <Compile Include="Entities\ImportanceItemsSource.cs" />
+    <Compile Include="Entities\LandingSite.cs" />
+    <Compile Include="Entities\LandingSiteEdit.cs" />
+    <Compile Include="Entities\LandingSiteItemsSource.cs" />
+    <Compile Include="Entities\LandingSiteMunicipalityItemsSource.cs" />
+    <Compile Include="Entities\LandingSiteProvinceItemsSource.cs" />
+    <Compile Include="Entities\LandingSiteRepository.cs" />
+    <Compile Include="Entities\LandingSiteViewModel.cs" />
+    <Compile Include="Entities\MainCatchingMethodItemsSource.cs" />
+    <Compile Include="Entities\Municipality.cs" />
+    <Compile Include="Entities\MunicipalityItemsSource.cs" />
+    <Compile Include="Entities\MunicipalityRepository.cs" />
+    <Compile Include="Entities\MunicipalityViewModel.cs" />
+    <Compile Include="Entities\NotFishSpeciesViewModel.cs" />
+    <Compile Include="Entities\NSAPEntities.cs" />
+    <Compile Include="Entities\NSAPEnumerator.cs" />
+    <Compile Include="Entities\NSAPEnumeratorItemsSource.cs" />
+    <Compile Include="Entities\NSAPEnumeratorRepository.cs" />
+    <Compile Include="Entities\NSAPEnumeratorViewModel.cs" />
+    <Compile Include="Entities\NSAPRegion.cs" />
+    <Compile Include="Entities\NSAPRegionEdit.cs" />
+    <Compile Include="Entities\NSAPRegionEnumerator.cs" />
+    <Compile Include="Entities\NSAPRegionFMAFishingGround.cs" />
+    <Compile Include="Entities\NSAPRegionFishingVessel.cs" />
+    <Compile Include="Entities\NSAPRegionFMA.cs" />
+    <Compile Include="Entities\NSAPRegionFMAFishingGroundLandingSiteEdit.cs" />
+    <Compile Include="Entities\NSAPRegionGear.cs" />
+    <Compile Include="Entities\NSAPRegionFMAFishingGroundLandingSite.cs" />
+    <Compile Include="Entities\NSAPRegionRepository.cs" />
+    <Compile Include="Entities\NSAPRegionViewModel.cs" />
+    <Compile Include="Entities\NSAPRegionWithEntitiesRepository.cs" />
+    <Compile Include="Entities\Province.cs" />
+    <Compile Include="Entities\ProvinceEventHandler.cs" />
+    <Compile Include="Entities\ProvinceItemsSource.cs" />
+    <Compile Include="Entities\ProvinceRepository.cs" />
+    <Compile Include="Entities\ProvinceViewModel.cs" />
+    <Compile Include="Entities\SizeType.cs" />
+    <Compile Include="Entities\SizeTypeItemsSource.cs" />
+    <Compile Include="Entities\SizeTypeRepository.cs" />
+    <Compile Include="Entities\SizeTypeViewModel.cs" />
+    <Compile Include="Entities\SpeciesMultiTaxa.cs" />
+    <Compile Include="Entities\SpeciesMultiTaxaRepository.cs" />
+    <Compile Include="Entities\SpeciesMultiTaxaViewModel.cs" />
+    <Compile Include="Entities\NotFishSpecies.cs" />
+    <Compile Include="Entities\NotFishSpeciesRepository.cs" />
+    <Compile Include="Entities\Taxa.cs" />
+    <Compile Include="Entities\TaxaItemsSource.cs" />
+    <Compile Include="Entities\TaxaRepository.cs" />
+    <Compile Include="Entities\TaxaViewModel.cs" />
+    <Compile Include="Entities\UTMCoordinate.cs" />
+    <Compile Include="Entities\UTMZone.cs" />
+    <Compile Include="Oware\LatLngUTMConverter.cs" />
+    <Compile Include="Utilities\Settings.cs" />
+    <Compile Include="TreeViewModelControl\AllSamplingEntitiesEventHandler.cs" />
+    <Compile Include="TreeViewModelControl\TreeControl.xaml.cs">
+      <DependentUpon>TreeControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="TreeViewModelControl\TreeViewItemViewModel.cs" />
+    <Compile Include="TreeViewModelControl\tv_FishingGroundViewModel.cs" />
+    <Compile Include="TreeViewModelControl\tv_FMAViewModel.cs" />
+    <Compile Include="TreeViewModelControl\tv_LandingSiteViewModel.cs" />
+    <Compile Include="TreeViewModelControl\tv_MonthViewModel.cs" />
+    <Compile Include="TreeViewModelControl\tv_NSAPRegionViewModel.cs" />
+    <Compile Include="TreeViewModelControl\tv_NSAPViewModel.cs" />
+    <Compile Include="Utilities\ExportExcel.cs" />
+    <Compile Include="Utilities\Global.cs" />
+    <Compile Include="Utilities\ImportExcel.cs" />
+    <Compile Include="Utilities\Logger.cs" />
+    <Compile Include="Utilities\ObjectShredder.cs" />
+    <Compile Include="Utilities\SerializeWindowState.cs" />
+    <Compile Include="Utilities\VesselLandingFixDownload.cs" />
+    <Compile Include="Views\CSVOptionsWindow.xaml.cs">
+      <DependentUpon>CSVOptionsWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DownloadFromServerWindow.xaml.cs">
+      <DependentUpon>DownloadFromServerWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\EditGearUnloadByRegionFMAWIndow.xaml.cs">
+      <DependentUpon>EditGearUnloadByRegionFMAWIndow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\EditWindowEx.xaml.cs">
+      <DependentUpon>EditWindowEx.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\EntityPropertyEnableWindow.xaml.cs">
+      <DependentUpon>EntityPropertyEnableWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\GearUnloadWindow.xaml.cs">
+      <DependentUpon>GearUnloadWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ODKResultsWindow.xaml.cs">
+      <DependentUpon>ODKResultsWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\QueryAPIWIndow.xaml.cs">
+      <DependentUpon>QueryAPIWIndow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\SelectRegionWindow.xaml.cs">
+      <DependentUpon>SelectRegionWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\SplashWindow.xaml.cs">
+      <DependentUpon>SplashWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\VesselUnloadWIndow.xaml.cs">
+      <DependentUpon>VesselUnloadWIndow.xaml</DependentUpon>
+    </Compile>
+    <Page Include="MainWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Entities\FishSpecies.cs" />
+    <Compile Include="Entities\FishSpeciesRepository.cs" />
+    <Compile Include="Entities\FishSpeciesViewModel.cs" />
+    <Compile Include="MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Page Include="TreeViewModelControl\TreeControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\CSVOptionsWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\DownloadFromServerWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\EditGearUnloadByRegionFMAWIndow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\EditWindowEx.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\EntityPropertyEnableWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\GearUnloadWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ODKResultsWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\QueryAPIWIndow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\SelectRegionWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\SplashWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\VesselUnloadWIndow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

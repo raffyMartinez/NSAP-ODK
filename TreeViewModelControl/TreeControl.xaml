@@ -1,0 +1,87 @@
+﻿<UserControl x:Class="NSAP_ODK.TreeViewModelControl.TreeControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:NSAP_ODK.TreeViewModelControl"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800"
+             x:Name="treeControl"
+             Loaded="Tree_Loaded">
+    <DockPanel MinWidth="200">
+        <TreeView ItemsSource="{Binding Regions}" SelectedItemChanged="TreeSelectedItem_Changed" BorderThickness="0" x:Name="treeView">
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="{x:Type TreeViewItem}">
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+                    <Setter Property="FontWeight" Value="Normal"/>
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="FontWeight" Value="Bold"/>
+                        </Trigger>
+
+                    </Style.Triggers>
+                </Style>
+            </TreeView.ItemContainerStyle>
+
+
+            
+            <TreeView.Resources>
+                <HierarchicalDataTemplate 
+                    DataType="{x:Type local:tv_NSAPRegionViewModel}" 
+                    ItemsSource="{Binding Children}">
+
+                    <StackPanel Orientation="Horizontal">
+                        <!-- <Image Width="16" Height="16" Margin="3,0" Source="Images\Region.png" /> -->
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+
+                <HierarchicalDataTemplate 
+                    DataType="{x:Type local:tv_FMAViewModel}" 
+                    ItemsSource="{Binding Children}">
+
+                    <StackPanel Orientation="Horizontal">
+                        <!-- <Image Width="16" Height="16" Margin="3,0" Source="Images\Region.png" /> -->
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+
+                <HierarchicalDataTemplate 
+                    DataType="{x:Type local:tv_FishingGroundViewModel}" 
+                    ItemsSource="{Binding Children}">
+
+                    <StackPanel Orientation="Horizontal">
+                        <StackPanel.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Edit gear unload" Click="OnContextMenuClick"/>
+                            </ContextMenu>
+                        </StackPanel.ContextMenu>
+                        <!-- <Image Width="16" Height="16" Margin="3,0" Source="Images\Region.png" /> -->
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+
+                <HierarchicalDataTemplate 
+                    DataType="{x:Type local:tv_LandingSiteViewModel}" 
+                    ItemsSource="{Binding Children}">
+
+                    <StackPanel Orientation="Horizontal">
+                        <!-- <Image Width="16" Height="16" Margin="3,0" Source="Images\Region.png" /> -->
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+
+                <DataTemplate 
+                    DataType="{x:Type local:tv_MonthViewModel}">
+
+                    <StackPanel Orientation="Horizontal">
+                        <!-- <Image Width="16" Height="16" Margin="3,0" Source="Images\Region.png" /> -->
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
+                </DataTemplate>
+
+            </TreeView.Resources>
+        </TreeView>
+    </DockPanel>
+</UserControl>

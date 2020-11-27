@@ -1,0 +1,36 @@
+﻿<Window x:Class="NSAP_ODK.Views.CSVOptionsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NSAP_ODK.Views"
+        ResizeMode="NoResize"
+        mc:Ignorable="d"
+        Title="CSVOptionsWindow" Height="239.338" Width="575">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="5*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <Label Content="Select type of csv to be generated" Margin="40,0,0,0" VerticalAlignment="Center"/>
+        <StackPanel Grid.Row="1">
+            
+            <RadioButton Content="Generate CSV for external selects" Margin="40 40 0 0" x:Name="radioExtSelect" Checked="OnRadioChecked"/>
+            <RadioButton Content="Generate CSV for external select from file" Margin="40 20 0 0" x:Name="radioExtSelectFile" Checked="OnRadioChecked"/>
+            <WrapPanel>
+                <Label Content="Select delimeter for names of location" Margin="80 5 0 0" VerticalAlignment="Center"/>
+                <TextBox x:Name="TxtDelimeter" Margin="5 5 0 0" Width="20" IsEnabled="False"/>
+            </WrapPanel>
+            
+        </StackPanel>
+        <StackPanel Grid.Row="1" Grid.Column="1">
+            <Button Content="OK" Height="30" Margin="10" Click="OnButtonClicked" x:Name="buttonOK"/>
+            <Button Content="Cancel" Height="30" Margin="10" Click="OnButtonClicked" x:Name="buttonCancel"/>
+        </StackPanel>
+        
+    </Grid>
+</Window>
