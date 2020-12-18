@@ -76,15 +76,15 @@
                 <MenuItem Header="Options for generating CSV" x:Name="menuOptionGenerateCSV" Click="OnMenuClicked" />
                 <Separator />
                 <MenuItem Header="itemsets csv" x:Name="menuGenerateItemSets" Click="OnMenuClicked" />
-                <MenuItem Header="gear csv" x:Name="menuGenerateGears" Click="OnMenuClicked" />
-                <MenuItem Header="species csv" x:Name="menuGenerateSpecies" Click="OnMenuClicked" />
-                <MenuItem Header="effortspec csv" x:Name="menuGenerateEffortSpec" Click="OnMenuClicked" />
-                <MenuItem Header="size indicators csv" x:Name="menuGenerateSizeIndicators" Click="OnMenuClicked" />
-                <MenuItem Header="vessel names csv" x:Name="menuGenerateVesselNames" Click="OnMenuClicked" />
+                <MenuItem Header="gear csv" x:Name="menuGenerateGears" Click="OnMenuClicked" Visibility="Collapsed"/>
+                <MenuItem Header="species csv" x:Name="menuGenerateSpecies" Click="OnMenuClicked" Visibility="Collapsed"/>
+                <MenuItem Header="effortspec csv" x:Name="menuGenerateEffortSpec" Click="OnMenuClicked" Visibility="Collapsed"/>
+                <MenuItem Header="size indicators csv" x:Name="menuGenerateSizeIndicators" Click="OnMenuClicked" Visibility="Collapsed"/>
+                <MenuItem Header="vessel names csv" x:Name="menuGenerateVesselNames" Click="OnMenuClicked" Visibility="Collapsed"/>
                 <MenuItem Header="fma code csv" x:Name="menuFMACode" Click="OnMenuClicked" Visibility="Collapsed" />
                 <MenuItem Header="fishing ground code csv" x:Name="menuFishingGroundCode" Click="OnMenuClicked" Visibility="Collapsed" />
-                <Separator />
-                <MenuItem Header="Generate all" x:Name="menuGenerateAll" Click="OnMenuClicked" />
+                <Separator Visibility="Collapsed"/>
+                <MenuItem Header="Generate" x:Name="menuGenerateAll" Click="OnMenuClicked" />
             </MenuItem>
 
             <MenuItem Header="_Help">

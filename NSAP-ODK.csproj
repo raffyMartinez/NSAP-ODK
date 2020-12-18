@@ -179,6 +179,7 @@
     <Compile Include="Entities\ExcelMainSheet.cs" />
     <Compile Include="Entities\ExcelSoakTime.cs" />
     <Compile Include="Entities\FishingVesselInRegionItemsSource.cs" />
+    <Compile Include="Entities\GenerateCSV.cs" />
     <Compile Include="Entities\Grid25InlandLocationRepo.cs" />
     <Compile Include="Entities\Grid25InlandLocationViewModel.cs" />
     <Compile Include="Entities\Grid25InlandLocation.cs" />
@@ -225,7 +226,6 @@
     <Compile Include="Entities\GenericGearItemsSource.cs" />
     <Compile Include="Entities\GearRepository.cs" />
     <Compile Include="Entities\GearViewModel.cs" />
-    <Compile Include="Entities\GenerateCSV.cs" />
     <Compile Include="Entities\GPS.cs" />
     <Compile Include="Entities\GPSRepository.cs" />
     <Compile Include="Entities\GPSViewModel.cs" />

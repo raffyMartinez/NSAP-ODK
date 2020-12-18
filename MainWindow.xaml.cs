@@ -1033,21 +1033,21 @@ namespace NSAP_ODK
                     qaw.ShowDialog();
                     break;
 
-                case "menuFishingGroundCode":
-                    if (SelectRegions() && GetCSVSaveLocationFromSaveAsDialog(out fileName, LogType.FishingGroundCode_csv))
-                    {
-                        Logger.FilePath = fileName;
-                        MessageBox.Show($"{ await GenerateCSV.GenerateFishingGroundCodeCSV()} items in fishing_ground_code.csv generated", "CSV file created", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
-                    break;
+                //case "menuFishingGroundCode":
+                //    if (SelectRegions() && GetCSVSaveLocationFromSaveAsDialog(out fileName, LogType.FishingGroundCode_csv))
+                //    {
+                //        Logger.FilePath = fileName;
+                //        MessageBox.Show($"{ await GenerateCSV.GenerateFishingGroundCodeCSV()} items in fishing_ground_code.csv generated", "CSV file created", MessageBoxButton.OK, MessageBoxImage.Information);
+                //    }
+                //    break;
 
-                case "menuFMACode":
-                    if (SelectRegions() && GetCSVSaveLocationFromSaveAsDialog(out fileName, LogType.FMACode_csv))
-                    {
-                        Logger.FilePath = fileName;
-                        MessageBox.Show($"{ await GenerateCSV.GenerateFMACodeCSV()} items in fma_code.csv generated", "CSV file created", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
-                    break;
+                //case "menuFMACode":
+                //    if (SelectRegions() && GetCSVSaveLocationFromSaveAsDialog(out fileName, LogType.FMACode_csv))
+                //    {
+                //        Logger.FilePath = fileName;
+                //        MessageBox.Show($"{ await GenerateCSV.GenerateFMACodeCSV()} items in fma_code.csv generated", "CSV file created", MessageBoxButton.OK, MessageBoxImage.Information);
+                //    }
+                //    break;
                 case "menuSelectRegions":
                     SelectRegions(resetList: true);
                     break;
@@ -1073,21 +1073,21 @@ namespace NSAP_ODK
                     }
                     break;
 
-                case "menuGenerateSizeIndicators":
-                    if (GetCSVSaveLocationFromSaveAsDialog(out fileName, LogType.SizeMeasure_csv))
-                    {
-                        Logger.FilePath = fileName;
-                        MessageBox.Show($"{ await GenerateCSV.GenerateSizeTypesCSV()} items in size_measures.csv generated", "CSV file created", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
-                    break;
+                //case "menuGenerateSizeIndicators":
+                //    if (GetCSVSaveLocationFromSaveAsDialog(out fileName, LogType.SizeMeasure_csv))
+                //    {
+                //        Logger.FilePath = fileName;
+                //        MessageBox.Show($"{ await GenerateCSV.GenerateSizeTypesCSV()} items in size_measures.csv generated", "CSV file created", MessageBoxButton.OK, MessageBoxImage.Information);
+                //    }
+                //    break;
 
-                case "menuGenerateEffortSpec":
-                    if (GetCSVSaveLocationFromSaveAsDialog(out fileName, LogType.EffortSpec_csv))
-                    {
-                        Logger.FilePath = fileName;
-                        MessageBox.Show($"{ await GenerateCSV.GenerateEffortSpecCSV()} items in effortspec.csv generated", "CSV file created", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
-                    break;
+                //case "menuGenerateEffortSpec":
+                //    if (GetCSVSaveLocationFromSaveAsDialog(out fileName, LogType.EffortSpec_csv))
+                //    {
+                //        Logger.FilePath = fileName;
+                //        MessageBox.Show($"{ await GenerateCSV.GenerateEffortSpecCSV()} items in effortspec.csv generated", "CSV file created", MessageBoxButton.OK, MessageBoxImage.Information);
+                //    }
+                //    break;
 
                 case "menuGenerateItemSets":
 
@@ -1098,32 +1098,32 @@ namespace NSAP_ODK
                     }
                     break;
 
-                case "menuGenerateGears":
-                    if (SelectRegions() && GetCSVSaveLocationFromSaveAsDialog(out fileName, LogType.Gear_csv))
-                    {
-                        Logger.FilePath = fileName;
-                        MessageBox.Show($"{await GenerateCSV.GenerateGearsCSV()} items in gear.csv generated", "CSV file created", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
-                    break;
+                //case "menuGenerateGears":
+                //    if (SelectRegions() && GetCSVSaveLocationFromSaveAsDialog(out fileName, LogType.Gear_csv))
+                //    {
+                //        Logger.FilePath = fileName;
+                //        MessageBox.Show($"{await GenerateCSV.GenerateGearsCSV()} items in gear.csv generated", "CSV file created", MessageBoxButton.OK, MessageBoxImage.Information);
+                //    }
+                //    break;
 
-                case "menuGenerateVesselNames":
+                //case "menuGenerateVesselNames":
 
-                    if (SelectRegions() && GetCSVSaveLocationFromSaveAsDialog(out fileName, LogType.VesselName_csv))
-                    {
-                        Dictionary<FisheriesSector, string> filePaths = new Dictionary<FisheriesSector, string>();
-                        filePaths.Add(FisheriesSector.Municipal, $"{System.IO.Path.GetDirectoryName(fileName)}\\vessel_name_municipal.csv");
-                        filePaths.Add(FisheriesSector.Commercial, $"{System.IO.Path.GetDirectoryName(fileName)}\\vessel_name_commercial.csv");
-                        MessageBox.Show($"{await GenerateCSV.GenerateFishingVesselNamesCSV(filePaths)} items in 2 vessel_name csvs generated", "CSV file created", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
-                    break;
+                //    if (SelectRegions() && GetCSVSaveLocationFromSaveAsDialog(out fileName, LogType.VesselName_csv))
+                //    {
+                //        Dictionary<FisheriesSector, string> filePaths = new Dictionary<FisheriesSector, string>();
+                //        filePaths.Add(FisheriesSector.Municipal, $"{System.IO.Path.GetDirectoryName(fileName)}\\vessel_name_municipal.csv");
+                //        filePaths.Add(FisheriesSector.Commercial, $"{System.IO.Path.GetDirectoryName(fileName)}\\vessel_name_commercial.csv");
+                //        MessageBox.Show($"{await GenerateCSV.GenerateFishingVesselNamesCSV(filePaths)} items in 2 vessel_name csvs generated", "CSV file created", MessageBoxButton.OK, MessageBoxImage.Information);
+                //    }
+                //    break;
 
-                case "menuGenerateSpecies":
-                    if (GetCSVSaveLocationFromSaveAsDialog(out fileName, LogType.Species_csv))
-                    {
-                        Logger.FilePath = fileName;
-                        MessageBox.Show($"{await GenerateCSV.GenerateMultiSpeciesCSV()} items in sp.csv generated", "CSV file created", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
-                    break;
+                //case "menuGenerateSpecies":
+                //    if (GetCSVSaveLocationFromSaveAsDialog(out fileName, LogType.Species_csv))
+                //    {
+                //        Logger.FilePath = fileName;
+                //        MessageBox.Show($"{await GenerateCSV.GenerateMultiSpeciesCSV()} items in sp.csv generated", "CSV file created", MessageBoxButton.OK, MessageBoxImage.Information);
+                //    }
+                    //break;
             }
         }
 

@@ -146,6 +146,7 @@ namespace NSAP_ODK.Entities
             }
         }
 
+        //private static async Task LogAsync(string s, string filePath = "")
         private static async Task LogAsync(string s, string filePath)
         {
             if (filePath!=null &&  filePath.Length > 0)
@@ -164,6 +165,13 @@ namespace NSAP_ODK.Entities
             { 
                 throw new ArgumentNullException("Error: filepath must be provided");
             }
+            //else
+            //{
+            //    using (StreamWriter writer = new StreamWriter(_fileName, true))
+            //    {
+            //        await writer.WriteLineAsync(s);
+            //    }
+            //}
         }
 
         public static async Task<int> GenerateFMAIDsCSV()
@@ -182,8 +190,11 @@ namespace NSAP_ODK.Entities
             }
             if (counter > 0)
             {
+                ////Logger.LogType = LogType.MajorGrid_csv;
+                //await Logger.LogAsync(sb.ToString(), _fileName);
                 await LogAsync(sb.ToString(), _fileName);
             }
+            ////Logger.LogType = LogType.Logfile;
             return counter;
         }
         public static async Task<int> GenerateMultiSpeciesCSV()
@@ -204,6 +215,7 @@ namespace NSAP_ODK.Entities
                     sb.AppendLine($"FIS,{fishspecies.SpeciesCode},\"{fishspecies.ToString()}\",{maxSize},{szType}");
                     counter++;
                 }
+                //await Logger.LogAsync(sb.ToString(), $"{_folderSaveLocation}\\fish_species.csv");
                 await LogAsync(sb.ToString(), $"{_folderSaveLocation}\\fish_species.csv");
                 FilesCount++;
 
@@ -217,6 +229,7 @@ namespace NSAP_ODK.Entities
                     sb.AppendLine($"{notFish.Taxa.Code},{notFish.SpeciesID},\"{notFish.ToString()}\",{maxSize},{szType}");
                     counter++;
                 }
+                //await Logger.LogAsync(sb.ToString(), $"{_folderSaveLocation}\\not_fish_species.csv");
                 await LogAsync(sb.ToString(), $"{_folderSaveLocation}\\not_fish_species.csv");
                 FilesCount++;
             }
@@ -233,10 +246,13 @@ namespace NSAP_ODK.Entities
                 }
                 if (counter > 0)
                 {
+                    ////Logger.LogType = LogType.Species_csv;
+                    //await Logger.LogAsync(sb.ToString(), _fileName);
                     await LogAsync(sb.ToString(), _fileName);
                     FilesCount++;
                 }
             }
+            ////Logger.LogType = LogType.Logfile;
             return counter;
         }
 
@@ -261,6 +277,7 @@ namespace NSAP_ODK.Entities
                         }
                     }
 
+                    //await Logger.LogAsync(sb.ToString(), fileName);
                     await LogAsync(sb.ToString(), fileName);
 
                     break;
@@ -279,10 +296,12 @@ namespace NSAP_ODK.Entities
                     }
 
 
+                    //await Logger.LogAsync(sb.ToString(), fileName);
                     await LogAsync(sb.ToString(), fileName);
 
                     break;
             }
+            //Logger.LogType = LogType.Logfile;
             return counter;
         }
         public static async Task<int> GenerateFishingVesselNamesCSV(Dictionary<FisheriesSector, string> filePaths)
@@ -311,6 +330,11 @@ namespace NSAP_ODK.Entities
                 }
 
             }
+
+
+
+            //Logger.LogType = LogType.InlandGridCells_csv;
+            //await Logger.LogAsync(sb.ToString(), $"{_folderSaveLocation}\\inlandgrids51N.csv");
             await LogAsync(sb.ToString(), $"{_folderSaveLocation}\\inlandgrids51N.csv");
 
 
@@ -326,7 +350,14 @@ namespace NSAP_ODK.Entities
                 }
 
             }
+
+
+            //Logger.LogType = LogType.InlandGridCells_csv;
+            //await Logger.LogAsync(sb.ToString(), $"{_folderSaveLocation}\\inlandgrids50N.csv");
             await LogAsync(sb.ToString(), $"{_folderSaveLocation}\\inlandgrids50N.csv");
+
+
+            //Logger.LogType = LogType.Logfile;
             return counter;
         }
 
@@ -360,6 +391,9 @@ namespace NSAP_ODK.Entities
                     }
                 }
             }
+
+            //Logger.LogType = LogType.MajorGrid_csv;
+            //await Logger.LogAsync(sb.ToString(), $"{_folderSaveLocation}\\majorgrid_fma_51N.csv");
             await LogAsync(sb.ToString(), $"{_folderSaveLocation}\\majorgrid_fma_51N.csv");
 
 
@@ -387,8 +421,31 @@ namespace NSAP_ODK.Entities
                     }
                 }
             }
+
+            //Logger.LogType = LogType.MajorGrid_csv;
+            //await Logger.LogAsync(sb.ToString(), $"{_folderSaveLocation}\\majorgrid_fma_50N.csv");
             await LogAsync(sb.ToString(), $"{_folderSaveLocation}\\majorgrid_fma_50N.csv");
 
+            //Logger.LogType = LogType.Logfile;
+            return counter;
+        }
+        public static async Task<int> GenerateFishSpeciesCSV()
+        {
+            int counter = 0;
+            StringBuilder sb = new StringBuilder("list_name,name_key,label_key,len_max\r\n");
+            foreach (var sp in NSAPEntities.FishSpeciesViewModel.SpeciesCollection)
+            {
+                double maxlen = sp.LengthMax == null ? -1 : (double)sp.LengthMax;
+                sb.AppendLine($"sp,{sp.SpeciesCode},\"{sp.GenericName} {sp.SpecificName}\",{maxlen}");
+                counter++;
+            }
+            if (counter > 0)
+            {
+                //Logger.LogType = LogType.Species_csv;
+                //await Logger.LogAsync(sb.ToString());
+                await LogAsync(sb.ToString(), _fileName);
+            }
+            //Logger.LogType = LogType.Logfile;
             return counter;
         }
 
@@ -403,8 +460,11 @@ namespace NSAP_ODK.Entities
             }
             if (counter > 0)
             {
+                //Logger.LogType = LogType.SizeMeasure_csv;
+                //await Logger.LogAsync(sb.ToString(), _fileName);
                 await LogAsync(sb.ToString(), _fileName);
             }
+            //Logger.LogType = LogType.Logfile;
             return counter;
         }
         public static async Task<int> GenerateGearsCSV()
@@ -422,11 +482,63 @@ namespace NSAP_ODK.Entities
             }
             if (counter > 0)
             {
+                //Logger.LogType = LogType.Gear_csv;
+                //await Logger.LogAsync(sb.ToString(), _fileName);
+                //await Logger.LogAsync(sb.ToString());
                 await LogAsync(sb.ToString(), _fileName);
             }
+            //Logger.LogType = LogType.Logfile;
             return counter;
         }
 
+        public static async Task<int> GenerateFishingGroundCodeCSV()
+        {
+            int counter = 0;
+            StringBuilder sb = new StringBuilder("name_key,code_key,fg_name_key\r\n");
+            foreach (var r in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection
+                .Where(t => NSAPEntities.Regions.Contains(t.Code)))
+            {
+                foreach (var fg in r.FMAs)
+                {
+                    foreach (var fgfma in fg.FishingGrounds)
+                    {
+                        sb.AppendLine($"{fgfma.RowID},\"{fgfma.FishingGroundCode}\",\"{fgfma.FishingGround.Name}\"");
+                    }
+                    counter++;
+                }
+            }
+            if (counter > 0)
+            {
+                //Logger.LogType = LogType.FishingGroundCode_csv;
+                //await Logger.LogAsync(sb.ToString(), _fileName);
+                await Logger.LogAsync(sb.ToString());
+            }
+            //Logger.LogType = LogType.Logfile;
+            return counter;
+        }
+
+        public static async Task<int> GenerateFMACodeCSV()
+        {
+            int counter = 0;
+            StringBuilder sb = new StringBuilder("name_key,label_key\r\n");
+            foreach (var r in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection
+                .Where(t => NSAPEntities.Regions.Contains(t.Code)))
+            {
+                foreach (var fma in r.FMAs)
+                {
+                    sb.AppendLine($"{fma.RowID},\"{fma.FMA.Name}\"");
+                    counter++;
+                }
+            }
+            if (counter > 0)
+            {
+                //Logger.LogType = LogType.FMACode_csv;
+                //await Logger.LogAsync(sb.ToString(), _fileName);
+                await Logger.LogAsync(sb.ToString());
+            }
+            //Logger.LogType = LogType.Logfile;
+            return counter;
+        }
 
         public static async Task<int> GenerateItemsetsCSVEX()
         {
@@ -447,6 +559,7 @@ namespace NSAP_ODK.Entities
                 }
 
             }
+            //await Logger.LogAsync(sb.ToString(), $"{_folderSaveLocation}\\fma_select.csv");
             await LogAsync(sb.ToString(), $"{_folderSaveLocation}\\fma_select.csv"); 
             FilesCount++;
 
@@ -465,6 +578,7 @@ namespace NSAP_ODK.Entities
                     }
                 }
             }
+            //await Logger.LogAsync(sb.ToString(), $"{_folderSaveLocation}\\fg_select.csv");
             await LogAsync(sb.ToString(), $"{_folderSaveLocation}\\fg_select.csv");
             FilesCount++;
 
@@ -494,6 +608,7 @@ namespace NSAP_ODK.Entities
                     }
                 }
             }
+            //await Logger.LogAsync(sb.ToString(), $"{_folderSaveLocation}\\ls_select.csv");
             await LogAsync(sb.ToString(), $"{_folderSaveLocation}\\ls_select.csv");
             FilesCount++;
 
@@ -508,6 +623,7 @@ namespace NSAP_ODK.Entities
                     counter++;
                 }
             }
+            //await Logger.LogAsync(sb.ToString(), $"{_folderSaveLocation}\\gear_select.csv");
             await LogAsync(sb.ToString(), $"{_folderSaveLocation}\\gear_select.csv");
             FilesCount++;
 
@@ -523,6 +639,7 @@ namespace NSAP_ODK.Entities
                     counter++;
                 }
             }
+            //await Logger.LogAsync(sb.ToString(), $"{_folderSaveLocation}\\enumerator_select.csv");
             await LogAsync(sb.ToString(), $"{_folderSaveLocation}\\enumerator_select.csv"); 
             FilesCount++;
 
@@ -543,6 +660,7 @@ namespace NSAP_ODK.Entities
                 sb.AppendLine($"effort_spec,{item.ID},{item.Name},_OT");
                 counter++;
             }
+            //await Logger.LogAsync(sb.ToString(), $"{_folderSaveLocation}\\effort_spec_select.csv");
             await LogAsync(sb.ToString(), $"{_folderSaveLocation}\\effort_spec_select.csv");
             FilesCount++;
 
@@ -554,6 +672,7 @@ namespace NSAP_ODK.Entities
                 sb.AppendLine($"gps,{gps.Code},{gps.AssignedName},gps");
                 counter++;
             }
+            //await Logger.LogAsync(sb.ToString(), $"{_folderSaveLocation}\\gps_select.csv");
             await LogAsync(sb.ToString(), $"{_folderSaveLocation}\\gps_select.csv");
             FilesCount++;
 
@@ -663,9 +782,12 @@ namespace NSAP_ODK.Entities
 
             if (counter > 0)
             {
+                //Logger.LogType = LogType.ItemSets_csv;
+                //await Logger.LogAsync(sb.ToString(), $"{_folderSaveLocation}\\itemsets.csv");
                 await LogAsync(sb.ToString(), $"{_folderSaveLocation}\\itemsets.csv");
             }
             FilesCount++;
+            //Logger.LogType = LogType.Logfile;
             return counter;
         }
         public static async Task<int> GenerateEffortSpecCSV()
@@ -698,10 +820,12 @@ namespace NSAP_ODK.Entities
             }
             if (counter > 0)
             {
+                //Logger.LogType = LogType.EffortSpec_csv;
+                //await Logger.LogAsync(sb.ToString(), _fileName);
                 await LogAsync(sb.ToString(), _fileName);
             }
+            //Logger.LogType = LogType.Logfile;
             return counter;
         }
     }
 }
-

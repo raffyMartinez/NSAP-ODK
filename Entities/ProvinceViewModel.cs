@@ -50,7 +50,8 @@ namespace NSAP_ODK.Entities
                 }
                 else
                 {
-                    return ProvinceCollection.Max(t => t.ProvinceID) + 1;
+                    //return ProvinceCollection.Max(t => t.ProvinceID) + 1;
+                    return Provinces.MaxRecordNumber() + 1;
                 }
             }
         }

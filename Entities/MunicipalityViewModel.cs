@@ -131,6 +131,22 @@ namespace NSAP_ODK.Entities
             }
         }
 
+        public int NextRecordNumber
+        {
+            get
+            {
+                if (MunicipalityCollection.Count == 0)
+                {
+                    return 1;
+                }
+                else
+                {
+                    //return ProvinceCollection.Max(t => t.ProvinceID) + 1;
+                    return Municipalities.MaxRecordNumber() + 1;
+                }
+            }
+        }
+
         public bool EntityValidated(Dictionary<string, string> formValues, out List<string> messages)
         {
             messages = new List<string>();

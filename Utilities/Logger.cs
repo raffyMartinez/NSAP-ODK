@@ -70,28 +70,28 @@ namespace NSAP_ODK.Utilities
         }
 
 
-        public static async Task LogAsync(string s, string filePath="")
-        {
-            if (filePath.Length>0)
-            {
-                if(File.Exists(filePath))
-                {
-                    File.Delete(filePath);
-                }
+        //public static async Task LogAsync(string s, string filePath="")
+        //{
+        //    if (filePath.Length>0)
+        //    {
+        //        if(File.Exists(filePath))
+        //        {
+        //            File.Delete(filePath);
+        //        }
 
-                using (StreamWriter writer = new StreamWriter(filePath, true))
-                {
-                    await writer.WriteLineAsync(s);
-                }
-            }
-            else
-            {
-                using (StreamWriter writer = new StreamWriter(_filepath, true))
-                {
-                    await writer.WriteLineAsync(s);
-                }
-            }
-        }
+        //        using (StreamWriter writer = new StreamWriter(filePath, true))
+        //        {
+        //            await writer.WriteLineAsync(s);
+        //        }
+        //    }
+        //    else
+        //    {
+        //        using (StreamWriter writer = new StreamWriter(_filepath, true))
+        //        {
+        //            await writer.WriteLineAsync(s);
+        //        }
+        //    }
+        //}
 
         public static void Log(string s, bool simpleLog = false)
         {
