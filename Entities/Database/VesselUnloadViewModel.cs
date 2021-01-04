@@ -26,6 +26,10 @@ namespace NSAP_ODK.Entities.Database
             return VesselUnloadCollection.ToList();
         }
 
+        public DateTime DateLatestDownload
+        {
+            get { return (DateTime)VesselUnloadCollection.OrderByDescending(t => t.DateAddedToDatabase).FirstOrDefault().DateAddedToDatabase; }
+        }
         public List<VesselUnloadTrackedFlattened> GetAllTrackedFlattenedItems()
         {
             return VesselUnloads.getTrackedFlattenedList();

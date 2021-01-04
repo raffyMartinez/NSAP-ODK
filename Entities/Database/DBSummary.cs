@@ -5,10 +5,25 @@ using System.Text;
 using System.Threading.Tasks;
 using NSAP_ODK.Utilities;
 using System.ComponentModel;
-
+using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
+using Xceed.Wpf.Toolkit;
 
 namespace NSAP_ODK.Entities.Database
 {
+    public enum SummaryLevelType
+    {
+        Overall,
+        Region,
+        FMA,
+        FishingGround,
+        RegionFishingGround,
+        RegionFMA,
+        FMAFishingGround
+    }
+
+    [CategoryOrder("Database", 1)]
+    [CategoryOrder("Lookup choices", 2)]
+    [CategoryOrder("Submitted fish landing data", 3)]
     public class DBSummary
     {
         public void Refresh()
@@ -31,6 +46,7 @@ namespace NSAP_ODK.Entities.Database
             FirstSampledLandingDate = NSAPEntities.VesselUnloadViewModel.DateOfFirstSampledLanding;
             LastSampledLandingDate = NSAPEntities.VesselUnloadViewModel.DateOfLastSampledLanding;
             CountCompleteGearUnload = NSAPEntities.GearUnloadViewModel.CountCompletedGearUnload;
+            DateLastDownload = NSAPEntities.VesselUnloadViewModel.DateLatestDownload;
         }
         public DBSummary()
         {
@@ -84,11 +100,22 @@ namespace NSAP_ODK.Entities.Database
         [ReadOnly(true)]
         public int TrackedOperationsCount { get; set; }
         [ReadOnly(true)]
+        [Editor(typeof(DateTimePickerEditor), typeof(DateTimePicker))]
         public DateTime FirstSampledLandingDate { get; set; }
         [ReadOnly(true)]
+        [Editor(typeof(DateTimePickerEditor), typeof(DateTimePicker))]
         public DateTime LastSampledLandingDate { get; set; }
         [ReadOnly(true)]
+
         public int CountCompleteGearUnload { get; set; }
+
+        [Editor(typeof(DateTimePickerEditor), typeof(DateTimePicker))]
+        [ReadOnly(true)]
+        public DateTime DateLastDownload { get; set; }
+
+        public string FirstLandingFormattedDate { get; set; }
+        public string LastLandingFormattedDate { get; set; }
+        public string LatestDownloadFormattedDate { get; set; }
 
 
     }

@@ -57,9 +57,9 @@
 
                 <Separator />
                 <MenuItem Header="Query API" x:Name="menuQueryAPI" Click="OnMenuClicked" />
-                
+
                 <Separator />
-                <MenuItem Header="Database summary" x:Name="menuDatabaseSummary"  IsCheckable="True" Checked="OnMenuItemChecked"/>                
+                <MenuItem Header="Database summary" x:Name="menuDatabaseSummary"  IsCheckable="True" Checked="OnMenuItemChecked"/>
             </MenuItem>
 
             <MenuItem Header="NSAP Data">
@@ -195,11 +195,43 @@
             </DataGrid>
         </Grid>
 
-        <StackPanel Grid.Row="6" x:Name="panelOpening">
-            <Label Content="Database summary" FontWeight="Bold" HorizontalAlignment="Center" Margin="0 10 0 20" FontSize="14"/>
-            <xctk:PropertyGrid x:Name="PropertyGridSummary" Margin="20" IsReadOnly="False" ShowSortOptions="False" ShowSearchBox="False"
-                ShowTitle="False" />
-       </StackPanel>
+        <Grid Grid.Row="6" Grid.ColumnSpan="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <TreeView x:Name="treeViewSummary" SelectedItemChanged="OnSummaryTreeItemChanged">
+                <TreeViewItem Header="Overall" x:Name="summaryTreeOverall"/>
+                <TreeViewItem Header="Region"/>
+                <TreeViewItem Header="FMA"/>
+                <TreeViewItem Header="Fishing ground"/>
+            </TreeView>
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Column="1">
+                <StackPanel  x:Name="panelOpening">
+                    <Label x:Name="labelSummary" Content="Database summary" FontWeight="Bold" HorizontalAlignment="Center" Margin="0 10 0 20" FontSize="14"/>
+                    <xctk:PropertyGrid x:Name="propertyGridSummary" Margin="20" IsReadOnly="False" ShowSortOptions="False" ShowSearchBox="False"
+                        ShowTitle="False" MouseDoubleClick="OnPropertyGridDblClick"   SelectedPropertyItemChanged="OnPropertyChanged"/>
+                    <DataGrid x:Name="dataGridSummary" Visibility="Collapsed" ItemsSource="{Binding}">
+                        <DataGrid.CellStyle>
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="Padding" Value="3" />
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="{x:Type DataGridCell}">
+                                            <Border Padding="{TemplateBinding Padding}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                                                <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </DataGrid.CellStyle>
+                    </DataGrid>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
 
         <StatusBar Grid.Row="7" Grid.ColumnSpan="2" Margin="0" >
             <Label Content="database path" Margin="5 0 0 0" Width="Auto" x:Name="dbPathLabel"/>

@@ -187,6 +187,7 @@
     <Compile Include="Entities\Database\LandingSiteSampling.cs" />
     <Compile Include="Entities\Database\LandingSiteSamplingRepository.cs" />
     <Compile Include="Entities\KoboForms.cs" />
+    <Compile Include="Entities\SummaryAtLevel.cs" />
     <Compile Include="Entities\MajorGridFMA.cs" />
     <Compile Include="Entities\MajorGridFMARepository.cs" />
     <Compile Include="Entities\MajorGridFMAViewModel.cs" />

@@ -3,17 +3,50 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using NSAP_ODK.Entities.Database;
 
 namespace NSAP_ODK.Entities
 {
     public class NSAPRegionViewModel
     {
+        public Dictionary<NSAPRegion, DBSummary> RegionSummaryDictionary { get; private set; }
         public ObservableCollection<NSAPRegion> NSAPRegionCollection { get; set; }
         private NSAPRegionRepository NSAPRegions { get; set; }
 
         public Dictionary<string, NSAPRegionWithEntitiesRepository> NSAPRegionsWithEntitiesRepositories { get; set; }
 
-
+        public void SetupSummary()
+        {
+            RegionSummaryDictionary = new Dictionary<NSAPRegion, DBSummary>();
+            foreach(var region in NSAPRegionCollection)
+            {
+                DBSummary smmry = new DBSummary();
+                smmry.FMACount = region.FMAs.Count(t => t.NSAPRegion.Code == region.Code);
+                foreach( var fma in region.FMAs.Where(t=>t.NSAPRegion.Code==region.Code))
+                {
+                    smmry.FishingGroundCount += fma.FishingGroundCount;
+                    foreach(var fg in fma.FishingGrounds )
+                    {
+                        smmry.LandingSiteCount += fg.LandingSiteCount;
+                    }
+                }
+                smmry.FishingGearCount = region.Gears.Count(t => t.NSAPRegion.Code == region.Code);
+                smmry.EnumeratorCount = region.NSAPEnumerators.Count(t => t.NSAPRegion.Code == region.Code);
+                smmry.FishingVesselCount = region.FishingVessels.Count(t => t.NSAPRegion.Code == region.Code);
+                int landings = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.Count(t => t.Parent.Parent.NSAPRegion.Code == region.Code);
+                smmry.VesselUnloadCount = landings;
+                if (landings > 0)
+                {
+                    smmry.LastLandingFormattedDate = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.OrderByDescending(t => t.SamplingDate).Where(t => t.Parent.Parent.NSAPRegion.Code == region.Code).FirstOrDefault().SamplingDate.ToString("MMM-dd-yyyy");
+                    smmry.FirstLandingFormattedDate = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.OrderBy(t => t.SamplingDate).Where(t => t.Parent.Parent.NSAPRegion.Code == region.Code).FirstOrDefault().SamplingDate.ToString("MMM-dd-yyyy");
+                    smmry.LatestDownloadFormattedDate = ((DateTime)NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.OrderByDescending(t => t.DateAddedToDatabase).Where(t => t.Parent.Parent.NSAPRegion.Code == region.Code).FirstOrDefault().DateAddedToDatabase).ToString("MMM-dd-yyyy");
+                    smmry.GearUnloadCount = NSAPEntities.GearUnloadViewModel.GearUnloadCollection.Count(t => t.Parent.NSAPRegion.Code == region.Code);
+                    smmry.CountCompleteGearUnload = NSAPEntities.GearUnloadViewModel.GearUnloadCollection.Count(t => t.Parent.NSAPRegion.Code == region.Code && t.Boats != null && t.Catch != null);
+                    smmry.TrackedOperationsCount = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.Count(t => t.Parent.Parent.NSAPRegion.Code == region.Code && t.OperationIsTracked == true);
+                }
+                RegionSummaryDictionary.Add(region, smmry);
+            }
+        }
         public NSAPRegionWithEntitiesRepository GetNSAPRegionWithEntitiesRepository(NSAPRegion nsapRegion)
         {
             return NSAPRegionsWithEntitiesRepositories[nsapRegion.Code];

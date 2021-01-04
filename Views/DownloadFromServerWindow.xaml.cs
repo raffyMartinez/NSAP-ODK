@@ -359,80 +359,84 @@ namespace NSAP_ODK.Views
             dataGrid.Visibility = Visibility.Collapsed;
             gridDownload.Visibility = Visibility.Collapsed;
             var treeViewItem = (TreeViewItem)e.NewValue;
-            switch (treeViewItem.Tag.ToString())
+            if (treeViewItem != null)
             {
-                case "form_id":
-                    _formID = treeViewItem.Header.ToString();
-                    var summary = new FormSummary(_koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)));
-                   if(DateTime.TryParse(summary.LastSaveDateInDatabase, out DateTime v))
-                    {
-                        _lastSubmittedDate = v;
-                    }
-                   else
-                    {
-                        foreach(var c in stackPanelJSON.Children)
+                switch (treeViewItem.Tag.ToString())
+                {
+                    case "form_id":
+                        _formID = treeViewItem.Header.ToString();
+                        var summary = new FormSummary(_koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)));
+                        if (DateTime.TryParse(summary.LastSaveDateInDatabase, out DateTime v))
                         {
-                            switch(c.GetType().Name)
-                            {
-                                case "CheckBox":
-                                    ((CheckBox)c).Visibility = Visibility.Collapsed;
-                                    break;
-                                case "RadioButton":
-                                    if (((RadioButton)c).Name != "rbAll")
-                                    {
-                                        ((RadioButton)c).Visibility = Visibility.Collapsed;
-                                    }
-                                    break;
-                                case "WrapPanel":
-                                    ((WrapPanel)c).Visibility = Visibility.Collapsed;
-                                    break;
-                            }
+                            _lastSubmittedDate = v;
                         }
-                        
-                    }
-                   
-                    propertyGrid.SelectedObject = summary;
-                    propertyGrid.AutoGenerateProperties = false;
-                    propertyGrid.IsCategorized = true;
-                    
+                        else
+                        {
+                            foreach (var c in stackPanelJSON.Children)
+                            {
+                                switch (c.GetType().Name)
+                                {
+                                    case "CheckBox":
+                                        ((CheckBox)c).Visibility = Visibility.Collapsed;
+                                        break;
+                                    case "RadioButton":
+                                        if (((RadioButton)c).Name != "rbAll")
+                                        {
+                                            ((RadioButton)c).Visibility = Visibility.Collapsed;
+                                        }
+                                        break;
+                                    case "WrapPanel":
+                                        ((WrapPanel)c).Visibility = Visibility.Collapsed;
+                                        break;
+                                }
+                            }
 
-                    propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Title", DisplayName="Name",DisplayOrder=1,Description="Name of the form", Category="Server data"});
-                    propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Description", DisplayName = "Description", DisplayOrder = 2, Description = "Description of the form", Category = "Server data" });
-                    propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "FormID", DisplayName = "Form ID", DisplayOrder = 3, Description = "Form identifier", Category = "Server data" });
-                    propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DateCreated", DisplayName = "Date created", DisplayOrder = 4, Description = "Date created", Category = "Server data" });
-                    propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DateModified", DisplayName = "Date modified", DisplayOrder = 5, Description = "Date modified", Category = "Server data" });
-                    propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DateLastSubmission", DisplayName = "Date of last submission", DisplayOrder = 6, Description = "Date of last submission", Category = "Server data" });
-                    //propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SubmittedToday", DisplayName="Number of submissions for today", DisplayOrder=7, Description ="Number of forms submitted today", Category="Server data" });
-                    propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name= "NumberOfSubmissions", DisplayName = "Number of submissions", DisplayOrder=8 , Description="Number of submissions", Category = "Server data" });
-                    propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "NumberOfUsers", DisplayName = "Number of users", DisplayOrder = 9, Description = "Number of users", Category = "Server data" });
-                    propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "NumberSavedToDatabase", DisplayName = "Number of submissions", DisplayOrder = 10, Description = "Number of submissions saved", Category = "Saved in database" });
-                    propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LastSaveDateInDatabase", DisplayName = "Date of last submission", DisplayOrder = 11, Description = "Date of last sumission", Category = "Saved in database" });
-                    propertyGrid.Visibility = Visibility.Visible;
-                    break;
-                case "form_users":
-                    _formID = ((TreeViewItem)treeViewItem.Parent).Header.ToString();
-                    //var parentItem = GetSelectedTreeViewItemParent(treeViewItem);
-                    dataGrid.DataContext = _koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)).users;
-                    dataGrid.Visibility = Visibility.Visible;
-                    dataGrid.AutoGenerateColumns = false;
+                        }
 
-                    dataGrid.Columns.Clear();
-                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "User", Binding = new Binding("user") });
-                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Role", Binding = new Binding("role") });
-                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Permissions", Binding = new Binding("all_permissions") });
-                    break;
-                case "form_download":
-                    _formID = ((TreeViewItem)treeViewItem.Parent).Header.ToString();
-                    gridDownload.Visibility = Visibility.Visible;
-                    ((ComboBoxItem)comboboxDownloadOption.Items[0]).IsSelected = true;
+                        propertyGrid.SelectedObject = summary;
+                        propertyGrid.AutoGenerateProperties = false;
+                        propertyGrid.IsCategorized = true;
 
-                    ComboUser.Items.Clear();
-                    foreach (var user in _koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)).users)
-                    {
-                        ComboUser.Items.Add(new ComboBoxItem { Content=user.user});
-                    }
 
-                    break;
+                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Title", DisplayName = "Name", DisplayOrder = 1, Description = "Name of the form", Category = "Server data" });
+                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Description", DisplayName = "Description", DisplayOrder = 2, Description = "Description of the form", Category = "Server data" });
+                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "FormID", DisplayName = "Form ID", DisplayOrder = 3, Description = "Form identifier", Category = "Server data" });
+                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DateCreated", DisplayName = "Date created", DisplayOrder = 4, Description = "Date created", Category = "Server data" });
+                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DateModified", DisplayName = "Date modified", DisplayOrder = 5, Description = "Date modified", Category = "Server data" });
+                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DateLastSubmission", DisplayName = "Date of last submission", DisplayOrder = 6, Description = "Date of last submission", Category = "Server data" });
+                        //propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SubmittedToday", DisplayName="Number of submissions for today", DisplayOrder=7, Description ="Number of forms submitted today", Category="Server data" });
+                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "NumberOfSubmissions", DisplayName = "Number of submissions", DisplayOrder = 8, Description = "Number of submissions", Category = "Server data" });
+                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "NumberOfUsers", DisplayName = "Number of users", DisplayOrder = 9, Description = "Number of users", Category = "Server data" });
+                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "NumberSavedToDatabase", DisplayName = "Number of submissions", DisplayOrder = 10, Description = "Number of submissions saved", Category = "Saved in database" });
+                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LastSaveDateInDatabase", DisplayName = "Date of last submission", DisplayOrder = 11, Description = "Date of last sumission", Category = "Saved in database" });
+                        propertyGrid.Visibility = Visibility.Visible;
+
+                        break;
+                    case "form_users":
+                        _formID = ((TreeViewItem)treeViewItem.Parent).Header.ToString();
+                        //var parentItem = GetSelectedTreeViewItemParent(treeViewItem);
+                        dataGrid.DataContext = _koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)).users;
+                        dataGrid.Visibility = Visibility.Visible;
+                        dataGrid.AutoGenerateColumns = false;
+
+                        dataGrid.Columns.Clear();
+                        dataGrid.Columns.Add(new DataGridTextColumn { Header = "User", Binding = new Binding("user") });
+                        dataGrid.Columns.Add(new DataGridTextColumn { Header = "Role", Binding = new Binding("role") });
+                        dataGrid.Columns.Add(new DataGridTextColumn { Header = "Permissions", Binding = new Binding("all_permissions") });
+                        break;
+                    case "form_download":
+                        _formID = ((TreeViewItem)treeViewItem.Parent).Header.ToString();
+                        gridDownload.Visibility = Visibility.Visible;
+                        ((ComboBoxItem)comboboxDownloadOption.Items[0]).IsSelected = true;
+
+                        ComboUser.Items.Clear();
+                        foreach (var user in _koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)).users)
+                        {
+                            ComboUser.Items.Add(new ComboBoxItem { Content = user.user });
+                        }
+
+                        break;
+                }
             }
 
         }
