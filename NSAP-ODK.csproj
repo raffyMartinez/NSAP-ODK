@@ -140,6 +140,7 @@
     <Compile Include="Entities\Database\CatchLength.cs" />
     <Compile Include="Entities\Database\CatchLengthWeight.cs" />
     <Compile Include="Entities\Database\CatchMaturity.cs" />
+    <Compile Include="Entities\Database\DBSummary.cs" />
     <Compile Include="Entities\Database\DownloadFromServerEventArg.cs" />
     <Compile Include="Entities\Database\EntitiesToDataTables.cs" />
     <Compile Include="Entities\Database\FishingCalendarViewModel.cs" />
@@ -189,6 +190,7 @@
     <Compile Include="Entities\MajorGridFMA.cs" />
     <Compile Include="Entities\MajorGridFMARepository.cs" />
     <Compile Include="Entities\MajorGridFMAViewModel.cs" />
+    <Compile Include="Entities\NSAPRegionItemsSource.cs" />
     <Compile Include="Entities\RegionEnumeratorItemsSource.cs" />
     <Compile Include="Entities\RegionLandingSiteItemsSource.cs" />
     <Compile Include="Entities\SectorTypeItemsSource.cs" />

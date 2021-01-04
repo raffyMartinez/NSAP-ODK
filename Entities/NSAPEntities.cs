@@ -35,7 +35,8 @@ namespace NSAP_ODK.Entities
         NSAPRegionEnumerator,
         Province,
         Municipality,
-        GPS
+        GPS,
+        DBSummary
     }
 
     public static class NSAPEntities
@@ -72,6 +73,7 @@ namespace NSAP_ODK.Entities
         public static CatchLengthWeightViewModel CatchLengthWeightViewModel;
         public static CatchLengthViewModel CatchLengthViewModel;
         public static CatchMaturityViewModel CatchMaturityViewModel;
+        public static DBSummary DBSummary;
         static NSAPEntities()
         {
             FisheriesSector = FisheriesSector.Municipal;

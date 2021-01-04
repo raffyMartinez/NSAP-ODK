@@ -52,6 +52,21 @@ namespace NSAP_ODK.Entities.Database
             return VesselUnloads.ClearTable();
         }
 
+        public DateTime DateOfFirstSampledLanding 
+        {
+            get { return VesselUnloadCollection.OrderBy(t => t.SamplingDate).FirstOrDefault().SamplingDate; }
+        }
+
+        public DateTime DateOfLastSampledLanding
+        {
+            get { return VesselUnloadCollection.OrderByDescending(t => t.SamplingDate).FirstOrDefault().SamplingDate; }
+        }
+
+        public int TrackedUnloadCount
+        {
+            get { return VesselUnloadCollection.Where(t => t.OperationIsTracked == true).ToList().Count; }
+        }
+
         public VesselUnload getVesselUnload(int pk)
         {
             return VesselUnloadCollection.FirstOrDefault(n => n.PK == pk);

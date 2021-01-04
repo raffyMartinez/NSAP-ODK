@@ -19,18 +19,27 @@ namespace NSAP_ODK.Entities
             return NSAPRegionsWithEntitiesRepositories[nsapRegion.Code];
         }
 
-        public NSAPRegionViewModel()
+        public void SetNSAPRegionsWithEntitiesRepositories()
         {
-            NSAPRegions = new NSAPRegionRepository();
-            NSAPRegionCollection = new ObservableCollection<NSAPRegion>(NSAPRegions.NSAPRegions);
-            NSAPRegionCollection.CollectionChanged += NSAPRegionCOllection_CollectionChanged;
-
             NSAPRegionsWithEntitiesRepositories = new Dictionary<string, NSAPRegionWithEntitiesRepository>();
             foreach (NSAPRegion nsapRegion in NSAPRegionCollection)
             {
                 NSAPRegionWithEntitiesRepository nswer = new NSAPRegionWithEntitiesRepository(nsapRegion);
                 NSAPRegionsWithEntitiesRepositories.Add(nsapRegion.Code, nswer);
             }
+        }
+        public NSAPRegionViewModel()
+        {
+            NSAPRegions = new NSAPRegionRepository();
+            NSAPRegionCollection = new ObservableCollection<NSAPRegion>(NSAPRegions.NSAPRegions);
+            NSAPRegionCollection.CollectionChanged += NSAPRegionCOllection_CollectionChanged;
+
+            //NSAPRegionsWithEntitiesRepositories = new Dictionary<string, NSAPRegionWithEntitiesRepository>();
+            //foreach (NSAPRegion nsapRegion in NSAPRegionCollection)
+            //{
+            //    NSAPRegionWithEntitiesRepository nswer = new NSAPRegionWithEntitiesRepository(nsapRegion);
+            //    NSAPRegionsWithEntitiesRepositories.Add(nsapRegion.Code, nswer);
+            //}
         }
 
 

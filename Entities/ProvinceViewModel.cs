@@ -137,6 +137,27 @@ namespace NSAP_ODK.Entities
             }
         }
 
+       public EntityValidationResult ValidateProvince(Province prov, bool isNew, string oldName)
+        {
+            EntityValidationResult evr = new EntityValidationResult();
+
+            if (prov.ProvinceName.Length < 3)
+            {
+                evr.AddMessage("Province name is too short");
+            }
+            else if (isNew && ProvinceNameExists(prov.ProvinceName))
+            {
+                evr.AddMessage("Province name already used");
+            }
+
+            if (!isNew && oldName != prov.ProvinceName&& ProvinceNameExists(prov.ProvinceName))
+            {
+                evr.AddMessage("Province name already used");
+            }
+
+            return evr;
+        }
+
         public bool EntityValidated(Dictionary<string, string> formValues, out List<string> messages)
         {
             messages = new List<string>();

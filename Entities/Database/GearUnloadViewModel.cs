@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using NSAP_ODK.Utilities;
 namespace NSAP_ODK.Entities.Database
 {
     public class GearUnloadViewModel
@@ -20,6 +21,11 @@ namespace NSAP_ODK.Entities.Database
             GearUnloadCollection.CollectionChanged += GearUnloadCollection_CollectionChanged;
         }
 
+        public int CountCompletedGearUnload
+        {
+           //get { return GearUnloadCollection.Where(t => t.Boats != null).Where(t => t.Catch != null).Count(); }
+           get { return GearUnloadCollection.Count(t => (t.Catch!=null && t.Boats!=null)); }
+        }
         public List<GearUnload> GetAllGearUnloads()
         {
             return GearUnloadCollection.ToList();
@@ -42,10 +48,18 @@ namespace NSAP_ODK.Entities.Database
         {
             foreach(var item in listToSave)
             {
-                var original = CopyOfGearUnloadList.FirstOrDefault(t => t.PK == item.PK);
-                if(item.Boats!=original.Boats || item.Catch!=original.Catch)
+                try
                 {
-                    UpdateRecordInRepo(item);
+                    var original = CopyOfGearUnloadList.FirstOrDefault(t => t.PK == item.PK);
+
+                    if (item.Boats != original.Boats || item.Catch != original.Catch)
+                    {
+                        UpdateRecordInRepo(item);
+                    }
+                }
+                catch(Exception ex)
+                {
+                    Logger.Log(ex);
                 }
             }
             CopyOfGearUnloadList = null;

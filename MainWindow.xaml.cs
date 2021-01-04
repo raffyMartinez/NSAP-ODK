@@ -27,7 +27,8 @@ namespace NSAP_ODK
         ODKData,
         Species,
         DownloadHistory,
-        Others
+        Others,
+        DBSummary
     }
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -86,6 +87,39 @@ namespace NSAP_ODK
             }
             return false;
         }
+
+        private void ShowSummary()
+        {
+           rowOpening.Height = new GridLength(1, GridUnitType.Star);
+            NSAPEntities.DBSummary.Refresh();
+            PropertyGridSummary.SelectedObject = NSAPEntities.DBSummary;
+            PropertyGridSummary.NameColumnWidth = 350;
+            PropertyGridSummary.AutoGenerateProperties = false;
+
+            PropertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Database", Name = "DBPath", Description = "Path to database", DisplayOrder = 1 });
+            PropertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of NSAP Regions", Name = "NSAPRegionCount", Description = "Number of NSAP Regions", DisplayOrder = 2 });
+            PropertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of FMAS", Name = "FMACount", Description = "Number of FMAs", DisplayOrder = 3 });
+            PropertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of fishing grounds", Name = "FishingGroundCount", Description = "Number of fishing grounds", DisplayOrder = 4 });
+            PropertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of landing sites", Name = "LandingSiteCount", Description = "Number of landing sites", DisplayOrder = 5 });
+            PropertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of fish species", Name = "FishSpeciesCount", Description = "Number of fish species", DisplayOrder = 6 });
+            PropertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of non-fish species", Name = "NonFishSpeciesCount", Description = "Number of non-fish species", DisplayOrder = 7 });
+            PropertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number fishing gears", Name = "FishingGearCount", Description = "Number of fishing gears", DisplayOrder = 8 });
+            PropertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of effort specs", Name = "GearSpecificationCount", Description = "Number of effort specifications", DisplayOrder = 9 });
+            PropertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of GPS", Name = "GPSCount", Description = "Number of GPS", DisplayOrder = 10 });
+            PropertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of enumerators", Name = "EnumeratorCount", Description = "Number of NSAP enumerators", DisplayOrder = 11 });
+            PropertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of gear unload", Name = "GearUnloadCount", Description = "Number of gear unload", DisplayOrder = 12 });
+            PropertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of complete gear unload", Name = "CountCompleteGearUnload", Description = "Number of gear unload", DisplayOrder = 13 });
+            PropertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of fishing vessels", Name = "FishingVesselCount", Description = "Number of fishing vessels", DisplayOrder = 14 });
+            PropertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of vessel unload", Name = "VesselUnloadCount", Description = "Number of vessel unload", DisplayOrder = 15 });
+            PropertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of tracked operations", Name = "TrackedOperationsCount", Description = "Number of tracked fishing operations", DisplayOrder = 16 });
+            PropertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Date of first sampled landing", Name = "FirstSampledLandingDate", Description = "Date of first sampled operation", DisplayOrder = 17 });
+            PropertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Date of last sampled landing", Name = "LastSampledLandingDate", Description = "Date of last sampled operation", DisplayOrder = 18 });
+
+
+
+        }
+
+
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
             if (Global.AppProceed)
@@ -104,6 +138,8 @@ namespace NSAP_ODK
 
                     buttonDelete.IsEnabled = false;
                     buttonEdit.IsEnabled = false;
+                    dbPathLabel.Content = Global.MDBPath;
+                    menuDatabaseSummary.IsChecked = true;     
                 }
                 else
                 {
@@ -118,10 +154,14 @@ namespace NSAP_ODK
             }
         }
 
+        private void ShowStatusRow()
+        {
+            rowStatus.Height = new GridLength(30, GridUnitType.Pixel);
+        }
         private void ShowTitleAndStatusRow()
         {
             rowTopLabel.Height = new GridLength(30, GridUnitType.Pixel);
-            rowStatus.Height = new GridLength(30, GridUnitType.Pixel);
+            ShowStatusRow();
             PanelButtons.Visibility = Visibility.Visible;
         }
         private void ResetDisplay()
@@ -131,7 +171,9 @@ namespace NSAP_ODK
             rowSpecies.Height = new GridLength(0);
             rowODKData.Height = new GridLength(0);
             rowOthers.Height = new GridLength(0);
+            rowOpening.Height = new GridLength(0);
             rowStatus.Height = new GridLength(0);
+
             StackPanelDashboard.Visibility = Visibility.Collapsed;
             PanelButtons.Visibility = Visibility.Collapsed;
             GridNSAPData.Visibility = Visibility.Collapsed;
@@ -186,6 +228,9 @@ namespace NSAP_ODK
                 case DataDisplayMode.Others:
                     rowOthers.Height = new GridLength(1, GridUnitType.Star);
                     ShowTitleAndStatusRow();
+                    break;
+                case DataDisplayMode.DBSummary:
+                    ShowSummary();
                     break;
             }
         }
@@ -660,21 +705,25 @@ namespace NSAP_ODK
             }
 
             string textOfTitle = "";
-            foreach (var mi in menuEdit.Items)
-            {
-                if (mi.GetType().Name != "Separator")
-                {
-                    var menu = (MenuItem)mi;
-                    if (menu.Name != ((MenuItem)e.Source).Name)
-                    {
-                        menu.IsChecked = false;
-                    }
-                }
-            }
+            UncheckEditMenuItems((MenuItem)e.Source);
+            //foreach (var mi in menuEdit.Items)
+            //{
+            //    if (mi.GetType().Name != "Separator")
+            //    {
+            //        var menu = (MenuItem)mi;
+            //        if (menu.Name != ((MenuItem)e.Source).Name)
+            //        {
+            //            menu.IsChecked = false;
+            //        }
+            //    }
+            //}
 
             ContextMenu contextMenu = new ContextMenu();
             switch (((MenuItem)sender).Name)
             {
+                case "menuDatabaseSummary":
+                    _nsapEntity = NSAPEntity.DBSummary;
+                    break;
                 case "menuGPS":
                     _nsapEntity = NSAPEntity.GPS;
                     textOfTitle = "List of GPS units";
@@ -687,7 +736,6 @@ namespace NSAP_ODK
                 case "menuEffortIndicators":
                     _nsapEntity = NSAPEntity.EffortIndicator;
                     textOfTitle = "List of fishing effort indicators";
-
                     contextMenu.Items.Add(new MenuItem { Header = "View gears using this indicator", Name = "menuViewGearsUsingIndicator" });
 
                     break;
@@ -759,24 +807,53 @@ namespace NSAP_ODK
             if (_nsapEntity == NSAPEntity.FishSpecies)
             {
                 _currentDisplayMode = DataDisplayMode.Species;
-                SetDataDisplayMode();
+                LoadDataGrid();
                 //rowOthers.Height = new GridLength(0);
                 //rowSpecies.Height = new GridLength(1, GridUnitType.Star);
+            }
+            else if(_nsapEntity == NSAPEntity.DBSummary)
+            {
+                _currentDisplayMode = DataDisplayMode.DBSummary;
             }
             else
             {
                 _currentDisplayMode = DataDisplayMode.Others;
-                SetDataDisplayMode();
+                LoadDataGrid();
                 //rowSpecies.Height = new GridLength(0);
                 //rowOthers.Height = new GridLength(1, GridUnitType.Star);
             }
-            LoadDataGrid();
+            SetDataDisplayMode();
+            
             labelTitle.Content = textOfTitle;
-
             buttonDelete.IsEnabled = false;
             buttonEdit.IsEnabled = false;
         }
 
+        private void UncheckEditMenuItems(MenuItem source=null)
+        {
+            foreach (var mi in menuEdit.Items)
+            {
+                if (mi.GetType().Name != "Separator")
+                {
+                    var menu = (MenuItem)mi;
+                    if(source!=null)
+                    {
+                        if(menu.Name!=source.Name)
+                        {
+                            menu.IsChecked = false;
+                        }
+                    }
+                    else
+                    {
+                        menu.IsChecked = false;
+                    }
+                    //if (menu.Name != ((MenuItem)e.Source).Name)
+                    //{
+                        //menu.IsChecked = false;
+                    //}
+                }
+            }
+        }
         private void OnDataGridContextMenu(object sender, RoutedEventArgs e)
         {
             EntityPropertyEnableWindow epe = null;
@@ -930,9 +1007,15 @@ namespace NSAP_ODK
         private async void OnMenuClicked(object sender, RoutedEventArgs e)
         {
             string fileName = "";
-
+            
 
             string itemName = ((MenuItem)sender).Name;
+            
+            if(itemName=="menuDownloadHistory" || itemName=="menuNSAPCalendar")
+            {
+                UncheckEditMenuItems();
+            }
+
             switch (itemName)
             {
                 case "menuSaveGear":
@@ -994,6 +1077,7 @@ namespace NSAP_ODK
                     }
                     break;
                 case "menuDownloadHistory":
+
                     _currentDisplayMode = DataDisplayMode.DownloadHistory;
                     ColumnForTreeView.Width = new GridLength(1, GridUnitType.Star);
                     SetDataDisplayMode();
@@ -1073,21 +1157,6 @@ namespace NSAP_ODK
                     }
                     break;
 
-                //case "menuGenerateSizeIndicators":
-                //    if (GetCSVSaveLocationFromSaveAsDialog(out fileName, LogType.SizeMeasure_csv))
-                //    {
-                //        Logger.FilePath = fileName;
-                //        MessageBox.Show($"{ await GenerateCSV.GenerateSizeTypesCSV()} items in size_measures.csv generated", "CSV file created", MessageBoxButton.OK, MessageBoxImage.Information);
-                //    }
-                //    break;
-
-                //case "menuGenerateEffortSpec":
-                //    if (GetCSVSaveLocationFromSaveAsDialog(out fileName, LogType.EffortSpec_csv))
-                //    {
-                //        Logger.FilePath = fileName;
-                //        MessageBox.Show($"{ await GenerateCSV.GenerateEffortSpecCSV()} items in effortspec.csv generated", "CSV file created", MessageBoxButton.OK, MessageBoxImage.Information);
-                //    }
-                //    break;
 
                 case "menuGenerateItemSets":
 
@@ -1098,32 +1167,7 @@ namespace NSAP_ODK
                     }
                     break;
 
-                //case "menuGenerateGears":
-                //    if (SelectRegions() && GetCSVSaveLocationFromSaveAsDialog(out fileName, LogType.Gear_csv))
-                //    {
-                //        Logger.FilePath = fileName;
-                //        MessageBox.Show($"{await GenerateCSV.GenerateGearsCSV()} items in gear.csv generated", "CSV file created", MessageBoxButton.OK, MessageBoxImage.Information);
-                //    }
-                //    break;
 
-                //case "menuGenerateVesselNames":
-
-                //    if (SelectRegions() && GetCSVSaveLocationFromSaveAsDialog(out fileName, LogType.VesselName_csv))
-                //    {
-                //        Dictionary<FisheriesSector, string> filePaths = new Dictionary<FisheriesSector, string>();
-                //        filePaths.Add(FisheriesSector.Municipal, $"{System.IO.Path.GetDirectoryName(fileName)}\\vessel_name_municipal.csv");
-                //        filePaths.Add(FisheriesSector.Commercial, $"{System.IO.Path.GetDirectoryName(fileName)}\\vessel_name_commercial.csv");
-                //        MessageBox.Show($"{await GenerateCSV.GenerateFishingVesselNamesCSV(filePaths)} items in 2 vessel_name csvs generated", "CSV file created", MessageBoxButton.OK, MessageBoxImage.Information);
-                //    }
-                //    break;
-
-                //case "menuGenerateSpecies":
-                //    if (GetCSVSaveLocationFromSaveAsDialog(out fileName, LogType.Species_csv))
-                //    {
-                //        Logger.FilePath = fileName;
-                //        MessageBox.Show($"{await GenerateCSV.GenerateMultiSpeciesCSV()} items in sp.csv generated", "CSV file created", MessageBoxButton.OK, MessageBoxImage.Information);
-                //    }
-                    //break;
             }
         }
 

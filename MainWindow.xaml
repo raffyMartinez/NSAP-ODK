@@ -17,6 +17,7 @@
             <RowDefinition Height="*" x:Name="rowODKData"/>
             <RowDefinition Height="*" x:Name="rowSpecies" />
             <RowDefinition Height="*" x:Name="rowOthers" />
+            <RowDefinition Height="*" x:Name="rowOpening" />
             <RowDefinition Height="30" x:Name="rowStatus" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
@@ -56,6 +57,9 @@
 
                 <Separator />
                 <MenuItem Header="Query API" x:Name="menuQueryAPI" Click="OnMenuClicked" />
+                
+                <Separator />
+                <MenuItem Header="Database summary" x:Name="menuDatabaseSummary"  IsCheckable="True" Checked="OnMenuItemChecked"/>                
             </MenuItem>
 
             <MenuItem Header="NSAP Data">
@@ -75,7 +79,7 @@
                 <MenuItem Header="Select regions" x:Name="menuSelectRegions" Click="OnMenuClicked" />
                 <MenuItem Header="Options for generating CSV" x:Name="menuOptionGenerateCSV" Click="OnMenuClicked" />
                 <Separator />
-                <MenuItem Header="itemsets csv" x:Name="menuGenerateItemSets" Click="OnMenuClicked" />
+                <MenuItem Header="itemsets csv" x:Name="menuGenerateItemSets" Click="OnMenuClicked" Visibility="Collapsed" />
                 <MenuItem Header="gear csv" x:Name="menuGenerateGears" Click="OnMenuClicked" Visibility="Collapsed"/>
                 <MenuItem Header="species csv" x:Name="menuGenerateSpecies" Click="OnMenuClicked" Visibility="Collapsed"/>
                 <MenuItem Header="effortspec csv" x:Name="menuGenerateEffortSpec" Click="OnMenuClicked" Visibility="Collapsed"/>
@@ -191,7 +195,14 @@
             </DataGrid>
         </Grid>
 
-        <StatusBar Grid.Row="6" Grid.ColumnSpan="2" Margin="0">
+        <StackPanel Grid.Row="6" x:Name="panelOpening">
+            <Label Content="Database summary" FontWeight="Bold" HorizontalAlignment="Center" Margin="0 10 0 20" FontSize="14"/>
+            <xctk:PropertyGrid x:Name="PropertyGridSummary" Margin="20" IsReadOnly="False" ShowSortOptions="False" ShowSearchBox="False"
+                ShowTitle="False" />
+       </StackPanel>
+
+        <StatusBar Grid.Row="7" Grid.ColumnSpan="2" Margin="0" >
+            <Label Content="database path" Margin="5 0 0 0" Width="Auto" x:Name="dbPathLabel"/>
             <ProgressBar Width="200" Height="15" x:Name="mainStatusBar" />
             <Label Content="Status bar label" Margin="5 0 0 0" x:Name="mainStatusLabel"/>
         </StatusBar>

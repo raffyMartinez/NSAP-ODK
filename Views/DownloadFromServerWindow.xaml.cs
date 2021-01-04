@@ -36,6 +36,7 @@ namespace NSAP_ODK.Views
         private string _downloadOption;
         private ODKResultsWindow _parentWindow;
         private string _jsonOption;
+        private string _downloadType;
         private DateTime? _lastSubmittedDate;
         public DownloadFromServerWindow(ODKResultsWindow parentWindow)
         {
@@ -68,10 +69,12 @@ namespace NSAP_ODK.Views
         }
         private async void OnButtonClick(object sender, RoutedEventArgs e)
         {
+            _downloadType = "";
             string api_call = "";
             switch (((Button)sender).Name)
             {
                 case "ButtonDownload":
+                    _downloadType = "data";
                     ButtonDownload.IsEnabled = false;
                     switch (_downloadOption)
                     {
@@ -104,6 +107,7 @@ namespace NSAP_ODK.Views
                                             if ((bool)fbd.ShowDialog() && fbd.SelectedPath.Length > 0)
                                             {
                                                 string downnloadedFile = $"{fbd.SelectedPath}/{fileName}";
+                                                //string downnloadedFile = $"{fbd.SelectedPath}/{_formID}.xlsx";
                                                 File.WriteAllBytes(downnloadedFile, bytes);
                                                 ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ConvertDataToExcel });
                                                 //MessageBox.Show("Excel file saved!");
@@ -249,6 +253,7 @@ namespace NSAP_ODK.Views
                     ButtonDownload.IsEnabled = true;
                     break;
                 case "ButtonLogin":
+                    _downloadType = "login";
                     ProgressBar.Value = 0;
                     ProgressBar.Maximum = 4;
                     ButtonLogin.IsEnabled = false;
@@ -332,7 +337,16 @@ namespace NSAP_ODK.Views
                     break;
                 case DownloadFromServerIntent.FinishedDownload:
                     ProgressBar.Value += 1;
-                    labelProgress.Content = "Finished download";
+                    switch (_downloadType)
+                    {
+                        case "data":
+                            labelProgress.Content = "Finished download";
+                            break;
+                        case "login":
+                            labelProgress.Content = "Log-in successful";
+                            break;
+                    }
+                    
                     break;
                 case DownloadFromServerIntent.StoppedDueToError:
                     labelProgress.Content = "Stopped due to error";

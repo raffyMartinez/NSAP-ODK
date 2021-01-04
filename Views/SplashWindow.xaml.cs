@@ -13,6 +13,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using NSAP_ODK.Entities;
 using NSAP_ODK.Entities.Database;
+
+
 namespace NSAP_ODK.Views
 {
     /// <summary>
@@ -53,12 +55,15 @@ namespace NSAP_ODK.Views
             NSAPEntities.EngineViewModel = new EngineViewModel();
             NSAPEntities.FishingVesselViewModel = new FishingVesselViewModel();
             NSAPEntities.FishingGroundViewModel = new FishingGroundViewModel();
-            NSAPEntities.ProvinceViewModel = new ProvinceViewModel();
-            NSAPEntities.LandingSiteViewModel = new LandingSiteViewModel();
             NSAPEntities.EffortSpecificationViewModel = new EffortSpecificationViewModel();
             NSAPEntities.GearViewModel = new GearViewModel();
             NSAPEntities.NSAPEnumeratorViewModel = new NSAPEnumeratorViewModel();
             NSAPEntities.NSAPRegionViewModel = new NSAPRegionViewModel();
+            NSAPEntities.ProvinceViewModel = new ProvinceViewModel();
+            NSAPEntities.LandingSiteViewModel = new LandingSiteViewModel();
+
+            NSAPEntities.NSAPRegionViewModel.SetNSAPRegionsWithEntitiesRepositories();
+
             NSAPEntities.SizeTypeViewModel = new SizeTypeViewModel();
             NSAPEntities.TaxaViewModel = new TaxaViewModel();
             NSAPEntities.FishSpeciesViewModel = new FishSpeciesViewModel();
@@ -74,6 +79,7 @@ namespace NSAP_ODK.Views
             NSAPEntities.CatchLengthWeightViewModel = new CatchLengthWeightViewModel();
             NSAPEntities.CatchLengthViewModel = new CatchLengthViewModel();
             NSAPEntities.CatchMaturityViewModel = new CatchMaturityViewModel();
+            NSAPEntities.DBSummary = new DBSummary();
         }
     }
 }

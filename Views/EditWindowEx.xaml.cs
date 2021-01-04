@@ -663,7 +663,8 @@ namespace NSAP_ODK.Views
                         {
                             ProvinceID = p.ProvinceID,
                             ProvinceName = _oldName,
-                            Municipalities = p.Municipalities
+                            Municipalities = p.Municipalities,
+                            RegionCode = p.NSAPRegion.Code
                         };
                     }
                     else
@@ -672,7 +673,12 @@ namespace NSAP_ODK.Views
                     }
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "ProvinceID", DisplayName = "Database identifier", DisplayOrder = 1, Description = "Identifier of the province in database." });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "ProvinceName", DisplayName = "Name of province", DisplayOrder = 2, Description = "Name of province" });
-                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "MunicipalityCount", DisplayName = "Number of municipalities", DisplayOrder = 3, Description = "Number of municipalities in the province" });
+                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "RegionCode", DisplayName = "Region", DisplayOrder = 3, Description = "Region where the province belongs" });
+
+                    if (!_isNew)
+                    {
+                        PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "MunicipalityCount", DisplayName = "Number of municipalities", DisplayOrder = 4, Description = "Number of municipalities in the province" });
+                    }
                     PropertyGrid.SelectedObject = prv;
                     break;
 
@@ -1173,11 +1179,35 @@ namespace NSAP_ODK.Views
 
                         case NSAPEntity.Province:
                             var prv = (Province)PropertyGrid.SelectedObject;
-                            Province provice = new Province
+                            Province province = new Province
                             {
                                 ProvinceID = prv.ProvinceID,
-                                ProvinceName = prv.ProvinceName
+                                ProvinceName = prv.ProvinceName,
+                                NSAPRegion = prv.NSAPRegion
                             };
+
+                            if(province.ProvinceName!=null && province.ProvinceID>0 && province.NSAPRegion.Code.Length>0)
+                            {
+                                validationResult = NSAPEntities.ProvinceViewModel.ValidateProvince(province, _isNew, _oldName);
+                                if (validationResult.ErrorMessage.Length > 0)
+                                {
+                                    MessageBox.Show(validationResult.ErrorMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                                    cancel = true;
+                                }
+
+                                if (!cancel)
+                                {
+                                    if (_isNew)
+                                    {
+                                        NSAPEntities.ProvinceViewModel.AddRecordToRepo (province);
+                                    }
+                                    else
+                                    {
+                                        NSAPEntities.ProvinceViewModel.UpdateRecordInRepo (province);
+                                    }
+                                    success = true;
+                                }
+                            }
                             break;
 
                         case NSAPEntity.NonFishSpecies:
@@ -2046,7 +2076,10 @@ namespace NSAP_ODK.Views
             {
                 case "MunicipalityCount":
                     Province prv = (Province)PropertyGrid.SelectedObject;
-                    sfDataGrid.ItemsSource = prv.Municipalities.MunicipalityCollection.OrderBy(t => t.MunicipalityName);
+                    if  (prv.ProvinceName?.Length > 0 && prv.Municipalities!=null)
+                    {
+                        sfDataGrid.ItemsSource = prv.Municipalities.MunicipalityCollection.OrderBy(t => t.MunicipalityName);
+                    }
                     break;
 
                 case "EffortSpecifiers":

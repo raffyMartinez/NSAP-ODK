@@ -36,6 +36,7 @@ namespace NSAP_ODK.Entities
                             Province p = new Province();
                             p.ProvinceID = Convert.ToInt32(dr["ProvNo"]);
                             p.ProvinceName = dr["ProvinceName"].ToString();
+                            p.RegionCode = dr["NSAPRegion"].ToString();
                             p.SetMunicipalities();
                             listProvinces.Add(p);
                         }
@@ -55,9 +56,9 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Insert into Provinces (ProvNo, ProvinceName)
+                var sql = $@"Insert into Provinces (ProvNo, ProvinceName, NSAPRegion)
                            Values
-                           ({p.ProvinceID}, '{p.ProvinceName}')";
+                           ({p.ProvinceID}, '{p.ProvinceName}', '{p.NSAPRegion.Code}')";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
                     success = update.ExecuteNonQuery() > 0;
@@ -73,7 +74,8 @@ namespace NSAP_ODK.Entities
             {
                 conn.Open();
                 var sql = $@"Update Provinces set
-                                ProvinceName = '{p.ProvinceName}'
+                                ProvinceName = '{p.ProvinceName}',
+                                NSAPRegion = '{p.NSAPRegion.Code}'
                             WHERE ProvNo = {p.ProvinceID}";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
