@@ -13,12 +13,11 @@ namespace NSAP_ODK.Entities.Database
     public enum SummaryLevelType
     {
         Overall,
-        Region,
+        AllRegions,
         FMA,
-        FishingGround,
-        RegionFishingGround,
-        RegionFMA,
-        FMAFishingGround
+        Region,
+        FishingGround
+
     }
 
     [CategoryOrder("Database", 1)]
@@ -53,6 +52,7 @@ namespace NSAP_ODK.Entities.Database
 
         }
 
+        public FMA FMA { get; set; }
         [ReadOnly(true)]
         public string DBPath { get; set; }
 
@@ -117,6 +117,9 @@ namespace NSAP_ODK.Entities.Database
         public string LastLandingFormattedDate { get; set; }
         public string LatestDownloadFormattedDate { get; set; }
 
+        public FishingGround FishingGround { get; set; }
+
+        public LandingSite LandingSite { get; set; }
 
     }
 }

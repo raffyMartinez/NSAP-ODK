@@ -197,23 +197,21 @@
 
         <Grid Grid.Row="6" Grid.ColumnSpan="2">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="300"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
             <TreeView x:Name="treeViewSummary" SelectedItemChanged="OnSummaryTreeItemChanged">
-                <TreeViewItem Header="Overall" x:Name="summaryTreeOverall"/>
-                <TreeViewItem Header="Region"/>
-                <TreeViewItem Header="FMA"/>
-                <TreeViewItem Header="Fishing ground"/>
+                <TreeViewItem Header="Overall" x:Name="summaryTreeNodeOverall"/>
+                <TreeViewItem Header="Region" x:Name="summaryTreeNodeRegion"/>
             </TreeView>
 
             <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Column="1">
                 <StackPanel  x:Name="panelOpening">
                     <Label x:Name="labelSummary" Content="Database summary" FontWeight="Bold" HorizontalAlignment="Center" Margin="0 10 0 20" FontSize="14"/>
-                    <xctk:PropertyGrid x:Name="propertyGridSummary" Margin="20" IsReadOnly="False" ShowSortOptions="False" ShowSearchBox="False"
-                        ShowTitle="False" MouseDoubleClick="OnPropertyGridDblClick"   SelectedPropertyItemChanged="OnPropertyChanged"/>
-                    <DataGrid x:Name="dataGridSummary" Visibility="Collapsed" ItemsSource="{Binding}">
+                    <xctk:PropertyGrid x:Name="propertyGridSummary" Margin="20"  ShowSortOptions="False" ShowSearchBox="False"
+                        ShowTitle="False" MouseDoubleClick="OnPropertyGridDblClick"   SelectedPropertyItemChanged="OnPropertyChanged" IsReadOnly="True"/>
+                    <DataGrid x:Name="dataGridSummary" Visibility="Collapsed" ItemsSource="{Binding}" IsReadOnly="True" Margin="20">
                         <DataGrid.CellStyle>
                             <Style TargetType="DataGridCell">
                                 <Setter Property="Padding" Value="3" />
