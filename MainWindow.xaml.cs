@@ -52,6 +52,7 @@ namespace NSAP_ODK
         private List<GearUnload> _gearUnloadList;
         private bool _saveChangesToGearUnload;
         private PropertyItem _selectedPropertyItem;
+        private TreeViewItem _selectedTreeNode;
         public MainWindow()
         {
             InitializeComponent();
@@ -82,7 +83,7 @@ namespace NSAP_ODK
         {
             SplashWindow sw = new SplashWindow();
             sw.Owner = this;
-            if((bool)sw.ShowDialog())
+            if ((bool)sw.ShowDialog())
             {
                 return (bool)sw.DialogResult;
             }
@@ -91,7 +92,7 @@ namespace NSAP_ODK
 
         private void ShowSummary()
         {
-           rowOpening.Height = new GridLength(1, GridUnitType.Star);
+            rowOpening.Height = new GridLength(1, GridUnitType.Star);
             NSAPEntities.DBSummary.Refresh();
 
             labelSummary.Content = "Overall summary of database content";
@@ -99,25 +100,25 @@ namespace NSAP_ODK
             propertyGridSummary.NameColumnWidth = 350;
             propertyGridSummary.AutoGenerateProperties = false;
 
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Database", Name = "DBPath", Description = "Path to database", DisplayOrder = 1, Category="Database" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of NSAP Regions", Name = "NSAPRegionCount", Description = "Number of NSAP Regions", DisplayOrder = 2 ,Category="Lookup choices"});
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of FMAS", Name = "FMACount", Description = "Number of FMAs", DisplayOrder = 3 ,Category="Lookup choices"});
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of fishing grounds", Name = "FishingGroundCount", Description = "Number of fishing grounds", DisplayOrder = 4 ,Category="Lookup choices"});
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of landing sites", Name = "LandingSiteCount", Description = "Number of landing sites", DisplayOrder = 5,Category="Lookup choices" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of fish species", Name = "FishSpeciesCount", Description = "Number of fish species", DisplayOrder = 6 ,Category="Lookup choices"});
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of non-fish species", Name = "NonFishSpeciesCount", Description = "Number of non-fish species", DisplayOrder = 7,Category="Lookup choices" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number fishing gears", Name = "FishingGearCount", Description = "Number of fishing gears", DisplayOrder = 8,Category="Lookup choices" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of effort specs", Name = "GearSpecificationCount", Description = "Number of effort specifications", DisplayOrder = 9,Category="Lookup choices" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of GPS", Name = "GPSCount", Description = "Number of GPS", DisplayOrder = 10,Category="Lookup choices" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of enumerators", Name = "EnumeratorCount", Description = "Number of NSAP enumerators", DisplayOrder = 11,Category="Lookup choices" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of fishing vessels", Name = "FishingVesselCount", Description = "Number of fishing vessels", DisplayOrder = 12,Category="Lookup choices" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of gear unload", Name = "GearUnloadCount", Description = "Number of gear unload", DisplayOrder = 13, Category="Submitted fish landing data" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of complete gear unload", Name = "CountCompleteGearUnload", Description = "Number of gear unload", DisplayOrder = 14 ,Category="Submitted fish landing data" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of vessel unload", Name = "VesselUnloadCount", Description = "Number of vessel unload", DisplayOrder = 15 ,Category="Submitted fish landing data" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of tracked operations", Name = "TrackedOperationsCount", Description = "Number of tracked fishing operations", DisplayOrder = 16,Category="Submitted fish landing data"  });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Date of first sampled landing", Name = "FirstSampledLandingDate", Description = "Date of first sampled operation", DisplayOrder = 17 ,Category="Submitted fish landing data" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Date of last sampled landing", Name = "LastSampledLandingDate", Description = "Date of last sampled operation", DisplayOrder = 18 ,Category="Submitted fish landing data" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Date of latest download", Name = "DateLastDownload", Description = "Date of latet download", DisplayOrder = 19 ,Category="Submitted fish landing data" });
+            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Database", Name = "DBPath", Description = "Path to database", DisplayOrder = 1, Category = "Database" });
+            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of NSAP Regions", Name = "NSAPRegionCount", Description = "Number of NSAP Regions", DisplayOrder = 2, Category = "Lookup choices" });
+            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of FMAS", Name = "FMACount", Description = "Number of FMAs", DisplayOrder = 3, Category = "Lookup choices" });
+            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of fishing grounds", Name = "FishingGroundCount", Description = "Number of fishing grounds", DisplayOrder = 4, Category = "Lookup choices" });
+            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of landing sites", Name = "LandingSiteCount", Description = "Number of landing sites", DisplayOrder = 5, Category = "Lookup choices" });
+            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of fish species", Name = "FishSpeciesCount", Description = "Number of fish species", DisplayOrder = 6, Category = "Lookup choices" });
+            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of non-fish species", Name = "NonFishSpeciesCount", Description = "Number of non-fish species", DisplayOrder = 7, Category = "Lookup choices" });
+            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number fishing gears", Name = "FishingGearCount", Description = "Number of fishing gears", DisplayOrder = 8, Category = "Lookup choices" });
+            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of effort specs", Name = "GearSpecificationCount", Description = "Number of effort specifications", DisplayOrder = 9, Category = "Lookup choices" });
+            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of GPS", Name = "GPSCount", Description = "Number of GPS", DisplayOrder = 10, Category = "Lookup choices" });
+            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of enumerators", Name = "EnumeratorCount", Description = "Number of NSAP enumerators", DisplayOrder = 11, Category = "Lookup choices" });
+            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of fishing vessels", Name = "FishingVesselCount", Description = "Number of fishing vessels", DisplayOrder = 12, Category = "Lookup choices" });
+            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of gear unload", Name = "GearUnloadCount", Description = "Number of gear unload", DisplayOrder = 13, Category = "Submitted fish landing data" });
+            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of complete gear unload", Name = "CountCompleteGearUnload", Description = "Number of gear unload", DisplayOrder = 14, Category = "Submitted fish landing data" });
+            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of vessel unload", Name = "VesselUnloadCount", Description = "Number of vessel unload", DisplayOrder = 15, Category = "Submitted fish landing data" });
+            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of tracked operations", Name = "TrackedOperationsCount", Description = "Number of tracked fishing operations", DisplayOrder = 16, Category = "Submitted fish landing data" });
+            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Date of first sampled landing", Name = "FirstSampledLandingDate", Description = "Date of first sampled operation", DisplayOrder = 17, Category = "Submitted fish landing data" });
+            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Date of last sampled landing", Name = "LastSampledLandingDate", Description = "Date of last sampled operation", DisplayOrder = 18, Category = "Submitted fish landing data" });
+            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Date of latest download", Name = "DateLastDownload", Description = "Date of latet download", DisplayOrder = 19, Category = "Submitted fish landing data" });
 
             propertyGridSummary.Visibility = Visibility.Visible;
 
@@ -134,17 +135,17 @@ namespace NSAP_ODK
 
                 ShowSplash();
                 if (
-                    NSAPEntities.NSAPRegionViewModel.Count>0 &&
-                    NSAPEntities.FishSpeciesViewModel.Count>0 &&
-                    NSAPEntities.NotFishSpeciesViewModel.Count>0 &&
-                    NSAPEntities.FMAViewModel.Count>0
+                    NSAPEntities.NSAPRegionViewModel.Count > 0 &&
+                    NSAPEntities.FishSpeciesViewModel.Count > 0 &&
+                    NSAPEntities.NotFishSpeciesViewModel.Count > 0 &&
+                    NSAPEntities.FMAViewModel.Count > 0
                     )
                 {
 
                     buttonDelete.IsEnabled = false;
                     buttonEdit.IsEnabled = false;
                     dbPathLabel.Content = Global.MDBPath;
-                    menuDatabaseSummary.IsChecked = true;     
+                    menuDatabaseSummary.IsChecked = true;
                 }
                 else
                 {
@@ -202,11 +203,11 @@ namespace NSAP_ODK
                     treeViewDownloadHistory.Items.Clear();
                     foreach (var item in _vesselDownloadHistory.Keys)
                     {
-                        int itemNo =  treeViewDownloadHistory.Items.Add(new TreeViewItem { Header = item.ToString("MMM-dd-yyyy") });
+                        int itemNo = treeViewDownloadHistory.Items.Add(new TreeViewItem { Header = item.ToString("MMM-dd-yyyy") });
                         var tvItem = (TreeViewItem)treeViewDownloadHistory.Items[itemNo];
                         tvItem.Tag = "downloadDate";
                         tvItem.Items.Add(new TreeViewItem { Header = "Tracked operation", Tag = "tracked" });
-                        tvItem.Items.Add(new TreeViewItem { Header = "Gear unload", Tag="gearUnload"});
+                        tvItem.Items.Add(new TreeViewItem { Header = "Gear unload", Tag = "gearUnload" });
                     }
                     if (treeViewDownloadHistory.Items.Count > 0)
                     {
@@ -237,9 +238,9 @@ namespace NSAP_ODK
                 case DataDisplayMode.DBSummary:
                     //ShowSummary();
                     summaryTreeNodeRegion.Items.Clear();
-                    foreach(var region in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection)
+                    foreach (var region in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection)
                     {
-                        TreeViewItem item = new TreeViewItem {Header = region.ShortName, Tag=region };
+                        TreeViewItem item = new TreeViewItem { Header = region.ShortName, Tag = region };
                         item.Expanded += OnSuumaryTreeItemExpanded;
                         item.Items.Add(new TreeViewItem { Header = "**dummy" });
                         summaryTreeNodeRegion.Items.Add(item);
@@ -255,27 +256,27 @@ namespace NSAP_ODK
             if (node.Items.Count > 0)
             {
                 TreeViewItem firstChild = (TreeViewItem)node.Items[0];
-                if(firstChild.Header.ToString()=="**dummy")
+                if (firstChild.Header.ToString() == "**dummy")
                 {
                     node.Items.Clear();
-                    switch(node.Tag.GetType().Name)
+                    switch (node.Tag.GetType().Name)
                     {
                         case "NSAPRegion":
-                            foreach(var fg in NSAPEntities.NSAPRegionViewModel.GetFishingGrounds((NSAPRegion)node.Tag))
+                            foreach (var fg in NSAPEntities.NSAPRegionViewModel.GetFishingGrounds((NSAPRegion)node.Tag))
                             {
-                                TreeViewItem fgNode = new TreeViewItem {Header=fg.Name, Tag=fg };
+                                TreeViewItem fgNode = new TreeViewItem { Header = fg.Name, Tag = fg };
                                 //fgNode.Items.Add(new TreeViewItem { Header= "**dummy"});
                                 node.Items.Add(fgNode);
                             }
                             break;
-                        //case "FishingGround":
-                        //    var parentRegion = (NSAPRegion)((TreeViewItem)node.Parent).Tag;
-                        //    foreach (var ls in NSAPEntities.NSAPRegionViewModel.GetLandingSites(parentRegion,(FishingGround)node.Tag))
-                        //    {
-                        //        string lsName = $"{ls}";
-                        //        node.Items.Add(new TreeViewItem {Header = lsName, Tag=ls });
-                        //    }
-                        //    break;
+                            //case "FishingGround":
+                            //    var parentRegion = (NSAPRegion)((TreeViewItem)node.Parent).Tag;
+                            //    foreach (var ls in NSAPEntities.NSAPRegionViewModel.GetLandingSites(parentRegion,(FishingGround)node.Tag))
+                            //    {
+                            //        string lsName = $"{ls}";
+                            //        node.Items.Add(new TreeViewItem {Header = lsName, Tag=ls });
+                            //    }
+                            //    break;
                     }
                 }
             }
@@ -770,6 +771,10 @@ namespace NSAP_ODK
             {
                 case "menuDatabaseSummary":
                     _nsapEntity = NSAPEntity.DBSummary;
+                    if (_selectedTreeNode != null)
+                    {
+                        _selectedTreeNode.IsSelected = false;
+                    }
                     break;
                 case "menuGPS":
                     _nsapEntity = NSAPEntity.GPS;
@@ -858,7 +863,7 @@ namespace NSAP_ODK
                 //rowOthers.Height = new GridLength(0);
                 //rowSpecies.Height = new GridLength(1, GridUnitType.Star);
             }
-            else if(_nsapEntity == NSAPEntity.DBSummary)
+            else if (_nsapEntity == NSAPEntity.DBSummary)
             {
                 _currentDisplayMode = DataDisplayMode.DBSummary;
             }
@@ -870,22 +875,22 @@ namespace NSAP_ODK
                 //rowOthers.Height = new GridLength(1, GridUnitType.Star);
             }
             SetDataDisplayMode();
-            
+
             labelTitle.Content = textOfTitle;
             buttonDelete.IsEnabled = false;
             buttonEdit.IsEnabled = false;
         }
 
-        private void UncheckEditMenuItems(MenuItem source=null)
+        private void UncheckEditMenuItems(MenuItem source = null)
         {
             foreach (var mi in menuEdit.Items)
             {
                 if (mi.GetType().Name != "Separator")
                 {
                     var menu = (MenuItem)mi;
-                    if(source!=null)
+                    if (source != null)
                     {
-                        if(menu.Name!=source.Name)
+                        if (menu.Name != source.Name)
                         {
                             menu.IsChecked = false;
                         }
@@ -896,7 +901,7 @@ namespace NSAP_ODK
                     }
                     //if (menu.Name != ((MenuItem)e.Source).Name)
                     //{
-                        //menu.IsChecked = false;
+                    //menu.IsChecked = false;
                     //}
                 }
             }
@@ -1054,11 +1059,11 @@ namespace NSAP_ODK
         private async void OnMenuClicked(object sender, RoutedEventArgs e)
         {
             string fileName = "";
-            
+
 
             string itemName = ((MenuItem)sender).Name;
-            
-            if(itemName=="menuDownloadHistory" || itemName=="menuNSAPCalendar")
+
+            if (itemName == "menuDownloadHistory" || itemName == "menuNSAPCalendar")
             {
                 UncheckEditMenuItems();
             }
@@ -1070,7 +1075,7 @@ namespace NSAP_ODK
                     {
                         Title = "Save entities to XML",
                         Filter = "XML|*.xml|Default|*.*",
-                        FilterIndex=1
+                        FilterIndex = 1
                     };
                     if ((bool)sfd.ShowDialog() && sfd.FileName.Length > 0)
                     {
@@ -1116,7 +1121,7 @@ namespace NSAP_ODK
                     opf.Filter = "GPX file (*.gpx)|*.gpx|All files (*.*)|*.*";
                     opf.FilterIndex = 1;
                     opf.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                    if ((bool)opf.ShowDialog() && opf.FileName.Length>0)
+                    if ((bool)opf.ShowDialog() && opf.FileName.Length > 0)
                     {
                         var tracks = Track.ReadTracksFromFile(opf.FileName);
                         var wpts = Track.ReadNamedWaypointsFromFile(opf.FileName);
@@ -1377,7 +1382,7 @@ namespace NSAP_ODK
                     SetDataGridSource();
                 }
             }
-        
+
         }
 
         public void VesselWindowClosed()
@@ -1505,18 +1510,20 @@ namespace NSAP_ODK
             var dt = DateTime.Parse(((TreeViewItem)treeViewDownloadHistory.SelectedItem).Header.ToString());
             GridNSAPData.DataContext = _vesselDownloadHistory[dt];
         }
+
         private void OnHistoryTreeItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             if (e.NewValue != null)
             {
                 var tvItem = (TreeViewItem)e.NewValue;
-                switch(tvItem.Tag.ToString())
+
+                switch (tvItem.Tag.ToString())
                 {
                     case "downloadDate":
                     case "tracked":
-                        if (!_saveChangesToGearUnload && 
-                            NSAPEntities.GearUnloadViewModel.CopyOfGearUnloadList!=null &&
-                            NSAPEntities.GearUnloadViewModel.CopyOfGearUnloadList.Count>0
+                        if (!_saveChangesToGearUnload &&
+                            NSAPEntities.GearUnloadViewModel.CopyOfGearUnloadList != null &&
+                            NSAPEntities.GearUnloadViewModel.CopyOfGearUnloadList.Count > 0
                             )
                         {
                             UndoChangesToGearUnload(refresh: false);
@@ -1525,9 +1532,9 @@ namespace NSAP_ODK
                         var dt = DateTime.Now;
                         if (tvItem.Tag.ToString() == "downloadDate")
                         {
-                             RefreshDownloadedItemsGrid();
+                            RefreshDownloadedItemsGrid();
                         }
-                        else if(tvItem.Tag.ToString()=="tracked")
+                        else if (tvItem.Tag.ToString() == "tracked")
                         {
                             dt = DateTime.Parse(((TreeViewItem)tvItem.Parent).Header.ToString()).Date;
                             GridNSAPData.DataContext = _vesselDownloadHistory[dt].Where(t => t.OperationIsTracked == true);
@@ -1575,11 +1582,11 @@ namespace NSAP_ODK
                             GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Catch weight ", Binding = new Binding("WeightOfCatchText") });
                             GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Catch composition count ", Binding = new Binding("CatchCompositionCountText") });
                         }
-                        else if(tvItem.Tag.ToString()=="tracked")
+                        else if (tvItem.Tag.ToString() == "tracked")
                         {
                             GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "GPS ", Binding = new Binding("GPS.AssignedName") });
                         }
-                        
+
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Excel download ", Binding = new Binding("FromExcelDownload") });
                         break;
                     case "gearUnload":
@@ -1594,7 +1601,7 @@ namespace NSAP_ODK
                         GridNSAPData.SetValue(Grid.ColumnSpanProperty, 1);
                         GearUnload_ButtonsPanel.Visibility = Visibility.Visible;
 
-                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "ID ", Binding = new Binding("PK"), IsReadOnly=true });
+                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "ID ", Binding = new Binding("PK"), IsReadOnly = true });
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Region ", Binding = new Binding("Parent.NSAPRegion.Name"), IsReadOnly = true });
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "FMA ", Binding = new Binding("Parent.FMA.Name"), IsReadOnly = true });
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("Parent.FishingGround"), IsReadOnly = true });
@@ -1628,10 +1635,10 @@ namespace NSAP_ODK
 
         private void OnPropertyGridDblClick(object sender, MouseButtonEventArgs e)
         {
-            switch(_selectedPropertyItem.PropertyName)
+            switch (_selectedPropertyItem.PropertyName)
             {
                 case "DBPath":
-                   System.Diagnostics.Process.Start($"{Path.GetDirectoryName(_selectedPropertyItem.Value.ToString())}");
+                    System.Diagnostics.Process.Start($"{Path.GetDirectoryName(_selectedPropertyItem.Value.ToString())}");
                     break;
                 default:
                     break;
@@ -1642,41 +1649,42 @@ namespace NSAP_ODK
 
         private void OnPropertyChanged(object sender, RoutedPropertyChangedEventArgs<PropertyItemBase> e)
         {
-            _selectedPropertyItem= (PropertyItem)((PropertyGrid)e.Source).SelectedPropertyItem;
+            _selectedPropertyItem = (PropertyItem)((PropertyGrid)e.Source).SelectedPropertyItem;
         }
-        public void ShowSummaryAtLevel(SummaryLevelType summaryType, NSAPRegion region=null, FishingGround fg=null)
+        public void ShowSummaryAtLevel(SummaryLevelType summaryType, NSAPRegion region = null, FishingGround fg = null)
         {
-            string labelContent="";
+            string labelContent = "";
             dataGridSummary.Columns.Clear();
             dataGridSummary.AutoGenerateColumns = false;
-            switch(summaryType)
+            switch (summaryType)
             {
                 case SummaryLevelType.AllRegions:
                     labelContent = "Summary by region";
                     NSAPEntities.NSAPRegionViewModel.SetupSummary();
                     var dict = NSAPEntities.NSAPRegionViewModel.RegionSummaryDictionary;
-                    var summarySource = from row in dict select new 
-                    { 
-                        Region = row.Key.ShortName, 
-                        FMACount = row.Value.FMACount, 
-                        FishingGroundCount = row.Value.FishingGroundCount,
-                        LandingSiteCount = row.Value.LandingSiteCount,
-                        GearCount = row.Value.FishingGearCount,
-                        EnumeratorCount = row.Value.EnumeratorCount,
-                        FishingVesselCount = row.Value.FishingVesselCount,
-                        GearUnloadCount = row.Value.GearUnloadCount,
-                        GearUnloadCompletedCount = row.Value.CountCompleteGearUnload,
-                        VesselUnloadCount = row.Value.VesselUnloadCount,
-                        TrackedOperationsCount = row.Value.TrackedOperationsCount,
-                        FirstSampling = row.Value.FirstLandingFormattedDate,
-                        LastSampling = row.Value.LastLandingFormattedDate,
-                        LastDownloadDate = row.Value.LatestDownloadFormattedDate
-                    };
-                    
-                    
+                    var summarySource = from row in dict
+                                        select new
+                                        {
+                                            Region = row.Key.ShortName,
+                                            FMACount = row.Value.FMACount,
+                                            FishingGroundCount = row.Value.FishingGroundCount,
+                                            LandingSiteCount = row.Value.LandingSiteCount,
+                                            GearCount = row.Value.FishingGearCount,
+                                            EnumeratorCount = row.Value.EnumeratorCount,
+                                            FishingVesselCount = row.Value.FishingVesselCount,
+                                            GearUnloadCount = row.Value.GearUnloadCount,
+                                            GearUnloadCompletedCount = row.Value.CountCompleteGearUnload,
+                                            VesselUnloadCount = row.Value.VesselUnloadCount,
+                                            TrackedOperationsCount = row.Value.TrackedOperationsCount,
+                                            FirstSampling = row.Value.FirstLandingFormattedDate,
+                                            LastSampling = row.Value.LastLandingFormattedDate,
+                                            LastDownloadDate = row.Value.LatestDownloadFormattedDate
+                                        };
+
+
                     dataGridSummary.DataContext = summarySource;
-                    
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "Region", Binding =new Binding("Region" )});
+
+                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "Region", Binding = new Binding("Region") });
                     dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of gear unload", Binding = new Binding("GearUnloadCount") });
                     dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of complete gear unload", Binding = new Binding("GearUnloadCompletedCount") });
                     dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "#  of vessel unload", Binding = new Binding("VesselUnloadCount") });
@@ -1684,13 +1692,13 @@ namespace NSAP_ODK
                     dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "Earliest date of monitoring", Binding = new Binding("FirstSampling") });
                     dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "Latest date of monitoring", Binding = new Binding("LastSampling") });
                     dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "Latest date of downloaded e-forms ", Binding = new Binding("LastDownloadDate") });
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of FMAs", Binding =new Binding("FMACount" )});
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of fishing grounds", Binding =new Binding("FishingGroundCount" )});
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of landing sites", Binding =new Binding("LandingSiteCount" )});
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of gear types", Binding =new Binding("GearCount" )});
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of enumerators", Binding =new Binding("EnumeratorCount" )});
+                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of FMAs", Binding = new Binding("FMACount") });
+                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of fishing grounds", Binding = new Binding("FishingGroundCount") });
+                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of landing sites", Binding = new Binding("LandingSiteCount") });
+                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of gear types", Binding = new Binding("GearCount") });
+                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of enumerators", Binding = new Binding("EnumeratorCount") });
                     dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of fishing vessels", Binding = new Binding("FishingVesselCount") });
-                    
+
 
 
 
@@ -1701,23 +1709,23 @@ namespace NSAP_ODK
 
                     var dictFG = NSAPEntities.NSAPRegionViewModel.RegionFishingGroundSummaryDictionary;
                     var summarySourceFG = from row in dictFG
-                                        select new
-                                        {
-                                            FishingGroundName = row.Key.Name,
-                                            FishingGround = row.Value.FishingGround,
-                                            FMA = row.Value.FMA.Name,
-                                            GearUnloadCount = row.Value.GearUnloadCount,
-                                            GearUnloadCompletedCount = row.Value.CountCompleteGearUnload,
-                                            VesselUnloadCount = row.Value.VesselUnloadCount,
-                                            TrackedOperationsCount = row.Value.TrackedOperationsCount,
-                                            FirstSampling = row.Value.FirstLandingFormattedDate,
-                                            LastSampling = row.Value.LastLandingFormattedDate,
-                                            LastDownloadDate = row.Value.LatestDownloadFormattedDate
-                                        };
+                                          select new
+                                          {
+                                              FishingGroundName = row.Key.Name,
+                                              FishingGround = row.Value.FishingGround,
+                                              FMA = row.Value.FMA.Name,
+                                              GearUnloadCount = row.Value.GearUnloadCount,
+                                              GearUnloadCompletedCount = row.Value.CountCompleteGearUnload,
+                                              VesselUnloadCount = row.Value.VesselUnloadCount,
+                                              TrackedOperationsCount = row.Value.TrackedOperationsCount,
+                                              FirstSampling = row.Value.FirstLandingFormattedDate,
+                                              LastSampling = row.Value.LastLandingFormattedDate,
+                                              LastDownloadDate = row.Value.LatestDownloadFormattedDate
+                                          };
 
                     dataGridSummary.DataContext = summarySourceFG;
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding =new Binding("FishingGroundName" )});
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding =new Binding("FMA" )});
+                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("FishingGroundName") });
+                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("FMA") });
                     dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of gear unload", Binding = new Binding("GearUnloadCount") });
                     dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of complete gear unload", Binding = new Binding("GearUnloadCompletedCount") });
                     dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "#  of vessel unload", Binding = new Binding("VesselUnloadCount") });
@@ -1727,8 +1735,8 @@ namespace NSAP_ODK
                     dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "Latest date of downloaded e-forms ", Binding = new Binding("LastDownloadDate") });
                     break;
                 case SummaryLevelType.FishingGround:
-                    NSAPEntities.NSAPRegionViewModel.SetupSummaryForFishingGround(region,fg);
-                    
+                    NSAPEntities.NSAPRegionViewModel.SetupSummaryForFishingGround(region, fg, (bool)checkLandingSiteWithLandings.IsChecked);
+
                     var dictLS = NSAPEntities.NSAPRegionViewModel.RegionLandingSiteSummaryDictionary;
                     var summarySourceLS = from row in dictLS
                                           select new
@@ -1757,10 +1765,38 @@ namespace NSAP_ODK
                     dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "Earliest date of monitoring", Binding = new Binding("FirstSampling") });
                     dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "Latest date of monitoring", Binding = new Binding("LastSampling") });
                     dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "Latest date of downloaded e-forms ", Binding = new Binding("LastDownloadDate") });
+
+                    checkLandingSiteWithLandings.Visibility = Visibility.Visible;
+
                     break;
             }
             labelSummary.Content = labelContent;
             dataGridSummary.Visibility = Visibility.Visible;
+            panelOpening.Visibility = Visibility.Visible;
+        }
+
+        private void ProcessSummaryTreeSelection(TreeViewItem tvItem)
+        {
+            switch (tvItem.Header.ToString())
+            {
+                case "Overall":
+                    ShowSummary();
+                    break;
+                case "Region":
+                    ShowSummaryAtLevel(SummaryLevelType.AllRegions);
+                    break;
+                default:
+                    switch (tvItem.Tag.GetType().Name)
+                    {
+                        case "NSAPRegion":
+                            ShowSummaryAtLevel(SummaryLevelType.Region, (NSAPRegion)tvItem.Tag);
+                            break;
+                        case "FishingGround":
+                            ShowSummaryAtLevel(SummaryLevelType.FishingGround, (NSAPRegion)((TreeViewItem)tvItem.Parent).Tag, (FishingGround)tvItem.Tag);
+                            break;
+                    }
+                    break;
+            }
         }
 
         private void OnSummaryTreeItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -1768,29 +1804,23 @@ namespace NSAP_ODK
             labelSummary.Content = "To be implemented";
             propertyGridSummary.Visibility = Visibility.Collapsed; ;
             dataGridSummary.Visibility = Visibility.Collapsed;
+            checkLandingSiteWithLandings.Visibility = Visibility.Collapsed;
             if (e.NewValue != null)
             {
-                var tvItem = (TreeViewItem)e.NewValue;
-                switch (tvItem.Header.ToString())
-                {
-                    case "Overall":
-                        ShowSummary();
-                        break;
-                    case "Region":
-                        ShowSummaryAtLevel(SummaryLevelType.AllRegions);
-                        break;
-                    default:
-                        switch(tvItem.Tag.GetType().Name)
-                        {
-                            case "NSAPRegion":
-                                ShowSummaryAtLevel(SummaryLevelType.Region, (NSAPRegion)tvItem.Tag);
-                                break;
-                            case "FishingGround":
-                                ShowSummaryAtLevel(SummaryLevelType.FishingGround, (NSAPRegion)((TreeViewItem)tvItem.Parent).Tag,  (FishingGround)tvItem.Tag);
-                                break;
-                        }
-                        break;
-                }
+                _selectedTreeNode = (TreeViewItem)e.NewValue;
+                ProcessSummaryTreeSelection(_selectedTreeNode); 
+            }
+        }
+
+        private void OnCheckBoxChecked(object sender, RoutedEventArgs e)
+        {
+            CheckBox chk = (CheckBox)sender;
+            switch (chk.Name)
+            {
+                case "checkLandingSiteWithLandings":
+                        ProcessSummaryTreeSelection(_selectedTreeNode);
+
+                    break;
             }
         }
     }

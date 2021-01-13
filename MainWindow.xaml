@@ -211,6 +211,7 @@
                     <Label x:Name="labelSummary" Content="Database summary" FontWeight="Bold" HorizontalAlignment="Center" Margin="0 10 0 20" FontSize="14"/>
                     <xctk:PropertyGrid x:Name="propertyGridSummary" Margin="20"  ShowSortOptions="False" ShowSearchBox="False"
                         ShowTitle="False" MouseDoubleClick="OnPropertyGridDblClick"   SelectedPropertyItemChanged="OnPropertyChanged" IsReadOnly="True"/>
+                    <CheckBox x:Name="checkLandingSiteWithLandings" Margin="20 0 0 0" Content="Only show landing sites with catch monitoring" Checked="OnCheckBoxChecked" Unchecked="OnCheckBoxChecked"/>
                     <DataGrid x:Name="dataGridSummary" Visibility="Collapsed" ItemsSource="{Binding}" IsReadOnly="True" Margin="20">
                         <DataGrid.CellStyle>
                             <Style TargetType="DataGridCell">

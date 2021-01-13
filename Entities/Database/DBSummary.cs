@@ -42,16 +42,19 @@ namespace NSAP_ODK.Entities.Database
             FishingVesselCount = NSAPEntities.FishingVesselViewModel.Count;
             GPSCount = NSAPEntities.GPSViewModel.Count;
             TrackedOperationsCount = NSAPEntities.VesselUnloadViewModel.TrackedUnloadCount;
-            FirstSampledLandingDate = NSAPEntities.VesselUnloadViewModel.DateOfFirstSampledLanding;
-            LastSampledLandingDate = NSAPEntities.VesselUnloadViewModel.DateOfLastSampledLanding;
-            CountCompleteGearUnload = NSAPEntities.GearUnloadViewModel.CountCompletedGearUnload;
-            DateLastDownload = NSAPEntities.VesselUnloadViewModel.DateLatestDownload;
+            if (VesselUnloadCount > 0)
+            {
+                FirstSampledLandingDate = NSAPEntities.VesselUnloadViewModel.DateOfFirstSampledLanding;
+                LastSampledLandingDate = NSAPEntities.VesselUnloadViewModel.DateOfLastSampledLanding;
+                CountCompleteGearUnload = NSAPEntities.GearUnloadViewModel.CountCompletedGearUnload;
+                DateLastDownload = NSAPEntities.VesselUnloadViewModel.DateLatestDownload;
+            }
         }
         public DBSummary()
         {
 
         }
-
+        public bool IsTotal { get; set; }
         public FMA FMA { get; set; }
         [ReadOnly(true)]
         public string DBPath { get; set; }
