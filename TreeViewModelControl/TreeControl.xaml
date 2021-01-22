@@ -54,7 +54,7 @@
                     <StackPanel Orientation="Horizontal">
                         <StackPanel.ContextMenu>
                             <ContextMenu>
-                                <MenuItem Header="Edit gear unload" Click="OnContextMenuClick"/>
+                                <MenuItem Header="Edit gear unload" Click="OnContextMenuClick" x:Name="contextMenuEditGearUnload"/>
                             </ContextMenu>
                         </StackPanel.ContextMenu>
                         <!-- <Image Width="16" Height="16" Margin="3,0" Source="Images\Region.png" /> -->
@@ -76,6 +76,11 @@
                     DataType="{x:Type local:tv_MonthViewModel}">
 
                     <StackPanel Orientation="Horizontal">
+                        <StackPanel.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Crosstab report" Click="OnContextMenuClick" x:Name="contextMenuCrosstabMonth"/>
+                            </ContextMenu>
+                        </StackPanel.ContextMenu>
                         <!-- <Image Width="16" Height="16" Margin="3,0" Source="Images\Region.png" /> -->
                         <TextBlock Text="{Binding Name}" />
                     </StackPanel>

@@ -117,10 +117,27 @@ namespace NSAP_ODK.TreeViewModelControl
             AllSamplingEntitiesEventHandler args = new AllSamplingEntitiesEventHandler();
             string treeViewEntity = _selectedItem.GetType().Name;
             args.TreeViewEntity = treeViewEntity;
-            args.FishingGround = ((tv_FishingGroundViewModel)_selectedItem)._fishingGround;
-            args.FMA = ((tv_FishingGroundViewModel)_selectedItem)._fma;
-            args.NSAPRegion = ((tv_FishingGroundViewModel)_selectedItem)._region;
-            args.ContextMenuTopic = "editFishingGroundGearUnload";
+
+            switch (((MenuItem)sender).Name)
+            {
+                case "contextMenuEditGearUnload":
+                    args.FishingGround = ((tv_FishingGroundViewModel)_selectedItem)._fishingGround;
+                    args.FMA = ((tv_FishingGroundViewModel)_selectedItem)._fma;
+                    args.NSAPRegion = ((tv_FishingGroundViewModel)_selectedItem)._region;
+                    args.ContextMenuTopic = "editFishingGroundGearUnload";
+                    break;
+
+                case "contextMenuCrosstabMonth":
+                    args.LandingSiteText = ((tv_MonthViewModel)_selectedItem)._landingSiteName;
+                    args.FishingGround = ((tv_MonthViewModel)_selectedItem)._fishingGround;
+                    args.FMA = ((tv_MonthViewModel)_selectedItem)._fma;
+                    args.NSAPRegion = ((tv_MonthViewModel)_selectedItem)._nsapRegion;
+                    args.MonthSampled = DateTime.Parse(((tv_MonthViewModel)_selectedItem).Name);
+                    args.ContextMenuTopic = "crosstabByMonth";
+                    break;
+            }
+
+            
 
             TreeContextMenu?.Invoke(this, args);
         }

@@ -51,7 +51,7 @@ namespace NSAP_ODK.Entities.Database
         {
 
         }
-
+        public bool IsTotal { get; set; }
         public FMA FMA { get; set; }
         [ReadOnly(true)]
         public string DBPath { get; set; }

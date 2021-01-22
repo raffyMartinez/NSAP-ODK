@@ -109,6 +109,15 @@ namespace NSAP_ODK.Entities.Database
             get { return VesselUnloadCollection.Count; }
         }
 
+        public FishingGroundGrid FirstGridLocation(VesselUnload unload)
+        {
+            FishingGroundGrid grid = null;
+            if (unload.ListFishingGroundGrid.Count > 0)
+            {
+              grid = unload.ListFishingGroundGrid[0];
+            }
+            return grid;
+        }
         public bool AddRecordToRepo(VesselUnload item)
         {
             if (item == null)

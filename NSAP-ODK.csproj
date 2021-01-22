@@ -140,6 +140,12 @@
     <Compile Include="Entities\Database\CatchLength.cs" />
     <Compile Include="Entities\Database\CatchLengthWeight.cs" />
     <Compile Include="Entities\Database\CatchMaturity.cs" />
+    <Compile Include="Entities\Database\CrossTabCommon.cs" />
+    <Compile Include="Entities\Database\CrossTabEffort.cs" />
+    <Compile Include="Entities\Database\CrossTabLenFreq.cs" />
+    <Compile Include="Entities\Database\CrossTabLength.cs" />
+    <Compile Include="Entities\Database\CrossTabManager.cs" />
+    <Compile Include="Entities\Database\CrossTabMaturity.cs" />
     <Compile Include="Entities\Database\DBSummary.cs" />
     <Compile Include="Entities\Database\DownloadFromServerEventArg.cs" />
     <Compile Include="Entities\Database\EntitiesToDataTables.cs" />
