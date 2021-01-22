@@ -1,0 +1,32 @@
+﻿<Window x:Class="NSAP_ODK.Views.CrossTabReportWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NSAP_ODK.Views"
+        mc:Ignorable="d"
+        Title="CrossTabReportWindow" Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Menu Grid.ColumnSpan="2" VerticalAlignment="Center">
+            <MenuItem Header="File">
+                <MenuItem Header="Export to excel" x:Name="menuExportExcel" Click="OnMenuClicked"/>
+                <MenuItem Header="Close" x:Name="menuClose" Click="OnMenuClicked"/>
+            </MenuItem>
+        </Menu>
+        <TreeView Grid.Row="1" SelectedItemChanged="OnTreeItemChanged">
+            <TreeViewItem Header="Effort" Tag="effort"/>
+            <TreeViewItem Header="Length frequency" Tag="lenfreq"/>
+            <TreeViewItem Header="Length" Tag="len"/>
+            <TreeViewItem Header="Catch maturity" Tag ="maturity"/>
+        </TreeView>
+        <DataGrid Grid.Row="1" Grid.Column="1" Margin="10" x:Name="dataGrid"/>
+    </Grid>
+</Window>

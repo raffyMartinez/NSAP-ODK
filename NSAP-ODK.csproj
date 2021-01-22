@@ -311,6 +311,9 @@
     <Compile Include="Utilities\ObjectShredder.cs" />
     <Compile Include="Utilities\SerializeWindowState.cs" />
     <Compile Include="Utilities\VesselLandingFixDownload.cs" />
+    <Compile Include="Views\CrossTabReportWindow.xaml.cs">
+      <DependentUpon>CrossTabReportWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\CSVOptionsWindow.xaml.cs">
       <DependentUpon>CSVOptionsWindow.xaml</DependentUpon>
     </Compile>
@@ -360,6 +363,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="TreeViewModelControl\TreeControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\CrossTabReportWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
