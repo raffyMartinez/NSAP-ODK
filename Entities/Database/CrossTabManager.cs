@@ -13,41 +13,44 @@ namespace NSAP_ODK.Entities.Database
         private static List<CrossTabMaturity> _crossTabMaturities;
         private static List<CrossTabLength> _crossTabLengths;
         private static DataTable _effortCrostabDataTable;
+        private static List<GearUnload> _gearUnloads;
+        private static TreeViewModelControl.AllSamplingEntitiesEventHandler _sev;
         public static void GearByMonthYear(TreeViewModelControl.AllSamplingEntitiesEventHandler sev)
         {
+            _sev = sev;
             _crossTabEfforts = new List<CrossTabEffort>();
             _crossTabLenFreqs = new List<CrossTabLenFreq>();
             _crossTabMaturities = new List<CrossTabMaturity>();
             _crossTabLengths = new List<CrossTabLength>();
 
-            List<GearUnload> gearUnloads = new List<GearUnload>();
-            if (sev.GearUsed==null || sev.GearUsed.Length == 0)
+            _gearUnloads = new List<GearUnload>();
+            if (_sev.GearUsed==null || _sev.GearUsed.Length == 0)
             {
                 //when we select from the tree and want to process all gears landed for a month
-                   gearUnloads = NSAPEntities.GearUnloadViewModel.GearUnloadCollection
-                    .Where(t => t.Parent.NSAPRegion.Code == sev.NSAPRegion.Code &&
-                              t.Parent.FMA.FMAID == sev.FMA.FMAID &&
-                              t.Parent.FishingGround.Code == sev.FishingGround.Code &&
-                              t.Parent.LandingSiteName == sev.LandingSiteText &&
-                              t.Parent.SamplingDate.Date >= (DateTime)sev.MonthSampled &&
-                              t.Parent.SamplingDate.Date < ((DateTime)sev.MonthSampled).AddMonths(1)).ToList();
+                   _gearUnloads = NSAPEntities.GearUnloadViewModel.GearUnloadCollection
+                    .Where(t => t.Parent.NSAPRegion.Code == _sev.NSAPRegion.Code &&
+                              t.Parent.FMA.FMAID == _sev.FMA.FMAID &&
+                              t.Parent.FishingGround.Code == _sev.FishingGround.Code &&
+                              t.Parent.LandingSiteName == _sev.LandingSiteText &&
+                              t.Parent.SamplingDate.Date >= (DateTime)_sev.MonthSampled &&
+                              t.Parent.SamplingDate.Date < ((DateTime)_sev.MonthSampled).AddMonths(1)).ToList();
 
             }
             else
             {
                 //when we select a gear from the datagrid and want to process only a gear for a month
-                gearUnloads = NSAPEntities.GearUnloadViewModel.GearUnloadCollection
-                 .Where(t => t.Parent.NSAPRegion.Code == sev.NSAPRegion.Code &&
-                           t.Parent.FMA.FMAID == sev.FMA.FMAID &&
-                           t.Parent.FishingGround.Code == sev.FishingGround.Code &&
-                           t.Parent.LandingSiteName == sev.LandingSiteText &&
-                           t.GearUsedName == sev.GearUsed && 
-                           t.Parent.SamplingDate.Date >= (DateTime)sev.MonthSampled &&
-                           t.Parent.SamplingDate.Date < ((DateTime)sev.MonthSampled).AddMonths(1)).ToList();
+                _gearUnloads = NSAPEntities.GearUnloadViewModel.GearUnloadCollection
+                 .Where(t => t.Parent.NSAPRegion.Code == _sev.NSAPRegion.Code &&
+                           t.Parent.FMA.FMAID == _sev.FMA.FMAID &&
+                           t.Parent.FishingGround.Code == _sev.FishingGround.Code &&
+                           t.Parent.LandingSiteName == _sev.LandingSiteText &&
+                           t.GearUsedName == _sev.GearUsed && 
+                           t.Parent.SamplingDate.Date >= (DateTime)_sev.MonthSampled &&
+                           t.Parent.SamplingDate.Date < ((DateTime)_sev.MonthSampled).AddMonths(1)).ToList();
             }
 
 
-            foreach(var gu in gearUnloads)
+            foreach(var gu in _gearUnloads)
             {
 
                 
@@ -86,6 +89,8 @@ namespace NSAP_ODK.Entities.Database
             BuildEffortCrossTabDataTable();
         }
 
+        public static CrossTabCommon CrossTabCommon { get; set; }
+        public static TreeViewModelControl.AllSamplingEntitiesEventHandler AllSamplingEntitiesEventHandler { get { return _sev; } }
         private static void BuildEffortCrossTabDataTable()
         {
             _effortCrostabDataTable = new DataTable();
@@ -109,8 +114,6 @@ namespace NSAP_ODK.Entities.Database
             dc = new DataColumn { ColumnName = "Province" };
             _effortCrostabDataTable.Columns.Add(dc);
 
-            dc = new DataColumn { ColumnName = "Fishing ground" };
-            _effortCrostabDataTable.Columns.Add(dc);
 
             dc = new DataColumn { ColumnName = "Municipality" };
             _effortCrostabDataTable.Columns.Add(dc);
@@ -148,7 +151,13 @@ namespace NSAP_ODK.Entities.Database
             dc = new DataColumn { ColumnName = "Catch weight", DataType=typeof(double) };
             _effortCrostabDataTable.Columns.Add(dc);
 
-            foreach(var spec in NSAPEntities.EffortSpecificationViewModel.EffortSpecCollection.OrderBy(t=>t.Name))
+            //dc = new DataColumn { ColumnName = "Family", DataType = typeof(double) };
+            //_effortCrostabDataTable.Columns.Add(dc);
+
+            //dc = new DataColumn { ColumnName = "Catch weight", DataType = typeof(double) };
+            //_effortCrostabDataTable.Columns.Add(dc);
+
+            foreach (var spec in NSAPEntities.EffortSpecificationViewModel.EffortSpecCollection.OrderBy(t=>t.Name))
             {
                 dc = new DataColumn { ColumnName = spec.Name };
                 switch(spec.ValueType)
@@ -186,15 +195,55 @@ namespace NSAP_ODK.Entities.Database
                 }
                 row["Landing site"] = item.CrossTabCommon.LandingSiteName;
                 row["Sector"] = item.CrossTabCommon.Sector;
-                row["Grid location"] = $"{item.CrossTabCommon.FishingGroundGrid.ToString()}";
+
+                if (item.CrossTabCommon.FishingGroundGrid != null)
+                {
+                    row["Grid location"] = $"{item.CrossTabCommon.FishingGroundGrid.ToString()}";
+                }
+
                 row["Gear"] = item.CrossTabCommon.GearName;
                 row["Fishing vessel"] = item.CrossTabCommon.FBName;
-                row["Fishing vessels landded"] = item.CrossTabCommon.FBL;
-                row["Fishing vessels monitored"] = item.CrossTabCommon.FBM;
+                
+                if (item.CrossTabCommon.FBL != null)
+                {
+                    row["Fishing vessels landded"] = item.CrossTabCommon.FBL;
+                }
+                
+                if(item.CrossTabCommon.FBM != null)
+                {
+                    row["Fishing vessels monitored"] = item.CrossTabCommon.FBM;
+                }
+                
+                row["Sampling day"] = item.CrossTabCommon.SamplingDay;
+                row["Family"] = item.CrossTabCommon.Family;
+                row["Species"] = item.CrossTabCommon.SN;
+                row["Catch weight"] = item.CrossTabCommon.Catch.Catch_kg;
 
 
+                foreach (var ve in NSAPEntities.VesselEffortViewModel.VesselEffortCollection
+                    .Where(t => t.Parent.PK == item.CrossTabCommon.DataID)
+                    .OrderBy(t=>t.EffortSpecification.Name)
+                    .ToList())
+                    {
+                        switch(ve.EffortSpecification.ValueType)
+                        {
+                            case ODKValueType.isBoolean:
+                                row[ve.EffortSpecification.Name] = bool.Parse(ve.EffortValue);
+                                break;
+                            case ODKValueType.isDecimal:
+                                row[ve.EffortSpecification.Name] = double.Parse(ve.EffortValue);
+                                break;
+                            case ODKValueType.isInteger:
+                                row[ve.EffortSpecification.Name] = int.Parse(ve.EffortValue);
+                                break;
+                            case ODKValueType.isText:
+                            case ODKValueType.isUndefined:
+                                row[ve.EffortSpecification.Name] = ve.EffortValue;
+                                break;
+                        }
+                    }
 
-
+                _effortCrostabDataTable.Rows.Add(row);
             }
 
 

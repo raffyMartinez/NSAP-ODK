@@ -907,6 +907,21 @@ namespace NSAP_ODK
                 }
             }
         }
+
+        private void ShowCrossTabWIndow()
+        {
+            CrossTabReportWindow ctw = CrossTabReportWindow.GetInstance();
+            if(ctw.IsVisible)
+            {
+                ctw.BringIntoView();
+            }
+            else
+            {
+                ctw.Show();
+                ctw.Owner = this;
+            }
+            ctw.ShowEffort();
+        }
         private void OnDataGridContextMenu(object sender, RoutedEventArgs e)
         {
             
@@ -915,8 +930,7 @@ namespace NSAP_ODK
                 case "samplingCalendar":
                     _allSamplingEntitiesEventHandler.GearUsed = _gearName;
                     CrossTabManager.GearByMonthYear(_allSamplingEntitiesEventHandler);
-                    CrossTabReportWindow ctw = new CrossTabReportWindow();
-                    ctw.ShowDialog();
+                    ShowCrossTabWIndow();
                     break;
                 case "nsapEntities":
                     EntityPropertyEnableWindow epe = null;
@@ -1507,6 +1521,7 @@ namespace NSAP_ODK
                 case "crosstabByMonth":
                     _allSamplingEntitiesEventHandler = e;
                     CrossTabManager.GearByMonthYear(_allSamplingEntitiesEventHandler);
+                    ShowCrossTabWIndow();
                     break;
 
             }

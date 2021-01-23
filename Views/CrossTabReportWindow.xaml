@@ -9,6 +9,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
+            <RowDefinition Height="50"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
@@ -21,12 +22,16 @@
                 <MenuItem Header="Close" x:Name="menuClose" Click="OnMenuClicked"/>
             </MenuItem>
         </Menu>
-        <TreeView Grid.Row="1" SelectedItemChanged="OnTreeItemChanged" x:Name="treeView">
+        <TreeView Grid.Row="2" SelectedItemChanged="OnTreeItemChanged" x:Name="treeView">
             <TreeViewItem Header="Effort" Tag="effort"/>
             <TreeViewItem Header="Length frequency" Tag="lenfreq"/>
             <TreeViewItem Header="Length" Tag="len"/>
             <TreeViewItem Header="Catch maturity" Tag ="maturity"/>
         </TreeView>
-        <DataGrid Grid.Row="1" Grid.Column="1" Margin="10" x:Name="dataGrid" ItemsSource="{Binding}"/>
+        <StackPanel Grid.Row="1" Grid.ColumnSpan="2" HorizontalAlignment="Center">
+            <Label x:Name="mainLabel" Content="The main label" FontSize="16" FontWeight="Bold"/>
+            <Label x:Name="subLabel" Content="The sub label"/>
+        </StackPanel>
+        <DataGrid Grid.Row="2" Grid.Column="1" Margin="10" x:Name="dataGrid" ItemsSource="{Binding}"/>
     </Grid>
 </Window>

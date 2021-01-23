@@ -57,14 +57,18 @@ namespace NSAP_ODK.Entities.Database
             FishingGround = _landingSiteSamplinng.FishingGround;
             LandingSite = _landingSiteSamplinng.LandingSite;
             LandingSiteName = _landingSiteSamplinng.LandingSiteName;
-            Province = LandingSite.Municipality.Province;
-            Municipality = LandingSite.Municipality;
+            if (LandingSite != null)
+            {
+                Province = LandingSite.Municipality.Province;
+                Municipality = LandingSite.Municipality;
+            }
             Sector = _vesselUnload.Sector;
             FishingGroundGrid = NSAPEntities.VesselUnloadViewModel.FirstGridLocation(_vesselUnload);
             Gear = _gearUnload.Gear;
             GearName = _gearUnload.GearUsedName;
             FBName = _vesselUnload.VesselName;
-            FBM = _gearUnload.Boats;
+            FBL = _gearUnload.Boats;
+            FBM = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.Count(t=>t.Parent.PK==_gearUnload.PK);
             SamplingDay = _landingSiteSamplinng.IsSamplingDay;
             Weight = _vesselCatch.Catch_kg;
             MonthSampled = new DateTime(_samplingDate.Year, _samplingDate.Month, 1);
@@ -74,6 +78,9 @@ namespace NSAP_ODK.Entities.Database
         public FishingGround FishingGround { get; private set; }
         public DateTime MonthSampled { get; private set; }
 
+        public int Year { get { return MonthSampled.Year; } }
+
+        public string Month { get { return MonthSampled.ToString("MMMM"); } }
         public DateTime SamplingDate { get; private set; }
 
         public LandingSite LandingSite { get; private set; }
@@ -81,14 +88,18 @@ namespace NSAP_ODK.Entities.Database
         public string LandingSiteName { get; private set; }
         public Province Province { get; set; }
 
+        public string ProvinceName { get { return Province == null ? "" : Province.ProvinceName; } }
+
         public Municipality Municipality { get; set; }
+
+        public string MunicipalityName { get { return Municipality== null ? "" : Municipality.MunicipalityName; } }
         public string Sector { get; private set; }
 
         public FishingGroundGrid FishingGroundGrid { get; private set; }
         public Gear Gear { get; private set; }
         public string GearName { get; private set; }
         public string FBName { get; private set; }
-        public int FBL { get; set; }
+        public int? FBL { get; set; }
         public int? FBM { get; private set; }
 
         public bool SamplingDay { get; private set; }

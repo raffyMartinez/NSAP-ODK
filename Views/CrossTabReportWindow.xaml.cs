@@ -20,17 +20,26 @@ namespace NSAP_ODK.Views
     /// </summary>
     public partial class CrossTabReportWindow : Window
     {
-
+        private static CrossTabReportWindow _instance;
         public CrossTabReportWindow()
         {
             InitializeComponent();
             Loaded += OnWindowLoaded;
-            Closed += OnWindowClosed;
+            Closing += OnWindowClosing;
         }
 
-        private void OnWindowClosed(object sender, EventArgs e)
+        public static CrossTabReportWindow GetInstance()
+        {
+            if (_instance == null)
+            {
+                _instance = new CrossTabReportWindow();
+            }
+            return _instance;
+        }
+        private void OnWindowClosing(object sender, EventArgs e)
         {
             this.SavePlacement();
+            _instance = null;
         }
         protected override void OnSourceInitialized(EventArgs e)
         {
@@ -39,25 +48,75 @@ namespace NSAP_ODK.Views
         }
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
+            
+        }
+
+        public void ShowEffort()
+        {
             ((TreeViewItem)treeView.Items[0]).IsSelected = true;
+            ((TreeViewItem)treeView.Items[0]).IsSelected = true;
+        }
+
+        private void SetupGridColumns(string topic)
+        {
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Data ID", Binding = new Binding("CrossTabCommon.DataID") });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("CrossTabCommon.FishingGround") });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Year", Binding = new Binding("CrossTabCommon.Year") });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Month", Binding = new Binding("CrossTabCommon.Month")  });
+
+            DataGridTextColumn col = new DataGridTextColumn { Header = "Date", Binding = new Binding("CrossTabCommon.SamplingDate") };
+            col.Binding.StringFormat = "MMM-dd-yyyy";
+            col.IsReadOnly = true;
+            dataGrid.Columns.Add(col);
+
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Province", Binding = new Binding("CrossTabCommon.ProvinceName")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Municipality", Binding = new Binding("CrossTabCommon.MunicipalityName")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("CrossTabCommon.LandingSite.LandingSiteName")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("CrossTabCommon.Sector")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Grid", Binding = new Binding("CrossTabCommon.FishingGroundGrid")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("CrossTabCommon.GearName")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("CrossTabCommon.FBName")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "FBL", Binding = new Binding("CrossTabCommon.FBL")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "FBM", Binding = new Binding("CrossTabCommon.FBM")  });
+
         }
 
         private void OnTreeItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            dataGrid.Columns.Clear();
-            switch(((TreeViewItem)sender).Tag.ToString())
+            if (e.NewValue != null)
             {
-                case "effort":
-                    break;
-                case "lenfreq":
-                    dataGrid.DataContext = CrossTabManager.CrossTabLenFreqs;
-                    break;
-                case "len":
-                    dataGrid.DataContext = CrossTabManager.CrossTabLengths;
-                    break;
-                case "maturity":
-                    dataGrid.DataContext = CrossTabManager.CrossTabMaturities;
-                    break;
+                TreeViewItem tvItem = (TreeViewItem)e.NewValue;
+                string topic = tvItem.Tag.ToString();
+                dataGrid.Columns.Clear();
+
+                dataGrid.AutoGenerateColumns = false;
+                if (topic != "effort")
+                {
+                    SetupGridColumns(topic);
+                }
+                subLabel.Content = $"Month of vessel landings: {((DateTime)CrossTabManager.AllSamplingEntitiesEventHandler.MonthSampled).ToString("MMM-yyyy")}";
+                switch (topic)
+
+                {
+                    case "effort":
+                        dataGrid.DataContext = CrossTabManager.CrossTabEfforts;
+                        dataGrid.AutoGenerateColumns = true;
+                        mainLabel.Content = "Crostab between catch composition and effort indicators";
+
+                        break;
+                    case "lenfreq":
+                        dataGrid.DataContext = CrossTabManager.CrossTabLenFreqs;
+                        mainLabel.Content = "Crostab between length frequency of catch and fishing effort";
+                        break;
+                    case "len":
+                        dataGrid.DataContext = CrossTabManager.CrossTabLengths;
+                        mainLabel.Content = "Crostab between length of catch and fishing effort";
+                        break;
+                    case "maturity":
+                        dataGrid.DataContext = CrossTabManager.CrossTabMaturities;
+                        mainLabel.Content = "Crostab between maturity indicators of catch and fishing effort";
+                        break;
+                }
             }
         }
 
