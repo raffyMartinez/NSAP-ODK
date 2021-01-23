@@ -57,7 +57,7 @@ namespace NSAP_ODK.Views
             ((TreeViewItem)treeView.Items[0]).IsSelected = true;
         }
 
-        private void SetupGridColumns(string topic)
+        private void SetupGridColumns()
         {
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Data ID", Binding = new Binding("CrossTabCommon.DataID") });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("CrossTabCommon.FishingGround") });
@@ -78,6 +78,10 @@ namespace NSAP_ODK.Views
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("CrossTabCommon.FBName")  });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "FBL", Binding = new Binding("CrossTabCommon.FBL")  });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "FBM", Binding = new Binding("CrossTabCommon.FBM")  });
+            dataGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "Sampling day", Binding = new Binding("CrossTabCommon.SamplingDay")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Family", Binding = new Binding("CrossTabCommon.Family")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Species", Binding = new Binding("CrossTabCommon.SN")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Catch", Binding = new Binding("CrossTabCommon.Weight")  });
 
         }
 
@@ -92,7 +96,7 @@ namespace NSAP_ODK.Views
                 dataGrid.AutoGenerateColumns = false;
                 if (topic != "effort")
                 {
-                    SetupGridColumns(topic);
+                    SetupGridColumns();
                 }
                 subLabel.Content = $"Month of vessel landings: {((DateTime)CrossTabManager.AllSamplingEntitiesEventHandler.MonthSampled).ToString("MMM-yyyy")}";
                 switch (topic)
@@ -106,14 +110,22 @@ namespace NSAP_ODK.Views
                         break;
                     case "lenfreq":
                         dataGrid.DataContext = CrossTabManager.CrossTabLenFreqs;
+                        dataGrid.Columns.Add(new DataGridTextColumn { Header = "Length", Binding = new Binding("Length")  });
+                        dataGrid.Columns.Add(new DataGridTextColumn { Header = "Frequency", Binding = new Binding("Freq")  });
                         mainLabel.Content = "Crostab between length frequency of catch and fishing effort";
                         break;
                     case "len":
                         dataGrid.DataContext = CrossTabManager.CrossTabLengths;
+                        dataGrid.Columns.Add(new DataGridTextColumn { Header = "Length", Binding = new Binding("Length")  });
                         mainLabel.Content = "Crostab between length of catch and fishing effort";
                         break;
                     case "maturity":
                         dataGrid.DataContext = CrossTabManager.CrossTabMaturities;
+                        dataGrid.Columns.Add(new DataGridTextColumn { Header = "Length", Binding = new Binding("Length") });
+                        dataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("Weight") });
+                        dataGrid.Columns.Add(new DataGridTextColumn { Header = "Sex", Binding = new Binding("Sex") });
+                        dataGrid.Columns.Add(new DataGridTextColumn { Header = "Maturity", Binding = new Binding("MaturityStage") });
+                        dataGrid.Columns.Add(new DataGridTextColumn { Header = "Gut content", Binding = new Binding("GutContent") });
                         mainLabel.Content = "Crostab between maturity indicators of catch and fishing effort";
                         break;
                 }
@@ -122,7 +134,14 @@ namespace NSAP_ODK.Views
 
         private void OnMenuClicked(object sender, RoutedEventArgs e)
         {
-
+            switch (((MenuItem)sender).Name)
+            {
+                case "menuExportExcel":
+                    break;
+                case "menuClose":
+                    Close();
+                    break;
+            }
         }
     }
 }

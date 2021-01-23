@@ -67,21 +67,28 @@ namespace NSAP_ODK.Entities.Database
                     .Where(t => t.Parent.Parent.Parent.PK == gu.PK).ToList())
                 {
                     CrossTabCommon ctc = new CrossTabCommon(item);
-                    _crossTabLenFreqs.Add(new CrossTabLenFreq { CrossTabCommon = ctc });
+                    _crossTabLenFreqs.Add(new CrossTabLenFreq { CrossTabCommon = ctc, Length = item.LengthClass, Freq = item.Frequency});
                 }
 
                 foreach (var item in NSAPEntities.CatchMaturityViewModel.CatchMaturityCollection
                     .Where(t => t.Parent.Parent.Parent.PK == gu.PK).ToList())
                 {
                     CrossTabCommon ctc = new CrossTabCommon(item);
-                    _crossTabMaturities.Add(new CrossTabMaturity { CrossTabCommon = ctc });
+                    _crossTabMaturities.Add(new CrossTabMaturity { 
+                        CrossTabCommon = ctc,
+                        Length = item.Length,
+                        Weight = item.Weight,
+                        Sex = item.Sex,
+                        MaturityStage = item.Maturity,
+                        GutContent = item.GutContentClassification
+                    });
                 }
 
                 foreach (var item in NSAPEntities.CatchLengthViewModel.CatchLengthCollection
                     .Where(t => t.Parent.Parent.Parent.PK == gu.PK).ToList())
                 {
                     CrossTabCommon ctc = new CrossTabCommon(item);
-                    _crossTabLengths.Add(new CrossTabLength{ CrossTabCommon = ctc });
+                    _crossTabLengths.Add(new CrossTabLength{ CrossTabCommon = ctc,Length = item.Length });
                 }
 
             }
@@ -89,7 +96,6 @@ namespace NSAP_ODK.Entities.Database
             BuildEffortCrossTabDataTable();
         }
 
-        public static CrossTabCommon CrossTabCommon { get; set; }
         public static TreeViewModelControl.AllSamplingEntitiesEventHandler AllSamplingEntitiesEventHandler { get { return _sev; } }
         private static void BuildEffortCrossTabDataTable()
         {

@@ -9,5 +9,6 @@ namespace NSAP_ODK.Entities.Database
     public class CrossTabLength
     {
         public CrossTabCommon CrossTabCommon { get; set; }
+        public double Length { get; set; }
     }
 }

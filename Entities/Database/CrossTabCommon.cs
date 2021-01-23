@@ -13,6 +13,8 @@ namespace NSAP_ODK.Entities.Database
         private GearUnload _gearUnload;
         private VesselUnload _vesselUnload;
         private VesselCatch _vesselCatch;
+        private string _family;
+        private string _sn;
         public CrossTabCommon(CatchLenFreq clf)
         {
             _samplingDate = clf.Parent.Parent.Parent.Parent.SamplingDate;
@@ -102,7 +104,7 @@ namespace NSAP_ODK.Entities.Database
         public int? FBL { get; set; }
         public int? FBM { get; private set; }
 
-        public bool SamplingDay { get; private set; }
+        public bool SamplingDay { get; set; }
 
         public VesselCatch Catch { get { return _vesselCatch; } }
 
@@ -112,18 +114,25 @@ namespace NSAP_ODK.Entities.Database
             {
                 if (Catch.CatchName.Length > 0)
                 {
-                    return Catch.Taxa.Name;
+                    _family= Catch.Taxa.Name;
                 }
                 else
                 {
                     switch (Catch.Taxa.Code)
                     {
                         case "FIS":
-                            return Catch.FishSpecies.Family;
+                            _family= Catch.FishSpecies.Family;
+                            break;
                         default:
-                            return Catch.NotFishSpecies.Taxa.Name;
+                            _family= Catch.NotFishSpecies.Taxa.Name;
+                            break;
                     }
                 }
+                return _family;
+            }
+            set
+            {
+                _family = value;
             }
         }
         public string SN
@@ -132,21 +141,28 @@ namespace NSAP_ODK.Entities.Database
             {
                 if (Catch.CatchName.Length > 0)
                 {
-                    return Catch.CatchName;
+                    _sn= Catch.CatchName;
                 }
                 else
                 {
                     switch (Catch.Taxa.Code)
                     {
                         case "FIS":
-                            return $"{Catch.FishSpecies.GenericName} {Catch.FishSpecies.SpecificName})";
+                            _sn=$"{Catch.FishSpecies.GenericName} {Catch.FishSpecies.SpecificName})";
+                            break;
                         default:
-                            return $"{Catch.NotFishSpecies.Genus} {Catch.NotFishSpecies.Species}";
+                            _sn = $"{Catch.NotFishSpecies.Genus} {Catch.NotFishSpecies.Species}";
+                            break;
                     }
                 }
+                return _sn;
+            }
+            set
+            {
+                _sn = value;
             }
         }
-        public double? Weight { get; private set; }
+        public double? Weight { get; set; }
     }
 }
 

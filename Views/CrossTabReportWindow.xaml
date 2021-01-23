@@ -32,6 +32,6 @@
             <Label x:Name="mainLabel" Content="The main label" FontSize="16" FontWeight="Bold"/>
             <Label x:Name="subLabel" Content="The sub label"/>
         </StackPanel>
-        <DataGrid Grid.Row="2" Grid.Column="1" Margin="10" x:Name="dataGrid" ItemsSource="{Binding}"/>
+        <DataGrid Grid.Row="2" Grid.Column="1" Margin="10" x:Name="dataGrid" ItemsSource="{Binding}" IsReadOnly="True"/>
     </Grid>
 </Window>
