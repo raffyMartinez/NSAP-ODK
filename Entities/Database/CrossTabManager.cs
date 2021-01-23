@@ -198,8 +198,13 @@ namespace NSAP_ODK.Entities.Database
                 {
                     row["Province"] = item.CrossTabCommon.LandingSite.Municipality.Province.ProvinceName;
                     row["Municipality"] = item.CrossTabCommon.LandingSite.Municipality.MunicipalityName;
+                    row["Landing site"] = item.CrossTabCommon.LandingSite.LandingSiteName;
                 }
-                row["Landing site"] = item.CrossTabCommon.LandingSiteName;
+                else
+                {
+                    row["Landing site"] = item.CrossTabCommon.LandingSiteName;
+                }
+                
                 row["Sector"] = item.CrossTabCommon.Sector;
 
                 if (item.CrossTabCommon.FishingGroundGrid != null)

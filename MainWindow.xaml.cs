@@ -1450,6 +1450,12 @@ namespace NSAP_ODK
                     PropertyGrid.Visibility = Visibility.Collapsed;
                     NSAPEntities.NSAPRegion = e.NSAPRegion;
                     MakeCalendar(e);
+
+                    if(CrossTabReportWindow.Instance!=null)
+                    {
+                        CrossTabManager.GearByMonthYear(_allSamplingEntitiesEventHandler);
+                        ShowCrossTabWIndow();
+                    }
                     break;
             }
         }

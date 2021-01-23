@@ -112,7 +112,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if (Catch.CatchName.Length > 0)
+                if (Catch.SpeciesID==null)
                 {
                     _family= Catch.Taxa.Name;
                 }
@@ -139,7 +139,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if (Catch.CatchName.Length > 0)
+                if (Catch.SpeciesID==null)
                 {
                     _sn= Catch.CatchName;
                 }
@@ -148,7 +148,7 @@ namespace NSAP_ODK.Entities.Database
                     switch (Catch.Taxa.Code)
                     {
                         case "FIS":
-                            _sn=$"{Catch.FishSpecies.GenericName} {Catch.FishSpecies.SpecificName})";
+                            _sn=$"{Catch.FishSpecies.GenericName} {Catch.FishSpecies.SpecificName}";
                             break;
                         default:
                             _sn = $"{Catch.NotFishSpecies.Genus} {Catch.NotFishSpecies.Species}";
