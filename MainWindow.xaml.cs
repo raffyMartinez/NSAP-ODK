@@ -915,6 +915,8 @@ namespace NSAP_ODK
                 case "samplingCalendar":
                     _allSamplingEntitiesEventHandler.GearUsed = _gearName;
                     CrossTabManager.GearByMonthYear(_allSamplingEntitiesEventHandler);
+                    CrossTabReportWindow ctw = new CrossTabReportWindow();
+                    ctw.ShowDialog();
                     break;
                 case "nsapEntities":
                     EntityPropertyEnableWindow epe = null;

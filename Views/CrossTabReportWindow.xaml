@@ -21,12 +21,12 @@
                 <MenuItem Header="Close" x:Name="menuClose" Click="OnMenuClicked"/>
             </MenuItem>
         </Menu>
-        <TreeView Grid.Row="1" SelectedItemChanged="OnTreeItemChanged">
+        <TreeView Grid.Row="1" SelectedItemChanged="OnTreeItemChanged" x:Name="treeView">
             <TreeViewItem Header="Effort" Tag="effort"/>
             <TreeViewItem Header="Length frequency" Tag="lenfreq"/>
             <TreeViewItem Header="Length" Tag="len"/>
             <TreeViewItem Header="Catch maturity" Tag ="maturity"/>
         </TreeView>
-        <DataGrid Grid.Row="1" Grid.Column="1" Margin="10" x:Name="dataGrid"/>
+        <DataGrid Grid.Row="1" Grid.Column="1" Margin="10" x:Name="dataGrid" ItemsSource="{Binding}"/>
     </Grid>
 </Window>

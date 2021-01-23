@@ -68,10 +68,13 @@ namespace NSAP_ODK.Entities.Database
             SamplingDay = _landingSiteSamplinng.IsSamplingDay;
             Weight = _vesselCatch.Catch_kg;
             MonthSampled = new DateTime(_samplingDate.Year, _samplingDate.Month, 1);
+            SamplingDate = _samplingDate;
         }
         public int DataID { get; private set; }
         public FishingGround FishingGround { get; private set; }
         public DateTime MonthSampled { get; private set; }
+
+        public DateTime SamplingDate { get; private set; }
 
         public LandingSite LandingSite { get; private set; }
 

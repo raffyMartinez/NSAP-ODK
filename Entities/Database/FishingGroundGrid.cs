@@ -56,6 +56,11 @@ namespace NSAP_ODK.Entities.Database
             get { return new Grid25GridCell(UTMZone, Grid); }
         }
 
+        public override string ToString()
+        {
+            return $"{UTMZoneText} - {Grid}";
+        }
+
         public VesselUnload Parent
         {
             set { _parent = value; }
