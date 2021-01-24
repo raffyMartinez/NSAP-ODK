@@ -1482,6 +1482,13 @@ namespace NSAP_ODK
                             contextMenu.Items.Add(new MenuItem { Header = "Cross tab report", Name = "menuGearCrossTabReport", Tag="samplingCalendar" });
                             ((MenuItem)contextMenu.Items[0]).Click += OnDataGridContextMenu;
                             GridNSAPData.ContextMenu = contextMenu;
+                           
+                            if(CrossTabReportWindow.Instance!=null)
+                            {
+                                _allSamplingEntitiesEventHandler.GearUsed = _gearName;
+                                CrossTabManager.GearByMonthYear(_allSamplingEntitiesEventHandler);
+                                ShowCrossTabWIndow();
+                            }
                         }
                         else
                         {

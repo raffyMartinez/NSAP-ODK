@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Data;
+using System.ComponentModel;
+
 namespace NSAP_ODK.Entities.Database
 {
     public static class CrossTabManager
@@ -189,20 +191,20 @@ namespace NSAP_ODK.Entities.Database
             {
                 var row = _effortCrostabDataTable.NewRow();
                 row["Data ID"] = item.CrossTabCommon.DataID;
-                row["Fishing ground"] = item.CrossTabCommon.FishingGround.Name;
+                row["Fishing ground"] = item.CrossTabCommon.FishingGround;
                 row["Year"] = item.CrossTabCommon.MonthSampled.Year;
                 row["Month"] = item.CrossTabCommon.MonthSampled.ToString("MMM");
                 row["Date"] = item.CrossTabCommon.SamplingDate.ToString("dd-MMM-yyyy");
 
                 if (item.CrossTabCommon.LandingSite != null)
                 {
-                    row["Province"] = item.CrossTabCommon.LandingSite.Municipality.Province.ProvinceName;
-                    row["Municipality"] = item.CrossTabCommon.LandingSite.Municipality.MunicipalityName;
-                    row["Landing site"] = item.CrossTabCommon.LandingSite.LandingSiteName;
+                    row["Province"] = item.CrossTabCommon.Province;
+                    row["Municipality"] = item.CrossTabCommon.Municipality;
+                    row["Landing site"] = item.CrossTabCommon.LandingSite;
                 }
                 else
                 {
-                    row["Landing site"] = item.CrossTabCommon.LandingSiteName;
+                    row["Landing site"] = item.CrossTabCommon.LandingSite;
                 }
                 
                 row["Sector"] = item.CrossTabCommon.Sector;
@@ -212,7 +214,7 @@ namespace NSAP_ODK.Entities.Database
                     row["Grid location"] = $"{item.CrossTabCommon.FishingGroundGrid.ToString()}";
                 }
 
-                row["Gear"] = item.CrossTabCommon.GearName;
+                row["Gear"] = item.CrossTabCommon.Gear;
                 row["Fishing vessel"] = item.CrossTabCommon.FBName;
                 
                 if (item.CrossTabCommon.FBL != null)
@@ -228,7 +230,7 @@ namespace NSAP_ODK.Entities.Database
                 row["Sampling day"] = item.CrossTabCommon.SamplingDay;
                 row["Family"] = item.CrossTabCommon.Family;
                 row["Species"] = item.CrossTabCommon.SN;
-                row["Catch weight"] = item.CrossTabCommon.Catch.Catch_kg;
+                row["Catch weight"] = item.CrossTabCommon.TotalWeight;
 
 
                 foreach (var ve in NSAPEntities.VesselEffortViewModel.VesselEffortCollection
@@ -265,5 +267,108 @@ namespace NSAP_ODK.Entities.Database
         public static List<CrossTabLenFreq> CrossTabLenFreqs { get { return _crossTabLenFreqs; } }
 
         public static DataTable CrossTabEfforts { get { return _effortCrostabDataTable; } }
+
+        public static DataSet CrossTabDataSet
+        {
+            get
+            {
+                DataSet ds = new DataSet();
+                _effortCrostabDataTable.TableName = "Effort";
+                ds.Tables.Add(_effortCrostabDataTable);
+                ds.Tables.Add(ListToDataTable(CrossTabLengths, "Length"));
+                ds.Tables.Add(ListToDataTable(CrossTabMaturities, "Maturity"));
+                ds.Tables.Add(ListToDataTable(CrossTabLenFreqs, "Len-Freq"));
+                return ds;
+            }
+        }
+
+        public static DataTable ListToDataTable<T>(IList<T> data, string tableName)
+        {
+            DataTable table = new DataTable();
+            table.TableName = tableName;
+
+            //special handling for value types and string
+            if (typeof(T).IsValueType || typeof(T).Equals(typeof(string)))
+            {
+
+                DataColumn dc = new DataColumn("Value", typeof(T));
+                table.Columns.Add(dc);
+                foreach (T item in data)
+                {
+                    DataRow dr = table.NewRow();
+                    dr[0] = item;
+                    table.Rows.Add(dr);
+                }
+            }
+            else
+            {
+                PropertyDescriptorCollection properties = TypeDescriptor.GetProperties(typeof(T));
+                foreach (PropertyDescriptor prop in properties)
+                {
+                    if (prop.Name == "CrossTabCommon")
+                    {
+                        foreach(PropertyDescriptor pt in prop.GetChildProperties())
+                        {
+                            table.Columns.Add(pt.Name, Nullable.GetUnderlyingType(pt.PropertyType) ?? pt.PropertyType);
+                        }
+                    }
+                    else
+                    {
+                        table.Columns.Add(prop.Name, Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType);
+                    }
+                }
+                foreach (T item in data)
+                {
+                    DataRow row = table.NewRow();
+                    foreach (PropertyDescriptor prop in properties)
+                    {
+                        if (prop.Name == "CrossTabCommon")
+                        {
+                            CrossTabCommon ctc = null;
+                            switch(prop.ComponentType.Name)
+                            {
+                                case "CrossTabLength":
+
+                                    var ctl = item as CrossTabLength;
+                                    ctc = ctl.CrossTabCommon;
+
+                                    break;
+                                case "CrossTabLenFreq":
+                                    var ctlf = item as CrossTabLenFreq;
+                                    ctc = ctlf.CrossTabCommon;
+                                    break;
+                                case "CrossTabMaturity":
+                                    var ctm = item as CrossTabMaturity;
+                                    ctc = ctm.CrossTabCommon;
+                                    break;
+                                default:
+                                    break;
+                            }
+
+                            foreach (PropertyDescriptor pt in prop.GetChildProperties())
+                            {
+                                row[pt.Name] = pt.GetValue(ctc) ?? DBNull.Value;
+                            }
+
+                        }
+                        else
+                        {
+                            try
+                            {
+                                row[prop.Name] = prop.GetValue(item) ?? DBNull.Value;
+                            }
+                            catch (Exception ex)
+                            {
+                                row[prop.Name] = DBNull.Value;
+                            }
+                        }
+                    }
+                    table.Rows.Add(row);
+                }
+            }
+            return table;
+        }
+
+  
     }
 }

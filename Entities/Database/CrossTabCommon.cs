@@ -56,28 +56,30 @@ namespace NSAP_ODK.Entities.Database
         private void SetCommonProperties()
         {
             DataID = _vesselUnload.PK;
-            FishingGround = _landingSiteSamplinng.FishingGround;
-            LandingSite = _landingSiteSamplinng.LandingSite;
-            LandingSiteName = _landingSiteSamplinng.LandingSiteName;
-            if (LandingSite != null)
+            FishingGround = _landingSiteSamplinng.FishingGround.ToString();
+            //LandingSite = _landingSiteSamplinng.LandingSite;
+            //LandingSiteName = _landingSiteSamplinng.LandingSiteName;
+            LandingSite = _landingSiteSamplinng.LandingSiteName;
+            if (_landingSiteSamplinng.LandingSite != null)
             {
-                Province = LandingSite.Municipality.Province;
-                Municipality = LandingSite.Municipality;
+                Province = _landingSiteSamplinng.LandingSite.Municipality.Province.ProvinceName;
+                Municipality = _landingSiteSamplinng.LandingSite.Municipality.MunicipalityName;
             }
             Sector = _vesselUnload.Sector;
-            FishingGroundGrid = NSAPEntities.VesselUnloadViewModel.FirstGridLocation(_vesselUnload);
-            Gear = _gearUnload.Gear;
-            GearName = _gearUnload.GearUsedName;
+            FishingGroundGrid = NSAPEntities.VesselUnloadViewModel.FirstGridLocation(_vesselUnload)?.ToString();
+            //Gear = _gearUnload.Gear;
+            //GearName = _gearUnload.GearUsedName;
+            Gear = _gearUnload.GearUsedName;
             FBName = _vesselUnload.VesselName;
             FBL = _gearUnload.Boats;
             FBM = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.Count(t=>t.Parent.PK==_gearUnload.PK);
             SamplingDay = _landingSiteSamplinng.IsSamplingDay;
-            Weight = _vesselCatch.Catch_kg;
+            TotalWeight = _vesselCatch.Catch_kg;
             MonthSampled = new DateTime(_samplingDate.Year, _samplingDate.Month, 1);
             SamplingDate = _samplingDate;
         }
         public int DataID { get; private set; }
-        public FishingGround FishingGround { get; private set; }
+        public string FishingGround { get; private set; }
         public DateTime MonthSampled { get; private set; }
 
         public int Year { get { return MonthSampled.Year; } }
@@ -85,46 +87,46 @@ namespace NSAP_ODK.Entities.Database
         public string Month { get { return MonthSampled.ToString("MMMM"); } }
         public DateTime SamplingDate { get; private set; }
 
-        public LandingSite LandingSite { get; private set; }
+        public string LandingSite { get; private set; }
 
-        public string LandingSiteName { get; private set; }
-        public Province Province { get; set; }
+        //public string LandingSiteName { get; private set; }
+        public string Province { get; set; }
 
-        public string ProvinceName { get { return Province == null ? "" : Province.ProvinceName; } }
+        //public string ProvinceName { get { return Province == null ? "" : Province.ProvinceName; } }
 
-        public Municipality Municipality { get; set; }
+        public string Municipality { get; set; }
 
-        public string MunicipalityName { get { return Municipality== null ? "" : Municipality.MunicipalityName; } }
+        //public string MunicipalityName { get { return Municipality== null ? "" : Municipality.MunicipalityName; } }
         public string Sector { get; private set; }
 
-        public FishingGroundGrid FishingGroundGrid { get; private set; }
-        public Gear Gear { get; private set; }
-        public string GearName { get; private set; }
+        public string FishingGroundGrid { get; private set; }
+        public string Gear { get; private set; }
+        //public string GearName { get; private set; }
         public string FBName { get; private set; }
         public int? FBL { get; set; }
         public int? FBM { get; private set; }
 
         public bool SamplingDay { get; set; }
 
-        public VesselCatch Catch { get { return _vesselCatch; } }
+        //public string Catch { get { return _vesselCatch.; } }
 
         public string Family
         {
             get
             {
-                if (Catch.SpeciesID==null)
+                if (_vesselCatch.SpeciesID==null)
                 {
-                    _family= Catch.Taxa.Name;
+                    _family= _vesselCatch.Taxa.Name;
                 }
                 else
                 {
-                    switch (Catch.Taxa.Code)
+                    switch (_vesselCatch.Taxa.Code)
                     {
                         case "FIS":
-                            _family= Catch.FishSpecies.Family;
+                            _family= _vesselCatch.FishSpecies.Family;
                             break;
                         default:
-                            _family= Catch.NotFishSpecies.Taxa.Name;
+                            _family= _vesselCatch.NotFishSpecies.Taxa.Name;
                             break;
                     }
                 }
@@ -139,19 +141,19 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if (Catch.SpeciesID==null)
+                if (_vesselCatch.SpeciesID==null)
                 {
-                    _sn= Catch.CatchName;
+                    _sn= _vesselCatch.CatchName;
                 }
                 else
                 {
-                    switch (Catch.Taxa.Code)
+                    switch (_vesselCatch.Taxa.Code)
                     {
                         case "FIS":
-                            _sn=$"{Catch.FishSpecies.GenericName} {Catch.FishSpecies.SpecificName}";
+                            _sn=$"{_vesselCatch.FishSpecies.GenericName} {_vesselCatch.FishSpecies.SpecificName}";
                             break;
                         default:
-                            _sn = $"{Catch.NotFishSpecies.Genus} {Catch.NotFishSpecies.Species}";
+                            _sn = $"{_vesselCatch.NotFishSpecies.Genus} {_vesselCatch.NotFishSpecies.Species}";
                             break;
                     }
                 }
@@ -162,7 +164,7 @@ namespace NSAP_ODK.Entities.Database
                 _sn = value;
             }
         }
-        public double? Weight { get; set; }
+        public double? TotalWeight { get; set; }
     }
 }
 

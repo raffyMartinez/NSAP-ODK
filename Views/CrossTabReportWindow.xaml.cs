@@ -136,11 +136,30 @@ namespace NSAP_ODK.Views
             }
         }
 
+        private void ExportToExcel()
+        {
+            string filePath;
+            string exportResult;
+            if (ExportExcel.GetSaveAsExcelFileName(this, out filePath))
+            {
+                if (ExportExcel.ExportDatasetToExcel(CrossTabManager.CrossTabDataSet, filePath))
+                {
+                    exportResult = "Successfully exported to excel";
+                }
+                else
+                {
+                    exportResult = $"Was not successfull in exporting to excel\r\n{ExportExcel.ErrorMessage}";
+                }
+
+                MessageBox.Show(exportResult, "Export", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
         private void OnMenuClicked(object sender, RoutedEventArgs e)
         {
             switch (((MenuItem)sender).Name)
             {
                 case "menuExportExcel":
+                    ExportToExcel();
                     break;
                 case "menuClose":
                     Close();
