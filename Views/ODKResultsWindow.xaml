@@ -35,6 +35,10 @@
                 <MenuItem Header="Length-Weight" x:Name="menuViewLengthWeights"  IsCheckable="True" Checked="OnMenuItemChecked" Tag="lengthWeight"/>
                 <MenuItem Header="Length frequency" x:Name="menuViewLengthFreq"  IsCheckable="True" Checked="OnMenuItemChecked" Tag="lengthFreq"/>
                 <MenuItem Header="Length, weight, sex and GMS" x:Name="menuViewGMS"  IsCheckable="True" Checked="OnMenuItemChecked" Tag="gms"/>
+                
+                
+                <MenuItem Header="Landing site sampling" x:Name="menuViewLandingSiteSampling"  IsCheckable="True" Checked="OnMenuItemChecked" Tag="landingSiteSampling"/>
+                <MenuItem Header="Vessel counts" x:Name="menuViewLandingSiteVesselCount"  IsCheckable="True" Checked="OnMenuItemChecked" Tag="landingSiteCounts"/>
                 <Separator/>
                 <MenuItem Header="Duplicated effort specifications" x:Name="menuDuplicatedEffortSpecs"  IsCheckable="True" Checked="OnMenuItemChecked" Tag="duplicatedEffort" IsEnabled="False"/>
                 <MenuItem Header="Duplicated catch composition" x:Name="menuDuplicatedCatchComp"  IsCheckable="True" Checked="OnMenuItemChecked" Tag="duplicatedCatchComp" IsEnabled="False"/>

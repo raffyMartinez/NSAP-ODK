@@ -55,11 +55,11 @@ namespace NSAP_ODK.Views
             treeForms.Items.Clear();
             if (_koboForms.Count > 0)
             {
-               
+
                 foreach (var form in _koboForms)
                 {
-                    int item = treeForms.Items.Add(new TreeViewItem { Header = form.formid, Tag="form_id" });
-                    ((TreeViewItem)treeForms.Items[item]).Items.Add(new TreeViewItem { Header="Users", Tag="form_users",});
+                    int item = treeForms.Items.Add(new TreeViewItem { Header = form.formid, Tag = "form_id" });
+                    ((TreeViewItem)treeForms.Items[item]).Items.Add(new TreeViewItem { Header = "Users", Tag = "form_users", });
                     ((TreeViewItem)treeForms.Items[item]).Items.Add(new TreeViewItem { Header = "Download", Tag = "form_download", });
                 }
                 ((TreeViewItem)treeForms.Items[0]).IsSelected = true;
@@ -81,60 +81,69 @@ namespace NSAP_ODK.Views
                         case "excel":
                             ProgressBar.Value = 0;
                             ProgressBar.Maximum = 5;
-                            using (var httpClient = new HttpClient())
+                            if (_parentWindow.ODKServerDownload == ODKServerDownload.ServerDownloadVesselUnload)
                             {
-                                api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}.xls";
-                                using (var request = new HttpRequestMessage(new HttpMethod("GET"), api_call))
+                                using (var httpClient = new HttpClient())
                                 {
-                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ContactingServer });
-                                    var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_user}:{_password}"));
-                                    request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
-                                    try
+                                    api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}.xls";
+                                    using (var request = new HttpRequestMessage(new HttpMethod("GET"), api_call))
                                     {
-                                        var response = await httpClient.SendAsync(request);
-                                        string fileName = response.Content.Headers.ContentDisposition.FileName;
-                                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData });
-                                        var bytes = await response.Content.ReadAsByteArrayAsync();
-                                        
-
-                                        if (fileName.Length > 0 && bytes.Length > 0)
+                                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ContactingServer });
+                                        var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_user}:{_password}"));
+                                        request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
+                                        try
                                         {
-                                            VistaFolderBrowserDialog fbd = new VistaFolderBrowserDialog();
-                                            fbd.RootFolder = Environment.SpecialFolder.MyDocuments;
-                                            fbd.UseDescriptionForTitle = true;
-                                            fbd.Description = "Locate folder for saving downloaded Excel file";
+                                            var response = await httpClient.SendAsync(request);
+                                            string fileName = response.Content.Headers.ContentDisposition.FileName;
+                                            ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData });
+                                            var bytes = await response.Content.ReadAsByteArrayAsync();
 
-                                            if ((bool)fbd.ShowDialog() && fbd.SelectedPath.Length > 0)
+
+                                            if (fileName.Length > 0 && bytes.Length > 0)
                                             {
-                                                string downnloadedFile = $"{fbd.SelectedPath}/{fileName}";
-                                                //string downnloadedFile = $"{fbd.SelectedPath}/{_formID}.xlsx";
-                                                File.WriteAllBytes(downnloadedFile, bytes);
-                                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ConvertDataToExcel });
-                                                //MessageBox.Show("Excel file saved!");
-                                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ConvertDataToEntities });
-                                                _parentWindow.ExcelFileDownloaded = downnloadedFile;
-                                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
-                                                Close();
+                                                VistaFolderBrowserDialog fbd = new VistaFolderBrowserDialog();
+                                                fbd.RootFolder = Environment.SpecialFolder.MyDocuments;
+                                                fbd.UseDescriptionForTitle = true;
+                                                fbd.Description = "Locate folder for saving downloaded Excel file";
 
+                                                if ((bool)fbd.ShowDialog() && fbd.SelectedPath.Length > 0)
+                                                {
+                                                    string downnloadedFile = $"{fbd.SelectedPath}/{fileName}";
+                                                    //string downnloadedFile = $"{fbd.SelectedPath}/{_formID}.xlsx";
+                                                    File.WriteAllBytes(downnloadedFile, bytes);
+                                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ConvertDataToExcel });
+                                                    //MessageBox.Show("Excel file saved!");
+                                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ConvertDataToEntities });
+                                                    _parentWindow.ExcelFileDownloaded = downnloadedFile;
+                                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
+                                                    Close();
+
+                                                }
+                                            }
+                                            else if (fileName.Length == 0)
+                                            {
+                                                MessageBox.Show("Something went wrong\r\nYou may want to try again");
                                             }
                                         }
-                                        else if (fileName.Length == 0)
+                                        catch (HttpRequestException)
                                         {
-                                            MessageBox.Show("Something went wrong\r\nYou may want to try again");
+                                            MessageBox.Show("Request time out\r\nYou may try again");
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Logger.Log(ex);
+                                            ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.StoppedDueToError });
                                         }
                                     }
-                                    catch(HttpRequestException)
-                                    {
-                                        MessageBox.Show("Request time out\r\nYou may try again");
-                                    }
-                                    catch(Exception ex)
-                                    {
-                                        Logger.Log(ex);
-                                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.StoppedDueToError });
-                                    }
+
                                 }
+
                             }
-                                break;
+                            else if (_parentWindow.ODKServerDownload == ODKServerDownload.ServerDownloadLandings)
+                            {
+                                MessageBox.Show("Excel download not yet implemented");
+                            }
+                            break;
                         case "json":
                             ProgressBar.Value = 0;
                             ProgressBar.Maximum = 5;
@@ -162,7 +171,7 @@ namespace NSAP_ODK.Views
                                             break;
                                     }
 
-                                    if((bool)CheckFilterUser.IsChecked || (bool)CheckLimitoTracked.IsChecked)
+                                    if ((bool)CheckFilterUser.IsChecked || (bool)CheckLimitoTracked.IsChecked)
                                     {
                                         string first_part = "";
                                         string last_part = "";
@@ -174,7 +183,7 @@ namespace NSAP_ODK.Views
                                             user = ((ComboBoxItem)ComboUser.SelectedItem).Content.ToString();
                                         }
 
-                                        if((bool)CheckFilterUser.IsChecked && user.Length==0)
+                                        if ((bool)CheckFilterUser.IsChecked && user.Length == 0)
                                         {
                                             MessageBox.Show("Please select a user name");
                                             return;
@@ -218,9 +227,9 @@ namespace NSAP_ODK.Views
                                             Encoding encoding = Encoding.GetEncoding("utf-8");
                                             string the_response = encoding.GetString(bytes, 0, bytes.Length);
 
-                                            switch(_parentWindow.ODKServerDownload)
+                                            switch (_parentWindow.ODKServerDownload)
                                             {
-                                                case ODKServerDownload.ServeDownloadVesselUnload:
+                                                case ODKServerDownload.ServerDownloadVesselUnload:
                                                     VesselUnloadServerRepository.ResetLists();
                                                     VesselUnloadServerRepository.CreateLandingsFromJSON(the_response);
                                                     VesselUnloadServerRepository.FillDuplicatedLists();
@@ -238,7 +247,17 @@ namespace NSAP_ODK.Views
                                             //KoboAPI.GetUnloadNextRecord();
 
                                             ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ConvertDataToEntities });
-                                            _parentWindow.MainSheets = VesselUnloadServerRepository.VesselLandings;
+
+                                            switch (_parentWindow.ODKServerDownload)
+                                            {
+                                                case ODKServerDownload.ServerDownloadVesselUnload:
+                                                    _parentWindow.MainSheets = VesselUnloadServerRepository.VesselLandings;
+                                                    break;
+                                                case ODKServerDownload.ServerDownloadLandings:
+                                                    _parentWindow.MainSheetsLanding = LandingsFromServerRepository.LandingsFromServer;
+                                                    break;
+                                            }
+
                                             ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
                                             Close();
                                         }
@@ -301,11 +320,11 @@ namespace NSAP_ODK.Views
                                     ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
                                 }
                             }
-                            catch(HttpRequestException)
+                            catch (HttpRequestException)
                             {
                                 MessageBox.Show("Request time out\r\nYou may try again");
                             }
-                            catch(Exception ex)
+                            catch (Exception ex)
                             {
                                 Logger.Log(ex);
                                 ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.StoppedDueToError });
@@ -323,7 +342,7 @@ namespace NSAP_ODK.Views
 
         private void ShowStatus(DownloadFromServerEventArg e)
         {
-            switch(e.Intent)
+            switch (e.Intent)
             {
                 case DownloadFromServerIntent.ContactingServer:
                     ProgressBar.Value += 1;
@@ -356,7 +375,7 @@ namespace NSAP_ODK.Views
                             labelProgress.Content = "Log-in successful";
                             break;
                     }
-                    
+
                     break;
                 case DownloadFromServerIntent.StoppedDueToError:
                     labelProgress.Content = "Stopped due to error";
@@ -463,7 +482,7 @@ namespace NSAP_ODK.Views
             }
             else if (summary.Title.Contains("Fisheries landing survey"))
             {
-                _parentWindow.ODKServerDownload = ODKServerDownload.ServeDownloadVesselUnload;
+                _parentWindow.ODKServerDownload = ODKServerDownload.ServerDownloadVesselUnload;
             }
         }
         private ItemsControl GetSelectedTreeViewItemParent(TreeViewItem item)
@@ -496,8 +515,8 @@ namespace NSAP_ODK.Views
         private void OnComboSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             stackPanelJSON.Visibility = Visibility.Collapsed;
-            _downloadOption= ((ComboBoxItem)e.AddedItems[0]).Tag.ToString();
-            if (_downloadOption=="json")
+            _downloadOption = ((ComboBoxItem)e.AddedItems[0]).Tag.ToString();
+            if (_downloadOption == "json")
             {
                 stackPanelJSON.Visibility = Visibility.Visible;
             }

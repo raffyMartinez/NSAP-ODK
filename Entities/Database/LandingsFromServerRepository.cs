@@ -78,13 +78,26 @@ namespace NSAP_ODK.Entities.Database
         private bool? _isSaved;
         private static int _pk;
         private int _rowid;
-
+        private List<LandingsRepeat> _landingsRepeat;
 
         [JsonProperty("vessel_sampling/sampling_date")]
         public DateTime SamplingDate { get; set; }
         [JsonProperty("vessel_sampling/is_sampling_day")]
         public string IsSamplingDay { get; set; }
-        public bool SamplingConducted { get { return IsSamplingDay == "yes"; } }
+        public bool SamplingConducted { 
+            get { return IsSamplingDay == "yes"; }
+            set 
+            {
+                if(value)
+                {
+                    IsSamplingDay = "yes";
+                }
+                else
+                {
+                    IsSamplingDay = "no";
+                }
+            }
+        }
         [JsonProperty("vessel_sampling/nsap_region")]
         public string NsapRegionCode { get; set; }
         public string NSAPRegionName { get { return Region.Name; } }
@@ -141,7 +154,7 @@ namespace NSAP_ODK.Entities.Database
         [JsonProperty("vessel_sampling/landing_site_text")]
         public string LandingSiteText { get; set; }
         [JsonProperty("vessel_sampling/sampling_notes")]
-
+        public string Notes { get; set; }
         public LandingSite LandingSite
         {
             get
@@ -171,7 +184,7 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-        public string Notes { get; set; }
+
 
 
 
@@ -181,7 +194,18 @@ namespace NSAP_ODK.Entities.Database
         [JsonProperty("meta/instanceID")]
         public string MetaInstanceID { get; set; }
         public DateTime start { get; set; }
-        public List<LandingsRepeat> Landings_repeat { get; set; }
+        public List<LandingsRepeat> Landings_repeat 
+        {
+            get { return _landingsRepeat; }
+            set
+            {
+                _landingsRepeat = value;
+                foreach (LandingsRepeat item in _landingsRepeat)
+                {
+                    item.Parent = this;
+                }
+            }
+        }
         public List<object> _geolocation { get; set; }
         public string _status { get; set; }
         [JsonProperty("formhub/uuid")]
@@ -202,7 +226,14 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                _savedLandingObject = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection.FirstOrDefault(t => t.RowID == _uuid);
+                //_savedLandingObject = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection.FirstOrDefault(t => t.RowID == _uuid);
+                _savedLandingObject = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection
+                    .FirstOrDefault(
+                        t => t.NSAPRegionID == NsapRegionCode &&
+                        t.FMAID == FMA.FMAID &&
+                        t.FishingGround.Code == FishingGround.Code &&
+                        t.LandingSiteName == LandingSiteName &&
+                        t.SamplingDate == SamplingDate);
                 return _savedLandingObject;
             }
 

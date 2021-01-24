@@ -16,7 +16,7 @@ namespace NSAP_ODK.Views
 
     public enum ODKServerDownload
     {
-        ServeDownloadVesselUnload,
+        ServerDownloadVesselUnload,
         ServerDownloadLandings
     }
     /// <summary>
@@ -26,11 +26,21 @@ namespace NSAP_ODK.Views
     {
         private static ODKResultsWindow _instance;
         private List<VesselLanding> _mainSheets;
+        private List<LandingFromServer> _mainSheetsLanding;
         private string _excelDownloaded;
         private bool _isJSONData;
         private int _savedCount;
+        private ODKServerDownload _odkServerDownload;
 
-        public ODKServerDownload ODKServerDownload { get; set; }
+        public ODKServerDownload ODKServerDownload
+        {
+            get { return _odkServerDownload; }
+            set
+            {
+                _odkServerDownload = value;
+                //menuView.Visibility = Visibility.Visible;
+            }
+        }
         public MainWindow ParentWindow { get; set; }
         public static ODKResultsWindow GetInstance()
         {
@@ -98,8 +108,60 @@ namespace NSAP_ODK.Views
                 menuClearTables.Visibility = Visibility.Visible;
             }
 
+            menuView.Visibility = Visibility.Collapsed;
         }
 
+
+        private void SetMenuViewVisibility()
+        {
+            menuView.Visibility = Visibility.Visible;
+            foreach (var item in menuView.Items)
+            {
+                if (item.GetType().Name == "MenuItem")
+                {
+                    var menu = (MenuItem)item;
+                    menu.Visibility = Visibility.Collapsed;
+                    switch (_odkServerDownload)
+                    {
+                        case ODKServerDownload.ServerDownloadVesselUnload:
+                            if(!menu.Name.Contains("menuViewLandingSite"))
+                            {
+                                menu.Visibility = Visibility.Visible;
+                            }
+                            break;
+                        case ODKServerDownload.ServerDownloadLandings:
+                            if (menu.Name.Contains("menuViewLandingSite"))
+                            {
+                                menu.Visibility = Visibility.Visible;
+                            }
+                            break;
+                    }
+                }
+            }
+        }
+        public List<LandingFromServer>MainSheetsLanding
+        {
+            get { return _mainSheetsLanding; }
+            set
+            {
+                
+                menuSaveToExcel.Visibility = Visibility.Visible;
+                _mainSheetsLanding = value;
+                _isJSONData = true;
+
+                if(menuViewLandingSiteSampling.IsChecked)
+                {
+                    ShowResultFromAPI("landingSiteSampling");
+                }
+                else
+                {
+                    menuViewLandingSiteSampling.IsChecked = true;
+                }
+                SetMenuViewVisibility();
+            }
+
+            
+        }
         public List<VesselLanding> MainSheets
         {
             get { return _mainSheets; }
@@ -121,6 +183,7 @@ namespace NSAP_ODK.Views
                 {
                     menuViewEffort.IsChecked = true;
                 }
+                SetMenuViewVisibility();
             }
         }
         public string ExcelFileDownloaded {
@@ -150,6 +213,8 @@ namespace NSAP_ODK.Views
                 case "menuTest":
                     //VesselUnloadServerRepository.CreateLandingsFromJSON(System.IO.File.ReadAllText($"{AppDomain.CurrentDomain.BaseDirectory}/jsontext.txt"));\
                     LandingsFromServerRepository.CreateLandingMonitoringsFromJson(System.IO.File.ReadAllText($"{AppDomain.CurrentDomain.BaseDirectory}/jsontext.txt"));
+                    ODKServerDownload = ODKServerDownload.ServerDownloadLandings;
+                    MainSheetsLanding = LandingsFromServerRepository.LandingsFromServer;
                     break;
                 case "menuSaveToExcel":
                     if(dataGridExcel.ItemsSource!=null)
@@ -325,6 +390,52 @@ namespace NSAP_ODK.Views
             dataGridExcel.AutoGenerateColumns = false;
             switch (result)
             {
+
+                case "landingSiteSampling":
+                    dataGridExcel.ItemsSource = LandingsFromServerRepository.LandingsFromServer;
+                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "RowUUID", Binding = new Binding("_uuid"), Visibility = Visibility.Hidden });
+
+                    col = new DataGridTextColumn()
+                    {
+                        Binding = new Binding("_submission_time"),
+                        Header = "Date and time submitted"
+                    };
+                    col.Binding.StringFormat = "MMM-dd-yyyy HH:mm";
+                    dataGridExcel.Columns.Add(col);
+
+                    dataGridExcel.Columns.Add(new DataGridCheckBoxColumn { Header = "Saved to database", Binding = new Binding("SavedInLocalDatabase") });
+                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Device ID", Binding = new Binding("device_id") });
+                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("user_name") });
+                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Form version", Binding = new Binding("intronote") });
+
+                    col = new DataGridTextColumn()
+                    {
+                        Binding = new Binding("SamplingDate"),
+                        Header = "Sampling date"
+                    };
+                    col.Binding.StringFormat = "MMM-dd-yyyy";
+                    dataGridExcel.Columns.Add(col);
+
+                    dataGridExcel.Columns.Add(new DataGridCheckBoxColumn { Header = "Sampling day", Binding = new Binding("SamplingConducted") });
+                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "NSAP Region", Binding = new Binding("NSAPRegionName") });
+                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("NSAPEnumeratorName") });
+                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("FMA") });
+                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("FishingGround") });
+                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSiteName") });
+                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Notes", Binding = new Binding("Notes") });
+                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
+
+                    break;
+                case "landingSiteCounts":
+                    dataGridExcel.ItemsSource = LandingsFromServerRepository.GetLandings();
+                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("GearName") });
+                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Vessels landed", Binding = new Binding("Count") });
+                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Total catch weight", Binding = new Binding("TotalCatchWt") });
+                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Notes", Binding = new Binding("Note") });
+                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSiteName") });
+                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Parent", Binding = new Binding("Parent.PK") });
+                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
+                    break;
                 case "effort":
                     dataGridExcel.ItemsSource = VesselUnloadServerRepository.VesselLandings;
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "RowUUID", Binding = new Binding("_uuid"), Visibility = Visibility.Hidden });
@@ -879,7 +990,7 @@ namespace NSAP_ODK.Views
         private void OnMenuItemChecked(object sender, RoutedEventArgs e)
         {
             var menuTag = ((MenuItem)sender).Tag.ToString();
-            menuUpload.IsEnabled = menuTag == "effort";
+            menuUpload.IsEnabled = menuTag == "effort" || menuTag=="landingSiteSampling";
             if (_isJSONData)
             {
                 ShowResultFromAPI(menuTag);
