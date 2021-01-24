@@ -328,20 +328,13 @@ namespace NSAP_ODK.Entities.Database
                             switch(prop.ComponentType.Name)
                             {
                                 case "CrossTabLength":
-
-                                    var ctl = item as CrossTabLength;
-                                    ctc = ctl.CrossTabCommon;
-
+                                    ctc = (item as CrossTabLength).CrossTabCommon;
                                     break;
                                 case "CrossTabLenFreq":
-                                    var ctlf = item as CrossTabLenFreq;
-                                    ctc = ctlf.CrossTabCommon;
+                                    ctc = (item as CrossTabLenFreq).CrossTabCommon;
                                     break;
                                 case "CrossTabMaturity":
-                                    var ctm = item as CrossTabMaturity;
-                                    ctc = ctm.CrossTabCommon;
-                                    break;
-                                default:
+                                    ctc = (item as CrossTabMaturity).CrossTabCommon;
                                     break;
                             }
 
