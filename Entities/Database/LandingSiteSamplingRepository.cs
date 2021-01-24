@@ -41,7 +41,20 @@ namespace NSAP_ODK.Entities.Database
                 try
                 {
                     conection.Open();
-                    string query = $"Select * from dbo_LC_FG_sample_day";
+                    string query = @"SELECT dbo_LC_FG_sample_day.*, 
+                                        dbo_LC_FG_sample_day_1.datetime_submitted, 
+                                        dbo_LC_FG_sample_day_1.user_name, 
+                                        dbo_LC_FG_sample_day_1.device_id, 
+                                        dbo_LC_FG_sample_day_1.XFormIdentifier, 
+                                        dbo_LC_FG_sample_day_1.DateAdded, 
+                                        dbo_LC_FG_sample_day_1.FromExcelDownload, 
+                                        dbo_LC_FG_sample_day_1.form_version, 
+                                        dbo_LC_FG_sample_day_1.RowID, 
+                                        dbo_LC_FG_sample_day_1.EnumeratorID, 
+                                        dbo_LC_FG_sample_day_1.EnumeratorText
+                                        FROM dbo_LC_FG_sample_day 
+                                            LEFT JOIN dbo_LC_FG_sample_day_1 
+                                            ON dbo_LC_FG_sample_day.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id";
 
 
                     var adapter = new OleDbDataAdapter(query, conection);
@@ -62,6 +75,16 @@ namespace NSAP_ODK.Entities.Database
                             item.IsSamplingDay = (bool)dr["sampleday"];
                             item.LandingSiteText = dr["land_ctr_text"].ToString();
                             item.FMAID = (int)dr["fma"];
+                            item.DateSubmitted = dr["datetime_submitted"] == DBNull.Value ? null : (DateTime?)dr["datetime_submitted"];
+                            item.UserName = dr["user_name"].ToString();
+                            item.DeviceID = dr["device_id"].ToString();
+                            item.XFormIdentifier = dr["XFormIdentifier"].ToString();
+                            item.DateAdded = dr["DateAdded"] == DBNull.Value ? null : (DateTime?)dr["DateAdded"];
+                            item.FromExcelDownload = (bool)dr["FromExcelDownload"];
+                            item.FormVersion = dr["form_version"].ToString();
+                            item.RowID = dr["RowID"].ToString();
+                            item.EnumeratorID = dr["EnumeratorID"] == DBNull.Value ? null : (int?)int.Parse(dr["EnumeratorID"].ToString());
+                            item.EnumeratorText = dr["EnumeratorText"].ToString();
                             thisList.Add(item);
                         }
                     }
@@ -100,6 +123,51 @@ namespace NSAP_ODK.Entities.Database
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;
+                        if(success)
+                        {
+                            string dateSubmitted = item.DateSubmitted == null ? "null" : $"\"{item.DateSubmitted.ToString()}\"";
+                            string dateAdded = item.DateAdded== null ? "null" : $"\"{item.DateAdded.ToString()}\"";
+                            sql = $@"Insert into dbo_LC_FG_sample_day_1  (
+                                        unload_day_id,
+                                        datetime_submitted,
+                                        user_name,
+                                        device_id,
+                                        XFormIdentifier,
+                                        DateAdded,
+                                        FromExcelDownload,
+                                        form_version,
+                                        RowID,
+                                        EnumeratorID,
+                                        EnumeratorText
+                                    ) Values (
+                                        {item.PK}
+                                        {(item.DateSubmitted==null ? "null" : dateSubmitted)} ,
+                                        '{item.UserName}' ,
+                                        '{item.DeviceID}' ,
+                                        '{item.XFormIdentifier}' ,
+                                        {(item.DateAdded == null ? "null" : dateAdded)} ,
+                                        '{item.FromExcelDownload}' ,
+                                        '{item.FormVersion}' ,
+                                        '{item.RowID}' ,
+                                        {item.EnumeratorID} ,
+                                        '{item.EnumeratorText}' 
+                                    )";
+                             using (OleDbCommand update1 = new OleDbCommand(sql, conn))
+                            {
+                                try
+                                {
+                                    success = update1.ExecuteNonQuery() > 0;
+                                }
+                                catch(OleDbException)
+                                {
+                                    success = false;
+                                }
+                                catch(Exception ex)
+                                {
+                                    Logger.Log(ex);
+                                }
+                            }
+                        }
                     }
                     catch(OleDbException )
                     {
@@ -133,6 +201,38 @@ namespace NSAP_ODK.Entities.Database
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
                     success = update.ExecuteNonQuery() > 0;
+                    if(success)
+                    {
+                        string dateSubmitted = item.DateSubmitted == null ? "null" : $"\"{item.DateSubmitted.ToString()}\"";
+                        string dateAdded = item.DateAdded == null ? "null" : $"\"{item.DateAdded.ToString()}\"";
+                        sql = $@"Update dbo_LC_FG_sample_day_1 set
+                                        datetime_submitted = {dateSubmitted},
+                                        user_name = '{item.UserName}',
+                                        device_id = '{item.DeviceID}',
+                                        XFormIdentifier = '{item.XFormIdentifier}',
+                                        DateAdded = {dateAdded},
+                                        FromExcelDownload = {item.FromExcelDownload},
+                                        form_version = '{item.FormVersion}',
+                                        RowID = '{item.RowID}',
+                                        EnumeratorID = {item.EnumeratorID},
+                                        EnumeratorText = '{item.EnumeratorText}'
+                                 WHERE unload_day_id = {item.PK}";
+                        using (OleDbCommand update1 = new OleDbCommand(sql, conn))
+                        {
+                            try
+                            {
+                                success = update1.ExecuteNonQuery() > 0;
+                            }
+                            catch(OleDbException)
+                            {
+                                success = false;
+                            }
+                            catch(Exception ex)
+                            {
+                                Logger.Log(ex);
+                            }
+                        }
+                    }
                 }
             }
             return success;

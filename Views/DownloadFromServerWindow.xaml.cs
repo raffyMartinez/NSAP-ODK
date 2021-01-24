@@ -217,6 +217,7 @@ namespace NSAP_ODK.Views
                                             var bytes = await response.Content.ReadAsByteArrayAsync();
                                             Encoding encoding = Encoding.GetEncoding("utf-8");
                                             string the_response = encoding.GetString(bytes, 0, bytes.Length);
+
                                             switch(_parentWindow.ODKServerDownload)
                                             {
                                                 case ODKServerDownload.ServeDownloadVesselUnload:
@@ -224,8 +225,8 @@ namespace NSAP_ODK.Views
                                                     VesselUnloadServerRepository.CreateLandingsFromJSON(the_response);
                                                     VesselUnloadServerRepository.FillDuplicatedLists();
                                                     break;
-                                                case ODKServerDownload.ServerDownloadGearUnload:
-                                                    GearUnloadServerRepository.CreateGearUnloadsFromJSON(the_response);
+                                                case ODKServerDownload.ServerDownloadLandings:
+                                                    LandingsFromServerRepository.CreateLandingMonitoringsFromJson(the_response);
                                                     break;
                                             }
 
@@ -458,7 +459,7 @@ namespace NSAP_ODK.Views
 
             if (summary.Title.Contains("Daily landings and catch estimate"))
             {
-                _parentWindow.ODKServerDownload = ODKServerDownload.ServerDownloadGearUnload;
+                _parentWindow.ODKServerDownload = ODKServerDownload.ServerDownloadLandings;
             }
             else if (summary.Title.Contains("Fisheries landing survey"))
             {

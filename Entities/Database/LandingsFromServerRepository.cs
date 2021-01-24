@@ -9,6 +9,8 @@ namespace NSAP_ODK.Entities.Database
 {
     public class LandingsRepeat
     {
+        private static int _pk;
+        private int _rowID;
         [JsonProperty("landings_repeat/landing/select_gear")]
         public string SelectGear { get; set; }
         [JsonProperty("landings_repeat/landing/gear_used")]
@@ -19,6 +21,7 @@ namespace NSAP_ODK.Entities.Database
         public string GearCode { get; set; }
         [JsonProperty("landings_repeat/landing/gear_name")]
         public string GearName { get; set; }
+        public Gear Gear { get { return NSAPEntities.GearViewModel.GetGear(GearCode); } }
         [JsonProperty("landings_repeat/landing/landings_count")]
         public int Count { get; set; }
         [JsonProperty("landings_repeat/landing/total_catch_wt")]
@@ -29,16 +32,54 @@ namespace NSAP_ODK.Entities.Database
         [JsonProperty("landings_repeat/landing/landing_catch")]
         public string LandingsRepeatLandingLandingCatch { get; set; }
 
+        public LandingFromServer Parent { get; set; }
 
+        public static void SetRowIDs()
+        {
+            if (NSAPEntities.GearUnloadViewModel.GearUnloadCollection.Count == 0)
+            {
+                _pk = 0;
+            }
+            else
+            {
+                _pk = NSAPEntities.GearUnloadViewModel.NextRecordNumber - 1;
+            }
+        }
 
+        public int? PK
+        {
+            get
+            {
+                if (Parent.SavedInLocalDatabase)
+                {
+                    return null;
+                }
+                else
+                {
+                    if (_rowID == 0)
+                    {
+                        _rowID = ++_pk;
+                    }
+                    return _rowID;
+                }
+
+            }
+
+        }
     }
 
     public class ValidationStatus
     {
 
     }
-    public class GearUnloadFromServer
+    public class LandingFromServer
     {
+        private LandingSiteSampling _savedLandingObject;
+        private bool? _isSaved;
+        private static int _pk;
+        private int _rowid;
+
+
         [JsonProperty("vessel_sampling/sampling_date")]
         public DateTime SamplingDate { get; set; }
         [JsonProperty("vessel_sampling/is_sampling_day")]
@@ -73,7 +114,7 @@ namespace NSAP_ODK.Entities.Database
         [JsonProperty("vessel_sampling/region_enumerator_text")]
         public string RegionEnumeratorText { get; set; }
 
-        public string RegionEnumeratorName
+        public string NSAPEnumeratorName
         {
             get
             {
@@ -93,6 +134,7 @@ namespace NSAP_ODK.Entities.Database
 
         public FishingGround FishingGround { get { return NSAPEntities.NSAPRegionViewModel.GetFishingGroundInRegion(NsapRegionCode, FmaInRegion, FishingGroundCode); } }
         [JsonProperty("vessel_sampling/select_landingsite")]
+
         public string SelectLandingsite { get; set; }
         [JsonProperty("vessel_sampling/landing_site")]
         public int? LandingSiteCode { get; set; }
@@ -139,7 +181,7 @@ namespace NSAP_ODK.Entities.Database
         [JsonProperty("meta/instanceID")]
         public string MetaInstanceID { get; set; }
         public DateTime start { get; set; }
-        public List<LandingsRepeat> landings_repeat { get; set; }
+        public List<LandingsRepeat> Landings_repeat { get; set; }
         public List<object> _geolocation { get; set; }
         public string _status { get; set; }
         [JsonProperty("formhub/uuid")]
@@ -156,16 +198,100 @@ namespace NSAP_ODK.Entities.Database
         public string user_name { get; set; }
         public int _id { get; set; }
 
+        private LandingSiteSampling SavedLandingObject
+        {
+            get
+            {
+                _savedLandingObject = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection.FirstOrDefault(t => t.RowID == _uuid);
+                return _savedLandingObject;
+            }
+
+        }
+        public bool SavedInLocalDatabase
+        {
+            get
+            {
+                if (_isSaved == null)
+                {
+                    _isSaved = SavedLandingObject != null;
+                }
+                return (bool)_isSaved;
+            }
+            set { _isSaved = value; }
+
+        }
+        public static void SetRowIDs()
+        {
+            if (NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection.Count == 0)
+            {
+                _pk = 0;
+            }
+            else
+            {
+                _pk = NSAPEntities.LandingSiteSamplingViewModel.NextRecordNumber - 1;
+            }
+        }
+
+        public int PK
+        {
+            get
+            {
+                if (!SavedInLocalDatabase)
+                {
+                    if (_rowid == 0)
+                    {
+                        _rowid = ++_pk;
+                    }
+                }
+                else
+                {
+                    if (_savedLandingObject == null)
+                    {
+                        _savedLandingObject = SavedLandingObject;
+                    }
+
+
+                    _rowid = _savedLandingObject.PK;
+
+                }
+                return _rowid;
+            }
+        }
 
 
     }
-    public static class GearUnloadServerRepository
+    public static class LandingsFromServerRepository
     {
-        
-        public static void CreateGearUnloadsFromJSON(string json)
+        private static List<LandingsRepeat> _listLandingsRepeat;
+
+        public static List<LandingsRepeat> GetLandings()
         {
-            GearUnloadsFromServer = JsonConvert.DeserializeObject<List<GearUnloadFromServer>>(json);
+            List<LandingsRepeat> thisList = new List<LandingsRepeat>();
+            if (_listLandingsRepeat == null)
+            {
+                 LandingsRepeat.SetRowIDs();
+                foreach (var item in LandingsFromServer)
+                {
+                    if (item.Landings_repeat != null)
+                    {
+                        foreach (var landing in item.Landings_repeat)
+                        {
+                            thisList.Add(landing);
+                        }
+                    }
+                }
+                _listLandingsRepeat = thisList;
+            }
+
+            return _listLandingsRepeat;
+
         }
-        public static List<GearUnloadFromServer> GearUnloadsFromServer { get; set; }
+        public static void CreateLandingMonitoringsFromJson(string json)
+        {
+            _listLandingsRepeat = null;
+            LandingFromServer.SetRowIDs();
+            LandingsFromServer = JsonConvert.DeserializeObject<List<LandingFromServer>>(json);
+        }
+        public static List<LandingFromServer> LandingsFromServer { get; internal set; }
     }
 }

@@ -17,7 +17,7 @@ namespace NSAP_ODK.Views
     public enum ODKServerDownload
     {
         ServeDownloadVesselUnload,
-        ServerDownloadGearUnload
+        ServerDownloadLandings
     }
     /// <summary>
     /// Interaction logic for ODKResultsWindow.xaml
@@ -149,7 +149,7 @@ namespace NSAP_ODK.Views
             {
                 case "menuTest":
                     //VesselUnloadServerRepository.CreateLandingsFromJSON(System.IO.File.ReadAllText($"{AppDomain.CurrentDomain.BaseDirectory}/jsontext.txt"));\
-                    GearUnloadServerRepository.CreateGearUnloadsFromJSON(System.IO.File.ReadAllText($"{AppDomain.CurrentDomain.BaseDirectory}/jsontext.txt"));
+                    LandingsFromServerRepository.CreateLandingMonitoringsFromJson(System.IO.File.ReadAllText($"{AppDomain.CurrentDomain.BaseDirectory}/jsontext.txt"));
                     break;
                 case "menuSaveToExcel":
                     if(dataGridExcel.ItemsSource!=null)

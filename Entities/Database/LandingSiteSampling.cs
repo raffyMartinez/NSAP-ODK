@@ -124,6 +124,16 @@ namespace NSAP_ODK.Entities.Database
                 return $"{NSAPRegion} - {FMA} - {FishingGround} - {LandingSite} - {SamplingDate.ToString("MMM-dd-yyyy")}";
             }
         }
+        public DateTime? DateSubmitted { get; set; }
+        public string UserName { get; set; }
+        public string DeviceID { get; set; }
+        public string XFormIdentifier { get; set; }
+        public DateTime? DateAdded { get; set; }
+        public bool FromExcelDownload { get; set; }
+        public string FormVersion { get; set; }
+        public string RowID { get; set; }
+        public int? EnumeratorID { get; set; }
+        public string EnumeratorText { get; set; }
     }
 
 }
