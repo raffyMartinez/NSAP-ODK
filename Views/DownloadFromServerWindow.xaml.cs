@@ -217,10 +217,19 @@ namespace NSAP_ODK.Views
                                             var bytes = await response.Content.ReadAsByteArrayAsync();
                                             Encoding encoding = Encoding.GetEncoding("utf-8");
                                             string the_response = encoding.GetString(bytes, 0, bytes.Length);
+                                            switch(_parentWindow.ODKServerDownload)
+                                            {
+                                                case ODKServerDownload.ServeDownloadVesselUnload:
+                                                    VesselUnloadServerRepository.ResetLists();
+                                                    VesselUnloadServerRepository.CreateLandingsFromJSON(the_response);
+                                                    VesselUnloadServerRepository.FillDuplicatedLists();
+                                                    break;
+                                                case ODKServerDownload.ServerDownloadGearUnload:
+                                                    GearUnloadServerRepository.CreateGearUnloadsFromJSON(the_response);
+                                                    break;
+                                            }
 
-                                            VesselUnloadServerRepository.ResetLists();
-                                            VesselUnloadServerRepository.CreateLandingsFromJSON(the_response);
-                                            VesselUnloadServerRepository.FillDuplicatedLists();
+
 
 
 
@@ -366,6 +375,7 @@ namespace NSAP_ODK.Views
                     case "form_id":
                         _formID = treeViewItem.Header.ToString();
                         var summary = new FormSummary(_koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)));
+                        SetODKServerDownloadType();
                         if (DateTime.TryParse(summary.LastSaveDateInDatabase, out DateTime v))
                         {
                             _lastSubmittedDate = v;
@@ -414,6 +424,7 @@ namespace NSAP_ODK.Views
                         break;
                     case "form_users":
                         _formID = ((TreeViewItem)treeViewItem.Parent).Header.ToString();
+
                         //var parentItem = GetSelectedTreeViewItemParent(treeViewItem);
                         dataGrid.DataContext = _koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)).users;
                         dataGrid.Visibility = Visibility.Visible;
@@ -426,6 +437,7 @@ namespace NSAP_ODK.Views
                         break;
                     case "form_download":
                         _formID = ((TreeViewItem)treeViewItem.Parent).Header.ToString();
+                        SetODKServerDownloadType();
                         gridDownload.Visibility = Visibility.Visible;
                         ((ComboBoxItem)comboboxDownloadOption.Items[0]).IsSelected = true;
 
@@ -440,7 +452,19 @@ namespace NSAP_ODK.Views
             }
 
         }
+        private void SetODKServerDownloadType()
+        {
+            var summary = new FormSummary(_koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)));
 
+            if (summary.Title.Contains("Daily landings and catch estimate"))
+            {
+                _parentWindow.ODKServerDownload = ODKServerDownload.ServerDownloadGearUnload;
+            }
+            else if (summary.Title.Contains("Fisheries landing survey"))
+            {
+                _parentWindow.ODKServerDownload = ODKServerDownload.ServeDownloadVesselUnload;
+            }
+        }
         private ItemsControl GetSelectedTreeViewItemParent(TreeViewItem item)
         {
             DependencyObject parent = VisualTreeHelper.GetParent(item);
@@ -465,6 +489,7 @@ namespace NSAP_ODK.Views
             rbAll.IsChecked = true;
             panelFilterByUser.Visibility = Visibility.Collapsed;
             labelProgress.Content = "";
+            TextBoxUserName.Focus();
         }
 
         private void OnComboSelectionChanged(object sender, SelectionChangedEventArgs e)

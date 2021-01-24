@@ -13,6 +13,12 @@ using System.Diagnostics;
 
 namespace NSAP_ODK.Views
 {
+
+    public enum ODKServerDownload
+    {
+        ServeDownloadVesselUnload,
+        ServerDownloadGearUnload
+    }
     /// <summary>
     /// Interaction logic for ODKResultsWindow.xaml
     /// </summary>
@@ -24,7 +30,7 @@ namespace NSAP_ODK.Views
         private bool _isJSONData;
         private int _savedCount;
 
-
+        public ODKServerDownload ODKServerDownload { get; set; }
         public MainWindow ParentWindow { get; set; }
         public static ODKResultsWindow GetInstance()
         {
@@ -142,7 +148,8 @@ namespace NSAP_ODK.Views
             switch (((MenuItem)sender).Name)
             {
                 case "menuTest":
-                    VesselUnloadServerRepository.CreateLandingsFromJSON(System.IO.File.ReadAllText($"{AppDomain.CurrentDomain.BaseDirectory}/jsontext.txt"));
+                    //VesselUnloadServerRepository.CreateLandingsFromJSON(System.IO.File.ReadAllText($"{AppDomain.CurrentDomain.BaseDirectory}/jsontext.txt"));\
+                    GearUnloadServerRepository.CreateGearUnloadsFromJSON(System.IO.File.ReadAllText($"{AppDomain.CurrentDomain.BaseDirectory}/jsontext.txt"));
                     break;
                 case "menuSaveToExcel":
                     if(dataGridExcel.ItemsSource!=null)

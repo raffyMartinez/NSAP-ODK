@@ -31,7 +31,19 @@ namespace NSAP_ODK.Entities
             }
             return listFG;
         }
-
+        public LandingSite GetLandingSiteInRegion(string regionCode, int regionFMA, int regionFMAFishingGround, int fishingGroundLandingSite)
+        {
+            return NSAPRegionCollection.Where(t => t.Code == regionCode).FirstOrDefault()
+                .FMAs.Where(t => t.RowID == regionFMA).FirstOrDefault()
+                .FishingGrounds.Where(t => t.RowID == regionFMAFishingGround).FirstOrDefault()
+                .LandingSites.Where(t => t.RowID == fishingGroundLandingSite).FirstOrDefault().LandingSite;
+        }
+        public FishingGround GetFishingGroundInRegion(string regionCode, int regionFMA, int regionFMAFishingGround)
+        {
+            return NSAPRegionCollection.Where(t => t.Code == regionCode).FirstOrDefault()
+                .FMAs.Where(t => t.RowID == regionFMA).FirstOrDefault()
+                .FishingGrounds.Where(t => t.RowID == regionFMAFishingGround).FirstOrDefault().FishingGround;
+        }
         public List<LandingSite>GetLandingSites(NSAPRegion region, FishingGround fishingGround)
         {
             List<LandingSite> listLS = new List<LandingSite>();
@@ -232,7 +244,15 @@ namespace NSAP_ODK.Entities
             //}
         }
 
+        public FMA GetFMAInRegion(string regionCode, int regionFMA)
+        {
+            return NSAPRegionCollection.Where(t => t.Code == regionCode).FirstOrDefault().FMAs.Where(t => t.RowID == regionFMA).FirstOrDefault().FMA;
+        }
 
+        public NSAPEnumerator GetEnumeratorInRegion(string regionCode, int nsapEnumerator)
+        {
+            return NSAPRegionCollection.Where(t => t.Code == regionCode).FirstOrDefault().NSAPEnumerators.Where(t => t.RowID == nsapEnumerator).FirstOrDefault().Enumerator;
+        }
         public NSAPRegionFMAFishingGround GetRegionFMAFishingGround(string regionCode, int fmaCode, string fishingGroundCode)
         {
             var region = NSAPRegionCollection.Where(t => t.Code == regionCode).FirstOrDefault();
