@@ -115,7 +115,8 @@ namespace NSAP_ODK.Utilities
                             PK = NSAPEntities.GearUnloadViewModel.NextRecordNumber,
                             LandingSiteSamplingID = landingSiteSampling.PK,
                             GearID = item.NSAPRegionGear != null ? item.NSAPRegionGear.Gear.Code : null,
-                            GearUsedText = item.GearUsedText
+                            GearUsedText = item.GearUsedText,
+                            Remarks=""
                         };
                         NSAPEntities.GearUnloadViewModel.AddRecordToRepo(gu);
                     }

@@ -42,6 +42,8 @@ namespace NSAP_ODK.Entities.Database
     {
         private Gear _gear;
         private LandingSiteSampling _parent;
+
+        public string Remarks { get; set; }
         public int PK{ get; set; }
         public int LandingSiteSamplingID { get; set; }
         public string GearID { get; set; }

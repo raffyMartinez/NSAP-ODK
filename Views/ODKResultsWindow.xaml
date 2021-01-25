@@ -45,7 +45,7 @@
                 <MenuItem Header="Duplicated length frequency" x:Name="menuDuplicatedLF"  IsCheckable="True" Checked="OnMenuItemChecked" Tag="duplicatedLenFreq" IsEnabled="False"/>
             </MenuItem>
         </Menu>
-        <DataGrid x:Name="dataGridExcel" RowHeaderWidth="NaN" Grid.Row="1" ItemsSource="{Binding}" AutoGenerateColumns="False" 
+        <DataGrid x:Name="dataGridExcel" RowHeaderWidth="NaN" Grid.Row="1" ItemsSource="{Binding}"  AutoGenerateColumns="False" 
                   IsReadOnly="True" SelectionChanged="OnDataGridSelectionChanged" LoadingRow="OnDataGridLoadingRow">
             <DataGrid.CellStyle>
                 <Style TargetType="DataGridCell">

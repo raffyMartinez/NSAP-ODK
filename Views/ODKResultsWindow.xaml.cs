@@ -26,7 +26,7 @@ namespace NSAP_ODK.Views
     {
         private static ODKResultsWindow _instance;
         private List<VesselLanding> _mainSheets;
-        private List<LandingFromServer> _mainSheetsLanding;
+        private List<LandingSiteBoatLandingFromServer> _mainSheetsLanding;
         private string _excelDownloaded;
         private bool _isJSONData;
         private int _savedCount;
@@ -139,7 +139,7 @@ namespace NSAP_ODK.Views
                 }
             }
         }
-        public List<LandingFromServer>MainSheetsLanding
+        public List<LandingSiteBoatLandingFromServer>MainSheetsLanding
         {
             get { return _mainSheetsLanding; }
             set
@@ -212,9 +212,9 @@ namespace NSAP_ODK.Views
             {
                 case "menuTest":
                     //VesselUnloadServerRepository.CreateLandingsFromJSON(System.IO.File.ReadAllText($"{AppDomain.CurrentDomain.BaseDirectory}/jsontext.txt"));\
-                    LandingsFromServerRepository.CreateLandingMonitoringsFromJson(System.IO.File.ReadAllText($"{AppDomain.CurrentDomain.BaseDirectory}/jsontext.txt"));
+                    LandingSiteBoatLandingsFromServerRepository.CreateLandingSiteBoatLandingsFromJson(System.IO.File.ReadAllText($"{AppDomain.CurrentDomain.BaseDirectory}/jsontext.txt"));
                     ODKServerDownload = ODKServerDownload.ServerDownloadLandings;
-                    MainSheetsLanding = LandingsFromServerRepository.LandingsFromServer;
+                    MainSheetsLanding = LandingSiteBoatLandingsFromServerRepository.LandingSiteBoatLandings;
                     break;
                 case "menuSaveToExcel":
                     if(dataGridExcel.ItemsSource!=null)
@@ -255,14 +255,63 @@ namespace NSAP_ODK.Views
                     bool success = false;
                     labelProgress.Content = "";
 
-                    if (_isJSONData)
+                    if (ODKServerDownload == ODKServerDownload.ServerDownloadVesselUnload)
                     {
-                        if (dataGridExcel.Items.Count > 0)
+                        if (_isJSONData)
                         {
-                            if(await VesselUnloadServerRepository.UploadToDBAsync())
+                            if (dataGridExcel.Items.Count > 0)
+                            {
+                                if (await VesselUnloadServerRepository.UploadToDBAsync())
+                                {
+                                    dataGridExcel.ItemsSource = null;
+                                    dataGridExcel.ItemsSource = VesselUnloadServerRepository.VesselLandings;
+                                    success = true;
+                                    MessageBox.Show("Finished uploading to database", "Upload done", MessageBoxButton.OK, MessageBoxImage.Information);
+                                }
+                                else if (_savedCount == 0 && VesselUnloadServerRepository.VesselLandings.Count > 0)
+                                {
+                                    MessageBox.Show("All records already saved to the database");
+                                }
+                                else
+                                {
+                                    MessageBox.Show("No records were saved even though at least one should have been saved.\r\nPls contact developer");
+                                }
+                            }
+                            else
+                            {
+                                MessageBox.Show("You do not have any downloaded data", "No data", MessageBoxButton.OK, MessageBoxImage.Information);
+                            }
+                        }
+                        else
+                        {
+                            if (dataGridExcel.Items.Count == 0)
+                            {
+                                MessageBox.Show("You do not have any downloaded data", "No data", MessageBoxButton.OK, MessageBoxImage.Information);
+                            }
+                            else
+                            {
+                                if (await ImportExcel.UploadToDatabaseAsync())
+                                {
+                                    dataGridExcel.ItemsSource = null;
+                                    dataGridExcel.ItemsSource = ImportExcel.ExcelMainSheets;
+                                    success = true;
+                                    MessageBox.Show("Finished uploading to database", "Upload done", MessageBoxButton.OK, MessageBoxImage.Information);
+                                }
+                                else if (_savedCount == 0)
+                                {
+                                    MessageBox.Show("Zero records were saved because all have been saved earlier");
+                                }
+                            }
+                        }
+                    }
+                    else if(ODKServerDownload==ODKServerDownload.ServerDownloadLandings)
+                    {
+                        if(_isJSONData)
+                        {
+                            if(await LandingSiteBoatLandingsFromServerRepository.UploadToDBAsync())
                             {
                                 dataGridExcel.ItemsSource = null;
-                                dataGridExcel.ItemsSource = VesselUnloadServerRepository.VesselLandings;
+                                dataGridExcel.ItemsSource = LandingSiteBoatLandingsFromServerRepository.LandingSiteBoatLandings;
                                 success = true;
                                 MessageBox.Show("Finished uploading to database", "Upload done", MessageBoxButton.OK, MessageBoxImage.Information);
                             }
@@ -273,31 +322,6 @@ namespace NSAP_ODK.Views
                             else
                             {
                                 MessageBox.Show("No records were saved even though at least one should have been saved.\r\nPls contact developer");
-                            }
-                        }
-                        else
-                        {
-                            MessageBox.Show("You do not have any downloaded data", "No data", MessageBoxButton.OK, MessageBoxImage.Information);
-                        }
-                    }
-                    else
-                    {
-                        if (dataGridExcel.Items.Count == 0)
-                        {
-                            MessageBox.Show("You do not have any downloaded data", "No data", MessageBoxButton.OK, MessageBoxImage.Information);
-                        }
-                        else
-                        {
-                            if (await ImportExcel.UploadToDatabaseAsync())
-                            {
-                                dataGridExcel.ItemsSource = null;
-                                dataGridExcel.ItemsSource = ImportExcel.ExcelMainSheets;
-                                success = true;
-                                MessageBox.Show("Finished uploading to database", "Upload done", MessageBoxButton.OK, MessageBoxImage.Information);
-                            }
-                            else if (_savedCount == 0)
-                            {
-                                MessageBox.Show("Zero records were saved because all have been saved earlier");
                             }
                         }
                     }
@@ -392,7 +416,7 @@ namespace NSAP_ODK.Views
             {
 
                 case "landingSiteSampling":
-                    dataGridExcel.ItemsSource = LandingsFromServerRepository.LandingsFromServer;
+                    dataGridExcel.ItemsSource = LandingSiteBoatLandingsFromServerRepository.LandingSiteBoatLandings;
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "RowUUID", Binding = new Binding("_uuid"), Visibility = Visibility.Hidden });
 
                     col = new DataGridTextColumn()
@@ -427,12 +451,29 @@ namespace NSAP_ODK.Views
 
                     break;
                 case "landingSiteCounts":
-                    dataGridExcel.ItemsSource = LandingsFromServerRepository.GetLandings();
+                    dataGridExcel.ItemsSource = LandingSiteBoatLandingsFromServerRepository.GetLandings();
+                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("Parent.user_name") });
+                    
+                    col = new DataGridTextColumn()
+                    {
+                        Binding = new Binding("Parent.SamplingDate"),
+                        Header = "Sampling date"
+                    };
+                    col.Binding.StringFormat = "MMM-dd-yyyy";
+                    dataGridExcel.Columns.Add(col);
+
+                    dataGridExcel.Columns.Add(new DataGridCheckBoxColumn { Header = "Sampling day", Binding = new Binding("Parent.SamplingConducted") });
+                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "NSAP Region", Binding = new Binding("Parent.NSAPRegionName") });
+                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("Parent.NSAPEnumeratorName") });
+                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("Parent.FMA") });
+                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("Parent.FishingGround") });
+                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("Parent.LandingSiteName") });
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("GearName") });
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Vessels landed", Binding = new Binding("Count") });
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Total catch weight", Binding = new Binding("TotalCatchWt") });
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Notes", Binding = new Binding("Note") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSiteName") });
+                    dataGridExcel.Columns.Add(new DataGridCheckBoxColumn { Header = "Saved to database", Binding = new Binding("SavedInLocalDatabase") });
+                    //dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSiteName") });
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Parent", Binding = new Binding("Parent.PK") });
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
                     break;

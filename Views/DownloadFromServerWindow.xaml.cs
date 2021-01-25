@@ -235,7 +235,7 @@ namespace NSAP_ODK.Views
                                                     VesselUnloadServerRepository.FillDuplicatedLists();
                                                     break;
                                                 case ODKServerDownload.ServerDownloadLandings:
-                                                    LandingsFromServerRepository.CreateLandingMonitoringsFromJson(the_response);
+                                                    LandingSiteBoatLandingsFromServerRepository.CreateLandingSiteBoatLandingsFromJson(the_response);
                                                     break;
                                             }
 
@@ -254,7 +254,7 @@ namespace NSAP_ODK.Views
                                                     _parentWindow.MainSheets = VesselUnloadServerRepository.VesselLandings;
                                                     break;
                                                 case ODKServerDownload.ServerDownloadLandings:
-                                                    _parentWindow.MainSheetsLanding = LandingsFromServerRepository.LandingsFromServer;
+                                                    _parentWindow.MainSheetsLanding = LandingSiteBoatLandingsFromServerRepository.LandingSiteBoatLandings;
                                                     break;
                                             }
 

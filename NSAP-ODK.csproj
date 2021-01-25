@@ -158,7 +158,7 @@
     <Compile Include="Entities\Database\GearSoakViewModel.cs" />
     <Compile Include="Entities\Database\GearUnload.cs" />
     <Compile Include="Entities\Database\GearUnloadRepository.cs" />
-    <Compile Include="Entities\Database\LandingsFromServerRepository.cs" />
+    <Compile Include="Entities\Database\LandingSiteBoatLandingsFromServerRepository.cs" />
     <Compile Include="Entities\Database\GearUnloadViewModel.cs" />
     <Compile Include="Entities\Database\GPSItemsSource.cs" />
     <Compile Include="Entities\Database\GPXparser\Track.cs" />

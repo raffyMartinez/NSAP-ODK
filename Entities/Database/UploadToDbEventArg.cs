@@ -21,6 +21,11 @@ namespace NSAP_ODK.Entities.Database
 
         public int VesselUnloadTotalSavedCount { get; set; }
 
+        public int LandingSiteBoatLandingsSavedCount { get; set; }
+        public int LandingSiteBoatLandingsToSaveCount { get; set; }
+
+        public int LandingSiteBoatLandingsTotalSavedCount { get; set; }
+
         public UploadToDBIntent Intent { get; set; }
     }
 }

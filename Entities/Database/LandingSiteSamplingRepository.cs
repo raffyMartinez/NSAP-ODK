@@ -80,7 +80,7 @@ namespace NSAP_ODK.Entities.Database
                             item.DeviceID = dr["device_id"].ToString();
                             item.XFormIdentifier = dr["XFormIdentifier"].ToString();
                             item.DateAdded = dr["DateAdded"] == DBNull.Value ? null : (DateTime?)dr["DateAdded"];
-                            item.FromExcelDownload = (bool)dr["FromExcelDownload"];
+                            item.FromExcelDownload = dr["FromExcelDownload"] == DBNull.Value ? false : (bool)dr["FromExcelDownload"];
                             item.FormVersion = dr["form_version"].ToString();
                             item.RowID = dr["RowID"].ToString();
                             item.EnumeratorID = dr["EnumeratorID"] == DBNull.Value ? null : (int?)int.Parse(dr["EnumeratorID"].ToString());
@@ -125,8 +125,8 @@ namespace NSAP_ODK.Entities.Database
                         success = update.ExecuteNonQuery() > 0;
                         if(success)
                         {
-                            string dateSubmitted = item.DateSubmitted == null ? "null" : $"\"{item.DateSubmitted.ToString()}\"";
-                            string dateAdded = item.DateAdded== null ? "null" : $"\"{item.DateAdded.ToString()}\"";
+                            string dateSubmitted = item.DateSubmitted == null ? "null" : $@"'{item.DateSubmitted.ToString()}'";
+                            string dateAdded = item.DateAdded== null ? "null" : $@"'{item.DateAdded.ToString()}'";
                             sql = $@"Insert into dbo_LC_FG_sample_day_1  (
                                         unload_day_id,
                                         datetime_submitted,
@@ -140,16 +140,16 @@ namespace NSAP_ODK.Entities.Database
                                         EnumeratorID,
                                         EnumeratorText
                                     ) Values (
-                                        {item.PK}
+                                        {item.PK} ,
                                         {(item.DateSubmitted==null ? "null" : dateSubmitted)} ,
                                         '{item.UserName}' ,
                                         '{item.DeviceID}' ,
                                         '{item.XFormIdentifier}' ,
                                         {(item.DateAdded == null ? "null" : dateAdded)} ,
-                                        '{item.FromExcelDownload}' ,
+                                        {item.FromExcelDownload} ,
                                         '{item.FormVersion}' ,
                                         '{item.RowID}' ,
-                                        {item.EnumeratorID} ,
+                                        {(item.EnumeratorID == null ? "null" : item.EnumeratorID.ToString() )} ,
                                         '{item.EnumeratorText}' 
                                     )";
                              using (OleDbCommand update1 = new OleDbCommand(sql, conn))

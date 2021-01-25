@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace NSAP_ODK.Entities.Database
 {
@@ -11,6 +12,8 @@ namespace NSAP_ODK.Entities.Database
     {
         private static int _pk;
         private int _rowID;
+        private bool? _isSaved;
+        private GearUnload _saveGearUnloadObject;
         [JsonProperty("landings_repeat/landing/select_gear")]
         public string SelectGear { get; set; }
         [JsonProperty("landings_repeat/landing/gear_used")]
@@ -32,8 +35,9 @@ namespace NSAP_ODK.Entities.Database
         [JsonProperty("landings_repeat/landing/landing_catch")]
         public string LandingsRepeatLandingLandingCatch { get; set; }
 
-        public LandingFromServer Parent { get; set; }
+        public LandingSiteBoatLandingFromServer Parent { get; set; }
 
+        public static bool RowIDSet { get; set; }
         public static void SetRowIDs()
         {
             if (NSAPEntities.GearUnloadViewModel.GearUnloadCollection.Count == 0)
@@ -44,13 +48,14 @@ namespace NSAP_ODK.Entities.Database
             {
                 _pk = NSAPEntities.GearUnloadViewModel.NextRecordNumber - 1;
             }
+            RowIDSet = true;
         }
 
         public int? PK
         {
             get
             {
-                if (Parent.SavedInLocalDatabase)
+                if (SavedInLocalDatabase)
                 {
                     return null;
                 }
@@ -66,13 +71,37 @@ namespace NSAP_ODK.Entities.Database
             }
 
         }
+
+        private GearUnload SavedGearUnloadObject
+        {
+            get
+            {
+                _saveGearUnloadObject = NSAPEntities.GearUnloadViewModel.GearUnloadCollection
+                   .FirstOrDefault(t => t.Parent.PK == Parent.PK && t.GearUsedName == GearName);
+                return _saveGearUnloadObject;
+            }
+
+        }
+        public bool SavedInLocalDatabase
+        {
+            get
+            {
+                if (_isSaved == null)
+                {
+                    _isSaved = SavedGearUnloadObject != null;
+                }
+                return (bool)_isSaved;
+            }
+            set { _isSaved = value; }
+
+        }
     }
 
     public class ValidationStatus
     {
 
     }
-    public class LandingFromServer
+    public class LandingSiteBoatLandingFromServer
     {
         private LandingSiteSampling _savedLandingObject;
         private bool? _isSaved;
@@ -222,7 +251,7 @@ namespace NSAP_ODK.Entities.Database
         public string user_name { get; set; }
         public int _id { get; set; }
 
-        private LandingSiteSampling SavedLandingObject
+        public LandingSiteSampling SavedLandingObject
         {
             get
             {
@@ -251,6 +280,7 @@ namespace NSAP_ODK.Entities.Database
             set { _isSaved = value; }
 
         }
+        public static bool RowIDSet { get; set; }
         public static void SetRowIDs()
         {
             if (NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection.Count == 0)
@@ -261,6 +291,7 @@ namespace NSAP_ODK.Entities.Database
             {
                 _pk = NSAPEntities.LandingSiteSamplingViewModel.NextRecordNumber - 1;
             }
+            RowIDSet = true;
         }
 
         public int PK
@@ -291,8 +322,9 @@ namespace NSAP_ODK.Entities.Database
 
 
     }
-    public static class LandingsFromServerRepository
+    public static class LandingSiteBoatLandingsFromServerRepository
     {
+        public static event EventHandler<UploadToDbEventArg> UploadSubmissionToDB;
         private static List<LandingsRepeat> _listLandingsRepeat;
 
         public static List<LandingsRepeat> GetLandings()
@@ -301,7 +333,7 @@ namespace NSAP_ODK.Entities.Database
             if (_listLandingsRepeat == null)
             {
                  LandingsRepeat.SetRowIDs();
-                foreach (var item in LandingsFromServer)
+                foreach (var item in LandingSiteBoatLandings)
                 {
                     if (item.Landings_repeat != null)
                     {
@@ -317,12 +349,116 @@ namespace NSAP_ODK.Entities.Database
             return _listLandingsRepeat;
 
         }
-        public static void CreateLandingMonitoringsFromJson(string json)
+        public static void CreateLandingSiteBoatLandingsFromJson(string json)
         {
             _listLandingsRepeat = null;
-            LandingFromServer.SetRowIDs();
-            LandingsFromServer = JsonConvert.DeserializeObject<List<LandingFromServer>>(json);
+            LandingSiteBoatLandingFromServer.SetRowIDs();
+            LandingSiteBoatLandings = JsonConvert.DeserializeObject<List<LandingSiteBoatLandingFromServer>>(json);
         }
-        public static List<LandingFromServer> LandingsFromServer { get; internal set; }
+        public static List<LandingSiteBoatLandingFromServer> LandingSiteBoatLandings { get; internal set; }
+
+        public static Task<bool> UploadToDBAsync()
+        {
+            return Task.Run(() => UploadToLocalDatabase());
+        }
+        public static bool UploadToLocalDatabase()
+        {
+            int savedCount = 0;
+
+            if(!LandingsRepeat.RowIDSet)
+            {
+                LandingsRepeat.SetRowIDs();
+            }
+
+            if (LandingSiteBoatLandings.Count > 0)
+            {
+                UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { LandingSiteBoatLandingsToSaveCount = LandingSiteBoatLandings.Count, Intent = UploadToDBIntent.StartOfUpload });
+                foreach (var landing in LandingSiteBoatLandings)
+                {
+                    if (landing.SavedInLocalDatabase)
+                    {
+
+                        SaveLandingRepeat(landing, landing.SavedLandingObject);
+                    }
+                    else
+                    {
+                        LandingSiteSampling ls = new LandingSiteSampling
+                        {
+                            PK = landing.PK,
+                            NSAPRegionID = landing.Region.Code,
+                            SamplingDate = landing.SamplingDate,
+                            LandingSiteID = landing.LandingSite == null ? null : (int?)landing.LandingSite.LandingSiteID,
+                            FishingGroundID = landing.FishingGround.Code,
+                            Remarks = landing.Notes,
+                            IsSamplingDay = landing.SamplingConducted,
+                            LandingSiteText = landing.LandingSiteText,
+                            FMAID = landing.FMA.FMAID,
+
+                            DateSubmitted = landing._submission_time,
+                            UserName = landing.user_name,
+                            DeviceID = landing.device_id,
+                            XFormIdentifier = landing._xform_id_string,
+                            DateAdded = DateTime.Now,
+                            FromExcelDownload = false,
+                            FormVersion = landing.intronote,
+                            RowID = landing._uuid,
+                            EnumeratorID = landing.RegionEnumerator,
+                            EnumeratorText = landing.RegionEnumeratorText
+                        };
+
+                        if (NSAPEntities.LandingSiteSamplingViewModel.AddRecordToRepo(ls))
+                        {
+                            savedCount++;
+                            landing.SavedInLocalDatabase = true;
+                            SaveLandingRepeat(landing, ls);
+                        }
+                        UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { LandingSiteBoatLandingsSavedCount = savedCount, Intent = UploadToDBIntent.Uploading });
+                    }
+                }
+                UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { LandingSiteBoatLandingsTotalSavedCount = savedCount, Intent = UploadToDBIntent.EndOfUpload });
+            }
+            return savedCount > 0;
+        }
+
+        public static bool SaveLandingRepeat(LandingSiteBoatLandingFromServer lsbl, LandingSiteSampling lss)
+        {
+            bool success = false;
+            if(lsbl.Landings_repeat!=null && lsbl.Landings_repeat.Count>0)
+            {
+                foreach (var landingRepeat in lsbl.Landings_repeat)
+                {
+
+
+
+                    if (landingRepeat.SavedInLocalDatabase)
+                    {
+                        success = false;
+                    }
+                    else
+                    {
+                        if (landingRepeat.PK == 1)
+                        {
+                            Debugger.Break();
+                        }
+
+                        GearUnload gu = new GearUnload
+                        {
+                            PK = (int)landingRepeat.PK,
+                            LandingSiteSamplingID = lss.PK,
+                            GearID = landingRepeat.Gear == null ? null : landingRepeat.Gear.Code,
+                            Boats = landingRepeat.Count,
+                            Catch = landingRepeat.TotalCatchWt,
+                            GearUsedText = landingRepeat.GearUsedText,
+                            Remarks = landingRepeat.Note
+                        };
+
+                        success = NSAPEntities.GearUnloadViewModel.AddRecordToRepo(gu);
+                    }
+                }
+            }
+
+            return success;
+        }
+
     }
 }

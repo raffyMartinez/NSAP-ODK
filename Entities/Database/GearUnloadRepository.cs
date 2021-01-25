@@ -76,14 +76,15 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Insert into dbo_gear_unload(unload_gr_id, unload_day_id, gr_id,boats,catch,gr_text)
+                var sql = $@"Insert into dbo_gear_unload(unload_gr_id, unload_day_id, gr_id,boats,catch,gr_text,remarks)
                            Values (
                                 {item.PK}, 
                                 {item.LandingSiteSamplingID},
                                 {gearID},
                                 {(item.Boats == null ? "null" : item.Boats.ToString())},
                                 {(item.Catch == null ? "null" : item.Catch.ToString())},
-                                '{item.GearUsedText}'
+                                '{item.GearUsedText}',
+                                '{item.Remarks}'
                                 )";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {

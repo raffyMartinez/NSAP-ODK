@@ -19,6 +19,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
         private static int _pk;
         private int _rowID;
 
+        public static bool RowIDSet { get; set; }
         public static void SetRowIDs()
         {
             if (NSAPEntities.CatchLengthWeightViewModel.CatchLengthWeightCollection.Count == 0)
@@ -29,6 +30,8 @@ namespace NSAP_ODK.Entities.Database.FromJson
             {
                 _pk = NSAPEntities.CatchLengthWeightViewModel.NextRecordNumber - 1;
             }
+
+            RowIDSet = true;
         }
 
         public int? PK
@@ -64,7 +67,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
     {
         private static int _pk;
         private int _rowID;
-
+        public static bool RowIDSet { get; set; }
         public static void SetRowIDs()
         {
             if (NSAPEntities.CatchLenFreqViewModel.CatchLenFreqCollection.Count == 0)
@@ -75,6 +78,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
             {
                 _pk = NSAPEntities.CatchLenFreqViewModel.NextRecordNumber - 1;
             }
+            RowIDSet = true;
         }
 
         public int? PK
@@ -110,7 +114,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
     {
         private static int _pk;
         private int _rowID;
-
+        public static bool RowIDSet { get; set; }
         public static void SetRowIDs()
         {
             if (NSAPEntities.CatchLengthViewModel.CatchLengthCollection.Count == 0)
@@ -121,6 +125,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
             {
                 _pk = NSAPEntities.CatchLengthViewModel.NextRecordNumber - 1;
             }
+            RowIDSet = true;
         }
 
         public int? PK
@@ -153,6 +158,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
         private static int _pk;
         private int _rowID;
 
+        public static bool RowIDSet { get; set; }
         public static void SetRowIDs()
         {
             if (NSAPEntities.CatchMaturityViewModel.CatchMaturityCollection.Count == 0)
@@ -163,6 +169,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
             {
                 _pk = NSAPEntities.CatchMaturityViewModel.NextRecordNumber - 1;
             }
+            RowIDSet = true;
         }
 
         public int? PK
@@ -386,7 +393,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
         //alias of SpeciesSampleWt
         public double? SampleWeightOfCatch { get { return SpeciesSampleWt; } }
-
+        public static bool RowIDSet { get; set; }
         public  static void SetRowIDs()
         {
 
@@ -398,6 +405,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
             {
                 _pk = NSAPEntities.VesselCatchViewModel.NextRecordNumber - 1;
             }
+            RowIDSet = true;
         }
 
         public int PK
@@ -455,6 +463,8 @@ namespace NSAP_ODK.Entities.Database.FromJson
         public DateTime HaulTime { get; set; }
         [JsonProperty("soak_time_group/soaktime_tracking_group/soak_time_repeat/set_time")]
         public DateTime SetTime { get; set; }
+
+        public static bool RowIDSet { get; set; }
         public static void SetRowIDs()
         {
             if (NSAPEntities.GearSoakViewModel.GearSoakCollection.Count == 0)
@@ -465,6 +475,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
             {
                 _pk = NSAPEntities.GearSoakViewModel.NextRecordNumber - 1;
             }
+            RowIDSet = true;
         }
 
         public int? PK
@@ -528,6 +539,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                 return new Grid25GridCell(_utmZone, CompleteGridName);
             }
         }
+        public static bool RowIDSet { get; set; }
         public static void  SetRowIDs()
         {
             if (NSAPEntities.FishingGroundGridViewModel.FishingGroundGridCollection.Count == 0)
@@ -538,6 +550,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
             {
                 _pk = NSAPEntities.FishingGroundGridViewModel.NextRecordNumber - 1;
             }
+            RowIDSet = true;
         }
 
         public int? PK
@@ -604,6 +617,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
             } 
         }
 
+        public static bool RowIDSet { get; set; }
         public static void SetRowIDs()
         {
             if (NSAPEntities.VesselEffortViewModel.VesselEffortCollection.Count == 0)
@@ -614,6 +628,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
             {
                 _pk = NSAPEntities.VesselUnloadViewModel.NextRecordNumber - 1;
             }
+            RowIDSet = true;
         }
 
         public int? PK
@@ -1101,7 +1116,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
         public string _status { get; set; }
 
 
-
+        public static bool RowIDSet { get; set; }
         public static void SetRowIDs()
         {
             if (NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.Count == 0)
@@ -1112,6 +1127,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
             {
                 _pk = NSAPEntities.VesselUnloadViewModel.NextRecordNumber - 1;
             }
+            RowIDSet = true;
         }
 
         private VesselUnload _savedVesselUnloadObject;
@@ -1486,7 +1502,8 @@ namespace NSAP_ODK.Entities.Database.FromJson
                             LandingSiteSamplingID = landingSiteSampling.PK,
                             //GearID = item.Vessel_sampling__gear_used != null ? item.Gear.Code : null,
                             GearID = landing.GearUsed != null ? landing.NSAPRegion.Gears.FirstOrDefault(t => t.RowID == (int)landing.GearUsed).Gear.Code : null,
-                            GearUsedText = landing.GearUsedText==null?"":landing.GearUsedText
+                            GearUsedText = landing.GearUsedText==null?"":landing.GearUsedText,
+                            Remarks=""
                         };
                         NSAPEntities.GearUnloadViewModel.AddRecordToRepo(gu);
                     }
