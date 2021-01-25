@@ -57,7 +57,9 @@ namespace NSAP_ODK.Entities.Database
             {
                 if (SavedInLocalDatabase)
                 {
-                    return null;
+                    _rowID = NSAPEntities.GearUnloadViewModel.GearUnloadCollection
+                        .Where(t=>t.GearUsedName==GearName &&
+                                  t.Parent.PK==Parent.PK).FirstOrDefault().PK;
                 }
                 else
                 {
@@ -65,8 +67,8 @@ namespace NSAP_ODK.Entities.Database
                     {
                         _rowID = ++_pk;
                     }
-                    return _rowID;
                 }
+                return _rowID;
 
             }
 
@@ -375,36 +377,40 @@ namespace NSAP_ODK.Entities.Database
                 UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { LandingSiteBoatLandingsToSaveCount = LandingSiteBoatLandings.Count, Intent = UploadToDBIntent.StartOfUpload });
                 foreach (var landing in LandingSiteBoatLandings)
                 {
+                    LandingSiteSampling ls = new LandingSiteSampling
+                    {
+                        PK = landing.PK,
+                        NSAPRegionID = landing.Region.Code,
+                        SamplingDate = landing.SamplingDate,
+                        LandingSiteID = landing.LandingSite == null ? null : (int?)landing.LandingSite.LandingSiteID,
+                        FishingGroundID = landing.FishingGround.Code,
+                        Remarks = landing.Notes,
+                        IsSamplingDay = landing.SamplingConducted,
+                        LandingSiteText = landing.LandingSiteText,
+                        FMAID = landing.FMA.FMAID,
+
+                        DateSubmitted = landing._submission_time,
+                        UserName = landing.user_name,
+                        DeviceID = landing.device_id,
+                        XFormIdentifier = landing._xform_id_string,
+                        DateAdded = DateTime.Now,
+                        FromExcelDownload = false,
+                        FormVersion = landing.intronote,
+                        RowID = landing._uuid,
+                        EnumeratorID = landing.RegionEnumerator,
+                        EnumeratorText = landing.RegionEnumeratorText
+                    };
                     if (landing.SavedInLocalDatabase)
                     {
+                        if (NSAPEntities.LandingSiteSamplingViewModel.UpdateRecordInRepo(ls))
+                        {
 
-                        SaveLandingRepeat(landing, landing.SavedLandingObject);
+                            SaveLandingRepeat(landing, landing.SavedLandingObject);
+                        }
                     }
                     else
                     {
-                        LandingSiteSampling ls = new LandingSiteSampling
-                        {
-                            PK = landing.PK,
-                            NSAPRegionID = landing.Region.Code,
-                            SamplingDate = landing.SamplingDate,
-                            LandingSiteID = landing.LandingSite == null ? null : (int?)landing.LandingSite.LandingSiteID,
-                            FishingGroundID = landing.FishingGround.Code,
-                            Remarks = landing.Notes,
-                            IsSamplingDay = landing.SamplingConducted,
-                            LandingSiteText = landing.LandingSiteText,
-                            FMAID = landing.FMA.FMAID,
-
-                            DateSubmitted = landing._submission_time,
-                            UserName = landing.user_name,
-                            DeviceID = landing.device_id,
-                            XFormIdentifier = landing._xform_id_string,
-                            DateAdded = DateTime.Now,
-                            FromExcelDownload = false,
-                            FormVersion = landing.intronote,
-                            RowID = landing._uuid,
-                            EnumeratorID = landing.RegionEnumerator,
-                            EnumeratorText = landing.RegionEnumeratorText
-                        };
+ 
 
                         if (NSAPEntities.LandingSiteSamplingViewModel.AddRecordToRepo(ls))
                         {
@@ -428,30 +434,23 @@ namespace NSAP_ODK.Entities.Database
                 foreach (var landingRepeat in lsbl.Landings_repeat)
                 {
 
-
+                    GearUnload gu = new GearUnload
+                    {
+                        PK = (int)landingRepeat.PK,
+                        LandingSiteSamplingID = lss.PK,
+                        GearID = landingRepeat.Gear == null ? null : landingRepeat.Gear.Code,
+                        Boats = landingRepeat.Count,
+                        Catch = landingRepeat.TotalCatchWt,
+                        GearUsedText = landingRepeat.GearUsedText,
+                        Remarks = landingRepeat.Note
+                    };
 
                     if (landingRepeat.SavedInLocalDatabase)
                     {
-                        success = false;
+                        success = NSAPEntities.GearUnloadViewModel.UpdateRecordInRepo(gu);
                     }
                     else
                     {
-                        if (landingRepeat.PK == 1)
-                        {
-                            Debugger.Break();
-                        }
-
-                        GearUnload gu = new GearUnload
-                        {
-                            PK = (int)landingRepeat.PK,
-                            LandingSiteSamplingID = lss.PK,
-                            GearID = landingRepeat.Gear == null ? null : landingRepeat.Gear.Code,
-                            Boats = landingRepeat.Count,
-                            Catch = landingRepeat.TotalCatchWt,
-                            GearUsedText = landingRepeat.GearUsedText,
-                            Remarks = landingRepeat.Note
-                        };
-
                         success = NSAPEntities.GearUnloadViewModel.AddRecordToRepo(gu);
                     }
                 }

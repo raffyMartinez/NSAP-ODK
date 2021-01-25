@@ -315,7 +315,7 @@ namespace NSAP_ODK.Views
                                 success = true;
                                 MessageBox.Show("Finished uploading to database", "Upload done", MessageBoxButton.OK, MessageBoxImage.Information);
                             }
-                            else if (_savedCount == 0 && VesselUnloadServerRepository.VesselLandings.Count > 0)
+                            else if (_savedCount == 0 && LandingSiteBoatLandingsFromServerRepository.LandingSiteBoatLandings.Count > 0)
                             {
                                 MessageBox.Show("All records already saved to the database");
                             }

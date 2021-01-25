@@ -9,7 +9,7 @@ namespace NSAP_ODK.Entities.Database
 {
     public class LandingSiteSamplingViewModel
     {
-        public bool AddSucceeded { get; set; }
+        public bool EditSuccess { get; set; }
         public ObservableCollection<LandingSiteSampling> LandingSiteSamplingCollection { get; set; }
         private LandingSiteSamplingRepository LandingSiteSamplings { get; set; }
 
@@ -97,12 +97,13 @@ namespace NSAP_ODK.Entities.Database
 
         private void LandingSiteSamplingCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            EditSuccess = false;
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
                     {
                         int newIndex = e.NewStartingIndex;
-                        AddSucceeded= LandingSiteSamplings.Add(LandingSiteSamplingCollection[newIndex]);
+                        EditSuccess= LandingSiteSamplings.Add(LandingSiteSamplingCollection[newIndex]);
                     }
                     break;
 
@@ -116,7 +117,7 @@ namespace NSAP_ODK.Entities.Database
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<LandingSiteSampling> tempList = e.NewItems.OfType<LandingSiteSampling>().ToList();
-                        LandingSiteSamplings.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        EditSuccess = LandingSiteSamplings.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -129,13 +130,14 @@ namespace NSAP_ODK.Entities.Database
 
         public bool AddRecordToRepo(LandingSiteSampling item)
         {
+
             if (item == null)
                 throw new ArgumentNullException("Error: The argument is Null");
             LandingSiteSamplingCollection.Add(item);
-            return AddSucceeded;
+            return EditSuccess;
         }
 
-        public void UpdateRecordInRepo(LandingSiteSampling item)
+        public bool UpdateRecordInRepo(LandingSiteSampling item)
         {
             if (item.PK == 0)
                 throw new Exception("Error: ID cannot be zero");
@@ -150,6 +152,7 @@ namespace NSAP_ODK.Entities.Database
                 }
                 index++;
             }
+            return EditSuccess;
         }
 
         public int NextRecordNumber

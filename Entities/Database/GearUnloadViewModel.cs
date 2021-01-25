@@ -10,7 +10,7 @@ namespace NSAP_ODK.Entities.Database
 {
     public class GearUnloadViewModel
     {
-        public bool AddSucceeded;
+        public bool EditSuccess;
         public ObservableCollection<GearUnload> GearUnloadCollection { get; set; }
         private GearUnloadRepository GearUnloads { get; set; }
 
@@ -177,12 +177,13 @@ namespace NSAP_ODK.Entities.Database
 
         private void GearUnloadCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            EditSuccess = false;
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
                     {
                         int newIndex = e.NewStartingIndex;
-                        AddSucceeded= GearUnloads.Add(GearUnloadCollection[newIndex]);
+                        EditSuccess= GearUnloads.Add(GearUnloadCollection[newIndex]);
                     }
                     break;
 
@@ -196,7 +197,7 @@ namespace NSAP_ODK.Entities.Database
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<GearUnload> tempList = e.NewItems.OfType<GearUnload>().ToList();
-                        GearUnloads.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        EditSuccess= GearUnloads.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -212,10 +213,10 @@ namespace NSAP_ODK.Entities.Database
             if (item == null)
                 throw new ArgumentNullException("Error: The argument is Null");
             GearUnloadCollection.Add(item);
-            return AddSucceeded;
+            return EditSuccess;
         }
 
-        public void UpdateRecordInRepo(GearUnload item)
+        public bool UpdateRecordInRepo(GearUnload item)
         {
             if (item.PK == 0)
                 throw new Exception("Error: ID cannot be zero");
@@ -230,6 +231,7 @@ namespace NSAP_ODK.Entities.Database
                 }
                 index++;
             }
+            return EditSuccess;
         }
 
 

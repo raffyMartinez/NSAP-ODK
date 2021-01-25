@@ -191,9 +191,9 @@ namespace NSAP_ODK.Entities.Database
                 var sql = $@"Update dbo_LC_FG_sample_day set
                                 region_id='{item.NSAPRegionID}',
                                 sdate = '{item.SamplingDate.ToString(_dateFormat)}',
-                                land_ctr_id = {item.LandingSiteID},
-                                ground_id = {item.FishingGroundID},
-                                remarks = {item.Remarks},
+                                land_ctr_id = {(item.LandingSiteID==null? "null" : item.LandingSiteID.ToString())},
+                                ground_id = '{item.FishingGroundID}',
+                                remarks = '{item.Remarks}',
                                 sampleday = {item.IsSamplingDay},
                                 land_ctr_text = '{item.LandingSiteText}',
                                 fma = {item.FMAID}
@@ -203,9 +203,10 @@ namespace NSAP_ODK.Entities.Database
                     success = update.ExecuteNonQuery() > 0;
                     if(success)
                     {
-                        string dateSubmitted = item.DateSubmitted == null ? "null" : $"\"{item.DateSubmitted.ToString()}\"";
-                        string dateAdded = item.DateAdded == null ? "null" : $"\"{item.DateAdded.ToString()}\"";
-                        sql = $@"Update dbo_LC_FG_sample_day_1 set
+                        string dateSubmitted = item.DateSubmitted == null ? "null" : $@"'{item.DateSubmitted.ToString()}'";
+                        string dateAdded = item.DateAdded == null ? "null" : $@"'{item.DateAdded.ToString()}'";
+
+                            sql = $@"Update dbo_LC_FG_sample_day_1 set
                                         datetime_submitted = {dateSubmitted},
                                         user_name = '{item.UserName}',
                                         device_id = '{item.DeviceID}',
@@ -214,9 +215,10 @@ namespace NSAP_ODK.Entities.Database
                                         FromExcelDownload = {item.FromExcelDownload},
                                         form_version = '{item.FormVersion}',
                                         RowID = '{item.RowID}',
-                                        EnumeratorID = {item.EnumeratorID},
+                                        EnumeratorID = {(item.EnumeratorID==null ? "null" : item.EnumeratorID.ToString())},
                                         EnumeratorText = '{item.EnumeratorText}'
                                  WHERE unload_day_id = {item.PK}";
+                        
                         using (OleDbCommand update1 = new OleDbCommand(sql, conn))
                         {
                             try
@@ -244,13 +246,34 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $"Delete * from dbo_LC_FG_sample_day";
+                var sql = "Delete * from dbo_LC_FG_sample_day_1";
+                
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
                     try
                     {
                         update.ExecuteNonQuery();
                         success = true;
+                        if(success)
+                        {
+                            sql = "Delete * from dbo_LC_FG_sample_day";
+                            using (OleDbCommand update1 = new OleDbCommand(sql, conn))
+                            {
+                                try
+                                {
+                                    update1.ExecuteNonQuery();
+                                    success = true;
+                                }
+                                catch(OleDbException)
+                                {
+                                    success = false;
+                                }
+                                catch(Exception ex)
+                                {
+                                    Logger.Log(ex);
+                                }
+                            }
+                        }
                     }
                     catch (OleDbException)
                     {
