@@ -69,13 +69,14 @@ namespace NSAP_ODK.Views
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
             _saveChanges = false;
-            _gearUnloads = NSAPEntities.GearUnloadViewModel.GetAllGearUnloads
-                (
-                _treeItemData.NSAPRegion,
-                _treeItemData.FMA,
-                _treeItemData.FishingGround
-                );
+            //_gearUnloads = NSAPEntities.GearUnloadViewModel.GetAllGearUnloads
+            //    (
+            //    _treeItemData.NSAPRegion,
+            //    _treeItemData.FMA,
+            //    _treeItemData.FishingGround
+            //    );
 
+            _gearUnloads = NSAPEntities.GearUnloadViewModel.GetAllGearUnloads(_treeItemData);
 
             dataGridGearUnload.DataContext = _gearUnloads;
 

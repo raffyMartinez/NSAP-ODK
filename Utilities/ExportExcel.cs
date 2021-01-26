@@ -14,6 +14,22 @@ namespace NSAP_ODK.Utilities
     public static class ExportExcel
     {
         public static string ErrorMessage { get; internal set; }
+
+        public static string GetSaveAsExcelFileName(Window owner, string excelFileToSave)
+        {
+
+            SaveFileDialog sfd = new SaveFileDialog();
+            sfd.Title = "Provide excel filename to save data";
+            sfd.Filter = "Excel (*.xlsx)|*.xlsx|Excel (*.xls)|*.xls";
+            sfd.FilterIndex = 1;
+            sfd.FileName = excelFileToSave;
+            if ((bool)sfd.ShowDialog(owner))
+            {
+                return sfd.FileName;
+                
+            }
+            return "";
+        }
         public static bool GetSaveAsExcelFileName(Window owner, out string excelFileToSave)
         {
             excelFileToSave = "";

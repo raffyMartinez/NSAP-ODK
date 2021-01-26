@@ -9,7 +9,7 @@ namespace NSAP_ODK.Entities.Database
     public class CrossTabCommon
     {
         private DateTime _samplingDate;
-        private LandingSiteSampling _landingSiteSamplinng;
+        private LandingSiteSampling _landingSiteSampling;
         private GearUnload _gearUnload;
         private VesselUnload _vesselUnload;
         private VesselCatch _vesselCatch;
@@ -18,7 +18,7 @@ namespace NSAP_ODK.Entities.Database
         public CrossTabCommon(CatchLenFreq clf)
         {
             _samplingDate = clf.Parent.Parent.Parent.Parent.SamplingDate;
-            _landingSiteSamplinng = clf.Parent.Parent.Parent.Parent;
+            _landingSiteSampling = clf.Parent.Parent.Parent.Parent;
             _gearUnload = clf.Parent.Parent.Parent;
             _vesselUnload = clf.Parent.Parent;
             _vesselCatch = clf.Parent;
@@ -28,7 +28,7 @@ namespace NSAP_ODK.Entities.Database
         public CrossTabCommon(CatchLength cl)
         {
             _samplingDate = cl.Parent.Parent.Parent.Parent.SamplingDate;
-            _landingSiteSamplinng = cl.Parent.Parent.Parent.Parent;
+            _landingSiteSampling = cl.Parent.Parent.Parent.Parent;
             _gearUnload = cl.Parent.Parent.Parent;
             _vesselUnload = cl.Parent.Parent;
             _vesselCatch = cl.Parent;
@@ -38,7 +38,7 @@ namespace NSAP_ODK.Entities.Database
         public CrossTabCommon(CatchMaturity cm)
         {
             _samplingDate = cm.Parent.Parent.Parent.Parent.SamplingDate;
-            _landingSiteSamplinng = cm.Parent.Parent.Parent.Parent;
+            _landingSiteSampling = cm.Parent.Parent.Parent.Parent;
             _gearUnload = cm.Parent.Parent.Parent;
             _vesselUnload = cm.Parent.Parent;
             _vesselCatch = cm.Parent;
@@ -47,39 +47,52 @@ namespace NSAP_ODK.Entities.Database
         public CrossTabCommon(VesselCatch vc)
         {
             _samplingDate = vc.Parent.Parent.Parent.SamplingDate;
-            _landingSiteSamplinng = vc.Parent.Parent.Parent;
+            _landingSiteSampling = vc.Parent.Parent.Parent;
             _gearUnload = vc.Parent.Parent;
             _vesselUnload = vc.Parent;
             _vesselCatch = vc;
             SetCommonProperties();
         }
+
+        public CrossTabCommon(VesselUnload vl)
+        {
+            _samplingDate = vl.Parent.Parent.SamplingDate;
+            _landingSiteSampling = vl.Parent.Parent;
+            _gearUnload = vl.Parent;
+            _vesselUnload = vl;
+            SetCommonProperties();
+        }
         private void SetCommonProperties()
         {
             DataID = _vesselUnload.PK;
-            FishingGround = _landingSiteSamplinng.FishingGround.ToString();
-            //LandingSite = _landingSiteSamplinng.LandingSite;
-            //LandingSiteName = _landingSiteSamplinng.LandingSiteName;
-            LandingSite = _landingSiteSamplinng.LandingSiteName;
-            if (_landingSiteSamplinng.LandingSite != null)
+            FishingGround = _landingSiteSampling.FishingGround.ToString();
+            Region = _landingSiteSampling.NSAPRegion.ShortName;
+            FMA = _landingSiteSampling.FMA.Name;
+            LandingSite = _landingSiteSampling.LandingSiteName;
+            if (_landingSiteSampling.LandingSite != null)
             {
-                Province = _landingSiteSamplinng.LandingSite.Municipality.Province.ProvinceName;
-                Municipality = _landingSiteSamplinng.LandingSite.Municipality.MunicipalityName;
+                Province = _landingSiteSampling.LandingSite.Municipality.Province.ProvinceName;
+                Municipality = _landingSiteSampling.LandingSite.Municipality.MunicipalityName;
             }
             Sector = _vesselUnload.Sector;
-            FishingGroundGrid = NSAPEntities.VesselUnloadViewModel.FirstGridLocation(_vesselUnload)?.ToString();
-            //Gear = _gearUnload.Gear;
-            //GearName = _gearUnload.GearUsedName;
+            var grid = NSAPEntities.VesselUnloadViewModel.FirstGridLocation(_vesselUnload);
+            FishingGroundGrid = grid?.ToString();
+            if(grid!=null)
+            {
+                xCoordinate = grid.GridCell.Coordinate.Longitude;
+                yCoordinate = grid.GridCell.Coordinate.Latitude;
+            }
             Gear = _gearUnload.GearUsedName;
             FBName = _vesselUnload.VesselName;
             FBL = _gearUnload.Boats;
             FBM = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.Count(t=>t.Parent.PK==_gearUnload.PK);
-            SamplingDay = _landingSiteSamplinng.IsSamplingDay;
-            TotalWeight = _vesselCatch.Catch_kg;
+            SamplingDay = _landingSiteSampling.IsSamplingDay;
+            TotalWeight = _vesselUnload.WeightOfCatch;
             MonthSampled = new DateTime(_samplingDate.Year, _samplingDate.Month, 1);
             SamplingDate = _samplingDate;
         }
         public int DataID { get; private set; }
-        public string FishingGround { get; private set; }
+       
         public DateTime MonthSampled { get; private set; }
 
         public int Year { get { return MonthSampled.Year; } }
@@ -87,7 +100,16 @@ namespace NSAP_ODK.Entities.Database
         public string Month { get { return MonthSampled.ToString("MMMM"); } }
         public DateTime SamplingDate { get; private set; }
 
+        public bool SamplingDay { get; set; }
+
+        public string Region { get; private set; }
+        public string FMA { get; private set; }
+
+        public string FishingGround { get; private set; }
+
         public string LandingSite { get; private set; }
+
+        public string Gear { get; private set; }
 
         //public string LandingSiteName { get; private set; }
         public string Province { get; set; }
@@ -100,15 +122,20 @@ namespace NSAP_ODK.Entities.Database
         public string Sector { get; private set; }
 
         public string FishingGroundGrid { get; private set; }
-        public string Gear { get; private set; }
+
+        public double? xCoordinate { get; private set; }
+        public double? yCoordinate { get; private set; }
+
         //public string GearName { get; private set; }
         public string FBName { get; private set; }
         public int? FBL { get; set; }
         public int? FBM { get; private set; }
 
-        public bool SamplingDay { get; set; }
+
 
         //public string Catch { get { return _vesselCatch.; } }
+
+         public double? TotalWeight { get; set; }
 
         public string Family
         {
@@ -164,7 +191,15 @@ namespace NSAP_ODK.Entities.Database
                 _sn = value;
             }
         }
-        public double? TotalWeight { get; set; }
+
+        public double? SpeciesWeight
+        {
+            get
+            {
+                return _vesselCatch.Catch_kg;
+            }
+        }
+
     }
 }
 

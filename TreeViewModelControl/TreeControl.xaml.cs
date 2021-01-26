@@ -118,25 +118,54 @@ namespace NSAP_ODK.TreeViewModelControl
             string treeViewEntity = _selectedItem.GetType().Name;
             args.TreeViewEntity = treeViewEntity;
 
-            switch (((MenuItem)sender).Name)
+            string menuName = ((MenuItem)sender).Name;
+            switch (menuName)
             {
-                case "contextMenuEditGearUnload":
+                case "contextMenuGearUnloadFishingGround":
                     args.FishingGround = ((tv_FishingGroundViewModel)_selectedItem)._fishingGround;
                     args.FMA = ((tv_FishingGroundViewModel)_selectedItem)._fma;
                     args.NSAPRegion = ((tv_FishingGroundViewModel)_selectedItem)._region;
-                    args.ContextMenuTopic = "editFishingGroundGearUnload";
+                    //args.ContextMenuTopic = menuName;
+                    break;
+
+                case "contextMenuCrosstabLandingSite":
+                case "contextMenuGearUnloadLandingSite":
+                    args.LandingSiteText = ((tv_LandingSiteViewModel)_selectedItem)._landingSiteText;
+                    args.FishingGround = ((tv_LandingSiteViewModel)_selectedItem)._fishingGround;
+                    args.FMA = ((tv_LandingSiteViewModel)_selectedItem)._fma;
+                    args.NSAPRegion = ((tv_LandingSiteViewModel)_selectedItem)._region  ;
+                    //switch (menuName)
+                    //{
+                    //    case "contextMenuCrosstabLandingSite":
+                    //        args.ContextMenuTopic = "crosstabByLandingSite";
+                    //        break;
+                    //    case "contextMenuGearUnloadLandingSite":
+                    //        args.ContextMenuTopic = "editGearGearUnloadByLandingSite";
+                    //        break;
+                    //}
                     break;
 
                 case "contextMenuCrosstabMonth":
+                case "contextMenuGearUnloadMonth":
                     args.LandingSiteText = ((tv_MonthViewModel)_selectedItem)._landingSiteName;
                     args.FishingGround = ((tv_MonthViewModel)_selectedItem)._fishingGround;
                     args.FMA = ((tv_MonthViewModel)_selectedItem)._fma;
                     args.NSAPRegion = ((tv_MonthViewModel)_selectedItem)._nsapRegion;
                     args.MonthSampled = DateTime.Parse(((tv_MonthViewModel)_selectedItem).Name);
-                    args.ContextMenuTopic = "crosstabByMonth";
+
+                    //switch(menuName)
+                    //{
+                    //    case "contextMenuCrosstabMonth":
+                    //        args.ContextMenuTopic = "crosstabByMonth";
+                    //        break;
+                    //    case "contextMenuGearUnloadMonth":
+                    //        args.ContextMenuTopic = "editGearGearUnloadByMonth";
+                    //        break;
+                    //}
+                    
                     break;
             }
-
+            args.ContextMenuTopic = menuName;
             
 
             TreeContextMenu?.Invoke(this, args);

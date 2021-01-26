@@ -59,7 +59,7 @@ namespace NSAP_ODK.Entities.Database
                 {
                     _rowID = NSAPEntities.GearUnloadViewModel.GearUnloadCollection
                         .Where(t=>t.GearUsedName==GearName &&
-                                  t.Parent.PK==Parent.PK).FirstOrDefault().PK;
+                         t.Parent.PK==Parent.PK).FirstOrDefault().PK;
                 }
                 else
                 {

@@ -34,13 +34,15 @@ namespace NSAP_ODK.Entities.Database
 
         public void UndoChangesToGearUnloadBoatCatch(List<GearUnload> gearUnloadList)
         {
-            foreach(var item in gearUnloadList)
+            if (gearUnloadList != null && gearUnloadList.Count > 0)
             {
-                var originalItem = CopyOfGearUnloadList.FirstOrDefault(t => t.PK == item.PK);
-                item.Boats = originalItem.Boats;
-                item.Catch = originalItem.Catch;
+                foreach (var item in gearUnloadList)
+                {
+                    var originalItem = CopyOfGearUnloadList.FirstOrDefault(t => t.PK == item.PK);
+                    item.Boats = originalItem.Boats;
+                    item.Catch = originalItem.Catch;
+                }
             }
-           
         }
 
 
@@ -66,6 +68,64 @@ namespace NSAP_ODK.Entities.Database
         }
         public List<GearUnload> CopyOfGearUnloadList { get; internal set; }
 
+        public List<GearUnload> GetAllGearUnloads(TreeViewModelControl.AllSamplingEntitiesEventHandler parameters, bool createCopyOfList = true)
+        {
+            CopyOfGearUnloadList = new List<GearUnload>();
+            var list = new List<GearUnload>();
+            string ls = "";
+            switch(parameters.ContextMenuTopic)
+            {
+                case "contextMenuGearUnloadMonth":
+                    ls = parameters.LandingSite == null ? parameters.LandingSiteText : parameters.LandingSite.LandingSiteName;
+                    list = GearUnloadCollection
+                        .Where(t => t.Parent.NSAPRegionID == parameters.NSAPRegion.Code)
+                        .Where(t => t.Parent.FMAID == parameters.FMA.FMAID)
+                        .Where(t => t.Parent.FishingGroundID == parameters.FishingGround.Code)
+                        .Where(t => t.Parent.LandingSiteName == ls)
+                        .Where(t=>t.Parent.SamplingDate.Year==((DateTime)parameters.MonthSampled).Year)
+                        .Where(t=>t.Parent.SamplingDate.Month==((DateTime)parameters.MonthSampled).Month)
+                        .OrderBy(t => t.Parent.LandingSiteName)
+                        .ThenBy(t => t.Parent.SamplingDate).ToList();
+                    break;
+                case "contextMenuGearUnloadLandingSite":
+                    ls = parameters.LandingSite == null ? parameters.LandingSiteText : parameters.LandingSite.LandingSiteName;
+                    list = GearUnloadCollection
+                        .Where(t => t.Parent.NSAPRegionID == parameters.NSAPRegion.Code)
+                        .Where(t => t.Parent.FMAID == parameters.FMA.FMAID)
+                        .Where(t => t.Parent.FishingGroundID == parameters.FishingGround.Code)
+                        .Where(t => t.Parent.LandingSiteName == ls)
+                        .OrderBy(t => t.Parent.LandingSiteName)
+                        .ThenBy(t => t.Parent.SamplingDate).ToList();
+                    break;
+                case "contextMenuGearUnloadFishingGround":
+                    
+                    list = GearUnloadCollection
+                        .Where(t => t.Parent.NSAPRegionID == parameters.NSAPRegion.Code)
+                        .Where(t => t.Parent.FMAID == parameters.FMA.FMAID)
+                        .Where(t => t.Parent.FishingGroundID == parameters.FishingGround.Code)
+                        .OrderBy(t => t.Parent.LandingSiteName)
+                        .ThenBy(t => t.Parent.SamplingDate).ToList();
+                    break;
+            }
+
+            if (createCopyOfList)
+            {
+                var newList = new List<GearUnload>();
+                foreach (var item in list)
+                {
+                    var gu = new GearUnload
+                    {
+                        PK = item.PK,
+                        Boats = item.Boats,
+                        Catch = item.Catch
+                    };
+                    newList.Add(gu);
+                }
+                CopyOfGearUnloadList = newList;
+            }
+
+            return list;
+        }
         public List<GearUnload> GetAllGearUnloads(NSAPRegion region, FMA fma, FishingGround fishingGround, bool createCopyOfList = true)
         {
             CopyOfGearUnloadList = new List<GearUnload>();

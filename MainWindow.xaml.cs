@@ -929,6 +929,7 @@ namespace NSAP_ODK
             {
                 case "samplingCalendar":
                     _allSamplingEntitiesEventHandler.GearUsed = _gearName;
+                    _allSamplingEntitiesEventHandler.ContextMenuTopic = "contextMenuCrosstabGear";
                     CrossTabManager.GearByMonthYear(_allSamplingEntitiesEventHandler);
                     ShowCrossTabWIndow();
                     break;
@@ -1442,6 +1443,14 @@ namespace NSAP_ODK
             PropertyGrid.Visibility = Visibility.Visible;
             switch (e.TreeViewEntity)
             {
+                case "tv_LandingSiteViewModel":
+                    if (CrossTabReportWindow.Instance != null)
+                    {
+                        _allSamplingEntitiesEventHandler.ContextMenuTopic = "contextMenuCrosstabLandingSite";
+                        CrossTabManager.GearByMonthYear(_allSamplingEntitiesEventHandler);
+                        ShowCrossTabWIndow();
+                    }
+                    break;
                 case "tv_MonthViewModel":
                     gridCalendarHeader.Visibility = Visibility.Visible;
                     MonthLabel.Content = $"Fisheries landing sampling calendar for {((DateTime)e.MonthSampled).ToString("MMMM-yyyy")}";
@@ -1453,6 +1462,7 @@ namespace NSAP_ODK
 
                     if(CrossTabReportWindow.Instance!=null)
                     {
+                        _allSamplingEntitiesEventHandler.ContextMenuTopic = "contextMenuCrosstabMonth";
                         CrossTabManager.GearByMonthYear(_allSamplingEntitiesEventHandler);
                         ShowCrossTabWIndow();
                     }
@@ -1486,6 +1496,7 @@ namespace NSAP_ODK
                             if(CrossTabReportWindow.Instance!=null)
                             {
                                 _allSamplingEntitiesEventHandler.GearUsed = _gearName;
+                                _allSamplingEntitiesEventHandler.ContextMenuTopic = "contextMenuCrosstabGear";
                                 CrossTabManager.GearByMonthYear(_allSamplingEntitiesEventHandler);
                                 ShowCrossTabWIndow();
                             }
@@ -1522,21 +1533,24 @@ namespace NSAP_ODK
 
         private void OnTreeContextMenu(object sender, TreeViewModelControl.AllSamplingEntitiesEventHandler e)
         {
-
+            _allSamplingEntitiesEventHandler = e;
             switch (e.ContextMenuTopic)
             {
-                case "editFishingGroundGearUnload":
+                case "contextMenuGearUnloadMonth":
+                case "contextMenuGearUnloadFishingGround":
+                case "contextMenuGearUnloadLandingSite":
                     EditGearUnloadByRegionFMAWIndow editUnloadsWindow = new EditGearUnloadByRegionFMAWIndow(e);
                     editUnloadsWindow.Owner = this;
                     editUnloadsWindow.Show();
 
                     break;
-                case "crosstabByMonth":
-                    _allSamplingEntitiesEventHandler = e;
+
+                case "contextMenuCrosstabLandingSite":
+                case "contextMenuCrosstabMonth":
+
                     CrossTabManager.GearByMonthYear(_allSamplingEntitiesEventHandler);
                     ShowCrossTabWIndow();
                     break;
-
             }
         }
         public void RefreshDownloadHistory()

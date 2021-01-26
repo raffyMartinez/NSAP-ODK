@@ -9,6 +9,32 @@
         mc:Ignorable="d"
         Title="NSAP-ODK Fish Landings Database" WindowState="Maximized">
 
+    <Window.Resources>
+        <Style TargetType="{x:Type DataGridRowHeader}">
+            <Setter Property="Control.Padding" Value="2 0 5 0"/>
+            <Setter Property="Control.Background" Value="#FFEEEEEE"/>
+            <Setter Property="Control.BorderBrush" Value ="#FFBAB9B9"/>
+            <Setter Property="Control.BorderThickness" Value ="0.5"/>
+            
+        </Style>
+
+        <!--<Style TargetType="DataGridCell">-->
+        <Style TargetType="{x:Type DataGridCell}">
+            <Setter Property="Padding" Value="3" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DataGridCell}">
+                        <Border Padding="{TemplateBinding Padding}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                            <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"  />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+    </Window.Resources>
+
+
     <Grid x:Name="GridMain">
         <Grid.RowDefinitions>
             <RowDefinition Height="20" x:Name="rowMenu" />
@@ -135,7 +161,7 @@
                     <ColumnDefinition Width="130"/>
                 </Grid.ColumnDefinitions>
 
-                <DataGrid Margin="5" x:Name="GridNSAPData"  SelectionUnit="Cell" 
+                <DataGrid Margin="5" x:Name="GridNSAPData"  SelectionUnit="Cell" LoadingRow="Grid_LoadingRow"
                       ItemsSource="{Binding}" MouseDoubleClick="OnGridDoubleClick" IsReadOnly="True" 
                       SelectedCellsChanged="OnSelectedCellsChanged" SelectionMode="Single" CellEditEnding="OnCellEditEnding"
                       AutoGeneratingColumn="OnGeneratingColumn"/>
@@ -155,44 +181,16 @@
 
         <DataGrid  Margin="10" x:Name="dataGridSpecies" RowHeaderWidth="NaN" ItemsSource="{Binding}"
                       Grid.Row="4" AutoGenerateColumns="false" IsReadOnly="True" SelectionChanged="OnDataGridSelectionChanged"
-                      LoadingRow="Grid_LoadingRow" MouseDoubleClick="OnGridDoubleClick">
-            <DataGrid.CellStyle>
-                <Style TargetType="DataGridCell">
-                    <Setter Property="Padding" Value="3" />
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="{x:Type DataGridCell}">
-                                <Border Padding="{TemplateBinding Padding}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
-                                    <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                                </Border>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </DataGrid.CellStyle>
-        </DataGrid>
+                      LoadingRow="Grid_LoadingRow" MouseDoubleClick="OnGridDoubleClick"/>
+
+
 
 
         <Grid Grid.Row="5">
-            <DataGrid ItemsSource="{Binding}" AutoGenerateColumns="False" Margin="10" LoadingRow="Grid_LoadingRow"
-                      x:Name="dataGridEntities" IsReadOnly="True"
-                      MouseDoubleClick="OnGridDoubleClick" SelectionChanged="OnDataGridSelectionChanged">
+            <DataGrid ItemsSource="{Binding}" AutoGenerateColumns="False" Margin="10" 
+                      x:Name="dataGridEntities" IsReadOnly="True" LoadingRow="Grid_LoadingRow"
+                      MouseDoubleClick="OnGridDoubleClick" SelectionChanged="OnDataGridSelectionChanged"/>
 
-                <DataGrid.CellStyle>
-                    <Style TargetType="DataGridCell">
-                        <Setter Property="Padding" Value="3" />
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="{x:Type DataGridCell}">
-                                    <Border Padding="{TemplateBinding Padding}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
-                                        <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                                    </Border>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </DataGrid.CellStyle>
-            </DataGrid>
         </Grid>
 
         <Grid Grid.Row="6" Grid.ColumnSpan="2">
@@ -212,22 +210,8 @@
                     <xctk:PropertyGrid x:Name="propertyGridSummary" Margin="20"  ShowSortOptions="False" ShowSearchBox="False"
                         ShowTitle="False" MouseDoubleClick="OnPropertyGridDblClick"   SelectedPropertyItemChanged="OnPropertyChanged" IsReadOnly="True"/>
                     <CheckBox x:Name="checkLandingSiteWithLandings" Margin="20 0 0 0" Content="Only show landing sites with catch monitoring" Checked="OnCheckBoxChecked" Unchecked="OnCheckBoxChecked"/>
-                    <DataGrid x:Name="dataGridSummary" Visibility="Collapsed" ItemsSource="{Binding}" IsReadOnly="True" Margin="20">
-                        <DataGrid.CellStyle>
-                            <Style TargetType="DataGridCell">
-                                <Setter Property="Padding" Value="3" />
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="{x:Type DataGridCell}">
-                                            <Border Padding="{TemplateBinding Padding}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
-                                                <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                                            </Border>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </DataGrid.CellStyle>
-                    </DataGrid>
+                    <DataGrid x:Name="dataGridSummary" Visibility="Collapsed" ItemsSource="{Binding}" IsReadOnly="True" Margin="20" LoadingRow="Grid_LoadingRow" RowHeaderWidth="30"/>
+
                 </StackPanel>
             </ScrollViewer>
         </Grid>

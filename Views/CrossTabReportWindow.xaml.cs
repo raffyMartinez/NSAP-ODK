@@ -21,6 +21,7 @@ namespace NSAP_ODK.Views
     public partial class CrossTabReportWindow : Window
     {
         private static CrossTabReportWindow _instance;
+        private string _filePath;
         public CrossTabReportWindow()
         {
             InitializeComponent();
@@ -49,7 +50,7 @@ namespace NSAP_ODK.Views
         }
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
-
+            Title = "Croostab reports";
         }
 
         public void ShowEffort()
@@ -64,7 +65,6 @@ namespace NSAP_ODK.Views
         private void SetupGridColumns()
         {
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Data ID", Binding = new Binding("CrossTabCommon.DataID") });
-            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("CrossTabCommon.FishingGround") });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Year", Binding = new Binding("CrossTabCommon.Year") });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Month", Binding = new Binding("CrossTabCommon.Month")  });
 
@@ -73,19 +73,25 @@ namespace NSAP_ODK.Views
             col.IsReadOnly = true;
             dataGrid.Columns.Add(col);
 
-            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Province", Binding = new Binding("CrossTabCommon.ProvinceName")  });
-            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Municipality", Binding = new Binding("CrossTabCommon.MunicipalityName")  });
-            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("CrossTabCommon.LandingSite.LandingSiteName")  });
+            dataGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "Sampling day", Binding = new Binding("CrossTabCommon.SamplingDay")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Province", Binding = new Binding("CrossTabCommon.Province")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Municipality", Binding = new Binding("CrossTabCommon.Municipality")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Region", Binding = new Binding("CrossTabCommon.Region")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("CrossTabCommon.FMA")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("CrossTabCommon.FishingGround") });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("CrossTabCommon.LandingSite")  });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("CrossTabCommon.Sector")  });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Grid", Binding = new Binding("CrossTabCommon.FishingGroundGrid")  });
-            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("CrossTabCommon.GearName")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Longitude", Binding = new Binding("CrossTabCommon.xCoordinate")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Latitude", Binding = new Binding("CrossTabCommon.yCoordinate")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("CrossTabCommon.Gear")  });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("CrossTabCommon.FBName")  });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "FBL", Binding = new Binding("CrossTabCommon.FBL")  });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "FBM", Binding = new Binding("CrossTabCommon.FBM")  });
-            dataGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "Sampling day", Binding = new Binding("CrossTabCommon.SamplingDay")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Total weight of catch", Binding = new Binding("CrossTabCommon.TotalWeight")  });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Family", Binding = new Binding("CrossTabCommon.Family")  });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Species", Binding = new Binding("CrossTabCommon.SN")  });
-            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Catch", Binding = new Binding("CrossTabCommon.Weight")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Species weight", Binding = new Binding("CrossTabCommon.SpeciesWeight")  });
 
         }
 
@@ -98,11 +104,33 @@ namespace NSAP_ODK.Views
                 dataGrid.Columns.Clear();
 
                 dataGrid.AutoGenerateColumns = false;
-                if (topic != "effort")
+                if (topic != "effort" && topic != "effort_all")
                 {
                     SetupGridColumns();
                 }
-                subLabel.Content = $"Month of vessel landings: {((DateTime)CrossTabManager.AllSamplingEntitiesEventHandler.MonthSampled).ToString("MMM-yyyy")}";
+
+                var eh = CrossTabManager.AllSamplingEntitiesEventHandler;
+
+                string ls = eh.LandingSiteText;
+                string gear = eh.GearUsed == null ? "" : eh.GearUsed;
+                string month = eh.MonthSampled == null ? "" : ((DateTime)eh.MonthSampled).ToString("MMMM, yyyy");
+                string location = $"{eh.NSAPRegion.ShortName} {eh.FMA.Name} {eh.FishingGround.Name}";
+
+                if(eh.GearUsed !=null)
+                {
+                    subLabel.Content = $"Vessel landings in {ls} using {gear} - {month}";
+                    _filePath = $"Crosstab {location} {gear} - {ls} - {month}";
+                }
+                else if (eh.MonthSampled != null)
+                {
+                    subLabel.Content =  $"Vessel landings in {ls} on {month}";
+                    _filePath = $"Crosstab {location} {ls} - {month}";
+                }
+                else
+                {
+                    subLabel.Content = $"Vessel landings in {ls}";
+                    _filePath = $"Crosstab {location} {ls} - {month}";
+                }
                 switch (topic)
 
                 {
@@ -111,6 +139,11 @@ namespace NSAP_ODK.Views
                         dataGrid.AutoGenerateColumns = true;
                         mainLabel.Content = "Crosstab between catch composition and effort indicators";
 
+                        break;
+                    case "effort_all":
+                        dataGrid.DataContext = CrossTabManager.CrossTabAllEfforts;
+                        dataGrid.AutoGenerateColumns = true;
+                        mainLabel.Content = "Crosstab of effort indicators";
                         break;
                     case "lenfreq":
                         dataGrid.DataContext = CrossTabManager.CrossTabLenFreqs;
@@ -138,11 +171,12 @@ namespace NSAP_ODK.Views
 
         private void ExportToExcel()
         {
-            string filePath;
+            //string filePath;
             string exportResult;
-            if (ExportExcel.GetSaveAsExcelFileName(this, out filePath))
+            string file = ExportExcel.GetSaveAsExcelFileName(this, _filePath);
+            if (file.Length>0)
             {
-                if (ExportExcel.ExportDatasetToExcel(CrossTabManager.CrossTabDataSet, filePath))
+                if (ExportExcel.ExportDatasetToExcel(CrossTabManager.CrossTabDataSet, file))
                 {
                     exportResult = "Successfully exported to excel";
                 }
@@ -165,6 +199,11 @@ namespace NSAP_ODK.Views
                     Close();
                     break;
             }
+        }
+
+        private void OnGridLoadingRow(object sender, DataGridRowEventArgs e)
+        {
+            e.Row.Header = (e.Row.GetIndex() + 1).ToString();
         }
     }
 }

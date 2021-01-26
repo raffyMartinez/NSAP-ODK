@@ -23,6 +23,7 @@
             </MenuItem>
         </Menu>
         <TreeView Grid.Row="2" SelectedItemChanged="OnTreeItemChanged" x:Name="treeView">
+            <TreeViewItem Header="Effort (all operations)" Tag="effort_all"/>
             <TreeViewItem Header="Effort" Tag="effort"/>
             <TreeViewItem Header="Length frequency" Tag="lenfreq"/>
             <TreeViewItem Header="Length" Tag="len"/>
@@ -32,6 +33,15 @@
             <Label x:Name="mainLabel" Content="The main label" FontSize="18" FontWeight="Bold" HorizontalContentAlignment="Center" Visibility="Hidden"/>
             <Label x:Name="subLabel" Content="The sub label" HorizontalAlignment="Center" Visibility="Hidden"/>
         </StackPanel>
-        <DataGrid Grid.Row="2" Grid.Column="1" Margin="10" x:Name="dataGrid" ItemsSource="{Binding}" IsReadOnly="True"/>
+        <DataGrid Grid.Row="2" Grid.Column="1" Margin="10" x:Name="dataGrid" ItemsSource="{Binding}" IsReadOnly="True" LoadingRow="OnGridLoadingRow" Background="#FFFCF9F9" BorderBrush="#FFB7C7D7">
+          <DataGrid.RowHeaderStyle>
+            <Style>
+              <Setter Property="Control.Padding" Value="2 0 5 0"/>  
+              <Setter Property="Control.Background" Value="#FFEEEEEE"/>
+              <Setter Property="Control.BorderBrush" Value ="#FFBAB9B9"/>
+              <Setter Property="Control.BorderThickness" Value ="0.5"/>  
+            </Style>
+          </DataGrid.RowHeaderStyle>
+        </DataGrid>
     </Grid>
 </Window>
