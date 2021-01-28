@@ -431,6 +431,10 @@ namespace NSAP_ODK
                 buttonDelete.IsEnabled = true;
         }
 
+        public void RefreshEntityGrid()
+        {
+            SetDataGridSource();
+        }
         private void SetDataGridSource()
         {
             switch (_nsapEntity)
@@ -722,6 +726,13 @@ namespace NSAP_ODK
         {
             switch (((Button)sender).Name)
             {
+                case "buttonImport":
+                    var iw = new ImportByPlainTextWindow();
+                    iw.Owner = this;
+                    iw.NSAPEntityType = _nsapEntity;
+                    //iw.ParentWindow = this;
+                    iw.ShowDialog();
+                    break;
                 case "buttonDetails":
                     break;
 
@@ -748,6 +759,7 @@ namespace NSAP_ODK
 
         private void OnMenuItemChecked(object sender, RoutedEventArgs e)
         {
+            buttonImport.Visibility = Visibility.Collapsed;
             if (dataGridEntities.ContextMenu != null)
             {
                 dataGridEntities.ContextMenu.Items.Clear();
@@ -819,6 +831,7 @@ namespace NSAP_ODK
                     break;
 
                 case "menuEnumerators":
+                    buttonImport.Visibility = Visibility.Visible;
                     _nsapEntity = NSAPEntity.Enumerator;
                     textOfTitle = "List of enumerators";
                     break;

@@ -53,6 +53,7 @@
 
         <StackPanel Grid.Row="2" Grid.Column="1" Grid.RowSpan="4" x:Name="PanelButtons">
             <Button Content="Add" Margin="10" Height="30" x:Name="buttonAdd" Click="OnButtonClick" />
+            <Button Content="Import" Margin="10" Height="30" x:Name="buttonImport" Click="OnButtonClick" Visibility="Collapsed"/>
             <Button Content="Edit" Margin="10" Height="30" x:Name="buttonEdit" Click="OnButtonClick" />
             <Button Content="Delete" Margin="10" Height="30" x:Name="buttonDelete" Click="OnButtonClick" />
         </StackPanel>

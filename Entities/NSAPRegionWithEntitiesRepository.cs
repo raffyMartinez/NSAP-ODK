@@ -395,7 +395,24 @@ namespace NSAP_ODK.Entities
                 const string sql = "SELECT Max(RowId) AS max_record_no FROM NSAPRegionEnumerator";
                 using (OleDbCommand getMax = new OleDbCommand(sql, conn))
                 {
-                    max_rec_no = (int)getMax.ExecuteScalar();
+                    try
+                    {
+                        max_rec_no = (int)getMax.ExecuteScalar();
+
+                    }
+                    catch(Exception ex)
+                    {
+                        switch(ex.Message)
+                        {
+                            case "Specified cast is not valid.":
+                            case "No data exists for the row/column.":
+                                max_rec_no = 0;
+                                break;
+                            default:
+                                Logger.Log(ex);
+                                break;
+                        }
+                    }
                 }
             }
             return max_rec_no;
@@ -455,6 +472,18 @@ namespace NSAP_ODK.Entities
                 }
             }
             return max_rec_no;
+        }
+
+
+        public static NSAPRegionEnumerator CreateRegionEnumerator (NSAPEnumerator enumerator, NSAPRegion region, DateTime added)
+        {
+            return new NSAPRegionEnumerator
+            {
+                Enumerator = enumerator,
+                NSAPRegion = region,
+                DateStart = added,
+                RowID = MaxRecordNumber_Enumerator() + 1
+            };
         }
         public bool AddEnumerator(NSAPRegionEnumerator regionEnumerator)
         {

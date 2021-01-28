@@ -288,7 +288,7 @@ namespace NSAP_ODK.Entities
 
         public List<NSAPRegion> GetAllNSAPRegions()
         {
-            return NSAPRegionCollection.ToList();
+            return NSAPRegionCollection.OrderBy(t=>t.Sequence).ToList();
         }
 
         private void NSAPRegionCOllection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)

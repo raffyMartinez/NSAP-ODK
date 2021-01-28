@@ -334,6 +334,9 @@
     <Compile Include="Views\GearUnloadWindow.xaml.cs">
       <DependentUpon>GearUnloadWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\ImportByPlainTextWindow.xaml.cs">
+      <DependentUpon>ImportByPlainTextWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\ODKResultsWindow.xaml.cs">
       <DependentUpon>ODKResultsWindow.xaml</DependentUpon>
     </Compile>
@@ -393,6 +396,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\GearUnloadWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ImportByPlainTextWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

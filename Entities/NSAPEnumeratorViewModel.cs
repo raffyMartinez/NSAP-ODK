@@ -11,6 +11,8 @@ namespace NSAP_ODK.Entities
         public ObservableCollection<NSAPEnumerator> NSAPEnumeratorCollection { get; set; }
         private NSAPEnumeratorRepository NSAPEnumerators { get; set; }
 
+        public bool EditSuccess { get; internal set; }
+
         //public event EventHandler<EntityChangedEventArgs> EntityChanged;
 
         public NSAPEnumeratorViewModel()
@@ -25,7 +27,10 @@ namespace NSAP_ODK.Entities
         {
             get { return NSAPEnumeratorCollection.Count; }
         }
-
+        public NSAPEnumerator GetLatestAdded()
+        {
+            return NSAPEnumeratorCollection.OrderByDescending(t => t.ID).FirstOrDefault();
+        }
         public bool EnumeratorName(string name)
         {
             foreach (NSAPEnumerator nse in NSAPEnumeratorCollection)
@@ -99,6 +104,7 @@ namespace NSAP_ODK.Entities
         public NSAPEnumerator CurrentEntity { get; set; }
         private void NSAPEnumeratorCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            EditSuccess = false;
             NSAPEnumerator editedEnumerator = new NSAPEnumerator();
             switch (e.Action)
             {
@@ -109,6 +115,7 @@ namespace NSAP_ODK.Entities
                         if(NSAPEnumerators.Add(editedEnumerator))
                         {
                             CurrentEntity = editedEnumerator;
+                            EditSuccess = true;
                         }
                     }
                     break;
@@ -125,7 +132,7 @@ namespace NSAP_ODK.Entities
                     {
                         List<NSAPEnumerator> tempList = e.NewItems.OfType<NSAPEnumerator>().ToList();
                         editedEnumerator = tempList[0];
-                        NSAPEnumerators.Update(editedEnumerator);      // As the IDs are unique, only one row will be effected hence first index only
+                        EditSuccess= NSAPEnumerators.Update(editedEnumerator);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -133,14 +140,15 @@ namespace NSAP_ODK.Entities
             //EntityChanged?.Invoke(this, args);
         }
 
-        public void AddRecordToRepo(NSAPEnumerator nse)
+        public bool AddRecordToRepo(NSAPEnumerator nse)
         {
             if (nse == null)
                 throw new ArgumentNullException("Error: The argument is Null");
             NSAPEnumeratorCollection.Add(nse);
+            return EditSuccess;
         }
 
-        public void UpdateRecordInRepo(NSAPEnumerator nse)
+        public bool  UpdateRecordInRepo(NSAPEnumerator nse)
         {
             if (nse.ID == 0)
                 throw new Exception("Error: ID cannot be null");
@@ -155,6 +163,7 @@ namespace NSAP_ODK.Entities
                 }
                 index++;
             }
+            return EditSuccess;
         }
 
         public void DeleteRecordFromRepo(int id)
@@ -182,7 +191,14 @@ namespace NSAP_ODK.Entities
             {
                 entityMessages.Add(new EntityValidationMessage("Name is too short"));
             }
+
+            if(NSAPEnumeratorCollection.Where(t=>t.Name==nse.Name).FirstOrDefault()!=null)
+            {
+                entityMessages.Add(new EntityValidationMessage("Name already exists"));
+            }
             return entityMessages.Count == 0;
         }
+
+
     }
 }

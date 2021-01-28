@@ -30,6 +30,7 @@ namespace NSAP_ODK.Views
         private bool _saveButtonClicked;
         private string _selectedProperty;
         private bool _oldIsForAllTypesFishing;
+        private object _originalSource;
 
 
         public bool CloseCommandFromMainWindow { get; set; }
@@ -352,6 +353,7 @@ namespace NSAP_ODK.Views
 
         private void FillPropertyGrid()
         {
+            _originalSource = _nsapObject;
             PropertyGrid.AutoGenerateProperties = false;
             switch (_nsapEntity)
             {
@@ -1320,8 +1322,8 @@ namespace NSAP_ODK.Views
                                 {
                                     if (_isNew)
                                     {
-                                        regionEnumerator.RowID = NSAPEntities.GetMaxItemSetID() + 1;
-                                        //regionEnumerator.RowID = NSAPRegionWithEntitiesRepository.MaxRecordNumber_Enumerator() + 1;
+                                        //regionEnumerator.RowID = NSAPEntities.GetMaxItemSetID() + 1;
+                                        regionEnumerator.RowID = NSAPRegionWithEntitiesRepository.MaxRecordNumber_Enumerator() + 1;
                                         success = rvm.AddEnumerator(regionEnumerator);
                                     }
                                     else
@@ -2209,7 +2211,24 @@ namespace NSAP_ODK.Views
             var currentProperty = (PropertyItem)e.OriginalSource;
             switch (currentProperty.PropertyName)
             {
+                case "DateEnd":
+                    foreach (PropertyItem prp in this.PropertyGrid.Properties)
+                    {
+                        if (prp.PropertyName == "DateEnd")
+                        {
+                            
+                            if (_nsapObject!=null && ((NSAPRegionEnumerator)_nsapObject).DateEnd != null)
+                            {
+                                if (((DateTimePickerEditor)prp.Editor).Text.Length == 0)
+                                {
+                                    prp.Value = null;
+                                }
+                            }
+                            break;
+                        }
 
+                    } 
+                    break;
                 case "IsGeneric":
                     cbo.Tag = "FishingGears";
                     foreach (PropertyItem prp in this.PropertyGrid.Properties)

@@ -8,6 +8,33 @@
         Loaded="OnWindowLoaded"
         Closing="OnWindowClosing"
         Title="EditGearUnloadByRegionFMAWIndow" Height="450" Width="800">
+
+    
+        <Window.Resources>
+        <Style TargetType="{x:Type DataGridRowHeader}">
+            <Setter Property="Control.Padding" Value="2 0 5 0"/>
+            <Setter Property="Control.Background" Value="#FFEEEEEE"/>
+            <Setter Property="Control.BorderBrush" Value ="#FFBAB9B9"/>
+            <Setter Property="Control.BorderThickness" Value ="0.5"/>
+            
+        </Style>
+
+        <!--<Style TargetType="DataGridCell">-->
+        <Style TargetType="{x:Type DataGridCell}">
+            <Setter Property="Padding" Value="3" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DataGridCell}">
+                        <Border Padding="{TemplateBinding Padding}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                            <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"  />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+    </Window.Resources>
+    
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
@@ -19,7 +46,7 @@
         </Grid.RowDefinitions>
         <Label Content="Edit boat landings and total catch in FMA" x:Name="labelTitle" Grid.ColumnSpan="2"/>
         <DataGrid x:Name="dataGridGearUnload" AutoGenerateColumns="False" Grid.Row="1" ItemsSource="{Binding}"
-                  Margin="10" SelectionUnit="Cell" CanUserAddRows="False"/>
+                  Margin="10" SelectionUnit="Cell" CanUserAddRows="False" LoadingRow="OnDatagridLoadingRow"/>
         <StackPanel Grid.Row="1" Grid.Column="1">
             <Button Content="Ok" x:Name="buttonOk" Click="OnButtonClick" Height="25" Margin="10"/>
             <Button Content="Undo" x:Name="buttonUndo" Click="OnButtonClick" Height="25" Margin="10"/>
