@@ -30,6 +30,10 @@ namespace NSAP_ODK.Entities
                 {
                     Gear.BaseGear = NSAPEntities.GearViewModel.GetGear(BaseGear);
                 }
+                else if(IsGeneric)
+                {
+                    Gear.BaseGear = Gear;
+                }
             }
             else
             {

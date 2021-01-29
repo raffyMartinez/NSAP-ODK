@@ -52,6 +52,7 @@ namespace NSAP_ODK.Entities
 
         public bool Add(Gear g)
         {
+            //string genericCode = g.BaseGear == null ? "null" : g.BaseGear.Code;
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {

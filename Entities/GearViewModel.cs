@@ -164,13 +164,28 @@ namespace NSAP_ODK.Entities
             return GearCollection.ToList();
         }
 
-        public bool GearNameExist(string gearName)
+        public bool GearNameExist(string gearName , string code="")
         {
             foreach (Gear g in GearCollection)
             {
-                if (g.GearName == gearName)
+                if (code.Length > 0)
                 {
-                    return true;
+                    if(g.GearName==gearName && g.Code != code)
+                    {
+                        return true;
+                    }
+
+                    if(g.GearName==gearName)
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    if (g.GearName == gearName)
+                    {
+                        return true;
+                    }
                 }
             }
             return false;
@@ -305,7 +320,7 @@ namespace NSAP_ODK.Entities
 
             if (!isNew && gear.GearName.Length > 0
                  && oldName != gear.GearName
-                && GearNameExist(gear.GearName))
+                && GearNameExist(gear.GearName,gear.Code))
                 result.AddMessage("Gear name already used");
 
             if (!isNew && gear.Code.Length > 0

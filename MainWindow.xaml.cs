@@ -188,6 +188,7 @@ namespace NSAP_ODK
             gridCalendarHeader.Visibility = Visibility.Collapsed;
             samplingTree.Visibility = Visibility.Collapsed;
             treeViewDownloadHistory.Visibility = Visibility.Collapsed;
+            
         }
 
 
@@ -421,6 +422,7 @@ namespace NSAP_ODK
                     dataGridEntities.Columns.Add(new DataGridTextColumn { Header = "Maximum size", Binding = new Binding("MaxSize") });
                     break;
             }
+            dataGridEntities.Visibility = Visibility.Visible;
         }
 
         private void OnDataGridSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1183,6 +1185,9 @@ namespace NSAP_ODK
                     ExportNSAPToExcel();
                     break;
                 case "menuNSAPCalendar":
+                    
+                    //ShowSummary();
+
 
                     if (!_saveChangesToGearUnload &&
                         NSAPEntities.GearUnloadViewModel.CopyOfGearUnloadList != null &&
@@ -1453,10 +1458,22 @@ namespace NSAP_ODK
             _allSamplingEntitiesEventHandler = e;
             gridCalendarHeader.Visibility = Visibility.Collapsed;
             GridNSAPData.Visibility = Visibility.Collapsed;
-            PropertyGrid.Visibility = Visibility.Visible;
+            //PropertyGrid.Visibility = Visibility.Visible;
+
+            string labelContent = "";
             switch (e.TreeViewEntity)
             {
+                case "tv_NSAPRegionViewModel":
+                    labelContent = $"Summary of database content for {e.NSAPRegion.Name}";
+                    break;
+                case "tv_FMAViewModel":
+                    labelContent = $"Summary of database content for {e.FMA.Name}, {e.NSAPRegion.Name}";
+                    break;
+                case "tv_FishingGroundViewModel":
+                    labelContent = $"Summary of database content for {e.FishingGround.Name}, {e.FMA.Name}, {e.NSAPRegion.Name}";
+                    break;
                 case "tv_LandingSiteViewModel":
+                    labelContent = $"Summary of database content for {e.LandingSite}, {e.FishingGround.Name}, {e.FMA.Name}, {e.NSAPRegion.Name}";
                     if (CrossTabReportWindow.Instance != null)
                     {
                         _allSamplingEntitiesEventHandler.ContextMenuTopic = "contextMenuCrosstabLandingSite";
@@ -1481,6 +1498,15 @@ namespace NSAP_ODK
                     }
                     break;
             }
+
+
+            if (e.TreeViewEntity != "tv_MonthViewModel")
+            {
+                labelSummary.Content = labelContent;
+                dataGridSummary.Visibility = Visibility.Visible;
+                panelOpening.Visibility = Visibility.Visible;
+            }
+
         }
 
         private void OnSelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
@@ -1738,15 +1764,13 @@ namespace NSAP_ODK
         {
             _selectedPropertyItem = (PropertyItem)((PropertyGrid)e.Source).SelectedPropertyItem;
         }
-        public void ShowSummaryAtLevel(SummaryLevelType summaryType, NSAPRegion region = null, FishingGround fg = null)
+
+
+        private void SetUpSummaryGrid(SummaryLevelType summaryType, NSAPRegion region = null, FMA fma = null, FishingGround fg = null)
         {
-            string labelContent = "";
-            dataGridSummary.Columns.Clear();
-            dataGridSummary.AutoGenerateColumns = false;
             switch (summaryType)
             {
                 case SummaryLevelType.AllRegions:
-                    labelContent = "Summary by region";
                     NSAPEntities.NSAPRegionViewModel.SetupSummary();
                     var dict = NSAPEntities.NSAPRegionViewModel.RegionSummaryDictionary;
                     var summarySource = from row in dict
@@ -1790,8 +1814,10 @@ namespace NSAP_ODK
 
 
                     break;
+
+                case SummaryLevelType.FMA:
+                    break;
                 case SummaryLevelType.Region:
-                    labelContent = $"Summary of selected region: {region.Name}";
                     NSAPEntities.NSAPRegionViewModel.SetupSummaryForRegion(region);
 
                     var dictFG = NSAPEntities.NSAPRegionViewModel.RegionFishingGroundSummaryDictionary;
@@ -1840,11 +1866,8 @@ namespace NSAP_ODK
                                               LastDownloadDate = row.Value.LatestDownloadFormattedDate
                                           };
 
-                    labelContent = $"Summary of selected fishing ground: {fg.Name}, {region}";
                     dataGridSummary.DataContext = summarySourceLS;
                     dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSiteName") });
-                    //dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("FishingGroundName") });
-                    //dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("FMA") });
                     dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of gear unload", Binding = new Binding("GearUnloadCount") });
                     dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of complete gear unload", Binding = new Binding("GearUnloadCompletedCount") });
                     dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "#  of vessel unload", Binding = new Binding("VesselUnloadCount") });
@@ -1855,6 +1878,29 @@ namespace NSAP_ODK
 
                     checkLandingSiteWithLandings.Visibility = Visibility.Visible;
 
+                    break;
+            }
+        }
+        public void ShowSummaryAtLevel(SummaryLevelType summaryType, NSAPRegion region = null, FMA fma = null, FishingGround fg = null)
+        {
+            string labelContent = "";
+            dataGridSummary.Columns.Clear();
+            dataGridSummary.AutoGenerateColumns = false;
+            switch (summaryType)
+            {
+                case SummaryLevelType.AllRegions:
+                    labelContent = "Summary by region";
+                    SetUpSummaryGrid(SummaryLevelType.AllRegions);
+                    break;
+                case SummaryLevelType.FMA:
+                    break;
+                case SummaryLevelType.Region:
+                    labelContent = $"Summary of selected region: {region.Name}";
+                    SetUpSummaryGrid(SummaryLevelType.Region,region:region);
+                    break;
+                case SummaryLevelType.FishingGround:
+                    labelContent = $"Summary of selected fishing ground: {fg.Name}, {region}";
+                    SetUpSummaryGrid(SummaryLevelType.FishingGround,region:region, fg:fg);
                     break;
             }
             labelSummary.Content = labelContent;
@@ -1879,7 +1925,7 @@ namespace NSAP_ODK
                             ShowSummaryAtLevel(SummaryLevelType.Region, (NSAPRegion)tvItem.Tag);
                             break;
                         case "FishingGround":
-                            ShowSummaryAtLevel(SummaryLevelType.FishingGround, (NSAPRegion)((TreeViewItem)tvItem.Parent).Tag, (FishingGround)tvItem.Tag);
+                            ShowSummaryAtLevel(summaryType: SummaryLevelType.FishingGround, region: (NSAPRegion)((TreeViewItem)tvItem.Parent).Tag, fg: (FishingGround)tvItem.Tag);
                             break;
                     }
                     break;
