@@ -129,6 +129,8 @@
             <!--TODO: place dashboard items here-->
         </StackPanel>
 
+        
+        <!--for calendar grid view and tree view-->
         <Grid x:Name="GridODKData" Grid.Row="3" Grid.ColumnSpan="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*" x:Name="ColumnForTreeView"/>

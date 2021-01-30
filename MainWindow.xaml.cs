@@ -54,6 +54,7 @@ namespace NSAP_ODK
         private PropertyItem _selectedPropertyItem;
         private TreeViewItem _selectedTreeNode;
         private TreeViewModelControl.AllSamplingEntitiesEventHandler _allSamplingEntitiesEventHandler;
+        private bool _acceptDataGridCellClick;
         public MainWindow()
         {
             InitializeComponent();
@@ -1455,9 +1456,10 @@ namespace NSAP_ODK
         }
         private void OnTreeViewItemSelected(object sender, TreeViewModelControl.AllSamplingEntitiesEventHandler e)
         {
+            _acceptDataGridCellClick = false;
             _allSamplingEntitiesEventHandler = e;
-            gridCalendarHeader.Visibility = Visibility.Collapsed;
-            GridNSAPData.Visibility = Visibility.Collapsed;
+            gridCalendarHeader.Visibility = Visibility.Visible;
+            GridNSAPData.Visibility = Visibility.Visible;
             //PropertyGrid.Visibility = Visibility.Visible;
 
             string labelContent = "";
@@ -1465,15 +1467,21 @@ namespace NSAP_ODK
             {
                 case "tv_NSAPRegionViewModel":
                     labelContent = $"Summary of database content for {e.NSAPRegion.Name}";
+                    SetUpSummaryGrid(SummaryLevelType.Region, GridNSAPData, e.NSAPRegion);
                     break;
                 case "tv_FMAViewModel":
                     labelContent = $"Summary of database content for {e.FMA.Name}, {e.NSAPRegion.Name}";
+                    SetUpSummaryGrid(SummaryLevelType.FMA, GridNSAPData, e.NSAPRegion, e.FMA);
                     break;
                 case "tv_FishingGroundViewModel":
                     labelContent = $"Summary of database content for {e.FishingGround.Name}, {e.FMA.Name}, {e.NSAPRegion.Name}";
+                    SetUpSummaryGrid(SummaryLevelType.FishingGround, GridNSAPData, e.NSAPRegion, e.FMA,e.FishingGround,inSummaryView:false );
                     break;
                 case "tv_LandingSiteViewModel":
-                    labelContent = $"Summary of database content for {e.LandingSite}, {e.FishingGround.Name}, {e.FMA.Name}, {e.NSAPRegion.Name}";
+                    labelContent = $"Summary of database content for {e.LandingSiteText}, {e.FishingGround.Name}, {e.FMA.Name}, {e.NSAPRegion.Name}";
+                    SetUpSummaryGrid(SummaryLevelType.LandingSite, GridNSAPData, e.NSAPRegion, e.FMA,e.FishingGround,landingSite:e.LandingSiteText );
+                    
+                    
                     if (CrossTabReportWindow.Instance != null)
                     {
                         _allSamplingEntitiesEventHandler.ContextMenuTopic = "contextMenuCrosstabLandingSite";
@@ -1486,6 +1494,7 @@ namespace NSAP_ODK
                     MonthLabel.Content = $"Fisheries landing sampling calendar for {((DateTime)e.MonthSampled).ToString("MMMM-yyyy")}";
                     MonthSubLabel.Content = $"{e.LandingSiteText}, {e.FishingGround}, {e.FMA}, {e.NSAPRegion}";
                     GridNSAPData.Visibility = Visibility.Visible;
+                    GridNSAPData.SelectionUnit = DataGridSelectionUnit.Cell;
                     PropertyGrid.Visibility = Visibility.Collapsed;
                     NSAPEntities.NSAPRegion = e.NSAPRegion;
                     MakeCalendar(e);
@@ -1502,9 +1511,16 @@ namespace NSAP_ODK
 
             if (e.TreeViewEntity != "tv_MonthViewModel")
             {
+                MonthLabel.Content = labelContent;
+                MonthSubLabel.Visibility = Visibility.Collapsed;
                 labelSummary.Content = labelContent;
                 dataGridSummary.Visibility = Visibility.Visible;
                 panelOpening.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                MonthSubLabel.Visibility = Visibility.Visible;
+                _acceptDataGridCellClick = true;
             }
 
         }
@@ -1515,7 +1531,7 @@ namespace NSAP_ODK
             switch (_currentDisplayMode)
             {
                 case DataDisplayMode.ODKData:
-                    if (GridNSAPData.SelectedCells.Count == 1)
+                    if (GridNSAPData.SelectedCells.Count == 1 && _acceptDataGridCellClick)
                     {
                         DataGridCellInfo cell = GridNSAPData.SelectedCells[0];
                         _gridRow = GridNSAPData.Items.IndexOf(cell.Item);
@@ -1766,8 +1782,11 @@ namespace NSAP_ODK
         }
 
 
-        private void SetUpSummaryGrid(SummaryLevelType summaryType, NSAPRegion region = null, FMA fma = null, FishingGround fg = null)
+        private void SetUpSummaryGrid(SummaryLevelType summaryType, DataGrid targetGrid, NSAPRegion region = null, FMA fma = null, FishingGround fg = null, string landingSite=null, bool inSummaryView=true)
         {
+            targetGrid.AutoGenerateColumns = false;
+            targetGrid.Columns.Clear();
+            targetGrid.SelectionUnit = DataGridSelectionUnit.FullRow;
             switch (summaryType)
             {
                 case SummaryLevelType.AllRegions:
@@ -1793,22 +1812,22 @@ namespace NSAP_ODK
                                         };
 
 
-                    dataGridSummary.DataContext = summarySource;
+                    targetGrid.DataContext = summarySource;
 
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "Region", Binding = new Binding("Region") });
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of gear unload", Binding = new Binding("GearUnloadCount") });
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of complete gear unload", Binding = new Binding("GearUnloadCompletedCount") });
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "#  of vessel unload", Binding = new Binding("VesselUnloadCount") });
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of tracked  operations", Binding = new Binding("TrackedOperationsCount") });
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "Earliest date of monitoring", Binding = new Binding("FirstSampling") });
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "Latest date of monitoring", Binding = new Binding("LastSampling") });
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "Latest date of downloaded e-forms ", Binding = new Binding("LastDownloadDate") });
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of FMAs", Binding = new Binding("FMACount") });
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of fishing grounds", Binding = new Binding("FishingGroundCount") });
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of landing sites", Binding = new Binding("LandingSiteCount") });
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of gear types", Binding = new Binding("GearCount") });
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of enumerators", Binding = new Binding("EnumeratorCount") });
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of fishing vessels", Binding = new Binding("FishingVesselCount") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Region", Binding = new Binding("Region") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of gear unload", Binding = new Binding("GearUnloadCount") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of complete gear unload", Binding = new Binding("GearUnloadCompletedCount") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "#  of vessel unload", Binding = new Binding("VesselUnloadCount") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of tracked  operations", Binding = new Binding("TrackedOperationsCount") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Earliest date of monitoring", Binding = new Binding("FirstSampling") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Latest date of monitoring", Binding = new Binding("LastSampling") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Latest date of downloaded e-forms ", Binding = new Binding("LastDownloadDate") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of FMAs", Binding = new Binding("FMACount") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of fishing grounds", Binding = new Binding("FishingGroundCount") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of landing sites", Binding = new Binding("LandingSiteCount") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of gear types", Binding = new Binding("GearCount") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of enumerators", Binding = new Binding("EnumeratorCount") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of fishing vessels", Binding = new Binding("FishingVesselCount") });
 
 
 
@@ -1816,6 +1835,33 @@ namespace NSAP_ODK
                     break;
 
                 case SummaryLevelType.FMA:
+                    NSAPEntities.NSAPRegionViewModel.SetupSummaryForFMA(region, fma);
+                    var dictFMA = NSAPEntities.NSAPRegionViewModel.RegionFMASummaryDictionary;
+                    var summarySourceFMA = from row in dictFMA
+                                           select new
+                                           {
+                                               FishingGroundName = row.Key.Name,
+                                               FishingGround = row.Value.FishingGround,
+                                               FMA = row.Value.FMA,
+                                               GearUnloadCount = row.Value.GearUnloadCount,
+                                               GearUnloadCompletedCount = row.Value.CountCompleteGearUnload,
+                                               VesselUnloadCount = row.Value.VesselUnloadCount,
+                                               TrackedOperationsCount = row.Value.TrackedOperationsCount,
+                                               FirstSampling = row.Value.FirstLandingFormattedDate,
+                                               LastSampling = row.Value.LastLandingFormattedDate,
+                                               LastDownloadDate = row.Value.LatestDownloadFormattedDate
+                                           };
+
+                    targetGrid.DataContext = summarySourceFMA;
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("FMA") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("FishingGroundName") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of gear unload", Binding = new Binding("GearUnloadCount") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of complete gear unload", Binding = new Binding("GearUnloadCompletedCount") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "#  of vessel unload", Binding = new Binding("VesselUnloadCount") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of tracked  operations", Binding = new Binding("TrackedOperationsCount") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Earliest date of monitoring", Binding = new Binding("FirstSampling") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Latest date of monitoring", Binding = new Binding("LastSampling") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Latest date of downloaded e-forms ", Binding = new Binding("LastDownloadDate") });
                     break;
                 case SummaryLevelType.Region:
                     NSAPEntities.NSAPRegionViewModel.SetupSummaryForRegion(region);
@@ -1836,19 +1882,26 @@ namespace NSAP_ODK
                                               LastDownloadDate = row.Value.LatestDownloadFormattedDate
                                           };
 
-                    dataGridSummary.DataContext = summarySourceFG;
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("FishingGroundName") });
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("FMA") });
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of gear unload", Binding = new Binding("GearUnloadCount") });
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of complete gear unload", Binding = new Binding("GearUnloadCompletedCount") });
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "#  of vessel unload", Binding = new Binding("VesselUnloadCount") });
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of tracked  operations", Binding = new Binding("TrackedOperationsCount") });
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "Earliest date of monitoring", Binding = new Binding("FirstSampling") });
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "Latest date of monitoring", Binding = new Binding("LastSampling") });
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "Latest date of downloaded e-forms ", Binding = new Binding("LastDownloadDate") });
+                    targetGrid.DataContext = summarySourceFG;
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("FishingGroundName") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("FMA") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of gear unload", Binding = new Binding("GearUnloadCount") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of complete gear unload", Binding = new Binding("GearUnloadCompletedCount") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "#  of vessel unload", Binding = new Binding("VesselUnloadCount") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of tracked  operations", Binding = new Binding("TrackedOperationsCount") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Earliest date of monitoring", Binding = new Binding("FirstSampling") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Latest date of monitoring", Binding = new Binding("LastSampling") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Latest date of downloaded e-forms ", Binding = new Binding("LastDownloadDate") });
                     break;
                 case SummaryLevelType.FishingGround:
-                    NSAPEntities.NSAPRegionViewModel.SetupSummaryForFishingGround(region, fg, (bool)checkLandingSiteWithLandings.IsChecked);
+                    if (inSummaryView)
+                    {
+                        NSAPEntities.NSAPRegionViewModel.SetupSummaryForFishingGroundAllSites(region, fg, (bool)checkLandingSiteWithLandings.IsChecked);
+                    }
+                    else
+                    {
+                        NSAPEntities.NSAPRegionViewModel.SetupSummaryForFishingGround(region, fg, (bool)checkLandingSiteWithLandings.IsChecked);
+                    }
 
                     var dictLS = NSAPEntities.NSAPRegionViewModel.RegionLandingSiteSummaryDictionary;
                     var summarySourceLS = from row in dictLS
@@ -1866,18 +1919,45 @@ namespace NSAP_ODK
                                               LastDownloadDate = row.Value.LatestDownloadFormattedDate
                                           };
 
-                    dataGridSummary.DataContext = summarySourceLS;
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSiteName") });
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of gear unload", Binding = new Binding("GearUnloadCount") });
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of complete gear unload", Binding = new Binding("GearUnloadCompletedCount") });
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "#  of vessel unload", Binding = new Binding("VesselUnloadCount") });
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "# of tracked  operations", Binding = new Binding("TrackedOperationsCount") });
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "Earliest date of monitoring", Binding = new Binding("FirstSampling") });
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "Latest date of monitoring", Binding = new Binding("LastSampling") });
-                    dataGridSummary.Columns.Add(new DataGridTextColumn { Header = "Latest date of downloaded e-forms ", Binding = new Binding("LastDownloadDate") });
+                    targetGrid.DataContext = summarySourceLS;
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSiteName") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of gear unload", Binding = new Binding("GearUnloadCount") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of complete gear unload", Binding = new Binding("GearUnloadCompletedCount") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "#  of vessel unload", Binding = new Binding("VesselUnloadCount") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of tracked  operations", Binding = new Binding("TrackedOperationsCount") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Earliest date of monitoring", Binding = new Binding("FirstSampling") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Latest date of monitoring", Binding = new Binding("LastSampling") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Latest date of downloaded e-forms ", Binding = new Binding("LastDownloadDate") });
 
                     checkLandingSiteWithLandings.Visibility = Visibility.Visible;
 
+                    break;
+                case SummaryLevelType.LandingSite:
+                    NSAPEntities.NSAPRegionViewModel.SetUpSummaryForLandingSite(region,fma,fg,landingSite);
+                    var dictLSMonth = NSAPEntities.NSAPRegionViewModel.RegionMonthSampledSummaryDictionary;
+
+                    var summarySourceMonth = from row in dictLSMonth
+                                          select new
+                                          {
+                                              MonthSampled = row.Key.ToString("MMM-yyyy"),
+                                              GearUnloadCount = row.Value.GearUnloadCount,
+                                              GearUnloadCompletedCount = row.Value.CountCompleteGearUnload,
+                                              VesselUnloadCount = row.Value.VesselUnloadCount,
+                                              TrackedOperationsCount = row.Value.TrackedOperationsCount,
+                                              FirstSampling = row.Value.FirstLandingFormattedDate,
+                                              LastSampling = row.Value.LastLandingFormattedDate,
+                                              LastDownloadDate = row.Value.LatestDownloadFormattedDate
+                                          };
+
+                    targetGrid.DataContext = summarySourceMonth;
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Month of sampling", Binding = new Binding("MonthSampled") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of gear unload", Binding = new Binding("GearUnloadCount") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of complete gear unload", Binding = new Binding("GearUnloadCompletedCount") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "#  of vessel unload", Binding = new Binding("VesselUnloadCount") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of tracked  operations", Binding = new Binding("TrackedOperationsCount") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Earliest date of monitoring", Binding = new Binding("FirstSampling") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Latest date of monitoring", Binding = new Binding("LastSampling") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Latest date of downloaded e-forms ", Binding = new Binding("LastDownloadDate") });
                     break;
             }
         }
@@ -1890,17 +1970,17 @@ namespace NSAP_ODK
             {
                 case SummaryLevelType.AllRegions:
                     labelContent = "Summary by region";
-                    SetUpSummaryGrid(SummaryLevelType.AllRegions);
+                    SetUpSummaryGrid(SummaryLevelType.AllRegions, dataGridSummary);
                     break;
                 case SummaryLevelType.FMA:
                     break;
                 case SummaryLevelType.Region:
                     labelContent = $"Summary of selected region: {region.Name}";
-                    SetUpSummaryGrid(SummaryLevelType.Region,region:region);
+                    SetUpSummaryGrid(SummaryLevelType.Region, dataGridSummary, region:region);
                     break;
                 case SummaryLevelType.FishingGround:
                     labelContent = $"Summary of selected fishing ground: {fg.Name}, {region}";
-                    SetUpSummaryGrid(SummaryLevelType.FishingGround,region:region, fg:fg);
+                    SetUpSummaryGrid(SummaryLevelType.FishingGround, dataGridSummary, region:region, fg:fg);
                     break;
             }
             labelSummary.Content = labelContent;

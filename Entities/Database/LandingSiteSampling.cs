@@ -87,6 +87,13 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
+        public DateTime MonthSampled
+        {
+            get
+            {
+                return new DateTime(SamplingDate.Year, SamplingDate.Month, 1);
+            }
+        }
         public LandingSite LandingSite
         {
             set { _landingSite = value; }

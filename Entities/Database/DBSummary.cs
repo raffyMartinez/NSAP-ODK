@@ -16,7 +16,8 @@ namespace NSAP_ODK.Entities.Database
         AllRegions,
         FMA,
         Region,
-        FishingGround
+        FishingGround,
+        LandingSite
 
     }
 
@@ -124,5 +125,10 @@ namespace NSAP_ODK.Entities.Database
 
         public LandingSite LandingSite { get; set; }
 
+        public string LandingSiteName { get; set; }
+
+        public string GearName { get; set; }
+
+        public string MonthSampled { get; set; }
     }
 }

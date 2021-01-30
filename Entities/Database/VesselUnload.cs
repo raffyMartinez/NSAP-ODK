@@ -315,6 +315,14 @@ namespace NSAP_ODK.Entities.Database
         public int? NSAPRegionEnumeratorID { get; set; }
         public string EnumeratorText { get; set; }
 
+        public DateTime MonthSampled { get 
+            
+            {
+                var sDate = Parent.Parent.SamplingDate;
+                return new DateTime(sDate.Year, sDate.Month, 1);
+            } 
+        }
+
         public int? NSAPEnumeratorID { get; set; }
 
         public NSAPEnumerator NSAPEnumerator
