@@ -725,10 +725,18 @@ namespace NSAP_ODK
             MessageBox.Show($"Updated {ItemsRefreshed} species!");
         }
 
+
+
         private void OnButtonClick(object sender, RoutedEventArgs e)
         {
             switch (((Button)sender).Name)
             {
+                case "buttonOrphan":
+                    var oiw = new OrphanItemsManagerWindow();
+                    oiw.Owner = this;
+                    oiw.NSAPEntity = _nsapEntity;
+                    oiw.ShowDialog();
+                    break;
                 case "buttonImport":
                     var iw = new ImportByPlainTextWindow();
                     iw.Owner = this;
@@ -763,6 +771,7 @@ namespace NSAP_ODK
         private void OnMenuItemChecked(object sender, RoutedEventArgs e)
         {
             buttonImport.Visibility = Visibility.Collapsed;
+            buttonOrphan.Visibility = Visibility.Collapsed;
             if (dataGridEntities.ContextMenu != null)
             {
                 dataGridEntities.ContextMenu.Items.Clear();
@@ -770,17 +779,6 @@ namespace NSAP_ODK
 
             string textOfTitle = "";
             UncheckEditMenuItems((MenuItem)e.Source);
-            //foreach (var mi in menuEdit.Items)
-            //{
-            //    if (mi.GetType().Name != "Separator")
-            //    {
-            //        var menu = (MenuItem)mi;
-            //        if (menu.Name != ((MenuItem)e.Source).Name)
-            //        {
-            //            menu.IsChecked = false;
-            //        }
-            //    }
-            //}
 
             ContextMenu contextMenu = new ContextMenu();
             switch (((MenuItem)sender).Name)
@@ -824,16 +822,19 @@ namespace NSAP_ODK
                     break;
 
                 case "menuLandingSites":
+                    buttonOrphan.Visibility = Visibility.Visible;
                     _nsapEntity = NSAPEntity.LandingSite;
                     textOfTitle = "List of landing sites";
                     break;
 
                 case "menuFishingGears":
+                    buttonOrphan.Visibility = Visibility.Visible;
                     _nsapEntity = NSAPEntity.FishingGear;
                     textOfTitle = "List of fishing gears";
                     break;
 
                 case "menuEnumerators":
+                    buttonOrphan.Visibility = Visibility.Visible;
                     buttonImport.Visibility = Visibility.Visible;
                     _nsapEntity = NSAPEntity.Enumerator;
                     textOfTitle = "List of enumerators";

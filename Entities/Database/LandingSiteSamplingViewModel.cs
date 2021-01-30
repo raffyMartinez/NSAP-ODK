@@ -13,6 +13,30 @@ namespace NSAP_ODK.Entities.Database
         public ObservableCollection<LandingSiteSampling> LandingSiteSamplingCollection { get; set; }
         private LandingSiteSamplingRepository LandingSiteSamplings { get; set; }
 
+
+
+        public List<OrphanedLandingSite> OrphanedLandingSites()
+        {
+            var items= LandingSiteSamplingCollection
+                .Where(t => t.LandingSiteID == null)
+                .OrderBy(t => t.LandingSiteName)
+                .GroupBy(t => t.LandingSiteName).ToList();
+
+            var list = new List<OrphanedLandingSite>();
+            foreach (var item in items)
+            {
+
+                var orphan = new OrphanedLandingSite
+                {
+                    LandingSiteName = item.Key,
+                    LandingSiteSamplings = LandingSiteSamplingCollection.Where(t => t.LandingSiteName == item.Key).ToList()
+                };
+                list.Add(orphan);
+            }
+
+            return list;
+
+        }
         public LandingSiteSamplingViewModel()
         {
             LandingSiteSamplings = new LandingSiteSamplingRepository();

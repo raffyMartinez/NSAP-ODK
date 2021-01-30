@@ -56,6 +56,7 @@
             <Button Content="Import" Margin="10" Height="30" x:Name="buttonImport" Click="OnButtonClick" Visibility="Collapsed"/>
             <Button Content="Edit" Margin="10" Height="30" x:Name="buttonEdit" Click="OnButtonClick" />
             <Button Content="Delete" Margin="10" Height="30" x:Name="buttonDelete" Click="OnButtonClick" />
+            <Button Content="Orphan" Margin="10" Height="30" x:Name="buttonOrphan" Click="OnButtonClick" Visibility="Collapsed" />
         </StackPanel>
 
         <Menu Grid.ColumnSpan="2">

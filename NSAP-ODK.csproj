@@ -166,6 +166,7 @@
     <Compile Include="Entities\Database\GPXparser\Waypoint.cs" />
     <Compile Include="Entities\Database\LandingSiteSamplingViewModel.cs" />
     <Compile Include="Entities\Database\DownloadToDatabaseHistory.cs" />
+    <Compile Include="Entities\Database\OrphanedLandingSite.cs" />
     <Compile Include="Entities\Database\UploadToDbEventArg.cs" />
     <Compile Include="Entities\Database\VesselCatch.cs" />
     <Compile Include="Entities\Database\VesselCatchRepository.cs" />
@@ -340,8 +341,14 @@
     <Compile Include="Views\ODKResultsWindow.xaml.cs">
       <DependentUpon>ODKResultsWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\OrphanItemsManagerWindow.xaml.cs">
+      <DependentUpon>OrphanItemsManagerWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\QueryAPIWIndow.xaml.cs">
       <DependentUpon>QueryAPIWIndow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\SelectionToReplaceOrpanWIndow.xaml.cs">
+      <DependentUpon>SelectionToReplaceOrpanWIndow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\SelectRegionWindow.xaml.cs">
       <DependentUpon>SelectRegionWindow.xaml</DependentUpon>
@@ -407,7 +414,15 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\OrphanItemsManagerWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\QueryAPIWIndow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\SelectionToReplaceOrpanWIndow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

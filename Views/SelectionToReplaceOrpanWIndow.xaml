@@ -1,0 +1,27 @@
+﻿<Window x:Class="NSAP_ODK.Views.SelectionToReplaceOrpanWIndow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NSAP_ODK.Views"
+        mc:Ignorable="d"
+        Title="SelectionToReplaceOrpanWIndow" Height="450" Width="390.047">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
+            <RowDefinition/>
+            <RowDefinition Height="60"/>
+
+        </Grid.RowDefinitions>
+        <Label Grid.Row="0" Content="Select an item as replacement" HorizontalContentAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" FontWeight="Bold"/>
+        <ScrollViewer Grid.Row="1">
+            <StackPanel x:Name="panelButtons">
+                <RadioButton Content="Button text" Margin="10 10 0 0"/>
+            </StackPanel>
+        </ScrollViewer>
+        <WrapPanel Grid.Row="2" HorizontalAlignment="Right" VerticalAlignment="Center">
+            <Button x:Name="buttonCancel" Click="onButtonClick" Content="Cancel" Height="30" Width="60" Margin="10 0"/>
+            <Button x:Name="buttonReplace" Click="onButtonClick" Content="Replace" Height="30" Width="60" Margin="10 0"/>
+        </WrapPanel>
+    </Grid>
+</Window>
