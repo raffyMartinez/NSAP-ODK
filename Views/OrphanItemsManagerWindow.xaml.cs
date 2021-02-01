@@ -22,6 +22,7 @@ namespace NSAP_ODK.Views
     /// </summary>
     public partial class OrphanItemsManagerWindow : Window
     {
+        private LandingSite _replacementLandingSite;
         public OrphanItemsManagerWindow()
         {
             InitializeComponent();
@@ -29,13 +30,27 @@ namespace NSAP_ODK.Views
             Closing += OnWindowClosing;
         }
 
+        public void ReplaceChecked()
+        {
+
+        }
+        public LandingSite ReplacementLandingSite 
+        { 
+            get { return _replacementLandingSite; }
+            set
+            {
+               _replacementLandingSite=value ;
+                buttonReplace.IsEnabled = true;
+            }
+        }
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
             switch (NSAPEntity)
             {
                 case NSAPEntity.LandingSite:
                     labelTitle.Content = "Manage orphaned landing sites";
-                    dataGrid.DataContext = NSAPEntities.LandingSiteSamplingViewModel.OrphanedLandingSites();
+                    RefreshItemsSource();
+                    //dataGrid.DataContext = NSAPEntities.LandingSiteSamplingViewModel.OrphanedLandingSites();
 
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site name", Binding = new Binding("LandingSiteName"), IsReadOnly = true });
                     dataGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "Replace", Binding = new Binding("ForReplacement") });
@@ -64,12 +79,57 @@ namespace NSAP_ODK.Views
             base.OnSourceInitialized(e);
             this.ApplyPlacement();
         }
+
+        private void DoTheReplacement()
+        {
+            switch (NSAPEntity)
+            {
+                case NSAPEntity.LandingSite:
+                    foreach(OrphanedLandingSite item in dataGrid.Items)
+                    {
+                        if (item.ForReplacement)
+                        {
+                            foreach (var sampling in item.LandingSiteSamplings)
+                            {
+                                sampling.LandingSiteID = ReplacementLandingSite.LandingSiteID;
+                                NSAPEntities.LandingSiteSamplingViewModel.UpdateRecordInRepo(sampling);
+                            }
+                        }
+                    }
+                    break;
+                case NSAPEntity.FishingGear:
+                    break;
+                case NSAPEntity.NSAPRegionEnumerator:
+                    break;
+
+            }
+        }
+
+        private void RefreshItemsSource()
+        {
+            switch (NSAPEntity)
+            {
+                case NSAPEntity.LandingSite:
+                    dataGrid.DataContext = NSAPEntities.LandingSiteSamplingViewModel.OrphanedLandingSites();
+
+                    break;
+                case NSAPEntity.Enumerator:
+                    break;
+                case NSAPEntity.FishingGear:
+                    break;
+            }
+        }
         private void OnButtonClick(object sender, RoutedEventArgs e)
         {
             bool procced = false;
             switch (((Button)sender).Name)
             {
                 case "buttonReplace":
+                    DoTheReplacement();
+                    //dataGrid.Items.Refresh();
+                    RefreshItemsSource();
+                    break;
+                case "buttonSelectReplacement":
                     var replacementWindow = new SelectionToReplaceOrpanWIndow();
                     replacementWindow.Owner = this;
                     replacementWindow.NSAPEntity = NSAPEntity;

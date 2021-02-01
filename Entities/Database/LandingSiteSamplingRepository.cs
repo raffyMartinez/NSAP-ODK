@@ -191,7 +191,7 @@ namespace NSAP_ODK.Entities.Database
                 var sql = $@"Update dbo_LC_FG_sample_day set
                                 region_id='{item.NSAPRegionID}',
                                 sdate = '{item.SamplingDate.ToString(_dateFormat)}',
-                                land_ctr_id = {(item.LandingSiteID==null? "null" : item.LandingSiteID.ToString())},
+                                land_ctr_id = {(item.LandingSiteID==null? item.LandingSite==null?"null":item.LandingSite.LandingSiteID.ToString() : item.LandingSiteID.ToString())},
                                 ground_id = '{item.FishingGroundID}',
                                 remarks = '{item.Remarks}',
                                 sampleday = {item.IsSamplingDay},
@@ -201,7 +201,7 @@ namespace NSAP_ODK.Entities.Database
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
                     success = update.ExecuteNonQuery() > 0;
-                    if(success)
+                    if(success && item.XFormIdentifier.Length>0)
                     {
                         string dateSubmitted = item.DateSubmitted == null ? "null" : $@"'{item.DateSubmitted.ToString()}'";
                         string dateAdded = item.DateAdded == null ? "null" : $@"'{item.DateAdded.ToString()}'";

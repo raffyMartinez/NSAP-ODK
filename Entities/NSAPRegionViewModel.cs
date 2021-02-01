@@ -200,6 +200,7 @@ namespace NSAP_ODK.Entities
 
                     var lsSamplings = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection
                         .Where(t => t.NSAPRegionID == region.Code &&
+                                  t.LandingSite==null &&  
                                   t.LandingSiteText.Length > 0 &&
                                   t.FMAID == fma.FMAID &&
                                   t.FishingGroundID == fg.FishingGround.Code).GroupBy(t => t.LandingSiteText).ToList();

@@ -10,7 +10,7 @@ namespace NSAP_ODK.Entities.Database
     {
 
         public string LandingSiteName { get; set; }
-        public List<LandingSiteSampling> LandingSiteSamplings { get; set; }
+        public List<LandingSiteSampling> LandingSiteSamplings { get;  set; }
 
         public NSAPRegion Region { get { return LandingSiteSamplings[0].NSAPRegion; } }
 
