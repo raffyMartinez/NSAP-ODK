@@ -1116,6 +1116,8 @@ namespace NSAP_ODK
 
             switch (itemName)
             {
+                case "menuUploadMedia":
+                    break;
                 case "menuSaveGear":
                     SaveFileDialog sfd = new SaveFileDialog
                     {

@@ -168,7 +168,14 @@ namespace NSAP_ODK.Entities.Database
                 }
                 else
                 {
-                    return NSAPEnumerator.Name;
+                    if (NSAPEnumerator != null)
+                    {
+                        return NSAPEnumerator.Name;
+                    }
+                    else
+                    {
+                        return "";
+                    }
                 }
             }
         }

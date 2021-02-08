@@ -24,8 +24,9 @@
 
         <xctk:PropertyGrid x:Name="PropertyGrid" Grid.Row="1" Grid.Column="0" Margin="10"
                            VerticalAlignment="Top" ShowSearchBox="False" ShowSortOptions="False"
-                           ShowTitle="False" SelectedPropertyItemChanged="OnSelectedPropertyItemChanged"
-                           NameColumnWidth="250" PropertyValueChanged="OnPropertyValueChanged" />
+                           ShowTitle="False" NameColumnWidth="250" 
+                           SelectedPropertyItemChanged="OnSelectedPropertyItemChanged"
+                            PropertyValueChanged="OnPropertyValueChanged" />
 
         <StackPanel Grid.Row="1" Grid.Column="1">
             <Button Content="Ok" Height="30" Margin="10" x:Name="buttonOK" Click="OnButtonClick" />

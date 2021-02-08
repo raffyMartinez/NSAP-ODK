@@ -24,9 +24,16 @@ using NSAP_ODK.Entities.Database;
 
 namespace NSAP_ODK.Views
 {
+    public enum ServerIntent
+    {
+        IntentDonloadData,
+        IntentUploadMedia
+    }
+
     /// <summary>
     /// Interaction logic for DownloadFromServerWindow.xaml
     /// </summary>
+    /// 
     public partial class DownloadFromServerWindow : Window
     {
         private List<KoboForm> _koboForms;
@@ -42,8 +49,10 @@ namespace NSAP_ODK.Views
         {
             InitializeComponent();
             _parentWindow = parentWindow;
+            ServerIntent = ServerIntent.IntentDonloadData;
         }
 
+        public ServerIntent ServerIntent { get; set; }
 
         protected override void OnSourceInitialized(EventArgs e)
         {
@@ -60,7 +69,15 @@ namespace NSAP_ODK.Views
                 {
                     int item = treeForms.Items.Add(new TreeViewItem { Header = form.formid, Tag = "form_id" });
                     ((TreeViewItem)treeForms.Items[item]).Items.Add(new TreeViewItem { Header = "Users", Tag = "form_users", });
-                    ((TreeViewItem)treeForms.Items[item]).Items.Add(new TreeViewItem { Header = "Download", Tag = "form_download", });
+                    switch (ServerIntent)
+                    {
+                        case ServerIntent.IntentDonloadData:
+                            ((TreeViewItem)treeForms.Items[item]).Items.Add(new TreeViewItem { Header = "Download", Tag = "form_download" });
+                            break;
+                        case ServerIntent.IntentUploadMedia:
+                            ((TreeViewItem)treeForms.Items[item]).Items.Add(new TreeViewItem { Header = "Upload", Tag = "upload_media" });
+                            break;
+                    }
                 }
                 ((TreeViewItem)treeForms.Items[0]).IsSelected = true;
                 ((TreeViewItem)treeForms.Items[0]).IsExpanded = true;
@@ -382,6 +399,26 @@ namespace NSAP_ODK.Views
                     break;
             }
         }
+
+        private async void UploadToMedia()
+        {
+            using (var httpClient = new HttpClient())
+            {
+                using (var request = new HttpRequestMessage(new HttpMethod("POST"), "http://https//<kc_url>/api/v1/metadata.json"))
+                {
+                    request.Headers.TryAddWithoutValidation("Authorization", "Token <token>");
+
+                    var multipartContent = new MultipartFormDataContent();
+                    multipartContent.Add(new StringContent(File.ReadAllText("xform_id>")), "xform");
+                    multipartContent.Add(new StringContent(File.ReadAllText("filename>")), "data_value");
+                    multipartContent.Add(new StringContent("media"), "data_type");
+                    multipartContent.Add(new ByteArrayContent(File.ReadAllBytes("<path/to/file>")), "data_file", System.IO.Path.GetFileName("<path/to/file>"));
+                    request.Content = multipartContent;
+
+                    var response = await httpClient.SendAsync(request);
+                }
+            }
+        }
         private void OnTreeItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             propertyGrid.Visibility = Visibility.Collapsed;
@@ -456,6 +493,7 @@ namespace NSAP_ODK.Views
                         dataGrid.Columns.Add(new DataGridTextColumn { Header = "Permissions", Binding = new Binding("all_permissions") });
                         break;
                     case "form_download":
+
                         _formID = ((TreeViewItem)treeViewItem.Parent).Header.ToString();
                         SetODKServerDownloadType();
                         gridDownload.Visibility = Visibility.Visible;
@@ -467,6 +505,9 @@ namespace NSAP_ODK.Views
                             ComboUser.Items.Add(new ComboBoxItem { Content = user.user });
                         }
 
+                        break;
+                    case "upload_media":
+                        gridDownload.Visibility = Visibility.Visible;
                         break;
                 }
             }
@@ -510,6 +551,24 @@ namespace NSAP_ODK.Views
             panelFilterByUser.Visibility = Visibility.Collapsed;
             labelProgress.Content = "";
             TextBoxUserName.Focus();
+
+            switch (ServerIntent)
+            {
+                case ServerIntent.IntentUploadMedia:
+                    stackPanelDownload.Visibility = Visibility.Collapsed;
+                    stackPanelUploadMedia.Visibility = Visibility.Visible;
+                    ButtonDownload.Visibility = Visibility.Collapsed;
+                    ButtonUploadMedia.Visibility = Visibility.Visible;
+                    labelTitle.Content = "Upload media (CSV files) to the server";
+                    break;
+                case ServerIntent.IntentDonloadData:
+                    stackPanelDownload.Visibility = Visibility.Visible;
+                    stackPanelUploadMedia.Visibility = Visibility.Collapsed;
+                    ButtonDownload.Visibility = Visibility.Visible;
+                    ButtonUploadMedia.Visibility = Visibility.Collapsed;
+                    labelTitle.Content = "Download submitted forms from server";
+                    break;
+            }
         }
 
         private void OnComboSelectionChanged(object sender, SelectionChangedEventArgs e)

@@ -16,6 +16,7 @@
         <Menu VerticalAlignment="Center">
             <MenuItem Header="File" x:Name="menuFileHeader" >
                 <MenuItem Header="Download from server" x:Name="menuDownloadFromServer" Click="OnMenuClick"/>
+                <MenuItem Header="_Upload media" x:Name="menuUploadMedia" Click="OnMenuClick" />
                 <MenuItem Header="Import ODK excel" x:Name="menuImport" Click="OnMenuClick"/>
                 <MenuItem Header="Test" x:Name="menuTest" Click="OnMenuClick"/>
                 <Separator/>

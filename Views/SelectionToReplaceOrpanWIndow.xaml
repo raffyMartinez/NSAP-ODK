@@ -15,9 +15,7 @@
         </Grid.RowDefinitions>
         <Label Grid.Row="0" Content="Select an item as replacement" HorizontalContentAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" FontWeight="Bold"/>
         <ScrollViewer Grid.Row="1">
-            <StackPanel x:Name="panelButtons">
-                <RadioButton Content="Button text" Margin="10 10 0 0" Checked="OnButtonChecked" />
-            </StackPanel>
+            <StackPanel x:Name="panelButtons"/>
         </ScrollViewer>
         <WrapPanel Grid.Row="2" HorizontalAlignment="Right" VerticalAlignment="Center">
             <Button x:Name="buttonCancel" Click="onButtonClick" Content="Cancel" Height="30" Width="60" Margin="10 0"/>

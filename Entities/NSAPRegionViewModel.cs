@@ -5,6 +5,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using NSAP_ODK.Entities.Database;
 using System.Diagnostics;
+using NSAP_ODK.Utilities;
 
 namespace NSAP_ODK.Entities
 {
@@ -381,7 +382,17 @@ namespace NSAP_ODK.Entities
 
         public NSAPEnumerator GetEnumeratorInRegion(string regionCode, int nsapEnumerator)
         {
-            return NSAPRegionCollection.Where(t => t.Code == regionCode).FirstOrDefault().NSAPEnumerators.Where(t => t.RowID == nsapEnumerator).FirstOrDefault().Enumerator;
+            var nsapregionEnumerator = NSAPRegionCollection.Where(t => t.Code == regionCode).FirstOrDefault().NSAPEnumerators.Where(t => t.RowID == nsapEnumerator).FirstOrDefault();
+            if(nsapregionEnumerator!=null)
+            {
+                return nsapregionEnumerator.Enumerator;
+            }
+            else
+            {
+                Logger.Log($"Query for non-exisiting enumerator with ID of {nsapEnumerator}");
+                return null;
+            }
+            //return NSAPRegionCollection.Where(t => t.Code == regionCode).FirstOrDefault().NSAPEnumerators.Where(t => t.RowID == nsapEnumerator).FirstOrDefault().Enumerator;
         }
         public NSAPRegionFMAFishingGround GetRegionFMAFishingGround(string regionCode, int fmaCode, string fishingGroundCode)
         {

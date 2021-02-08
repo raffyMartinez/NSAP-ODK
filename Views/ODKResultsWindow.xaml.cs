@@ -210,6 +210,13 @@ namespace NSAP_ODK.Views
         {
             switch (((MenuItem)sender).Name)
             {
+                case "menuUploadMedia":
+                    var serverForm = new DownloadFromServerWindow(this);
+                    VesselUnloadServerRepository.ResetLists();
+                    serverForm.ServerIntent = ServerIntent.IntentUploadMedia;
+                    serverForm.Owner = this;
+                    serverForm.ShowDialog();
+                    break;
                 case "menuTest":
                     //VesselUnloadServerRepository.CreateLandingsFromJSON(System.IO.File.ReadAllText($"{AppDomain.CurrentDomain.BaseDirectory}/jsontext.txt"));\
                     LandingSiteBoatLandingsFromServerRepository.CreateLandingSiteBoatLandingsFromJson(System.IO.File.ReadAllText($"{AppDomain.CurrentDomain.BaseDirectory}/jsontext.txt"));
@@ -240,7 +247,7 @@ namespace NSAP_ODK.Views
                     }
                     break;
                 case "menuDownloadFromServer":
-                    var serverForm = new DownloadFromServerWindow(this);
+                    serverForm = new DownloadFromServerWindow(this);
                     VesselUnloadServerRepository.ResetLists();
                     serverForm.Owner = this;
                     serverForm.ShowDialog();
@@ -1097,6 +1104,11 @@ namespace NSAP_ODK.Views
         private void OnDataGridLoadingRow(object sender, DataGridRowEventArgs e)
         {
             e.Row.Header= (e.Row.GetIndex()+1).ToString();
+        }
+
+        private void OnMenuClicked(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

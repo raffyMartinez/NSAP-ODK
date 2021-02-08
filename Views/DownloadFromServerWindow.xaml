@@ -14,7 +14,7 @@
             <ColumnDefinition/>
             <ColumnDefinition Width="150"/>
         </Grid.ColumnDefinitions>
-        
+
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
             <RowDefinition Height="50"/>
@@ -22,7 +22,7 @@
             <RowDefinition/>
             <RowDefinition Height="30"/>
         </Grid.RowDefinitions>
-        <Label Content="Download submitted forms from server" VerticalAlignment="Center" Margin="10 0"/>
+        <Label Content="Download submitted forms from server" VerticalAlignment="Center" Margin="10 0" x:Name="labelTitle"/>
         <StatusBar Grid.Row="4">
             <ProgressBar Width="200" Height="18" VerticalAlignment="Center" x:Name="ProgressBar"/>
             <Label x:Name="labelProgress" Margin="10 0 0 0" Height="25" Content="This is a progress bar label"/>
@@ -34,7 +34,7 @@
             <!--<TextBox x:Name="TextBoxPassword" VerticalAlignment="Center" Width="150" Margin="10 10" Height="25"/>-->
             <PasswordBox x:Name="TextBoxPassword" VerticalAlignment="Center" Width="150" Margin="10 10" Height="25"/>
         </WrapPanel>
-            <Button Grid.Row="2" Width="100" Margin="10" Content="Login" x:Name="ButtonLogin" Click="OnButtonClick" Height="25"/>
+        <Button Grid.Row="2" Width="100" Margin="10" Content="Login" x:Name="ButtonLogin" Click="OnButtonClick" Height="25"/>
         <StackPanel Grid.Column="1" Grid.Row="1" Grid.RowSpan="4">
             <Button Content="Close" Height="25" Width="100" x:Name="ButtonClose" Click="OnButtonClick" Margin="10" />
         </StackPanel>
@@ -52,7 +52,9 @@
                         <RowDefinition/>
                         <RowDefinition Height="40"/>
                     </Grid.RowDefinitions>
-                    <StackPanel x:Name="stackPanelDownload">
+                    
+                    <!--container for downloading from the server-->
+                    <StackPanel x:Name="stackPanelDownload" Visibility="Collapsed">
                         <WrapPanel>
                             <Label Content="Download option" Margin="10,5"/>
                             <ComboBox Width="200" Margin="10 5" SelectionChanged="OnComboSelectionChanged" x:Name="comboboxDownloadOption">
@@ -85,7 +87,21 @@
                             <CheckBox Content="Limit to tracked operations" x:Name="CheckLimitoTracked" Margin="10 10" Checked="OnCheckStateChange" Unchecked="OnCheckStateChange"/>
                         </StackPanel>
                     </StackPanel>
-                    <Button Grid.Row="1" Content="Download" Width="100" Height="25" x:Name="ButtonDownload" Click="OnButtonClick"/>
+                    
+                    
+                    <!--container for uploading meida to the server-->
+                    <StackPanel x:Name="stackPanelUploadMedia" Visibility="Visible" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        
+                        <Label Content="Select folder that contains the media files for uploading to the server" Margin="20"/>
+                        <Button x:Name="ButtonSelectMeidaFolder" Content="Select folder" Width="80" Height="30"/>
+
+                        <Label x:Name = "labelFolderPath" Margin="30" Content="This is the folder path" HorizontalAlignment="Center"/>
+
+                    </StackPanel>
+                    <WrapPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Button  Content="Download" Width="100" Height="25" x:Name="ButtonDownload" Click="OnButtonClick"/>
+                        <Button Content="Upload media" Width="100" Height="25" x:Name="ButtonUploadMedia" Click="OnButtonClick" Visibility="Collapsed"/>
+                    </WrapPanel>
                 </Grid>
 
             </Grid>

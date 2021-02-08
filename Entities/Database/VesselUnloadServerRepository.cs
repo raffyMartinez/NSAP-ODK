@@ -877,10 +877,22 @@ namespace NSAP_ODK.Entities.Database.FromJson
         {
             get
             {
-                if (NSAPRegion.NSAPEnumerators.Count > 0 && RegionEnumeratorID!=null)
+                if (RegionEnumeratorID != null)
                 {
-                    var enumerator = NSAPRegion.NSAPEnumerators.FirstOrDefault(t => t.RowID == (int)RegionEnumeratorID).Enumerator;
-                    return enumerator;
+                    var regionEnumerator = (NSAPEntities.NSAPEnumeratorViewModel.GetNSAPEnumerator((int)RegionEnumeratorID));
+                    if (regionEnumerator != null && NSAPRegion.NSAPEnumerators.Count > 0 && RegionEnumeratorID != null)
+                    {
+                        var enumerator = NSAPRegion.NSAPEnumerators.FirstOrDefault(t => t.RowID == (int)RegionEnumeratorID).Enumerator;
+                        return enumerator;
+                    }
+                    else
+                    {
+                        if (regionEnumerator == null)
+                        {
+                            NSAP_ODK.Utilities.Logger.Log($"Query for NSAPEnumerator with ID {RegionEnumeratorID} returned null");
+                        }
+                        return null;
+                    }
                 }
                 else
                 {
