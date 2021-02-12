@@ -313,6 +313,8 @@ namespace NSAP_ODK
             {
                 dataGridSpecies.ItemsSource = null;
                 dataGridSpecies.Columns.Clear();
+                dataGridEntities.Visibility = Visibility.Collapsed;
+                dataGridSpecies.Visibility = Visibility.Visible;
                 //dataGridSpecies.Items.Clear();
             }
             else if (_nsapEntity != NSAPEntity.FishSpecies)
@@ -320,6 +322,8 @@ namespace NSAP_ODK
                 dataGridEntities.ItemsSource = null;
                 //dataGridEntities.Items.Clear();
                 dataGridEntities.Columns.Clear();
+                dataGridEntities.Visibility = Visibility.Visible;
+                dataGridSpecies.Visibility = Visibility.Collapsed;
             }
 
             SetDataGridSource();

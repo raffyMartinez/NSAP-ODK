@@ -259,7 +259,14 @@ namespace NSAP_ODK.Entities
                 }
                 else
                 {
-                    name = NSAPRegionGear.Gear.GearName;
+                    if (NSAPRegionGear == null)
+                    {
+                        name = "";
+                    }
+                    else
+                    {
+                        name = NSAPRegionGear.Gear.GearName;
+                    }
                 }
                 return name;
             }

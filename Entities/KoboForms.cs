@@ -8,6 +8,14 @@ using System.Threading.Tasks;
 using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
 using NSAP_ODK.Utilities;
 
+public enum KoboFormType
+{
+    FormTypeOther,
+    FormTypeCatchAndEffort,
+    FormTypeVesselCountAndCatchEstimate
+
+}
+
 /// <summary>
 /// Handles query to server on forms that user has access to
 /// 
@@ -94,8 +102,18 @@ namespace NSAP_ODK.Entities
             NumberOfUsers = form.users.Count;
             FormID = form.formid;
             SubmittedToday = form.submission_count_for_today;
+
+            if(Title.Contains("Fisheries landing survey"))
+            {
+                KoboFormType = KoboFormType.FormTypeCatchAndEffort;
+            }
+            else if(Title=="Daily landings and catch estimate")
+            {
+                KoboFormType = KoboFormType.FormTypeVesselCountAndCatchEstimate;
+            }
         }
 
+        public KoboFormType KoboFormType { get; set; }
         public string Title { get; internal set; }
         public string Description { get; internal set; }
         public string DateCreated { get; internal set; }
@@ -110,7 +128,18 @@ namespace NSAP_ODK.Entities
         {
             get
             {
-                return NSAPEntities.VesselUnloadViewModel.Count;
+                int v = 0;
+                switch(KoboFormType)
+                {
+                    case KoboFormType.FormTypeCatchAndEffort:
+                        v=NSAPEntities.VesselUnloadViewModel.Count;
+                        break;
+                    case KoboFormType.FormTypeVesselCountAndCatchEstimate:
+                        v = NSAPEntities.LandingSiteSamplingViewModel.CountEformSubmissions;
+                        break;
+                }
+                return v;
+                
             }
         }
 
@@ -119,10 +148,16 @@ namespace NSAP_ODK.Entities
             get
             {
                 string lastSaveDate = "";
-                if(NSAPEntities.VesselUnloadViewModel.Count>0)
+                switch(KoboFormType)
                 {
-                    lastSaveDate=NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.Max(t => t.DateTimeSubmitted).ToString("MMM-dd-yyyy HH:mm:ss");
+                    case KoboFormType.FormTypeCatchAndEffort:
+                        lastSaveDate=NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.Max(t => t.DateTimeSubmitted).ToString("MMM-dd-yyyy HH:mm:ss");
+                        break;
+                    case KoboFormType.FormTypeVesselCountAndCatchEstimate:
+                        lastSaveDate = NSAPEntities.LandingSiteSamplingViewModel.LatestEformSubmissionDate.ToString("MMM-dd-yyyy HH:mm:ss");
+                        break;
                 }
+
                 return lastSaveDate;
             }
         }

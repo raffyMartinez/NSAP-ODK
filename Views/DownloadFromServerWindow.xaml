@@ -16,17 +16,17 @@
         </Grid.ColumnDefinitions>
 
         <Grid.RowDefinitions>
-            <RowDefinition Height="30"/>
-            <RowDefinition Height="50"/>
-            <RowDefinition Height="50"/>
-            <RowDefinition/>
-            <RowDefinition Height="30"/>
+            <RowDefinition Height="30"/> <!--label title-->
+            <RowDefinition Height="50"/> <!--login text fields-->
+            <RowDefinition Height="50"/> <!--login button-->
+            <RowDefinition/> <!--main body of the form-->
+            <RowDefinition Height="30"/> <!--status bar-->
         </Grid.RowDefinitions>
+
+        <!--label title-->
         <Label Content="Download submitted forms from server" VerticalAlignment="Center" Margin="10 0" x:Name="labelTitle"/>
-        <StatusBar Grid.Row="4">
-            <ProgressBar Width="200" Height="18" VerticalAlignment="Center" x:Name="ProgressBar"/>
-            <Label x:Name="labelProgress" Margin="10 0 0 0" Height="25" Content="This is a progress bar label"/>
-        </StatusBar>
+
+        <!--login text fields-->
         <WrapPanel Grid.Row="1" Orientation="Vertical">
             <Label Content="User name" VerticalAlignment="Center" Margin="10 10"/>
             <TextBox x:Name="TextBoxUserName" VerticalAlignment="Center" Width="150" Margin="10 10" Height="25"/>
@@ -34,25 +34,36 @@
             <!--<TextBox x:Name="TextBoxPassword" VerticalAlignment="Center" Width="150" Margin="10 10" Height="25"/>-->
             <PasswordBox x:Name="TextBoxPassword" VerticalAlignment="Center" Width="150" Margin="10 10" Height="25"/>
         </WrapPanel>
+
+        <!--login button-->
         <Button Grid.Row="2" Width="100" Margin="10" Content="Login" x:Name="ButtonLogin" Click="OnButtonClick" Height="25"/>
-        <StackPanel Grid.Column="1" Grid.Row="1" Grid.RowSpan="4">
-            <Button Content="Close" Height="25" Width="100" x:Name="ButtonClose" Click="OnButtonClick" Margin="10" />
-        </StackPanel>
+
+
+        <!--main body of the form-->
         <Border BorderBrush="Gray" BorderThickness="1" Grid.Row="3" Margin="2">
-            <Grid Grid.Row="3" x:Name="GridGrids">
+            <Grid  x:Name="GridGrids">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="150" />
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
+                
+                <!--tree view showing e-forms-->
                 <TreeView x:Name="treeForms" SelectedItemChanged="OnTreeItemChanged" Margin="5"/>
-                <xctk:PropertyGrid  x:Name="propertyGrid" Grid.Column="1" Margin="5" ShowSearchBox="False" ShowSortOptions="False" ShowTitle="False" ShowSummary="False" Visibility="Collapsed"/>
+                
+                <!--property grid showing summaru of selected e-form-->
+                <xctk:PropertyGrid  x:Name="propertyGrid" Grid.Column="1" Margin="5" ShowSearchBox="False" 
+                                    ShowSortOptions="False" ShowTitle="False" ShowSummary="False" Visibility="Collapsed"/>
+                
+                <!--data grid showing a list for form users -->
                 <DataGrid Grid.Column="1" x:Name="dataGrid" Margin="5" ItemsSource="{Binding}" Visibility="Collapsed"/>
+                
+                
                 <Grid Grid.Column="1" Margin="5" x:Name="gridDownload" Visibility="Visible">
                     <Grid.RowDefinitions>
                         <RowDefinition/>
                         <RowDefinition Height="40"/>
                     </Grid.RowDefinitions>
-                    
+
                     <!--container for downloading from the server-->
                     <StackPanel x:Name="stackPanelDownload" Visibility="Collapsed">
                         <WrapPanel>
@@ -87,17 +98,19 @@
                             <CheckBox Content="Limit to tracked operations" x:Name="CheckLimitoTracked" Margin="10 10" Checked="OnCheckStateChange" Unchecked="OnCheckStateChange"/>
                         </StackPanel>
                     </StackPanel>
-                    
-                    
-                    <!--container for uploading meida to the server-->
+
+
+                    <!--container for uploading media to the server-->
                     <StackPanel x:Name="stackPanelUploadMedia" Visibility="Visible" VerticalAlignment="Center" HorizontalAlignment="Center">
-                        
+
                         <Label Content="Select folder that contains the media files for uploading to the server" Margin="20"/>
                         <Button x:Name="ButtonSelectMeidaFolder" Content="Select folder" Width="80" Height="30"/>
 
                         <Label x:Name = "labelFolderPath" Margin="30" Content="This is the folder path" HorizontalAlignment="Center"/>
 
                     </StackPanel>
+                    
+                    
                     <WrapPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <Button  Content="Download" Width="100" Height="25" x:Name="ButtonDownload" Click="OnButtonClick"/>
                         <Button Content="Upload media" Width="100" Height="25" x:Name="ButtonUploadMedia" Click="OnButtonClick" Visibility="Collapsed"/>
@@ -106,5 +119,17 @@
 
             </Grid>
         </Border>
+        
+        <!--Status bar at bottom-->
+        <StatusBar Grid.Row="4">
+            <ProgressBar Width="200" Height="18" VerticalAlignment="Center" x:Name="ProgressBar"/>
+            <Label x:Name="labelProgress" Margin="10 0 0 0" Height="25" Content="This is a progress bar label"/>
+        </StatusBar>
+
+
+        <!--panel for holding buttons on right side of form -->
+        <StackPanel Grid.Column="1" Grid.Row="1" Grid.RowSpan="4">
+            <Button Content="Close" Height="25" Width="100" x:Name="ButtonClose" Click="OnButtonClick" Margin="10" />
+        </StackPanel>
     </Grid>
 </Window>

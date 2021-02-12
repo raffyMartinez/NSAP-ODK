@@ -13,8 +13,20 @@ namespace NSAP_ODK.Entities.Database
         public ObservableCollection<LandingSiteSampling> LandingSiteSamplingCollection { get; set; }
         private LandingSiteSamplingRepository LandingSiteSamplings { get; set; }
 
-
-
+        public DateTime LatestEformSubmissionDate
+        {
+            get
+            {
+                return LandingSiteSamplingCollection.Where(t => t.XFormIdentifier.Length > 0).Max(t => t.DateSubmitted).Value;
+            }
+        }
+        public int CountEformSubmissions
+        {
+            get
+            {
+                return LandingSiteSamplingCollection.Count(t => t.XFormIdentifier.Length > 0);
+            }
+        }
         public List<OrphanedLandingSite> OrphanedLandingSites()
         {
             var items= LandingSiteSamplingCollection
