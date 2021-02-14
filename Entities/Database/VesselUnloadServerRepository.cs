@@ -1513,10 +1513,27 @@ namespace NSAP_ODK.Entities.Database.FromJson
                             PK = NSAPEntities.GearUnloadViewModel.NextRecordNumber,
                             LandingSiteSamplingID = landingSiteSampling.PK,
                             //GearID = item.Vessel_sampling__gear_used != null ? item.Gear.Code : null,
-                            GearID = landing.GearUsed != null ? landing.NSAPRegion.Gears.FirstOrDefault(t => t.RowID == (int)landing.GearUsed).Gear.Code : null,
+                            //GearID = landing.GearUsed != null ? landing.NSAPRegion.Gears.FirstOrDefault(t => t.RowID == (int)landing.GearUsed).Gear.Code : null,
                             GearUsedText = landing.GearUsedText==null?"":landing.GearUsedText,
                             Remarks=""
                         };
+
+                        if(landing.GearUsed==null)
+                        {
+                            gu.GearID = null;
+                        }
+                        else
+                        {
+                            var gear = landing.NSAPRegion.Gears.FirstOrDefault(t => t.RowID == (int)landing.GearUsed);
+                            if(gear==null)
+                            {
+                                gu.GearID = null;
+                            }
+                            else
+                            {
+                                gu.GearID = gear.GearCode;
+                            }
+                        }
                         NSAPEntities.GearUnloadViewModel.AddRecordToRepo(gu);
                     }
 

@@ -31,7 +31,15 @@ namespace NSAP_ODK.Entities.Database
             return GearUnloadCollection.ToList();
         }
 
-
+        /// <summary>
+        /// Returns a list of gear unload whose parent is the input landing site sampling
+        /// </summary>
+        /// <param name="parentSampling"></param>
+        /// <returns></returns>
+        public List<GearUnload>GetGearUnloads(LandingSiteSampling parentSampling)
+        {
+            return GearUnloadCollection.Where(t => t.Parent.PK == parentSampling.PK).ToList();
+        }
         public void UndoChangesToGearUnloadBoatCatch(List<GearUnload> gearUnloadList)
         {
             if (gearUnloadList != null && gearUnloadList.Count > 0)

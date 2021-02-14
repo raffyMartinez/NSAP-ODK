@@ -21,11 +21,21 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                return NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
-                    .Count(t => t.Parent.Parent.NSAPRegionID == Region.Code &&
-                            t.Parent.Parent.FMAID == FMA.FMAID &&
-                            t.Parent.Parent.FishingGroundID == FishingGround.Code &&
-                            t.Parent.Parent.LandingSiteName == LandingSiteName);
+                //return eturn NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
+                //    .Count(t =>t => t.Parent.Parent.NSAPRegionID == Region.Code &&
+                //            t.Parent.Parent.FMAID == FMA.FMAID &&
+                //            t.Parent.Parent.FishingGroundID == FishingGround.Code &&
+                //            t.Parent.Parent.LandingSiteID == null &&
+                //            t.Parent.Parent.LandingSiteText == LandingSiteName);
+
+                int count = 0;
+                foreach(var sampling in LandingSiteSamplings)
+                {
+                    count += NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
+                        .Count(t => t.Parent.Parent.PK == sampling.PK);
+                
+                }
+                return count;
             }
 
         }

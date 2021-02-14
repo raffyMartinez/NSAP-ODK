@@ -13,11 +13,20 @@ namespace NSAP_ODK.Entities.Database
         public ObservableCollection<LandingSiteSampling> LandingSiteSamplingCollection { get; set; }
         private LandingSiteSamplingRepository LandingSiteSamplings { get; set; }
 
-        public DateTime LatestEformSubmissionDate
+        public DateTime? LatestEformSubmissionDate
         {
             get
             {
-                return LandingSiteSamplingCollection.Where(t => t.XFormIdentifier.Length > 0).Max(t => t.DateSubmitted).Value;
+                var list = LandingSiteSamplingCollection.Where(t => t.XFormIdentifier.Length > 0);
+                if(list.Count()>0)
+                {
+                    return list.Max(t => t.DateSubmitted).Value;
+                }
+                else
+                {
+                    return null;
+                }
+                
             }
         }
         public int CountEformSubmissions
@@ -29,7 +38,7 @@ namespace NSAP_ODK.Entities.Database
         }
         public List<OrphanedLandingSite> OrphanedLandingSites()
         {
-            var items= LandingSiteSamplingCollection
+            var items = LandingSiteSamplingCollection
                 .Where(t => t.LandingSiteID == null)
                 .OrderBy(t => t.LandingSiteName)
                 .GroupBy(t => t.LandingSiteName).ToList();
@@ -47,6 +56,24 @@ namespace NSAP_ODK.Entities.Database
             }
 
             return list;
+
+        }
+
+        public LandingSiteSampling GetLandingSiteSampling(OrphanedLandingSite ols, LandingSite replacement, DateTime samplingDate)
+        {
+            List<LandingSiteSampling> samplings = new List<LandingSiteSampling>();
+            samplings = LandingSiteSamplingCollection.Where(t => t.FishingGround.Code == ols.FishingGround.Code &&
+                                                                 t.LandingSite.LandingSiteID == replacement.LandingSiteID &&
+                                                                 t.SamplingDate.Date == samplingDate.Date).ToList();
+            if(samplings.Count>0)
+            {
+                return samplings.FirstOrDefault();
+            }
+            else
+            {
+                return null;
+            }
+            
 
         }
         public LandingSiteSamplingViewModel()
@@ -71,7 +98,7 @@ namespace NSAP_ODK.Entities.Database
             return LandingSiteSamplings.ClearTable();
         }
 
-        public List<LandingSiteSamplingFlattened>GetAllFlattenedItems()
+        public List<LandingSiteSamplingFlattened> GetAllFlattenedItems()
         {
             List<LandingSiteSamplingFlattened> thisList = new List<LandingSiteSamplingFlattened>();
             foreach (var item in LandingSiteSamplingCollection)
@@ -90,11 +117,11 @@ namespace NSAP_ODK.Entities.Database
 
         public LandingSiteSampling getLandingSiteSampling(FromJson.VesselLanding landing)
         {
-            if(landing.LandingSiteText!=null &&   landing.LandingSiteText.Length>0)
+            if (landing.LandingSiteText != null && landing.LandingSiteText.Length > 0)
             {
                 return LandingSiteSamplingCollection
                     .Where(t => t.LandingSiteText == landing.LandingSiteText)
-                    .Where(t => t.FishingGroundID ==  landing.FishingGround.Code)
+                    .Where(t => t.FishingGroundID == landing.FishingGround.Code)
                     .Where(t => t.SamplingDate.Date == landing.SamplingDate.Date).FirstOrDefault();
             }
             else
@@ -139,7 +166,7 @@ namespace NSAP_ODK.Entities.Database
                 case NotifyCollectionChangedAction.Add:
                     {
                         int newIndex = e.NewStartingIndex;
-                        EditSuccess= LandingSiteSamplings.Add(LandingSiteSamplingCollection[newIndex]);
+                        EditSuccess = LandingSiteSamplings.Add(LandingSiteSamplingCollection[newIndex]);
                     }
                     break;
 

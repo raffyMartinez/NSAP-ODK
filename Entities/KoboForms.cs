@@ -151,10 +151,24 @@ namespace NSAP_ODK.Entities
                 switch(KoboFormType)
                 {
                     case KoboFormType.FormTypeCatchAndEffort:
-                        lastSaveDate=NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.Max(t => t.DateTimeSubmitted).ToString("MMM-dd-yyyy HH:mm:ss");
+                        if (NSAPEntities.VesselUnloadViewModel.Count > 0)
+                        {
+                            lastSaveDate = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.Max(t => t.DateTimeSubmitted).ToString("MMM-dd-yyyy HH:mm:ss");
+                        }
                         break;
                     case KoboFormType.FormTypeVesselCountAndCatchEstimate:
-                        lastSaveDate = NSAPEntities.LandingSiteSamplingViewModel.LatestEformSubmissionDate.ToString("MMM-dd-yyyy HH:mm:ss");
+                        if (NSAPEntities.LandingSiteSamplingViewModel.Count > 0)
+                        {
+                            var lastDate = NSAPEntities.LandingSiteSamplingViewModel.LatestEformSubmissionDate;
+                            if (lastDate == null)
+                            {
+                                return "";
+                            }
+                            else
+                            {
+                                lastSaveDate = ((DateTime)lastDate).ToString("MMM-dd-yyyy HH:mm:ss");
+                            }
+                        }
                         break;
                 }
 

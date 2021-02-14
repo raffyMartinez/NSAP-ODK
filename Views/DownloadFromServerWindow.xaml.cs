@@ -433,7 +433,7 @@ namespace NSAP_ODK.Views
                         _formID = treeViewItem.Header.ToString();
                         var summary = new FormSummary(_koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)));
                         SetODKServerDownloadType();
-                        if (DateTime.TryParse(summary.LastSaveDateInDatabase, out DateTime v))
+                        if (summary.LastSaveDateInDatabase.Length>0 &&  DateTime.TryParse(summary.LastSaveDateInDatabase, out DateTime v))
                         {
                             _lastSubmittedDate = v;
                         }

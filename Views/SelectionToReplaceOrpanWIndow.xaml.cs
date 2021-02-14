@@ -44,32 +44,32 @@ namespace NSAP_ODK.Views
         public void FillSelection()
         {
             int counter = 0;
-            switch(NSAPEntity)
+            switch (NSAPEntity)
             {
                 case Entities.NSAPEntity.LandingSite:
-                       foreach(var item in  LandingSiteSampling.NSAPRegion.FMAs
-                        .FirstOrDefault(t => t.FMAID == LandingSiteSampling.FMAID).FishingGrounds
-                        .FirstOrDefault(t => t.FishingGroundCode == LandingSiteSampling.FishingGroundID).LandingSites
-                        .OrderBy(t=>t.LandingSite.LandingSiteName)
-                        )
+                    foreach (var item in LandingSiteSampling.NSAPRegion.FMAs
+                     .FirstOrDefault(t => t.FMAID == LandingSiteSampling.FMAID).FishingGrounds
+                     .FirstOrDefault(t => t.FishingGroundCode == LandingSiteSampling.FishingGroundID).LandingSites
+                     .OrderBy(t => t.LandingSite.LandingSiteName))
                     {
-                        if(counter==0)
-                        {
-                            ((RadioButton)panelButtons.Children[0]).Content = item.LandingSite.ToString();
-                            ((RadioButton)panelButtons.Children[0]).Tag = item.LandingSite;
-                        }
-                        else
-                        {
-                            var rb = new RadioButton { Content = item.LandingSite.ToString(),Tag = item.LandingSite};
-                            rb.Checked += OnButtonChecked;
-                            rb.Margin = new Thickness(10, 10, 0, 0);
-                            panelButtons.Children.Add(rb);
-                        }
+                        //if(counter==0)
+                        //{
+                        //RadioButton rb = new RadioButton { Content = item.LandingSite.ToString(), Tag = item.LandingSite };
+                        //panelButtons.Children[0]).Content = item.LandingSite.ToString();
+                        //((RadioButton)panelButtons.Children[0]).Tag = item.LandingSite;
+                        //}
+                        //else
+                        //{
+                        var rb = new RadioButton { Content = item.LandingSite.ToString(), Tag = item.LandingSite };
+                        rb.Checked += OnButtonChecked;
+                        rb.Margin = new Thickness(10, 10, 0, 0);
+                        panelButtons.Children.Add(rb);
+                        //}
                         counter++;
                     }
-                        
-                        
-                        
+
+
+
                     break;
                 case Entities.NSAPEntity.Enumerator:
                     break;
@@ -79,12 +79,12 @@ namespace NSAP_ODK.Views
         }
         private void onButtonClick(object sender, RoutedEventArgs e)
         {
-            switch(((Button)sender).Name)
+            switch (((Button)sender).Name)
             {
                 case "buttonReplace":
-                    if(_selectedButton!=null)
+                    if (_selectedButton != null)
                     {
-                        switch(NSAPEntity)
+                        switch (NSAPEntity)
                         {
                             case NSAPEntity.LandingSite:
                                 ((OrphanItemsManagerWindow)Owner).ReplacementLandingSite = (LandingSite)_selectedButton.Tag;
@@ -92,7 +92,7 @@ namespace NSAP_ODK.Views
                         }
                         Close();
                     }
-                    
+
                     break;
                 case "buttonCancel":
                     Close();

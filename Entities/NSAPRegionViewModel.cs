@@ -212,7 +212,8 @@ namespace NSAP_ODK.Entities
                         {
                             DBSummary smmry = new DBSummary();
                             var landings = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
-                             .Where(t => t.Parent.Parent.LandingSiteText == lsSampling.Key).ToList();
+                             .Where(t => t.Parent.Parent.LandingSiteText == lsSampling.Key &&
+                                    t.Parent.Parent.LandingSiteID==null).ToList();
                             smmry.VesselUnloadCount = landings.Count;
                             smmry.FMA = fma.FMA;
                             smmry.FishingGround = fg.FishingGround;

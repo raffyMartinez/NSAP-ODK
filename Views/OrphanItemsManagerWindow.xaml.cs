@@ -34,12 +34,12 @@ namespace NSAP_ODK.Views
         {
 
         }
-        public LandingSite ReplacementLandingSite 
-        { 
+        public LandingSite ReplacementLandingSite
+        {
             get { return _replacementLandingSite; }
             set
             {
-               _replacementLandingSite=value ;
+                _replacementLandingSite = value;
                 buttonReplace.IsEnabled = true;
             }
         }
@@ -85,14 +85,33 @@ namespace NSAP_ODK.Views
             switch (NSAPEntity)
             {
                 case NSAPEntity.LandingSite:
-                    foreach(OrphanedLandingSite item in dataGrid.Items)
+                    foreach (OrphanedLandingSite selectedOrphanedLandingSite in dataGrid.Items)
                     {
-                        if (item.ForReplacement)
+                        if (selectedOrphanedLandingSite.ForReplacement)
                         {
-                            foreach (var sampling in item.LandingSiteSamplings)
+                            foreach (var samplingWithOrphanedLandingSite in selectedOrphanedLandingSite.LandingSiteSamplings)
+                            //.Where(t=>t.LandingSiteText==selectedOrphanedLandingSite.LandingSiteName &&
+                            //t.LandingSiteID==null))
                             {
-                                sampling.LandingSiteID = ReplacementLandingSite.LandingSiteID;
-                                NSAPEntities.LandingSiteSamplingViewModel.UpdateRecordInRepo(sampling);
+                                //search for duplictes that will happen if we update landing site
+                                //duplication will happen in landing site, fishing ground and sampling date
+                                var sampling = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(selectedOrphanedLandingSite, ReplacementLandingSite, samplingWithOrphanedLandingSite.SamplingDate);
+                                if (sampling != null)
+                                {
+                                    foreach (GearUnload gu in NSAPEntities.GearUnloadViewModel.GetGearUnloads(samplingWithOrphanedLandingSite))
+                                    {
+                                        gu.Parent = sampling;
+                                        NSAPEntities.GearUnloadViewModel.UpdateRecordInRepo(gu);
+                                    }
+                                }
+                                else
+                                {
+                                    sampling.LandingSiteID = ReplacementLandingSite.LandingSiteID;
+                                }
+
+
+                                //sampling.LandingSiteID = ReplacementLandingSite.LandingSiteID;
+                                //NSAPEntities.LandingSiteSamplingViewModel.UpdateRecordInRepo(sampling);
                             }
                         }
                     }
@@ -118,6 +137,12 @@ namespace NSAP_ODK.Views
                 case NSAPEntity.FishingGear:
                     break;
             }
+
+            //if(dataGrid.Items.Count==0)
+            //{
+            //    MessageBox.Show("There are no orphaned items for now","GPX Manager",MessageBoxButton.OK,MessageBoxImage.Information);
+            //    Close();
+            //}
         }
         private void OnButtonClick(object sender, RoutedEventArgs e)
         {
