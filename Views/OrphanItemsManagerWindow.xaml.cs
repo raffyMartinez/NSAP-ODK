@@ -90,8 +90,8 @@ namespace NSAP_ODK.Views
                         if (selectedOrphanedLandingSite.ForReplacement)
                         {
                             foreach (var samplingWithOrphanedLandingSite in selectedOrphanedLandingSite.LandingSiteSamplings)
-                            //.Where(t=>t.LandingSiteText==selectedOrphanedLandingSite.LandingSiteName &&
-                            //t.LandingSiteID==null))
+                            //.Where(t => t.LandingSiteText == selectedOrphanedLandingSite.LandingSiteName &&
+                            //t.LandingSiteID == null))
                             {
                                 //search for duplictes that will happen if we update landing site
                                 //duplication will happen in landing site, fishing ground and sampling date
@@ -101,12 +101,34 @@ namespace NSAP_ODK.Views
                                     foreach (GearUnload gu in NSAPEntities.GearUnloadViewModel.GetGearUnloads(samplingWithOrphanedLandingSite))
                                     {
                                         gu.Parent = sampling;
+                                        gu.LandingSiteSamplingID = gu.Parent.PK;
                                         NSAPEntities.GearUnloadViewModel.UpdateRecordInRepo(gu);
+
+                                        if(gu.GearUsedName=="Stationary liftnet" && gu.Parent.SamplingDate.Date==new DateTime(2021,1,19).Date && gu.Parent.LandingSiteID==138)
+                                        {
+
+                                        }
+
+                                        var otherGearUnload = NSAPEntities.GearUnloadViewModel.getGearUnload(gearUnload: gu, samplingDate: sampling.SamplingDate.Date, ls: sampling.LandingSite);
+                                        if(otherGearUnload!=null)
+                                        {
+                                            otherGearUnload.Boats = gu.Boats;
+                                            otherGearUnload.Catch = gu.Catch;
+                                            gu.Boats = null;
+                                            gu.Catch = null;
+                                            if(NSAPEntities.GearUnloadViewModel.UpdateRecordInRepo(otherGearUnload))
+                                            {
+                                                NSAPEntities.GearUnloadViewModel.UpdateRecordInRepo(gu);
+                                            }
+                                            //NSAPEntities.GearUnloadViewModel.DeleteRecordFromRepo(gu.PK);
+                                        }
                                     }
+
                                 }
                                 else
                                 {
-                                    sampling.LandingSiteID = ReplacementLandingSite.LandingSiteID;
+                                    samplingWithOrphanedLandingSite.LandingSiteID = ReplacementLandingSite.LandingSiteID;
+                                    NSAPEntities.LandingSiteSamplingViewModel.UpdateRecordInRepo(samplingWithOrphanedLandingSite);
                                 }
 
 

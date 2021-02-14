@@ -18,7 +18,7 @@ namespace NSAP_ODK.Entities.Database
             get
             {
                 var list = LandingSiteSamplingCollection.Where(t => t.XFormIdentifier.Length > 0);
-                if(list.Count()>0)
+                if (list.Count() > 0)
                 {
                     return list.Max(t => t.DateSubmitted).Value;
                 }
@@ -26,7 +26,7 @@ namespace NSAP_ODK.Entities.Database
                 {
                     return null;
                 }
-                
+
             }
         }
         public int CountEformSubmissions
@@ -62,18 +62,29 @@ namespace NSAP_ODK.Entities.Database
         public LandingSiteSampling GetLandingSiteSampling(OrphanedLandingSite ols, LandingSite replacement, DateTime samplingDate)
         {
             List<LandingSiteSampling> samplings = new List<LandingSiteSampling>();
-            samplings = LandingSiteSamplingCollection.Where(t => t.FishingGround.Code == ols.FishingGround.Code &&
-                                                                 t.LandingSite.LandingSiteID == replacement.LandingSiteID &&
-                                                                 t.SamplingDate.Date == samplingDate.Date).ToList();
-            if(samplings.Count>0)
-            {
-                return samplings.FirstOrDefault();
-            }
-            else
-            {
-                return null;
-            }
-            
+
+            //if (LandingSiteSamplingCollection.FirstOrDefault(t => t.LandingSiteID == replacement.LandingSiteID) != null)
+            //{
+
+                samplings = LandingSiteSamplingCollection.Where(t => t.LandingSiteID != null &&
+                                                                     t.FishingGround.Code == ols.FishingGround.Code &&
+                                                                     t.LandingSite.LandingSiteID == replacement.LandingSiteID &&
+                                                                     t.SamplingDate.Date == samplingDate.Date).ToList();
+                if (samplings.Count > 0)
+                {
+                   return samplings.FirstOrDefault();
+                }
+                else
+                {
+                    return null;
+                }
+            //}
+            //else
+            //{
+            //    return null;
+            //}
+
+
 
         }
         public LandingSiteSamplingViewModel()

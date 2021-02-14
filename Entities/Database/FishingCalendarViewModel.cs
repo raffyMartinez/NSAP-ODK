@@ -6,11 +6,13 @@ using System.Text;
 using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 namespace NSAP_ODK.Entities.Database
 {
 
     class FishingCalendarDay
     {
+        public List<bool> IsProcessed { get; set; }
         public Gear Gear{ get; set; }
         public string GearName { get; set; }
         public DateTime MonthYear { get; set; }
@@ -74,6 +76,10 @@ namespace NSAP_ODK.Entities.Database
 
                         foreach (var day in item.NumberOfSampledLandings)
                         {
+                            if(day!=null)
+                            {
+
+                            }
                             row[counter.ToString()] = day == null ? "" : day.ToString();
                             counter++;
                         }
@@ -102,6 +108,7 @@ namespace NSAP_ODK.Entities.Database
 
         public FishingCalendarViewModel(List<GearUnload> unloadList)
         {
+            int c = 0;
             List<string> gearNames = new List<string>();
             var fishingCalendarDays = new ObservableCollection<FishingCalendarDay>();
 
@@ -111,10 +118,12 @@ namespace NSAP_ODK.Entities.Database
             if(unloadList.Count>0)
             {
                 FishingCalendarDay calendarDay = null;
-                foreach (var item in unloadList)
+                foreach (var item in unloadList.OrderBy(t=>t.GearUsedName).ThenBy(t=>t.Parent.SamplingDate))
                 {
+
                     if (!gearNames.Contains(item.GearUsedName))
                     {
+                        
                         calendarDay = new FishingCalendarDay
                         {
                             Gear = item.Gear,
@@ -125,6 +134,7 @@ namespace NSAP_ODK.Entities.Database
                         calendarDay.GearUnloads = new List<GearUnload>();
                         calendarDay.NumberOfBoatsPerDay = new List<int?>();
                         calendarDay.TotalCatchPerDay = new List<double?>();
+                        calendarDay.IsProcessed = new List<bool>();
                         calendarDay.NumberOfSampledLandings = new List<int?>();
                         gearNames.Add(item.GearUsedName);
 
@@ -137,6 +147,7 @@ namespace NSAP_ODK.Entities.Database
                                 calendarDay.NumberOfBoatsPerDay.Add(item.Boats);
                                 calendarDay.TotalCatchPerDay.Add(item.Catch);
                                 calendarDay.NumberOfSampledLandings.Add(item.ListVesselUnload.Count);
+                                calendarDay.IsProcessed.Add(true);
                             }
                             else
                             {
@@ -144,6 +155,7 @@ namespace NSAP_ODK.Entities.Database
                                 calendarDay.NumberOfBoatsPerDay.Add(null);
                                 calendarDay.TotalCatchPerDay.Add(null);
                                 calendarDay.NumberOfSampledLandings.Add(null);
+                                calendarDay.IsProcessed.Add(false);
                             }
                         }
 
@@ -152,10 +164,14 @@ namespace NSAP_ODK.Entities.Database
                     else
                     {
                         int day = item.Parent.SamplingDate.Day - 1;
-                        calendarDay.GearUnloads[day] = item;
-                        calendarDay.NumberOfBoatsPerDay[day] = item.Boats;
-                        calendarDay.TotalCatchPerDay[day] = item.Catch;
-                        calendarDay.NumberOfSampledLandings[day] = item.ListVesselUnload.Count;
+                        if (!calendarDay.IsProcessed[day])
+                        {
+                            calendarDay.GearUnloads[day] = item;
+                            calendarDay.NumberOfBoatsPerDay[day] = item.Boats;
+                            calendarDay.TotalCatchPerDay[day] = item.Catch;
+                            calendarDay.NumberOfSampledLandings[day] = item.ListVesselUnload.Count;
+                            calendarDay.IsProcessed[day] = true;
+                        }
                     }
                 }
             }

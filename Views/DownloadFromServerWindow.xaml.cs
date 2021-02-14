@@ -261,7 +261,6 @@ namespace NSAP_ODK.Views
 
 
                                             ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.GotJSONString, JSONString = the_response });
-                                            //KoboAPI.GetUnloadNextRecord();
 
                                             ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ConvertDataToEntities });
 

@@ -40,6 +40,14 @@ namespace NSAP_ODK.Entities.Database
         {
             return GearUnloadCollection.Where(t => t.Parent.PK == parentSampling.PK).ToList();
         }
+
+        public GearUnload getGearUnload(GearUnload gearUnload,DateTime samplingDate, LandingSite ls)
+        {
+            return GearUnloadCollection.Where(t => t.PK!= gearUnload.PK &&
+                                t.GearUsedName == gearUnload.GearUsedName &&
+                                t.Parent.SamplingDate.Date == samplingDate.Date &&
+                                t.Parent.LandingSiteID == ls.LandingSiteID).FirstOrDefault();
+        }
         public void UndoChangesToGearUnloadBoatCatch(List<GearUnload> gearUnloadList)
         {
             if (gearUnloadList != null && gearUnloadList.Count > 0)
