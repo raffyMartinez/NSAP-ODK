@@ -214,19 +214,19 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <TreeView x:Name="treeViewSummary" SelectedItemChanged="OnSummaryTreeItemChanged" Grid.RowSpan="3">
+            <TreeView x:Name="treeViewSummary" SelectedItemChanged="OnSummaryTreeItemChanged" Grid.RowSpan="3" Visibility="Collapsed">
                 <TreeViewItem Header="Overall" x:Name="summaryTreeNodeOverall"/>
                 <TreeViewItem Header="Regions" x:Name="summaryTreeNodeRegion"/>
             </TreeView>
 
-            <Label x:Name="labelSummary" Grid.Column="1" Content="Database summary" FontWeight="Bold" HorizontalAlignment="Center" Margin="0 10 0 20" FontSize="14"/>
+            <Label x:Name="labelSummary" Grid.Column="1" Content="Database summary" FontWeight="Bold" Visibility="Collapsed" HorizontalAlignment="Center" Margin="0 10 0 20" FontSize="14"/>
 
             <xctk:PropertyGrid x:Name="propertyGridSummary" Grid.Column="1" Grid.Row="1" Margin="20"  ShowSortOptions="False" ShowSearchBox="False" Visibility="Collapsed"
                         ShowTitle="False" MouseDoubleClick="OnPropertyGridDblClick"   SelectedPropertyItemChanged="OnPropertyChanged" IsReadOnly="True"/>
 
             <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Column="1" Grid.Row="2">
                 <StackPanel  x:Name="panelOpening">
-                    <CheckBox x:Name="checkLandingSiteWithLandings" Margin="20 0 0 0" Content="Only show landing sites with catch monitoring" Checked="OnCheckBoxChecked" Unchecked="OnCheckBoxChecked"/>
+                    <CheckBox x:Name="checkLandingSiteWithLandings" Margin="20 0 0 0" Visibility="Collapsed" Content="Only show landing sites with catch monitoring" Checked="OnCheckBoxChecked" Unchecked="OnCheckBoxChecked"/>
                     <DataGrid x:Name="dataGridSummary" Visibility="Collapsed" ItemsSource="{Binding}" IsReadOnly="True" Margin="20" LoadingRow="Grid_LoadingRow" RowHeaderWidth="30"/>
                 </StackPanel>
             </ScrollViewer>

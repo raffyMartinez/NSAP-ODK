@@ -1162,6 +1162,7 @@ namespace NSAP_ODK
                                 )
                             {
                                 SetDataDisplayMode();
+                                menuDatabaseSummary.IsChecked = true;
                             }
                             else
                             {
@@ -2029,6 +2030,11 @@ namespace NSAP_ODK
         private void OnSummaryTreeItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             labelSummary.Content = "To be implemented";
+            
+            checkLandingSiteWithLandings.Visibility = Visibility.Visible;
+            treeViewSummary.Visibility = Visibility.Visible;
+            labelSummary.Visibility = Visibility.Visible;
+
             propertyGridSummary.Visibility = Visibility.Collapsed; ;
             dataGridSummary.Visibility = Visibility.Collapsed;
             checkLandingSiteWithLandings.Visibility = Visibility.Collapsed;
