@@ -205,5 +205,10 @@ namespace NSAP_ODK.Views
         {
             e.Row.Header = (e.Row.GetIndex() + 1).ToString();
         }
+
+        private void OnWindowClosed(object sender, EventArgs e)
+        {
+            ((MainWindow)Owner).Focus();
+        }
     }
 }

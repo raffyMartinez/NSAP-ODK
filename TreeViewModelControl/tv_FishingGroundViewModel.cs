@@ -35,20 +35,16 @@ namespace NSAP_ODK.TreeViewModelControl
             base.Children.Add(landingSite);
         }
 
+        private int CountSampledLandings(string lsName)
+        {
+            return NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.Count(t => t.Parent.Parent.NSAPRegionID == _region.Code &&
+                    t.Parent.Parent.FMAID == _fma.FMAID &&
+                    t.Parent.Parent.FishingGroundID == _fishingGround.Code &&
+                    t.Parent.Parent.LandingSiteName == lsName);
+        }
+
         protected override void LoadChildren()
         {
-            //foreach(var fma in _region.FMAs 
-            //.Where(t => t.FMAID == _fma.FMAID))
-            //{
-            //    foreach (var fishingGround in fma.FishingGrounds)
-            //    {
-            //        foreach (var landingSite in fishingGround.LandingSites
-            //            .Where(t=>t.NSAPRegionFMAFishingGround.FishingGroundCode==_fishingGround.Code))
-            //        {
-            //            base.Children.Add(new tv_LandingSiteViewModel(landingSite.LandingSite, this));
-            //        }
-            //    }
-            //}
 
             var thisList = new List<string>();
             foreach (var item in NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection
@@ -56,7 +52,7 @@ namespace NSAP_ODK.TreeViewModelControl
                 .Where(t => t.FMAID == _fma.FMAID)
                 .Where(t => t.FishingGroundID == _fishingGround.Code))
             {
-                if(!thisList.Contains(item.LandingSiteName))
+                if(!thisList.Contains(item.LandingSiteName) && CountSampledLandings(item.LandingSiteName)>0)
                 {
                     thisList.Add(item.LandingSiteName);
                 }

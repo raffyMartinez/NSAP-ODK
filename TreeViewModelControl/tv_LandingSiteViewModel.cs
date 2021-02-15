@@ -13,6 +13,7 @@ namespace NSAP_ODK.TreeViewModelControl
         public readonly FMA _fma;
         public readonly NSAPRegion _region;
         public readonly string _landingSiteText;
+        //public readonly int _numberOfSampledLandings;
         public tv_LandingSiteViewModel(LandingSite landingSite, tv_FishingGroundViewModel parent, string landingSiteText = "") : base(parent, true)
         {
             _landingSite = landingSite;
@@ -20,6 +21,7 @@ namespace NSAP_ODK.TreeViewModelControl
             _fma = parent._fma;
             _region = parent._region;
             _landingSiteText = landingSiteText;
+            //_numberOfSampledLandings = NSAPEntities.VesselUnloadViewModel
         }
 
 

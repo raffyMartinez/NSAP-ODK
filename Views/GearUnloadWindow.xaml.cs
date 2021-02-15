@@ -154,5 +154,9 @@ namespace NSAP_ODK.Views
                 
         }
 
+        private void OnWindowClosed(object sender, EventArgs e)
+        {
+            ((MainWindow)Owner).Focus();
+        }
     }   
 }

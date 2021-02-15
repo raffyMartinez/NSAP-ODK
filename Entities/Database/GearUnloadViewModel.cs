@@ -23,8 +23,8 @@ namespace NSAP_ODK.Entities.Database
 
         public int CountCompletedGearUnload
         {
-           //get { return GearUnloadCollection.Where(t => t.Boats != null).Where(t => t.Catch != null).Count(); }
-           get { return GearUnloadCollection.Count(t => (t.Catch!=null && t.Boats!=null)); }
+            //get { return GearUnloadCollection.Where(t => t.Boats != null).Where(t => t.Catch != null).Count(); }
+            get { return GearUnloadCollection.Count(t => (t.Catch != null && t.Boats != null)); }
         }
         public List<GearUnload> GetAllGearUnloads()
         {
@@ -36,17 +36,40 @@ namespace NSAP_ODK.Entities.Database
         /// </summary>
         /// <param name="parentSampling"></param>
         /// <returns></returns>
-        public List<GearUnload>GetGearUnloads(LandingSiteSampling parentSampling)
+        public List<GearUnload> GetGearUnloads(LandingSiteSampling parentSampling)
         {
             return GearUnloadCollection.Where(t => t.Parent.PK == parentSampling.PK).ToList();
         }
 
-        public GearUnload getGearUnload(GearUnload gearUnload,DateTime samplingDate, LandingSite ls)
+
+        /// <summary>
+        /// Returns  gear unload with similar gear, landing site and data of sampling of input gear unload
+        /// </summary>
+        /// <param name="gearUnload"></param>
+        /// <param name="samplingDate"></param>
+        /// <param name="ls"></param>
+        /// <returns></returns>
+        public GearUnload getOtherGearUnload(GearUnload gearUnload, DateTime samplingDate, LandingSite ls)
         {
-            return GearUnloadCollection.Where(t => t.PK!= gearUnload.PK &&
+            return GearUnloadCollection.Where(t => t.PK != gearUnload.PK &&
                                 t.GearUsedName == gearUnload.GearUsedName &&
                                 t.Parent.SamplingDate.Date == samplingDate.Date &&
                                 t.Parent.LandingSiteID == ls.LandingSiteID).FirstOrDefault();
+        }
+
+
+        /// <summary>
+        /// returns gear unload having the same gear, sampling date and landing site of input gear unload
+        /// </summary>
+        /// <param name="gearUnload"></param>
+        /// <param name="sampling"></param>
+        /// <returns></returns>
+        public GearUnload getOtherGearUnload(GearUnload gearUnload)
+        {
+            return GearUnloadCollection.Where(t => t.PK != gearUnload.PK &&
+                                t.GearUsedName == gearUnload.GearUsedName &&
+                                t.Parent.SamplingDate.Date ==  gearUnload.Parent.SamplingDate.Date &&
+                                t.Parent.LandingSiteID == gearUnload.Parent.LandingSite.LandingSiteID).FirstOrDefault();
         }
         public void UndoChangesToGearUnloadBoatCatch(List<GearUnload> gearUnloadList)
         {
@@ -64,7 +87,7 @@ namespace NSAP_ODK.Entities.Database
 
         public void SaveChangesToBoatAndCatch(List<GearUnload> listToSave)
         {
-            foreach(var item in listToSave)
+            foreach (var item in listToSave)
             {
                 try
                 {
@@ -75,7 +98,7 @@ namespace NSAP_ODK.Entities.Database
                         UpdateRecordInRepo(item);
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Logger.Log(ex);
                 }
@@ -89,7 +112,7 @@ namespace NSAP_ODK.Entities.Database
             CopyOfGearUnloadList = new List<GearUnload>();
             var list = new List<GearUnload>();
             string ls = "";
-            switch(parameters.ContextMenuTopic)
+            switch (parameters.ContextMenuTopic)
             {
                 case "contextMenuGearUnloadMonth":
                     ls = parameters.LandingSite == null ? parameters.LandingSiteText : parameters.LandingSite.LandingSiteName;
@@ -98,8 +121,8 @@ namespace NSAP_ODK.Entities.Database
                         .Where(t => t.Parent.FMAID == parameters.FMA.FMAID)
                         .Where(t => t.Parent.FishingGroundID == parameters.FishingGround.Code)
                         .Where(t => t.Parent.LandingSiteName == ls)
-                        .Where(t=>t.Parent.SamplingDate.Year==((DateTime)parameters.MonthSampled).Year)
-                        .Where(t=>t.Parent.SamplingDate.Month==((DateTime)parameters.MonthSampled).Month)
+                        .Where(t => t.Parent.SamplingDate.Year == ((DateTime)parameters.MonthSampled).Year)
+                        .Where(t => t.Parent.SamplingDate.Month == ((DateTime)parameters.MonthSampled).Month)
                         .OrderBy(t => t.Parent.LandingSiteName)
                         .ThenBy(t => t.Parent.SamplingDate).ToList();
                     break;
@@ -114,7 +137,7 @@ namespace NSAP_ODK.Entities.Database
                         .ThenBy(t => t.Parent.SamplingDate).ToList();
                     break;
                 case "contextMenuGearUnloadFishingGround":
-                    
+
                     list = GearUnloadCollection
                         .Where(t => t.Parent.NSAPRegionID == parameters.NSAPRegion.Code)
                         .Where(t => t.Parent.FMAID == parameters.FMA.FMAID)
@@ -173,7 +196,7 @@ namespace NSAP_ODK.Entities.Database
             return list;
         }
 
-        public List<GearUnload>GetAllGearUnloads(DateTime dateAddedToDatabase, bool createCopyOfList=true)
+        public List<GearUnload> GetAllGearUnloads(DateTime dateAddedToDatabase, bool createCopyOfList = true)
         {
             CopyOfGearUnloadList = new List<GearUnload>();
 
@@ -189,12 +212,12 @@ namespace NSAP_ODK.Entities.Database
                     .ThenBy(t => t.Parent.SamplingDate)
                     .ThenBy(t => t.GearUsedName)
                     .ToList();
-            
 
-            if(createCopyOfList)
+
+            if (createCopyOfList)
             {
                 var newList = new List<GearUnload>();
-                foreach(var item in list)
+                foreach (var item in list)
                 {
                     var gu = new GearUnload
                     {
@@ -209,9 +232,9 @@ namespace NSAP_ODK.Entities.Database
 
             return list;
 
-                
+
         }
-        public List<GearUnloadFlattened>GetAllFlattenedItems()
+        public List<GearUnloadFlattened> GetAllFlattenedItems()
         {
             List<GearUnloadFlattened> thisList = new List<GearUnloadFlattened>();
             foreach (var item in GearUnloadCollection)
@@ -259,7 +282,7 @@ namespace NSAP_ODK.Entities.Database
                 case NotifyCollectionChangedAction.Add:
                     {
                         int newIndex = e.NewStartingIndex;
-                        EditSuccess= GearUnloads.Add(GearUnloadCollection[newIndex]);
+                        EditSuccess = GearUnloads.Add(GearUnloadCollection[newIndex]);
                     }
                     break;
 
@@ -273,7 +296,7 @@ namespace NSAP_ODK.Entities.Database
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<GearUnload> tempList = e.NewItems.OfType<GearUnload>().ToList();
-                        EditSuccess= GearUnloads.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        EditSuccess = GearUnloads.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }

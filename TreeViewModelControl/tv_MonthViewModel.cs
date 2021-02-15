@@ -14,6 +14,7 @@ namespace NSAP_ODK.TreeViewModelControl
         public readonly FMA _fma;
         public readonly NSAPRegion _nsapRegion;
         public readonly string _landingSiteName;
+
         public tv_MonthViewModel(string month, tv_LandingSiteViewModel parent):base(parent,true)
         {
             _month = month;
@@ -23,6 +24,8 @@ namespace NSAP_ODK.TreeViewModelControl
             _fma = parent._fma;
             _nsapRegion = parent._region;
         }
+
+
         public string Name
         {
             get { return DateTime.Parse(_month).ToString("MMM-yyyy"); }

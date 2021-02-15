@@ -104,12 +104,9 @@ namespace NSAP_ODK.Views
                                         gu.LandingSiteSamplingID = gu.Parent.PK;
                                         NSAPEntities.GearUnloadViewModel.UpdateRecordInRepo(gu);
 
-                                        if(gu.GearUsedName=="Stationary liftnet" && gu.Parent.SamplingDate.Date==new DateTime(2021,1,19).Date && gu.Parent.LandingSiteID==138)
-                                        {
 
-                                        }
-
-                                        var otherGearUnload = NSAPEntities.GearUnloadViewModel.getGearUnload(gearUnload: gu, samplingDate: sampling.SamplingDate.Date, ls: sampling.LandingSite);
+                                        //var otherGearUnload = NSAPEntities.GearUnloadViewModel.getGearUnload(gearUnload: gu, samplingDate: sampling.SamplingDate.Date, ls: sampling.LandingSite);
+                                        var otherGearUnload = NSAPEntities.GearUnloadViewModel.getOtherGearUnload(gearUnload: gu);
                                         if(otherGearUnload!=null)
                                         {
                                             otherGearUnload.Boats = gu.Boats;

@@ -108,6 +108,9 @@ namespace NSAP_ODK.Entities.Database
 
         public FishingCalendarViewModel(List<GearUnload> unloadList)
         {
+
+            if (unloadList.Count == 0) return;
+
             int c = 0;
             List<string> gearNames = new List<string>();
             var fishingCalendarDays = new ObservableCollection<FishingCalendarDay>();
