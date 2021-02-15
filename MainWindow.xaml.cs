@@ -189,7 +189,9 @@ namespace NSAP_ODK
             gridCalendarHeader.Visibility = Visibility.Collapsed;
             samplingTree.Visibility = Visibility.Collapsed;
             treeViewDownloadHistory.Visibility = Visibility.Collapsed;
-            
+
+
+
         }
 
 
@@ -249,6 +251,7 @@ namespace NSAP_ODK
                         summaryTreeNodeRegion.Items.Add(item);
                     }
                     summaryTreeNodeOverall.IsSelected = true;
+
                     break;
             }
         }
@@ -1997,12 +2000,16 @@ namespace NSAP_ODK
 
         private void ProcessSummaryTreeSelection(TreeViewItem tvItem)
         {
+            rowSummaryDataGrid.Height = new GridLength(1, GridUnitType.Star);
+            rowOverallSummary.Height = new GridLength(0);
             switch (tvItem.Header.ToString())
             {
                 case "Overall":
                     ShowSummary();
+                    rowSummaryDataGrid.Height = new GridLength(0);
+                    rowOverallSummary.Height = new GridLength(1,GridUnitType.Star);
                     break;
-                case "Region":
+                case "Regions":
                     ShowSummaryAtLevel(SummaryLevelType.AllRegions);
                     break;
                 default:

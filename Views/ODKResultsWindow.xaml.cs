@@ -10,6 +10,8 @@ using System.Windows.Threading;
 using NSAP_ODK.Entities.Database.FromJson;
 using System.Windows.Media;
 using System.Diagnostics;
+using NSAP_ODK.Entities;
+using System.Linq;
 
 namespace NSAP_ODK.Views
 {
@@ -97,7 +99,7 @@ namespace NSAP_ODK.Views
                 {
                     //we uncheck and check to force menu check to proceed
                     menuViewEffort.IsChecked = false;
-                    menuViewEffort.IsChecked = true;   
+                    menuViewEffort.IsChecked = true;
                 }
                 else
                 {
@@ -141,7 +143,7 @@ namespace NSAP_ODK.Views
                     switch (_odkServerDownload)
                     {
                         case ODKServerDownload.ServerDownloadVesselUnload:
-                            if(!menu.Name.Contains("menuViewLandingSite"))
+                            if (!menu.Name.Contains("menuViewLandingSite"))
                             {
                                 menu.Visibility = Visibility.Visible;
                             }
@@ -156,17 +158,17 @@ namespace NSAP_ODK.Views
                 }
             }
         }
-        public List<LandingSiteBoatLandingFromServer>MainSheetsLanding
+        public List<LandingSiteBoatLandingFromServer> MainSheetsLanding
         {
             get { return _mainSheetsLanding; }
             set
             {
-                
+
                 menuSaveToExcel.Visibility = Visibility.Visible;
                 _mainSheetsLanding = value;
                 _isJSONData = true;
 
-                if(menuViewLandingSiteSampling.IsChecked)
+                if (menuViewLandingSiteSampling.IsChecked)
                 {
                     ShowResultFromAPI("landingSiteSampling");
                 }
@@ -177,7 +179,7 @@ namespace NSAP_ODK.Views
                 SetMenuViewVisibility();
             }
 
-            
+
         }
         public List<VesselLanding> MainSheets
         {
@@ -203,25 +205,26 @@ namespace NSAP_ODK.Views
                 SetMenuViewVisibility();
             }
         }
-        public string ExcelFileDownloaded {
+        public string ExcelFileDownloaded
+        {
             get { return _excelDownloaded; }
-            set 
+            set
             {
                 menuSaveToExcel.Visibility = Visibility.Collapsed;
                 _isJSONData = false;
-                _excelDownloaded =value;
+                _excelDownloaded = value;
                 ImportExcel.ExcelFileName = _excelDownloaded;
-                if(menuViewEffort.IsChecked)
+                if (menuViewEffort.IsChecked)
                 {
                     //ShowResultFromAPI("effort");
                     ShowResultFromExcel("effort");
                 }
                 else
-                { 
+                {
                     menuViewEffort.IsChecked = true;
-                 }
-                
-            } 
+                }
+
+            }
         }
         private async void OnMenuClick(object sender, RoutedEventArgs e)
         {
@@ -269,26 +272,26 @@ namespace NSAP_ODK.Views
                     }
                     break;
                 case "menuSaveToExcel":
-                    if(dataGridExcel.ItemsSource!=null)
+                    if (dataGridExcel.ItemsSource != null)
                     {
-                            string filePath;
-                            string exportResult;
-                            if (ExportExcel.GetSaveAsExcelFileName(this, out filePath))
+                        string filePath;
+                        string exportResult;
+                        if (ExportExcel.GetSaveAsExcelFileName(this, out filePath))
+                        {
+                            EntitiesToDataTables.VesselLandings = VesselUnloadServerRepository.VesselLandings;
+                            if (ExportExcel.ExportDatasetToExcel(EntitiesToDataTables.GenerateDataSeFromImport(), filePath))
                             {
-                                EntitiesToDataTables.VesselLandings = VesselUnloadServerRepository.VesselLandings;
-                                if (ExportExcel.ExportDatasetToExcel(EntitiesToDataTables.GenerateDataSeFromImport(), filePath))
-                                {
-                                    exportResult = "Successfully exported to excel";
-                                }
-                                else
-                                {
-                                    exportResult = $"Was not successfull in exporting to excel\r\n{ExportExcel.ErrorMessage}";
-                                }
-
-                                MessageBox.Show(exportResult, "Export", MessageBoxButton.OK, MessageBoxImage.Information);
+                                exportResult = "Successfully exported to excel";
                             }
-                        
-                        
+                            else
+                            {
+                                exportResult = $"Was not successfull in exporting to excel\r\n{ExportExcel.ErrorMessage}";
+                            }
+
+                            MessageBox.Show(exportResult, "Export", MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
+
+
                     }
                     break;
                 case "menuDownloadFromServer":
@@ -298,7 +301,7 @@ namespace NSAP_ODK.Views
                     serverForm.ShowDialog();
                     break;
                 case "menuClearTables":
-                    if(ImportExcel.ClearNSAPDatabaseTables())
+                    if (ImportExcel.ClearNSAPDatabaseTables())
                     {
                         MessageBox.Show("All repo cleared");
                     }
@@ -356,16 +359,24 @@ namespace NSAP_ODK.Views
                             }
                         }
                     }
-                    else if(ODKServerDownload==ODKServerDownload.ServerDownloadLandings)
+                    else if (ODKServerDownload == ODKServerDownload.ServerDownloadLandings)
                     {
-                        if(_isJSONData)
+                        if (_isJSONData)
                         {
-                            if(await LandingSiteBoatLandingsFromServerRepository.UploadToDBAsync())
+                            if (await LandingSiteBoatLandingsFromServerRepository.UploadToDBAsync())
                             {
                                 dataGridExcel.ItemsSource = null;
                                 dataGridExcel.ItemsSource = LandingSiteBoatLandingsFromServerRepository.LandingSiteBoatLandings;
+                                int result = NSAPEntities.GearUnloadViewModel.FixGearUnload();
                                 success = true;
-                                MessageBox.Show("Finished uploading to database", "Upload done", MessageBoxButton.OK, MessageBoxImage.Information);
+                                if (result > 0)
+                                {
+                                    MessageBox.Show($"Finished uploading to database and fixed {result} gear unloads", "Upload done", MessageBoxButton.OK, MessageBoxImage.Information);
+                                }
+                                else
+                                {
+                                    MessageBox.Show("Finished uploading to database", "Upload done", MessageBoxButton.OK, MessageBoxImage.Information);
+                                }
                             }
                             else if (_savedCount == 0 && LandingSiteBoatLandingsFromServerRepository.LandingSiteBoatLandings.Count > 0)
                             {
@@ -378,7 +389,7 @@ namespace NSAP_ODK.Views
                         }
                     }
 
-                    if(success)
+                    if (success)
                     {
                         ParentWindow.RefreshDownloadHistory();
                     }
@@ -392,9 +403,10 @@ namespace NSAP_ODK.Views
             }
         }
 
+
         private void OnUploadSubmissionToDB(object sender, UploadToDbEventArg e)
         {
-            switch(e.Intent)
+            switch (e.Intent)
             {
                 case UploadToDBIntent.EndOfUpload:
                     progressBar.Dispatcher.BeginInvoke
@@ -436,17 +448,17 @@ namespace NSAP_ODK.Views
                         (
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                             {
-                               progressBar.Value = e.VesselUnloadSavedCount;
-                               //do what you need to do on UI Thread
-                               return null;       
-                             }
+                                progressBar.Value = e.VesselUnloadSavedCount;
+                                //do what you need to do on UI Thread
+                                return null;
+                            }
                          ), null);
 
                     labelProgress.Dispatcher.BeginInvoke
                         (
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
-                              labelProgress.Content=$"Uploading {(int)progressBar.Value} of {(int)progressBar.Maximum} submissions";
+                              labelProgress.Content = $"Uploading {(int)progressBar.Value} of {(int)progressBar.Maximum} submissions";
                               //do what you need to do on UI Thread
                               return null;
                           }
@@ -505,7 +517,7 @@ namespace NSAP_ODK.Views
                 case "landingSiteCounts":
                     dataGridExcel.ItemsSource = LandingSiteBoatLandingsFromServerRepository.GetLandings();
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("Parent.user_name") });
-                    
+
                     col = new DataGridTextColumn()
                     {
                         Binding = new Binding("Parent.SamplingDate"),
@@ -864,7 +876,7 @@ namespace NSAP_ODK.Views
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Weight of sample", Binding = new Binding("CatchWeightSampled") });
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Number of boxes", Binding = new Binding("BoxesTotal") });
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Number of boxes sampled", Binding = new Binding("BoxesSampled") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Raising factor", Binding = new Binding("RaisingFactor")});
+                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Raising factor", Binding = new Binding("RaisingFactor") });
                     dataGridExcel.Columns.Add(new DataGridCheckBoxColumn { Header = "Vessel tracking", Binding = new Binding("TripIsTracked") });
 
                     col = new DataGridTextColumn()
@@ -1083,7 +1095,7 @@ namespace NSAP_ODK.Views
         private void OnMenuItemChecked(object sender, RoutedEventArgs e)
         {
             var menuTag = ((MenuItem)sender).Tag.ToString();
-            menuUpload.IsEnabled = menuTag == "effort" || menuTag=="landingSiteSampling";
+            menuUpload.IsEnabled = menuTag == "effort" || menuTag == "landingSiteSampling";
             if (_isJSONData)
             {
                 ShowResultFromAPI(menuTag);
@@ -1096,21 +1108,21 @@ namespace NSAP_ODK.Views
             switch (menuTag)
             {
                 case "effortSpecs":
-                    
-                    if(VesselUnloadServerRepository.DuplicatedEffortSpec.Count > 0)
+
+                    if (VesselUnloadServerRepository.DuplicatedEffortSpec.Count > 0)
                     {
                         labelDuplicated.Content = "Effort specs are duplicated";
                     }
                     break;
                 case "catchComposition":
-                    
+
                     if (VesselUnloadServerRepository.DuplicatedCatchComposition.Count > 0)
                     {
                         labelDuplicated.Content = "Catch composition items are duplicated";
                     }
                     break;
                 case "lengthFreq":
-                    
+
                     if (VesselUnloadServerRepository.DuplicatedCatchComposition.Count > 0)
                     {
                         labelDuplicated.Content = "Length classes are duplicated";
@@ -1148,7 +1160,7 @@ namespace NSAP_ODK.Views
 
         private void OnDataGridLoadingRow(object sender, DataGridRowEventArgs e)
         {
-            e.Row.Header= (e.Row.GetIndex()+1).ToString();
+            e.Row.Header = (e.Row.GetIndex() + 1).ToString();
         }
 
         private void OnMenuClicked(object sender, RoutedEventArgs e)

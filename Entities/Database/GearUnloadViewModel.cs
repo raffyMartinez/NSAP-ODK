@@ -31,6 +31,35 @@ namespace NSAP_ODK.Entities.Database
             return GearUnloadCollection.ToList();
         }
 
+        public int FixGearUnload()
+        {
+            int count = 0;
+            foreach (var gu in GearUnloadCollection
+                .Where(t => t.Parent.LandingSite != null && t.Parent.XFormIdentifier != null &&
+                t.Parent.XFormIdentifier.Length > 0 && (t.Boats != null || t.Catch != null))
+                .OrderByDescending(t => t.Parent.DateAdded))
+            {
+
+                var otherUnload = getOtherGearUnload(gu);
+                if (otherUnload != null)
+                {
+                    otherUnload.Boats = gu.Boats;
+                    otherUnload.Catch = gu.Catch;
+                    if (UpdateRecordInRepo(otherUnload))
+                    {
+                        gu.Boats = null;
+                        gu.Catch = null;
+                        if (UpdateRecordInRepo(gu))
+                        {
+                            count++;
+                        }
+                    }
+                }
+            }
+            return count;
+
+        }
+
         /// <summary>
         /// Returns a list of gear unload whose parent is the input landing site sampling
         /// </summary>
@@ -68,7 +97,7 @@ namespace NSAP_ODK.Entities.Database
         {
             return GearUnloadCollection.Where(t => t.PK != gearUnload.PK &&
                                 t.GearUsedName == gearUnload.GearUsedName &&
-                                t.Parent.SamplingDate.Date ==  gearUnload.Parent.SamplingDate.Date &&
+                                t.Parent.SamplingDate.Date == gearUnload.Parent.SamplingDate.Date &&
                                 t.Parent.LandingSiteID == gearUnload.Parent.LandingSite.LandingSiteID).FirstOrDefault();
         }
         public void UndoChangesToGearUnloadBoatCatch(List<GearUnload> gearUnloadList)

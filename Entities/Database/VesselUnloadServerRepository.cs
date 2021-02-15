@@ -1087,7 +1087,16 @@ namespace NSAP_ODK.Entities.Database.FromJson
                 }
                 else
                 {
-                    return NSAPEntities.FishingVesselViewModel.GetFishingVessel((int)BoatUsed).ToString();
+                    var boatUsed = NSAPEntities.FishingVesselViewModel.GetFishingVessel((int)BoatUsed);
+                    if (boatUsed == null)
+                    {
+                        return "";
+                    }
+                    else
+                    {
+
+                      return boatUsed.ToString();
+                    }
                 }
             }
         }
