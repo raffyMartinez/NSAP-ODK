@@ -38,6 +38,7 @@
     <Grid x:Name="GridMain">
         <Grid.RowDefinitions>
             <RowDefinition Height="20" x:Name="rowMenu" />
+            <RowDefinition Height="34" x:Name="rowToolbar" />
             <RowDefinition Height="30" x:Name="rowTopLabel" />
             <RowDefinition Height="*" x:Name="rowDashboard"/>
             <RowDefinition Height="*" x:Name="rowODKData"/>
@@ -52,7 +53,7 @@
         </Grid.ColumnDefinitions>
 
         <!--buttons on the right of the screen-->
-        <StackPanel Grid.Row="2" Grid.Column="1" Grid.RowSpan="4" x:Name="PanelButtons">
+        <StackPanel Grid.Row="3" Grid.Column="1" Grid.RowSpan="4" x:Name="PanelButtons">
             <Button Content="Add" Margin="10" Height="30" x:Name="buttonAdd" Click="OnButtonClick" />
             <Button Content="Import" Margin="10" Height="30" x:Name="buttonImport" Click="OnButtonClick" Visibility="Collapsed"/>
             <Button Content="Edit" Margin="10" Height="30" x:Name="buttonEdit" Click="OnButtonClick" />
@@ -126,16 +127,53 @@
 
         </Menu>
 
-        <Label Grid.ColumnSpan="2" Content="This is a label" x:Name="labelTitle" Grid.Row="1" />
+
+
+        <!--first row for toolbar menu-->
+        <ToolBarTray Grid.Row="1" Height="34" Grid.ColumnSpan="2">
+            <ToolBar Height="32" Width="Auto" >
+
+
+                <Button x:Name="buttonCalendar" Click="OnToolbarButtonClick" ToolTip="Trip calendar" >
+                    <Image Source="pack://siteoforigin:,,,/Resources/calendar2.png" OpacityMask="White" />
+                </Button>
+
+                <Button x:Name="buttonDownloadHistory" Click="OnToolbarButtonClick" ToolTip="Download history" >
+                    <Image Source="pack://siteoforigin:,,,/Resources/download to oval.png" OpacityMask="White" />
+                </Button>
+
+                <Button x:Name="buttonSummary" Click="OnToolbarButtonClick" ToolTip="Summary" >
+                    <Image Source="pack://siteoforigin:,,,/Resources/table1.png" OpacityMask="White" />
+                </Button>
+
+                <Button x:Name="buttonGeneratecsv" Click="OnToolbarButtonClick" ToolTip="Generate CSV">
+                    <Image Source="pack://siteoforigin:,,,/Resources/CSV.png" OpacityMask="White" />
+                </Button>
+
+                <Button x:Name="buttonSettings" Click="OnToolbarButtonClick" ToolTip="Settings">
+                    <Image Source="pack://siteoforigin:,,,/Resources/gears.png" OpacityMask="White" />
+                </Button>
+                <Button x:Name="buttonAbout" Click="OnToolbarButtonClick" ToolTip="About this software">
+                    <Image Source="pack://siteoforigin:,,,/Resources/question.png" OpacityMask="White" />
+                </Button>
+                <Button x:Name="buttonExit" Click="OnToolbarButtonClick" ToolTip="Close">
+                    <Image Source="pack://siteoforigin:,,,/Resources/exit.png" OpacityMask="White" />
+                </Button>
+            </ToolBar>
+        </ToolBarTray>
+
+
+        <!--label for selected entity -->
+        <Label Grid.ColumnSpan="2" Content="This is a label" x:Name="labelTitle" Grid.Row="2" Visibility="Collapsed" VerticalAlignment="Bottom" FontWeight="Bold" FontSize="13"/>
 
         <!--dashboad row, currently empty-->
-        <StackPanel x:Name="StackPanelDashboard" Grid.Row="2" Grid.ColumnSpan="2">
+        <StackPanel x:Name="StackPanelDashboard" Grid.Row="3" Grid.ColumnSpan="2">
             <!--TODO: place dashboard items here-->
         </StackPanel>
 
 
         <!--for calendar grid view and tree view-->
-        <Grid x:Name="GridODKData" Grid.Row="3" Grid.ColumnSpan="2">
+        <Grid x:Name="GridODKData" Grid.Row="4" Grid.ColumnSpan="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*" x:Name="ColumnForTreeView"/>
                 <ColumnDefinition Width="8*"/>
@@ -188,22 +226,21 @@
 
         <!--species row-->
         <DataGrid  Margin="10" x:Name="dataGridSpecies" RowHeaderWidth="NaN" ItemsSource="{Binding}" Visibility="Collapsed"
-                      Grid.Row="4" AutoGenerateColumns="false" IsReadOnly="True" SelectionChanged="OnDataGridSelectionChanged"
+                      Grid.Row="5" AutoGenerateColumns="false" IsReadOnly="True" SelectionChanged="OnDataGridSelectionChanged"
                       LoadingRow="Grid_LoadingRow" MouseDoubleClick="OnGridDoubleClick" />
 
 
 
         <!--row for entities-->
-        <Grid Grid.Row="5">
+        <Grid Grid.Row="6">
             <DataGrid ItemsSource="{Binding}" AutoGenerateColumns="False" Margin="10" Visibility="Collapsed"
                       x:Name="dataGridEntities" IsReadOnly="True" LoadingRow="Grid_LoadingRow"
                       MouseDoubleClick="OnGridDoubleClick" SelectionChanged="OnDataGridSelectionChanged"/>
-
         </Grid>
 
 
         <!--row for summary-->
-        <Grid Grid.Row="6" Grid.ColumnSpan="2">
+        <Grid Grid.Row="7" Grid.ColumnSpan="2">
             <Grid.RowDefinitions>
                 <RowDefinition Height="60" x:Name="rowSummaryLabel"/>
                 <RowDefinition x:Name="rowOverallSummary" />
@@ -233,7 +270,7 @@
         </Grid>
 
         <!--row for status bar-->
-        <StatusBar Grid.Row="7" Grid.ColumnSpan="2" Margin="0" >
+        <StatusBar Grid.Row="8" Grid.ColumnSpan="2" Margin="0" >
             <Label Content="database path" Margin="5 0 0 0" Width="Auto" x:Name="dbPathLabel"/>
             <ProgressBar Width="200" Height="15" x:Name="mainStatusBar" />
             <Label Content="Status bar label" Margin="5 0 0 0" x:Name="mainStatusLabel"/>

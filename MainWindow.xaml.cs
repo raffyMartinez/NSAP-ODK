@@ -297,6 +297,7 @@ namespace NSAP_ODK
             labelTitle.FontWeight = FontWeights.Bold;
             labelTitle.VerticalContentAlignment = VerticalAlignment.Center;
             labelTitle.HorizontalContentAlignment = HorizontalAlignment.Center;
+            labelTitle.Visibility = Visibility.Visible;
 
             rowDashboard.Height = new GridLength(0);
             rowODKData.Height = new GridLength(0);
@@ -809,7 +810,7 @@ namespace NSAP_ODK
                 case "menuEffortIndicators":
                     _nsapEntity = NSAPEntity.EffortIndicator;
                     textOfTitle = "List of fishing effort indicators";
-                    contextMenu.Items.Add(new MenuItem { Header = "View gears using this indicator", Name = "menuViewGearsUsingIndicator", Tag="nsapEntities" });
+                    contextMenu.Items.Add(new MenuItem { Header = "View gears using this indicator", Name = "menuViewGearsUsingIndicator", Tag = "nsapEntities" });
 
                     break;
 
@@ -900,7 +901,7 @@ namespace NSAP_ODK
                 //rowOthers.Height = new GridLength(1, GridUnitType.Star);
             }
             SetDataDisplayMode();
-
+            labelTitle.Visibility = Visibility.Visible;
             labelTitle.Content = textOfTitle;
             buttonDelete.IsEnabled = false;
             buttonEdit.IsEnabled = false;
@@ -935,7 +936,7 @@ namespace NSAP_ODK
         private void ShowCrossTabWIndow()
         {
             CrossTabReportWindow ctw = CrossTabReportWindow.GetInstance();
-            if(ctw.IsVisible)
+            if (ctw.IsVisible)
             {
                 ctw.BringIntoView();
             }
@@ -948,8 +949,8 @@ namespace NSAP_ODK
         }
         private void OnDataGridContextMenu(object sender, RoutedEventArgs e)
         {
-            
-            switch(((MenuItem)sender).Tag.ToString())
+
+            switch (((MenuItem)sender).Tag.ToString())
             {
                 case "samplingCalendar":
                     _allSamplingEntitiesEventHandler.GearUsed = _gearName;
@@ -1112,7 +1113,7 @@ namespace NSAP_ODK
         private async void OnMenuClicked(object sender, RoutedEventArgs e)
         {
             string fileName = "";
-
+            //labelTitle.Visibility = Visibility.Collapsed;
 
             string itemName = ((MenuItem)sender).Name;
 
@@ -1197,21 +1198,7 @@ namespace NSAP_ODK
                     ExportNSAPToExcel();
                     break;
                 case "menuNSAPCalendar":
-                    
-                    //ShowSummary();
-
-
-                    if (!_saveChangesToGearUnload &&
-                        NSAPEntities.GearUnloadViewModel.CopyOfGearUnloadList != null &&
-                        NSAPEntities.GearUnloadViewModel.CopyOfGearUnloadList.Count > 0
-                        )
-                    {
-                        UndoChangesToGearUnload(refresh: false);
-                    }
-
-                    _currentDisplayMode = DataDisplayMode.ODKData;
-                    ColumnForTreeView.Width = new GridLength(2, GridUnitType.Star);
-                    SetDataDisplayMode();
+                    ShowNSAPCaklendar();
                     break;
                 case "menuImport":
                     ShowImportWindow();
@@ -1247,25 +1234,8 @@ namespace NSAP_ODK
                     SelectRegions(resetList: true);
                     break;
                 case "menuGenerateAll":
+                    await GenerateAllCSV();
 
-                    if (SelectRegions() && GetCSVSaveLocationFromSaveAsDialog())
-                    {
-                        try
-                        {
-                            int result = await GenerateCSV.GenerateAll();
-
-                            MessageBox.Show($"Generated {GenerateCSV.FilesCount} csv files with a total of {result} lines", "CSV files created", MessageBoxButton.OK, MessageBoxImage.Information);
-                        }
-                        catch (System.IO.IOException)
-                        {
-                            MessageBox.Show("Cannot complete this operation because some files are open.", "Exception", MessageBoxButton.OK, MessageBoxImage.Exclamation); ;
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.LogType = LogType.Logfile;
-                            Logger.Log(ex);
-                        }
-                    }
                     break;
 
 
@@ -1282,6 +1252,41 @@ namespace NSAP_ODK
             }
         }
 
+        private async Task GenerateAllCSV()
+        {
+            if (SelectRegions() && GetCSVSaveLocationFromSaveAsDialog())
+            {
+                try
+                {
+                    int result = await GenerateCSV.GenerateAll();
+
+                    MessageBox.Show($"Generated {GenerateCSV.FilesCount} csv files with a total of {result} lines", "CSV files created", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (System.IO.IOException)
+                {
+                    MessageBox.Show("Cannot complete this operation because some files are open.", "Exception", MessageBoxButton.OK, MessageBoxImage.Exclamation); ;
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogType = LogType.Logfile;
+                    Logger.Log(ex);
+                }
+            }
+        }
+        private void ShowNSAPCaklendar()
+        {
+            if (!_saveChangesToGearUnload &&
+                    NSAPEntities.GearUnloadViewModel.CopyOfGearUnloadList != null &&
+                    NSAPEntities.GearUnloadViewModel.CopyOfGearUnloadList.Count > 0
+                )
+            {
+                UndoChangesToGearUnload(refresh: false);
+            }
+
+            _currentDisplayMode = DataDisplayMode.ODKData;
+            ColumnForTreeView.Width = new GridLength(2, GridUnitType.Star);
+            SetDataDisplayMode();
+        }
         private void ShowImportWindow()
         {
             var window = ODKResultsWindow.GetInstance();
@@ -1486,13 +1491,13 @@ namespace NSAP_ODK
                     break;
                 case "tv_FishingGroundViewModel":
                     labelContent = $"Summary of database content for {e.FishingGround.Name}, {e.FMA.Name}, {e.NSAPRegion.Name}";
-                    SetUpSummaryGrid(SummaryLevelType.FishingGround, GridNSAPData, e.NSAPRegion, e.FMA,e.FishingGround,inSummaryView:false );
+                    SetUpSummaryGrid(SummaryLevelType.FishingGround, GridNSAPData, e.NSAPRegion, e.FMA, e.FishingGround, inSummaryView: false);
                     break;
                 case "tv_LandingSiteViewModel":
                     labelContent = $"Summary of database content for {e.LandingSiteText}, {e.FishingGround.Name}, {e.FMA.Name}, {e.NSAPRegion.Name}";
-                    SetUpSummaryGrid(SummaryLevelType.LandingSite, GridNSAPData, e.NSAPRegion, e.FMA,e.FishingGround,landingSite:e.LandingSiteText );
-                    
-                    
+                    SetUpSummaryGrid(SummaryLevelType.LandingSite, GridNSAPData, e.NSAPRegion, e.FMA, e.FishingGround, landingSite: e.LandingSiteText);
+
+
                     if (CrossTabReportWindow.Instance != null)
                     {
                         _allSamplingEntitiesEventHandler.ContextMenuTopic = "contextMenuCrosstabLandingSite";
@@ -1510,7 +1515,7 @@ namespace NSAP_ODK
                     NSAPEntities.NSAPRegion = e.NSAPRegion;
                     MakeCalendar(e);
 
-                    if(CrossTabReportWindow.Instance!=null)
+                    if (CrossTabReportWindow.Instance != null)
                     {
                         _allSamplingEntitiesEventHandler.ContextMenuTopic = "contextMenuCrosstabMonth";
                         CrossTabManager.GearByMonthYear(_allSamplingEntitiesEventHandler);
@@ -1552,14 +1557,14 @@ namespace NSAP_ODK
                         _gearCode = (string)item.Row.ItemArray[1];
                         _monthYear = DateTime.Parse(item.Row.ItemArray[2].ToString());
 
-                        if(_gridCol==0)
+                        if (_gridCol == 0)
                         {
                             ContextMenu contextMenu = new ContextMenu();
-                            contextMenu.Items.Add(new MenuItem { Header = "Cross tab report", Name = "menuGearCrossTabReport", Tag="samplingCalendar" });
+                            contextMenu.Items.Add(new MenuItem { Header = "Cross tab report", Name = "menuGearCrossTabReport", Tag = "samplingCalendar" });
                             ((MenuItem)contextMenu.Items[0]).Click += OnDataGridContextMenu;
                             GridNSAPData.ContextMenu = contextMenu;
-                           
-                            if(CrossTabReportWindow.Instance!=null)
+
+                            if (CrossTabReportWindow.Instance != null)
                             {
                                 _allSamplingEntitiesEventHandler.GearUsed = _gearName;
                                 _allSamplingEntitiesEventHandler.ContextMenuTopic = "contextMenuCrosstabGear";
@@ -1793,7 +1798,7 @@ namespace NSAP_ODK
         }
 
 
-        private void SetUpSummaryGrid(SummaryLevelType summaryType, DataGrid targetGrid, NSAPRegion region = null, FMA fma = null, FishingGround fg = null, string landingSite=null, bool inSummaryView=true)
+        private void SetUpSummaryGrid(SummaryLevelType summaryType, DataGrid targetGrid, NSAPRegion region = null, FMA fma = null, FishingGround fg = null, string landingSite = null, bool inSummaryView = true)
         {
             targetGrid.AutoGenerateColumns = false;
             targetGrid.Columns.Clear();
@@ -1944,21 +1949,21 @@ namespace NSAP_ODK
 
                     break;
                 case SummaryLevelType.LandingSite:
-                    NSAPEntities.NSAPRegionViewModel.SetUpSummaryForLandingSite(region,fma,fg,landingSite);
+                    NSAPEntities.NSAPRegionViewModel.SetUpSummaryForLandingSite(region, fma, fg, landingSite);
                     var dictLSMonth = NSAPEntities.NSAPRegionViewModel.RegionMonthSampledSummaryDictionary;
 
                     var summarySourceMonth = from row in dictLSMonth
-                                          select new
-                                          {
-                                              MonthSampled = row.Key.ToString("MMM-yyyy"),
-                                              GearUnloadCount = row.Value.GearUnloadCount,
-                                              GearUnloadCompletedCount = row.Value.CountCompleteGearUnload,
-                                              VesselUnloadCount = row.Value.VesselUnloadCount,
-                                              TrackedOperationsCount = row.Value.TrackedOperationsCount,
-                                              FirstSampling = row.Value.FirstLandingFormattedDate,
-                                              LastSampling = row.Value.LastLandingFormattedDate,
-                                              LastDownloadDate = row.Value.LatestDownloadFormattedDate
-                                          };
+                                             select new
+                                             {
+                                                 MonthSampled = row.Key.ToString("MMM-yyyy"),
+                                                 GearUnloadCount = row.Value.GearUnloadCount,
+                                                 GearUnloadCompletedCount = row.Value.CountCompleteGearUnload,
+                                                 VesselUnloadCount = row.Value.VesselUnloadCount,
+                                                 TrackedOperationsCount = row.Value.TrackedOperationsCount,
+                                                 FirstSampling = row.Value.FirstLandingFormattedDate,
+                                                 LastSampling = row.Value.LastLandingFormattedDate,
+                                                 LastDownloadDate = row.Value.LatestDownloadFormattedDate
+                                             };
 
                     targetGrid.DataContext = summarySourceMonth;
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Month of sampling", Binding = new Binding("MonthSampled") });
@@ -1987,11 +1992,11 @@ namespace NSAP_ODK
                     break;
                 case SummaryLevelType.Region:
                     labelContent = $"Summary of selected region: {region.Name}";
-                    SetUpSummaryGrid(SummaryLevelType.Region, dataGridSummary, region:region);
+                    SetUpSummaryGrid(SummaryLevelType.Region, dataGridSummary, region: region);
                     break;
                 case SummaryLevelType.FishingGround:
                     labelContent = $"Summary of selected fishing ground: {fg.Name}, {region}";
-                    SetUpSummaryGrid(SummaryLevelType.FishingGround, dataGridSummary, region:region, fg:fg);
+                    SetUpSummaryGrid(SummaryLevelType.FishingGround, dataGridSummary, region: region, fg: fg);
                     break;
             }
             labelSummary.Content = labelContent;
@@ -2008,7 +2013,7 @@ namespace NSAP_ODK
                 case "Overall":
                     ShowSummary();
                     rowSummaryDataGrid.Height = new GridLength(0);
-                    rowOverallSummary.Height = new GridLength(1,GridUnitType.Star);
+                    rowOverallSummary.Height = new GridLength(1, GridUnitType.Star);
                     break;
                 case "Regions":
                     ShowSummaryAtLevel(SummaryLevelType.AllRegions);
@@ -2030,7 +2035,7 @@ namespace NSAP_ODK
         private void OnSummaryTreeItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             labelSummary.Content = "To be implemented";
-            
+
             checkLandingSiteWithLandings.Visibility = Visibility.Visible;
             treeViewSummary.Visibility = Visibility.Visible;
             labelSummary.Visibility = Visibility.Visible;
@@ -2041,7 +2046,7 @@ namespace NSAP_ODK
             if (e.NewValue != null)
             {
                 _selectedTreeNode = (TreeViewItem)e.NewValue;
-                ProcessSummaryTreeSelection(_selectedTreeNode); 
+                ProcessSummaryTreeSelection(_selectedTreeNode);
             }
         }
 
@@ -2051,8 +2056,41 @@ namespace NSAP_ODK
             switch (chk.Name)
             {
                 case "checkLandingSiteWithLandings":
-                        ProcessSummaryTreeSelection(_selectedTreeNode);
+                    ProcessSummaryTreeSelection(_selectedTreeNode);
 
+                    break;
+            }
+        }
+
+        private void ShowToBeImplemented()
+        {
+            MessageBox.Show("This feature is not yet implemented", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        private async void OnToolbarButtonClick(object sender, RoutedEventArgs e)
+        {
+            menuDatabaseSummary.IsChecked = false;
+            switch (((Button)sender).Name)
+            {
+                case "buttonGeneratecsv":
+                    await GenerateAllCSV();
+                    break;
+                case "buttonSummary":
+                    menuDatabaseSummary.IsChecked = true;
+                    break;
+                case "buttonAbout":
+                case "buttonSettings":
+                    ShowToBeImplemented();
+                    break;
+                case "buttonExit":
+                    Close();
+                    break;
+                case "buttonCalendar":
+                    ShowNSAPCaklendar();
+                    break;
+                case "buttonDownloadHistory":
+                    _currentDisplayMode = DataDisplayMode.DownloadHistory;
+                    ColumnForTreeView.Width = new GridLength(1, GridUnitType.Star);
+                    SetDataDisplayMode();
                     break;
             }
         }
