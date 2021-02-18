@@ -17,7 +17,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                var list = LandingSiteSamplingCollection.Where(t => t.XFormIdentifier.Length > 0);
+                var list = LandingSiteSamplingCollection.Where(t =>t.XFormIdentifier!=null &&  t.XFormIdentifier.Length > 0);
                 if (list.Count() > 0)
                 {
                     return list.Max(t => t.DateSubmitted).Value;
@@ -33,7 +33,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                return LandingSiteSamplingCollection.Count(t => t.XFormIdentifier.Length > 0);
+                return LandingSiteSamplingCollection.Count(t => t.XFormIdentifier!=null && t.XFormIdentifier.Length > 0);
             }
         }
         public List<OrphanedLandingSite> OrphanedLandingSites()

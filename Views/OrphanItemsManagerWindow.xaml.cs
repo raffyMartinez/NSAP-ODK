@@ -23,6 +23,8 @@ namespace NSAP_ODK.Views
     public partial class OrphanItemsManagerWindow : Window
     {
         private LandingSite _replacementLandingSite;
+        private NSAPEnumerator _replacementEnumerator;
+        private int _countReplaced;
         public OrphanItemsManagerWindow()
         {
             InitializeComponent();
@@ -33,6 +35,16 @@ namespace NSAP_ODK.Views
         public void ReplaceChecked()
         {
 
+        }
+
+        public NSAPEnumerator ReplacementEnumerator
+        {
+            get { return _replacementEnumerator; }
+            set
+            {
+                _replacementEnumerator = value;
+                buttonReplace.IsEnabled = true;
+            }
         }
         public LandingSite ReplacementLandingSite
         {
@@ -45,27 +57,34 @@ namespace NSAP_ODK.Views
         }
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
+            RefreshItemsSource();
             switch (NSAPEntity)
             {
                 case NSAPEntity.LandingSite:
                     labelTitle.Content = "Manage orphaned landing sites";
-                    RefreshItemsSource();
+                    
                     //dataGrid.DataContext = NSAPEntities.LandingSiteSamplingViewModel.OrphanedLandingSites();
 
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site name", Binding = new Binding("LandingSiteName"), IsReadOnly = true });
-                    dataGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "Replace", Binding = new Binding("ForReplacement") });
-                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Region", Binding = new Binding("Region.ShortName"), IsReadOnly = true });
-                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("FMA"), IsReadOnly = true });
-                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("FishingGround"), IsReadOnly = true });
-                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Number of landings", Binding = new Binding("NumberOfLandings"), IsReadOnly = true });
+
                     break;
                 case NSAPEntity.Enumerator:
                     labelTitle.Content = "Manage orphaned enumerators";
+                        
+                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("Name"), IsReadOnly = true });
+
+
                     break;
                 case NSAPEntity.FishingGear:
                     labelTitle.Content = "Manage orphaned fishing gears";
                     break;
             }
+
+            dataGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "Replace", Binding = new Binding("ForReplacement") });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Region", Binding = new Binding("Region.ShortName"), IsReadOnly = true });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("FMA"), IsReadOnly = true });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("FishingGround"), IsReadOnly = true });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Number of landings", Binding = new Binding("NumberOfLandings"), IsReadOnly = true });
 
         }
 
@@ -84,6 +103,26 @@ namespace NSAP_ODK.Views
         {
             switch (NSAPEntity)
             {
+                case NSAPEntity.Enumerator:
+                    foreach (OrphanedEnumerator  orpahn in dataGrid.Items)
+                    {
+                        if(orpahn.ForReplacement)
+                        {
+                            foreach(var unload in orpahn.SampledLandings)
+                            {
+                                unload.NSAPEnumerator = ReplacementEnumerator;
+                                unload.NSAPEnumeratorID = ReplacementEnumerator.ID;
+                                if(NSAPEntities.VesselUnloadViewModel.UpdateRecordInRepo(unload))
+                                {
+                                    _countReplaced++;
+                                }
+                            }
+                        }
+                    }
+
+                    MessageBox.Show($"{_countReplaced} vessel unload updated to enumerator {ReplacementEnumerator} with ID {ReplacementEnumerator.ID}");
+                    break;
+
                 case NSAPEntity.LandingSite:
                     foreach (OrphanedLandingSite selectedOrphanedLandingSite in dataGrid.Items)
                     {
@@ -152,6 +191,7 @@ namespace NSAP_ODK.Views
 
                     break;
                 case NSAPEntity.Enumerator:
+                    dataGrid.DataContext = NSAPEntities.NSAPEnumeratorViewModel.OrphanedEnumerators();
                     break;
                 case NSAPEntity.FishingGear:
                     break;
@@ -169,6 +209,7 @@ namespace NSAP_ODK.Views
             switch (((Button)sender).Name)
             {
                 case "buttonReplace":
+                    _countReplaced = 0;
                     DoTheReplacement();
                     //dataGrid.Items.Refresh();
                     RefreshItemsSource();
@@ -187,12 +228,17 @@ namespace NSAP_ODK.Views
                                 {
                                     procced = true;
                                     replacementWindow.LandingSiteSampling = ((OrphanedLandingSite)item).LandingSiteSamplings[0];
-
                                 }
                                 break;
                             case NSAPEntity.FishingGear:
+
                                 break;
-                            case NSAPEntity.NSAPRegionEnumerator:
+                            case NSAPEntity.Enumerator:
+                                if (((OrphanedEnumerator)item).ForReplacement)
+                                {
+                                    procced = true;
+                                    replacementWindow.LandingSiteSampling = ((OrphanedEnumerator)item).SampledLandings[0].Parent.Parent;
+                                }
                                 break;
 
                         }

@@ -1218,6 +1218,8 @@ namespace NSAP_ODK.Entities.Database.FromJson
         private static List<CatchCompGroupCatchCompositionRepeatLenWtRepeat> _listLenWts;
         private static List<CatchCompGroupCatchCompositionRepeatLengthListRepeat> _listLengths;
         
+        public static string JSON { get; set; }
+
         public static List<VesselLanding> VesselLandings { get; internal set; }
 
         public static event EventHandler<UploadToDbEventArg> UploadSubmissionToDB;
@@ -1474,10 +1476,10 @@ namespace NSAP_ODK.Entities.Database.FromJson
         }
 
 
-        public static void CreateLandingsFromJSON(string jsonText)
+        public static void CreateLandingsFromJSON()
         {
             VesselLanding.SetRowIDs();
-            VesselLandings = JsonConvert.DeserializeObject<List<VesselLanding>>(jsonText);
+            VesselLandings = JsonConvert.DeserializeObject<List<VesselLanding>>(JSON);
         }
         public static Task<bool> UploadToDBAsync()
         {

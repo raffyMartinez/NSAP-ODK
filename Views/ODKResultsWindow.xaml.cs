@@ -33,7 +33,8 @@ namespace NSAP_ODK.Views
         private bool _isJSONData;
         private int _savedCount;
         private ODKServerDownload _odkServerDownload;
-
+        private bool _uploadToDBSuccess;
+        public string JSON { get; set; }
         public ODKServerDownload ODKServerDownload
         {
             get { return _odkServerDownload; }
@@ -67,6 +68,10 @@ namespace NSAP_ODK.Views
         private void OnWindowClosed(object sender, EventArgs e)
         {
             _instance = null;
+            if (_uploadToDBSuccess)
+            {
+                ((MainWindow)Owner).RefreshSummary();
+            }
             ((MainWindow)Owner).Focus();
         }
 
@@ -243,7 +248,8 @@ namespace NSAP_ODK.Views
                         var json = System.IO.File.ReadAllText(GetJsonTextFileFromFileOpenDialog());
                         if (json.Length > 0)
                         {
-                            LandingSiteBoatLandingsFromServerRepository.CreateLandingSiteBoatLandingsFromJson(json);
+                            LandingSiteBoatLandingsFromServerRepository.JSON = json;
+                            LandingSiteBoatLandingsFromServerRepository.CreateLandingSiteBoatLandingsFromJson();
                             ODKServerDownload = ODKServerDownload.ServerDownloadLandings;
                             MainSheetsLanding = LandingSiteBoatLandingsFromServerRepository.LandingSiteBoatLandings;
                         }
@@ -260,7 +266,8 @@ namespace NSAP_ODK.Views
                         if (json.Length > 0)
                         {
                             VesselUnloadServerRepository.ResetLists();
-                            VesselUnloadServerRepository.CreateLandingsFromJSON(json);
+                            VesselUnloadServerRepository.JSON = json;
+                            VesselUnloadServerRepository.CreateLandingsFromJSON();
                             VesselUnloadServerRepository.FillDuplicatedLists();
                             ODKServerDownload = ODKServerDownload.ServerDownloadVesselUnload;
                             MainSheets = VesselUnloadServerRepository.VesselLandings;
@@ -307,6 +314,7 @@ namespace NSAP_ODK.Views
                     }
                     break;
                 case "menuUpload":
+                    _uploadToDBSuccess = false;
                     bool success = false;
                     labelProgress.Content = "";
 
@@ -321,6 +329,7 @@ namespace NSAP_ODK.Views
                                     dataGridExcel.ItemsSource = null;
                                     dataGridExcel.ItemsSource = VesselUnloadServerRepository.VesselLandings;
                                     success = true;
+                                    _uploadToDBSuccess = true;
                                     MessageBox.Show("Finished uploading to database", "Upload done", MessageBoxButton.OK, MessageBoxImage.Information);
                                 }
                                 else if (_savedCount == 0 && VesselUnloadServerRepository.VesselLandings.Count > 0)
@@ -350,6 +359,7 @@ namespace NSAP_ODK.Views
                                     dataGridExcel.ItemsSource = null;
                                     dataGridExcel.ItemsSource = ImportExcel.ExcelMainSheets;
                                     success = true;
+                                    _uploadToDBSuccess = true;
                                     MessageBox.Show("Finished uploading to database", "Upload done", MessageBoxButton.OK, MessageBoxImage.Information);
                                 }
                                 else if (_savedCount == 0)

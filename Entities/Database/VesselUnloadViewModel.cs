@@ -9,7 +9,7 @@ namespace NSAP_ODK.Entities.Database
 {
   public class VesselUnloadViewModel
     {
-        public bool AddSucceeded;
+        public bool EditSucceeded;
         public ObservableCollection<VesselUnload> VesselUnloadCollection { get; set; }
         private VesselUnloadRepository VesselUnloads { get; set; }
 
@@ -21,7 +21,23 @@ namespace NSAP_ODK.Entities.Database
             VesselUnloadCollection.CollectionChanged += VesselUnloadCollection_CollectionChanged;
         }
 
+        public List<VesselUnload>GetSampledLandings(string enumeratorName)
+        {
+            return VesselUnloadCollection.Where(t => t.NSAPEnumeratorID == null && t.EnumeratorName == enumeratorName).ToList();
+        }
+        public List<LandingSiteSampling> GetLandingSiteSamplings(string enumeratorName)
+        {
+            var list = new List<LandingSiteSampling>();
+            foreach(var item in VesselUnloadCollection.Where(t=>t.EnumeratorName==enumeratorName && t.NSAPEnumeratorID==null))
+            {
+                if(!list.Contains(item.Parent.Parent))
+                {
+                    list.Add(item.Parent.Parent);
+                }
+            }
 
+            return list;
+        }
         public List<VesselUnload> GetAllVesselUnloads()
         {
             return VesselUnloadCollection.ToList();
@@ -80,26 +96,27 @@ namespace NSAP_ODK.Entities.Database
 
         private void VesselUnloadCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            EditSucceeded = false;
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
                     {
                         int newIndex = e.NewStartingIndex;
-                        AddSucceeded = VesselUnloads.Add(VesselUnloadCollection[newIndex]);
+                        EditSucceeded = VesselUnloads.Add(VesselUnloadCollection[newIndex]);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<VesselUnload> tempListOfRemovedItems = e.OldItems.OfType<VesselUnload>().ToList();
-                        VesselUnloads.Delete(tempListOfRemovedItems[0].PK);
+                        EditSucceeded= VesselUnloads.Delete(tempListOfRemovedItems[0].PK);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<VesselUnload> tempList = e.NewItems.OfType<VesselUnload>().ToList();
-                        VesselUnloads.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                       EditSucceeded=  VesselUnloads.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -124,10 +141,10 @@ namespace NSAP_ODK.Entities.Database
             if (item == null)
                 throw new ArgumentNullException("Error: The argument is Null");
             VesselUnloadCollection.Add(item);
-            return AddSucceeded;
+            return EditSucceeded;
         }
 
-        public void UpdateRecordInRepo(VesselUnload item)
+        public bool UpdateRecordInRepo(VesselUnload item)
         {
             if (item.PK == 0)
                 throw new Exception("Error: ID cannot be zero");
@@ -142,6 +159,7 @@ namespace NSAP_ODK.Entities.Database
                 }
                 index++;
             }
+            return EditSucceeded;
         }
 
         public int NextRecordNumber
@@ -159,7 +177,7 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-        public void DeleteRecordFromRepo(int id)
+        public bool DeleteRecordFromRepo(int id)
         {
             if (id == 0)
                 throw new Exception("Record ID cannot be null");
@@ -174,6 +192,8 @@ namespace NSAP_ODK.Entities.Database
                 }
                 index++;
             }
+
+            return EditSucceeded;
         }
     }
 }

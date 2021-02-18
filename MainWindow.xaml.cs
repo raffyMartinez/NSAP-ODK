@@ -1301,6 +1301,12 @@ namespace NSAP_ODK
                 window.ParentWindow = this;
             }
         }
+
+        public void RefreshSummary()
+        {
+            menuDatabaseSummary.IsChecked = false;
+            menuDatabaseSummary.IsChecked = true;
+        }
         public void GearUnloadWindowClosed()
         {
             _gearUnloadWindow = null;

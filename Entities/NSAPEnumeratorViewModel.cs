@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using NSAP_ODK.Entities.Database;
 
 namespace NSAP_ODK.Entities
 {
@@ -15,12 +16,38 @@ namespace NSAP_ODK.Entities
 
         //public event EventHandler<EntityChangedEventArgs> EntityChanged;
 
+        public List<OrphanedEnumerator>OrphanedEnumerators()
+        {
+            var items = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
+                .Where(t => t.NSAPEnumeratorID == null && t.EnumeratorText.Length > 0)
+                .OrderBy(t=>t.EnumeratorName)
+                .GroupBy(t => t.EnumeratorText)
+                .ToList();
+
+            var list = new List<OrphanedEnumerator>();
+
+            foreach(var item in items)
+            {
+                
+                var orphan = new OrphanedEnumerator
+                {
+                    Name = item.Key,
+                    SampledLandings = NSAPEntities.VesselUnloadViewModel.GetSampledLandings(item.Key)
+                };
+
+                list.Add(orphan);
+            }
+
+            return list;
+                
+        }
         public NSAPEnumeratorViewModel()
         {
             NSAPEnumerators = new NSAPEnumeratorRepository();
             NSAPEnumeratorCollection = new ObservableCollection<NSAPEnumerator>(NSAPEnumerators.NSAPEnumerators);
             NSAPEnumeratorCollection.CollectionChanged += NSAPEnumeratorCollection_CollectionChanged;
         }
+
 
         public int Count
 

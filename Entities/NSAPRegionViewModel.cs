@@ -72,7 +72,9 @@ namespace NSAP_ODK.Entities
                 .Where(t => t.NSAPRegionID == region.Code &&
                           t.FMAID == fma.FMAID &&
                           t.FishingGroundID == fishingGround.Code &&
-                          t.LandingSiteName == landingSite).GroupBy(t => t.MonthSampled).ToList();
+                          t.LandingSiteName == landingSite).GroupBy(t => t.MonthSampled)
+                          .OrderBy(t=>t.Key)
+                          .ToList();
 
             foreach (var month in monthSamplings)
             {
@@ -139,7 +141,7 @@ namespace NSAP_ODK.Entities
                         smmry.TrackedOperationsCount = landings.Count(t => t.OperationIsTracked == true);
 
 
-                        var gearUnloads = NSAPEntities.GearUnloadViewModel.GearUnloadCollection.Where(t => t.Parent.LandingSiteText == lsSampling.Key).ToList();
+                        var gearUnloads = NSAPEntities.GearUnloadViewModel.GearUnloadCollection.Where(t => t.Parent.LandingSiteName == lsSampling.Key).ToList();
                         smmry.GearUnloadCount = gearUnloads.Count;
                         smmry.CountCompleteGearUnload = gearUnloads.Count(t => t.Boats != null && t.Catch != null);
                         //RegionLandingSiteSummaryDictionary.Add(lsSampling.Key, smmry);

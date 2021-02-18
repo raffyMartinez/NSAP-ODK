@@ -52,19 +52,10 @@ namespace NSAP_ODK.Views
                      .FirstOrDefault(t => t.FishingGroundCode == LandingSiteSampling.FishingGroundID).LandingSites
                      .OrderBy(t => t.LandingSite.LandingSiteName))
                     {
-                        //if(counter==0)
-                        //{
-                        //RadioButton rb = new RadioButton { Content = item.LandingSite.ToString(), Tag = item.LandingSite };
-                        //panelButtons.Children[0]).Content = item.LandingSite.ToString();
-                        //((RadioButton)panelButtons.Children[0]).Tag = item.LandingSite;
-                        //}
-                        //else
-                        //{
                         var rb = new RadioButton { Content = item.LandingSite.ToString(), Tag = item.LandingSite };
                         rb.Checked += OnButtonChecked;
                         rb.Margin = new Thickness(10, 10, 0, 0);
                         panelButtons.Children.Add(rb);
-                        //}
                         counter++;
                     }
 
@@ -72,6 +63,16 @@ namespace NSAP_ODK.Views
 
                     break;
                 case Entities.NSAPEntity.Enumerator:
+                    foreach(var regionEnumerator in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection
+                        .Where(t=>t.Code==LandingSiteSampling.NSAPRegionID).FirstOrDefault().NSAPEnumerators )
+                    {
+                        var rb = new RadioButton { Content = regionEnumerator.Enumerator.Name, Tag = regionEnumerator.Enumerator};
+                        rb.Checked += OnButtonChecked;
+                        rb.Margin = new Thickness(10, 10, 0, 0);
+                        panelButtons.Children.Add(rb);
+                        counter++;
+                    }
+
                     break;
                 case Entities.NSAPEntity.FishingGear:
                     break;
@@ -88,6 +89,9 @@ namespace NSAP_ODK.Views
                         {
                             case NSAPEntity.LandingSite:
                                 ((OrphanItemsManagerWindow)Owner).ReplacementLandingSite = (LandingSite)_selectedButton.Tag;
+                                break;
+                            case NSAPEntity.Enumerator:
+                                ((OrphanItemsManagerWindow)Owner).ReplacementEnumerator = (NSAPEnumerator)_selectedButton.Tag;
                                 break;
                         }
                         Close();

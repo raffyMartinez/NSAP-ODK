@@ -243,16 +243,20 @@ namespace NSAP_ODK.Views
                                             var bytes = await response.Content.ReadAsByteArrayAsync();
                                             Encoding encoding = Encoding.GetEncoding("utf-8");
                                             string the_response = encoding.GetString(bytes, 0, bytes.Length);
+                                            
 
                                             switch (_parentWindow.ODKServerDownload)
                                             {
                                                 case ODKServerDownload.ServerDownloadVesselUnload:
                                                     VesselUnloadServerRepository.ResetLists();
-                                                    VesselUnloadServerRepository.CreateLandingsFromJSON(the_response);
+                                                    VesselUnloadServerRepository.JSON = the_response;
+                                                    VesselUnloadServerRepository.CreateLandingsFromJSON();
                                                     VesselUnloadServerRepository.FillDuplicatedLists();
+
                                                     break;
                                                 case ODKServerDownload.ServerDownloadLandings:
-                                                    LandingSiteBoatLandingsFromServerRepository.CreateLandingSiteBoatLandingsFromJson(the_response);
+                                                    LandingSiteBoatLandingsFromServerRepository.JSON = the_response;
+                                                    LandingSiteBoatLandingsFromServerRepository.CreateLandingSiteBoatLandingsFromJson();
                                                     break;
                                             }
 

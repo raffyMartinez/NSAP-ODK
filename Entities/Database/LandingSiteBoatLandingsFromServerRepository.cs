@@ -336,6 +336,8 @@ namespace NSAP_ODK.Entities.Database
         public static event EventHandler<UploadToDbEventArg> UploadSubmissionToDB;
         private static List<LandingsRepeat> _listLandingsRepeat;
 
+
+        public static string JSON { get; set; }
         public static List<LandingsRepeat> GetLandings()
         {
             List<LandingsRepeat> thisList = new List<LandingsRepeat>();
@@ -358,11 +360,11 @@ namespace NSAP_ODK.Entities.Database
             return _listLandingsRepeat;
 
         }
-        public static void CreateLandingSiteBoatLandingsFromJson(string json)
+        public static void CreateLandingSiteBoatLandingsFromJson()
         {
             _listLandingsRepeat = null;
             LandingSiteBoatLandingFromServer.SetRowIDs();
-            LandingSiteBoatLandings = JsonConvert.DeserializeObject<List<LandingSiteBoatLandingFromServer>>(json);
+            LandingSiteBoatLandings = JsonConvert.DeserializeObject<List<LandingSiteBoatLandingFromServer>>(JSON);
         }
         public static List<LandingSiteBoatLandingFromServer> LandingSiteBoatLandings { get; internal set; }
 

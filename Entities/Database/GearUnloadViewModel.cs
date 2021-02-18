@@ -107,8 +107,8 @@ namespace NSAP_ODK.Entities.Database
                 foreach (var item in gearUnloadList)
                 {
                     var originalItem = CopyOfGearUnloadList.FirstOrDefault(t => t.PK == item.PK);
-                    item.Boats = originalItem.Boats;
-                    item.Catch = originalItem.Catch;
+                    item.Boats = originalItem?.Boats;
+                    item.Catch = originalItem?.Catch;
                 }
             }
         }
