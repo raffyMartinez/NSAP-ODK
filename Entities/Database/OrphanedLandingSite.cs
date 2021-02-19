@@ -10,7 +10,7 @@ namespace NSAP_ODK.Entities.Database
     {
 
         public string LandingSiteName { get; set; }
-        public List<LandingSiteSampling> LandingSiteSamplings { get;  set; }
+        public List<LandingSiteSampling> LandingSiteSamplings { get; set; }
 
         public NSAPRegion Region { get { return LandingSiteSamplings[0].NSAPRegion; } }
 
@@ -28,14 +28,17 @@ namespace NSAP_ODK.Entities.Database
                 //            t.Parent.Parent.LandingSiteID == null &&
                 //            t.Parent.Parent.LandingSiteText == LandingSiteName);
 
-                int count = 0;
-                foreach(var sampling in LandingSiteSamplings)
-                {
-                    count += NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
-                        .Count(t => t.Parent.Parent.PK == sampling.PK);
-                
-                }
-                return count;
+                //int count = 0;
+                //foreach (var sampling in LandingSiteSamplings)
+                //{
+                //    //count += NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
+                //    //    .Count(t => t.Parent.Parent.PK == sampling.PK);
+                //    count += NSAPEntities.GearUnloadViewModel.GetGearUnloads(sampling).Count;
+
+                //}
+                //return count;
+
+                return LandingSiteSamplings.Count;
             }
 
         }

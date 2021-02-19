@@ -14,6 +14,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using NSAP_ODK.Entities.Database;
 using NSAP_ODK.Utilities;
+using System.Windows.Threading;
+using System.Diagnostics;
 
 namespace NSAP_ODK.Views
 {
@@ -25,6 +27,7 @@ namespace NSAP_ODK.Views
         private LandingSite _replacementLandingSite;
         private NSAPEnumerator _replacementEnumerator;
         private int _countReplaced;
+        private int _countForReplacement;
         public OrphanItemsManagerWindow()
         {
             InitializeComponent();
@@ -57,12 +60,13 @@ namespace NSAP_ODK.Views
         }
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
+            labelStatus.Content = "";
             RefreshItemsSource();
             switch (NSAPEntity)
             {
                 case NSAPEntity.LandingSite:
                     labelTitle.Content = "Manage orphaned landing sites";
-                    
+
                     //dataGrid.DataContext = NSAPEntities.LandingSiteSamplingViewModel.OrphanedLandingSites();
 
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site name", Binding = new Binding("LandingSiteName"), IsReadOnly = true });
@@ -70,7 +74,7 @@ namespace NSAP_ODK.Views
                     break;
                 case NSAPEntity.Enumerator:
                     labelTitle.Content = "Manage orphaned enumerators";
-                        
+
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("Name"), IsReadOnly = true });
 
 
@@ -86,6 +90,8 @@ namespace NSAP_ODK.Views
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("FishingGround"), IsReadOnly = true });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Number of landings", Binding = new Binding("NumberOfLandings"), IsReadOnly = true });
 
+
+            Title = labelTitle.Content.ToString();
         }
 
         private void OnWindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -99,77 +105,140 @@ namespace NSAP_ODK.Views
             this.ApplyPlacement();
         }
 
-        private void DoTheReplacement()
+        private Task<int> ReplaceOrphanedAsync()
+        {
+            return Task.Run(() => DoTheReplacement());
+        }
+
+        private void ShowProgressWhileReplacing(int counter, string message)
+        {
+
+            progressBar.Dispatcher.BeginInvoke
+                (
+                  DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                  {
+                      progressBar.Value = counter;
+                      //do what you need to do on UI Thread
+                      return null;
+                  }
+                 ), null);
+
+
+            labelStatus.Dispatcher.BeginInvoke
+                (
+                  DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                  {
+                      labelStatus.Content = message;
+
+                      //do what you need to do on UI Thread
+                      return null;
+                  }
+                 ), null);
+        }
+
+        private int DoTheReplacement()
         {
             switch (NSAPEntity)
             {
                 case NSAPEntity.Enumerator:
-                    foreach (OrphanedEnumerator  orpahn in dataGrid.Items)
+                    foreach (OrphanedEnumerator orpahn in dataGrid.Items)
                     {
-                        if(orpahn.ForReplacement)
+                        if (orpahn.ForReplacement)
                         {
-                            foreach(var unload in orpahn.SampledLandings)
+                            foreach (var unload in orpahn.SampledLandings)
                             {
                                 unload.NSAPEnumerator = ReplacementEnumerator;
                                 unload.NSAPEnumeratorID = ReplacementEnumerator.ID;
-                                if(NSAPEntities.VesselUnloadViewModel.UpdateRecordInRepo(unload))
+                                if (NSAPEntities.VesselUnloadViewModel.UpdateRecordInRepo(unload))
                                 {
                                     _countReplaced++;
+                                    ShowProgressWhileReplacing(_countReplaced, $"Updated enumerator {_countReplaced} of {_countForReplacement}");
+
                                 }
                             }
                         }
                     }
 
-                    MessageBox.Show($"{_countReplaced} vessel unload updated to enumerator {ReplacementEnumerator} with ID {ReplacementEnumerator.ID}");
+                    //MessageBox.Show($"{_countReplaced} vessel unload updated to enumerator {ReplacementEnumerator} with ID {ReplacementEnumerator.ID}");
                     break;
 
                 case NSAPEntity.LandingSite:
+                    int counter = 0;
                     foreach (OrphanedLandingSite selectedOrphanedLandingSite in dataGrid.Items)
                     {
                         if (selectedOrphanedLandingSite.ForReplacement)
                         {
                             foreach (var samplingWithOrphanedLandingSite in selectedOrphanedLandingSite.LandingSiteSamplings)
-                            //.Where(t => t.LandingSiteText == selectedOrphanedLandingSite.LandingSiteName &&
-                            //t.LandingSiteID == null))
                             {
+                                counter++;
                                 //search for duplictes that will happen if we update landing site
                                 //duplication will happen in landing site, fishing ground and sampling date
                                 var sampling = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(selectedOrphanedLandingSite, ReplacementLandingSite, samplingWithOrphanedLandingSite.SamplingDate);
                                 if (sampling != null)
                                 {
+                                    if(sampling.UserName.Length==0)
+                                    {
+                                        sampling.UserName = samplingWithOrphanedLandingSite.UserName;
+                                        sampling.DeviceID = samplingWithOrphanedLandingSite.DeviceID;
+                                        sampling.DateSubmitted = samplingWithOrphanedLandingSite.DateSubmitted;
+                                        sampling.XFormIdentifier = samplingWithOrphanedLandingSite.XFormIdentifier;
+                                        sampling.DateAdded = samplingWithOrphanedLandingSite.DateAdded;
+                                        sampling.FormVersion = samplingWithOrphanedLandingSite.FormVersion;
+                                        sampling.FromExcelDownload = samplingWithOrphanedLandingSite.FromExcelDownload;
+                                        sampling.RowID = samplingWithOrphanedLandingSite.RowID;
+                                        sampling.EnumeratorText = samplingWithOrphanedLandingSite.EnumeratorText;
+                                        sampling.EnumeratorID = samplingWithOrphanedLandingSite.EnumeratorID;
+                                        NSAPEntities.LandingSiteSamplingViewModel.UpdateRecordInRepo(sampling);
+
+                                        samplingWithOrphanedLandingSite.UserName = "";
+                                        samplingWithOrphanedLandingSite.DeviceID = "";
+                                        samplingWithOrphanedLandingSite.DateSubmitted = null;
+                                        samplingWithOrphanedLandingSite.XFormIdentifier = "";
+                                        samplingWithOrphanedLandingSite.DateAdded = null;
+                                        samplingWithOrphanedLandingSite.FormVersion = "";
+                                        samplingWithOrphanedLandingSite.FromExcelDownload = false;
+                                        samplingWithOrphanedLandingSite.RowID = "";
+                                        samplingWithOrphanedLandingSite.EnumeratorText = "";
+                                        samplingWithOrphanedLandingSite.EnumeratorID = null;
+                                        NSAPEntities.LandingSiteSamplingViewModel.UpdateRecordInRepo(samplingWithOrphanedLandingSite);
+
+                                    }
+
                                     foreach (GearUnload gu in NSAPEntities.GearUnloadViewModel.GetGearUnloads(samplingWithOrphanedLandingSite))
                                     {
                                         gu.Parent = sampling;
                                         gu.LandingSiteSamplingID = gu.Parent.PK;
-                                        NSAPEntities.GearUnloadViewModel.UpdateRecordInRepo(gu);
-
-
-                                        //var otherGearUnload = NSAPEntities.GearUnloadViewModel.getGearUnload(gearUnload: gu, samplingDate: sampling.SamplingDate.Date, ls: sampling.LandingSite);
-                                        var otherGearUnload = NSAPEntities.GearUnloadViewModel.getOtherGearUnload(gearUnload: gu);
-                                        if(otherGearUnload!=null)
+                                        if (NSAPEntities.GearUnloadViewModel.UpdateRecordInRepo(gu))
                                         {
-                                            otherGearUnload.Boats = gu.Boats;
-                                            otherGearUnload.Catch = gu.Catch;
-                                            gu.Boats = null;
-                                            gu.Catch = null;
-                                            if(NSAPEntities.GearUnloadViewModel.UpdateRecordInRepo(otherGearUnload))
+                                            var otherGearUnload = NSAPEntities.GearUnloadViewModel.getOtherGearUnload(gearUnload: gu);
+                                            if (otherGearUnload != null)
                                             {
-                                                NSAPEntities.GearUnloadViewModel.UpdateRecordInRepo(gu);
+                                                otherGearUnload.Boats = gu.Boats;
+                                                otherGearUnload.Catch = gu.Catch;
+                                                gu.Boats = null;
+                                                gu.Catch = null;
+                                                if (NSAPEntities.GearUnloadViewModel.UpdateRecordInRepo(otherGearUnload))
+                                                {
+                                                    NSAPEntities.GearUnloadViewModel.UpdateRecordInRepo(gu);
+                                                }
                                             }
-                                            //NSAPEntities.GearUnloadViewModel.DeleteRecordFromRepo(gu.PK);
+                                            ShowProgressWhileReplacing(_countReplaced, $"Updated landing site {_countReplaced} of {_countForReplacement}");
                                         }
+
+
                                     }
+                                    _countReplaced++;
 
                                 }
                                 else
                                 {
                                     samplingWithOrphanedLandingSite.LandingSiteID = ReplacementLandingSite.LandingSiteID;
-                                    NSAPEntities.LandingSiteSamplingViewModel.UpdateRecordInRepo(samplingWithOrphanedLandingSite);
+                                    if (NSAPEntities.LandingSiteSamplingViewModel.UpdateRecordInRepo(samplingWithOrphanedLandingSite))
+                                    {
+                                        _countReplaced++;
+                                        ShowProgressWhileReplacing(_countReplaced, $"Updated landing site {_countReplaced} of {_countForReplacement}");
+                                    }
                                 }
-
-
-                                //sampling.LandingSiteID = ReplacementLandingSite.LandingSiteID;
-                                //NSAPEntities.LandingSiteSamplingViewModel.UpdateRecordInRepo(sampling);
                             }
                         }
                     }
@@ -180,6 +249,9 @@ namespace NSAP_ODK.Views
                     break;
 
             }
+
+
+            return _countReplaced;
         }
 
         private void RefreshItemsSource()
@@ -203,31 +275,74 @@ namespace NSAP_ODK.Views
             //    Close();
             //}
         }
-        private void OnButtonClick(object sender, RoutedEventArgs e)
+        private async void OnButtonClick(object sender, RoutedEventArgs e)
         {
+            labelStatus.Content = "";
+            //progressBar.Value = 0;
             bool procced = false;
+
             switch (((Button)sender).Name)
             {
                 case "buttonReplace":
                     _countReplaced = 0;
-                    DoTheReplacement();
+                    var result = await ReplaceOrphanedAsync();
+                    buttonReplace.IsEnabled = false;
+                    //DoTheReplacement();
                     //dataGrid.Items.Refresh();
                     RefreshItemsSource();
+
+                    if (dataGrid.Items.Count > 0)
+                    {
+                        if (MessageBox.Show("Remaining orphaned landing sites can be safely deleted from the database\r\n\r\n" +
+                                           "Select Yes to safely delete items", "NSAP-ODK Database",
+                                           MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.Yes)
+                        {
+                            foreach (OrphanedLandingSite item in dataGrid.Items)
+                            {
+                                foreach (var sampling in item.LandingSiteSamplings)
+                                {
+                                    if (NSAPEntities.GearUnloadViewModel.GetGearUnloads(sampling).Count == 0)
+                                    {
+                                        if (NSAPEntities.LandingSiteSamplingViewModel.DeleteRecordFromRepo(sampling))
+                                        {
+
+                                        }
+                                    }
+                                }
+                            }
+
+                            RefreshItemsSource();
+                        }
+                    }
+
                     break;
                 case "buttonSelectReplacement":
+                    _countForReplacement = 0;
                     var replacementWindow = new SelectionToReplaceOrpanWIndow();
                     replacementWindow.Owner = this;
                     replacementWindow.NSAPEntity = NSAPEntity;
 
+
                     foreach (var item in dataGrid.Items)
                     {
+
                         switch (NSAPEntity)
                         {
                             case NSAPEntity.LandingSite:
                                 if (((OrphanedLandingSite)item).ForReplacement)
                                 {
-                                    procced = true;
-                                    replacementWindow.LandingSiteSampling = ((OrphanedLandingSite)item).LandingSiteSamplings[0];
+                                    if (!procced)
+                                    {
+                                        procced = true;
+                                        replacementWindow.LandingSiteSampling = ((OrphanedLandingSite)item).LandingSiteSamplings[0];
+                                    }
+                                    //foreach(var sampling in ((OrphanedLandingSite)item).LandingSiteSamplings)
+                                    //{
+                                    //    _countForReplacement += NSAPEntities.GearUnloadViewModel.GetGearUnloads(sampling).Count;
+                                    //}
+                                    //_countForReplacement +=  NSAPEntities.GearUnloadViewModel.GetGearUnloads( ((OrphanedLandingSite)item).LandingSiteSamplings[loop]).Count;
+                                    _countForReplacement += ((OrphanedLandingSite)item).LandingSiteSamplings.Count;
+
                                 }
                                 break;
                             case NSAPEntity.FishingGear:
@@ -236,21 +351,25 @@ namespace NSAP_ODK.Views
                             case NSAPEntity.Enumerator:
                                 if (((OrphanedEnumerator)item).ForReplacement)
                                 {
-                                    procced = true;
-                                    replacementWindow.LandingSiteSampling = ((OrphanedEnumerator)item).SampledLandings[0].Parent.Parent;
+                                    if (!procced)
+                                    {
+                                        procced = true;
+                                        replacementWindow.LandingSiteSampling = ((OrphanedEnumerator)item).SampledLandings[0].Parent.Parent;
+                                    }
+                                    _countForReplacement += ((OrphanedEnumerator)item).SampledLandings.Count;
+
+
                                 }
                                 break;
 
                         }
 
-                        if (procced)
-                        {
-                            break;
-                        }
+
                     }
 
                     if (procced)
                     {
+                        progressBar.Maximum = _countForReplacement;
                         replacementWindow.FillSelection();
                         replacementWindow.ShowDialog();
                     }

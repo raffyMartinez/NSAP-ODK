@@ -69,7 +69,7 @@ namespace NSAP_ODK.Entities.Database
                             item.NSAPRegionID = dr["region_id"].ToString();
                             item.SamplingDate = (DateTime)dr["sdate"];
                             //item.LandingSiteID = string.IsNullOrEmpty( dr["land_ctr_id"].ToString())?null:(int?)dr["land_ctr_id"];
-                            item.LandingSiteID=dr["land_ctr_id"]==DBNull.Value?null:(int?)dr["land_ctr_id"];
+                            item.LandingSiteID = dr["land_ctr_id"] == DBNull.Value ? null : (int?)dr["land_ctr_id"];
                             item.FishingGroundID = dr["ground_id"].ToString();
                             item.Remarks = dr["remarks"].ToString();
                             item.IsSamplingDay = (bool)dr["sampleday"];
@@ -111,7 +111,7 @@ namespace NSAP_ODK.Entities.Database
                                 {item.PK},
                                 '{item.NSAPRegionID}',
                                 '{item.SamplingDate.ToString(_dateFormat)}',
-                                {(item.LandingSiteID==null?"null":item.LandingSiteID.ToString())},
+                                {(item.LandingSiteID == null ? "null" : item.LandingSiteID.ToString())},
                                 '{item.FishingGroundID}', 
                                 '{item.Remarks}',
                                 {item.IsSamplingDay},
@@ -123,10 +123,10 @@ namespace NSAP_ODK.Entities.Database
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;
-                        if(success)
+                        if (success)
                         {
                             string dateSubmitted = item.DateSubmitted == null ? "null" : $@"'{item.DateSubmitted.ToString()}'";
-                            string dateAdded = item.DateAdded== null ? "null" : $@"'{item.DateAdded.ToString()}'";
+                            string dateAdded = item.DateAdded == null ? "null" : $@"'{item.DateAdded.ToString()}'";
                             sql = $@"Insert into dbo_LC_FG_sample_day_1  (
                                         unload_day_id,
                                         datetime_submitted,
@@ -141,7 +141,7 @@ namespace NSAP_ODK.Entities.Database
                                         EnumeratorText
                                     ) Values (
                                         {item.PK} ,
-                                        {(item.DateSubmitted==null ? "null" : dateSubmitted)} ,
+                                        {(item.DateSubmitted == null ? "null" : dateSubmitted)} ,
                                         '{item.UserName}' ,
                                         '{item.DeviceID}' ,
                                         '{item.XFormIdentifier}' ,
@@ -149,31 +149,31 @@ namespace NSAP_ODK.Entities.Database
                                         {item.FromExcelDownload} ,
                                         '{item.FormVersion}' ,
                                         '{item.RowID}' ,
-                                        {(item.EnumeratorID == null ? "null" : item.EnumeratorID.ToString() )} ,
+                                        {(item.EnumeratorID == null ? "null" : item.EnumeratorID.ToString())} ,
                                         '{item.EnumeratorText}' 
                                     )";
-                             using (OleDbCommand update1 = new OleDbCommand(sql, conn))
+                            using (OleDbCommand update1 = new OleDbCommand(sql, conn))
                             {
                                 try
                                 {
                                     success = update1.ExecuteNonQuery() > 0;
                                 }
-                                catch(OleDbException)
+                                catch (OleDbException)
                                 {
                                     success = false;
                                 }
-                                catch(Exception ex)
+                                catch (Exception ex)
                                 {
                                     Logger.Log(ex);
                                 }
                             }
                         }
                     }
-                    catch(OleDbException )
+                    catch (OleDbException)
                     {
                         success = false;
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Logger.Log(ex);
                     }
@@ -191,7 +191,7 @@ namespace NSAP_ODK.Entities.Database
                 var sql = $@"Update dbo_LC_FG_sample_day set
                                 region_id='{item.NSAPRegionID}',
                                 sdate = '{item.SamplingDate.ToString(_dateFormat)}',
-                                land_ctr_id = {(item.LandingSiteID==null? item.LandingSite==null?"null":item.LandingSite.LandingSiteID.ToString() : item.LandingSiteID.ToString())},
+                                land_ctr_id = {(item.LandingSiteID == null ? item.LandingSite == null ? "null" : item.LandingSite.LandingSiteID.ToString() : item.LandingSiteID.ToString())},
                                 ground_id = '{item.FishingGroundID}',
                                 remarks = '{item.Remarks}',
                                 sampleday = {item.IsSamplingDay},
@@ -201,12 +201,12 @@ namespace NSAP_ODK.Entities.Database
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
                     success = update.ExecuteNonQuery() > 0;
-                    if(success && item.XFormIdentifier != null &&  item.XFormIdentifier.Length>0)
+                    if (success && item.XFormIdentifier != null && item.XFormIdentifier.Length > 0)
                     {
                         string dateSubmitted = item.DateSubmitted == null ? "null" : $@"'{item.DateSubmitted.ToString()}'";
                         string dateAdded = item.DateAdded == null ? "null" : $@"'{item.DateAdded.ToString()}'";
 
-                            sql = $@"Update dbo_LC_FG_sample_day_1 set
+                        sql = $@"Update dbo_LC_FG_sample_day_1 set
                                         datetime_submitted = {dateSubmitted},
                                         user_name = '{item.UserName}',
                                         device_id = '{item.DeviceID}',
@@ -215,21 +215,21 @@ namespace NSAP_ODK.Entities.Database
                                         FromExcelDownload = {item.FromExcelDownload},
                                         form_version = '{item.FormVersion}',
                                         RowID = '{item.RowID}',
-                                        EnumeratorID = {(item.EnumeratorID==null ? "null" : item.EnumeratorID.ToString())},
+                                        EnumeratorID = {(item.EnumeratorID == null ? "null" : item.EnumeratorID.ToString())},
                                         EnumeratorText = '{item.EnumeratorText}'
                                  WHERE unload_day_id = {item.PK}";
-                        
+
                         using (OleDbCommand update1 = new OleDbCommand(sql, conn))
                         {
                             try
                             {
                                 success = update1.ExecuteNonQuery() > 0;
                             }
-                            catch(OleDbException)
+                            catch (OleDbException)
                             {
                                 success = false;
                             }
-                            catch(Exception ex)
+                            catch (Exception ex)
                             {
                                 Logger.Log(ex);
                             }
@@ -247,14 +247,14 @@ namespace NSAP_ODK.Entities.Database
             {
                 conn.Open();
                 var sql = "Delete * from dbo_LC_FG_sample_day_1";
-                
+
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
                     try
                     {
                         update.ExecuteNonQuery();
                         success = true;
-                        if(success)
+                        if (success)
                         {
                             sql = "Delete * from dbo_LC_FG_sample_day";
                             using (OleDbCommand update1 = new OleDbCommand(sql, conn))
@@ -264,11 +264,11 @@ namespace NSAP_ODK.Entities.Database
                                     update1.ExecuteNonQuery();
                                     success = true;
                                 }
-                                catch(OleDbException)
+                                catch (OleDbException)
                                 {
                                     success = false;
                                 }
-                                catch(Exception ex)
+                                catch (Exception ex)
                                 {
                                     Logger.Log(ex);
                                 }
@@ -294,12 +294,31 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $"Delete * from dbo_LC_FG_sample_day where unload_day_id={id}";
+
+                var sql = $"Delete * from dbo_LC_FG_sample_day_1 where unload_day_id={id}";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;
+
+                        sql = $"Delete * from dbo_LC_FG_sample_day where unload_day_id={id}";
+                        using (OleDbCommand update1 = new OleDbCommand(sql, conn))
+                        {
+                            try
+                            {
+                                success = update1.ExecuteNonQuery() > 0;
+                            }
+                            catch (OleDbException)
+                            {
+                                success = false;
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Log(ex);
+                                success = false;
+                            }
+                        }
                     }
                     catch (OleDbException)
                     {
@@ -311,6 +330,8 @@ namespace NSAP_ODK.Entities.Database
                         success = false;
                     }
                 }
+
+
             }
             return success;
         }

@@ -48,8 +48,8 @@
             <RowDefinition Height="30" x:Name="rowStatus" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="9*" />
             <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="100" />
         </Grid.ColumnDefinitions>
 
         <!--buttons on the right of the screen-->

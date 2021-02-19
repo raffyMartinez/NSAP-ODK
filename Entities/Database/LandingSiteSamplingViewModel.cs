@@ -17,7 +17,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                var list = LandingSiteSamplingCollection.Where(t =>t.XFormIdentifier!=null &&  t.XFormIdentifier.Length > 0);
+                var list = LandingSiteSamplingCollection.Where(t => t.XFormIdentifier != null && t.XFormIdentifier.Length > 0);
                 if (list.Count() > 0)
                 {
                     return list.Max(t => t.DateSubmitted).Value;
@@ -33,7 +33,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                return LandingSiteSamplingCollection.Count(t => t.XFormIdentifier!=null && t.XFormIdentifier.Length > 0);
+                return LandingSiteSamplingCollection.Count(t => t.XFormIdentifier != null && t.XFormIdentifier.Length > 0);
             }
         }
         public List<OrphanedLandingSite> OrphanedLandingSites()
@@ -66,18 +66,18 @@ namespace NSAP_ODK.Entities.Database
             //if (LandingSiteSamplingCollection.FirstOrDefault(t => t.LandingSiteID == replacement.LandingSiteID) != null)
             //{
 
-                samplings = LandingSiteSamplingCollection.Where(t => t.LandingSiteID != null &&
-                                                                     t.FishingGround.Code == ols.FishingGround.Code &&
-                                                                     t.LandingSite.LandingSiteID == replacement.LandingSiteID &&
-                                                                     t.SamplingDate.Date == samplingDate.Date).ToList();
-                if (samplings.Count > 0)
-                {
-                   return samplings.FirstOrDefault();
-                }
-                else
-                {
-                    return null;
-                }
+            samplings = LandingSiteSamplingCollection.Where(t => t.LandingSiteID != null &&
+                                                                 t.FishingGround.Code == ols.FishingGround.Code &&
+                                                                 t.LandingSite.LandingSiteID == replacement.LandingSiteID &&
+                                                                 t.SamplingDate.Date == samplingDate.Date).ToList();
+            if (samplings.Count > 0)
+            {
+                return samplings.FirstOrDefault();
+            }
+            else
+            {
+                return null;
+            }
             //}
             //else
             //{
@@ -175,24 +175,27 @@ namespace NSAP_ODK.Entities.Database
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
-                    {
-                        int newIndex = e.NewStartingIndex;
-                        EditSuccess = LandingSiteSamplings.Add(LandingSiteSamplingCollection[newIndex]);
-                    }
+
+                    int newIndex = e.NewStartingIndex;
+                    EditSuccess = LandingSiteSamplings.Add(LandingSiteSamplingCollection[newIndex]);
+
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
+
+                    List<LandingSiteSampling> tempListOfRemovedItems = e.OldItems.OfType<LandingSiteSampling>().ToList();
+                    if (LandingSiteSamplings.Delete(tempListOfRemovedItems[0].PK))
                     {
-                        List<LandingSiteSampling> tempListOfRemovedItems = e.OldItems.OfType<LandingSiteSampling>().ToList();
-                        LandingSiteSamplings.Delete(tempListOfRemovedItems[0].PK);
+                        EditSuccess = true;
                     }
+
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
-                    {
-                        List<LandingSiteSampling> tempList = e.NewItems.OfType<LandingSiteSampling>().ToList();
-                        EditSuccess = LandingSiteSamplings.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
-                    }
+
+                    List<LandingSiteSampling> tempList = e.NewItems.OfType<LandingSiteSampling>().ToList();
+                    EditSuccess = LandingSiteSamplings.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+
                     break;
             }
         }
@@ -244,21 +247,23 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-        public void DeleteRecordFromRepo(int id)
+        public bool DeleteRecordFromRepo(LandingSiteSampling s)
         {
-            if (id == 0)
-                throw new Exception("Record ID cannot be null");
+            if (s == null)
+                throw new Exception("Sampling cannot be null");
 
             int index = 0;
             while (index < LandingSiteSamplingCollection.Count)
             {
-                if (LandingSiteSamplingCollection[index].PK == id)
+                if (LandingSiteSamplingCollection[index].PK == s.PK)
                 {
                     LandingSiteSamplingCollection.RemoveAt(index);
                     break;
                 }
                 index++;
             }
+
+            return EditSuccess;
         }
     }
 }
