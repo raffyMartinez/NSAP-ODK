@@ -150,9 +150,11 @@
     <Compile Include="Entities\Database\CrossTabLength.cs" />
     <Compile Include="Entities\Database\CrossTabManager.cs" />
     <Compile Include="Entities\Database\CrossTabMaturity.cs" />
+    <Compile Include="Entities\Database\DatabaseEnumeratorSummary.cs" />
     <Compile Include="Entities\Database\DBSummary.cs" />
     <Compile Include="Entities\Database\DownloadFromServerEventArg.cs" />
     <Compile Include="Entities\Database\EntitiesToDataTables.cs" />
+    <Compile Include="Entities\Database\EnumeratorSummary.cs" />
     <Compile Include="Entities\Database\FishingCalendarViewModel.cs" />
     <Compile Include="Entities\Database\FishingGroundGrid.cs" />
     <Compile Include="Entities\Database\FishingGroundGridRepository.cs" />
@@ -318,6 +320,9 @@
     <Compile Include="Utilities\ObjectShredder.cs" />
     <Compile Include="Utilities\SerializeWindowState.cs" />
     <Compile Include="Utilities\VesselLandingFixDownload.cs" />
+    <Compile Include="Views\AboutWindow.xaml.cs">
+      <DependentUpon>AboutWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\CrossTabReportWindow.xaml.cs">
       <DependentUpon>CrossTabReportWindow.xaml</DependentUpon>
     </Compile>
@@ -379,6 +384,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="TreeViewModelControl\TreeControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\AboutWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

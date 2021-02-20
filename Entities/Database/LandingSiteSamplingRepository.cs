@@ -201,7 +201,7 @@ namespace NSAP_ODK.Entities.Database
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
                     success = update.ExecuteNonQuery() > 0;
-                    if (success && item.XFormIdentifier != null && item.XFormIdentifier.Length > 0)
+                    if (success && (item.XFormIdentifier != null && item.XFormIdentifier.Length > 0) || (item.Remarks!=null &&  item.Remarks.Contains("orphaned")))
                     {
                         string dateSubmitted = item.DateSubmitted == null ? "null" : $@"'{item.DateSubmitted.ToString()}'";
                         string dateAdded = item.DateAdded == null ? "null" : $@"'{item.DateAdded.ToString()}'";
@@ -221,6 +221,7 @@ namespace NSAP_ODK.Entities.Database
 
                         using (OleDbCommand update1 = new OleDbCommand(sql, conn))
                         {
+                            success = false;
                             try
                             {
                                 success = update1.ExecuteNonQuery() > 0;
@@ -236,6 +237,7 @@ namespace NSAP_ODK.Entities.Database
                         }
                     }
                 }
+                
             }
             return success;
         }

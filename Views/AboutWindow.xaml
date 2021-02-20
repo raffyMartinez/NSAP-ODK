@@ -1,0 +1,25 @@
+﻿<Window x:Class="NSAP_ODK.Views.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NSAP_ODK.Views"
+        mc:Ignorable="d"
+        Loaded="OnWIndowLoaded"
+        Title="About this application" Height="450" Width="383.088" WindowStartupLocation="CenterScreen" WindowStyle="ToolWindow" ResizeMode="NoResize">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="60"/>
+        </Grid.RowDefinitions>
+        <StackPanel VerticalAlignment="Center">
+            <Image Source="/NSAP-ODK;component/icons-04.ico" Height="100" Width="100" />
+            <Label Content="NSAP-ODK Database" FontSize="18" FontWeight="Bold" HorizontalContentAlignment="Center" Margin="0 0 0 20"/>
+            <Label Content="Written by: Rafael Martinez" HorizontalAlignment="Center"/>
+            <Label Content="raffy.martinez@gmail.com" HorizontalAlignment="Center" Margin="0 0 0 20"/>
+            <Label Content="Application version:" HorizontalAlignment="Center" x:Name="labelVersion"/>
+        </StackPanel>
+        <Button Grid.Row="1" Content="Ok" Height="40" Width="40" Click="OnButtonClick"/>
+    </Grid>
+    
+</Window>

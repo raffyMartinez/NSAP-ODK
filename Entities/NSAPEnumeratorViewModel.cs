@@ -18,27 +18,49 @@ namespace NSAP_ODK.Entities
 
         public List<OrphanedEnumerator>OrphanedEnumerators()
         {
-            var items = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
-                .Where(t => t.NSAPEnumeratorID == null && t.EnumeratorText.Length > 0)
+            var itemsVesselSamplings = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
+                .Where(t => t.NSAPEnumeratorID == null && t.EnumeratorText!=null &&  t.EnumeratorText.Length > 0)
                 .OrderBy(t=>t.EnumeratorName)
                 .GroupBy(t => t.EnumeratorText)
                 .ToList();
 
             var list = new List<OrphanedEnumerator>();
+            var listNames = new List<string>();
 
-            foreach(var item in items)
+            var itemsLandingSiteSampling = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection
+                .Where(t => t.EnumeratorID == null && t.EnumeratorText != null && t.EnumeratorText.Length > 0)
+                .OrderBy(t => t.EnumeratorText)
+                .GroupBy(t => t.EnumeratorText).ToList();
+
+            foreach(var item in itemsVesselSamplings)
             {
-                
+                listNames.Add(item.Key);
                 var orphan = new OrphanedEnumerator
                 {
                     Name = item.Key,
-                    SampledLandings = NSAPEntities.VesselUnloadViewModel.GetSampledLandings(item.Key)
+                    SampledLandings = NSAPEntities.VesselUnloadViewModel.GetSampledLandings(item.Key),
+                    LandingSiteSamplings = NSAPEntities.LandingSiteSamplingViewModel.GetSampledLandings(item.Key)
                 };
 
                 list.Add(orphan);
             }
 
-            return list;
+            foreach(var sl in itemsLandingSiteSampling)
+            {
+                if(!listNames.Contains(sl.Key))
+                {
+                    var orphan = new OrphanedEnumerator
+                    {
+                        Name = sl.Key,
+                        SampledLandings = NSAPEntities.VesselUnloadViewModel.GetSampledLandings(sl.Key),
+                        LandingSiteSamplings = NSAPEntities.LandingSiteSamplingViewModel.GetSampledLandings(sl.Key)
+                    };
+
+                    list.Add(orphan);
+                }
+            }
+            List<OrphanedEnumerator> sortedList = list.OrderBy(t=>t.Name).ToList();
+            return sortedList;
                 
         }
         public NSAPEnumeratorViewModel()

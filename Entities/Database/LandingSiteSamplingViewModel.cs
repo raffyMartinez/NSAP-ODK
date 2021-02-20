@@ -12,7 +12,10 @@ namespace NSAP_ODK.Entities.Database
         public bool EditSuccess { get; set; }
         public ObservableCollection<LandingSiteSampling> LandingSiteSamplingCollection { get; set; }
         private LandingSiteSamplingRepository LandingSiteSamplings { get; set; }
-
+        public List<LandingSiteSampling> GetSampledLandings(string enumeratorText)
+        {
+            return LandingSiteSamplingCollection.Where(t => t.EnumeratorID == null && t.EnumeratorText == enumeratorText).ToList();
+        }
         public DateTime? LatestEformSubmissionDate
         {
             get
@@ -67,12 +70,14 @@ namespace NSAP_ODK.Entities.Database
             //{
 
             samplings = LandingSiteSamplingCollection.Where(t => t.LandingSiteID != null &&
+                                                                 t.FMAID == ols.FMA.FMAID   && 
                                                                  t.FishingGround.Code == ols.FishingGround.Code &&
                                                                  t.LandingSite.LandingSiteID == replacement.LandingSiteID &&
                                                                  t.SamplingDate.Date == samplingDate.Date).ToList();
             if (samplings.Count > 0)
             {
-                return samplings.FirstOrDefault();
+                //return samplings.FirstOrDefault();
+                return samplings[0];
             }
             else
             {

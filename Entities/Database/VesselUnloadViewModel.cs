@@ -13,7 +13,22 @@ namespace NSAP_ODK.Entities.Database
         public ObservableCollection<VesselUnload> VesselUnloadCollection { get; set; }
         private VesselUnloadRepository VesselUnloads { get; set; }
 
-        
+
+        //private Dictionary<NSAPRegion,int>CountByRegion
+        //{
+        //    get
+        //    {
+        //        NSAPEntities.NSAPRegionViewModel.GetEnumeratorInRegion
+        //    }
+        //}
+
+        public int CountEnumeratorsWithUnloadRecord
+        {
+            get
+            {
+                return VesselUnloadCollection.Where(t=>t.NSAPEnumeratorID!=null).GroupBy(t => t.NSAPEnumeratorID).ToList().Count;
+            }
+        }
         public VesselUnloadViewModel()
         {
             VesselUnloads = new VesselUnloadRepository();

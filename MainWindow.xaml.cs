@@ -92,36 +92,71 @@ namespace NSAP_ODK
             return false;
         }
 
-        private void ShowSummary()
+        private void ShowSummary(string level)
         {
             rowOpening.Height = new GridLength(1, GridUnitType.Star);
-            NSAPEntities.DBSummary.Refresh();
 
-            labelSummary.Content = "Overall summary of database content";
-            propertyGridSummary.SelectedObject = NSAPEntities.DBSummary;
-            propertyGridSummary.NameColumnWidth = 350;
-            propertyGridSummary.AutoGenerateProperties = false;
 
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Database", Name = "DBPath", Description = "Path to database", DisplayOrder = 1, Category = "Database" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of NSAP Regions", Name = "NSAPRegionCount", Description = "Number of NSAP Regions", DisplayOrder = 2, Category = "Lookup choices" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of FMAS", Name = "FMACount", Description = "Number of FMAs", DisplayOrder = 3, Category = "Lookup choices" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of fishing grounds", Name = "FishingGroundCount", Description = "Number of fishing grounds", DisplayOrder = 4, Category = "Lookup choices" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of landing sites", Name = "LandingSiteCount", Description = "Number of landing sites", DisplayOrder = 5, Category = "Lookup choices" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of fish species", Name = "FishSpeciesCount", Description = "Number of fish species", DisplayOrder = 6, Category = "Lookup choices" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of non-fish species", Name = "NonFishSpeciesCount", Description = "Number of non-fish species", DisplayOrder = 7, Category = "Lookup choices" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number fishing gears", Name = "FishingGearCount", Description = "Number of fishing gears", DisplayOrder = 8, Category = "Lookup choices" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of effort specs", Name = "GearSpecificationCount", Description = "Number of effort specifications", DisplayOrder = 9, Category = "Lookup choices" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of GPS", Name = "GPSCount", Description = "Number of GPS", DisplayOrder = 10, Category = "Lookup choices" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of enumerators", Name = "EnumeratorCount", Description = "Number of NSAP enumerators", DisplayOrder = 11, Category = "Lookup choices" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of fishing vessels", Name = "FishingVesselCount", Description = "Number of fishing vessels", DisplayOrder = 12, Category = "Lookup choices" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of gear unload", Name = "GearUnloadCount", Description = "Number of gear unload", DisplayOrder = 13, Category = "Submitted fish landing data" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of complete gear unload", Name = "CountCompleteGearUnload", Description = "Number of gear unload", DisplayOrder = 14, Category = "Submitted fish landing data" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of vessel unload", Name = "VesselUnloadCount", Description = "Number of vessel unload", DisplayOrder = 15, Category = "Submitted fish landing data" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of tracked operations", Name = "TrackedOperationsCount", Description = "Number of tracked fishing operations", DisplayOrder = 16, Category = "Submitted fish landing data" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Date of first sampled landing", Name = "FirstSampledLandingDate", Description = "Date of first sampled operation", DisplayOrder = 17, Category = "Submitted fish landing data" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Date of last sampled landing", Name = "LastSampledLandingDate", Description = "Date of last sampled operation", DisplayOrder = 18, Category = "Submitted fish landing data" });
-            propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Date of latest download", Name = "DateLastDownload", Description = "Date of latet download", DisplayOrder = 19, Category = "Submitted fish landing data" });
+            switch (level)
+            {
+                case "Overall":
 
+                    NSAPEntities.DBSummary.Refresh();
+                    labelSummary.Content = "Overall summary of database content";
+                    propertyGridSummary.SelectedObject = NSAPEntities.DBSummary;
+                    propertyGridSummary.NameColumnWidth = 350;
+                    propertyGridSummary.AutoGenerateProperties = false;
+
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Database", Name = "DBPath", Description = "Path to database", DisplayOrder = 1, Category = "Database" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of NSAP Regions", Name = "NSAPRegionCount", Description = "Number of NSAP Regions", DisplayOrder = 2, Category = "Lookup choices" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of FMAS", Name = "FMACount", Description = "Number of FMAs", DisplayOrder = 3, Category = "Lookup choices" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of fishing grounds", Name = "FishingGroundCount", Description = "Number of fishing grounds", DisplayOrder = 4, Category = "Lookup choices" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of landing sites", Name = "LandingSiteCount", Description = "Number of landing sites", DisplayOrder = 5, Category = "Lookup choices" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of fish species", Name = "FishSpeciesCount", Description = "Number of fish species", DisplayOrder = 6, Category = "Lookup choices" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of non-fish species", Name = "NonFishSpeciesCount", Description = "Number of non-fish species", DisplayOrder = 7, Category = "Lookup choices" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number fishing gears", Name = "FishingGearCount", Description = "Number of fishing gears", DisplayOrder = 8, Category = "Lookup choices" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of effort specs", Name = "GearSpecificationCount", Description = "Number of effort specifications", DisplayOrder = 9, Category = "Lookup choices" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of GPS", Name = "GPSCount", Description = "Number of GPS", DisplayOrder = 10, Category = "Lookup choices" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of enumerators", Name = "EnumeratorCount", Description = "Number of NSAP enumerators", DisplayOrder = 11, Category = "Lookup choices" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of fishing vessels", Name = "FishingVesselCount", Description = "Number of fishing vessels", DisplayOrder = 12, Category = "Lookup choices" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of gear unload", Name = "GearUnloadCount", Description = "Number of gear unload", DisplayOrder = 13, Category = "Submitted fish landing data" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of complete gear unload", Name = "CountCompleteGearUnload", Description = "Number of gear unload", DisplayOrder = 14, Category = "Submitted fish landing data" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of vessel unload", Name = "VesselUnloadCount", Description = "Number of vessel unload", DisplayOrder = 15, Category = "Submitted fish landing data" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of tracked operations", Name = "TrackedOperationsCount", Description = "Number of tracked fishing operations", DisplayOrder = 16, Category = "Submitted fish landing data" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Date of first sampled landing", Name = "FirstSampledLandingDate", Description = "Date of first sampled operation", DisplayOrder = 17, Category = "Submitted fish landing data" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Date of last sampled landing", Name = "LastSampledLandingDate", Description = "Date of last sampled operation", DisplayOrder = 18, Category = "Submitted fish landing data" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Date of latest download", Name = "DateLastDownload", Description = "Date of latet download", DisplayOrder = 19, Category = "Submitted fish landing data" });
+                    break;
+                case "Enumerators":
+                    NSAPEntities.DatabaseEnumeratorSummary.Refresh();
+                    //propertyGridSummary.Properties.Clear();
+                    labelSummary.Content = "Summary of enumerators";
+                    propertyGridSummary.SelectedObject = NSAPEntities.DatabaseEnumeratorSummary;
+                    propertyGridSummary.NameColumnWidth = 350;
+                    propertyGridSummary.AutoGenerateProperties = false;
+
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Total in database", Name = "TotalInDatabase", Description = "Total number of enumerators saved in the database", DisplayOrder = 1, Category = "Overall" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of enumerators with catch and effort data", Name = "CountWithVesselLandingRecords", Description = "Count of enumerators having catch and effort sampling data", DisplayOrder = 2, Category = "Overall" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Ilocos Region", Name = "CountIlocos", Description = "Number of enumerators in Ilocos Region", DisplayOrder = 3, Category = "Number of enumerators by region" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Cagayan Valley", Name = "CountCagayanValley", Description = "Number of enumerators in Cagayan Valley", DisplayOrder = 4, Category = "Number of enumerators by region" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Central Luzon", Name = "CountCentralLuzon", Description = "Number of enumerators in Central Luzon", DisplayOrder = 5, Category = "Number of enumerators by region" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "CALABARZON", Name = "CountCalabarzon", Description = "Number of enumerators in CALABARZON", DisplayOrder = 6, Category = "Number of enumerators by region" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "MIMAROPA", Name = "CountMimaropa", Description = "Number of enumerators in MIMAROPA", DisplayOrder = 7, Category = "Number of enumerators by region" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Bicol Region", Name = "CountBicol", Description = "Number of enumerators in Bicol Region", DisplayOrder = 8, Category = "Number of enumerators by region" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Western Visayas", Name = "CountWesternVisayas", Description = "Number of enumerators in Western Visayas", DisplayOrder = 9, Category = "Number of enumerators by region" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Central Visayas", Name = "CountCentralVisayas", Description = "Number of enumerators in Central Visayas", DisplayOrder = 10, Category = "Number of enumerators by region" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Eastern Visayas", Name = "CountEasternVisayas", Description = "Number of enumerators in Eastern Visayas", DisplayOrder = 11, Category = "Number of enumerators by region" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Zamboanga Peninsula", Name = "CountZamboangaPeninsula", Description = "Number of enumerators in Zamboanga Peninsula", DisplayOrder = 12, Category = "Number of enumerators by region" });    
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Northern Mindanao", Name = "CountNorthernMindanao", Description = "Number of enumerators in Northern Mindanao", DisplayOrder = 13, Category = "Number of enumerators by region" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Davao Region", Name = "CountDavao", Description = "Number of enumerators in Davao", DisplayOrder = 14, Category = "Number of enumerators by region" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Soccsksargen", Name = "CountSoccsksargen", Description = "Number of enumerators in Soccsksargen", DisplayOrder = 15, Category = "Number of enumerators by region" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Caraga Region", Name = "CountCaraga", Description = "Number of enumerators in Caraga Region", DisplayOrder = 16, Category = "Number of enumerators by region" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "BARMM", Name = "CountBARMM", Description = "Number of enumerators in BARMM", DisplayOrder = 17, Category = "Number of enumerators by region" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "NCR", Name = "CountNCR", Description = "Number of enumerators in NCR", DisplayOrder = 18, Category = "Number of enumerators by region" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "CAR", Name = "CountCar", Description = "Number of enumerators in CAR", DisplayOrder = 19, Category = "Number of enumerators by region" });
+
+                    break;
+            }
             propertyGridSummary.Visibility = Visibility.Visible;
 
 
@@ -243,12 +278,24 @@ namespace NSAP_ODK
                 case DataDisplayMode.DBSummary:
                     //ShowSummary();
                     summaryTreeNodeRegion.Items.Clear();
+                    summaryTreeNodeEnumerators.Items.Clear();
+
+
+                    TreeViewItem tvi = new TreeViewItem { Header = "All regions", Tag = "EnumeratorAllRegions" };
+                    tvi.Expanded += OnSuumaryTreeItemExpanded;
+                    summaryTreeNodeEnumerators.Items.Add(tvi);
+
                     foreach (var region in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection)
                     {
                         TreeViewItem item = new TreeViewItem { Header = region.ShortName, Tag = region };
                         item.Expanded += OnSuumaryTreeItemExpanded;
                         item.Items.Add(new TreeViewItem { Header = "**dummy" });
                         summaryTreeNodeRegion.Items.Add(item);
+
+                        TreeViewItem item1 = new TreeViewItem { Header = region.ShortName, Tag = region };
+                        item1.Expanded += OnSuumaryTreeItemExpanded;
+                        item1.Items.Add(new TreeViewItem { Header = "**dummy" });
+                        summaryTreeNodeEnumerators.Items.Add(item1);
                     }
                     summaryTreeNodeOverall.IsSelected = true;
 
@@ -265,25 +312,43 @@ namespace NSAP_ODK
                 if (firstChild.Header.ToString() == "**dummy")
                 {
                     node.Items.Clear();
-                    switch (node.Tag.GetType().Name)
+                    switch(((TreeViewItem)node.Parent).Header)
                     {
-                        case "NSAPRegion":
+                        case "Enumerators":
+                            foreach(var enumerator in NSAPEntities.NSAPRegionViewModel.GetEnumeratorsInRegion((NSAPRegion)node.Tag))
+                            {
+                                TreeViewItem enumeratorNode = new TreeViewItem { Header = enumerator.Name, Tag = enumerator };
+                                node.Items.Add(enumeratorNode);
+                            }
+                            break;
+                        case "Regions":
                             foreach (var fg in NSAPEntities.NSAPRegionViewModel.GetFishingGrounds((NSAPRegion)node.Tag))
                             {
                                 TreeViewItem fgNode = new TreeViewItem { Header = fg.Name, Tag = fg };
-                                //fgNode.Items.Add(new TreeViewItem { Header= "**dummy"});
                                 node.Items.Add(fgNode);
                             }
                             break;
-                            //case "FishingGround":
-                            //    var parentRegion = (NSAPRegion)((TreeViewItem)node.Parent).Tag;
-                            //    foreach (var ls in NSAPEntities.NSAPRegionViewModel.GetLandingSites(parentRegion,(FishingGround)node.Tag))
-                            //    {
-                            //        string lsName = $"{ls}";
-                            //        node.Items.Add(new TreeViewItem {Header = lsName, Tag=ls });
-                            //    }
-                            //    break;
                     }
+
+                    //switch (node.Tag.GetType().Name)
+                    //{
+                    //    case "NSAPRegion":
+                    //        foreach (var fg in NSAPEntities.NSAPRegionViewModel.GetFishingGrounds((NSAPRegion)node.Tag))
+                    //        {
+                    //            TreeViewItem fgNode = new TreeViewItem { Header = fg.Name, Tag = fg };
+                    //            //fgNode.Items.Add(new TreeViewItem { Header= "**dummy"});
+                    //            node.Items.Add(fgNode);
+                    //        }
+                    //        break;
+                    //        //case "FishingGround":
+                    //        //    var parentRegion = (NSAPRegion)((TreeViewItem)node.Parent).Tag;
+                    //        //    foreach (var ls in NSAPEntities.NSAPRegionViewModel.GetLandingSites(parentRegion,(FishingGround)node.Tag))
+                    //        //    {
+                    //        //        string lsName = $"{ls}";
+                    //        //        node.Items.Add(new TreeViewItem {Header = lsName, Tag=ls });
+                    //        //    }
+                    //        //    break;
+                    //}
                 }
             }
         }
@@ -739,6 +804,8 @@ namespace NSAP_ODK
         {
             switch (((Button)sender).Name)
             {
+                //case "buttonEntitySummary":
+                //    break;
                 case "buttonOrphan":
                     var oiw = new OrphanItemsManagerWindow();
                     oiw.Owner = this;
@@ -844,6 +911,7 @@ namespace NSAP_ODK
                 case "menuEnumerators":
                     buttonOrphan.Visibility = Visibility.Visible;
                     buttonImport.Visibility = Visibility.Visible;
+                    //buttonEntitySummary.Visibility = Visibility.Visible;
                     _nsapEntity = NSAPEntity.Enumerator;
                     textOfTitle = "List of enumerators";
                     break;
@@ -1803,6 +1871,18 @@ namespace NSAP_ODK
             _selectedPropertyItem = (PropertyItem)((PropertyGrid)e.Source).SelectedPropertyItem;
         }
 
+        private void SetupEnumeratorSummaryGrid(DataGrid targetGrid, bool allRegions = true, NSAPEnumerator enumerator=null)
+        {
+
+            if(allRegions)
+            {
+
+            }
+            else
+            {
+
+            }
+        }
 
         private void SetUpSummaryGrid(SummaryLevelType summaryType, DataGrid targetGrid, NSAPRegion region = null, FMA fma = null, FishingGround fg = null, string landingSite = null, bool inSummaryView = true)
         {
@@ -2014,35 +2094,56 @@ namespace NSAP_ODK
         {
             rowSummaryDataGrid.Height = new GridLength(1, GridUnitType.Star);
             rowOverallSummary.Height = new GridLength(0);
-            switch (tvItem.Header.ToString())
+            string header = tvItem.Header.ToString();
+            switch (header)
             {
                 case "Overall":
-                    ShowSummary();
+                    ShowSummary(header);
                     rowSummaryDataGrid.Height = new GridLength(0);
                     rowOverallSummary.Height = new GridLength(1, GridUnitType.Star);
                     break;
                 case "Regions":
                     ShowSummaryAtLevel(SummaryLevelType.AllRegions);
                     break;
+                case "Enumerators":
+                    ShowSummary(header);
+                    rowSummaryDataGrid.Height = new GridLength(0);
+                    rowOverallSummary.Height = new GridLength(1, GridUnitType.Star);
+                    break;
                 default:
                     switch (tvItem.Tag.GetType().Name)
                     {
                         case "NSAPRegion":
-                            ShowSummaryAtLevel(SummaryLevelType.Region, (NSAPRegion)tvItem.Tag);
+                            switch(((TreeViewItem)tvItem.Parent).Header)
+                            {
+                                case "Enumerators":
+                                    break;
+                                case "Regions":
+                                    ShowSummaryAtLevel(SummaryLevelType.Region, (NSAPRegion)tvItem.Tag);
+                                    break;
+                            }
+                            
                             break;
                         case "FishingGround":
                             ShowSummaryAtLevel(summaryType: SummaryLevelType.FishingGround, region: (NSAPRegion)((TreeViewItem)tvItem.Parent).Tag, fg: (FishingGround)tvItem.Tag);
+                            break;
+                        case "NSAPEnumerator":
+                            ShowEnumeratorSummary((NSAPEnumerator)tvItem.Tag);
                             break;
                     }
                     break;
             }
         }
 
+        private void ShowEnumeratorSummary(NSAPEnumerator enumerator)
+        {
+
+        }
         private void OnSummaryTreeItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             labelSummary.Content = "To be implemented";
 
-            checkLandingSiteWithLandings.Visibility = Visibility.Visible;
+            //checkLandingSiteWithLandings.Visibility = Visibility.Visible;
             treeViewSummary.Visibility = Visibility.Visible;
             labelSummary.Visibility = Visibility.Visible;
 
@@ -2084,6 +2185,9 @@ namespace NSAP_ODK
                     menuDatabaseSummary.IsChecked = true;
                     break;
                 case "buttonAbout":
+                    AboutWindow aw = new AboutWindow();
+                    aw.ShowDialog();
+                    break;
                 case "buttonSettings":
                     ShowToBeImplemented();
                     break;

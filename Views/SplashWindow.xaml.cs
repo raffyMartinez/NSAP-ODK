@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -41,9 +42,11 @@ namespace NSAP_ODK.Views
         }
         private async void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
+            labelVersion.Content = $"Version: {Assembly.GetExecutingAssembly().GetName().Version.ToString()}";
             ProgressBarRead.IsIndeterminate = true;
             await LoadEntitiesAsync();
             ProgressBarRead.IsIndeterminate = false; // Maybe hide it, too
+
            
 
         }
@@ -80,6 +83,7 @@ namespace NSAP_ODK.Views
             NSAPEntities.CatchLengthViewModel = new CatchLengthViewModel();
             NSAPEntities.CatchMaturityViewModel = new CatchMaturityViewModel();
             NSAPEntities.DBSummary = new DBSummary();
+            NSAPEntities.DatabaseEnumeratorSummary = new DatabaseEnumeratorSummary();
         }
     }
 }

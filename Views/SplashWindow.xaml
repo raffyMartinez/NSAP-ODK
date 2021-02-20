@@ -7,16 +7,20 @@
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen"
         Loaded="OnWindowLoaded" ShowInTaskbar="False"
-        Title="SplashWindow" Height="223.565" Width="567.064" ResizeMode="NoResize" WindowStyle="None">
+        Title="SplashWindow" Height="285.165" Width="567.064" ResizeMode="NoResize" WindowStyle="None">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="3*"/>
+            <RowDefinition Height="4*"/>
             <RowDefinition Height="30"/>
             <RowDefinition Height="40"/>
             <RowDefinition Height="30"/>
-            <RowDefinition/>
+
         </Grid.RowDefinitions>
-        <Label Grid.Row="0" Content="NSAP-ODK Fish Landings Database" HorizontalContentAlignment="Center" x:Name="LabelTitle" VerticalAlignment="Center" FontSize="24" FontWeight="Bold"/>
+        <StackPanel VerticalAlignment="Center">
+            <Image Source="/NSAP-ODK;component/icons-04.ico" Height="100" Width="100"/>
+            <Label Content="NSAP-ODK Fish Landings Database" HorizontalContentAlignment="Center" x:Name="LabelTitle" VerticalAlignment="Center" FontSize="20" FontWeight="Bold"/>
+            <Label Content="Application version" HorizontalAlignment="Center" x:Name="labelVersion"/>
+        </StackPanel>
         <Label Grid.Row="1" Content="Loading data..." HorizontalContentAlignment="Center" x:Name="LabelLoading"/>
         <ProgressBar Grid.Row="2" Margin="75 12" x:Name="ProgressBarRead"/>
     </Grid>

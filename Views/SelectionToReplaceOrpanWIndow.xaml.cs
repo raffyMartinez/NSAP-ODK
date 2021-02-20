@@ -35,8 +35,17 @@ namespace NSAP_ODK.Views
         }
         protected override void OnSourceInitialized(EventArgs e)
         {
+            var h = Height;
+            var w = Width;
             base.OnSourceInitialized(e);
             this.ApplyPlacement();
+
+            if (Height <40 && Width < 140)
+            {
+                Height = h;
+                Width = w;
+            }
+
         }
         public Entities.NSAPEntity NSAPEntity { get; set; }
         public LandingSiteSampling LandingSiteSampling { get; set; }

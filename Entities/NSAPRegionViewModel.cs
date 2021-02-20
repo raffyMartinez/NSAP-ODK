@@ -383,6 +383,25 @@ namespace NSAP_ODK.Entities
             return NSAPRegionCollection.Where(t => t.Code == regionCode).FirstOrDefault().FMAs.Where(t => t.RowID == regionFMA).FirstOrDefault().FMA;
         }
 
+        public Dictionary<NSAPRegion,List<NSAPEnumerator>>GetEnumeratorsByRegionDictionary()
+        {
+            Dictionary<NSAPRegion, List<NSAPEnumerator>> dict = new Dictionary<NSAPRegion, List<NSAPEnumerator>>();
+            foreach(var r in NSAPRegionCollection)
+            {
+                List<NSAPEnumerator> list = new List<NSAPEnumerator>();
+                foreach(var e in r.NSAPEnumerators)
+                {
+                    list.Add(e.Enumerator);
+                }
+                dict.Add(r, list);
+            }
+            return dict;
+        }
+
+        public List<NSAPEnumerator>GetEnumeratorsInRegion(NSAPRegion region)
+        {
+            return GetEnumeratorsByRegionDictionary()[region];
+        }
         public NSAPEnumerator GetEnumeratorInRegion(string regionCode, int nsapEnumerator)
         {
             var nsapregionEnumerator = NSAPRegionCollection.Where(t => t.Code == regionCode).FirstOrDefault().NSAPEnumerators.Where(t => t.RowID == nsapEnumerator).FirstOrDefault();

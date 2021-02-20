@@ -88,8 +88,12 @@ namespace NSAP_ODK.Views
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Region", Binding = new Binding("Region.ShortName"), IsReadOnly = true });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("FMA"), IsReadOnly = true });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("FishingGround"), IsReadOnly = true });
-            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Number of landings", Binding = new Binding("NumberOfLandings"), IsReadOnly = true });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of landings", Binding = new Binding("NumberOfLandings"), IsReadOnly = true });
 
+            if(NSAPEntity==NSAPEntity.Enumerator)
+            {
+                dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of vessel countings", Binding = new Binding("NumberOfVesselCountings"), IsReadOnly = true });
+            }
 
             Title = labelTitle.Content.ToString();
         }
@@ -156,6 +160,16 @@ namespace NSAP_ODK.Views
 
                                 }
                             }
+
+                            foreach(var vesselCounting in orpahn.LandingSiteSamplings)
+                            {
+                                vesselCounting.EnumeratorID = ReplacementEnumerator.ID;
+                                if (NSAPEntities.LandingSiteSamplingViewModel.UpdateRecordInRepo(vesselCounting))
+                                {
+                                    _countReplaced++;
+                                    ShowProgressWhileReplacing(_countReplaced, $"Updated enumerator {_countReplaced} of {_countForReplacement}");
+                                }
+                            }
                         }
                     }
 
@@ -176,8 +190,8 @@ namespace NSAP_ODK.Views
                                 var sampling = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(selectedOrphanedLandingSite, ReplacementLandingSite, samplingWithOrphanedLandingSite.SamplingDate);
                                 if (sampling != null)
                                 {
-                                    if(sampling.UserName.Length==0)
-                                    {
+                                    //if(sampling.UserName!=null && sampling.UserName.Length==0)
+                                    //{
                                         sampling.UserName = samplingWithOrphanedLandingSite.UserName;
                                         sampling.DeviceID = samplingWithOrphanedLandingSite.DeviceID;
                                         sampling.DateSubmitted = samplingWithOrphanedLandingSite.DateSubmitted;
@@ -188,21 +202,27 @@ namespace NSAP_ODK.Views
                                         sampling.RowID = samplingWithOrphanedLandingSite.RowID;
                                         sampling.EnumeratorText = samplingWithOrphanedLandingSite.EnumeratorText;
                                         sampling.EnumeratorID = samplingWithOrphanedLandingSite.EnumeratorID;
-                                        NSAPEntities.LandingSiteSamplingViewModel.UpdateRecordInRepo(sampling);
+                                        if (NSAPEntities.LandingSiteSamplingViewModel.UpdateRecordInRepo(sampling))
+                                        {
 
-                                        samplingWithOrphanedLandingSite.UserName = "";
-                                        samplingWithOrphanedLandingSite.DeviceID = "";
-                                        samplingWithOrphanedLandingSite.DateSubmitted = null;
-                                        samplingWithOrphanedLandingSite.XFormIdentifier = "";
-                                        samplingWithOrphanedLandingSite.DateAdded = null;
-                                        samplingWithOrphanedLandingSite.FormVersion = "";
-                                        samplingWithOrphanedLandingSite.FromExcelDownload = false;
-                                        samplingWithOrphanedLandingSite.RowID = "";
-                                        samplingWithOrphanedLandingSite.EnumeratorText = "";
-                                        samplingWithOrphanedLandingSite.EnumeratorID = null;
-                                        NSAPEntities.LandingSiteSamplingViewModel.UpdateRecordInRepo(samplingWithOrphanedLandingSite);
+                                            samplingWithOrphanedLandingSite.UserName = "";
+                                            samplingWithOrphanedLandingSite.DeviceID = "";
+                                            samplingWithOrphanedLandingSite.DateSubmitted = null;
+                                            samplingWithOrphanedLandingSite.XFormIdentifier = "";
+                                            samplingWithOrphanedLandingSite.DateAdded = null;
+                                            samplingWithOrphanedLandingSite.FormVersion = "";
+                                            samplingWithOrphanedLandingSite.FromExcelDownload = false;
+                                            samplingWithOrphanedLandingSite.RowID = "";
+                                            samplingWithOrphanedLandingSite.EnumeratorText = "";
+                                            samplingWithOrphanedLandingSite.EnumeratorID = null;
+                                            samplingWithOrphanedLandingSite.Remarks = "orphaned landing site, could be removed";
+                                           if( NSAPEntities.LandingSiteSamplingViewModel.UpdateRecordInRepo(samplingWithOrphanedLandingSite))
+                                            {
 
-                                    }
+                                            }
+                                        }
+
+                                    //}
 
                                     foreach (GearUnload gu in NSAPEntities.GearUnloadViewModel.GetGearUnloads(samplingWithOrphanedLandingSite))
                                     {
@@ -240,6 +260,7 @@ namespace NSAP_ODK.Views
                                     }
                                 }
                             }
+
                         }
                     }
                     break;
@@ -263,6 +284,7 @@ namespace NSAP_ODK.Views
 
                     break;
                 case NSAPEntity.Enumerator:
+                    //dataGrid.DataContext = NSAPEntities.NSAPEnumeratorViewModel.OrphanedEnumerators().OrderBy(t=>t.Name);
                     dataGrid.DataContext = NSAPEntities.NSAPEnumeratorViewModel.OrphanedEnumerators();
                     break;
                 case NSAPEntity.FishingGear:
@@ -291,7 +313,7 @@ namespace NSAP_ODK.Views
                     //dataGrid.Items.Refresh();
                     RefreshItemsSource();
 
-                    if (dataGrid.Items.Count > 0)
+                    if (dataGrid.Items.Count > 0 && NSAPEntity==NSAPEntity.LandingSite)
                     {
                         if (MessageBox.Show("Remaining orphaned landing sites can be safely deleted from the database\r\n\r\n" +
                                            "Select Yes to safely delete items", "NSAP-ODK Database",
@@ -357,7 +379,7 @@ namespace NSAP_ODK.Views
                                         replacementWindow.LandingSiteSampling = ((OrphanedEnumerator)item).SampledLandings[0].Parent.Parent;
                                     }
                                     _countForReplacement += ((OrphanedEnumerator)item).SampledLandings.Count;
-
+                                    _countForReplacement += ((OrphanedEnumerator)item).LandingSiteSamplings.Count;
 
                                 }
                                 break;

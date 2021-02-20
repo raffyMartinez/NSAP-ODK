@@ -74,6 +74,7 @@ namespace NSAP_ODK.Entities
         public static CatchLengthViewModel CatchLengthViewModel;
         public static CatchMaturityViewModel CatchMaturityViewModel;
         public static DBSummary DBSummary;
+        public static DatabaseEnumeratorSummary DatabaseEnumeratorSummary;
         static NSAPEntities()
         {
             FisheriesSector = FisheriesSector.Municipal;
