@@ -172,6 +172,7 @@
     <Compile Include="Entities\Database\LandingSiteSamplingViewModel.cs" />
     <Compile Include="Entities\Database\DownloadToDatabaseHistory.cs" />
     <Compile Include="Entities\Database\OrphanedEnumerator.cs" />
+    <Compile Include="Entities\Database\OrphanedFishingGear.cs" />
     <Compile Include="Entities\Database\OrphanedLandingSite.cs" />
     <Compile Include="Entities\Database\UploadToDbEventArg.cs" />
     <Compile Include="Entities\Database\VesselCatch.cs" />

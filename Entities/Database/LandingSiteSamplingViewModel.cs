@@ -39,6 +39,8 @@ namespace NSAP_ODK.Entities.Database
                 return LandingSiteSamplingCollection.Count(t => t.XFormIdentifier != null && t.XFormIdentifier.Length > 0);
             }
         }
+
+
         public List<OrphanedLandingSite> OrphanedLandingSites()
         {
             var items = LandingSiteSamplingCollection

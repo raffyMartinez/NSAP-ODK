@@ -123,7 +123,18 @@ namespace NSAP_ODK.Entities.Database
 
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch(OleDbException)
+                    {
+                        success = false;
+                    }
+                    catch(Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
             return success;

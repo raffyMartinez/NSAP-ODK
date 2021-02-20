@@ -40,7 +40,7 @@ namespace NSAP_ODK.Views
             base.OnSourceInitialized(e);
             this.ApplyPlacement();
 
-            if (Height <40 && Width < 140)
+            if (Height < 40 && Width < 140)
             {
                 Height = h;
                 Width = w;
@@ -49,6 +49,8 @@ namespace NSAP_ODK.Views
         }
         public Entities.NSAPEntity NSAPEntity { get; set; }
         public LandingSiteSampling LandingSiteSampling { get; set; }
+
+        public GearUnload GearUnload { get; set; }
 
         public void FillSelection()
         {
@@ -72,10 +74,13 @@ namespace NSAP_ODK.Views
 
                     break;
                 case Entities.NSAPEntity.Enumerator:
-                    foreach(var regionEnumerator in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection
-                        .Where(t=>t.Code==LandingSiteSampling.NSAPRegionID).FirstOrDefault().NSAPEnumerators )
+                    foreach (var regionEnumerator in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection
+                        .Where(t => t.Code == LandingSiteSampling.NSAPRegionID)
+                        .FirstOrDefault().NSAPEnumerators
+                        .OrderBy(t=>t.Enumerator.Name)
+                        )
                     {
-                        var rb = new RadioButton { Content = regionEnumerator.Enumerator.Name, Tag = regionEnumerator.Enumerator};
+                        var rb = new RadioButton { Content = regionEnumerator.Enumerator.Name, Tag = regionEnumerator.Enumerator };
                         rb.Checked += OnButtonChecked;
                         rb.Margin = new Thickness(10, 10, 0, 0);
                         panelButtons.Children.Add(rb);
@@ -84,6 +89,18 @@ namespace NSAP_ODK.Views
 
                     break;
                 case Entities.NSAPEntity.FishingGear:
+                    foreach (var regionGear in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection
+                        .Where(t => t.Code == GearUnload.Parent.NSAPRegionID)
+                        .FirstOrDefault().Gears
+                        .OrderBy(t=>t.Gear.GearName)
+                        )
+                    {
+                        var rb = new RadioButton { Content = regionGear.Gear.GearName, Tag = regionGear.Gear };
+                        rb.Checked += OnButtonChecked;
+                        rb.Margin = new Thickness(10, 10, 0, 0);
+                        panelButtons.Children.Add(rb);
+                        counter++;
+                    }
                     break;
             }
         }
@@ -101,6 +118,9 @@ namespace NSAP_ODK.Views
                                 break;
                             case NSAPEntity.Enumerator:
                                 ((OrphanItemsManagerWindow)Owner).ReplacementEnumerator = (NSAPEnumerator)_selectedButton.Tag;
+                                break;
+                            case NSAPEntity.FishingGear:
+                                ((OrphanItemsManagerWindow)Owner).ReplacementGear = (Gear)_selectedButton.Tag;
                                 break;
                         }
                         Close();

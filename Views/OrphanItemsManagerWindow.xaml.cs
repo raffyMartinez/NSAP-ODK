@@ -26,6 +26,7 @@ namespace NSAP_ODK.Views
     {
         private LandingSite _replacementLandingSite;
         private NSAPEnumerator _replacementEnumerator;
+        private Gear _replacementGear;
         private int _countReplaced;
         private int _countForReplacement;
         public OrphanItemsManagerWindow()
@@ -38,6 +39,16 @@ namespace NSAP_ODK.Views
         public void ReplaceChecked()
         {
 
+        }
+
+        public Gear ReplacementGear
+        {
+            get { return _replacementGear; }
+            set
+            {
+                _replacementGear = value;
+                buttonReplace.IsEnabled = true;
+            }
         }
 
         public NSAPEnumerator ReplacementEnumerator
@@ -81,6 +92,7 @@ namespace NSAP_ODK.Views
                     break;
                 case NSAPEntity.FishingGear:
                     labelTitle.Content = "Manage orphaned fishing gears";
+                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Gear name", Binding = new Binding("Name"), IsReadOnly = true });
                     break;
             }
 
@@ -88,12 +100,22 @@ namespace NSAP_ODK.Views
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Region", Binding = new Binding("Region.ShortName"), IsReadOnly = true });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("FMA"), IsReadOnly = true });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("FishingGround"), IsReadOnly = true });
-            dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of landings", Binding = new Binding("NumberOfLandings"), IsReadOnly = true });
+            
 
-            if(NSAPEntity==NSAPEntity.Enumerator)
+            switch(NSAPEntity)
             {
-                dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of vessel countings", Binding = new Binding("NumberOfVesselCountings"), IsReadOnly = true });
+                case NSAPEntity.Enumerator:
+                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of landings", Binding = new Binding("NumberOfLandings"), IsReadOnly = true });
+                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of vessel countings", Binding = new Binding("NumberOfVesselCountings"), IsReadOnly = true });
+                    break;
+                case NSAPEntity.LandingSite:
+                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of landings", Binding = new Binding("NumberOfLandings"), IsReadOnly = true });
+                    break;
+                case NSAPEntity.FishingGear:
+                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of gear unload", Binding = new Binding("NumberOfUnload"), IsReadOnly = true });
+                    break;
             }
+
 
             Title = labelTitle.Content.ToString();
         }
@@ -144,6 +166,24 @@ namespace NSAP_ODK.Views
         {
             switch (NSAPEntity)
             {
+                case NSAPEntity.FishingGear:
+                    foreach(OrphanedFishingGear gear in dataGrid.Items)
+                    {
+                        if(gear.ForReplacement)
+                        {
+                            foreach(var unload in gear.GearUnloads)
+                            {
+                                unload.GearID = ReplacementGear.Code;
+                                unload.Gear = ReplacementGear;
+                                if(NSAPEntities.GearUnloadViewModel.UpdateRecordInRepo(unload))
+                                {
+                                    _countReplaced++;
+                                    ShowProgressWhileReplacing(_countReplaced,$"Updated fishing gear {_countReplaced} of {_countForReplacement}");
+                                }
+                            }
+                        }
+                    }
+                    break;
                 case NSAPEntity.Enumerator:
                     foreach (OrphanedEnumerator orpahn in dataGrid.Items)
                     {
@@ -264,11 +304,6 @@ namespace NSAP_ODK.Views
                         }
                     }
                     break;
-                case NSAPEntity.FishingGear:
-                    break;
-                case NSAPEntity.NSAPRegionEnumerator:
-                    break;
-
             }
 
 
@@ -288,6 +323,7 @@ namespace NSAP_ODK.Views
                     dataGrid.DataContext = NSAPEntities.NSAPEnumeratorViewModel.OrphanedEnumerators();
                     break;
                 case NSAPEntity.FishingGear:
+                    dataGrid.DataContext = NSAPEntities.GearUnloadViewModel.OrphanedFishingGears();
                     break;
             }
 
@@ -358,17 +394,21 @@ namespace NSAP_ODK.Views
                                         procced = true;
                                         replacementWindow.LandingSiteSampling = ((OrphanedLandingSite)item).LandingSiteSamplings[0];
                                     }
-                                    //foreach(var sampling in ((OrphanedLandingSite)item).LandingSiteSamplings)
-                                    //{
-                                    //    _countForReplacement += NSAPEntities.GearUnloadViewModel.GetGearUnloads(sampling).Count;
-                                    //}
-                                    //_countForReplacement +=  NSAPEntities.GearUnloadViewModel.GetGearUnloads( ((OrphanedLandingSite)item).LandingSiteSamplings[loop]).Count;
                                     _countForReplacement += ((OrphanedLandingSite)item).LandingSiteSamplings.Count;
 
                                 }
                                 break;
                             case NSAPEntity.FishingGear:
 
+                                if(((OrphanedFishingGear)item).ForReplacement)
+                                {
+                                    if(!procced)
+                                    {
+                                        procced = true;
+                                        replacementWindow.GearUnload = ((OrphanedFishingGear)item).GearUnloads[0];
+                                    }
+                                    _countForReplacement += ((OrphanedFishingGear)item).GearUnloads.Count;
+                                }
                                 break;
                             case NSAPEntity.Enumerator:
                                 if (((OrphanedEnumerator)item).ForReplacement)

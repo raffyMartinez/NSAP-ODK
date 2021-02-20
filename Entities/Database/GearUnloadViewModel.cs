@@ -21,6 +21,28 @@ namespace NSAP_ODK.Entities.Database
             GearUnloadCollection.CollectionChanged += GearUnloadCollection_CollectionChanged;
         }
 
+        public List<OrphanedFishingGear> OrphanedFishingGears()
+        {
+            var items = GearUnloadCollection
+                .Where(t => t.GearID.Length == 0 && t.GearUsedText!=null && t.GearUsedText.Length>0)
+                .OrderBy(t => t.GearUsedText)
+                .GroupBy(t => t.GearUsedText).ToList();
+
+            var list = new List<OrphanedFishingGear>();
+            foreach (var item in items)
+            {
+
+                var orphan = new OrphanedFishingGear
+                {
+                    Name = item.Key,
+                    GearUnloads = GearUnloadCollection.Where(t => t.GearUsedText== item.Key).ToList()
+                };
+                list.Add(orphan);
+            }
+
+            return list;
+
+        }
         public int CountCompletedGearUnload
         {
             //get { return GearUnloadCollection.Where(t => t.Boats != null).Where(t => t.Catch != null).Count(); }
