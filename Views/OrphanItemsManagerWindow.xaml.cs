@@ -75,11 +75,16 @@ namespace NSAP_ODK.Views
             RefreshItemsSource();
             switch (NSAPEntity)
             {
+                case NSAPEntity.FishSpecies:
+                    labelTitle.Content = "Manage orphaned fish species names";
+                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Species name", Binding = new Binding("Name"), IsReadOnly = true });
+                    break;
+                case NSAPEntity.NonFishSpecies:
+                    labelTitle.Content = "Manage orphaned non-fish species names";
+                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Species name", Binding = new Binding("LandingSiteName"), IsReadOnly = true });
+                    break;
                 case NSAPEntity.LandingSite:
                     labelTitle.Content = "Manage orphaned landing sites";
-
-                    //dataGrid.DataContext = NSAPEntities.LandingSiteSamplingViewModel.OrphanedLandingSites();
-
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site name", Binding = new Binding("LandingSiteName"), IsReadOnly = true });
 
                     break;
@@ -104,10 +109,12 @@ namespace NSAP_ODK.Views
 
             switch(NSAPEntity)
             {
+
                 case NSAPEntity.Enumerator:
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of landings", Binding = new Binding("NumberOfLandings"), IsReadOnly = true });
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of vessel countings", Binding = new Binding("NumberOfVesselCountings"), IsReadOnly = true });
                     break;
+                case NSAPEntity.FishSpecies:
                 case NSAPEntity.LandingSite:
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of landings", Binding = new Binding("NumberOfLandings"), IsReadOnly = true });
                     break;
@@ -166,6 +173,10 @@ namespace NSAP_ODK.Views
         {
             switch (NSAPEntity)
             {
+                case NSAPEntity.FishSpecies:
+                    break;
+                case NSAPEntity.NonFishSpecies:
+                    break;
                 case NSAPEntity.FishingGear:
                     foreach(OrphanedFishingGear gear in dataGrid.Items)
                     {
@@ -314,6 +325,11 @@ namespace NSAP_ODK.Views
         {
             switch (NSAPEntity)
             {
+                case NSAPEntity.FishSpecies:
+                    dataGrid.DataContext = NSAPEntities.VesselCatchViewModel.OrphanedFishSpeciesNames();
+                    break;
+                case NSAPEntity.NonFishSpecies:
+                    break;
                 case NSAPEntity.LandingSite:
                     dataGrid.DataContext = NSAPEntities.LandingSiteSamplingViewModel.OrphanedLandingSites();
 
@@ -375,10 +391,13 @@ namespace NSAP_ODK.Views
 
                     break;
                 case "buttonSelectReplacement":
+                    int checkCount = 0;
+                    string itemToReplace = "";
                     _countForReplacement = 0;
                     var replacementWindow = new SelectionToReplaceOrpanWIndow();
                     replacementWindow.Owner = this;
                     replacementWindow.NSAPEntity = NSAPEntity;
+
 
 
                     foreach (var item in dataGrid.Items)
@@ -386,6 +405,16 @@ namespace NSAP_ODK.Views
 
                         switch (NSAPEntity)
                         {
+                            case NSAPEntity.FishSpecies:
+                            
+                                if (((OrphanedFishSpeciesName)item).ForReplacement)
+                                {
+                                    itemToReplace = ((OrphanedFishSpeciesName)item).Name;
+                                    checkCount++;
+                                    procced = true;
+                                }
+                                
+                                break;
                             case NSAPEntity.LandingSite:
                                 if (((OrphanedLandingSite)item).ForReplacement)
                                 {
@@ -431,6 +460,16 @@ namespace NSAP_ODK.Views
 
                     if (procced)
                     {
+                        if(checkCount==1 )
+                        {
+                            switch(NSAPEntity)
+                            {
+                                case NSAPEntity.FishSpecies:
+                                    replacementWindow.ItemToReplace = itemToReplace;
+                                    break;
+                            }
+                        }
+
                         progressBar.Maximum = _countForReplacement;
                         replacementWindow.FillSelection();
                         replacementWindow.ShowDialog();

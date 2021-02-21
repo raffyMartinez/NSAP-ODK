@@ -19,9 +19,51 @@ namespace NSAP_ODK.Entities.Database
             VesselCatchCollection = new ObservableCollection<VesselCatch>(VesselCatches.VesselCatches);
             VesselCatchCollection.CollectionChanged += VesselCatches_CollectionChanged;
         }
+
+        public List<OrphanedFishSpeciesName> OrphanedFishSpeciesNames(bool getMultiLine = false)
+        {
+            List<IGrouping<string, VesselCatch>> catches = new List<IGrouping<string, VesselCatch>>();
+            if (!getMultiLine)
+            {
+                catches = VesselCatchCollection
+                    .Where(t => t.TaxaCode == "FIS" && t.SpeciesID == null && t.SpeciesText != null && t.SpeciesText.Length > 0 && !t.SpeciesText.Contains('\n'))
+                    .OrderBy(t => t.SpeciesText)
+                    .GroupBy(t => t.SpeciesText).ToList();
+            }
+            else
+            {
+                catches = VesselCatchCollection
+                    .Where(t => t.TaxaCode == "FIS" && t.SpeciesID == null && t.SpeciesText != null && t.SpeciesText.Length > 0 && t.SpeciesText.Contains('\n'))
+                    .OrderBy(t => t.SpeciesText)
+                    .GroupBy(t => t.SpeciesText).ToList();
+            }
+
+            var list = new List<OrphanedFishSpeciesName>();
+            foreach (var ct in catches)
+            {
+
+                var orphan = new OrphanedFishSpeciesName
+                {
+                    Name = ct.Key
+                };
+
+                var landings = new List<VesselUnload>();
+                foreach (VesselCatch vc in VesselCatchCollection.Where(t => t.SpeciesText == ct.Key && t.SpeciesID == null))
+                {
+                    landings.Add(vc.Parent);
+                }
+                orphan.SampledLandings = landings;
+
+
+                list.Add(orphan);
+            }
+
+            return list;
+
+        }
         public VesselCatch getVesselCatch(FromJson.VesselLanding parent, int? speciesID, string speciesText)
         {
-            if(speciesID==null)
+            if (speciesID == null)
             {
                 return VesselCatchCollection
                     .Where(t => t.Parent.PK == parent.PK)
@@ -50,13 +92,13 @@ namespace NSAP_ODK.Entities.Database
                 .Where(t => t.CatchName == nameOfCatch)
                 .FirstOrDefault();
         }
-        public List<VesselCatchFlattened> GetAllFlattenedItems(bool tracked=false)
+        public List<VesselCatchFlattened> GetAllFlattenedItems(bool tracked = false)
         {
             List<VesselCatchFlattened> thisList = new List<VesselCatchFlattened>();
             if (tracked)
             {
                 foreach (var item in VesselCatchCollection
-                    .Where(t=>t.Parent.OperationIsTracked==tracked))
+                    .Where(t => t.Parent.OperationIsTracked == tracked))
                 {
                     thisList.Add(new VesselCatchFlattened(item));
                 }

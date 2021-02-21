@@ -288,9 +288,16 @@ namespace NSAP_ODK.Entities
             return new ResultQueryAPI() { Success = true, Message = "", SpeciesDetail = specDetail.Data[0] };
         }
 
-        public List<FishSpecies> GetAllSpecies()
+        public List<FishSpecies> GetAllSpecies(string search="")
         {
-            return SpeciesCollection.ToList();
+            if (search.Length > 0)
+            {
+                return SpeciesCollection.Where(t => t.ToString().ToLower().Contains(search)).ToList();
+            }
+            else
+            {
+                return SpeciesCollection.OrderBy(t => t.ToString()).ToList();
+            }
         }
 
         public FishSpecies GetSpecies(int rowNo)

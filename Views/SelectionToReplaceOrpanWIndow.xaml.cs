@@ -14,6 +14,8 @@ using System.Windows.Shapes;
 using NSAP_ODK.Entities.Database;
 using NSAP_ODK.Entities;
 using NSAP_ODK.Utilities;
+using System.Windows.Threading;
+
 namespace NSAP_ODK.Views
 {
     /// <summary>
@@ -22,17 +24,36 @@ namespace NSAP_ODK.Views
     public partial class SelectionToReplaceOrpanWIndow : Window
     {
         private RadioButton _selectedButton;
+        private DispatcherTimer _timer;
         public SelectionToReplaceOrpanWIndow()
         {
             InitializeComponent();
             Closing += OnWindowClosing;
+            _timer = new DispatcherTimer();
+            _timer.Tick += OnTimerTick;
+            _timer.Interval = TimeSpan.FromMilliseconds(500);
+        }
+
+        private void OnTimerTick(object sender, EventArgs e)
+        {
+            _timer.Stop();
+            foreach (var sp in NSAPEntities.FishSpeciesViewModel.GetAllSpecies(textSearch.Text))
+            {
+                var rb = new RadioButton { Content = sp.ToString(), Tag = sp };
+                rb.Checked += OnButtonChecked;
+                rb.Margin = new Thickness(10, 10, 0, 0);
+                panelButtons.Children.Add(rb);
+            }
         }
 
         private void OnWindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             this.SavePlacement();
             Closing -= OnWindowClosing;
+
         }
+
+        public string ItemToReplace { get; set; }
         protected override void OnSourceInitialized(EventArgs e)
         {
             var h = Height;
@@ -46,6 +67,8 @@ namespace NSAP_ODK.Views
                 Width = w;
             }
 
+           
+
         }
         public Entities.NSAPEntity NSAPEntity { get; set; }
         public LandingSiteSampling LandingSiteSampling { get; set; }
@@ -54,9 +77,13 @@ namespace NSAP_ODK.Views
 
         public void FillSelection()
         {
-            int counter = 0;
+            rowSearch.Height = new GridLength(0);
             switch (NSAPEntity)
             {
+                case Entities.NSAPEntity.FishSpecies:
+                   
+                    rowSearch.Height = new GridLength(40);
+                    break;
                 case Entities.NSAPEntity.LandingSite:
                     foreach (var item in LandingSiteSampling.NSAPRegion.FMAs
                      .FirstOrDefault(t => t.FMAID == LandingSiteSampling.FMAID).FishingGrounds
@@ -67,7 +94,7 @@ namespace NSAP_ODK.Views
                         rb.Checked += OnButtonChecked;
                         rb.Margin = new Thickness(10, 10, 0, 0);
                         panelButtons.Children.Add(rb);
-                        counter++;
+
                     }
 
 
@@ -84,7 +111,7 @@ namespace NSAP_ODK.Views
                         rb.Checked += OnButtonChecked;
                         rb.Margin = new Thickness(10, 10, 0, 0);
                         panelButtons.Children.Add(rb);
-                        counter++;
+
                     }
 
                     break;
@@ -99,7 +126,7 @@ namespace NSAP_ODK.Views
                         rb.Checked += OnButtonChecked;
                         rb.Margin = new Thickness(10, 10, 0, 0);
                         panelButtons.Children.Add(rb);
-                        counter++;
+
                     }
                     break;
             }
@@ -136,6 +163,20 @@ namespace NSAP_ODK.Views
         private void OnButtonChecked(object sender, RoutedEventArgs e)
         {
             _selectedButton = (RadioButton)sender;
+        }
+
+        private void OnTextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (((TextBox)sender).Text.Length > 2)
+            {
+                panelButtons.Children.Clear();
+                _timer.Stop();
+                _timer.Start();
+            }
+            else
+            {
+                panelButtons.Children.Clear();
+            }
         }
     }
 }

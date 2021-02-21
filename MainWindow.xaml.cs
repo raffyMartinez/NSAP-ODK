@@ -923,11 +923,13 @@ namespace NSAP_ODK
 
                 case "menuFishSpecies":
                     _nsapEntity = NSAPEntity.FishSpecies;
+                    buttonOrphan.Visibility = Visibility.Visible;
                     textOfTitle = "List of fish species names";
                     break;
 
                 case "menuNonFishSpecies":
                     _nsapEntity = NSAPEntity.NonFishSpecies;
+                    buttonOrphan.Visibility = Visibility.Visible;
                     textOfTitle = "List of non-fish species names";
                     break;
             }
