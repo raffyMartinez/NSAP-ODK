@@ -34,16 +34,27 @@ namespace NSAP_ODK.Views
             _timer.Interval = TimeSpan.FromMilliseconds(500);
         }
 
-        private void OnTimerTick(object sender, EventArgs e)
+        private void SearchReplacements(string toSearch)
         {
-            _timer.Stop();
-            foreach (var sp in NSAPEntities.FishSpeciesViewModel.GetAllSpecies(textSearch.Text))
+            foreach (var sp in NSAPEntities.FishSpeciesViewModel.GetAllSpecies(toSearch))
             {
                 var rb = new RadioButton { Content = sp.ToString(), Tag = sp };
                 rb.Checked += OnButtonChecked;
                 rb.Margin = new Thickness(10, 10, 0, 0);
                 panelButtons.Children.Add(rb);
             }
+        }
+        private void OnTimerTick(object sender, EventArgs e)
+        {
+            _timer.Stop();
+            SearchReplacements(textSearch.Text);
+            //foreach (var sp in NSAPEntities.FishSpeciesViewModel.GetAllSpecies(textSearch.Text))
+            //{
+            //    var rb = new RadioButton { Content = sp.ToString(), Tag = sp };
+            //    rb.Checked += OnButtonChecked;
+            //    rb.Margin = new Thickness(10, 10, 0, 0);
+            //    panelButtons.Children.Add(rb);
+            //}
         }
 
         private void OnWindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -81,8 +92,9 @@ namespace NSAP_ODK.Views
             switch (NSAPEntity)
             {
                 case Entities.NSAPEntity.FishSpecies:
-                   
-                    rowSearch.Height = new GridLength(40);
+                    speciesHyperLink.Inlines.Clear();
+                    speciesHyperLink.Inlines.Add($"Search OBIS for {ItemToReplace}");
+                    rowSearch.Height = new GridLength(70);
                     break;
                 case Entities.NSAPEntity.LandingSite:
                     foreach (var item in LandingSiteSampling.NSAPRegion.FMAs
@@ -94,7 +106,6 @@ namespace NSAP_ODK.Views
                         rb.Checked += OnButtonChecked;
                         rb.Margin = new Thickness(10, 10, 0, 0);
                         panelButtons.Children.Add(rb);
-
                     }
 
 
@@ -176,6 +187,22 @@ namespace NSAP_ODK.Views
             else
             {
                 panelButtons.Children.Clear();
+            }
+        }
+
+        private async void OnRequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
+        {
+            panelButtons.Children.Clear();
+            var results = await NSAPEntities.FishSpeciesViewModel.RequestDataFromOBI(ItemToReplace);
+            if(results.total>0)
+            {
+                var speciesData = results.results[0];
+                SearchReplacements(speciesData.acceptedNameUsage);
+
+            }
+            else
+            {
+                MessageBox.Show("Species name not found in OBIS", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
     }

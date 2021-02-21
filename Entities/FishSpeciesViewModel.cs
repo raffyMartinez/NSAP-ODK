@@ -11,6 +11,46 @@ using System.Threading.Tasks;
 
 namespace NSAP_ODK.Entities
 {
+    public class OBIResponseRoot
+    {
+        public int total { get; set; }
+        public List<OBIAPIResponse> results { get; set; }
+    }
+    public class OBIAPIResponse
+    {
+        public string scientificName { get; set; }
+        public string scientificNameAuthorship { get; set; }
+        public int taxonID { get; set; }
+        public string taxonRank { get; set; }
+        public string taxonomicStatus { get; set; }
+        public string acceptedNameUsage { get; set; }
+        public int acceptedNameUsageID { get; set; }
+        public bool is_marine { get; set; }
+        public bool is_brackish { get; set; }
+        public bool is_freshwater { get; set; }
+        public bool is_terrestrial { get; set; }
+        public string kingdom { get; set; }
+        public string phylum { get; set; }
+        public string subphylum { get; set; }
+        public string superclass { get; set; }
+        public string @class { get; set; }
+        public string order { get; set; }
+        public string suborder { get; set; }
+        public string family { get; set; }
+        public string genus { get; set; }
+        public string species { get; set; }
+        public int kingdomid { get; set; }
+        public int phylumid { get; set; }
+        public int subphylumid { get; set; }
+        public int superclassid { get; set; }
+        public int classid { get; set; }
+        public int orderid { get; set; }
+        public int suborderid { get; set; }
+        public int familyid { get; set; }
+        public int genusid { get; set; }
+        public int speciesid { get; set; }
+    }
+
     public class ResponseSpeciesDetail
     {
         public int Count { get; set; }
@@ -181,6 +221,14 @@ namespace NSAP_ODK.Entities
             SpeciesCollection.CollectionChanged += Species_CollectionChanged;
         }
 
+
+        public async Task<OBIResponseRoot> RequestDataFromOBI(string speciesName)
+        {
+            var bytes = await client.GetByteArrayAsync($"https://api.obis.org/v3/taxon/{speciesName}");
+            Encoding encoding = Encoding.GetEncoding("utf-8");
+            string response = encoding.GetString(bytes, 0, bytes.Length);
+            return  JsonConvert.DeserializeObject<OBIResponseRoot>(response);
+        }
         public int NextRecordNumber
         {
             get
@@ -292,7 +340,7 @@ namespace NSAP_ODK.Entities
         {
             if (search.Length > 0)
             {
-                return SpeciesCollection.Where(t => t.ToString().ToLower().Contains(search)).ToList();
+                return SpeciesCollection.Where(t => t.ToString().ToLower().Contains(search.ToLower())).ToList();
             }
             else
             {
