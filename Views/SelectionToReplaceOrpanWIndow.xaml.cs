@@ -43,18 +43,16 @@ namespace NSAP_ODK.Views
                 rb.Margin = new Thickness(10, 10, 0, 0);
                 panelButtons.Children.Add(rb);
             }
+
+            if(panelButtons.Children.Count==1)
+            {
+                ((RadioButton)panelButtons.Children[0]).IsChecked = true;
+            }
         }
         private void OnTimerTick(object sender, EventArgs e)
         {
             _timer.Stop();
             SearchReplacements(textSearch.Text);
-            //foreach (var sp in NSAPEntities.FishSpeciesViewModel.GetAllSpecies(textSearch.Text))
-            //{
-            //    var rb = new RadioButton { Content = sp.ToString(), Tag = sp };
-            //    rb.Checked += OnButtonChecked;
-            //    rb.Margin = new Thickness(10, 10, 0, 0);
-            //    panelButtons.Children.Add(rb);
-            //}
         }
 
         private void OnWindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -202,7 +200,7 @@ namespace NSAP_ODK.Views
             }
             else
             {
-                MessageBox.Show("Species name not found in OBIS", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show($"{ItemToReplace} is not found in OBIS", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
     }

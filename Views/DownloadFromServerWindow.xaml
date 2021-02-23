@@ -16,11 +16,16 @@
         </Grid.ColumnDefinitions>
 
         <Grid.RowDefinitions>
-            <RowDefinition Height="30"/> <!--label title-->
-            <RowDefinition Height="50"/> <!--login text fields-->
-            <RowDefinition Height="50"/> <!--login button-->
-            <RowDefinition/> <!--main body of the form-->
-            <RowDefinition Height="30"/> <!--status bar-->
+            <RowDefinition Height="30"/>
+            <!--label title-->
+            <RowDefinition Height="50"/>
+            <!--login text fields-->
+            <RowDefinition Height="50"/>
+            <!--login button-->
+            <RowDefinition/>
+            <!--main body of the form-->
+            <RowDefinition Height="30"/>
+            <!--status bar-->
         </Grid.RowDefinitions>
 
         <!--label title-->
@@ -46,25 +51,38 @@
                     <ColumnDefinition Width="150" />
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
-                
+
                 <!--tree view showing e-forms-->
                 <TreeView x:Name="treeForms" SelectedItemChanged="OnTreeItemChanged" Margin="5"/>
-                
+
                 <!--property grid showing summaru of selected e-form-->
                 <xctk:PropertyGrid  x:Name="propertyGrid" Grid.Column="1" Margin="5" ShowSearchBox="False" 
                                     ShowSortOptions="False" ShowTitle="False" ShowSummary="False" Visibility="Collapsed"/>
-                
-                <!--data grid showing a list for form users -->
-                <DataGrid Grid.Column="1" x:Name="dataGrid" Margin="5" ItemsSource="{Binding}" Visibility="Collapsed"/>
-                
-                
-                <Grid Grid.Column="1" Margin="5" x:Name="gridDownload" Visibility="Visible">
+
+                <!-- container grid showing a list for form users and form media-->
+                <Grid Grid.Column="1" Margin="5" x:Name="gridFormUsers" Visibility="Visible">
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition Height="40"/>
+                    </Grid.RowDefinitions>
+                    <DataGrid  x:Name="dataGrid" Margin="5" ItemsSource="{Binding}" Visibility="Visible" CanUserAddRows="False" IsReadOnly="True" SelectionUnit="FullRow"/>
+                    <WrapPanel Grid.Row="1" x:Name="panelReplace" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <CheckBox Content="Check all" x:Name="CheckCheckAll" Checked="OnCheckStateChange" Unchecked="OnCheckStateChange" Margin="0 0 30 0" VerticalAlignment="Center"/>
+                        <Button x:Name="buttonReplace" Click="OnButtonClick" Content="Replace" Width="60" Height="30" Margin="10 0"/>
+                        <Button x:Name="buttonUpload" Click="OnButtonClick" Content="Upload" Width="60" Height="30" Margin=" 10 0"/>
+                    </WrapPanel>
+                </Grid>
+
+
+
+                <!--container grid for downloading from the server-->
+                <Grid Grid.Column="1" Margin="5" x:Name="gridDownload" Visibility="Collapsed">
                     <Grid.RowDefinitions>
                         <RowDefinition/>
                         <RowDefinition Height="40"/>
                     </Grid.RowDefinitions>
 
-                    <!--container for downloading from the server-->
+
                     <StackPanel x:Name="stackPanelDownload" Visibility="Collapsed">
                         <WrapPanel>
                             <Label Content="Download option" Margin="10,5"/>
@@ -109,8 +127,8 @@
                         <Label x:Name = "labelFolderPath" Margin="30" Content="This is the folder path" HorizontalAlignment="Center"/>
 
                     </StackPanel>
-                    
-                    
+
+
                     <WrapPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <Button  Content="Download" Width="100" Height="25" x:Name="ButtonDownload" Click="OnButtonClick"/>
                         <Button Content="Upload media" Width="100" Height="25" x:Name="ButtonUploadMedia" Click="OnButtonClick" Visibility="Collapsed"/>
@@ -119,7 +137,7 @@
 
             </Grid>
         </Border>
-        
+
         <!--Status bar at bottom-->
         <StatusBar Grid.Row="4">
             <ProgressBar Width="200" Height="18" VerticalAlignment="Center" x:Name="ProgressBar"/>

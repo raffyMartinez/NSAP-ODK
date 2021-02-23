@@ -329,26 +329,6 @@ namespace NSAP_ODK
                             }
                             break;
                     }
-
-                    //switch (node.Tag.GetType().Name)
-                    //{
-                    //    case "NSAPRegion":
-                    //        foreach (var fg in NSAPEntities.NSAPRegionViewModel.GetFishingGrounds((NSAPRegion)node.Tag))
-                    //        {
-                    //            TreeViewItem fgNode = new TreeViewItem { Header = fg.Name, Tag = fg };
-                    //            //fgNode.Items.Add(new TreeViewItem { Header= "**dummy"});
-                    //            node.Items.Add(fgNode);
-                    //        }
-                    //        break;
-                    //        //case "FishingGround":
-                    //        //    var parentRegion = (NSAPRegion)((TreeViewItem)node.Parent).Tag;
-                    //        //    foreach (var ls in NSAPEntities.NSAPRegionViewModel.GetLandingSites(parentRegion,(FishingGround)node.Tag))
-                    //        //    {
-                    //        //        string lsName = $"{ls}";
-                    //        //        node.Items.Add(new TreeViewItem {Header = lsName, Tag=ls });
-                    //        //    }
-                    //        //    break;
-                    //}
                 }
             }
         }
@@ -1194,6 +1174,10 @@ namespace NSAP_ODK
 
             switch (itemName)
             {
+                case "menuAbout":
+                    AboutWindow aw = new AboutWindow();
+                    aw.ShowDialog();
+                    break;
                 case "menuUploadMedia":
                     break;
                 case "menuSaveGear":

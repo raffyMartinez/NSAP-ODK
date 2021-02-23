@@ -16,6 +16,7 @@ using NSAP_ODK.Entities.Database;
 using NSAP_ODK.Utilities;
 using System.Windows.Threading;
 using System.Diagnostics;
+using System.Threading;
 
 namespace NSAP_ODK.Views
 {
@@ -24,6 +25,7 @@ namespace NSAP_ODK.Views
     /// </summary>
     public partial class OrphanItemsManagerWindow : Window
     {
+        private DispatcherTimer _timer; 
         private LandingSite _replacementLandingSite;
         private NSAPEnumerator _replacementEnumerator;
         private Gear _replacementGear;
@@ -125,6 +127,16 @@ namespace NSAP_ODK.Views
 
 
             Title = labelTitle.Content.ToString();
+
+            _timer = new DispatcherTimer();
+            _timer.Tick += OnTimerTick;
+        }
+
+        private void OnTimerTick(object sender, EventArgs e)
+        {
+            progressBar.Value = 0;
+            labelStatus.Content = "";
+            _timer.Stop();
         }
 
         private void OnWindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -191,6 +203,7 @@ namespace NSAP_ODK.Views
                                     _countReplaced++;
                                     ShowProgressWhileReplacing(_countReplaced,$"Updated fishing gear {_countReplaced} of {_countForReplacement}");
                                 }
+
                             }
                         }
                     }
@@ -359,7 +372,8 @@ namespace NSAP_ODK.Views
             {
                 case "buttonReplace":
                     _countReplaced = 0;
-                    var result = await ReplaceOrphanedAsync();
+                    await ReplaceOrphanedAsync();
+                    
                     buttonReplace.IsEnabled = false;
                     //DoTheReplacement();
                     //dataGrid.Items.Refresh();
@@ -388,6 +402,9 @@ namespace NSAP_ODK.Views
                             RefreshItemsSource();
                         }
                     }
+
+                    _timer.Interval = TimeSpan.FromSeconds(3);
+                    _timer.Start();
 
                     break;
                 case "buttonSelectReplacement":

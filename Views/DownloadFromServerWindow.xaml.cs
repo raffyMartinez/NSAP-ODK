@@ -21,6 +21,10 @@ using NSAP_ODK.Utilities;
 using System.IO;
 using Ookii.Dialogs.Wpf;
 using NSAP_ODK.Entities.Database;
+using System.Net;
+using Microsoft.Win32;
+using System.Net.Http.Headers;
+using System.Windows.Threading;
 
 namespace NSAP_ODK.Views
 {
@@ -45,6 +49,10 @@ namespace NSAP_ODK.Views
         private string _jsonOption;
         private string _downloadType;
         private DateTime? _lastSubmittedDate;
+        private string _csvSaveToFolder;
+        private List<Metadata> _metadataFilesForReplacement = new List<Metadata>();
+        private bool _updateCancelled;
+        private DispatcherTimer _timer;
         public DownloadFromServerWindow(ODKResultsWindow parentWindow)
         {
             InitializeComponent();
@@ -69,6 +77,7 @@ namespace NSAP_ODK.Views
                 {
                     int item = treeForms.Items.Add(new TreeViewItem { Header = form.formid, Tag = "form_id" });
                     ((TreeViewItem)treeForms.Items[item]).Items.Add(new TreeViewItem { Header = "Users", Tag = "form_users", });
+                    ((TreeViewItem)treeForms.Items[item]).Items.Add(new TreeViewItem { Header = "Media", Tag = "form_media", });
                     switch (ServerIntent)
                     {
                         case ServerIntent.IntentDonloadData:
@@ -84,12 +93,204 @@ namespace NSAP_ODK.Views
                 GridGrids.Visibility = Visibility.Visible;
             }
         }
+
+        private bool GetCSVSaveLocationFromSaveAsDialog()
+        {
+            VistaFolderBrowserDialog fbd = new VistaFolderBrowserDialog();
+            fbd.UseDescriptionForTitle = true;
+            fbd.Description = "Locate folder containing csv files";
+
+            if (_csvSaveToFolder != null && _csvSaveToFolder.Length > 0)
+            {
+                fbd.SelectedPath = _csvSaveToFolder;
+            }
+
+
+            if ((bool)fbd.ShowDialog() && fbd.SelectedPath.Length > 0)
+            {
+                _csvSaveToFolder = fbd.SelectedPath;
+                GenerateCSV.FolderSaveLocation = _csvSaveToFolder;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        private async Task<int> ProcesssCSVFiles()
+        {
+            _updateCancelled = false;
+            int replacedCount = 0;
+            string baseURL = "https://kc.kobotoolbox.org/api/v1/metadata/";
+            if (GetCSVSaveLocationFromSaveAsDialog())
+            {
+                ProgressBar.Value = 0;
+                ProgressBar.Maximum = _metadataFilesForReplacement.Count;
+
+                var files = Directory.GetFiles(_csvSaveToFolder).Select(s => new FileInfo(s));
+                if (files.Any())
+                {
+                    foreach (Metadata metadata in _metadataFilesForReplacement)
+                    {
+                        var f = files.Where(t => t.Extension == ".csv" && t.Name == metadata.data_value).FirstOrDefault();
+                        if (f != null)
+                        {
+                            string api_call = $"{baseURL}{metadata.id}";
+                            using (var httpClient = new HttpClient())
+                            {
+                                using (var request = new HttpRequestMessage(new HttpMethod("DELETE"), api_call))
+                                {
+                                    var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_user}:{_password}"));
+                                    request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
+                                    try
+                                    {
+                                        var response = await httpClient.SendAsync(request);
+                                        if (response.IsSuccessStatusCode)
+                                        {
+                                            response = await UploadMediaToServer(f);
+                                            if (response.IsSuccessStatusCode)
+                                            {
+                                                replacedCount++;
+                                                ProgressBar.Value = replacedCount;
+                                                labelProgress.Content = $"Updated {replacedCount} of {_metadataFilesForReplacement.Count} files";
+                                            }
+                                        }
+                                        else
+                                        {
+
+                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+
+                                    }
+                                }
+
+                                //break;
+                            }
+                        }
+
+
+
+                    }
+                }
+            }
+            else
+            {
+                _updateCancelled = true;
+            }
+            return replacedCount;
+        }
+
+
+
+        private async Task<HttpResponseMessage> UploadMediaToServer(FileInfo file)
+        {
+            HttpResponseMessage result = null;
+            string baseURL = "https://kc.kobotoolbox.org/api/v1/metadata.json";
+            using (var httpClient = new HttpClient())
+            {
+                using (var request = new HttpRequestMessage(new HttpMethod("POST"), baseURL))
+                {
+                    var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_user}:{_password}"));
+                    request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
+
+                    var multipartContent = new MultipartFormDataContent();
+                    multipartContent.Add(new StringContent(_formID), "xform");
+                    multipartContent.Add(new StringContent(file.Name), "data_value");
+                    multipartContent.Add(new StringContent("media"), "data_type");
+                    multipartContent.Add(new ByteArrayContent(File.ReadAllBytes(file.FullName)), "data_file", file.Name);
+                    multipartContent.Add(new StringContent("text/csv"), "data_file_type");
+                    request.Content = multipartContent;
+
+                    result = await httpClient.SendAsync(request);
+                }
+            }
+            return result;
+        }
+
         private async void OnButtonClick(object sender, RoutedEventArgs e)
         {
             _downloadType = "";
             string api_call = "";
             switch (((Button)sender).Name)
             {
+                case "buttonUpload":
+                    OpenFileDialog ofd = new OpenFileDialog();
+                    ofd.Title = "Select CSV file for uploading";
+                    ofd.Filter = "CSV file (*.csv)|*.csv";
+                    ofd.DefaultExt = ".csv";
+                    if ((bool)ofd.ShowDialog() && File.Exists(ofd.FileName))
+                    {
+
+
+                        var fileInfo = new FileInfo(ofd.FileName);
+
+                        foreach (Metadata metadata in dataGrid.Items)
+                        {
+                            if(metadata.data_value==fileInfo.Name)
+                            {
+                                MessageBox.Show("You cannot upload a file that is already listed\r\n" +
+                                                 "You can replace the file instead",
+                                                 "NSAP-ODK Database",
+                                                 MessageBoxButton.OK,
+                                                 MessageBoxImage.Information);
+
+                                return;
+                            }
+                        }
+
+
+                        var result = await UploadMediaToServer(fileInfo);
+                        if (result.IsSuccessStatusCode)
+                        {
+                            MessageBox.Show($"Successfully uploaded {fileInfo.Name}", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
+                        else
+                        {
+
+                        }
+                    }
+                    break;
+                case "buttonReplace":
+                    foreach (Metadata metadata in dataGrid.Items)
+                    {
+                        if (metadata.replace)
+                        {
+                            _metadataFilesForReplacement.Add(metadata);
+                        }
+                    }
+
+                    if (_metadataFilesForReplacement.Count > 0)
+                    {
+                        var processedCount =  await ProcesssCSVFiles();
+                        if(processedCount>0)
+                        {
+                            //MessageBox.Show($"{processedCount} media files replaced", "NSA-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                            foreach (Metadata md in dataGrid.Items)
+                            {
+                                md.replace = false;
+                            }
+
+                            dataGrid.Items.Refresh();
+                            _timer.Start();
+                        }
+                        else
+                        {
+                            if (!_updateCancelled)
+                            {
+                                MessageBox.Show($"No files were replaced", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                            }
+                        }
+
+
+                    }
+                    else
+                    {
+                        MessageBox.Show("Select at least one media file", "NSAP-ODK", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    break;
                 case "ButtonDownload":
                     _downloadType = "data";
                     ButtonDownload.IsEnabled = false;
@@ -243,7 +444,7 @@ namespace NSAP_ODK.Views
                                             var bytes = await response.Content.ReadAsByteArrayAsync();
                                             Encoding encoding = Encoding.GetEncoding("utf-8");
                                             string the_response = encoding.GetString(bytes, 0, bytes.Length);
-                                            
+
 
                                             switch (_parentWindow.ODKServerDownload)
                                             {
@@ -338,6 +539,9 @@ namespace NSAP_ODK.Views
                                     _koboForms = KoboForms.MakeFormObjects(JsonConvert.DeserializeObject<JArray>(the_response));
                                     AddFormIDToTree();
                                     ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
+                                    
+                                    _timer.Interval = TimeSpan.FromSeconds(3);
+                                    _timer.Start();
                                 }
                             }
                             catch (HttpRequestException)
@@ -425,8 +629,10 @@ namespace NSAP_ODK.Views
         private void OnTreeItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             propertyGrid.Visibility = Visibility.Collapsed;
-            dataGrid.Visibility = Visibility.Collapsed;
+            gridFormUsers.Visibility = Visibility.Collapsed;
+            //dataGrid.Visibility = Visibility.Collapsed;
             gridDownload.Visibility = Visibility.Collapsed;
+            panelReplace.Visibility = Visibility.Collapsed;
             var treeViewItem = (TreeViewItem)e.NewValue;
             if (treeViewItem != null)
             {
@@ -436,7 +642,7 @@ namespace NSAP_ODK.Views
                         _formID = treeViewItem.Header.ToString();
                         var summary = new FormSummary(_koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)));
                         SetODKServerDownloadType();
-                        if (summary.LastSaveDateInDatabase.Length>0 &&  DateTime.TryParse(summary.LastSaveDateInDatabase, out DateTime v))
+                        if (summary.LastSaveDateInDatabase.Length > 0 && DateTime.TryParse(summary.LastSaveDateInDatabase, out DateTime v))
                         {
                             _lastSubmittedDate = v;
                         }
@@ -482,13 +688,34 @@ namespace NSAP_ODK.Views
                         propertyGrid.Visibility = Visibility.Visible;
 
                         break;
+
+                    case "form_media":
+                        panelReplace.Visibility = Visibility.Visible;
+                        gridFormUsers.Visibility = Visibility.Visible;
+                        _formID = ((TreeViewItem)treeViewItem.Parent).Header.ToString();
+                        dataGrid.DataContext = _koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)).metadata_active;
+                        dataGrid.AutoGenerateColumns = false;
+                        dataGrid.Visibility = Visibility.Visible;
+                        dataGrid.SelectionUnit = DataGridSelectionUnit.Cell;
+                        dataGrid.IsReadOnly = false;
+
+                        dataGrid.Columns.Clear();
+                        //dataGrid.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("id"), IsReadOnly = true }); ;
+                        dataGrid.Columns.Add(new DataGridTextColumn { Header = "File", Binding = new Binding("data_value"), IsReadOnly = true });
+                        dataGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "For replacement", Binding = new Binding("replace") });
+                        //dataGrid.Columns.Add(new DataGridTextColumn { Header = "Type", Binding = new Binding("data_file_type"), IsReadOnly = true }); ;
+                        //dataGrid.Columns.Add(new DataGridTextColumn { Header = "URL", Binding = new Binding("url"), IsReadOnly = true }); ;
+
+                        break;
                     case "form_users":
                         _formID = ((TreeViewItem)treeViewItem.Parent).Header.ToString();
-
+                        gridFormUsers.Visibility = Visibility.Visible;
                         //var parentItem = GetSelectedTreeViewItemParent(treeViewItem);
                         dataGrid.DataContext = _koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)).users;
                         dataGrid.Visibility = Visibility.Visible;
                         dataGrid.AutoGenerateColumns = false;
+                        dataGrid.SelectionUnit = DataGridSelectionUnit.FullRow;
+                        dataGrid.IsReadOnly = true;
 
                         dataGrid.Columns.Clear();
                         dataGrid.Columns.Add(new DataGridTextColumn { Header = "User", Binding = new Binding("user") });
@@ -572,6 +799,17 @@ namespace NSAP_ODK.Views
                     labelTitle.Content = "Download submitted forms from server";
                     break;
             }
+
+            _timer = new DispatcherTimer();
+            _timer.Tick += OnTimerTick;
+            
+        }
+
+        private void OnTimerTick(object sender, EventArgs e)
+        {
+            _timer.Stop();
+            ProgressBar.Value = 0;
+            labelProgress.Content = "";
         }
 
         private void OnComboSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -596,7 +834,20 @@ namespace NSAP_ODK.Views
 
         private void OnCheckStateChange(object sender, RoutedEventArgs e)
         {
-            panelFilterByUser.Visibility = (bool)CheckFilterUser.IsChecked ? Visibility.Visible : Visibility.Collapsed;
+            switch (((CheckBox)sender).Name)
+            {
+                case "CheckCheckAll":
+                    foreach (Metadata item in dataGrid.Items)
+                    {
+                        item.replace = (bool)CheckCheckAll.IsChecked;
+                    }
+                    dataGrid.Items.Refresh();
+                    break;
+                case "CheckFilterUser":
+                    panelFilterByUser.Visibility = (bool)CheckFilterUser.IsChecked ? Visibility.Visible : Visibility.Collapsed;
+                    break;
+            }
+
         }
     }
 }

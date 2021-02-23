@@ -23,8 +23,13 @@ namespace NSAP_ODK.Entities.Database
 
         public List<OrphanedFishingGear> OrphanedFishingGears()
         {
+            //var items = GearUnloadCollection
+            //    .Where(t => t.GearID!=null && t.GearID.Length == 0 && t.GearUsedText!=null && t.GearUsedText.Length>0)
+            //    .OrderBy(t => t.GearUsedText)
+            //    .GroupBy(t => t.GearUsedText).ToList();
+
             var items = GearUnloadCollection
-                .Where(t => t.GearID.Length == 0 && t.GearUsedText!=null && t.GearUsedText.Length>0)
+                .Where(t => (t.GearID==null ||  t.GearID.Length == 0) && t.GearUsedText != null && t.GearUsedText.Length > 0)
                 .OrderBy(t => t.GearUsedText)
                 .GroupBy(t => t.GearUsedText).ToList();
 

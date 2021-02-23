@@ -25,6 +25,7 @@ namespace NSAP_ODK.Entities
 {
     public class Metadata
     {
+        public bool replace { get; set; }
         public string url { get; set; }
         public int id { get; set; }
         public int xform { get; set; }
@@ -60,6 +61,14 @@ namespace NSAP_ODK.Entities
     {
         public string url { get; set; }
         public int formid { get; set; }
+
+        public List<Metadata>metadata_active
+        {
+            get
+            {
+                return metadata.Where(t => t.file_hash.Length > 0 && t.data_value.Contains("csv")).ToList();
+            }
+        }
         public List<Metadata> metadata { get; set; }
         public string owner { get; set; }
         public bool is_public { get; set; }

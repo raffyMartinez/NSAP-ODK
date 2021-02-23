@@ -35,6 +35,7 @@
     </Window.Resources>
 
 
+    <!--main grid container-->
     <Grid x:Name="GridMain">
         <Grid.RowDefinitions>
             <RowDefinition Height="20" x:Name="rowMenu" />
@@ -124,13 +125,14 @@
             </MenuItem>
 
             <MenuItem Header="_Help">
+                <MenuItem Header="About this software" x:Name="menuAbout" Click="OnMenuClicked" />
             </MenuItem>
 
         </Menu>
 
 
 
-        <!--first row for toolbar menu-->
+        <!--row for toolbar menu-->
         <ToolBarTray Grid.Row="1" Height="34" Grid.ColumnSpan="2">
             <ToolBar Height="32" Width="Auto" >
 
