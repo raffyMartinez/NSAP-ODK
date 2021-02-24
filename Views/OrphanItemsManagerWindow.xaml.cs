@@ -462,7 +462,10 @@ namespace NSAP_ODK.Views
                                     if (!procced)
                                     {
                                         procced = true;
-                                        replacementWindow.LandingSiteSampling = ((OrphanedEnumerator)item).SampledLandings[0].Parent.Parent;
+                                        if (((OrphanedEnumerator)item).SampledLandings.Count > 0)
+                                        {
+                                            replacementWindow.LandingSiteSampling = ((OrphanedEnumerator)item).SampledLandings[0].Parent.Parent;
+                                        }
                                     }
                                     _countForReplacement += ((OrphanedEnumerator)item).SampledLandings.Count;
                                     _countForReplacement += ((OrphanedEnumerator)item).LandingSiteSamplings.Count;

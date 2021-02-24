@@ -58,6 +58,11 @@ namespace NSAP_ODK.Entities.Database
             return VesselUnloadCollection.ToList();
         }
 
+        public List<VesselUnload> GetAllVesselUnloads(GearUnload parent)
+        {
+            return VesselUnloadCollection.Where(t=>t.Parent.PK==parent.PK).ToList();
+        }
+
         public DateTime DateLatestDownload
         {
             get { return (DateTime)VesselUnloadCollection.OrderByDescending(t => t.DateAddedToDatabase).FirstOrDefault().DateAddedToDatabase; }

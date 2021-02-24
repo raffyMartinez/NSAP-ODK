@@ -31,6 +31,7 @@ namespace NSAP_ODK.Views
         {
             await Task.Run(() => LoadEntities());
             LabelLoading.Content = "Finished reading database";
+            //CSVFIleManager.ReadCSVXML();
             Close();
             //MessageBox.Show("Finished loading data");
         }

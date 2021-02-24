@@ -48,6 +48,19 @@ namespace NSAP_ODK.Entities.Database
             return list;
 
         }
+
+        public List<GearUnload>GearUnloadsWithNoBoatCountAndChildVesselUnoad()
+        {
+            List<GearUnload> list = new List<GearUnload>();
+            foreach(var gu in GearUnloadCollection.Where(t=>t.Boats==null && t.Catch==null))
+            {
+                if (NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(gu) == null)
+                {
+                    list.Add(gu);
+                }
+            }
+            return list;
+        }
         public int CountCompletedGearUnload
         {
             //get { return GearUnloadCollection.Where(t => t.Boats != null).Where(t => t.Catch != null).Count(); }

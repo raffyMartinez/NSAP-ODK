@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Reflection;
+using System.Xml;
+
 
 namespace NSAP_ODK.Utilities
 {
@@ -44,12 +46,31 @@ namespace NSAP_ODK.Utilities
             {
                 Settings = Settings.Read(_DefaultSettingspath);
             }
-
-
             DoAppProceed();
+        }
 
+        public static bool IsValidXML(string xml, out string errorMessage)
+        {
+            errorMessage = "";
+            bool success = false;
 
-
+            using (XmlReader reader = XmlReader.Create(new StringReader(xml)))
+            {
+                try
+                {
+                    success = reader.Read();
+                }
+                catch (XmlException xmlex)
+                {
+                    errorMessage = xmlex.Message;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(ex);
+                    errorMessage = ex.Message;
+                }
+            }
+            return success;
         }
 
         private static void DoAppProceed()
@@ -60,6 +81,11 @@ namespace NSAP_ODK.Utilities
                 MDBPath = Settings.MDBPath;
                 ConnectionString = "Provider=Microsoft.JET.OLEDB.4.0;data source=" + MDBPath;
                 ConnectionStringGrid25 = "Provider=Microsoft.JET.OLEDB.4.0;data source=" + Grid25MDBPath;
+                AppProceed = Entities.Database.CSVFIleManager.ReadCSVXML();
+                if(!AppProceed)
+                {
+                    Logger.Log(Entities.Database.CSVFIleManager.XMLError);
+                }
             }
             else
             {

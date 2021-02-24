@@ -150,6 +150,7 @@
     <Compile Include="Entities\Database\CrossTabLength.cs" />
     <Compile Include="Entities\Database\CrossTabManager.cs" />
     <Compile Include="Entities\Database\CrossTabMaturity.cs" />
+    <Compile Include="Entities\Database\CSVFIleManager.cs" />
     <Compile Include="Entities\Database\DatabaseEnumeratorSummary.cs" />
     <Compile Include="Entities\Database\DBSummary.cs" />
     <Compile Include="Entities\Database\DownloadFromServerEventArg.cs" />
@@ -171,6 +172,7 @@
     <Compile Include="Entities\Database\GPXparser\Waypoint.cs" />
     <Compile Include="Entities\Database\LandingSiteSamplingViewModel.cs" />
     <Compile Include="Entities\Database\DownloadToDatabaseHistory.cs" />
+    <Compile Include="Entities\Database\LookupCSVFile.cs" />
     <Compile Include="Entities\Database\OrphanedEnumerator.cs" />
     <Compile Include="Entities\Database\OrphanedFishingGear.cs" />
     <Compile Include="Entities\Database\OrphanedFishSpeciesName.cs" />

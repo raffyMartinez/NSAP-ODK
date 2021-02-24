@@ -228,7 +228,7 @@ namespace NSAP_ODK.Views
 
                         foreach (Metadata metadata in dataGrid.Items)
                         {
-                            if(metadata.data_value==fileInfo.Name)
+                            if (metadata.data_value == fileInfo.Name)
                             {
                                 MessageBox.Show("You cannot upload a file that is already listed\r\n" +
                                                  "You can replace the file instead",
@@ -263,8 +263,8 @@ namespace NSAP_ODK.Views
 
                     if (_metadataFilesForReplacement.Count > 0)
                     {
-                        var processedCount =  await ProcesssCSVFiles();
-                        if(processedCount>0)
+                        var processedCount = await ProcesssCSVFiles();
+                        if (processedCount > 0)
                         {
                             //MessageBox.Show($"{processedCount} media files replaced", "NSA-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
 
@@ -539,7 +539,7 @@ namespace NSAP_ODK.Views
                                     _koboForms = KoboForms.MakeFormObjects(JsonConvert.DeserializeObject<JArray>(the_response));
                                     AddFormIDToTree();
                                     ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
-                                    
+
                                     _timer.Interval = TimeSpan.FromSeconds(3);
                                     _timer.Start();
                                 }
@@ -703,6 +703,7 @@ namespace NSAP_ODK.Views
                         //dataGrid.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("id"), IsReadOnly = true }); ;
                         dataGrid.Columns.Add(new DataGridTextColumn { Header = "File", Binding = new Binding("data_value"), IsReadOnly = true });
                         dataGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "For replacement", Binding = new Binding("replace") });
+                        dataGrid.Columns.Add(new DataGridTextColumn { Header = "Description", Binding = new Binding("Description"), IsReadOnly = true });
                         //dataGrid.Columns.Add(new DataGridTextColumn { Header = "Type", Binding = new Binding("data_file_type"), IsReadOnly = true }); ;
                         //dataGrid.Columns.Add(new DataGridTextColumn { Header = "URL", Binding = new Binding("url"), IsReadOnly = true }); ;
 
@@ -802,7 +803,7 @@ namespace NSAP_ODK.Views
 
             _timer = new DispatcherTimer();
             _timer.Tick += OnTimerTick;
-            
+
         }
 
         private void OnTimerTick(object sender, EventArgs e)

@@ -146,7 +146,7 @@ namespace NSAP_ODK
                     propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Western Visayas", Name = "CountWesternVisayas", Description = "Number of enumerators in Western Visayas", DisplayOrder = 9, Category = "Number of enumerators by region" });
                     propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Central Visayas", Name = "CountCentralVisayas", Description = "Number of enumerators in Central Visayas", DisplayOrder = 10, Category = "Number of enumerators by region" });
                     propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Eastern Visayas", Name = "CountEasternVisayas", Description = "Number of enumerators in Eastern Visayas", DisplayOrder = 11, Category = "Number of enumerators by region" });
-                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Zamboanga Peninsula", Name = "CountZamboangaPeninsula", Description = "Number of enumerators in Zamboanga Peninsula", DisplayOrder = 12, Category = "Number of enumerators by region" });    
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Zamboanga Peninsula", Name = "CountZamboangaPeninsula", Description = "Number of enumerators in Zamboanga Peninsula", DisplayOrder = 12, Category = "Number of enumerators by region" });
                     propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Northern Mindanao", Name = "CountNorthernMindanao", Description = "Number of enumerators in Northern Mindanao", DisplayOrder = 13, Category = "Number of enumerators by region" });
                     propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Davao Region", Name = "CountDavao", Description = "Number of enumerators in Davao", DisplayOrder = 14, Category = "Number of enumerators by region" });
                     propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Soccsksargen", Name = "CountSoccsksargen", Description = "Number of enumerators in Soccsksargen", DisplayOrder = 15, Category = "Number of enumerators by region" });
@@ -171,6 +171,7 @@ namespace NSAP_ODK
                 SetDataDisplayMode();
 
                 ShowSplash();
+                //CSVFIleManager.ReadCSVXML();
                 if (
                     NSAPEntities.NSAPRegionViewModel.Count > 0 &&
                     NSAPEntities.FishSpeciesViewModel.Count > 0 &&
@@ -312,10 +313,10 @@ namespace NSAP_ODK
                 if (firstChild.Header.ToString() == "**dummy")
                 {
                     node.Items.Clear();
-                    switch(((TreeViewItem)node.Parent).Header)
+                    switch (((TreeViewItem)node.Parent).Header)
                     {
                         case "Enumerators":
-                            foreach(var enumerator in NSAPEntities.NSAPRegionViewModel.GetEnumeratorsInRegion((NSAPRegion)node.Tag))
+                            foreach (var enumerator in NSAPEntities.NSAPRegionViewModel.GetEnumeratorsInRegion((NSAPRegion)node.Tag))
                             {
                                 TreeViewItem enumeratorNode = new TreeViewItem { Header = enumerator.Name, Tag = enumerator };
                                 node.Items.Add(enumeratorNode);
@@ -338,6 +339,14 @@ namespace NSAP_ODK
             rowTopLabel.Height = new GridLength(300);
             labelTitle.Content = "Backend database file not found\r\nMake sure that the correct database is found in the application folder\r\n" +
                                   "The application folder is the folder where you installed this software";
+            //if (CSVFIleManager.XMLError.Length > 0 && Global.MDBPath.Length > 0)
+            //{
+            //    labelTitle.Content = $"{CSVFIleManager.XMLError }";
+            //}
+            //else
+            //{
+            //    labelTitle.Content += $"\r\n\r\n{CSVFIleManager.XMLError }";
+            //}
             labelTitle.FontSize = 18;
             labelTitle.FontWeight = FontWeights.Bold;
             labelTitle.VerticalContentAlignment = VerticalAlignment.Center;
@@ -1857,10 +1866,10 @@ namespace NSAP_ODK
             _selectedPropertyItem = (PropertyItem)((PropertyGrid)e.Source).SelectedPropertyItem;
         }
 
-        private void SetupEnumeratorSummaryGrid(DataGrid targetGrid, bool allRegions = true, NSAPEnumerator enumerator=null)
+        private void SetupEnumeratorSummaryGrid(DataGrid targetGrid, bool allRegions = true, NSAPEnumerator enumerator = null)
         {
 
-            if(allRegions)
+            if (allRegions)
             {
 
             }
@@ -2100,7 +2109,7 @@ namespace NSAP_ODK
                     switch (tvItem.Tag.GetType().Name)
                     {
                         case "NSAPRegion":
-                            switch(((TreeViewItem)tvItem.Parent).Header)
+                            switch (((TreeViewItem)tvItem.Parent).Header)
                             {
                                 case "Enumerators":
                                     break;
@@ -2108,7 +2117,7 @@ namespace NSAP_ODK
                                     ShowSummaryAtLevel(SummaryLevelType.Region, (NSAPRegion)tvItem.Tag);
                                     break;
                             }
-                            
+
                             break;
                         case "FishingGround":
                             ShowSummaryAtLevel(summaryType: SummaryLevelType.FishingGround, region: (NSAPRegion)((TreeViewItem)tvItem.Parent).Tag, fg: (FishingGround)tvItem.Tag);

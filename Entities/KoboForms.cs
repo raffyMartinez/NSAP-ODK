@@ -34,6 +34,22 @@ namespace NSAP_ODK.Entities
         public string data_file { get; set; }
         public string data_file_type { get; set; }
         public string file_hash { get; set; }
+
+        public string Description
+        {
+            get
+            {
+                if (Database.CSVFIleManager.CSVFiles.Keys.Contains(data_value))
+                {
+                    return Database.CSVFIleManager.CSVFiles[data_value].Desccription;
+                }
+                else
+                {
+                    return "";
+                }
+            }
+            set { }
+        }
     }
 
     public class User
