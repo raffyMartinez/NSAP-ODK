@@ -16,6 +16,7 @@ namespace NSAP_ODK.Entities
             Provinces = new ProvinceRepository();
             ProvinceCollection = new ObservableCollection<Province>(Provinces.Provinces);
             ProvinceCollection.CollectionChanged += Provinces_CollectionChanged;
+            Console.WriteLine(ProvinceCollection[25].Acronym);
         }
 
         public List<Province> GetAllProvinces()
