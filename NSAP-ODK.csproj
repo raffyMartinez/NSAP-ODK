@@ -168,6 +168,7 @@
     <Compile Include="Entities\Database\LandingSiteBoatLandingsFromServerRepository.cs" />
     <Compile Include="Entities\Database\GearUnloadViewModel.cs" />
     <Compile Include="Entities\ItemSources\FishingGroundInRegionFMAItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\GearsInNSAPRegionItemsSource.cs" />
     <Compile Include="Entities\ItemSources\GPSItemsSource.cs" />
     <Compile Include="Entities\Database\GPXparser\Track.cs" />
     <Compile Include="Entities\Database\GPXparser\Waypoint.cs" />

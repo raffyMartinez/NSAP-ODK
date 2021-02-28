@@ -21,7 +21,7 @@
         <Label x:Name="labelEffort" Grid.Row="0" Grid.Column="0" Content="Label for effort grid" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14"/>
         <Label x:Name="labelCatch" Grid.Row="0" Grid.Column="1" Content="Label for catch grid" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14"/>
 
-        <xctk:PropertyGrid Grid.Row="1" Grid.ColumnSpan="2" x:Name="propertyGrid" Margin="10" IsReadOnly="True"/>
+        <xctk:PropertyGrid Grid.Row="1" Grid.ColumnSpan="2" x:Name="propertyGrid" Margin="10" IsReadOnly="True" PropertyValueChanged="OnPropertyValueChanged"/>
         
         <DataGrid x:Name="effortDataGrid" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" IsReadOnly="True"/>
         

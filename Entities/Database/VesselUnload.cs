@@ -25,15 +25,21 @@ namespace NSAP_ODK.Entities.Database
         {
             if (vesselUnload != null)
             {
-                Region = vesselUnload.Parent.Parent.NSAPRegion.Name;
-                RegionCode = vesselUnload.Parent.Parent.NSAPRegion.Code;
-                FMA = vesselUnload.Parent.Parent.FMA.Name;
-                FMAID = vesselUnload.Parent.Parent.FMA.FMAID;
-                FishingGround = vesselUnload.Parent.Parent.FishingGround.Name;
-                FishingGroundCode = vesselUnload.Parent.Parent.FishingGroundID;
-                LandingSite = vesselUnload.Parent.Parent.LandingSiteName;
-                LandingSiteID = vesselUnload.Parent.Parent.LandingSiteID;
-                Gear = vesselUnload.Parent.GearUsedName;
+                NSAPRegion = vesselUnload.Parent.Parent.NSAPRegion;
+                Region = NSAPRegion.Name;
+                RegionCode = NSAPRegion.Code;
+                FMA = vesselUnload.Parent.Parent.FMA;
+                FMAName = FMA.Name;
+                FMAID = FMA.FMAID;
+                FishingGround = vesselUnload.Parent.Parent.FishingGround;
+                FishingGroundName = FishingGround.Name;
+                FishingGroundCode = FishingGround.Code;
+                LandingSite = vesselUnload.Parent.Parent.LandingSite;
+                LandingSiteName = vesselUnload.Parent.Parent.LandingSiteName;
+                LandingSiteID = LandingSite.LandingSiteID;
+                Gear = vesselUnload.Parent.Gear;
+                GearName = vesselUnload.Parent.GearUsedName;
+                GearCode = Gear.Code;
 
                 Identifier = vesselUnload.PK;
                 SamplingDate = vesselUnload.SamplingDate;
@@ -71,31 +77,40 @@ namespace NSAP_ODK.Entities.Database
 
         }
         [ReadOnly(true)]
-
+        public NSAPRegion NSAPRegion { get; set; }
         public string Region { get; set; }
 
         [ItemsSource(typeof(NSAPRegionItemsSource))]
         public string RegionCode { get; set; }
         [ReadOnly(true)]
-        public string FMA { get; set; }
+        public string FMAName { get; set; }
+
+        public FMA FMA { get; set; }
 
         [ItemsSource(typeof(FMAInRegionItemsSource))]
         public int FMAID { get; set; }
 
+        public FishingGround FishingGround { get; set; }
+
         [ReadOnly(true)]
-        public string FishingGround { get; set; }
+        public string FishingGroundName { get; set; }
 
         [ItemsSource(typeof(FishingGroundInRegionFMAItemsSource))]
         public string FishingGroundCode { get; set; }
 
+        public LandingSite LandingSite { get; set; }
         [ReadOnly(true)]
-        public string LandingSite { get; set; }
+        public string LandingSiteName { get; set; }
 
         [ItemsSource(typeof(LandingSiteInFMAFishingGroundItemsSource))]
         public int? LandingSiteID { get; set; }
 
+        public Gear Gear { get; set; }
         [ReadOnly(true)]
-        public string Gear { get; set; }
+        public string GearName { get; set; }
+
+        [ItemsSource(typeof(GearsInNSAPRegionItemsSource))]
+        public string GearCode { get; set; }
 
         [ReadOnly(true)]
         public int Identifier { get; set; }

@@ -8,30 +8,30 @@ using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
 namespace NSAP_ODK.Entities.ItemSources
 {
 
- 
-        class GearItemsSource : IItemsSource
-        {
+
+    class GearItemsSource : IItemsSource
+    {
         private ItemCollection _gears = new ItemCollection();
-            public ItemCollection GetValues()
-            {
-                
-                foreach (var gear in NSAPEntities.GearViewModel.GearCollection.OrderBy(t => t.GearName))
-                {
-                    _gears.Add(gear.Code, gear.GearName);
-                }
-                return _gears;
-            }
+        public ItemCollection GetValues()
+        {
 
-            public void AddItem(string code, string name)
+            foreach (var gear in NSAPEntities.GearViewModel.GearCollection.OrderBy(t => t.GearName))
             {
-                _gears.Add(code, name);
+                _gears.Add(gear.Code, gear.GearName);
             }
+            return _gears;
+        }
 
-        public void AddItem(KeyValuePair<string,string>item)
+        public void AddItem(string code, string name)
+        {
+            _gears.Add(code, name);
+        }
+
+        public void AddItem(KeyValuePair<string, string> item)
         {
             _gears.Add(item.Key, item.Value);
         }
 
     }
-    
+
 }

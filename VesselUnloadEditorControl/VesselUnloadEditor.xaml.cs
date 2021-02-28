@@ -20,6 +20,7 @@ using Xceed.Wpf.Toolkit.PropertyGrid;
 
 namespace NSAP_ODK.VesselUnloadEditorControl
 {
+
     /// <summary>
     /// Interaction logic for VesselUnloadEdit.xaml
     /// </summary>
@@ -30,7 +31,10 @@ namespace NSAP_ODK.VesselUnloadEditorControl
         private VesselUnloadEdit _vesselUnloadEdit;
         private string _unloadView;
         private bool _editMode;
-
+        private NSAPRegionFMA _nsapRegionFMA;
+        private NSAPRegion _nsapRegion;
+        private NSAPRegionFMAFishingGround _nsapRegionFMAFishingGround;
+        private Dictionary<string, int> _dictProperties = new Dictionary<string, int>();
 
         public VesselUnloadEditor()
         {
@@ -107,7 +111,7 @@ namespace NSAP_ODK.VesselUnloadEditorControl
             propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "FMAID", DisplayName = "FMA", DisplayOrder = 2, Description = "FMA", Category = "Header" });
             propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "FishingGroundCode", DisplayName = "Fishing ground", DisplayOrder = 3, Description = "Fishing ground", Category = "Header" });
             propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LandingSiteID", DisplayName = "Landing site", DisplayOrder = 4, Description = "Landing site", Category = "Header" });
-            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Gear", DisplayName = "Fishing gear", DisplayOrder = 5, Description = "Fishing gear", Category = "Header" });
+            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "GearCode", DisplayName = "Fishing gear", DisplayOrder = 5, Description = "Fishing gear", Category = "Header" });
 
             propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Identifier", DisplayName = "Database identifier", DisplayOrder = 1, Description = "Database identifier", Category = "Effort" });
             propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SamplingDate", DisplayName = "Sampling date", DisplayOrder = 2, Description = "Date of sampling", Category = "Effort" });
@@ -140,6 +144,16 @@ namespace NSAP_ODK.VesselUnloadEditorControl
             propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Submitted", DisplayName = "Date when the electronic form was submitted to the net", DisplayOrder = 20, Description = "Date and time of submission of the encoded data", Category = "Device metadata" });
             propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DateAddedToDatabase", DisplayName = "Date added to database", DisplayOrder = 21, Description = "Date and time when data was added to the database", Category = "Device metadata" });
             propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "FromExcelDownload", DisplayName = "Excel download", DisplayOrder = 22, Description = "Data was donwloaded to an Excel file", Category = "Device metadata" });
+
+
+            for(int x=0;x<propertyGrid.Properties.Count;x++)
+            {
+                _dictProperties.Add(((PropertyItem)propertyGrid.Properties[x]).PropertyName, x);
+            }
+
+            _nsapRegion = _vesselUnloadEdit.NSAPRegion;
+            _nsapRegionFMA = _nsapRegion.FMAs.Where(t => t.FMAID == _vesselUnloadEdit.FMAID).FirstOrDefault();
+            _nsapRegionFMAFishingGround = _nsapRegionFMA.FishingGrounds.Where(t => t.FishingGroundCode == _vesselUnloadEdit.FishingGroundCode).FirstOrDefault();
         }
 
         public string UnloadView
@@ -176,6 +190,138 @@ namespace NSAP_ODK.VesselUnloadEditorControl
         private void OnButtonClicked(object sender, RoutedEventArgs e)
         {
 
+        }
+
+        private void OnPropertyValueChanged(object sender, PropertyValueChangedEventArgs e)
+        {
+            ComboBox cbo = new ComboBox();
+            cbo.Items.Clear();
+            cbo.SelectionChanged += OnComboSelectionChanged;
+            cbo.DisplayMemberPath = "Value";
+            var currentProperty = (PropertyItem)e.OriginalSource;
+
+            switch (currentProperty.PropertyName)
+            {
+                case "RegionCode":
+                    cbo.Tag = "fma";
+                    foreach(var fma in NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(currentProperty.Value.ToString()).FMAs)
+                    {
+                        cbo.Items.Add(new KeyValuePair<int,string>(fma.FMAID,fma.FMA.Name));
+                    }
+
+                    _nsapRegion= NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(currentProperty.Value.ToString());
+                    ((PropertyItem)propertyGrid.Properties[_dictProperties["FMAID"]]).Editor = cbo;
+                    ((PropertyItem)propertyGrid.Properties[_dictProperties["FishingGroundCode"]]).Editor = new ComboBox();
+                    ((PropertyItem)propertyGrid.Properties[_dictProperties["LandingSiteID"]]).Editor = new ComboBox();
+
+                    ComboBox gearEditor = new ComboBox();
+                    gearEditor.Tag = "gear";
+                    gearEditor.SelectionChanged += OnComboSelectionChanged;
+                    gearEditor.DisplayMemberPath = "Value";
+                    foreach(var gear in _nsapRegion.Gears.OrderBy(t=>t.Gear.GearName))
+                    {
+                        gearEditor.Items.Add(new KeyValuePair<string, string>(gear.GearCode, gear.Gear.GearName));
+                    }
+                    ((PropertyItem)propertyGrid.Properties[_dictProperties["GearCode"]]).Editor = gearEditor;
+
+
+                    ComboBox enumeratorEditor = new ComboBox();
+                    enumeratorEditor.Tag = "enumerator";
+                    enumeratorEditor.SelectionChanged += OnComboSelectionChanged;
+                    enumeratorEditor.DisplayMemberPath = "Value";
+                    foreach (var enumer in _nsapRegion.NSAPEnumerators.OrderBy(t => t.Enumerator.Name))
+                    {
+                        enumeratorEditor.Items.Add(new KeyValuePair<int, string>(enumer.EnumeratorID, enumer.Enumerator.Name));
+                    }
+                    ((PropertyItem)propertyGrid.Properties[_dictProperties["NSAPEnumeratorID"]]).Editor = enumeratorEditor;
+
+
+                    break;
+                case "FMAID":
+                    cbo.Tag = "fishing_ground";
+                   _nsapRegionFMA= _nsapRegion.FMAs.Where(t => t.FMAID == int.Parse(currentProperty.Value.ToString())).FirstOrDefault();
+                    foreach(var fg in _nsapRegionFMA.FishingGrounds)
+                    {
+                        cbo.Items.Add(new KeyValuePair<string, string>(fg.FishingGroundCode, fg.FishingGround.Name));
+                    }
+
+
+                    ((PropertyItem)propertyGrid.Properties[_dictProperties["FishingGroundCode"]]).Editor = cbo;
+                    ((PropertyItem)propertyGrid.Properties[_dictProperties["LandingSiteID"]]).Editor = new ComboBox();
+                    break;
+                case "FishingGroundCode":
+                    cbo.Tag = "landing_site";
+                    NSAPEntities.NSAPRegionFMAFishingGround = _nsapRegionFMA.FishingGrounds.Where(t => t.FishingGroundCode == currentProperty.Value.ToString()).FirstOrDefault();
+                    foreach(var ls in NSAPEntities.NSAPRegionFMAFishingGround.LandingSites)
+                    {
+                        cbo.Items.Add(new KeyValuePair<int, string>(ls.LandingSite.LandingSiteID, ls.LandingSite.ToString()));
+                    }
+
+
+                    ((PropertyItem)propertyGrid.Properties[_dictProperties["LandingSiteID"]]).Editor = cbo;
+                    break;
+                case "LandingSiteID":
+                    break;
+                case "GearCode":
+                    break;
+            }
+
+        }
+
+        private void OnComboSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ComboBox cbo = (ComboBox)sender;
+            ComboBox editor = new ComboBox();
+            editor.SelectionChanged += OnComboSelectionChanged;
+            editor.DisplayMemberPath = "Value";
+            switch (cbo.Tag.ToString())
+            {
+                case "fma":
+                    int fmaID = ((KeyValuePair<int, string>)cbo.SelectedItem).Key;
+                    ((PropertyItem)propertyGrid.Properties[_dictProperties["FMAID"]]).Value=fmaID;
+                    _nsapRegionFMA = _nsapRegion.FMAs.Where(t => t.FMAID == fmaID).FirstOrDefault();
+
+                    
+                    
+                    foreach(var fg in _nsapRegionFMA.FishingGrounds)
+                    {
+                        editor.Items.Add(new KeyValuePair<string, string>(fg.FishingGroundCode, fg.FishingGround.Name));
+                    }
+
+                    ((PropertyItem)propertyGrid.Properties[_dictProperties["FishingGroundCode"]]).Editor = editor;
+                    editor.Tag = "fishing_ground";
+
+                    break;
+                case "fishing_ground":
+                    string fgCode = ((KeyValuePair<string, string>)cbo.SelectedItem).Key;
+                    _nsapRegionFMAFishingGround = _nsapRegionFMA.FishingGrounds.Where(t => t.FishingGroundCode == fgCode).FirstOrDefault();
+                    ((PropertyItem)propertyGrid.Properties[_dictProperties["FishingGroundCode"]]).Value=fgCode;
+
+                    foreach(var ls in _nsapRegionFMAFishingGround.LandingSites)
+                    {
+                        editor.Items.Add(new KeyValuePair<int, string>(ls.LandingSite.LandingSiteID, ls.LandingSite.ToString()));
+                    }
+
+                    ((PropertyItem)propertyGrid.Properties[_dictProperties["LandingSiteID"]]).Editor = editor;
+                    editor.Tag = "landing_site";
+                    break;
+                case "landing_site":
+                    foreach (PropertyItem prp in propertyGrid.Properties)
+                    {
+                        if (prp.PropertyName == "LandingSiteID")
+                        {
+                            prp.Value = ((KeyValuePair<int, string>)cbo.SelectedItem).Key;
+                            return;
+                        }
+                    }
+                    break;
+                case "gear":
+                    ((PropertyItem)propertyGrid.Properties[_dictProperties["GearCode"]]).Value= ((KeyValuePair<string,string>)cbo.SelectedItem).Key;
+                    break;
+                case "enumerator":
+                    ((PropertyItem)propertyGrid.Properties[_dictProperties["NSAPEnumeratorID"]]).Value= ((KeyValuePair<int,string>)cbo.SelectedItem).Key;                    
+                    break;
+            }
         }
     }
 }
