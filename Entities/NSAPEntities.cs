@@ -86,6 +86,8 @@ namespace NSAP_ODK.Entities
         }
 
         public static NSAPRegion NSAPRegion { get; set; }
+
+        public static  NSAPRegionFMA NSAPRegionFMA { get; set; }
         public static NSAPRegionFMAFishingGround NSAPRegionFMAFishingGround { get; set; }
 
         public static int? MunicipalityID { get; set; }

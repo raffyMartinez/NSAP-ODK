@@ -1,6 +1,6 @@
 ﻿using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
 
-namespace NSAP_ODK.Entities
+namespace NSAP_ODK.Entities.ItemSources
 {
     internal class EffortValueTypeItemsSource : IItemsSource
     {

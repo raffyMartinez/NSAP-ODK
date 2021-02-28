@@ -1,0 +1,34 @@
+﻿<UserControl x:Class="NSAP_ODK.VesselUnloadEditorControl.VesselUnloadEditor"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40" x:Name="rowLabel"/>
+            <RowDefinition x:Name="rowPropertyGrid"/>
+            <RowDefinition x:Name="rowDataGrid" Height="0"/>
+            <RowDefinition Height="50" x:Name="rowButton"/>
+        </Grid.RowDefinitions>
+
+        <Label x:Name="labelEffort" Grid.Row="0" Grid.Column="0" Content="Label for effort grid" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14"/>
+        <Label x:Name="labelCatch" Grid.Row="0" Grid.Column="1" Content="Label for catch grid" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14"/>
+
+        <xctk:PropertyGrid Grid.Row="1" Grid.ColumnSpan="2" x:Name="propertyGrid" Margin="10" IsReadOnly="True"/>
+        
+        <DataGrid x:Name="effortDataGrid" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" IsReadOnly="True"/>
+        
+        <DataGrid x:Name="catchDataGrid" Grid.Row="2" Grid.Column="1" Visibility="Collapsed" IsReadOnly="True"/>
+        
+        <WrapPanel Grid.Row="3" Grid.ColumnSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Button x:Name="buttonDelete" Content="Delete" Height="30" Width="60" Click="OnButtonClicked"/>
+        </WrapPanel>
+    </Grid>
+</UserControl>

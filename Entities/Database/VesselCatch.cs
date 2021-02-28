@@ -27,6 +27,61 @@ namespace NSAP_ODK.Entities.Database
         public double? Catch_kg { get; private set; }
         public double? Sample_kg { get; private set; }
     }
+
+    public class VesselCatchEdited
+    {
+        public VesselCatchEdited()
+        {
+
+        }
+        public VesselCatchEdited(VesselCatch vc)
+        {
+            PK = vc.PK;
+            VesselUnloadID = vc.VesselUnloadID;
+            TaxaCode = vc.TaxaCode;
+            TaxaName = vc.Taxa.Name;
+            Sample_kg = vc.Sample_kg;
+            Catch_kg = vc.Catch_kg;
+            
+
+            if ((vc.SpeciesText == null || vc.SpeciesText.Length == 0) && vc.SpeciesID != null)
+            {
+                if (TaxaCode == "FIS")
+                {
+                    Genus = vc.FishSpecies.GenericName;
+                    Species = vc.FishSpecies.SpecificName;
+
+
+                }
+                else
+                {
+                    Genus = vc.NotFishSpecies.Genus;
+                    Species = vc.NotFishSpecies.Species;
+                }
+                SpeciesID = vc.SpeciesID;
+            }
+            else
+            {
+                OtherName = vc.SpeciesText;
+            }
+        }
+        public int PK { get; set; }
+        public int VesselUnloadID { get; set; }
+
+        public string TaxaName { get; set; }
+        public string TaxaCode { get; set; }
+        public string Genus { get; set; }
+        public string Species { get; set; }
+        public string OtherName { get; set; }
+
+        public int? SpeciesID { get; set; }
+
+        public double? Catch_kg { get; set; }
+        public double? Sample_kg { get; set; }
+        public double? Boxes_count { get; set; }
+        public int? Boxes_sampled { get; set; }
+        public double? RaisingFactor { get; set; }
+    }
     public class VesselCatch
     {
         private VesselUnload _parent;
@@ -39,7 +94,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if(TaxaCode=="FIS" && SpeciesID!=null)
+                if (TaxaCode == "FIS" && SpeciesID != null)
                 {
                     return NSAPEntities.FishSpeciesViewModel.GetSpecies((int)SpeciesID);
                 }
@@ -78,11 +133,11 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if(SpeciesText != null && SpeciesText.Length>0)
+                if (SpeciesText != null && SpeciesText.Length > 0)
                 {
                     return SpeciesText;
                 }
-                else if(SpeciesID!=null && TaxaCode=="FIS")
+                else if (SpeciesID != null && TaxaCode == "FIS")
                 {
                     return FishSpecies.ToString();
                 }
@@ -100,7 +155,7 @@ namespace NSAP_ODK.Entities.Database
             {
                 return NSAPEntities.CatchLenFreqViewModel.CatchLenFreqCollection
                     .Where(t => t.Parent.PK == PK).ToList();
-                    
+
             }
         }
 
@@ -137,7 +192,7 @@ namespace NSAP_ODK.Entities.Database
             set { _parent = value; }
             get
             {
-                if(_parent==null)
+                if (_parent == null)
                 {
                     _parent = NSAPEntities.VesselUnloadViewModel.getVesselUnload(VesselUnloadID);
                 }

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
 
-namespace NSAP_ODK.Entities
+namespace NSAP_ODK.Entities.ItemSources
 {
 
  

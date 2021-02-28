@@ -167,7 +167,8 @@
     <Compile Include="Entities\Database\GearUnloadRepository.cs" />
     <Compile Include="Entities\Database\LandingSiteBoatLandingsFromServerRepository.cs" />
     <Compile Include="Entities\Database\GearUnloadViewModel.cs" />
-    <Compile Include="Entities\Database\GPSItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\FishingGroundInRegionFMAItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\GPSItemsSource.cs" />
     <Compile Include="Entities\Database\GPXparser\Track.cs" />
     <Compile Include="Entities\Database\GPXparser\Waypoint.cs" />
     <Compile Include="Entities\Database\LandingSiteSamplingViewModel.cs" />
@@ -198,30 +199,33 @@
     <Compile Include="Entities\ExcelLengthWeight.cs" />
     <Compile Include="Entities\ExcelMainSheet.cs" />
     <Compile Include="Entities\ExcelSoakTime.cs" />
-    <Compile Include="Entities\FishingVesselInRegionItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\FishingVesselInRegionItemsSource.cs" />
     <Compile Include="Entities\GenerateCSV.cs" />
+    <Compile Include="Entities\GenericNameViewModel.cs" />
     <Compile Include="Entities\Grid25InlandLocationRepo.cs" />
     <Compile Include="Entities\Grid25InlandLocationViewModel.cs" />
     <Compile Include="Entities\Grid25InlandLocation.cs" />
     <Compile Include="Entities\Database\LandingSiteSampling.cs" />
     <Compile Include="Entities\Database\LandingSiteSamplingRepository.cs" />
+    <Compile Include="Entities\ItemSources\FMAInRegionItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\LandingSiteInFMAFishingGroundItemsSource.cs" />
     <Compile Include="Entities\KoboForms.cs" />
     <Compile Include="Entities\SummaryAtLevel.cs" />
     <Compile Include="Entities\MajorGridFMA.cs" />
     <Compile Include="Entities\MajorGridFMARepository.cs" />
     <Compile Include="Entities\MajorGridFMAViewModel.cs" />
-    <Compile Include="Entities\NSAPRegionItemsSource.cs" />
-    <Compile Include="Entities\RegionEnumeratorItemsSource.cs" />
-    <Compile Include="Entities\RegionLandingSiteItemsSource.cs" />
-    <Compile Include="Entities\SectorTypeItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\NSAPRegionItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\RegionEnumeratorItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\RegionLandingSiteItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\SectorTypeItemsSource.cs" />
     <Compile Include="Entities\SerializeGear.cs" />
     <Compile Include="ISO_Classes\Coordinate.cs" />
     <Compile Include="Entities\DateTimePickerEditor.cs" />
     <Compile Include="Entities\EffortSpecification.cs" />
-    <Compile Include="Entities\EffortSpecificationItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\EffortSpecificationItemsSource.cs" />
     <Compile Include="Entities\EffortSpecificationRepository.cs" />
     <Compile Include="Entities\EffortSpecificationViewModel.cs" />
-    <Compile Include="Entities\EffortValueTypeItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\EffortValueTypeItemsSource.cs" />
     <Compile Include="Entities\Engine.cs" />
     <Compile Include="Entities\EngineRepository.cs" />
     <Compile Include="Entities\EngineViewModel.cs" />
@@ -229,23 +233,23 @@
     <Compile Include="Entities\EntityValidationResult.cs" />
     <Compile Include="Entities\FishFamilyItemsSource.cs" />
     <Compile Include="Entities\FishingGround.cs" />
-    <Compile Include="Entities\FishingGroundItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\FishingGroundItemsSource.cs" />
     <Compile Include="Entities\FishingGroundRepository.cs" />
     <Compile Include="Entities\FishingGroundViewModel.cs" />
     <Compile Include="Entities\FishingVessel.cs" />
-    <Compile Include="Entities\FishingVesselItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\FishingVesselItemsSource.cs" />
     <Compile Include="Entities\FishingVesselRepository.cs" />
     <Compile Include="Entities\FishingVesselViewModel.cs" />
     <Compile Include="Entities\FMA.cs" />
-    <Compile Include="Entities\FMAItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\FMAItemsSource.cs" />
     <Compile Include="Entities\FMARepository.cs" />
     <Compile Include="Entities\FMAViewModel.cs" />
     <Compile Include="Entities\Gear.cs" />
     <Compile Include="Entities\GearEffortSpecification.cs" />
     <Compile Include="Entities\GearEffortSpecificationRepository.cs" />
     <Compile Include="Entities\GearEffortSpecificationViewModel.cs" />
-    <Compile Include="Entities\GearItemsSource.cs" />
-    <Compile Include="Entities\GenericGearItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\GearItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\GenericGearItemsSource.cs" />
     <Compile Include="Entities\GearRepository.cs" />
     <Compile Include="Entities\GearViewModel.cs" />
     <Compile Include="Entities\GPS.cs" />
@@ -253,23 +257,23 @@
     <Compile Include="Entities\GPSViewModel.cs" />
     <Compile Include="Entities\Grid25GridCell.cs" />
     <Compile Include="Entities\Grid25SubGrid.cs" />
-    <Compile Include="Entities\ImportanceItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\ImportanceItemsSource.cs" />
     <Compile Include="Entities\LandingSite.cs" />
     <Compile Include="Entities\LandingSiteEdit.cs" />
-    <Compile Include="Entities\LandingSiteItemsSource.cs" />
-    <Compile Include="Entities\LandingSiteMunicipalityItemsSource.cs" />
-    <Compile Include="Entities\LandingSiteProvinceItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\LandingSiteItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\LandingSiteMunicipalityItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\LandingSiteProvinceItemsSource.cs" />
     <Compile Include="Entities\LandingSiteRepository.cs" />
     <Compile Include="Entities\LandingSiteViewModel.cs" />
-    <Compile Include="Entities\MainCatchingMethodItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\MainCatchingMethodItemsSource.cs" />
     <Compile Include="Entities\Municipality.cs" />
-    <Compile Include="Entities\MunicipalityItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\MunicipalityItemsSource.cs" />
     <Compile Include="Entities\MunicipalityRepository.cs" />
     <Compile Include="Entities\MunicipalityViewModel.cs" />
     <Compile Include="Entities\NotFishSpeciesViewModel.cs" />
     <Compile Include="Entities\NSAPEntities.cs" />
     <Compile Include="Entities\NSAPEnumerator.cs" />
-    <Compile Include="Entities\NSAPEnumeratorItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\NSAPEnumeratorItemsSource.cs" />
     <Compile Include="Entities\NSAPEnumeratorRepository.cs" />
     <Compile Include="Entities\NSAPEnumeratorViewModel.cs" />
     <Compile Include="Entities\NSAPRegion.cs" />
@@ -286,11 +290,11 @@
     <Compile Include="Entities\NSAPRegionWithEntitiesRepository.cs" />
     <Compile Include="Entities\Province.cs" />
     <Compile Include="Entities\ProvinceEventHandler.cs" />
-    <Compile Include="Entities\ProvinceItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\ProvinceItemsSource.cs" />
     <Compile Include="Entities\ProvinceRepository.cs" />
     <Compile Include="Entities\ProvinceViewModel.cs" />
     <Compile Include="Entities\SizeType.cs" />
-    <Compile Include="Entities\SizeTypeItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\SizeTypeItemsSource.cs" />
     <Compile Include="Entities\SizeTypeRepository.cs" />
     <Compile Include="Entities\SizeTypeViewModel.cs" />
     <Compile Include="Entities\SpeciesMultiTaxa.cs" />
@@ -299,7 +303,7 @@
     <Compile Include="Entities\NotFishSpecies.cs" />
     <Compile Include="Entities\NotFishSpeciesRepository.cs" />
     <Compile Include="Entities\Taxa.cs" />
-    <Compile Include="Entities\TaxaItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\TaxaItemsSource.cs" />
     <Compile Include="Entities\TaxaRepository.cs" />
     <Compile Include="Entities\TaxaViewModel.cs" />
     <Compile Include="Entities\UTMCoordinate.cs" />
@@ -324,6 +328,9 @@
     <Compile Include="Utilities\ObjectShredder.cs" />
     <Compile Include="Utilities\SerializeWindowState.cs" />
     <Compile Include="Utilities\VesselLandingFixDownload.cs" />
+    <Compile Include="VesselUnloadEditorControl\VesselUnloadEditor.xaml.cs">
+      <DependentUpon>VesselUnloadEditor.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\AboutWindow.xaml.cs">
       <DependentUpon>AboutWindow.xaml</DependentUpon>
     </Compile>
@@ -369,6 +376,9 @@
     <Compile Include="Views\SplashWindow.xaml.cs">
       <DependentUpon>SplashWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\VesselUnloadEditWindow.xaml.cs">
+      <DependentUpon>VesselUnloadEditWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\VesselUnloadWIndow.xaml.cs">
       <DependentUpon>VesselUnloadWIndow.xaml</DependentUpon>
     </Compile>
@@ -388,6 +398,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="TreeViewModelControl\TreeControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="VesselUnloadEditorControl\VesselUnloadEditor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -448,6 +462,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\SplashWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\VesselUnloadEditWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

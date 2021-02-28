@@ -336,6 +336,16 @@ namespace NSAP_ODK.Entities
             return new ResultQueryAPI() { Success = true, Message = "", SpeciesDetail = specDetail.Data[0] };
         }
 
+        public List<string>GetAllGenus()
+        {
+            List<string> listGenus = new List<string>();
+
+            foreach(var g in  SpeciesCollection.OrderBy(t=>t.GenericName).GroupBy(t=>t.GenericName).ToList())
+            {
+                listGenus.Add(g.Key);
+            }
+            return listGenus;
+        }
         public List<FishSpecies> GetAllSpecies(string search="")
         {
             if (search.Length > 0)

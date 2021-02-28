@@ -13,6 +13,16 @@ namespace NSAP_ODK.Entities.Database
         public ObservableCollection<VesselCatch> VesselCatchCollection { get; set; }
         private VesselCatchRepository VesselCatches { get; set; }
 
+        public List<VesselCatchEdited>GetVesselCatchEditedList(VesselUnload unload)
+        {
+            List<VesselCatchEdited> vces = new List<VesselCatchEdited>();
+            foreach(var vc in VesselCatchCollection.Where(t => t.Parent.PK == unload.PK))
+            {
+                vces.Add( new VesselCatchEdited(vc));
+            }
+
+            return vces;
+        }
         public VesselCatchViewModel()
         {
             VesselCatches = new VesselCatchRepository();

@@ -25,6 +25,24 @@ namespace NSAP_ODK.Entities
             return TaxaCollection.ToList();
         }
 
+        public ObservableCollection<string> AllTaxaTerms()
+        {
+            ObservableCollection<string> list = new ObservableCollection<string>();
+            foreach (var t in TaxaCollection)
+            {
+                list.Add(t.Name);
+            }
+            return list;
+        }
+        public ObservableCollection<KeyValuePair<string,string>>AllTaxaTermsKV()
+        {
+            ObservableCollection<KeyValuePair<string,string>> list = new ObservableCollection<KeyValuePair<string,string>>();
+            foreach(var t in TaxaCollection)
+            {
+                list.Add(new KeyValuePair<string,string>(t.Code,t.Name));
+            }
+            return list;
+        }
         public bool TaxaName(string name)
         {
             foreach (Taxa t in TaxaCollection)
@@ -37,6 +55,13 @@ namespace NSAP_ODK.Entities
             return false;
         }
 
+        public Taxa FishTaxa
+        {
+            get
+            {
+                return TaxaCollection.Where(t => t.Code == "FIS").FirstOrDefault();
+            }
+        }
         public bool TaxaCodeExist(string code)
         {
             foreach (Taxa t in TaxaCollection)

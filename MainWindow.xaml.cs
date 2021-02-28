@@ -1393,6 +1393,25 @@ namespace NSAP_ODK
 
                         }
                     }
+                    else if (Keyboard.IsKeyDown(Key.LeftShift) &&
+                        _currentDisplayMode == DataDisplayMode.DownloadHistory &&
+                        (VesselUnload)GridNSAPData.SelectedItem != null)
+                    {
+                        var unload = (VesselUnload)GridNSAPData.SelectedItem;
+                        var unloadEditWindow = VesselUnloadEditWindow.GetInstance();
+                        
+                        if(unloadEditWindow.Visibility==Visibility.Visible)
+                        {
+                            unloadEditWindow.BringIntoView();
+                        }
+                        else
+                        {
+                            unloadEditWindow.Owner = this;
+                            unloadEditWindow.Show();
+                        }
+                        unloadEditWindow.VesselUnload = unload;
+
+                    }
                     else if (_currentDisplayMode == DataDisplayMode.DownloadHistory)
                     {
                         if ((VesselUnload)GridNSAPData.SelectedItem != null)

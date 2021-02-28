@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
 using System.ComponentModel;
 using Xceed.Wpf.Toolkit;
+using NSAP_ODK.Entities.ItemSources;
 namespace NSAP_ODK.Entities
 {
     public class NSAPRegionFishingVesselEdit

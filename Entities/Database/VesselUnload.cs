@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NSAP_ODK.Entities.ItemSources;
 
 namespace NSAP_ODK.Entities.Database
 {
@@ -25,9 +26,13 @@ namespace NSAP_ODK.Entities.Database
             if (vesselUnload != null)
             {
                 Region = vesselUnload.Parent.Parent.NSAPRegion.Name;
+                RegionCode = vesselUnload.Parent.Parent.NSAPRegion.Code;
                 FMA = vesselUnload.Parent.Parent.FMA.Name;
+                FMAID = vesselUnload.Parent.Parent.FMA.FMAID;
                 FishingGround = vesselUnload.Parent.Parent.FishingGround.Name;
+                FishingGroundCode = vesselUnload.Parent.Parent.FishingGroundID;
                 LandingSite = vesselUnload.Parent.Parent.LandingSiteName;
+                LandingSiteID = vesselUnload.Parent.Parent.LandingSiteID;
                 Gear = vesselUnload.Parent.GearUsedName;
 
                 Identifier = vesselUnload.PK;
@@ -41,7 +46,7 @@ namespace NSAP_ODK.Entities.Database
                 BoxesSampled = vesselUnload.BoxesSampled;
                 OperationIsSuccessful = vesselUnload.OperationIsSuccessful;
                 RaisingFactor = vesselUnload.RaisingFactor;
-                
+
                 //NSAPRegionEnumeratorID = vesselUnload.NSAPRegionEnumeratorID;
                 NSAPEnumeratorID = vesselUnload.NSAPEnumeratorID;
                 EnumeratorText = vesselUnload.EnumeratorText;
@@ -58,24 +63,37 @@ namespace NSAP_ODK.Entities.Database
                 UserName = vesselUnload.UserName;
                 DeviceID = vesselUnload.DeviceID;
                 XFormIdentifier = vesselUnload.XFormIdentifier;
-                XFormDate =  vesselUnload.XFormDate==null?"":((DateTime) vesselUnload.XFormDate).ToString("MMM-dd-yyyy HH:mm");
+                XFormDate = vesselUnload.XFormDate == null ? "" : ((DateTime)vesselUnload.XFormDate).ToString("MMM-dd-yyyy HH:mm");
                 DateAddedToDatabase = ((DateTime)vesselUnload.DateAddedToDatabase).ToString("MMM-dd-yyyy HH:mm");
                 SectorCode = vesselUnload.SectorCode;
                 FromExcelDownload = vesselUnload.FromExcelDownload;
             }
 
-    }
+        }
         [ReadOnly(true)]
+
         public string Region { get; set; }
 
+        [ItemsSource(typeof(NSAPRegionItemsSource))]
+        public string RegionCode { get; set; }
         [ReadOnly(true)]
         public string FMA { get; set; }
+
+        [ItemsSource(typeof(FMAInRegionItemsSource))]
+        public int FMAID { get; set; }
 
         [ReadOnly(true)]
         public string FishingGround { get; set; }
 
+        [ItemsSource(typeof(FishingGroundInRegionFMAItemsSource))]
+        public string FishingGroundCode { get; set; }
+
         [ReadOnly(true)]
         public string LandingSite { get; set; }
+
+        [ItemsSource(typeof(LandingSiteInFMAFishingGroundItemsSource))]
+        public int? LandingSiteID { get; set; }
+
         [ReadOnly(true)]
         public string Gear { get; set; }
 
@@ -89,19 +107,19 @@ namespace NSAP_ODK.Entities.Database
 
         [ItemsSource(typeof(FishingVesselInRegionItemsSource))]
         public int? VesselID { get; set; }
-        
+
         public string VesselText { get; set; }
-        
+
         public double? WeightOfCatch { get; set; }
-        
+
         public double? WeightOfCatchSample { get; set; }
-        
+
         public int? Boxes { get; set; }
-        
+
         public int? BoxesSampled { get; set; }
 
         public double? RaisingFactor { get; set; }
-        
+
         public string Notes { get; set; }
 
         [ItemsSource(typeof(RegionEnumeratorItemsSource))]
@@ -113,7 +131,7 @@ namespace NSAP_ODK.Entities.Database
         public int? NSAPEnumeratorID { get; set; }
 
         public bool OperationIsSuccessful { get; set; }
-        
+
         public bool OperationIsTracked { get; set; }
 
         [Editor(typeof(DateTimePickerWithTime), typeof(DateTimePicker))]
@@ -124,7 +142,7 @@ namespace NSAP_ODK.Entities.Database
 
         [ItemsSource(typeof(SectorTypeItemsSource))]
         public string SectorCode { get; set; }
-        
+
         [ItemsSource(typeof(GPSItemsSource))]
         public string GPSCode { get; set; }
 
@@ -303,7 +321,7 @@ namespace NSAP_ODK.Entities.Database
 
         public bool FromExcelDownload { get; set; }
     }
-   public class VesselUnload
+    public class VesselUnload
     {
         private GPS _gps;
         private GearUnload _parent;
@@ -315,12 +333,14 @@ namespace NSAP_ODK.Entities.Database
         public int? NSAPRegionEnumeratorID { get; set; }
         public string EnumeratorText { get; set; }
 
-        public DateTime MonthSampled { get 
-            
+        public DateTime MonthSampled
+        {
+            get
+
             {
                 var sDate = Parent.Parent.SamplingDate;
                 return new DateTime(sDate.Year, sDate.Month, 1);
-            } 
+            }
         }
 
         public int? NSAPEnumeratorID { get; set; }
@@ -329,7 +349,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if(_nsapEnumerator==null && NSAPEnumeratorID != null)
+                if (_nsapEnumerator == null && NSAPEnumeratorID != null)
                 {
                     _nsapEnumerator = NSAPEntities.NSAPEnumeratorViewModel.GetNSAPEnumerator((int)NSAPEnumeratorID);
                 }
@@ -341,7 +361,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if(NSAPEnumeratorID == null)
+                if (NSAPEnumeratorID == null)
                 {
                     return EnumeratorText;
                 }
@@ -353,13 +373,13 @@ namespace NSAP_ODK.Entities.Database
         }
         public string CatchCompositionCountText
         {
-            get { return OperationIsSuccessful ? ListVesselCatch.Count.ToString() : ""; } 
+            get { return OperationIsSuccessful ? ListVesselCatch.Count.ToString() : ""; }
         }
         public string WeightOfCatchText
         {
             get
             {
-                return OperationIsSuccessful ? ((Double)WeightOfCatch).ToString("N1"):"";
+                return OperationIsSuccessful ? ((Double)WeightOfCatch).ToString("N1") : "";
             }
         }
         public double? WeightOfCatchSample { get; set; }
@@ -367,8 +387,11 @@ namespace NSAP_ODK.Entities.Database
         public double? RaisingFactor { get; set; }
         public string Sector
         {
-            get { return SectorCode == "c" ? "Commercial" :
-                         SectorCode == "m" ? "Municipal" : ""; }
+            get
+            {
+                return SectorCode == "c" ? "Commercial" :
+                       SectorCode == "m" ? "Municipal" : "";
+            }
         }
         public string SectorCode { get; set; }
         public int? BoxesSampled { get; set; }
@@ -379,7 +402,7 @@ namespace NSAP_ODK.Entities.Database
 
         public string VesselText { get; set; }
 
-        public  List<VesselEffort> ListVesselEffort
+        public List<VesselEffort> ListVesselEffort
         {
             get
             {
@@ -393,17 +416,17 @@ namespace NSAP_ODK.Entities.Database
             get
             {
 
-                if (VesselText != null && VesselText.Length>0)
+                if (VesselText != null && VesselText.Length > 0)
                 {
                     return VesselText;
                 }
                 else
                 {
-                    
-                    return FishingVessel!=null? FishingVessel.ToString():"";
+
+                    return FishingVessel != null ? FishingVessel.ToString() : "";
                 }
             }
-                
+
         }
         public List<GearSoak> ListGearSoak
         {
@@ -423,7 +446,7 @@ namespace NSAP_ODK.Entities.Database
         }
         public List<VesselCatch> ListVesselCatch
         {
-            get 
+            get
             {
                 return NSAPEntities.VesselCatchViewModel.VesselCatchCollection
                     .Where(t => t.Parent.PK == PK).ToList();
@@ -441,11 +464,11 @@ namespace NSAP_ODK.Entities.Database
             set { _fishingVessel = value; }
             get
             {
-                if(_fishingVessel==null && VesselID!=null)
+                if (_fishingVessel == null && VesselID != null)
                 {
                     _fishingVessel = NSAPEntities.FishingVesselViewModel.GetFishingVessel((int)VesselID);
                 }
-                return _fishingVessel; 
+                return _fishingVessel;
             }
         }
         public GearUnload Parent
@@ -453,7 +476,7 @@ namespace NSAP_ODK.Entities.Database
             set { _parent = value; }
             get
             {
-                if(_parent==null)
+                if (_parent == null)
                 {
                     _parent = NSAPEntities.GearUnloadViewModel.getGearUnload(GearUnloadID);
                 }
@@ -477,7 +500,7 @@ namespace NSAP_ODK.Entities.Database
             set { _gps = value; }
             get
             {
-                if(_gps==null)
+                if (_gps == null)
                 {
                     _gps = NSAPEntities.GPSViewModel.GetGPS(GPSCode);
                 }

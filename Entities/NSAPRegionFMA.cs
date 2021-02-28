@@ -2,6 +2,7 @@
 
 using System.ComponentModel;
 using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
+using NSAP_ODK.Entities.ItemSources;
 
 namespace NSAP_ODK.Entities
 {
