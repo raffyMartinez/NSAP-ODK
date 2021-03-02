@@ -60,6 +60,10 @@ namespace NSAP_ODK.Entities.Database
                         }
                     }
                 }
+                catch(OleDbException dbex)
+                {
+                    Logger.Log(dbex);
+                }
                 catch (Exception ex)
                 {
                     Logger.Log(ex);
@@ -92,8 +96,9 @@ namespace NSAP_ODK.Entities.Database
                     {
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException)
+                    catch (OleDbException dbex)
                     {
+                        Logger.Log(dbex);
                         success = false;
                     }
                     catch (Exception ex)

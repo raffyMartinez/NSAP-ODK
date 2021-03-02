@@ -76,25 +76,64 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
+                //var sql = $@"Insert into dbo_gear_unload(unload_gr_id, unload_day_id, gr_id,boats,catch,gr_text,remarks)
+                //           Values (
+                //                {item.PK}, 
+                //                {item.LandingSiteSamplingID},
+                //                {gearID},
+                //                {(item.Boats == null ? "null" : item.Boats.ToString())},
+                //                {(item.Catch == null ? "null" : item.Catch.ToString())},
+                //                '{item.GearUsedText}',
+                //                '{item.Remarks}'
+                //                )";
+
                 var sql = $@"Insert into dbo_gear_unload(unload_gr_id, unload_day_id, gr_id,boats,catch,gr_text,remarks)
-                           Values (
-                                {item.PK}, 
-                                {item.LandingSiteSamplingID},
-                                {gearID},
-                                {(item.Boats == null ? "null" : item.Boats.ToString())},
-                                {(item.Catch == null ? "null" : item.Catch.ToString())},
-                                '{item.GearUsedText}',
-                                '{item.Remarks}'
-                                )";
+                           Values (?,?,?,?,?,?,?,)";
+
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
+                    update.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
+                    update.Parameters.Add("@parent", OleDbType.Integer).Value = item.LandingSiteSamplingID;
+                    
+                    if (item.GearID == null)
+                    {
+                        update.Parameters.Add("@gear_id", OleDbType.Integer).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                           update.Parameters.Add("@gear_id", OleDbType.Integer).Value = item.GearID;
+                    }
+
+                    if (item.Boats== null)
+                    {
+                        update.Parameters.Add("@boats", OleDbType.Integer).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@boats", OleDbType.Integer).Value = item.Boats;
+                    }
+
+                    if (item.Catch == null)
+                    {
+                        update.Parameters.Add("@catch", OleDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@catch", OleDbType.Double).Value = item.Catch;
+                    }
+
+                    update.Parameters.Add("@gear_text", OleDbType.VarChar).Value = item.GearUsedText;
+                    update.Parameters.Add("@remarks", OleDbType.Integer).Value = item.Remarks;
+
+
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch(OleDbException)
+                    catch(OleDbException odbex)
                     {
                         success = false;
+                        Logger.Log(odbex);
                     }
                     catch(Exception ex)
                     {

@@ -26,15 +26,23 @@ namespace NSAP_ODK.VesselUnloadEditorControl
     /// </summary>
     public partial class VesselUnloadEditor : UserControl
     {
+        //public event EventHandler<UnloadEditorEventArgs> TreeViewItemSelected;
+        public event EventHandler<UnloadEditorEventArgs> ButtonClicked;
 
+
+        private Window _owner;
         private VesselUnload _vesselUnload;
         private VesselUnloadEdit _vesselUnloadEdit;
+        private VesselUnloadForDisplay _vesselUnloadForDisplay;
         private string _unloadView;
         private bool _editMode;
         private NSAPRegionFMA _nsapRegionFMA;
         private NSAPRegion _nsapRegion;
         private NSAPRegionFMAFishingGround _nsapRegionFMAFishingGround;
         private Dictionary<string, int> _dictProperties = new Dictionary<string, int>();
+        private GridLength _rowButtonHeight;
+        private bool _isDone = false;
+
 
         public VesselUnloadEditor()
         {
@@ -42,7 +50,11 @@ namespace NSAP_ODK.VesselUnloadEditorControl
             {
                 InitializeComponent();
             }
+            labelEffort.Content = "";
+
         }
+
+        public VesselCatch VesselCatch { get; set; }
         public VesselUnload VesselUnload
         {
             get { return _vesselUnload; }
@@ -50,26 +62,61 @@ namespace NSAP_ODK.VesselUnloadEditorControl
             {
                 _vesselUnload = value;
                 _vesselUnloadEdit = new VesselUnloadEdit(_vesselUnload);
+                _vesselUnloadForDisplay = new VesselUnloadForDisplay(_vesselUnload);
             }
         }
 
         public bool EditMode
         {
+
             get { return _editMode; }
             set
             {
                 _editMode = value;
 
+                //UnloadView = "treeItemVesselUnload";
+            }
+        }
+
+        public Window Owner
+        {
+            get { return _owner; }
+            set { _owner = value; }
+
+        }
+        private void ShowEditButtons()
+        {
+            if (_editMode)
+            {
+                rowButton.Height = _rowButtonHeight;
+                if (_unloadView == "treeItemCatchComposition")
+                {
+                    buttonAdd.Visibility = Visibility.Visible;
+                    buttonEdit.Visibility = Visibility.Visible;
+                }
             }
         }
         private void ResetView()
         {
+
+            if (!_isDone)
+            {
+                _rowButtonHeight = rowButton.Height;
+                _isDone = true;
+            }
             rowPropertyGrid.Height = new GridLength(1, GridUnitType.Star);
             rowDataGrid.Height = new GridLength(0);
+            rowButton.Height = new GridLength(0);
             effortDataGrid.SetValue(Grid.ColumnSpanProperty, 2);
             catchDataGrid.Visibility = Visibility.Collapsed;
             labelEffort.SetValue(Grid.ColumnSpanProperty, 2);
             labelCatch.Visibility = Visibility.Collapsed;
+            buttonAdd.Visibility = Visibility.Collapsed;
+            buttonEdit.Visibility = Visibility.Collapsed;
+
+            buttonDelete.IsEnabled = false;
+            buttonEdit.IsEnabled = false;
+
         }
         private void SetupView()
         {
@@ -99,10 +146,111 @@ namespace NSAP_ODK.VesselUnloadEditorControl
 
                     break;
             }
+
+            ShowEditButtons();
         }
 
-        private void SetupPropertyGrid()
+        private void SetupDataGridsForDisplay()
         {
+            effortDataGrid.DataContext = null;
+            effortDataGrid.Columns.Clear();
+            switch (_unloadView)
+            {
+                case "treeItemSoakTime":
+                    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("PK") });
+                    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Time at set", Binding = new Binding("TimeAtSet") });
+                    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Time at haul", Binding = new Binding("TimeAtHaul") });
+                    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Waypoint at set", Binding = new Binding("WaypointAtSet") });
+                    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Waypoint at haul", Binding = new Binding("WaypointAtHaul") });
+
+                    effortDataGrid.DataContext = _vesselUnload.ListGearSoak;
+                    break;
+                case "treeItemFishingGround":
+                    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("PK") });
+                    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "UTM Zone", Binding = new Binding("UTMZoneText") });
+                    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Grid", Binding = new Binding("Grid") });
+
+                    effortDataGrid.DataContext = _vesselUnload.ListFishingGroundGrid;
+                    break;
+                case "treeItemEffortDefinition":
+                    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("PK") });
+                    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Effort specification", Binding = new Binding("EffortSpecification") });
+                    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Value", Binding = new Binding("EffortValue") });
+
+                    effortDataGrid.DataContext = _vesselUnload.ListVesselEffort;
+                    break;
+                case "treeItemCatchComposition":
+                    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("PK") });
+                    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Taxa", Binding = new Binding("Taxa") });
+                    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Name", Binding = new Binding("CatchName") });
+                    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("Catch_kg") });
+                    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight of sample", Binding = new Binding("Sample_kg") });
+
+                    effortDataGrid.DataContext = _vesselUnload.ListVesselCatch;
+                    break;
+                case "treeItemLenFreq":
+                    break;
+                case "treeItemLenWeight":
+                    break;
+                case "treeItemLenList":
+                    break;
+                case "treeItemMaturity":
+                    break;
+            }
+            //effortDataGrid.Items.Refresh();
+        }
+
+        private void SetupPropertyGridForDisplay()
+        {
+            if (propertyGrid.Properties.Count == 0)
+            {
+                propertyGrid.SelectedObject = _vesselUnloadForDisplay;
+                propertyGrid.NameColumnWidth = 350;
+                propertyGrid.AutoGenerateProperties = false;
+
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Region", DisplayName = "NSAP Region", DisplayOrder = 1, Description = "NSAP region", Category = "Header" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "FMA", DisplayName = "FMA", DisplayOrder = 2, Description = "FMA", Category = "Header" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "FishingGround", DisplayName = "Fishing ground", DisplayOrder = 3, Description = "Fishing ground", Category = "Header" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LandingSite", DisplayName = "Landing site", DisplayOrder = 4, Description = "Landing site", Category = "Header" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "FishingGear", DisplayName = "Fishing gear", DisplayOrder = 5, Description = "Fishing gear", Category = "Header" });
+
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Identifier", DisplayName = "Database identifier", DisplayOrder = 1, Description = "Database identifier", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SamplingDate", DisplayName = "Sampling date", DisplayOrder = 2, Description = "Date of sampling", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Enumerator", DisplayName = "Select name of enumerator", DisplayOrder = 3, Description = "Name of enumerator", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "EnumeratorText", DisplayName = "Name of enumerator if not found in selection", DisplayOrder = 4, Description = "Type in name of enumerator", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "IsBoatUsed", DisplayName = "This fishing operation is using a fishing vessel", DisplayOrder = 5, Description = "This fishing operation is using a fishing vessel", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "FishingVessel", DisplayName = "Select name of vessel", DisplayOrder = 6, Description = "Select name of fishing vessel", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SectorCode", DisplayName = "Fisheries sector", DisplayOrder = 8, Description = "Select fisheris sector", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "OperationIsSuccessful", DisplayName = "This fishing operation is a success", DisplayOrder = 9, Description = "Is this fishing operation a success\r\nThe catch is not zero", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "WeightOfCatch", DisplayName = "Weight of catch", DisplayOrder = 10, Description = "Weight of catch", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "WeightOfCatchSample", DisplayName = "Weight of sample", DisplayOrder = 11, Description = "Weight of sample taken from catch", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Boxes", DisplayName = "Number of boxes", DisplayOrder = 12, Description = "Number of boxes", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "BoxesSampled", DisplayName = "Number of boxes sampled", DisplayOrder = 13, Description = "Number of boxes sampled", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "RaisingFactor", DisplayName = "Raising factor", DisplayOrder = 14, Description = "Raising factor", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Notes", DisplayName = "Notes", DisplayOrder = 15, Description = "Notes", Category = "Effort" });
+
+
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "OperationIsTracked", DisplayName = "This operation is tracked", DisplayOrder = 11, Description = "Is this fishing operation tracked", Category = "Tracking" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DepartureFromLandingSite", DisplayName = "Date and time of departure from landing site", DisplayOrder = 12, Description = "Date and time of departure from landing site", Category = "Tracking" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "ArrivalAtLandingSite", DisplayName = "Date and time of arrival at landing site", DisplayOrder = 13, Description = "Date and time of arrival atlanding site", Category = "Tracking" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "GPS", DisplayName = "GPS", DisplayOrder = 14, Description = "GPS used in tracking", Category = "Tracking" });
+
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "UserName", DisplayName = "User name saved in the device", DisplayOrder = 15, Description = "User name that was inputted and saved in the device", Category = "Device metadata" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DeviceID", DisplayName = "Identifier of the device", DisplayOrder = 16, Description = "Identifier of the device", Category = "Device metadata" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "XFormIdentifier", DisplayName = "XForm identifier", DisplayOrder = 17, Description = "Name of the downloaded excel file containing the data", Category = "Device metadata" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "XFormDate", DisplayName = "XForm date", DisplayOrder = 18, Description = "Date when the downloaded excel file was created", Category = "Device metadata" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "FormVersion", DisplayName = "Version of the electronic form", DisplayOrder = 19, Description = "Version of the electronic form used in encoding", Category = "Device metadata" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Submitted", DisplayName = "Date when the electronic form was submitted to the net", DisplayOrder = 20, Description = "Date and time of submission of the encoded data", Category = "Device metadata" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DateAddedToDatabase", DisplayName = "Date added to database", DisplayOrder = 21, Description = "Date and time when data was added to the database", Category = "Device metadata" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "FromExcelDownload", DisplayName = "Excel download", DisplayOrder = 22, Description = "Data was donwloaded to an Excel file", Category = "Device metadata" });
+
+                propertyGrid.IsReadOnly = true;
+
+            }
+        }
+        private void SetupPropertyGridForEditing()
+        {
+
             propertyGrid.SelectedObject = _vesselUnloadEdit;
             propertyGrid.NameColumnWidth = 350;
             propertyGrid.AutoGenerateProperties = false;
@@ -111,7 +259,9 @@ namespace NSAP_ODK.VesselUnloadEditorControl
             propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "FMAID", DisplayName = "FMA", DisplayOrder = 2, Description = "FMA", Category = "Header" });
             propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "FishingGroundCode", DisplayName = "Fishing ground", DisplayOrder = 3, Description = "Fishing ground", Category = "Header" });
             propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LandingSiteID", DisplayName = "Landing site", DisplayOrder = 4, Description = "Landing site", Category = "Header" });
-            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "GearCode", DisplayName = "Fishing gear", DisplayOrder = 5, Description = "Fishing gear", Category = "Header" });
+            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "OtherLandingSite", DisplayName = "Name of landing site if not in selection", DisplayOrder = 5, Description = "Landing site", Category = "Header" });
+            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "GearCode", DisplayName = "Fishing gear", DisplayOrder = 6, Description = "Fishing gear", Category = "Header" });
+            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "OtherFishingGear", DisplayName = "Name of fishing gear if not in selection", DisplayOrder = 7, Description = "Fishing gear", Category = "Header" });
 
             propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Identifier", DisplayName = "Database identifier", DisplayOrder = 1, Description = "Database identifier", Category = "Effort" });
             propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SamplingDate", DisplayName = "Sampling date", DisplayOrder = 2, Description = "Date of sampling", Category = "Effort" });
@@ -146,14 +296,20 @@ namespace NSAP_ODK.VesselUnloadEditorControl
             propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "FromExcelDownload", DisplayName = "Excel download", DisplayOrder = 22, Description = "Data was donwloaded to an Excel file", Category = "Device metadata" });
 
 
-            for(int x=0;x<propertyGrid.Properties.Count;x++)
+            if (_dictProperties.Count == 0)
             {
-                _dictProperties.Add(((PropertyItem)propertyGrid.Properties[x]).PropertyName, x);
-            }
+                for (int x = 0; x < propertyGrid.Properties.Count; x++)
+                {
+                    _dictProperties.Add(((PropertyItem)propertyGrid.Properties[x]).PropertyName, x);
+                }
 
+            }
             _nsapRegion = _vesselUnloadEdit.NSAPRegion;
             _nsapRegionFMA = _nsapRegion.FMAs.Where(t => t.FMAID == _vesselUnloadEdit.FMAID).FirstOrDefault();
             _nsapRegionFMAFishingGround = _nsapRegionFMA.FishingGrounds.Where(t => t.FishingGroundCode == _vesselUnloadEdit.FishingGroundCode).FirstOrDefault();
+            propertyGrid.IsReadOnly = false;
+
+
         }
 
         public string UnloadView
@@ -166,15 +322,36 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                 switch (_unloadView)
                 {
                     case "treeItemVesselUnload":
-                        SetupPropertyGrid();
+                        labelEffort.Content = "Details of sampled fish landing";
+
+                        propertyGrid.SelectedObject = null;
+                        propertyGrid.PropertyDefinitions.Clear();
+
+                        if (_editMode)
+                        {
+                            SetupPropertyGridForEditing();
+
+                        }
+                        else
+                        {
+                            SetupPropertyGridForDisplay();
+                        }
                         break;
                     case "treeItemSoakTime":
+                        labelEffort.Content = "Soak time of gears deployed by sampled landing";
+                        SetupDataGridsForDisplay();
                         break;
                     case "treeItemFishingGround":
+                        labelEffort.Content = "Grid location of fishing grounds of sampled landing";
+                        SetupDataGridsForDisplay();
                         break;
                     case "treeItemEffortDefinition":
+                        labelEffort.Content = "Fishing effrot specifications  of sampled landing";
+                        SetupDataGridsForDisplay();
                         break;
                     case "treeItemCatchComposition":
+                        labelEffort.Content = "Catch composition  of sampled landing";
+                        SetupDataGridsForDisplay();
                         break;
                     case "treeItemLenFreq":
                         break;
@@ -189,7 +366,17 @@ namespace NSAP_ODK.VesselUnloadEditorControl
         }
         private void OnButtonClicked(object sender, RoutedEventArgs e)
         {
+            UnloadEditorEventArgs eventArgs = new UnloadEditorEventArgs();
+            eventArgs.ButtonPressed = ((Button)sender).Name;
+            eventArgs.Proceed = false;
 
+            ButtonClicked?.Invoke(this, eventArgs);
+
+            //only when delete is clicked
+            if (eventArgs.ButtonPressed == "buttonDelete" && eventArgs.Proceed)
+            {
+
+            }
         }
 
         private void OnPropertyValueChanged(object sender, PropertyValueChangedEventArgs e)
@@ -204,12 +391,12 @@ namespace NSAP_ODK.VesselUnloadEditorControl
             {
                 case "RegionCode":
                     cbo.Tag = "fma";
-                    foreach(var fma in NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(currentProperty.Value.ToString()).FMAs)
+                    foreach (var fma in NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(currentProperty.Value.ToString()).FMAs)
                     {
-                        cbo.Items.Add(new KeyValuePair<int,string>(fma.FMAID,fma.FMA.Name));
+                        cbo.Items.Add(new KeyValuePair<int, string>(fma.FMAID, fma.FMA.Name));
                     }
 
-                    _nsapRegion= NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(currentProperty.Value.ToString());
+                    _nsapRegion = NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(currentProperty.Value.ToString());
                     ((PropertyItem)propertyGrid.Properties[_dictProperties["FMAID"]]).Editor = cbo;
                     ((PropertyItem)propertyGrid.Properties[_dictProperties["FishingGroundCode"]]).Editor = new ComboBox();
                     ((PropertyItem)propertyGrid.Properties[_dictProperties["LandingSiteID"]]).Editor = new ComboBox();
@@ -218,7 +405,7 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                     gearEditor.Tag = "gear";
                     gearEditor.SelectionChanged += OnComboSelectionChanged;
                     gearEditor.DisplayMemberPath = "Value";
-                    foreach(var gear in _nsapRegion.Gears.OrderBy(t=>t.Gear.GearName))
+                    foreach (var gear in _nsapRegion.Gears.OrderBy(t => t.Gear.GearName))
                     {
                         gearEditor.Items.Add(new KeyValuePair<string, string>(gear.GearCode, gear.Gear.GearName));
                     }
@@ -239,8 +426,8 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                     break;
                 case "FMAID":
                     cbo.Tag = "fishing_ground";
-                   _nsapRegionFMA= _nsapRegion.FMAs.Where(t => t.FMAID == int.Parse(currentProperty.Value.ToString())).FirstOrDefault();
-                    foreach(var fg in _nsapRegionFMA.FishingGrounds)
+                    _nsapRegionFMA = _nsapRegion.FMAs.Where(t => t.FMAID == int.Parse(currentProperty.Value.ToString())).FirstOrDefault();
+                    foreach (var fg in _nsapRegionFMA.FishingGrounds)
                     {
                         cbo.Items.Add(new KeyValuePair<string, string>(fg.FishingGroundCode, fg.FishingGround.Name));
                     }
@@ -252,7 +439,7 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                 case "FishingGroundCode":
                     cbo.Tag = "landing_site";
                     NSAPEntities.NSAPRegionFMAFishingGround = _nsapRegionFMA.FishingGrounds.Where(t => t.FishingGroundCode == currentProperty.Value.ToString()).FirstOrDefault();
-                    foreach(var ls in NSAPEntities.NSAPRegionFMAFishingGround.LandingSites)
+                    foreach (var ls in NSAPEntities.NSAPRegionFMAFishingGround.LandingSites)
                     {
                         cbo.Items.Add(new KeyValuePair<int, string>(ls.LandingSite.LandingSiteID, ls.LandingSite.ToString()));
                     }
@@ -278,12 +465,12 @@ namespace NSAP_ODK.VesselUnloadEditorControl
             {
                 case "fma":
                     int fmaID = ((KeyValuePair<int, string>)cbo.SelectedItem).Key;
-                    ((PropertyItem)propertyGrid.Properties[_dictProperties["FMAID"]]).Value=fmaID;
+                    ((PropertyItem)propertyGrid.Properties[_dictProperties["FMAID"]]).Value = fmaID;
                     _nsapRegionFMA = _nsapRegion.FMAs.Where(t => t.FMAID == fmaID).FirstOrDefault();
 
-                    
-                    
-                    foreach(var fg in _nsapRegionFMA.FishingGrounds)
+
+
+                    foreach (var fg in _nsapRegionFMA.FishingGrounds)
                     {
                         editor.Items.Add(new KeyValuePair<string, string>(fg.FishingGroundCode, fg.FishingGround.Name));
                     }
@@ -295,9 +482,9 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                 case "fishing_ground":
                     string fgCode = ((KeyValuePair<string, string>)cbo.SelectedItem).Key;
                     _nsapRegionFMAFishingGround = _nsapRegionFMA.FishingGrounds.Where(t => t.FishingGroundCode == fgCode).FirstOrDefault();
-                    ((PropertyItem)propertyGrid.Properties[_dictProperties["FishingGroundCode"]]).Value=fgCode;
+                    ((PropertyItem)propertyGrid.Properties[_dictProperties["FishingGroundCode"]]).Value = fgCode;
 
-                    foreach(var ls in _nsapRegionFMAFishingGround.LandingSites)
+                    foreach (var ls in _nsapRegionFMAFishingGround.LandingSites)
                     {
                         editor.Items.Add(new KeyValuePair<int, string>(ls.LandingSite.LandingSiteID, ls.LandingSite.ToString()));
                     }
@@ -316,11 +503,26 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                     }
                     break;
                 case "gear":
-                    ((PropertyItem)propertyGrid.Properties[_dictProperties["GearCode"]]).Value= ((KeyValuePair<string,string>)cbo.SelectedItem).Key;
+                    ((PropertyItem)propertyGrid.Properties[_dictProperties["GearCode"]]).Value = ((KeyValuePair<string, string>)cbo.SelectedItem).Key;
                     break;
                 case "enumerator":
-                    ((PropertyItem)propertyGrid.Properties[_dictProperties["NSAPEnumeratorID"]]).Value= ((KeyValuePair<int,string>)cbo.SelectedItem).Key;                    
+                    ((PropertyItem)propertyGrid.Properties[_dictProperties["NSAPEnumeratorID"]]).Value = ((KeyValuePair<int, string>)cbo.SelectedItem).Key;
                     break;
+            }
+        }
+
+        private void OnDataGridSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            VesselCatch = null;
+            if ( effortDataGrid.DataContext != null || catchDataGrid.DataContext != null)
+            {
+                if(_unloadView=="treeItemCatchComposition" && effortDataGrid.SelectedItem!=null)
+                {
+                    VesselCatch = (VesselCatch)effortDataGrid.SelectedItem;
+                }
+
+                buttonDelete.IsEnabled = true;
+                buttonEdit.IsEnabled = true;
             }
         }
     }

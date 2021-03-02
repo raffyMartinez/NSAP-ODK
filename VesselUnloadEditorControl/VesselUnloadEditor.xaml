@@ -21,14 +21,19 @@
         <Label x:Name="labelEffort" Grid.Row="0" Grid.Column="0" Content="Label for effort grid" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14"/>
         <Label x:Name="labelCatch" Grid.Row="0" Grid.Column="1" Content="Label for catch grid" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14"/>
 
-        <xctk:PropertyGrid Grid.Row="1" Grid.ColumnSpan="2" x:Name="propertyGrid" Margin="10" IsReadOnly="True" PropertyValueChanged="OnPropertyValueChanged"/>
+        <xctk:PropertyGrid Grid.Row="1" Grid.ColumnSpan="2" x:Name="propertyGrid" Margin="10" IsReadOnly="True"  ShowTitle="false" 
+                           PropertyValueChanged="OnPropertyValueChanged" ShowAdvancedOptions="False" ShowSearchBox="False" ShowSortOptions="False"/>
         
-        <DataGrid x:Name="effortDataGrid" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" IsReadOnly="True"/>
+        <DataGrid x:Name="effortDataGrid" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" IsReadOnly="True" 
+                  AutoGenerateColumns="False" ItemsSource="{Binding}" SelectionChanged="OnDataGridSelectionChanged"/>
         
-        <DataGrid x:Name="catchDataGrid" Grid.Row="2" Grid.Column="1" Visibility="Collapsed" IsReadOnly="True"/>
+        <DataGrid x:Name="catchDataGrid" Grid.Row="2" Grid.Column="1" Visibility="Collapsed" IsReadOnly="True" 
+                  AutoGenerateColumns="False" ItemsSource="{Binding}" SelectionChanged="OnDataGridSelectionChanged"/>
         
         <WrapPanel Grid.Row="3" Grid.ColumnSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <Button x:Name="buttonDelete" Content="Delete" Height="30" Width="60" Click="OnButtonClicked"/>
+            <Button x:Name="buttonDelete" Content="Delete" Height="30" Width="60" Click="OnButtonClicked" Margin="10 0" IsEnabled="False"/>
+            <Button x:Name="buttonEdit" Content="Edit" Height="30" Width="60" Click="OnButtonClicked" Margin="10 0" Visibility="Collapsed" IsEnabled="False"/>
+            <Button x:Name="buttonAdd" Content="Add" Height="30" Width="60" Click="OnButtonClicked" Margin="10 0" Visibility="Collapsed"/>
         </WrapPanel>
     </Grid>
 </UserControl>

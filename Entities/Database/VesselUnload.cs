@@ -11,6 +11,8 @@ namespace NSAP_ODK.Entities.Database
     using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
     using Xceed.Wpf.Toolkit;
 
+
+
     [CategoryOrder("Header", 1)]
     [CategoryOrder("Effort", 2)]
     [CategoryOrder("Tracking", 3)]
@@ -37,9 +39,12 @@ namespace NSAP_ODK.Entities.Database
                 LandingSite = vesselUnload.Parent.Parent.LandingSite;
                 LandingSiteName = vesselUnload.Parent.Parent.LandingSiteName;
                 LandingSiteID = LandingSite.LandingSiteID;
+                OtherLandingSite = vesselUnload.Parent.Parent.LandingSiteText;
+
                 Gear = vesselUnload.Parent.Gear;
                 GearName = vesselUnload.Parent.GearUsedName;
                 GearCode = Gear.Code;
+                OtherFishingGear = vesselUnload.Parent.GearUsedText;
 
                 Identifier = vesselUnload.PK;
                 SamplingDate = vesselUnload.SamplingDate;
@@ -102,6 +107,8 @@ namespace NSAP_ODK.Entities.Database
         [ReadOnly(true)]
         public string LandingSiteName { get; set; }
 
+        public string OtherLandingSite { get; set; }
+
         [ItemsSource(typeof(LandingSiteInFMAFishingGroundItemsSource))]
         public int? LandingSiteID { get; set; }
 
@@ -111,6 +118,8 @@ namespace NSAP_ODK.Entities.Database
 
         [ItemsSource(typeof(GearsInNSAPRegionItemsSource))]
         public string GearCode { get; set; }
+
+        public string OtherFishingGear { get; set; }
 
         [ReadOnly(true)]
         public int Identifier { get; set; }
@@ -261,6 +270,96 @@ namespace NSAP_ODK.Entities.Database
         public string Sector { get; set; }
 
         public bool FromExcelDownload { get; set; }
+
+    }
+
+
+    [CategoryOrder("Header", 1)]
+    [CategoryOrder("Effort", 2)]
+    [CategoryOrder("Tracking", 3)]
+    [CategoryOrder("Device metadata", 4)]
+    public class VesselUnloadForDisplay
+    {
+        public VesselUnloadForDisplay(VesselUnload vesselUnload)
+        {
+            Region = vesselUnload.Parent.Parent.NSAPRegion.Name;
+            FMA = vesselUnload.Parent.Parent.FMA.Name;
+            FishingGround = vesselUnload.Parent.Parent.FishingGround.Name;
+            LandingSite = vesselUnload.Parent.Parent.LandingSiteName;
+            FishingGear = vesselUnload.Parent.GearUsedName;
+
+            Identifier = vesselUnload.PK;
+            SamplingDate = vesselUnload.SamplingDate.ToString("dd-MMM-yyyy HH:mm");
+            Enumerator = vesselUnload.EnumeratorName;
+            IsBoatUsed = vesselUnload.IsBoatUsed;
+            FishingVessel = vesselUnload.VesselName;
+            SectorCode = vesselUnload.Sector;
+            OperationIsSuccessful = vesselUnload.OperationIsSuccessful;
+            WeightOfCatch = vesselUnload.WeightOfCatch;
+            WeightOfCatchSample = vesselUnload.WeightOfCatchSample;
+            Boxes = vesselUnload.Boxes;
+            BoxesSampled = vesselUnload.BoxesSampled;
+            RaisingFactor = vesselUnload.RaisingFactor;
+            Notes = vesselUnload.Notes;
+
+            OperationIsTracked = vesselUnload.OperationIsTracked;
+            DepartureFromLandingSite = vesselUnload.DepartureFromLandingSite == null ? "" : ((DateTime)vesselUnload.DepartureFromLandingSite).ToString("dd-MMM-yyyy HH:mm");
+            ArrivalAtLandingSite = vesselUnload.ArrivalAtLandingSite == null ? "" : ((DateTime)vesselUnload.ArrivalAtLandingSite).ToString("dd-MMM-yyyy HH:mm");
+            GPS =   vesselUnload.GPS==null ? "" : vesselUnload.GPS.AssignedName;
+
+            UserName = vesselUnload.UserName;
+            DeviceID = vesselUnload.DeviceID;
+            XFormIdentifier = vesselUnload.XFormIdentifier;
+            XFormDate =   vesselUnload.XFormDate==null ? "" :  ((DateTime)vesselUnload.XFormDate).ToString("dd-MMM-yyyy HH:mm");
+            FormVersion = vesselUnload.FormVersion;
+            Submitted = vesselUnload.DateTimeSubmitted.ToString("dd-MMM-yyyy HH:mm");
+            DateAddedToDatabase = ((DateTime)vesselUnload.DateAddedToDatabase).ToString("dd-MMM-yyyy HH:mm");
+
+        }
+        public string Region { get; private set; }
+        public string FMA { get; private set; }
+        public string FishingGround { get; private set; }
+        public string LandingSite { get; private set; }
+        public string FishingGear { get; private set; }
+        public int Identifier { get; private set; }
+        public string SamplingDate { get; private set; }
+        public string Enumerator { get; private set; }
+
+        public bool IsBoatUsed { get; private set; }
+        public string FishingVessel { get; private set; }
+
+        public string SectorCode { get; private set; }
+
+        public bool OperationIsSuccessful { get; private set; }
+
+        public double? WeightOfCatch { get; private set; }
+
+        public double? WeightOfCatchSample { get; private set; }
+        public int? Boxes { get; private set; }
+
+        public int? BoxesSampled { get; private set; }
+
+        public double? RaisingFactor { get; private set; }
+
+        public string Notes { get; private set; }
+
+
+        public bool OperationIsTracked { get; private set; }
+
+        public string DepartureFromLandingSite { get; private set; }
+
+        public string ArrivalAtLandingSite { get; private set; }
+
+        public string GPS { get; private set; }
+        public string UserName { get; private set; }
+        public string DeviceID { get; private set; }
+        public string XFormIdentifier { get; private set; }
+        public string XFormDate { get; private set; }
+        public string FormVersion { get; private set; }
+        public string Submitted { get; private set; }
+        public string DateAddedToDatabase { get; private set; }
+        public string FromExcelDownload { get; private set; }
+
 
     }
     public class VesselUnloadFlattened

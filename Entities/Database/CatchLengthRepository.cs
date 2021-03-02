@@ -83,8 +83,9 @@ namespace NSAP_ODK.Entities.Database
                     {
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException)
+                    catch (OleDbException odbex)
                     {
+                        Logger.Log(odbex);
                         success = false;
                     }
                     catch (Exception ex)

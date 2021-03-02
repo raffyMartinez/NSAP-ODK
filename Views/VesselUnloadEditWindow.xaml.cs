@@ -29,18 +29,57 @@ namespace NSAP_ODK.Views
         {
             InitializeComponent();
             Closing += OnWindowClosing;
+            unloadEditor.ButtonClicked += OnUnloadEditorButtonClicked;
+        }
+
+        private void OnUnloadEditorButtonClicked(object sender, VesselUnloadEditorControl.UnloadEditorEventArgs e)
+        {
+            switch(e.ButtonPressed)
+            {
+                case "buttonDelete":
+                    if(MessageBox.Show("Are you sure you want to delete?",
+                        "NSAP-ODK Database",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Question)==MessageBoxResult.Yes    )
+                    {
+                        e.Proceed = true;
+                    }
+                    break;
+                case "buttonEdit":
+                    if(treeItemCatchComposition.IsSelected)
+                    {
+
+                    }
+                    break;
+                case "buttonAdd":
+                    if(treeItemCatchComposition.IsSelected)
+                    {
+                        EditVesselCatchCompWindow evccw = EditVesselCatchCompWindow.GetInstance();
+                        
+                        if(evccw.Visibility==Visibility.Visible)
+                        {
+                            evccw.BringIntoView();
+                        }
+                        else
+                        {
+                            evccw.Show();
+                        }
+                        evccw.VesselCatch = unloadEditor.VesselCatch;
+                    }
+                    break;
+            }
         }
 
         public VesselUnload VesselUnload
         {
             get { return _vesselUnload; }
             set
-            {
-                
+            {                
                 _vesselUnload = value;
                 NSAPEntities.NSAPRegion = _vesselUnload.Parent.Parent.NSAPRegion;
                 NSAPEntities.NSAPRegionFMA = NSAPEntities.NSAPRegion.FMAs.Where(t => t.FMAID == _vesselUnload.Parent.Parent.FMAID).FirstOrDefault();
                 NSAPEntities.NSAPRegionFMAFishingGround = NSAPEntities.NSAPRegionFMA.FishingGrounds.Where(t => t.FishingGroundCode == _vesselUnload.Parent.Parent.FishingGroundID).FirstOrDefault();
+                unloadEditor.Owner = this;
                 unloadEditor.VesselUnload = _vesselUnload;
                 treeItemVesselUnload.IsSelected = true;
             }
@@ -79,6 +118,7 @@ namespace NSAP_ODK.Views
                     {
                         buttonEdit.Background = Brushes.Yellow;
                         buttonEdit.Content = "Stop edits";
+                        treeItemVesselUnload.IsSelected = true;
 
                     }
                     else

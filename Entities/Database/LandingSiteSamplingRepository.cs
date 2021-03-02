@@ -104,29 +104,80 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
+                //var sql = $@"Insert into dbo_LC_FG_sample_day(
+                //                unload_day_id, region_id,sdate, land_ctr_id,ground_id,
+                //                remarks,sampleday,land_ctr_text,fma)
+                //           Values (
+                //                {item.PK},
+                //                '{item.NSAPRegionID}',
+                //                '{item.SamplingDate.ToString(_dateFormat)}',
+                //                {(item.LandingSiteID == null ? "null" : item.LandingSiteID.ToString())},
+                //                '{item.FishingGroundID}', 
+                //                '{item.Remarks}',
+                //                {item.IsSamplingDay},
+                //                '{item.LandingSiteText}',
+                //                {item.FMAID}
+                //            )";
+
                 var sql = $@"Insert into dbo_LC_FG_sample_day(
                                 unload_day_id, region_id,sdate, land_ctr_id,ground_id,
                                 remarks,sampleday,land_ctr_text,fma)
-                           Values (
-                                {item.PK},
-                                '{item.NSAPRegionID}',
-                                '{item.SamplingDate.ToString(_dateFormat)}',
-                                {(item.LandingSiteID == null ? "null" : item.LandingSiteID.ToString())},
-                                '{item.FishingGroundID}', 
-                                '{item.Remarks}',
-                                {item.IsSamplingDay},
-                                '{item.LandingSiteText}',
-                                {item.FMAID}
-                            )";
+                           Values (?,?,?,?,?,?,?,?,?,)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
                     try
                     {
+                        update.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
+                        update.Parameters.Add("@nsap_region", OleDbType.VarChar).Value = item.NSAPRegionID;
+                        update.Parameters.Add("@sampling_date", OleDbType.Date).Value = item.SamplingDate;
+
+                        if (item.LandingSiteID == null)
+                        {
+                            update.Parameters.Add("@landing_site_id", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@landing_site_id", OleDbType.VarChar).Value = item.LandingSiteID;
+                        }
+
+                        update.Parameters.Add("@fg", OleDbType.VarChar).Value = item.FishingGroundID;
+                        update.Parameters.Add("@remarks", OleDbType.VarChar).Value = item.Remarks;
+                        update.Parameters.Add("@is_sampling_day", OleDbType.Boolean).Value = item.IsSamplingDay;
+                        update.Parameters.Add("@landing_site_text", OleDbType.Boolean).Value = item.LandingSiteText;
+                        update.Parameters.Add("@fma_id", OleDbType.Integer).Value = item.FMAID;
+
+
                         success = update.ExecuteNonQuery() > 0;
                         if (success)
                         {
                             string dateSubmitted = item.DateSubmitted == null ? "null" : $@"'{item.DateSubmitted.ToString()}'";
                             string dateAdded = item.DateAdded == null ? "null" : $@"'{item.DateAdded.ToString()}'";
+                            //sql = $@"Insert into dbo_LC_FG_sample_day_1  (
+                            //            unload_day_id,
+                            //            datetime_submitted,
+                            //            user_name,
+                            //            device_id,
+                            //            XFormIdentifier,
+                            //            DateAdded,
+                            //            FromExcelDownload,
+                            //            form_version,
+                            //            RowID,
+                            //            EnumeratorID,
+                            //            EnumeratorText
+                            //        ) Values (
+                            //            {item.PK} ,
+                            //            {(item.DateSubmitted == null ? "null" : dateSubmitted)} ,
+                            //            '{item.UserName}' ,
+                            //            '{item.DeviceID}' ,
+                            //            '{item.XFormIdentifier}' ,
+                            //            {(item.DateAdded == null ? "null" : dateAdded)} ,
+                            //            {item.FromExcelDownload} ,
+                            //            '{item.FormVersion}' ,
+                            //            '{item.RowID}' ,
+                            //            {(item.EnumeratorID == null ? "null" : item.EnumeratorID.ToString())} ,
+                            //            '{item.EnumeratorText}' 
+                            //        )";
+
                             sql = $@"Insert into dbo_LC_FG_sample_day_1  (
                                         unload_day_id,
                                         datetime_submitted,
@@ -139,27 +190,57 @@ namespace NSAP_ODK.Entities.Database
                                         RowID,
                                         EnumeratorID,
                                         EnumeratorText
-                                    ) Values (
-                                        {item.PK} ,
-                                        {(item.DateSubmitted == null ? "null" : dateSubmitted)} ,
-                                        '{item.UserName}' ,
-                                        '{item.DeviceID}' ,
-                                        '{item.XFormIdentifier}' ,
-                                        {(item.DateAdded == null ? "null" : dateAdded)} ,
-                                        {item.FromExcelDownload} ,
-                                        '{item.FormVersion}' ,
-                                        '{item.RowID}' ,
-                                        {(item.EnumeratorID == null ? "null" : item.EnumeratorID.ToString())} ,
-                                        '{item.EnumeratorText}' 
-                                    )";
+                                    ) Values (?,?,?,?,?,?,?,?,?,?,?,)";
+
+
                             using (OleDbCommand update1 = new OleDbCommand(sql, conn))
                             {
+                                update1.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
+
+                                if (item.DateSubmitted == null)
+                                {
+                                    update1.Parameters.Add("@date_submitted", OleDbType.Date).Value = DBNull.Value;
+                                }
+                                else
+                                {
+                                    update1.Parameters.Add("@date_submitted", OleDbType.Date).Value = item.DateSubmitted;
+                                }
+
+                                update1.Parameters.Add("@user", OleDbType.VarChar).Value = item.UserName;
+                                update1.Parameters.Add("@device_id", OleDbType.VarChar).Value = item.DeviceID;
+                                update1.Parameters.Add("@xform_id", OleDbType.VarChar).Value = item.XFormIdentifier;
+
+                                if (item.DateAdded == null)
+                                {
+                                    update1.Parameters.Add("@date_added", OleDbType.Date).Value = DBNull.Value;
+                                }
+                                else
+                                {
+                                    update1.Parameters.Add("@date_added", OleDbType.Date).Value = item.DateAdded;
+                                }
+
+                                update1.Parameters.Add("@fromExcel", OleDbType.Boolean).Value = item.FromExcelDownload;
+                                update1.Parameters.Add("@form_version", OleDbType.VarChar).Value = item.FormVersion;
+                                update1.Parameters.Add("@row_id", OleDbType.VarChar).Value = item.RowID;
+
+                                if (item.EnumeratorID == null)
+                                {
+                                    update1.Parameters.Add("@enum_id", OleDbType.Integer).Value = DBNull.Value;
+                                }
+                                else
+                                {
+                                    update1.Parameters.Add("@enum_id", OleDbType.Integer).Value = item.EnumeratorID;
+                                }
+
+                                update1.Parameters.Add("@enum_text", OleDbType.VarChar).Value = item.EnumeratorText;
+
                                 try
                                 {
                                     success = update1.ExecuteNonQuery() > 0;
                                 }
-                                catch (OleDbException)
+                                catch (OleDbException odbex)
                                 {
+                                    Logger.Log(odbex);
                                     success = false;
                                 }
                                 catch (Exception ex)
@@ -169,13 +250,15 @@ namespace NSAP_ODK.Entities.Database
                             }
                         }
                     }
-                    catch (OleDbException)
+                    catch (OleDbException odbex)
                     {
+                        Logger.Log(odbex);
                         success = false;
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
+                        success = false;
                     }
                 }
             }

@@ -329,6 +329,7 @@
     <Compile Include="Utilities\ObjectShredder.cs" />
     <Compile Include="Utilities\SerializeWindowState.cs" />
     <Compile Include="Utilities\VesselLandingFixDownload.cs" />
+    <Compile Include="VesselUnloadEditorControl\UnloadEditorEventArgs.cs" />
     <Compile Include="VesselUnloadEditorControl\VesselUnloadEditor.xaml.cs">
       <DependentUpon>VesselUnloadEditor.xaml</DependentUpon>
     </Compile>
@@ -346,6 +347,9 @@
     </Compile>
     <Compile Include="Views\EditGearUnloadByRegionFMAWIndow.xaml.cs">
       <DependentUpon>EditGearUnloadByRegionFMAWIndow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\EditVesselCatchCompWindow.xaml.cs">
+      <DependentUpon>EditVesselCatchCompWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\EditWindowEx.xaml.cs">
       <DependentUpon>EditWindowEx.xaml</DependentUpon>
@@ -423,6 +427,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\EditGearUnloadByRegionFMAWIndow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\EditVesselCatchCompWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
