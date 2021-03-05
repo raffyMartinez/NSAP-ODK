@@ -1220,6 +1220,20 @@ namespace NSAP_ODK.Entities.Database.FromJson
         
         public static string JSON { get; set; }
 
+        public static DateTime DownloadedLandingsEarliestLandingDate()
+        {
+            return VesselLandings.OrderBy(t => t.SamplingDate).FirstOrDefault().SamplingDate;
+        }
+
+        public static DateTime DownloadedLandingsLatestLandingDate()
+        {
+            return VesselLandings.OrderByDescending(t => t.SamplingDate).FirstOrDefault().SamplingDate;
+        }
+
+        public static int DownloadedLandingsCount()
+        {
+            return VesselLandings.Count;
+        }
         public static List<VesselLanding> VesselLandings { get; internal set; }
 
         public static event EventHandler<UploadToDbEventArg> UploadSubmissionToDB;
@@ -1509,6 +1523,11 @@ namespace NSAP_ODK.Entities.Database.FromJson
                             LandingSiteText = landing.LandingSiteText==null?"":landing.LandingSiteText,
                             FMAID = landing.NSAPRegionFMA.FMA.FMAID
                         };
+
+                        //if(landingSiteSampling.PK==40)
+                        //{
+
+                        //}
                         NSAPEntities.LandingSiteSamplingViewModel.AddRecordToRepo(landingSiteSampling);
                     }
 
@@ -1578,6 +1597,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                         EnumeratorText = landing.EnumeratorText,
                         DateAddedToDatabase = DateTime.Now,
                         FromExcelDownload = false,
+                        TimeStart = landing.start
                     };
 
                     if(NSAPEntities.VesselUnloadViewModel.AddRecordToRepo(vu))

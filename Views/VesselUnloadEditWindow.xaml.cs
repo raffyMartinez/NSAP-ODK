@@ -14,6 +14,7 @@ using System.Windows.Shapes;
 using NSAP_ODK.Entities;
 using NSAP_ODK.Entities.Database;
 using NSAP_ODK.Utilities;
+using System.Diagnostics;
 
 namespace NSAP_ODK.Views
 {
@@ -30,6 +31,16 @@ namespace NSAP_ODK.Views
             InitializeComponent();
             Closing += OnWindowClosing;
             unloadEditor.ButtonClicked += OnUnloadEditorButtonClicked;
+            Loaded += OnWindowLoaded;
+        }
+
+        private void OnWindowLoaded(object sender, RoutedEventArgs e)
+        {
+            buttonEdit.Visibility = Visibility.Collapsed;
+            if(Debugger.IsAttached)
+            {
+                buttonEdit.Visibility = Visibility.Visible;
+            }
         }
 
         private void OnUnloadEditorButtonClicked(object sender, VesselUnloadEditorControl.UnloadEditorEventArgs e)
@@ -113,6 +124,7 @@ namespace NSAP_ODK.Views
             switch (((Button)sender).Name)
             {
                 case "buttonEdit":
+
                     _editMode = !_editMode;
                     if (_editMode)
                     {

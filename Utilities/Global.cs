@@ -82,7 +82,14 @@ namespace NSAP_ODK.Utilities
                 ConnectionString = "Provider=Microsoft.JET.OLEDB.4.0;data source=" + MDBPath;
                 ConnectionStringGrid25 = "Provider=Microsoft.JET.OLEDB.4.0;data source=" + Grid25MDBPath;
                 AppProceed = Entities.Database.CSVFIleManager.ReadCSVXML();
-                if(!AppProceed)
+
+                if (Settings.JSONFolder!=null && Settings.JSONFolder.Length > 0 && !Directory.Exists(Settings.JSONFolder))
+                {
+                    Settings.JSONFolder = "";
+                    SaveGlobalSettings();
+                }
+
+                if (!AppProceed)
                 {
                     Logger.Log(Entities.Database.CSVFIleManager.XMLError);
                 }
@@ -94,8 +101,10 @@ namespace NSAP_ODK.Utilities
         }
         public static void SetMDBPath(string path)
         {
+            string jsonFolder = Settings.JSONFolder;
             Settings = new Settings();
             Settings.MDBPath = path;
+            Settings.JSONFolder = jsonFolder;
             SaveGlobalSettings();
             DoAppProceed();
         }

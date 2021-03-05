@@ -43,7 +43,14 @@ namespace NSAP_ODK.Entities.Database
 
                 Gear = vesselUnload.Parent.Gear;
                 GearName = vesselUnload.Parent.GearUsedName;
-                GearCode = Gear.Code;
+                if (Gear != null)
+                {
+                    GearCode = Gear.Code;
+                }
+                else
+                {
+                    GearCode = "";
+                }
                 OtherFishingGear = vesselUnload.Parent.GearUsedText;
 
                 Identifier = vesselUnload.PK;
@@ -441,6 +448,8 @@ namespace NSAP_ODK.Entities.Database
         private GearUnload _parent;
         private FishingVessel _fishingVessel;
         private NSAPEnumerator _nsapEnumerator;
+
+        public DateTime TimeStart { get; set; }
         public int PK { get; set; }
         public int GearUnloadID { get; set; }
         public double? WeightOfCatch { get; set; }

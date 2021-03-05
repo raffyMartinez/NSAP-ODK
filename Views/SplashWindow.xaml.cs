@@ -85,6 +85,7 @@ namespace NSAP_ODK.Views
             NSAPEntities.CatchMaturityViewModel = new CatchMaturityViewModel();
             NSAPEntities.DBSummary = new DBSummary();
             NSAPEntities.DatabaseEnumeratorSummary = new DatabaseEnumeratorSummary();
+            NSAPEntities.JSONFileViewModel = new JSONFileViewModel();
         }
     }
 }

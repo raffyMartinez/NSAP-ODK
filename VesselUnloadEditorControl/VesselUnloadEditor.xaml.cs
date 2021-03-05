@@ -63,6 +63,7 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                 _vesselUnload = value;
                 _vesselUnloadEdit = new VesselUnloadEdit(_vesselUnload);
                 _vesselUnloadForDisplay = new VesselUnloadForDisplay(_vesselUnload);
+                labelCatch.Content = "No selected catch";
             }
         }
 
@@ -136,24 +137,34 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                 case "treeItemLenWeight":
                 case "treeItemLenList":
                 case "treeItemMaturity":
+
                     rowPropertyGrid.Height = new GridLength(0);
                     rowDataGrid.Height = new GridLength(1, GridUnitType.Star);
-                    effortDataGrid.SetValue(Grid.ColumnSpanProperty, 1);
-                    catchDataGrid.Visibility = Visibility.Visible;
+                    if (effortDataGrid.SelectedItems.Count == 1)
+                    {
+                        effortDataGrid.SetValue(Grid.ColumnSpanProperty, 1);
+                        catchDataGrid.Visibility = Visibility.Visible;
 
-                    labelEffort.SetValue(Grid.ColumnSpanProperty, 1);
-                    labelCatch.Visibility = Visibility.Visible;
-
+                        labelEffort.SetValue(Grid.ColumnSpanProperty, 1);
+                        labelCatch.Visibility = Visibility.Visible;
+                    }
                     break;
             }
 
             ShowEditButtons();
         }
 
-        private void SetupDataGridsForDisplay()
+        private void SetupDataGridsForDisplay(bool forCatchGrid = false)
         {
-            effortDataGrid.DataContext = null;
-            effortDataGrid.Columns.Clear();
+            if (!forCatchGrid)
+            {
+                effortDataGrid.DataContext = null;
+                effortDataGrid.Columns.Clear();
+            }
+
+            catchDataGrid.DataContext = null;
+            catchDataGrid.Columns.Clear();
+
             switch (_unloadView)
             {
                 case "treeItemSoakTime":
@@ -189,15 +200,39 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                     effortDataGrid.DataContext = _vesselUnload.ListVesselCatch;
                     break;
                 case "treeItemLenFreq":
+                    catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("PK") });
+                    catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Length class", Binding = new Binding("LengthClass") });
+                    catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Frequency", Binding = new Binding("Frequency") });
+
+                    catchDataGrid.DataContext = VesselCatch?.ListCatchLenFreq;
                     break;
                 case "treeItemLenWeight":
+                    catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("PK") });
+                    catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Length", Binding = new Binding("Length") });
+                    catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("Weight") });
+
+                    catchDataGrid.DataContext = VesselCatch?.ListCatchLengthWeight;
                     break;
                 case "treeItemLenList":
+                    catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("PK") });
+                    catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Length", Binding = new Binding("Length") });
+
+                    catchDataGrid.DataContext = VesselCatch?.ListCatchLength;
                     break;
                 case "treeItemMaturity":
+                    catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("PK") });
+                    catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Length", Binding = new Binding("Length") });
+                    catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("Weight") });
+                    catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Sex", Binding = new Binding("Sex") });
+                    catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Maturity", Binding = new Binding("Maturity") });
+                    catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight gut content", Binding = new Binding("WeightGutContent") });
+                    catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Gut content classification", Binding = new Binding("GutContentClassification") });
+
+                    catchDataGrid.DataContext = VesselCatch?.ListCatchMaturity;
                     break;
             }
             //effortDataGrid.Items.Refresh();
+            labelCatch.Content = $"{GetContextLabel()} {VesselCatch?.CatchName}";
         }
 
         private void SetupPropertyGridForDisplay()
@@ -346,7 +381,7 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                         SetupDataGridsForDisplay();
                         break;
                     case "treeItemEffortDefinition":
-                        labelEffort.Content = "Fishing effrot specifications  of sampled landing";
+                        labelEffort.Content = "Fishing effort specifications  of sampled landing";
                         SetupDataGridsForDisplay();
                         break;
                     case "treeItemCatchComposition":
@@ -354,12 +389,16 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                         SetupDataGridsForDisplay();
                         break;
                     case "treeItemLenFreq":
+                        SetupDataGridsForDisplay(forCatchGrid: true);
                         break;
                     case "treeItemLenWeight":
+                        SetupDataGridsForDisplay(forCatchGrid: true);
                         break;
                     case "treeItemLenList":
+                        SetupDataGridsForDisplay(forCatchGrid: true);
                         break;
                     case "treeItemMaturity":
+                        SetupDataGridsForDisplay(forCatchGrid: true);
                         break;
                 }
             }
@@ -511,16 +550,47 @@ namespace NSAP_ODK.VesselUnloadEditorControl
             }
         }
 
+        private string GetContextLabel()
+        {
+            string contextLabel = "";
+            switch (UnloadView)
+            {
+                case "treeItemLenFreq":
+                    contextLabel = "Length frequency table for ";
+                    break;
+                case "treeItemLenWeight":
+                    contextLabel = "Length-weight table for ";
+                    break;
+                case "treeItemLenList":
+                    contextLabel = "Length table for ";
+                    break;
+                case "treeItemMaturity":
+                    contextLabel = "Length, weight, sex and maturity table for";
+                    break;
+            }
+            return contextLabel;
+        }
         private void OnDataGridSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             VesselCatch = null;
-            if ( effortDataGrid.DataContext != null || catchDataGrid.DataContext != null)
+            labelCatch.Content = "No selected catch";
+            switch(((DataGrid)sender).Name)
             {
-                if(_unloadView=="treeItemCatchComposition" && effortDataGrid.SelectedItem!=null)
-                {
+                case "effortDataGrid":
                     VesselCatch = (VesselCatch)effortDataGrid.SelectedItem;
-                }
+                    
 
+                    SetupDataGridsForDisplay(forCatchGrid: true);
+
+
+                    labelCatch.Content = $"{GetContextLabel()} {VesselCatch?.CatchName}";
+                    break;
+                case "catchDataGrid":
+                    break;
+            }
+            ;
+            if (effortDataGrid.DataContext != null || catchDataGrid.DataContext != null)
+            {
                 buttonDelete.IsEnabled = true;
                 buttonEdit.IsEnabled = true;
             }

@@ -53,6 +53,7 @@ namespace NSAP_ODK.Utilities
         public static bool ClearNSAPDatabaseTables()
         {
             bool success = false;
+            NSAPEntities.JSONFileViewModel.ClearRepository();
             NSAPEntities.CatchMaturityViewModel.ClearRepository();
             NSAPEntities.CatchLengthViewModel.ClearRepository();
             NSAPEntities.CatchLengthWeightViewModel.ClearRepository();

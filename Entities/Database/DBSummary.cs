@@ -24,6 +24,7 @@ namespace NSAP_ODK.Entities.Database
     [CategoryOrder("Database", 1)]
     [CategoryOrder("Lookup choices", 2)]
     [CategoryOrder("Submitted fish landing data", 3)]
+    [CategoryOrder("Saved JSON files", 4)]
     public class DBSummary
     {
         public void Refresh()
@@ -49,6 +50,9 @@ namespace NSAP_ODK.Entities.Database
                 LastSampledLandingDate = NSAPEntities.VesselUnloadViewModel.DateOfLastSampledLanding;
                 CountCompleteGearUnload = NSAPEntities.GearUnloadViewModel.CountCompletedGearUnload;
                 DateLastDownload = NSAPEntities.VesselUnloadViewModel.DateLatestDownload;
+                SavedJSONFolder = Global.Settings.JSONFolder;
+                SavedFishingEffortJSONCount = NSAPEntities.JSONFileViewModel.CountSavedEffortJsonFile();
+                SavedVesselCountsJSONCount = NSAPEntities.JSONFileViewModel.CountSavedVesselCountsJsonFile();
             }
         }
         public DBSummary()
@@ -130,5 +134,10 @@ namespace NSAP_ODK.Entities.Database
         public string GearName { get; set; }
 
         public string MonthSampled { get; set; }
+
+        public string SavedJSONFolder { get; set; }
+
+        public int SavedFishingEffortJSONCount { get; set; }
+        public int SavedVesselCountsJSONCount { get; set; }
     }
 }

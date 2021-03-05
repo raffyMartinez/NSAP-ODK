@@ -44,6 +44,7 @@ namespace NSAP_ODK.Views
         private string _user;
         private string _password;
         private string _formID;
+        private string _description;
         private string _downloadOption;
         private ODKResultsWindow _parentWindow;
         private string _jsonOption;
@@ -53,6 +54,8 @@ namespace NSAP_ODK.Views
         private List<Metadata> _metadataFilesForReplacement = new List<Metadata>();
         private bool _updateCancelled;
         private DispatcherTimer _timer;
+        private FormSummary _formSummary;
+        private int _count;
         public DownloadFromServerWindow(ODKResultsWindow parentWindow)
         {
             InitializeComponent();
@@ -292,6 +295,17 @@ namespace NSAP_ODK.Views
                     }
                     break;
                 case "ButtonDownload":
+
+                    if (!Directory.Exists(Global.Settings.JSONFolder) || Global.Settings.JSONFolder.Length == 0)
+                    {
+                        MessageBox.Show("Please specify folder to save downloaded data from the server",
+                            "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                        SettingsWindow sw = new SettingsWindow();
+                        sw.ShowDialog();
+                        return;
+                    }
+
                     _downloadType = "data";
                     ButtonDownload.IsEnabled = false;
                     switch (_downloadOption)
@@ -445,6 +459,10 @@ namespace NSAP_ODK.Views
                                             Encoding encoding = Encoding.GetEncoding("utf-8");
                                             string the_response = encoding.GetString(bytes, 0, bytes.Length);
 
+                                            ((ODKResultsWindow)Owner).JSON = the_response;
+                                            ((ODKResultsWindow)Owner).FormID = _formID;
+                                            ((ODKResultsWindow)Owner).Description = _description;
+                                            ((ODKResultsWindow)Owner).Count = _count;
 
                                             switch (_parentWindow.ODKServerDownload)
                                             {
@@ -469,6 +487,8 @@ namespace NSAP_ODK.Views
 
                                             ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ConvertDataToEntities });
 
+
+
                                             switch (_parentWindow.ODKServerDownload)
                                             {
                                                 case ODKServerDownload.ServerDownloadVesselUnload:
@@ -476,10 +496,13 @@ namespace NSAP_ODK.Views
                                                     break;
                                                 case ODKServerDownload.ServerDownloadLandings:
                                                     _parentWindow.MainSheetsLanding = LandingSiteBoatLandingsFromServerRepository.LandingSiteBoatLandings;
+
                                                     break;
                                             }
 
+
                                             ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
+
                                             Close();
                                         }
                                         catch (HttpRequestException)
@@ -599,10 +622,13 @@ namespace NSAP_ODK.Views
                             labelProgress.Content = "Log-in successful";
                             break;
                     }
-
+                    break;
+                case DownloadFromServerIntent.FinishedDownloadAndSavedJSONFile:
+                    ProgressBar.Value += 1;
                     break;
                 case DownloadFromServerIntent.StoppedDueToError:
                     labelProgress.Content = "Stopped due to error";
+                    MessageBox.Show("Downloading is stopped due to error", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Exclamation);
                     break;
             }
         }
@@ -640,9 +666,9 @@ namespace NSAP_ODK.Views
                 {
                     case "form_id":
                         _formID = treeViewItem.Header.ToString();
-                        var summary = new FormSummary(_koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)));
+                        _formSummary = new FormSummary(_koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)));
                         SetODKServerDownloadType();
-                        if (summary.LastSaveDateInDatabase.Length > 0 && DateTime.TryParse(summary.LastSaveDateInDatabase, out DateTime v))
+                        if (_formSummary.LastSaveDateInDatabase.Length > 0 && DateTime.TryParse(_formSummary.LastSaveDateInDatabase, out DateTime v))
                         {
                             _lastSubmittedDate = v;
                         }
@@ -669,7 +695,7 @@ namespace NSAP_ODK.Views
 
                         }
 
-                        propertyGrid.SelectedObject = summary;
+                        propertyGrid.SelectedObject = _formSummary;
                         propertyGrid.AutoGenerateProperties = false;
                         propertyGrid.IsCategorized = true;
 
@@ -726,6 +752,8 @@ namespace NSAP_ODK.Views
                     case "form_download":
 
                         _formID = ((TreeViewItem)treeViewItem.Parent).Header.ToString();
+                        _description = new FormSummary(_koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID))).Description;
+                        _count = new FormSummary(_koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID))).NumberOfSubmissions;
                         SetODKServerDownloadType();
                         gridDownload.Visibility = Visibility.Visible;
                         ((ComboBoxItem)comboboxDownloadOption.Items[0]).IsSelected = true;

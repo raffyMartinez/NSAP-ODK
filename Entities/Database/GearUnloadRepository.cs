@@ -71,7 +71,7 @@ namespace NSAP_ODK.Entities.Database
 
         public bool Add(GearUnload item)
         {
-            string gearID = string.IsNullOrEmpty(item.GearID) ? "null" : $"'{item.GearID}'";
+           // string gearID = string.IsNullOrEmpty(item.GearID) ? "null" : $"'{item.GearID}'";
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
@@ -88,21 +88,24 @@ namespace NSAP_ODK.Entities.Database
                 //                )";
 
                 var sql = $@"Insert into dbo_gear_unload(unload_gr_id, unload_day_id, gr_id,boats,catch,gr_text,remarks)
-                           Values (?,?,?,?,?,?,?,)";
+                           Values (?,?,?,?,?,?,?)";
 
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
                     update.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
                     update.Parameters.Add("@parent", OleDbType.Integer).Value = item.LandingSiteSamplingID;
-                    
+
                     if (item.GearID == null)
                     {
                         update.Parameters.Add("@gear_id", OleDbType.Integer).Value = DBNull.Value;
                     }
                     else
                     {
-                           update.Parameters.Add("@gear_id", OleDbType.Integer).Value = item.GearID;
+                        update.Parameters.Add("@gear_id", OleDbType.VarChar).Value = item.GearID;
                     }
+                        //var gearID = item.GearID == null ? DBNull.Value : item.GearID; 
+                    
+                    //}
 
                     if (item.Boats== null)
                     {
@@ -123,7 +126,7 @@ namespace NSAP_ODK.Entities.Database
                     }
 
                     update.Parameters.Add("@gear_text", OleDbType.VarChar).Value = item.GearUsedText;
-                    update.Parameters.Add("@remarks", OleDbType.Integer).Value = item.Remarks;
+                    update.Parameters.Add("@remarks", OleDbType.VarChar).Value = item.Remarks;
 
 
                     try

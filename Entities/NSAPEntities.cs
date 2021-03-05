@@ -75,6 +75,7 @@ namespace NSAP_ODK.Entities
         public static CatchMaturityViewModel CatchMaturityViewModel;
         public static DBSummary DBSummary;
         public static DatabaseEnumeratorSummary DatabaseEnumeratorSummary;
+        public static JSONFileViewModel JSONFileViewModel;
 
         
         static NSAPEntities()

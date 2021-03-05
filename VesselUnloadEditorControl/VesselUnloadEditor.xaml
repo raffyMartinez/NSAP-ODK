@@ -24,10 +24,10 @@
         <xctk:PropertyGrid Grid.Row="1" Grid.ColumnSpan="2" x:Name="propertyGrid" Margin="10" IsReadOnly="True"  ShowTitle="false" 
                            PropertyValueChanged="OnPropertyValueChanged" ShowAdvancedOptions="False" ShowSearchBox="False" ShowSortOptions="False"/>
         
-        <DataGrid x:Name="effortDataGrid" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" IsReadOnly="True" 
+        <DataGrid x:Name="effortDataGrid" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" IsReadOnly="True" Margin="10"
                   AutoGenerateColumns="False" ItemsSource="{Binding}" SelectionChanged="OnDataGridSelectionChanged"/>
         
-        <DataGrid x:Name="catchDataGrid" Grid.Row="2" Grid.Column="1" Visibility="Collapsed" IsReadOnly="True" 
+        <DataGrid x:Name="catchDataGrid" Grid.Row="2" Grid.Column="1" Visibility="Collapsed" IsReadOnly="True" Margin="10"
                   AutoGenerateColumns="False" ItemsSource="{Binding}" SelectionChanged="OnDataGridSelectionChanged"/>
         
         <WrapPanel Grid.Row="3" Grid.ColumnSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center">

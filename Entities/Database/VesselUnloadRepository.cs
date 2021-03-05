@@ -237,6 +237,7 @@ namespace NSAP_ODK.Entities.Database
                             item.Notes = dr["Notes"].ToString();
                             item.DateAddedToDatabase = dr["DateAdded"] == DBNull.Value ? null : (DateTime?)dr["DateAdded"];
                             item.FromExcelDownload = (bool)dr["FromExcelDownload"];
+                            
                             thisList.Add(item);
                         }
                     }
@@ -255,7 +256,7 @@ namespace NSAP_ODK.Entities.Database
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
-                string vesselText = item.VesselText.Replace("'", string.Empty);
+                string vesselText = item.VesselText == null ? "" : item.VesselText;
                 conn.Open();
                 //var sql = $@"Insert into dbo_vessel_unload(v_unload_id, unload_gr_id,boat_id, boat_text, raising_factor,
                 //                                        catch_total,catch_samp,boxes_total,boxes_samp,is_boat_used)
@@ -291,7 +292,7 @@ namespace NSAP_ODK.Entities.Database
                         update.Parameters.Add("@vesselid", OleDbType.Integer).Value = item.VesselID;
                     }
 
-                    update.Parameters.Add("@vesseltext", OleDbType.VarChar).Value = item.VesselText;
+                    update.Parameters.Add("@vesseltext", OleDbType.VarChar).Value = vesselText;
                     
                     if(item.RaisingFactor==null)
                     {
@@ -347,9 +348,9 @@ namespace NSAP_ODK.Entities.Database
                         string dateAdded = item.DateAddedToDatabase == null ? "null" : ((DateTime)item.DateAddedToDatabase).ToString("MMM-dd-yyy HH:mm");
                         if (update.ExecuteNonQuery() > 0)
                         {
-                            //string departure = item.DepartureFromLandingSite == null ? "null" : $"'{((DateTime)item.DepartureFromLandingSite).ToString(_dateFormat)}'";
-                            //string arrival = item.ArrivalAtLandingSite == null ? "null" : $"'{((DateTime)item.ArrivalAtLandingSite).ToString(_dateFormat)}'";
-                            //string xFormDate = item.XFormDate == null ? "null" : $"'{((DateTime)item.XFormDate).ToString("MMM-dd-yyy HH:mm:ss")}'";
+                            string departure = item.DepartureFromLandingSite == null ? "null" : $"'{((DateTime)item.DepartureFromLandingSite).ToString(_dateFormat)}'";
+                            string arrival = item.ArrivalAtLandingSite == null ? "null" : $"'{((DateTime)item.ArrivalAtLandingSite).ToString(_dateFormat)}'";
+                            string xFormDate = item.XFormDate == null ? "null" : $"'{((DateTime)item.XFormDate).ToString("MMM-dd-yyy HH:mm:ss")}'";
                             //sql = $@"Insert into dbo_vessel_unload_1 
                             //                    (v_unload_id, Success, Tracked, DepartureLandingSite, ArrivalLandingSite, 
                             //                    RowID, XFormIdentifier, XFormDate, SamplingDate,
@@ -384,74 +385,91 @@ namespace NSAP_ODK.Entities.Database
                                                 RowID, XFormIdentifier, XFormDate, SamplingDate,
                                                 user_name,device_id,datetime_submitted,form_version,
                                                 GPS,Notes,EnumeratorID,EnumeratorText,DateAdded,sector_code,FromExcelDownload)
-                                    Values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,)";
+                                    Values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
                             using (OleDbCommand update1 = new OleDbCommand(sql, conn))
                             {
-                                update.Parameters.Add("@unloadid", OleDbType.Integer).Value = item.PK;
-                                update.Parameters.Add("@operation_success", OleDbType.Boolean).Value = item.OperationIsSuccessful;
-                                update.Parameters.Add("@operation_tracked", OleDbType.Boolean).Value = item.OperationIsTracked;
+                                update1.Parameters.Add("@unloadid", OleDbType.Integer).Value = item.PK;
+                                update1.Parameters.Add("@operation_success", OleDbType.Boolean).Value = item.OperationIsSuccessful;
+                                update1.Parameters.Add("@operation_tracked", OleDbType.Boolean).Value = item.OperationIsTracked;
 
                                 if (item.DepartureFromLandingSite == null)
                                 {
-                                    update.Parameters.Add("@departure_date", OleDbType.Date).Value = DBNull.Value;
+                                    update1.Parameters.Add("@departure_date", OleDbType.Date).Value = DBNull.Value;
                                 }
                                 else
                                 {
-                                    update.Parameters.Add("@departure_date", OleDbType.Date).Value = item.DepartureFromLandingSite;
+                                    update1.Parameters.Add("@departure_date", OleDbType.Date).Value = item.DepartureFromLandingSite;
                                 }
 
                                 if (item.ArrivalAtLandingSite == null)
                                 {
-                                    update.Parameters.Add("@arrival_date", OleDbType.Date).Value = DBNull.Value;
+                                    update1.Parameters.Add("@arrival_date", OleDbType.Date).Value = DBNull.Value;
                                 }
                                 else
                                 {
-                                    update.Parameters.Add("@arrival_date", OleDbType.Date).Value = item.ArrivalAtLandingSite;
+                                    update1.Parameters.Add("@arrival_date", OleDbType.Date).Value = item.ArrivalAtLandingSite;
                                 }
 
-                                update.Parameters.Add("@row_id", OleDbType.VarChar).Value = item.ODKRowID;
-                                update.Parameters.Add("@xform_id", OleDbType.VarChar).Value = item.XFormIdentifier;
 
-                                if(item.XFormDate==null)
+
+                                update1.Parameters.Add("@row_id", OleDbType.Guid).Value = Guid.Parse(item.ODKRowID);
+
+                                string xformID = item.XFormIdentifier == null ? "" : item.XFormIdentifier;
+                                update1.Parameters.Add("@xform_id", OleDbType.VarChar).Value = xformID;
+
+
+                                if (item.XFormDate == null)
                                 {
-                                    update.Parameters.Add("@xform_date", OleDbType.Date).Value = DBNull.Value;
+                                    update1.Parameters.Add("@xform_date", OleDbType.Date).Value = DBNull.Value;
                                 }
                                 else
                                 {
-                                    update.Parameters.Add("@xform_date", OleDbType.Date).Value = item.XFormDate;
+                                    update1.Parameters.Add("@xform_date", OleDbType.Date).Value = item.XFormDate;
                                 }
 
-                                update.Parameters.Add("@sampling_date", OleDbType.Date).Value = item.SamplingDate;
-                                update.Parameters.Add("@user_name", OleDbType.VarChar).Value = item.UserName;
-                                update.Parameters.Add("@device_id", OleDbType.VarChar).Value = item.DeviceID;
-                                update.Parameters.Add("@date_submitted", OleDbType.Date).Value = item.DateTimeSubmitted;
-                                update.Parameters.Add("@form_version", OleDbType.VarChar).Value = item.FormVersion;
+                                update1.Parameters.Add("@sampling_date", OleDbType.Date).Value = item.SamplingDate;
 
-                                if (item.GPSCode == null || item.GPSCode.Length == 0)
+
+
+                                update1.Parameters.Add("@user_name", OleDbType.VarChar).Value = item.UserName;
+                                update1.Parameters.Add("@device_id", OleDbType.VarChar).Value = item.DeviceID;
+                                update1.Parameters.Add("@date_submitted", OleDbType.Date).Value = item.DateTimeSubmitted;
+                                update1.Parameters.Add("@form_version", OleDbType.VarChar).Value = item.FormVersion;
+
+
+                                if (item.GPSCode == null )
                                 {
-                                    update.Parameters.Add("@gps", OleDbType.VarChar).Value = DBNull.Value;
+                                    update1.Parameters.Add("@gps", OleDbType.VarChar).Value = "";
                                 }
                                 else
                                 {
-                                    update.Parameters.Add("@gps", OleDbType.VarChar).Value = item.GPSCode;
+                                    update1.Parameters.Add("@gps", OleDbType.VarChar).Value = item.GPSCode;
                                 }
 
-                                update.Parameters.Add("@notes", OleDbType.VarChar).Value = item.Notes;
+                                string notes = item.Notes == null ? "" : item.Notes;
+                                update1.Parameters.Add("@notes", OleDbType.VarChar).Value = notes;
 
-                                if(item.NSAPEnumeratorID==null)
+                                if (item.NSAPEnumeratorID == null)
                                 {
-                                    update.Parameters.Add("@enumerator", OleDbType.Integer).Value = DBNull.Value;
+                                    update1.Parameters.Add("@enumerator", OleDbType.Integer).Value = DBNull.Value;
                                 }
                                 else
                                 {
-                                    update.Parameters.Add("@enumerator", OleDbType.Integer).Value = item.NSAPEnumeratorID; ;
+                                    update1.Parameters.Add("@enumerator", OleDbType.Integer).Value = item.NSAPEnumeratorID; ;
                                 }
 
-                                update.Parameters.Add("@enumerator_text", OleDbType.VarChar).Value = item.EnumeratorText;
-                                update.Parameters.Add("@date_added", OleDbType.Date).Value = item.DateAddedToDatabase;
-                                update.Parameters.Add("@sector_code", OleDbType.VarChar).Value = item.SectorCode;
-                                update.Parameters.Add("@from_excel", OleDbType.Boolean).Value = item.FromExcelDownload;
+                                string en_text = item.EnumeratorText== null ? "" : item.EnumeratorText;
+                                update1.Parameters.Add("@enumerator_text", OleDbType.VarChar).Value = en_text;
+                                
+                                update1.Parameters.Add("@date_added", OleDbType.Date).Value = item.DateAddedToDatabase;
+
+                                string sector = item.SectorCode == null ? "" : item.SectorCode;
+                                update1.Parameters.Add("@sector_code", OleDbType.VarChar).Value = sector;
+
+                                update1.Parameters.Add("@from_excel", OleDbType.Boolean).Value = item.FromExcelDownload;
+
+                                //update1.Parameters.Add("@start", OleDbType.Date).Value = item.TimeStart;
                                 
                                 try
                                 {
@@ -459,8 +477,15 @@ namespace NSAP_ODK.Entities.Database
                                 }
                                 catch (OleDbException dbex)
                                 {
-                                    Console.WriteLine(dbex.Message);
-                                    success = false;
+                                    if (dbex.ErrorCode == -2147217900)
+                                    {
+                                        AddFieldToTable(dbex.Message);
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine(dbex.Message);
+                                        success = false;
+                                    }
                                 }
                                 catch (Exception ex)
                                 {
@@ -481,6 +506,14 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
             return success;
+        }
+
+        private void AddFieldToTable(string errorMessage)
+        {
+            int s1 = errorMessage.IndexOf("name: '");
+            int s2 = errorMessage.IndexOf("'.  Make");
+            string newField = errorMessage.Substring(s1 + 7, s2-(s1+7));
+            int y;
         }
 
         public bool Update(VesselUnload item)

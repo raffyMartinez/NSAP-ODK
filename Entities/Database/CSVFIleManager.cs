@@ -17,6 +17,7 @@ namespace NSAP_ODK.Entities.Database
         private static string Directory => Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         public static bool ReadCSVXML()
         {
+            CSVFiles.Clear();
             if (File.Exists(Directory + "\\" + "csv_files.xml"))
             {
 

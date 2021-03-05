@@ -14,6 +14,7 @@ namespace NSAP_ODK.Entities.Database
         ConvertDataToExcel,
         ConvertDataToEntities,
         FinishedDownload,
+        FinishedDownloadAndSavedJSONFile,
         StoppedDueToError
     }
     public class DownloadFromServerEventArg:EventArgs

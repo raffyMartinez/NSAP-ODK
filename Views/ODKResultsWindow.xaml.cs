@@ -12,6 +12,8 @@ using System.Windows.Media;
 using System.Diagnostics;
 using NSAP_ODK.Entities;
 using System.Linq;
+using System.Threading.Tasks;
+using System.IO;
 
 namespace NSAP_ODK.Views
 {
@@ -34,7 +36,14 @@ namespace NSAP_ODK.Views
         private int _savedCount;
         private ODKServerDownload _odkServerDownload;
         private bool _uploadToDBSuccess;
+        private JSONFile _jsonFile;
         public string JSON { get; set; }
+        public string FormID { get; set; }
+
+        public string Description { get; set; }
+
+
+        public int Count { get; set; }
         public ODKServerDownload ODKServerDownload
         {
             get { return _odkServerDownload; }
@@ -131,6 +140,7 @@ namespace NSAP_ODK.Views
                 menuVesselCountJSON.Visibility = Visibility.Visible;
                 menuVesselUnloadJSON.Visibility = Visibility.Visible;
             }
+            menuSaveJson.IsEnabled = true;
 
             menuView.Visibility = Visibility.Collapsed;
         }
@@ -182,6 +192,9 @@ namespace NSAP_ODK.Views
                     menuViewLandingSiteSampling.IsChecked = true;
                 }
                 SetMenuViewVisibility();
+
+
+
             }
 
 
@@ -231,10 +244,58 @@ namespace NSAP_ODK.Views
 
             }
         }
+
+        public Task<bool> SaveJSONTextTask(bool verbose = true)
+        {
+            return Task.Run(() => SaveJSONText(verbose));
+        }
+        private async Task<bool> SaveJSONText(bool verbose = true)
+        {
+            bool success = false;
+
+            _jsonFile = new JSONFile();
+            _jsonFile.JSONText = JSON;
+            _jsonFile.MD5 = MD5.CreateMD5(_jsonFile.JSONText);
+            _jsonFile.RowID = NSAPEntities.JSONFileViewModel.NextRecordNumber;
+            _jsonFile.FormID = FormID;
+            _jsonFile.Description = Description;
+            _jsonFile.Earliest = VesselUnloadServerRepository.DownloadedLandingsEarliestLandingDate();
+            _jsonFile.Latest = VesselUnloadServerRepository.DownloadedLandingsLatestLandingDate();
+            _jsonFile.Count = VesselUnloadServerRepository.DownloadedLandingsCount();
+            _jsonFile.DateAdded = DateTime.Now;
+            _jsonFile.FileName = $@"{Global.Settings.JSONFolder}\{NSAPEntities.JSONFileViewModel.CreateFileName(_jsonFile)}";
+            if (NSAPEntities.JSONFileViewModel.Count() == 0 || NSAPEntities.JSONFileViewModel.getJSONFIle(_jsonFile.MD5) == null)
+            {
+                success = await NSAPEntities.JSONFileViewModel.Save(_jsonFile);
+                if (success && verbose)
+                {
+                    MessageBox.Show("JSON file saved successfully", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            else
+            {
+                if (verbose)
+                {
+                    MessageBox.Show("JSON file already saved in database", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            return success;
+        }
+
+
         private async void OnMenuClick(object sender, RoutedEventArgs e)
         {
             switch (((MenuItem)sender).Name)
             {
+                case "menuSaveJson":
+                    //for saving the downloadd JSON text into a file.
+                    if (await SaveJSONTextTask())
+                    {
+                        menuSaveJson.IsEnabled = false;
+                        ((MainWindow)Owner).ShowSummary("Overall");
+                    }
+
+                    break;
                 case "menuUploadMedia":
                     var serverForm = new DownloadFromServerWindow(this);
                     VesselUnloadServerRepository.ResetLists();
@@ -259,8 +320,8 @@ namespace NSAP_ODK.Views
                         //ignore
                     }
                     break;
-                    
-                    //get vessel unloads from json text file
+
+                //get vessel unloads from json text file
                 case "menuVesselUnloadJSON":
                     try
                     {
@@ -332,7 +393,20 @@ namespace NSAP_ODK.Views
                                     dataGridExcel.ItemsSource = VesselUnloadServerRepository.VesselLandings;
                                     success = true;
                                     _uploadToDBSuccess = true;
-                                    MessageBox.Show("Finished uploading to database", "Upload done", MessageBoxButton.OK, MessageBoxImage.Information);
+                                    if (await SaveJSONTextTask(verbose: false))
+                                    {
+                                        MessageBox.Show("Finished uploading to database\r\n" +
+                                            $"and saving JSON file to {Global.Settings.JSONFolder}",
+                                            "NSAP-ODK Database",
+                                            MessageBoxButton.OK,
+                                            MessageBoxImage.Information);
+                                     
+                                        ((MainWindow)Owner).ShowSummary("Overall");
+                                    }
+                                    else
+                                    {
+                                        MessageBox.Show("Finished uploading to database", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                                    }
                                 }
                                 else if (_savedCount == 0 && VesselUnloadServerRepository.VesselLandings.Count > 0)
                                 {

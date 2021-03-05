@@ -81,7 +81,7 @@ namespace NSAP_ODK
         }
 
 
-        private bool ShowSplash()
+        public bool ShowSplash()
         {
             SplashWindow sw = new SplashWindow();
             sw.Owner = this;
@@ -92,7 +92,7 @@ namespace NSAP_ODK
             return false;
         }
 
-        private void ShowSummary(string level)
+        public void ShowSummary(string level)
         {
             rowOpening.Height = new GridLength(1, GridUnitType.Star);
 
@@ -107,7 +107,7 @@ namespace NSAP_ODK
                     propertyGridSummary.NameColumnWidth = 350;
                     propertyGridSummary.AutoGenerateProperties = false;
 
-                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Database", Name = "DBPath", Description = "Path to database", DisplayOrder = 1, Category = "Database" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Database", Name = "DBPath", Description = "Path to database. Double click to open folder containing the database.", DisplayOrder = 1, Category = "Database" });
                     propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of NSAP Regions", Name = "NSAPRegionCount", Description = "Number of NSAP Regions", DisplayOrder = 2, Category = "Lookup choices" });
                     propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of FMAS", Name = "FMACount", Description = "Number of FMAs", DisplayOrder = 3, Category = "Lookup choices" });
                     propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of fishing grounds", Name = "FishingGroundCount", Description = "Number of fishing grounds", DisplayOrder = 4, Category = "Lookup choices" });
@@ -126,6 +126,10 @@ namespace NSAP_ODK
                     propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Date of first sampled landing", Name = "FirstSampledLandingDate", Description = "Date of first sampled operation", DisplayOrder = 17, Category = "Submitted fish landing data" });
                     propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Date of last sampled landing", Name = "LastSampledLandingDate", Description = "Date of last sampled operation", DisplayOrder = 18, Category = "Submitted fish landing data" });
                     propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Date of latest download", Name = "DateLastDownload", Description = "Date of latet download", DisplayOrder = 19, Category = "Submitted fish landing data" });
+
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Saved JSON files folder", Name = "SavedJSONFolder", Description = "Folder containing saved JSON data. Double click to open folder", DisplayOrder = 1, Category = "Saved JSON files" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of saved catch and effort monitoring JSON files", Name = "SavedFishingEffortJSONCount", Description = "Number of saved JSON files containing catch and effort monitoring data", DisplayOrder = 2, Category = "Saved JSON files" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of saved vessel counts and catch estimate JSON files", Name = "SavedVesselCountsJSONCount", Description = "Number of saved JSON files containing count of landings and estimate of catch per gear", DisplayOrder = 3, Category = "Saved JSON files" });
                     break;
                 case "Enumerators":
                     NSAPEntities.DatabaseEnumeratorSummary.Refresh();
@@ -231,7 +235,7 @@ namespace NSAP_ODK
         }
 
 
-        private void SetDataDisplayMode()
+        public void SetDataDisplayMode()
         {
             ResetDisplay();
             switch (_currentDisplayMode)
@@ -1169,6 +1173,45 @@ namespace NSAP_ODK
                 MessageBox.Show(exportResult, "Database export", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
+
+        public bool LocateBackendDB(out string backendPath)
+        {
+            bool success = false;
+            backendPath = "";
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.Title = "Locate backend database for NSAP data";
+            ofd.Filter = "MDB file(*.mdb)|*.mdb|All file types (*.*)|*.*";
+            ofd.FilterIndex = 1;
+            ofd.InitialDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            if ((bool)ofd.ShowDialog() && File.Exists(ofd.FileName))
+            {
+
+                Global.SetMDBPath(ofd.FileName);
+                if (Global.AppProceed)
+                {
+                    SetDataDisplayMode();
+                    ShowSplash();
+                    samplingTree.ReadDatabase();
+                    if (
+                        NSAPEntities.NSAPRegionViewModel.Count > 0 &&
+                        NSAPEntities.FishSpeciesViewModel.Count > 0 &&
+                        NSAPEntities.NotFishSpeciesViewModel.Count > 0 &&
+                        NSAPEntities.FMAViewModel.Count > 0
+                        )
+                    {
+                        SetDataDisplayMode();
+                        menuDatabaseSummary.IsChecked = true;
+                        success = true;
+                        backendPath = ofd.FileName;
+                    }
+                    else
+                    {
+                        ShowDatabaseNotFoundView();
+                    }
+                }
+            }
+            return success;
+        }
         private async void OnMenuClicked(object sender, RoutedEventArgs e)
         {
             string fileName = "";
@@ -1205,35 +1248,8 @@ namespace NSAP_ODK
                     }
                     break;
                 case "menuLocateDatabase":
-                    OpenFileDialog ofd = new OpenFileDialog();
-                    ofd.Title = "Locate backend database for NSAP data";
-                    ofd.Filter = "MDB file(*.mdb)|*.mdb|All file types (*.*)|*.*";
-                    ofd.FilterIndex = 1;
-                    ofd.InitialDirectory = AppDomain.CurrentDomain.BaseDirectory;
-                    if ((bool)ofd.ShowDialog() && File.Exists(ofd.FileName))
-                    {
-                        Global.SetMDBPath(ofd.FileName);
-                        if (Global.AppProceed)
-                        {
-                            SetDataDisplayMode();
-                            ShowSplash();
-                            samplingTree.ReadDatabase();
-                            if (
-                                NSAPEntities.NSAPRegionViewModel.Count > 0 &&
-                                NSAPEntities.FishSpeciesViewModel.Count > 0 &&
-                                NSAPEntities.NotFishSpeciesViewModel.Count > 0 &&
-                                NSAPEntities.FMAViewModel.Count > 0
-                                )
-                            {
-                                SetDataDisplayMode();
-                                menuDatabaseSummary.IsChecked = true;
-                            }
-                            else
-                            {
-                                ShowDatabaseNotFoundView();
-                            }
-                        }
-                    }
+                   
+                    LocateBackendDB(out  string backendPath);
                     break;
                 case "menuImportGPX":
                     OpenFileDialog opf = new OpenFileDialog();
@@ -1393,9 +1409,10 @@ namespace NSAP_ODK
 
                         }
                     }
-                    else if (Keyboard.IsKeyDown(Key.LeftShift) &&
-                        _currentDisplayMode == DataDisplayMode.DownloadHistory &&
-                        (VesselUnload)GridNSAPData.SelectedItem != null)
+                    //else if (Keyboard.IsKeyDown(Key.LeftShift) &&
+                    //    _currentDisplayMode == DataDisplayMode.DownloadHistory &&
+                    //    (VesselUnload)GridNSAPData.SelectedItem != null)
+                    else if (_currentDisplayMode == DataDisplayMode.DownloadHistory)
                     {
                         var unload = (VesselUnload)GridNSAPData.SelectedItem;
                         var unloadEditWindow = VesselUnloadEditWindow.GetInstance();
@@ -1412,25 +1429,25 @@ namespace NSAP_ODK
                         unloadEditWindow.VesselUnload = unload;
 
                     }
-                    else if (_currentDisplayMode == DataDisplayMode.DownloadHistory)
-                    {
-                        if ((VesselUnload)GridNSAPData.SelectedItem != null)
-                        {
-                            var unload = (VesselUnload)GridNSAPData.SelectedItem;
-                            if (_vesselUnloadWindow == null)
-                            {
+                    //else if (_currentDisplayMode == DataDisplayMode.DownloadHistory)
+                    //{
+                    //    if ((VesselUnload)GridNSAPData.SelectedItem != null)
+                    //    {
+                    //        var unload = (VesselUnload)GridNSAPData.SelectedItem;
+                    //        if (_vesselUnloadWindow == null)
+                    //        {
 
-                                NSAPEntities.NSAPRegion = unload.Parent.Parent.NSAPRegion;
-                                _vesselUnloadWindow = new VesselUnloadWIndow(unload, this);
-                                _vesselUnloadWindow.Owner = this;
-                                _vesselUnloadWindow.Show();
-                            }
-                            else
-                            {
-                                _vesselUnloadWindow.VesselUnload = unload;
-                            }
-                        }
-                    }
+                    //            NSAPEntities.NSAPRegion = unload.Parent.Parent.NSAPRegion;
+                    //            _vesselUnloadWindow = new VesselUnloadWIndow(unload, this);
+                    //            _vesselUnloadWindow.Owner = this;
+                    //            _vesselUnloadWindow.Show();
+                    //        }
+                    //        else
+                    //        {
+                    //            _vesselUnloadWindow.VesselUnload = unload;
+                    //        }
+                    //    }
+                    //}
 
                     break;
                 case "dataGridSpecies":
@@ -1873,6 +1890,9 @@ namespace NSAP_ODK
                 case "DBPath":
                     System.Diagnostics.Process.Start($"{Path.GetDirectoryName(_selectedPropertyItem.Value.ToString())}");
                     break;
+                case "SavedJSONFolder":
+                    System.Diagnostics.Process.Start($"{_selectedPropertyItem.Value.ToString()}");
+                    break;
                 default:
                     break;
             }
@@ -2203,7 +2223,9 @@ namespace NSAP_ODK
                     aw.ShowDialog();
                     break;
                 case "buttonSettings":
-                    ShowToBeImplemented();
+                    SettingsWindow sw = new SettingsWindow();
+                    sw.Owner = this;
+                    sw.ShowDialog();
                     break;
                 case "buttonExit":
                     Close();

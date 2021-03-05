@@ -122,28 +122,36 @@ namespace NSAP_ODK.Entities.Database
                 var sql = $@"Insert into dbo_LC_FG_sample_day(
                                 unload_day_id, region_id,sdate, land_ctr_id,ground_id,
                                 remarks,sampleday,land_ctr_text,fma)
-                           Values (?,?,?,?,?,?,?,?,?,)";
+                           Values (?,?,?,?,?,?,?,?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
                     try
                     {
+                        update.Parameters.Clear();
                         update.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
                         update.Parameters.Add("@nsap_region", OleDbType.VarChar).Value = item.NSAPRegionID;
                         update.Parameters.Add("@sampling_date", OleDbType.Date).Value = item.SamplingDate;
 
                         if (item.LandingSiteID == null)
                         {
-                            update.Parameters.Add("@landing_site_id", OleDbType.VarChar).Value = DBNull.Value;
+                            update.Parameters.Add("@landing_site_id", OleDbType.Integer).Value = DBNull.Value;
                         }
                         else
                         {
-                            update.Parameters.Add("@landing_site_id", OleDbType.VarChar).Value = item.LandingSiteID;
+                            update.Parameters.Add("@landing_site_id", OleDbType.Integer).Value = item.LandingSiteID;
                         }
 
                         update.Parameters.Add("@fg", OleDbType.VarChar).Value = item.FishingGroundID;
-                        update.Parameters.Add("@remarks", OleDbType.VarChar).Value = item.Remarks;
+                        if (item.Remarks == null)
+                        {
+                            update.Parameters.Add("@remarks", OleDbType.VarChar).Value = "";
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@remarks", OleDbType.VarChar).Value = item.Remarks;
+                        }
                         update.Parameters.Add("@is_sampling_day", OleDbType.Boolean).Value = item.IsSamplingDay;
-                        update.Parameters.Add("@landing_site_text", OleDbType.Boolean).Value = item.LandingSiteText;
+                        update.Parameters.Add("@landing_site_text", OleDbType.VarChar).Value = item.LandingSiteText;
                         update.Parameters.Add("@fma_id", OleDbType.Integer).Value = item.FMAID;
 
 
@@ -178,6 +186,7 @@ namespace NSAP_ODK.Entities.Database
                             //            '{item.EnumeratorText}' 
                             //        )";
 
+
                             sql = $@"Insert into dbo_LC_FG_sample_day_1  (
                                         unload_day_id,
                                         datetime_submitted,
@@ -190,11 +199,12 @@ namespace NSAP_ODK.Entities.Database
                                         RowID,
                                         EnumeratorID,
                                         EnumeratorText
-                                    ) Values (?,?,?,?,?,?,?,?,?,?,?,)";
+                                    ) Values (?,?,?,?,?,?,?,?,?,?,?)";
 
 
                             using (OleDbCommand update1 = new OleDbCommand(sql, conn))
                             {
+                                update1.Parameters.Clear();
                                 update1.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
 
                                 if (item.DateSubmitted == null)
@@ -206,9 +216,34 @@ namespace NSAP_ODK.Entities.Database
                                     update1.Parameters.Add("@date_submitted", OleDbType.Date).Value = item.DateSubmitted;
                                 }
 
-                                update1.Parameters.Add("@user", OleDbType.VarChar).Value = item.UserName;
-                                update1.Parameters.Add("@device_id", OleDbType.VarChar).Value = item.DeviceID;
-                                update1.Parameters.Add("@xform_id", OleDbType.VarChar).Value = item.XFormIdentifier;
+                                if (item.UserName == null)
+                                {
+                                    update1.Parameters.Add("@device_user", OleDbType.VarChar).Value = "";
+                                }
+                                else
+                                {
+                                    update1.Parameters.Add("@device_user", OleDbType.VarChar).Value = item.UserName;
+                                }
+
+                                if (item.DeviceID == null)
+                                {
+                                    update1.Parameters.Add("@device_id", OleDbType.VarChar).Value = "";
+                                }
+                                else
+                                {
+                                    update1.Parameters.Add("@device_id", OleDbType.VarChar).Value = item.DeviceID;
+                                }
+
+                                if (item.XFormIdentifier == null)
+                                {
+                                    update1.Parameters.Add("@xform_id", OleDbType.VarChar).Value = "";
+                                }
+                                else
+                                {
+                                    update1.Parameters.Add("@xform_id", OleDbType.VarChar).Value = item.XFormIdentifier;
+                                }
+
+                                //update1.Parameters.Add("@date_added", OleDbType.VarChar).Value = dateAdded;
 
                                 if (item.DateAdded == null)
                                 {
@@ -220,8 +255,24 @@ namespace NSAP_ODK.Entities.Database
                                 }
 
                                 update1.Parameters.Add("@fromExcel", OleDbType.Boolean).Value = item.FromExcelDownload;
-                                update1.Parameters.Add("@form_version", OleDbType.VarChar).Value = item.FormVersion;
-                                update1.Parameters.Add("@row_id", OleDbType.VarChar).Value = item.RowID;
+
+                                if (item.FormVersion == null)
+                                {
+                                    update1.Parameters.Add("@form_version", OleDbType.VarChar).Value = "";
+                                }
+                                else
+                                {
+                                    update1.Parameters.Add("@form_version", OleDbType.VarChar).Value = item.FormVersion;
+                                }
+
+                                if (item.RowID == null)
+                                {
+                                    update1.Parameters.Add("@row_id", OleDbType.Guid).Value = DBNull.Value;
+                                }
+                                else
+                                {
+                                    update1.Parameters.Add("@row_id", OleDbType.Guid).Value = Guid.Parse( item.RowID);
+                                }
 
                                 if (item.EnumeratorID == null)
                                 {
@@ -232,7 +283,15 @@ namespace NSAP_ODK.Entities.Database
                                     update1.Parameters.Add("@enum_id", OleDbType.Integer).Value = item.EnumeratorID;
                                 }
 
-                                update1.Parameters.Add("@enum_text", OleDbType.VarChar).Value = item.EnumeratorText;
+
+                                if (item.EnumeratorText == null)
+                                {
+                                    update1.Parameters.Add("@enum_text", OleDbType.VarChar).Value = "";
+                                }
+                                else
+                                {
+                                    update1.Parameters.Add("@enum_text", OleDbType.VarChar).Value = item.EnumeratorText;
+                                }
 
                                 try
                                 {
@@ -248,6 +307,7 @@ namespace NSAP_ODK.Entities.Database
                                     Logger.Log(ex);
                                 }
                             }
+
                         }
                     }
                     catch (OleDbException odbex)
@@ -284,7 +344,7 @@ namespace NSAP_ODK.Entities.Database
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
                     success = update.ExecuteNonQuery() > 0;
-                    if (success && (item.XFormIdentifier != null && item.XFormIdentifier.Length > 0) || (item.Remarks!=null &&  item.Remarks.Contains("orphaned")))
+                    if (success && (item.XFormIdentifier != null && item.XFormIdentifier.Length > 0) || (item.Remarks != null && item.Remarks.Contains("orphaned")))
                     {
                         string dateSubmitted = item.DateSubmitted == null ? "null" : $@"'{item.DateSubmitted.ToString()}'";
                         string dateAdded = item.DateAdded == null ? "null" : $@"'{item.DateAdded.ToString()}'";
@@ -320,7 +380,7 @@ namespace NSAP_ODK.Entities.Database
                         }
                     }
                 }
-                
+
             }
             return success;
         }

@@ -165,6 +165,9 @@
     <Compile Include="Entities\Database\GearSoakViewModel.cs" />
     <Compile Include="Entities\Database\GearUnload.cs" />
     <Compile Include="Entities\Database\GearUnloadRepository.cs" />
+    <Compile Include="Entities\Database\JSONFile.cs" />
+    <Compile Include="Entities\Database\JSONFileRepository.cs" />
+    <Compile Include="Entities\Database\JSONFileViewModel.cs" />
     <Compile Include="Entities\Database\LandingSiteBoatLandingsFromServerRepository.cs" />
     <Compile Include="Entities\Database\GearUnloadViewModel.cs" />
     <Compile Include="Entities\ItemSources\FishingGroundInRegionFMAItemsSource.cs" />
@@ -310,6 +313,7 @@
     <Compile Include="Entities\UTMCoordinate.cs" />
     <Compile Include="Entities\UTMZone.cs" />
     <Compile Include="Oware\LatLngUTMConverter.cs" />
+    <Compile Include="Utilities\MD5.cs" />
     <Compile Include="Utilities\Settings.cs" />
     <Compile Include="TreeViewModelControl\AllSamplingEntitiesEventHandler.cs" />
     <Compile Include="TreeViewModelControl\TreeControl.xaml.cs">
@@ -377,6 +381,9 @@
     </Compile>
     <Compile Include="Views\SelectRegionWindow.xaml.cs">
       <DependentUpon>SelectRegionWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\SettingsWindow.xaml.cs">
+      <DependentUpon>SettingsWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\SplashWindow.xaml.cs">
       <DependentUpon>SplashWindow.xaml</DependentUpon>
@@ -467,6 +474,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\SelectRegionWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\SettingsWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

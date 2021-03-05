@@ -253,7 +253,14 @@ namespace NSAP_ODK.Entities.Database
 
                 row["Sampling day"] = item.CrossTabCommon.SamplingDay;
                 row["Catch composition count"] = item.VesselUnload.ListVesselCatch.Count;
-                row["Total weight of catch"] = item.CrossTabCommon.TotalWeight;
+                if (item.CrossTabCommon.TotalWeight == null)
+                {
+                    row["Total weight of catch"] = DBNull.Value;
+                }
+                else
+                {
+                    row["Total weight of catch"] = item.CrossTabCommon?.TotalWeight;
+                }
 
                 foreach (var ve in NSAPEntities.VesselEffortViewModel.VesselEffortCollection
                     .Where(t => t.Parent.PK == item.CrossTabCommon.DataID)
