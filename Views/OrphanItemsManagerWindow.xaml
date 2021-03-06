@@ -49,7 +49,9 @@
             <Button Content="Select replacement" Height="30" Width="120" Margin="10" x:Name="buttonSelectReplacement" Click="OnButtonClick"/>
             <Button Content="Cancel" Height="30" Width="120" Margin="10 0" x:Name="buttonCancel" Click="OnButtonClick"/>
             
-            <Button Content="Replace" Height="30" Width="120" Margin="10 30" x:Name="buttonReplace" Click="OnButtonClick" IsEnabled="False"/>
+            <Button Content="Replace" Height="30" Width="120" Margin="10 30 10 0" x:Name="buttonReplace" Click="OnButtonClick" IsEnabled="False"/>
+            <CheckBox Content="Multiple species" Margin="10 30 10 0" Checked="OnCheckChanged" Unchecked="OnCheckChanged" x:Name="checkMultipleSp" Visibility="Visible"/>
+            <Button Content="Fix" Height="30" Width="120" Margin="10" x:Name="buttonFix" Click="OnButtonClick" IsEnabled="False" Visibility="Collapsed"/>
         </StackPanel>
         <StatusBar Grid.Row="2" Margin="10 0 0 5">
             <ProgressBar x:Name="progressBar" Width="200" Height="20" Margin="10 0"/>

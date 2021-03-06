@@ -71,6 +71,14 @@ namespace NSAP_ODK.Entities.Database
             return list;
 
         }
+
+        public List<VesselCatch>MulitpleCatchNamesText()
+        {
+            return VesselCatchCollection
+                .Where(t =>t.SpeciesID!=null && t.SpeciesText!=null &&  t.SpeciesText.Contains('\n') )
+                .OrderBy(t=>t.SpeciesText)
+                .ToList();
+        }
         public VesselCatch getVesselCatch(FromJson.VesselLanding parent, int? speciesID, string speciesText)
         {
             if (speciesID == null)

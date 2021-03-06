@@ -15,6 +15,7 @@ using NSAP_ODK.Entities.Database;
 using NSAP_ODK.Entities;
 using NSAP_ODK.Utilities;
 using System.Windows.Threading;
+using System.Diagnostics;
 
 namespace NSAP_ODK.Views
 {
@@ -36,19 +37,69 @@ namespace NSAP_ODK.Views
 
         private void SearchReplacements(string toSearch)
         {
+            int count = 0;
             foreach (var sp in NSAPEntities.FishSpeciesViewModel.GetAllSpecies(toSearch))
             {
                 var rb = new RadioButton { Content = sp.ToString(), Tag = sp };
                 rb.Checked += OnButtonChecked;
+                rb.MouseRightButtonDown += OnRadioButtonRightMouseButtonDown;
                 rb.Margin = new Thickness(10, 10, 0, 0);
                 panelButtons.Children.Add(rb);
+                count++;
             }
 
-            if(panelButtons.Children.Count==1)
+            if (count == 1)
             {
                 ((RadioButton)panelButtons.Children[0]).IsChecked = true;
             }
+            else if (count == 0)
+            {
+                foreach (NotFishSpecies nf in NSAPEntities.NotFishSpeciesViewModel.GetAllSpecies(toSearch))
+                {
+                    var rb = new RadioButton { Content = nf.ToString(), Tag = nf };
+                    rb.Checked += OnButtonChecked;
+                    rb.MouseRightButtonDown += OnRadioButtonRightMouseButtonDown;
+                    rb.Margin = new Thickness(10, 10, 0, 0);
+                    panelButtons.Children.Add(rb);
+                    count++;
+
+                }
+                if (count == 1)
+                {
+                    ((RadioButton)panelButtons.Children[0]).IsChecked = true;
+                }
+            }
         }
+
+        private void OnRadioButtonRightMouseButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            RadioButton rb = (RadioButton)sender;
+            ContextMenu cm = new ContextMenu();
+            MenuItem m = null;
+
+            m = new MenuItem { Header = $"Open {rb.Content} in Fishbaase", Name = "menuFishBasePage" };
+            m.Tag =  $"https://www.fishbase.de/summary/{rb.Content.ToString().Replace(' ', '-')}.html";
+            m.Click += OnMenuClick;
+            cm.Items.Add(m);
+
+            m = new MenuItem { Header = $"Open {rb.Content} in Google image", Name = "menuGoogleImagePage" };
+            m.Tag = $"https://www.google.com/images?q={rb.Content.ToString().Replace(' ', '+')}";
+            m.Click += OnMenuClick;
+            cm.Items.Add(m);
+
+            m = new MenuItem { Header = $"Open {rb.Content} in Wikipaedia", Name = "menuWikipaedia" };
+            m.Tag = $"https://en.wikipedia.org/wiki/{rb.Content.ToString().Replace(' ', '_')}";
+            m.Click += OnMenuClick;
+            cm.Items.Add(m);
+
+            cm.IsOpen = true;
+        }
+
+        private void OnMenuClick(object sender, RoutedEventArgs e)
+        {
+            Process.Start(((MenuItem)sender).Tag.ToString());
+        }
+
         private void OnTimerTick(object sender, EventArgs e)
         {
             _timer.Stop();
@@ -61,7 +112,7 @@ namespace NSAP_ODK.Views
             Closing -= OnWindowClosing;
 
         }
-
+        public List<string> ItemsToReplace { get; set; }
         public string ItemToReplace { get; set; }
         protected override void OnSourceInitialized(EventArgs e)
         {
@@ -76,7 +127,7 @@ namespace NSAP_ODK.Views
                 Width = w;
             }
 
-           
+
 
         }
         public Entities.NSAPEntity NSAPEntity { get; set; }
@@ -90,6 +141,16 @@ namespace NSAP_ODK.Views
             switch (NSAPEntity)
             {
                 case Entities.NSAPEntity.FishSpecies:
+                    linkSingle.Visibility = Visibility.Collapsed;
+                    panelMultiSpecieslink.Visibility = Visibility.Collapsed;
+                    if (ItemToReplace != null)
+                    {
+                        linkSingle.Visibility = Visibility.Visible;
+                    }
+                    else if (ItemsToReplace != null && ItemsToReplace.Count > 1)
+                    {
+                        panelMultiSpecieslink.Visibility = Visibility.Visible;
+                    }
                     speciesHyperLink.Inlines.Clear();
                     speciesHyperLink.Inlines.Add($"Search OBIS for {ItemToReplace}");
                     rowSearch.Height = new GridLength(70);
@@ -113,7 +174,7 @@ namespace NSAP_ODK.Views
                     foreach (var regionEnumerator in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection
                         .Where(t => t.Code == LandingSiteSampling.NSAPRegionID)
                         .FirstOrDefault().NSAPEnumerators
-                        .OrderBy(t=>t.Enumerator.Name)
+                        .OrderBy(t => t.Enumerator.Name)
                         )
                     {
                         var rb = new RadioButton { Content = regionEnumerator.Enumerator.Name, Tag = regionEnumerator.Enumerator };
@@ -128,7 +189,7 @@ namespace NSAP_ODK.Views
                     foreach (var regionGear in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection
                         .Where(t => t.Code == GearUnload.Parent.NSAPRegionID)
                         .FirstOrDefault().Gears
-                        .OrderBy(t=>t.Gear.GearName)
+                        .OrderBy(t => t.Gear.GearName)
                         )
                     {
                         var rb = new RadioButton { Content = regionGear.Gear.GearName, Tag = regionGear.Gear };
@@ -144,6 +205,14 @@ namespace NSAP_ODK.Views
         {
             switch (((Button)sender).Name)
             {
+                case "buttonViewList":
+                    string fishList = ItemsToReplace[0];
+                    for (int x = 1; x < ItemsToReplace.Count; x++)
+                    {
+                        fishList += "\r\n" + ItemsToReplace[x];
+                    }
+                    MessageBox.Show(fishList, "Fish name for replacement", MessageBoxButton.OK, MessageBoxImage.Information);
+                    break;
                 case "buttonReplace":
                     if (_selectedButton != null)
                     {
@@ -190,17 +259,40 @@ namespace NSAP_ODK.Views
 
         private async void OnRequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
         {
+            Hyperlink hyp = (Hyperlink)sender;
             panelButtons.Children.Clear();
-            var results = await NSAPEntities.FishSpeciesViewModel.RequestDataFromOBI(ItemToReplace);
-            if(results.total>0)
+            switch (hyp.Name)
             {
-                var speciesData = results.results[0];
-                SearchReplacements(speciesData.acceptedNameUsage);
+                case "speciesHyperLink":
 
-            }
-            else
-            {
-                MessageBox.Show($"{ItemToReplace} is not found in OBIS", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                    var obi_results = await NSAPEntities.FishSpeciesViewModel.RequestDataFromOBI(ItemToReplace);
+                    if (obi_results.total > 0)
+                    {
+                        SearchReplacements(obi_results.results[0].acceptedNameUsage);
+                    }
+                    else
+                    {
+                        MessageBox.Show($"{ItemToReplace} is not found in OBIS", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    break;
+                case "multi_speciesHyperLink":
+                    bool isFound = false;
+                    foreach(var name in ItemsToReplace)
+                    {
+                        obi_results = await NSAPEntities.FishSpeciesViewModel.RequestDataFromOBI(name);
+                        if(obi_results.total>0)
+                        {
+                            SearchReplacements(obi_results.results[0].acceptedNameUsage);
+                            isFound = true;
+                            return;
+                        }
+                    }
+
+                    if (!isFound)
+                    {
+                        MessageBox.Show("Items to replace not found in OBIS", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    break;
             }
         }
     }

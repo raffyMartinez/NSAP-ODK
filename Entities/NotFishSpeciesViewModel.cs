@@ -25,6 +25,18 @@ namespace NSAP_ODK.Entities
         {
             return NotFishSpeciesCollection.ToList();
         }
+
+        public List<NotFishSpecies> GetAllSpecies(string search = "")
+        {
+            if (search.Length > 0)
+            {
+                return NotFishSpeciesCollection.Where(t => t.ToString().ToLower().Contains(search.ToLower())).ToList();
+            }
+            else
+            {
+                return NotFishSpeciesCollection.OrderBy(t => t.ToString()).ToList();
+            }
+        }
         public List<string> GetAllGenus(Taxa taxa)
         {
             List<string> genusList = new List<string>();

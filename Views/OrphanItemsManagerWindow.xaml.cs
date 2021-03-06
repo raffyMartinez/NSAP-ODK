@@ -73,6 +73,7 @@ namespace NSAP_ODK.Views
         }
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
+            checkMultipleSp.Visibility = Visibility.Collapsed;
             labelStatus.Content = "";
             RefreshItemsSource();
             switch (NSAPEntity)
@@ -80,6 +81,8 @@ namespace NSAP_ODK.Views
                 case NSAPEntity.FishSpecies:
                     labelTitle.Content = "Manage orphaned fish species names";
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "Species name", Binding = new Binding("Name"), IsReadOnly = true });
+                    checkMultipleSp.Visibility = Visibility.Visible;
+                    buttonFix.Visibility = Visibility.Visible;
                     break;
                 case NSAPEntity.NonFishSpecies:
                     labelTitle.Content = "Manage orphaned non-fish species names";
@@ -410,6 +413,7 @@ namespace NSAP_ODK.Views
                 case "buttonSelectReplacement":
                     int checkCount = 0;
                     string itemToReplace = "";
+                    List<string> itemsToReplace = new List<string>();
                     _countForReplacement = 0;
                     var replacementWindow = new SelectionToReplaceOrpanWIndow();
                     replacementWindow.Owner = this;
@@ -427,6 +431,7 @@ namespace NSAP_ODK.Views
                                 if (((OrphanedFishSpeciesName)item).ForReplacement)
                                 {
                                     itemToReplace = ((OrphanedFishSpeciesName)item).Name;
+                                    itemsToReplace.Add(itemToReplace);
                                     checkCount++;
                                     procced = true;
                                 }
@@ -489,6 +494,15 @@ namespace NSAP_ODK.Views
                                     break;
                             }
                         }
+                        else if(checkCount>1)
+                        {
+                            switch(NSAPEntity)
+                            {
+                                case NSAPEntity.FishSpecies:
+                                    replacementWindow.ItemsToReplace = itemsToReplace;
+                                    break;
+                            }
+                        }
 
                         progressBar.Maximum = _countForReplacement;
                         replacementWindow.FillSelection();
@@ -509,6 +523,19 @@ namespace NSAP_ODK.Views
         private void Grid_LoadingRow(object sender, DataGridRowEventArgs e)
         {
             e.Row.Header = (e.Row.GetIndex() + 1).ToString();
+        }
+
+        private void OnCheckChanged(object sender, RoutedEventArgs e)
+        {
+            CheckBox chk = (CheckBox)sender;
+            switch(chk.Name)
+            {
+                case "checkMultipleSp":
+                    dataGrid.DataContext = NSAPEntities.VesselCatchViewModel.OrphanedFishSpeciesNames(getMultiLine:(bool)chk.IsChecked);
+                    buttonFix.IsEnabled = (bool)chk.IsChecked;
+                    buttonSelectReplacement.IsEnabled = !(bool)chk.IsChecked;
+                    break;
+            }
         }
     }
 }

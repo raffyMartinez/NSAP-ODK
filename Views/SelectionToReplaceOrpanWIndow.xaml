@@ -27,11 +27,21 @@
             </Grid.RowDefinitions>
             <Label Content="Search:" VerticalAlignment="Center"/>
             <TextBox  x:Name="textSearch" Width="300" TextChanged="OnTextChanged" Margin="0 5" Height="25" HorizontalAlignment="Left" VerticalContentAlignment="Center" Grid.Column="1"/>
-            <TextBlock Grid.Row="1" Grid.ColumnSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <Hyperlink  x:Name="speciesHyperLink" RequestNavigate="OnRequestNavigate" NavigateUri="http://search.msn.com">
-                    Search OBIS for Leiognathus splendens
-                </Hyperlink>
-            </TextBlock>
+            <WrapPanel Grid.Row="1" Grid.ColumnSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock x:Name="linkSingle" Visibility="Collapsed">
+                    <Hyperlink  x:Name="speciesHyperLink" RequestNavigate="OnRequestNavigate" NavigateUri="http://search.msn.com">
+                        Search OBIS for Leiognathus splendens
+                    </Hyperlink>
+                </TextBlock>
+                <WrapPanel x:Name="panelMultiSpecieslink" Visibility="Visible" VerticalAlignment="Center">
+                    <TextBlock>
+                        <Hyperlink x:Name="multi_speciesHyperLink" RequestNavigate="OnRequestNavigate" NavigateUri="http://search.msn.com">
+                            Search OBIS for names in the list
+                        </Hyperlink>
+                    </TextBlock>
+                    <Button Content="View list" Height="25" Width="60" Margin="10 0" x:Name="buttonViewList" Click="onButtonClick"/>
+                </WrapPanel>
+            </WrapPanel>
         </Grid>
 
 
