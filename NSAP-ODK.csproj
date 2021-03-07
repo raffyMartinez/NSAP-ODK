@@ -367,6 +367,9 @@
     <Compile Include="Views\ImportByPlainTextWindow.xaml.cs">
       <DependentUpon>ImportByPlainTextWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\OBISResultWindow.xaml.cs">
+      <DependentUpon>OBISResultWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\ODKResultsWindow.xaml.cs">
       <DependentUpon>ODKResultsWindow.xaml</DependentUpon>
     </Compile>
@@ -454,6 +457,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\ImportByPlainTextWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\OBISResultWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

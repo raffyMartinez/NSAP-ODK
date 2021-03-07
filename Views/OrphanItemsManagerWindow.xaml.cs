@@ -415,6 +415,7 @@ namespace NSAP_ODK.Views
                     string itemToReplace = "";
                     List<string> itemsToReplace = new List<string>();
                     _countForReplacement = 0;
+
                     var replacementWindow = new SelectionToReplaceOrpanWIndow();
                     replacementWindow.Owner = this;
                     replacementWindow.NSAPEntity = NSAPEntity;

@@ -57,6 +57,11 @@ namespace NSAP_ODK.Entities
             }
             return false;
         }
+
+        public NotFishSpecies GetSpecies(string speciesName)
+        {
+            return NotFishSpeciesCollection.FirstOrDefault(t => t.ToString() == speciesName);
+        }
         public NotFishSpecies GetSpecies(int id)
         {
             return NotFishSpeciesCollection.FirstOrDefault(n => n.SpeciesID == id);

@@ -224,6 +224,7 @@ namespace NSAP_ODK.Entities
 
         public async Task<OBIResponseRoot> RequestDataFromOBI(string speciesName)
         {
+           
             var bytes = await client.GetByteArrayAsync($"https://api.obis.org/v3/taxon/{speciesName}");
             Encoding encoding = Encoding.GetEncoding("utf-8");
             string response = encoding.GetString(bytes, 0, bytes.Length);

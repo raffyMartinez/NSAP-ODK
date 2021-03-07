@@ -26,6 +26,9 @@ namespace NSAP_ODK.Views
     {
         private RadioButton _selectedButton;
         private DispatcherTimer _timer;
+        private bool _isFish;
+        private bool _hasInternet;
+        private OBIResponseRoot _obiResponse;
         public SelectionToReplaceOrpanWIndow()
         {
             InitializeComponent();
@@ -43,6 +46,7 @@ namespace NSAP_ODK.Views
                 var rb = new RadioButton { Content = sp.ToString(), Tag = sp };
                 rb.Checked += OnButtonChecked;
                 rb.MouseRightButtonDown += OnRadioButtonRightMouseButtonDown;
+                _isFish = NSAPEntities.NotFishSpeciesViewModel.GetSpecies(rb.Content.ToString()) == null;
                 rb.Margin = new Thickness(10, 10, 0, 0);
                 panelButtons.Children.Add(rb);
                 count++;
@@ -71,33 +75,74 @@ namespace NSAP_ODK.Views
             }
         }
 
+        private Task<bool> CheckForInternet()
+        {
+            return Task.Run<bool>(() => Global.HasInternetConnection());
+        }
+
         private void OnRadioButtonRightMouseButtonDown(object sender, MouseButtonEventArgs e)
         {
-            RadioButton rb = (RadioButton)sender;
-            ContextMenu cm = new ContextMenu();
-            MenuItem m = null;
+            if (NSAPEntity == NSAPEntity.FishSpecies || NSAPEntity == NSAPEntity.NonFishSpecies)
+            {
+                RadioButton rb = (RadioButton)sender;
+                ContextMenu cm = new ContextMenu();
+                MenuItem m = null;
 
-            m = new MenuItem { Header = $"Open {rb.Content} in Fishbaase", Name = "menuFishBasePage" };
-            m.Tag =  $"https://www.fishbase.de/summary/{rb.Content.ToString().Replace(' ', '-')}.html";
-            m.Click += OnMenuClick;
-            cm.Items.Add(m);
+                if (_isFish)
+                {
+                    m = new MenuItem { Header = $"Open {rb.Content} in Fishbaase", Name = "menuFishBasePage" };
+                    m.Tag = $"https://www.fishbase.de/summary/{rb.Content.ToString().Replace(' ', '-')}.html";
+                    m.Click += OnMenuClick;
+                    cm.Items.Add(m);
+                }
 
-            m = new MenuItem { Header = $"Open {rb.Content} in Google image", Name = "menuGoogleImagePage" };
-            m.Tag = $"https://www.google.com/images?q={rb.Content.ToString().Replace(' ', '+')}";
-            m.Click += OnMenuClick;
-            cm.Items.Add(m);
+                m = new MenuItem { Header = $"Open {rb.Content} in World Register of Marine Species (WORMS)", Name = "menuWORMS" };
+                m.Tag = $"https://www.marinespecies.org/aphia.php?p=taxlist&tName={rb.Content.ToString()}";
+                m.Click += OnMenuClick;
+                cm.Items.Add(m);
 
-            m = new MenuItem { Header = $"Open {rb.Content} in Wikipaedia", Name = "menuWikipaedia" };
-            m.Tag = $"https://en.wikipedia.org/wiki/{rb.Content.ToString().Replace(' ', '_')}";
-            m.Click += OnMenuClick;
-            cm.Items.Add(m);
+                m = new MenuItem { Header = $"Open {rb.Content} in Google image", Name = "menuGoogleImagePage" };
+                m.Tag = $"https://www.google.com/images?q={rb.Content.ToString().Replace(' ', '+')}";
+                m.Click += OnMenuClick;
+                cm.Items.Add(m);
 
-            cm.IsOpen = true;
+                m = new MenuItem { Header = $"Open {rb.Content} in Wikipaedia", Name = "menuWikipaedia" };
+                m.Tag = $"https://en.wikipedia.org/wiki/{rb.Content.ToString().Replace(' ', '_')}";
+                m.Click += OnMenuClick;
+                cm.Items.Add(m);
+
+                if (_obiResponse != null)
+                {
+                    cm.Items.Add(new Separator());
+
+                    m = new MenuItem { Header = $"Show details from OBIS", Name = "menuOBISDetails" };
+                    m.Click += OnMenuClick;
+                    cm.Items.Add(m);
+                }
+
+                cm.IsOpen = true;
+            }
         }
 
         private void OnMenuClick(object sender, RoutedEventArgs e)
         {
-            Process.Start(((MenuItem)sender).Tag.ToString());
+            switch (((MenuItem)sender).Name)
+            {
+                case "menuOBISDetails":
+                    OBISResultWindow orw = new OBISResultWindow(_obiResponse);
+                    orw.ShowDialog();
+                    break;
+                default:
+                    if (_hasInternet)
+                    {
+                        Process.Start(((MenuItem)sender).Tag.ToString());
+                    }
+                    else
+                    {
+                        MessageBox.Show("Not connected to the internet", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    break;
+            }
         }
 
         private void OnTimerTick(object sender, EventArgs e)
@@ -133,10 +178,17 @@ namespace NSAP_ODK.Views
         public Entities.NSAPEntity NSAPEntity { get; set; }
         public LandingSiteSampling LandingSiteSampling { get; set; }
 
+
+
         public GearUnload GearUnload { get; set; }
 
-        public void FillSelection()
+        public async void FillSelection()
         {
+            if (NSAPEntity == NSAPEntity.FishSpecies || NSAPEntity == NSAPEntity.NonFishSpecies)
+            {
+                _hasInternet = await CheckForInternet();
+            }
+            string title = "";
             rowSearch.Height = new GridLength(0);
             switch (NSAPEntity)
             {
@@ -154,6 +206,7 @@ namespace NSAP_ODK.Views
                     speciesHyperLink.Inlines.Clear();
                     speciesHyperLink.Inlines.Add($"Search OBIS for {ItemToReplace}");
                     rowSearch.Height = new GridLength(70);
+                    title = "Get replacement species name";
                     break;
                 case Entities.NSAPEntity.LandingSite:
                     foreach (var item in LandingSiteSampling.NSAPRegion.FMAs
@@ -166,7 +219,7 @@ namespace NSAP_ODK.Views
                         rb.Margin = new Thickness(10, 10, 0, 0);
                         panelButtons.Children.Add(rb);
                     }
-
+                    title = "Get replacement landing site";
 
 
                     break;
@@ -183,7 +236,7 @@ namespace NSAP_ODK.Views
                         panelButtons.Children.Add(rb);
 
                     }
-
+                    title = "Get replacement enumerator";
                     break;
                 case Entities.NSAPEntity.FishingGear:
                     foreach (var regionGear in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection
@@ -198,8 +251,10 @@ namespace NSAP_ODK.Views
                         panelButtons.Children.Add(rb);
 
                     }
+                    title = "Get replacement fishing gear";
                     break;
             }
+            Title = title;
         }
         private void onButtonClick(object sender, RoutedEventArgs e)
         {
@@ -230,6 +285,10 @@ namespace NSAP_ODK.Views
                         }
                         Close();
                     }
+                    else
+                    {
+                        MessageBox.Show("You must select one item from the list", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
 
                     break;
                 case "buttonCancel":
@@ -259,41 +318,68 @@ namespace NSAP_ODK.Views
 
         private async void OnRequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
         {
-            Hyperlink hyp = (Hyperlink)sender;
-            panelButtons.Children.Clear();
-            switch (hyp.Name)
+            _obiResponse = null;
+            bool isConnected = true;
+            if (_hasInternet)
             {
-                case "speciesHyperLink":
+                try
+                {
 
-                    var obi_results = await NSAPEntities.FishSpeciesViewModel.RequestDataFromOBI(ItemToReplace);
-                    if (obi_results.total > 0)
+                    Hyperlink hyp = (Hyperlink)sender;
+                    panelButtons.Children.Clear();
+                    switch (hyp.Name)
                     {
-                        SearchReplacements(obi_results.results[0].acceptedNameUsage);
-                    }
-                    else
-                    {
-                        MessageBox.Show($"{ItemToReplace} is not found in OBIS", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
-                    break;
-                case "multi_speciesHyperLink":
-                    bool isFound = false;
-                    foreach(var name in ItemsToReplace)
-                    {
-                        obi_results = await NSAPEntities.FishSpeciesViewModel.RequestDataFromOBI(name);
-                        if(obi_results.total>0)
-                        {
-                            SearchReplacements(obi_results.results[0].acceptedNameUsage);
-                            isFound = true;
-                            return;
-                        }
-                    }
+                        case "speciesHyperLink":
 
-                    if (!isFound)
-                    {
-                        MessageBox.Show("Items to replace not found in OBIS", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                            _obiResponse = await NSAPEntities.FishSpeciesViewModel.RequestDataFromOBI(ItemToReplace);
+                            if (_obiResponse.total > 0)
+                            {
+                                SearchReplacements(_obiResponse.results[0].acceptedNameUsage);
+                            }
+                            else
+                            {
+                                MessageBox.Show($"{ItemToReplace} is not found in OBIS", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                            }
+
+
+                            break;
+                        case "multi_speciesHyperLink":
+                            bool isFound = false;
+                            foreach (var name in ItemsToReplace)
+                            {
+                                _obiResponse = await NSAPEntities.FishSpeciesViewModel.RequestDataFromOBI(name);
+                                if (_obiResponse.total > 0)
+                                {
+                                    SearchReplacements(_obiResponse.results[0].acceptedNameUsage);
+                                    isFound = true;
+                                    return;
+                                }
+                            }
+
+                            if (!isFound)
+                            {
+                                MessageBox.Show("Items to replace not found in OBIS", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                            }
+                            break;
                     }
-                    break;
+                }
+                catch (System.Net.Http.HttpRequestException)
+                {
+                    isConnected = false;
+                }
+
+            }
+            else
+            {
+                isConnected = false;
+            }
+
+            if (!isConnected)
+            {
+                MessageBox.Show("Not connected to the internet", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
+
     }
 }

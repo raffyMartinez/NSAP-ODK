@@ -1,0 +1,21 @@
+﻿<Window x:Class="NSAP_ODK.Views.OBISResultWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        Loaded="OnWindowLoaded"
+        xmlns:local="clr-namespace:NSAP_ODK.Views"
+        mc:Ignorable="d"
+        Title="OBISResultWindow" Height="566.912" Width="421.691" WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
+            <RowDefinition/>
+            <RowDefinition Height="40"/>
+        </Grid.RowDefinitions>
+        <Label Content="Details of species from OBIS" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" FontWeight="Bold"/>
+        <xctk:PropertyGrid x:Name="propertyGrid" Margin="10" Grid.Row="1" ShowAdvancedOptions="False" ShowSearchBox="False" ShowSortOptions="False" ShowTitle="False" ShowSummary="False"/>
+        <Button Grid.Row="2" Content="Ok" Click="OnButtonClick" Height="30" Width="50" HorizontalAlignment="Right" Margin="20 0"/>
+    </Grid>
+</Window>

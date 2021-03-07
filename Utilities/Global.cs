@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Reflection;
 using System.Xml;
-
+using System.Net;
 
 namespace NSAP_ODK.Utilities
 {
@@ -26,6 +26,32 @@ namespace NSAP_ODK.Utilities
 
         //public static string MDBPath = $"{AppDomain.CurrentDomain.BaseDirectory}/nsap_odk.mdb";
 
+        public static bool HasInternet { get; private set; }
+        public static bool HasInternetConnection()
+        {
+            try
+            {
+                if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
+                {
+                    using (var client = new WebClient())
+                    using (client.OpenRead("http://clients3.google.com/generate_204"))
+                    {
+                        HasInternet = true;
+                        return true;
+                    }
+                }
+                else
+                {
+                    HasInternet = false;
+                    return false;
+                }
+            }
+            catch
+            {
+                HasInternet = false;
+                return false;
+            }
+        }
         public static string MDBPath { get; internal set; }
 
         public static string Grid25MDBPath = $"{AppDomain.CurrentDomain.BaseDirectory}/grid25inland.mdb";
