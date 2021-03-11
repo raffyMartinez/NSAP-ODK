@@ -17,7 +17,9 @@ namespace NSAP_ODK.Entities.Database
         FMA,
         Region,
         FishingGround,
-        LandingSite
+        LandingSite,
+        Enumerator,
+        EnumeratedMonth
 
     }
 

@@ -8,8 +8,21 @@ namespace NSAP_ODK.Entities.Database
 {
     public class EnumeratorSummary
     {
-        public DateTime DateOfFirstSampling { get; private set; }
-        public DateTime DateOfLatestSampling { get; private set; }
+        //private List<VesselUnload> _unloadsForMonth;
+        public EnumeratorSummary() { }
+
+        public string Gear { get; set; }
+
+        public string LandingSite { get; set; }
+        //public List<VesselUnload> VesselUnloads { get { return _unloadsForMonth; } }
+
+        public int NumberOfLandingsSampled { get; set; }
+        public DateTime MonthOfSampling { get; set; }
+        public DateTime DateOfFirstSampling { get; set; }
+
+        public string FirstSamplingDate { get { return DateOfFirstSampling.ToString("MMM dd, yyyy HH:mm"); } }
+        public string LastSamplingDate { get { return DateOfLatestSampling.ToString("MMM dd, yyyy HH:mm"); } }
+        public DateTime DateOfLatestSampling { get;  set; }
 
 
     }

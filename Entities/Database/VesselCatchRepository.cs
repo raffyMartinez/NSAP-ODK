@@ -123,7 +123,18 @@ namespace NSAP_ODK.Entities.Database
                             WHERE catch_id = {item.PK}";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch(OleDbException dbex)
+                    {
+                        //ignore
+                    }
+                    catch(Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
             return success;

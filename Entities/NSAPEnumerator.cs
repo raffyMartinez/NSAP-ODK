@@ -17,6 +17,8 @@ namespace NSAP_ODK.Entities
         {
             return Name;
         }
+
+
         public string Acronym
         {
             get

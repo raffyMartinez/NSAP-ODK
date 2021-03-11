@@ -36,7 +36,8 @@ namespace NSAP_ODK.Entities
         Province,
         Municipality,
         GPS,
-        DBSummary
+        DBSummary,
+        SpeciesName
     }
 
     public static class NSAPEntities

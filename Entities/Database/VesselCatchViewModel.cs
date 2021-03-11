@@ -9,7 +9,7 @@ namespace NSAP_ODK.Entities.Database
 {
     public class VesselCatchViewModel
     {
-        public bool AddSucceeded { get; set; }
+        public bool EditSuccess { get; set; }
         public ObservableCollection<VesselCatch> VesselCatchCollection { get; set; }
         private VesselCatchRepository VesselCatches { get; set; }
 
@@ -30,7 +30,48 @@ namespace NSAP_ODK.Entities.Database
             VesselCatchCollection.CollectionChanged += VesselCatches_CollectionChanged;
         }
 
-        public List<OrphanedFishSpeciesName> OrphanedFishSpeciesNames(bool getMultiLine = false)
+        public List<OrphanedSpeciesName> OrphanedSpeciesNames(bool getMultiLine = false)
+        {
+            List<IGrouping<string, VesselCatch>> catches = new List<IGrouping<string, VesselCatch>>();
+            if (!getMultiLine)
+            {
+                catches = VesselCatchCollection
+                    .Where(t =>  t.SpeciesID == null && t.SpeciesText != null && t.SpeciesText.Length > 0 && !t.SpeciesText.Contains('\n'))
+                    .OrderBy(t => t.SpeciesText)
+                    .GroupBy(t => t.SpeciesText).ToList();
+            }
+            else
+            {
+                catches = VesselCatchCollection
+                    .Where(t => t.SpeciesID == null && t.SpeciesText != null && t.SpeciesText.Length > 0 && t.SpeciesText.Contains('\n'))
+                    .OrderBy(t => t.SpeciesText)
+                    .GroupBy(t => t.SpeciesText).ToList();
+            }
+
+            var list = new List<OrphanedSpeciesName>();
+            foreach (var ct in catches)
+            {
+
+                var orphan = new OrphanedSpeciesName
+                {
+                    Name = ct.Key
+                };
+
+                var landings = new List<VesselUnload>();
+                foreach (VesselCatch vc in VesselCatchCollection.Where(t => t.SpeciesText == ct.Key && t.SpeciesID == null))
+                {
+                    landings.Add(vc.Parent);
+                }
+                orphan.SampledLandings = landings;
+
+
+                list.Add(orphan);
+            }
+
+            return list;
+
+        }
+        public List<OrphanedSpeciesName> OrphanedFishSpeciesNames(bool getMultiLine = false)
         {
             List<IGrouping<string, VesselCatch>> catches = new List<IGrouping<string, VesselCatch>>();
             if (!getMultiLine)
@@ -48,11 +89,11 @@ namespace NSAP_ODK.Entities.Database
                     .GroupBy(t => t.SpeciesText).ToList();
             }
 
-            var list = new List<OrphanedFishSpeciesName>();
+            var list = new List<OrphanedSpeciesName>();
             foreach (var ct in catches)
             {
 
-                var orphan = new OrphanedFishSpeciesName
+                var orphan = new OrphanedSpeciesName
                 {
                     Name = ct.Key
                 };
@@ -165,26 +206,27 @@ namespace NSAP_ODK.Entities.Database
 
         private void VesselCatches_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            EditSuccess = false;
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
                     {
                         int newIndex = e.NewStartingIndex;
-                        AddSucceeded = VesselCatches.Add(VesselCatchCollection[newIndex]);
+                        EditSuccess = VesselCatches.Add(VesselCatchCollection[newIndex]);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<VesselCatch> tempListOfRemovedItems = e.OldItems.OfType<VesselCatch>().ToList();
-                        VesselCatches.Delete(tempListOfRemovedItems[0].PK);
+                        EditSuccess= VesselCatches.Delete(tempListOfRemovedItems[0].PK);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<VesselCatch> tempList = e.NewItems.OfType<VesselCatch>().ToList();
-                        VesselCatches.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        EditSuccess= VesselCatches.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -200,10 +242,10 @@ namespace NSAP_ODK.Entities.Database
             if (item == null)
                 throw new ArgumentNullException("Error: The argument is Null");
             VesselCatchCollection.Add(item);
-            return AddSucceeded;
+            return EditSuccess;
         }
 
-        public void UpdateRecordInRepo(VesselCatch item)
+        public bool UpdateRecordInRepo(VesselCatch item)
         {
             if (item.PK == 0)
                 throw new Exception("Error: ID cannot be zero");
@@ -218,6 +260,7 @@ namespace NSAP_ODK.Entities.Database
                 }
                 index++;
             }
+            return EditSuccess;
         }
 
         public int NextRecordNumber
@@ -235,7 +278,7 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-        public void DeleteRecordFromRepo(int id)
+        public bool DeleteRecordFromRepo(int id)
         {
             if (id == 0)
                 throw new Exception("Record ID cannot be null");
@@ -250,6 +293,8 @@ namespace NSAP_ODK.Entities.Database
                 }
                 index++;
             }
+
+            return EditSuccess;
         }
     }
 }

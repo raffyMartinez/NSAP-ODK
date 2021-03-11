@@ -29,6 +29,8 @@ namespace NSAP_ODK.Views
         private bool _isFish;
         private bool _hasInternet;
         private OBIResponseRoot _obiResponse;
+        private string _itemHit;
+        private string _itemInOBIS;
         public SelectionToReplaceOrpanWIndow()
         {
             InitializeComponent();
@@ -40,6 +42,7 @@ namespace NSAP_ODK.Views
 
         private void SearchReplacements(string toSearch)
         {
+            //_isFish = false;
             int count = 0;
             foreach (var sp in NSAPEntities.FishSpeciesViewModel.GetAllSpecies(toSearch))
             {
@@ -72,7 +75,32 @@ namespace NSAP_ODK.Views
                 {
                     ((RadioButton)panelButtons.Children[0]).IsChecked = true;
                 }
+                else if(count==0)
+                {
+                    TextBlock txtNotFound = null;
+                    if (textSearch.Text.Length > 0)
+                    {
+                        txtNotFound = new TextBlock{Text = $"{textSearch.Text} is not found in the database"};
+                    }
+                    else
+                    {
+                        txtNotFound = new TextBlock
+                        {
+                            Text = $"The accepted name of {_itemHit} according to OBIS is {toSearch}." +
+                                      "However, it is not listed as occuring in the Philippines\r\n \r\n" +
+                                      "Be aware though that status of accepted species names is constantly changing.",
+
+                        };
+                    }
+                    txtNotFound.TextWrapping = TextWrapping.Wrap;
+                    txtNotFound.Margin = new Thickness(20);
+                    txtNotFound.MouseRightButtonDown += OnRadioButtonRightMouseButtonDown;
+                    panelButtons.Children.Add(txtNotFound);
+                }
             }
+
+            //speciesHyperLink.Inlines.Clear();
+            //speciesHyperLink.Inlines.Add($"Search OBIS for {toSearch}");
         }
 
         private Task<bool> CheckForInternet()
@@ -82,36 +110,54 @@ namespace NSAP_ODK.Views
 
         private void OnRadioButtonRightMouseButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (NSAPEntity == NSAPEntity.FishSpecies || NSAPEntity == NSAPEntity.NonFishSpecies)
+            if (NSAPEntity == NSAPEntity.FishSpecies || NSAPEntity == NSAPEntity.NonFishSpecies || NSAPEntity==NSAPEntity.SpeciesName)
             {
-                RadioButton rb = (RadioButton)sender;
+                string speciesToBrowse = "";
+                if(sender.GetType().Name=="RadioButton")
+                {
+                    speciesToBrowse = ((RadioButton)sender).Content.ToString();
+                }
+                else if(sender.GetType().Name == "TextBlock")
+                {
+                    if (textSearch.Text.Length > 0)
+                    {
+                        speciesToBrowse = textSearch.Text;
+                    }
+                    else
+                    {
+                        speciesToBrowse = _itemInOBIS;
+                    }
+                    //_isFish = true;
+
+                }
+                //RadioButton rb = (RadioButton)sender;
                 ContextMenu cm = new ContextMenu();
                 MenuItem m = null;
 
                 if (_isFish)
                 {
-                    m = new MenuItem { Header = $"Open {rb.Content} in Fishbaase", Name = "menuFishBasePage" };
-                    m.Tag = $"https://www.fishbase.de/summary/{rb.Content.ToString().Replace(' ', '-')}.html";
+                    m = new MenuItem { Header = $"Open {speciesToBrowse} in Fishbaase", Name = "menuFishBasePage" };
+                    m.Tag = $"https://www.fishbase.de/summary/{speciesToBrowse.Replace(' ', '-')}.html";
                     m.Click += OnMenuClick;
                     cm.Items.Add(m);
                 }
 
-                m = new MenuItem { Header = $"Open {rb.Content} in World Register of Marine Species (WORMS)", Name = "menuWORMS" };
-                m.Tag = $"https://www.marinespecies.org/aphia.php?p=taxlist&tName={rb.Content.ToString()}";
+                m = new MenuItem { Header = $"Open {speciesToBrowse} in World Register of Marine Species (WORMS)", Name = "menuWORMS" };
+                m.Tag = $"https://www.marinespecies.org/aphia.php?p=taxlist&tName={speciesToBrowse}";
                 m.Click += OnMenuClick;
                 cm.Items.Add(m);
 
-                m = new MenuItem { Header = $"Open {rb.Content} in Google image", Name = "menuGoogleImagePage" };
-                m.Tag = $"https://www.google.com/images?q={rb.Content.ToString().Replace(' ', '+')}";
+                m = new MenuItem { Header = $"Open {speciesToBrowse} in Google image", Name = "menuGoogleImagePage" };
+                m.Tag = $"https://www.google.com/images?q={speciesToBrowse.Replace(' ', '+')}";
                 m.Click += OnMenuClick;
                 cm.Items.Add(m);
 
-                m = new MenuItem { Header = $"Open {rb.Content} in Wikipaedia", Name = "menuWikipaedia" };
-                m.Tag = $"https://en.wikipedia.org/wiki/{rb.Content.ToString().Replace(' ', '_')}";
+                m = new MenuItem { Header = $"Open {speciesToBrowse} in Wikipaedia", Name = "menuWikipaedia" };
+                m.Tag = $"https://en.wikipedia.org/wiki/{speciesToBrowse.Replace(' ', '_')}";
                 m.Click += OnMenuClick;
                 cm.Items.Add(m);
 
-                if (_obiResponse != null)
+                if (_obiResponse != null && _obiResponse.total>0)
                 {
                     cm.Items.Add(new Separator());
 
@@ -184,7 +230,7 @@ namespace NSAP_ODK.Views
 
         public async void FillSelection()
         {
-            if (NSAPEntity == NSAPEntity.FishSpecies || NSAPEntity == NSAPEntity.NonFishSpecies)
+            if (NSAPEntity == NSAPEntity.FishSpecies || NSAPEntity == NSAPEntity.NonFishSpecies || NSAPEntity==NSAPEntity.SpeciesName)
             {
                 _hasInternet = await CheckForInternet();
             }
@@ -192,7 +238,8 @@ namespace NSAP_ODK.Views
             rowSearch.Height = new GridLength(0);
             switch (NSAPEntity)
             {
-                case Entities.NSAPEntity.FishSpecies:
+                //case Entities.NSAPEntity.FishSpecies:
+                case Entities.NSAPEntity.SpeciesName:
                     linkSingle.Visibility = Visibility.Collapsed;
                     panelMultiSpecieslink.Visibility = Visibility.Collapsed;
                     if (ItemToReplace != null)
@@ -273,6 +320,22 @@ namespace NSAP_ODK.Views
                     {
                         switch (NSAPEntity)
                         {
+                            case NSAPEntity.SpeciesName:
+                                if(_isFish)
+                                {
+                                     ((OrphanItemsManagerWindow)Owner).ReplacementFishSpecies = (FishSpecies)_selectedButton.Tag;
+                                }
+                                else
+                                {
+                                    ((OrphanItemsManagerWindow)Owner).ReplacementNotFishSpecies = (NotFishSpecies)_selectedButton.Tag;
+                                }
+                                break;
+                            case NSAPEntity.FishSpecies:
+                                ((OrphanItemsManagerWindow)Owner).ReplacementFishSpecies = (FishSpecies)_selectedButton.Tag;
+                                break;
+                            case NSAPEntity.NonFishSpecies:
+                                ((OrphanItemsManagerWindow)Owner).ReplacementNotFishSpecies = (NotFishSpecies)_selectedButton.Tag;
+                                break;
                             case NSAPEntity.LandingSite:
                                 ((OrphanItemsManagerWindow)Owner).ReplacementLandingSite = (LandingSite)_selectedButton.Tag;
                                 break;
@@ -318,6 +381,9 @@ namespace NSAP_ODK.Views
 
         private async void OnRequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
         {
+            _isFish = false;
+            _itemInOBIS = "";
+            _itemHit = "";
             _obiResponse = null;
             bool isConnected = true;
             if (_hasInternet)
@@ -332,10 +398,20 @@ namespace NSAP_ODK.Views
                         case "speciesHyperLink":
 
 
-                            _obiResponse = await NSAPEntities.FishSpeciesViewModel.RequestDataFromOBI(ItemToReplace);
+                            //if (textSearch.Text.Length > 0)
+                            //{
+                            //    _obiResponse = await NSAPEntities.FishSpeciesViewModel.RequestDataFromOBI(textSearch.Text);
+                            //}
+                            //else
+                            //{
+                                _obiResponse = await NSAPEntities.FishSpeciesViewModel.RequestDataFromOBI(ItemToReplace);
+                            //}
                             if (_obiResponse.total > 0)
                             {
-                                SearchReplacements(_obiResponse.results[0].acceptedNameUsage);
+                                _itemHit = ItemToReplace;
+                                _itemInOBIS = _obiResponse.results[0].acceptedNameUsage;
+                                _isFish = _obiResponse.results[0].superclass == "Pisces";
+                                SearchReplacements(_itemInOBIS);
                             }
                             else
                             {
@@ -351,7 +427,10 @@ namespace NSAP_ODK.Views
                                 _obiResponse = await NSAPEntities.FishSpeciesViewModel.RequestDataFromOBI(name);
                                 if (_obiResponse.total > 0)
                                 {
-                                    SearchReplacements(_obiResponse.results[0].acceptedNameUsage);
+                                    _itemHit = name;
+                                    _itemInOBIS = _obiResponse.results[0].acceptedNameUsage;
+                                    SearchReplacements(_itemInOBIS);
+                                    //SearchReplacements(_obiResponse.results[0].acceptedNameUsage);
                                     isFound = true;
                                     return;
                                 }

@@ -22,6 +22,36 @@ namespace NSAP_ODK.Entities.Database
         //    }
         //}
 
+        
+        public List<DateTime> MonthsSampledByEnumerator(NSAPEnumerator enumerator)
+        {
+            List<DateTime> list = new List<DateTime>();
+            foreach( var item in VesselUnloadCollection
+                .Where(t => t.NSAPEnumeratorID!=null &&  t.NSAPEnumerator.ID == enumerator.ID)
+                .GroupBy(t => t.MonthSampled)
+                .OrderBy(t=>t.Key)
+                .ToList())
+            {
+                list.Add(item.Key);
+            }
+            return list;
+        }
+
+
+        public List<VesselUnload> GetAllVesselUnloads(NSAPEnumerator enumerator)
+        {
+            return VesselUnloadCollection
+                .Where(t => t.NSAPEnumeratorID == enumerator.ID )
+                .OrderBy(t => t.SamplingDate)
+                .ToList();
+        }
+        public List<VesselUnload> GetAllVesselUnloads(NSAPEnumerator enumerator, DateTime month)
+        {
+            return VesselUnloadCollection
+                .Where(t => t.NSAPEnumeratorID == enumerator.ID && t.MonthSampled==month)
+                .OrderBy(t=>t.SamplingDate)
+                .ToList();
+        }
         public int CountEnumeratorsWithUnloadRecord
         {
             get

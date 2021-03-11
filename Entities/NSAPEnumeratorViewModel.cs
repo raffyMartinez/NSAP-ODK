@@ -14,13 +14,71 @@ namespace NSAP_ODK.Entities
 
         public bool EditSuccess { get; internal set; }
 
-        //public event EventHandler<EntityChangedEventArgs> EntityChanged;
 
-        public List<OrphanedEnumerator>OrphanedEnumerators()
+
+
+        public List<EnumeratorSummary> GetSummary(NSAPEnumerator enumerator)
+        {
+            List<EnumeratorSummary> summaries = new List<EnumeratorSummary>();
+            var unloads = NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(enumerator);
+            var landingSites = unloads.GroupBy(t => t.Parent.Parent.LandingSiteName).OrderBy(t => t.Key);
+            foreach (var ls in landingSites)
+            {
+                var gear_landingSites = unloads
+                    .Where(t => t.Parent.Parent.LandingSiteName == ls.Key)
+                    .GroupBy(t => t.Parent.GearUsedName);
+
+                foreach (var g in gear_landingSites)
+                {
+
+                    EnumeratorSummary es = new EnumeratorSummary
+                    {
+                        LandingSite = ls.Key,
+                        Gear = g.Key,
+                        NumberOfLandingsSampled = unloads.Count(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key),
+                        DateOfFirstSampling = unloads.Where(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key).OrderBy(t => t.SamplingDate).FirstOrDefault().SamplingDate,
+                        DateOfLatestSampling = unloads.Where(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key).OrderByDescending(t => t.SamplingDate).FirstOrDefault().SamplingDate,
+                    };
+                    summaries.Add(es);
+                }
+            }
+            return summaries;
+        }
+        public List<EnumeratorSummary> GetSummary(NSAPEnumerator enumerator, DateTime monthSampled)
+        {
+            List<EnumeratorSummary> summaries = new List<EnumeratorSummary>();
+            var unloads = NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(enumerator, monthSampled);
+            var landingSites = unloads.GroupBy(t => t.Parent.Parent.LandingSiteName).OrderBy(t => t.Key);
+            foreach (var ls in landingSites)
+            {
+                var gear_landingSites = unloads
+                    .Where(t => t.Parent.Parent.LandingSiteName == ls.Key)
+                    .GroupBy(t => t.Parent.GearUsedName);
+
+                foreach (var g in gear_landingSites)
+                {
+
+                    EnumeratorSummary es = new EnumeratorSummary
+                    {
+                        LandingSite = ls.Key,
+                        Gear = g.Key,
+                        NumberOfLandingsSampled = unloads.Count(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key),
+                        MonthOfSampling = monthSampled,
+                        DateOfFirstSampling = unloads.Where(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key).OrderBy(t => t.SamplingDate).FirstOrDefault().SamplingDate,
+                        DateOfLatestSampling = unloads.Where(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key).OrderByDescending(t => t.SamplingDate).FirstOrDefault().SamplingDate,
+                    };
+                    summaries.Add(es);
+                }
+            }
+
+
+            return summaries;
+        }
+        public List<OrphanedEnumerator> OrphanedEnumerators()
         {
             var itemsVesselSamplings = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
-                .Where(t => t.NSAPEnumeratorID == null && t.EnumeratorText!=null &&  t.EnumeratorText.Length > 0)
-                .OrderBy(t=>t.EnumeratorName)
+                .Where(t => t.NSAPEnumeratorID == null && t.EnumeratorText != null && t.EnumeratorText.Length > 0)
+                .OrderBy(t => t.EnumeratorName)
                 .GroupBy(t => t.EnumeratorText)
                 .ToList();
 
@@ -32,7 +90,7 @@ namespace NSAP_ODK.Entities
                 .OrderBy(t => t.EnumeratorText)
                 .GroupBy(t => t.EnumeratorText).ToList();
 
-            foreach(var item in itemsVesselSamplings)
+            foreach (var item in itemsVesselSamplings)
             {
                 listNames.Add(item.Key);
                 var orphan = new OrphanedEnumerator
@@ -45,9 +103,9 @@ namespace NSAP_ODK.Entities
                 list.Add(orphan);
             }
 
-            foreach(var sl in itemsLandingSiteSampling)
+            foreach (var sl in itemsLandingSiteSampling)
             {
-                if(!listNames.Contains(sl.Key))
+                if (!listNames.Contains(sl.Key))
                 {
                     var orphan = new OrphanedEnumerator
                     {
@@ -59,9 +117,9 @@ namespace NSAP_ODK.Entities
                     list.Add(orphan);
                 }
             }
-            List<OrphanedEnumerator> sortedList = list.OrderBy(t=>t.Name).ToList();
+            List<OrphanedEnumerator> sortedList = list.OrderBy(t => t.Name).ToList();
             return sortedList;
-                
+
         }
         public NSAPEnumeratorViewModel()
         {
@@ -161,7 +219,7 @@ namespace NSAP_ODK.Entities
                     {
                         int newIndex = e.NewStartingIndex;
                         editedEnumerator = NSAPEnumeratorCollection[newIndex];
-                        if(NSAPEnumerators.Add(editedEnumerator))
+                        if (NSAPEnumerators.Add(editedEnumerator))
                         {
                             CurrentEntity = editedEnumerator;
                             EditSuccess = true;
@@ -181,7 +239,7 @@ namespace NSAP_ODK.Entities
                     {
                         List<NSAPEnumerator> tempList = e.NewItems.OfType<NSAPEnumerator>().ToList();
                         editedEnumerator = tempList[0];
-                        EditSuccess= NSAPEnumerators.Update(editedEnumerator);      // As the IDs are unique, only one row will be effected hence first index only
+                        EditSuccess = NSAPEnumerators.Update(editedEnumerator);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -197,7 +255,7 @@ namespace NSAP_ODK.Entities
             return EditSuccess;
         }
 
-        public bool  UpdateRecordInRepo(NSAPEnumerator nse)
+        public bool UpdateRecordInRepo(NSAPEnumerator nse)
         {
             if (nse.ID == 0)
                 throw new Exception("Error: ID cannot be null");
@@ -241,7 +299,7 @@ namespace NSAP_ODK.Entities
                 entityMessages.Add(new EntityValidationMessage("Name is too short"));
             }
 
-            if(NSAPEnumeratorCollection.Where(t=>t.Name==nse.Name).FirstOrDefault()!=null)
+            if (NSAPEnumeratorCollection.Where(t => t.Name == nse.Name).FirstOrDefault() != null)
             {
                 entityMessages.Add(new EntityValidationMessage("Name already exists"));
             }

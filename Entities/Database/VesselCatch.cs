@@ -120,6 +120,11 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
+        public void SetTaxa(Taxa taxa)
+        {
+            TaxaCode = taxa.Code;
+        }
+
         public Taxa Taxa
         {
             get { return NSAPEntities.TaxaViewModel.GetTaxa(TaxaCode); }

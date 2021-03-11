@@ -25,12 +25,15 @@ namespace NSAP_ODK.Views
     /// </summary>
     public partial class OrphanItemsManagerWindow : Window
     {
-        private DispatcherTimer _timer; 
+        private DispatcherTimer _timer;
         private LandingSite _replacementLandingSite;
         private NSAPEnumerator _replacementEnumerator;
         private Gear _replacementGear;
         private int _countReplaced;
         private int _countForReplacement;
+        private FishSpecies _replacementFishSpecies;
+        private NotFishSpecies _replacementNotFishSpecies;
+        private bool _isMultiline;
         public OrphanItemsManagerWindow()
         {
             InitializeComponent();
@@ -42,6 +45,26 @@ namespace NSAP_ODK.Views
         {
 
         }
+
+        public NotFishSpecies ReplacementNotFishSpecies
+        {
+            get { return _replacementNotFishSpecies; }
+            set
+            {
+                _replacementNotFishSpecies = value;
+                buttonReplace.IsEnabled = true;
+            }
+        }
+        public FishSpecies ReplacementFishSpecies
+        {
+            get { return _replacementFishSpecies; }
+            set
+            {
+                _replacementFishSpecies = value;
+                buttonReplace.IsEnabled = true;
+            }
+        }
+
 
         public Gear ReplacementGear
         {
@@ -78,6 +101,12 @@ namespace NSAP_ODK.Views
             RefreshItemsSource();
             switch (NSAPEntity)
             {
+                case NSAPEntity.SpeciesName:
+                    labelTitle.Content = "Manage orphaned species names";
+                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Species name", Binding = new Binding("Name"), IsReadOnly = true });
+                    checkMultipleSp.Visibility = Visibility.Visible;
+                    buttonFix.Visibility = Visibility.Visible;
+                    break;
                 case NSAPEntity.FishSpecies:
                     labelTitle.Content = "Manage orphaned fish species names";
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "Species name", Binding = new Binding("Name"), IsReadOnly = true });
@@ -110,16 +139,16 @@ namespace NSAP_ODK.Views
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Region", Binding = new Binding("Region.ShortName"), IsReadOnly = true });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("FMA"), IsReadOnly = true });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("FishingGround"), IsReadOnly = true });
-            
 
-            switch(NSAPEntity)
+
+            switch (NSAPEntity)
             {
 
                 case NSAPEntity.Enumerator:
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of landings", Binding = new Binding("NumberOfLandings"), IsReadOnly = true });
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of vessel countings", Binding = new Binding("NumberOfVesselCountings"), IsReadOnly = true });
                     break;
-                case NSAPEntity.FishSpecies:
+                case NSAPEntity.SpeciesName:
                 case NSAPEntity.LandingSite:
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of landings", Binding = new Binding("NumberOfLandings"), IsReadOnly = true });
                     break;
@@ -188,23 +217,67 @@ namespace NSAP_ODK.Views
         {
             switch (NSAPEntity)
             {
+                case NSAPEntity.SpeciesName:
                 case NSAPEntity.FishSpecies:
-                    break;
                 case NSAPEntity.NonFishSpecies:
+                    if (!_isMultiline)
+                    {
+                        //if not multiline species
+                        foreach (OrphanedSpeciesName sp in dataGrid.Items)
+                        {
+                            if (sp.ForReplacement)
+                            {
+                                foreach (var unload in sp.SampledLandings)
+                                {
+                                    foreach (VesselCatch vc in unload.ListVesselCatch)
+                                    {
+                                        if (vc.SpeciesID == null && vc.SpeciesText != null && vc.SpeciesText == sp.Name)
+                                        {
+                                            if (ReplacementFishSpecies != null)
+                                            {
+                                                vc.SpeciesID = ReplacementFishSpecies.RowNumber;
+                                                vc.SetTaxa(NSAPEntities.TaxaViewModel.FishTaxa);
+                                            }
+                                            else if (ReplacementNotFishSpecies != null)
+                                            {
+                                                vc.SpeciesID = ReplacementNotFishSpecies.SpeciesID;
+                                                vc.SetTaxa(ReplacementNotFishSpecies.Taxa);
+                                            }
+
+                                            if (NSAPEntities.VesselCatchViewModel.UpdateRecordInRepo(vc))
+                                            {
+                                                _countReplaced++;
+                                                ShowProgressWhileReplacing(_countReplaced, $"Updated species names {_countReplaced} of {_countForReplacement}");
+                                            }
+                                            else
+                                            {
+                                                vc.SpeciesID = null;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        //if multiline then we have to separate into each own line and add to vessel catch
+
+                    }
                     break;
                 case NSAPEntity.FishingGear:
-                    foreach(OrphanedFishingGear gear in dataGrid.Items)
+                    foreach (OrphanedFishingGear gear in dataGrid.Items)
                     {
-                        if(gear.ForReplacement)
+                        if (gear.ForReplacement)
                         {
-                            foreach(var unload in gear.GearUnloads)
+                            foreach (var unload in gear.GearUnloads)
                             {
                                 unload.GearID = ReplacementGear.Code;
                                 unload.Gear = ReplacementGear;
-                                if(NSAPEntities.GearUnloadViewModel.UpdateRecordInRepo(unload))
+                                if (NSAPEntities.GearUnloadViewModel.UpdateRecordInRepo(unload))
                                 {
                                     _countReplaced++;
-                                    ShowProgressWhileReplacing(_countReplaced,$"Updated fishing gear {_countReplaced} of {_countForReplacement}");
+                                    ShowProgressWhileReplacing(_countReplaced, $"Updated fishing gear {_countReplaced} of {_countForReplacement}");
                                 }
 
                             }
@@ -228,7 +301,7 @@ namespace NSAP_ODK.Views
                                 }
                             }
 
-                            foreach(var vesselCounting in orpahn.LandingSiteSamplings)
+                            foreach (var vesselCounting in orpahn.LandingSiteSamplings)
                             {
                                 vesselCounting.EnumeratorID = ReplacementEnumerator.ID;
                                 if (NSAPEntities.LandingSiteSamplingViewModel.UpdateRecordInRepo(vesselCounting))
@@ -259,35 +332,35 @@ namespace NSAP_ODK.Views
                                 {
                                     //if(sampling.UserName!=null && sampling.UserName.Length==0)
                                     //{
-                                        sampling.UserName = samplingWithOrphanedLandingSite.UserName;
-                                        sampling.DeviceID = samplingWithOrphanedLandingSite.DeviceID;
-                                        sampling.DateSubmitted = samplingWithOrphanedLandingSite.DateSubmitted;
-                                        sampling.XFormIdentifier = samplingWithOrphanedLandingSite.XFormIdentifier;
-                                        sampling.DateAdded = samplingWithOrphanedLandingSite.DateAdded;
-                                        sampling.FormVersion = samplingWithOrphanedLandingSite.FormVersion;
-                                        sampling.FromExcelDownload = samplingWithOrphanedLandingSite.FromExcelDownload;
-                                        sampling.RowID = samplingWithOrphanedLandingSite.RowID;
-                                        sampling.EnumeratorText = samplingWithOrphanedLandingSite.EnumeratorText;
-                                        sampling.EnumeratorID = samplingWithOrphanedLandingSite.EnumeratorID;
-                                        if (NSAPEntities.LandingSiteSamplingViewModel.UpdateRecordInRepo(sampling))
+                                    sampling.UserName = samplingWithOrphanedLandingSite.UserName;
+                                    sampling.DeviceID = samplingWithOrphanedLandingSite.DeviceID;
+                                    sampling.DateSubmitted = samplingWithOrphanedLandingSite.DateSubmitted;
+                                    sampling.XFormIdentifier = samplingWithOrphanedLandingSite.XFormIdentifier;
+                                    sampling.DateAdded = samplingWithOrphanedLandingSite.DateAdded;
+                                    sampling.FormVersion = samplingWithOrphanedLandingSite.FormVersion;
+                                    sampling.FromExcelDownload = samplingWithOrphanedLandingSite.FromExcelDownload;
+                                    sampling.RowID = samplingWithOrphanedLandingSite.RowID;
+                                    sampling.EnumeratorText = samplingWithOrphanedLandingSite.EnumeratorText;
+                                    sampling.EnumeratorID = samplingWithOrphanedLandingSite.EnumeratorID;
+                                    if (NSAPEntities.LandingSiteSamplingViewModel.UpdateRecordInRepo(sampling))
+                                    {
+
+                                        samplingWithOrphanedLandingSite.UserName = "";
+                                        samplingWithOrphanedLandingSite.DeviceID = "";
+                                        samplingWithOrphanedLandingSite.DateSubmitted = null;
+                                        samplingWithOrphanedLandingSite.XFormIdentifier = "";
+                                        samplingWithOrphanedLandingSite.DateAdded = null;
+                                        samplingWithOrphanedLandingSite.FormVersion = "";
+                                        samplingWithOrphanedLandingSite.FromExcelDownload = false;
+                                        samplingWithOrphanedLandingSite.RowID = "";
+                                        samplingWithOrphanedLandingSite.EnumeratorText = "";
+                                        samplingWithOrphanedLandingSite.EnumeratorID = null;
+                                        samplingWithOrphanedLandingSite.Remarks = "orphaned landing site, could be removed";
+                                        if (NSAPEntities.LandingSiteSamplingViewModel.UpdateRecordInRepo(samplingWithOrphanedLandingSite))
                                         {
 
-                                            samplingWithOrphanedLandingSite.UserName = "";
-                                            samplingWithOrphanedLandingSite.DeviceID = "";
-                                            samplingWithOrphanedLandingSite.DateSubmitted = null;
-                                            samplingWithOrphanedLandingSite.XFormIdentifier = "";
-                                            samplingWithOrphanedLandingSite.DateAdded = null;
-                                            samplingWithOrphanedLandingSite.FormVersion = "";
-                                            samplingWithOrphanedLandingSite.FromExcelDownload = false;
-                                            samplingWithOrphanedLandingSite.RowID = "";
-                                            samplingWithOrphanedLandingSite.EnumeratorText = "";
-                                            samplingWithOrphanedLandingSite.EnumeratorID = null;
-                                            samplingWithOrphanedLandingSite.Remarks = "orphaned landing site, could be removed";
-                                           if( NSAPEntities.LandingSiteSamplingViewModel.UpdateRecordInRepo(samplingWithOrphanedLandingSite))
-                                            {
-
-                                            }
                                         }
+                                    }
 
                                     //}
 
@@ -341,8 +414,9 @@ namespace NSAP_ODK.Views
         {
             switch (NSAPEntity)
             {
-                case NSAPEntity.FishSpecies:
-                    dataGrid.DataContext = NSAPEntities.VesselCatchViewModel.OrphanedFishSpeciesNames();
+                //case NSAPEntity.FishSpecies:
+                case NSAPEntity.SpeciesName:
+                    dataGrid.DataContext = NSAPEntities.VesselCatchViewModel.OrphanedSpeciesNames();
                     break;
                 case NSAPEntity.NonFishSpecies:
                     break;
@@ -376,13 +450,13 @@ namespace NSAP_ODK.Views
                 case "buttonReplace":
                     _countReplaced = 0;
                     await ReplaceOrphanedAsync();
-                    
+
                     buttonReplace.IsEnabled = false;
                     //DoTheReplacement();
                     //dataGrid.Items.Refresh();
                     RefreshItemsSource();
 
-                    if (dataGrid.Items.Count > 0 && NSAPEntity==NSAPEntity.LandingSite)
+                    if (dataGrid.Items.Count > 0 && NSAPEntity == NSAPEntity.LandingSite)
                     {
                         if (MessageBox.Show("Remaining orphaned landing sites can be safely deleted from the database\r\n\r\n" +
                                            "Select Yes to safely delete items", "NSAP-ODK Database",
@@ -427,16 +501,20 @@ namespace NSAP_ODK.Views
 
                         switch (NSAPEntity)
                         {
-                            case NSAPEntity.FishSpecies:
-                            
-                                if (((OrphanedFishSpeciesName)item).ForReplacement)
+
+                            //case NSAPEntity.FishSpecies:
+                            case NSAPEntity.SpeciesName:
+                                if (((OrphanedSpeciesName)item).ForReplacement)
                                 {
-                                    itemToReplace = ((OrphanedFishSpeciesName)item).Name;
+
+                                    itemToReplace = ((OrphanedSpeciesName)item).Name;
                                     itemsToReplace.Add(itemToReplace);
                                     checkCount++;
                                     procced = true;
+
+                                    _countForReplacement += ((OrphanedSpeciesName)item).SampledLandings.Count;
                                 }
-                                
+
                                 break;
                             case NSAPEntity.LandingSite:
                                 if (((OrphanedLandingSite)item).ForReplacement)
@@ -452,9 +530,9 @@ namespace NSAP_ODK.Views
                                 break;
                             case NSAPEntity.FishingGear:
 
-                                if(((OrphanedFishingGear)item).ForReplacement)
+                                if (((OrphanedFishingGear)item).ForReplacement)
                                 {
-                                    if(!procced)
+                                    if (!procced)
                                     {
                                         procced = true;
                                         replacementWindow.GearUnload = ((OrphanedFishingGear)item).GearUnloads[0];
@@ -486,19 +564,20 @@ namespace NSAP_ODK.Views
 
                     if (procced)
                     {
-                        if(checkCount==1 )
+                        if (checkCount == 1)
                         {
-                            switch(NSAPEntity)
+                            switch (NSAPEntity)
                             {
-                                case NSAPEntity.FishSpecies:
+                                case NSAPEntity.SpeciesName:
                                     replacementWindow.ItemToReplace = itemToReplace;
                                     break;
                             }
                         }
-                        else if(checkCount>1)
+                        else if (checkCount > 1)
                         {
-                            switch(NSAPEntity)
+                            switch (NSAPEntity)
                             {
+                                case NSAPEntity.SpeciesName:
                                 case NSAPEntity.FishSpecies:
                                     replacementWindow.ItemsToReplace = itemsToReplace;
                                     break;
@@ -529,10 +608,11 @@ namespace NSAP_ODK.Views
         private void OnCheckChanged(object sender, RoutedEventArgs e)
         {
             CheckBox chk = (CheckBox)sender;
-            switch(chk.Name)
+            switch (chk.Name)
             {
                 case "checkMultipleSp":
-                    dataGrid.DataContext = NSAPEntities.VesselCatchViewModel.OrphanedFishSpeciesNames(getMultiLine:(bool)chk.IsChecked);
+                    _isMultiline = (bool)chk.IsEnabled;
+                    dataGrid.DataContext = NSAPEntities.VesselCatchViewModel.OrphanedSpeciesNames(getMultiLine: (bool)chk.IsChecked);
                     buttonFix.IsEnabled = (bool)chk.IsChecked;
                     buttonSelectReplacement.IsEnabled = !(bool)chk.IsChecked;
                     break;

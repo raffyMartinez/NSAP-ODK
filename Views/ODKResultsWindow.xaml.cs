@@ -393,7 +393,7 @@ namespace NSAP_ODK.Views
                                     dataGridExcel.ItemsSource = VesselUnloadServerRepository.VesselLandings;
                                     success = true;
                                     _uploadToDBSuccess = true;
-                                    if (await SaveJSONTextTask(verbose: false))
+                                    if (JSON !=null &&  await SaveJSONTextTask(verbose: false))
                                     {
                                         MessageBox.Show("Finished uploading to database\r\n" +
                                             $"and saving JSON file to {Global.Settings.JSONFolder}",

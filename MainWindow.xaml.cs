@@ -319,10 +319,12 @@ namespace NSAP_ODK
                     node.Items.Clear();
                     switch (((TreeViewItem)node.Parent).Header)
                     {
+
                         case "Enumerators":
                             foreach (var enumerator in NSAPEntities.NSAPRegionViewModel.GetEnumeratorsInRegion((NSAPRegion)node.Tag))
                             {
                                 TreeViewItem enumeratorNode = new TreeViewItem { Header = enumerator.Name, Tag = enumerator };
+                                enumeratorNode.Items.Add(new TreeViewItem { Header = "**dummy" });
                                 node.Items.Add(enumeratorNode);
                             }
                             break;
@@ -331,6 +333,13 @@ namespace NSAP_ODK
                             {
                                 TreeViewItem fgNode = new TreeViewItem { Header = fg.Name, Tag = fg };
                                 node.Items.Add(fgNode);
+                            }
+                            break;
+                        default:
+                            NSAPEnumerator en = (NSAPEnumerator)node.Tag;
+                            foreach (var month in NSAPEntities.VesselUnloadViewModel.MonthsSampledByEnumerator(en))
+                            {
+                                node.Items.Add(new TreeViewItem { Header = month.ToString("MMM-yyyy"), Tag = month });
                             }
                             break;
                     }
@@ -800,6 +809,10 @@ namespace NSAP_ODK
                 //case "buttonEntitySummary":
                 //    break;
                 case "buttonOrphan":
+                    if (_nsapEntity == NSAPEntity.FishSpecies || _nsapEntity == NSAPEntity.NonFishSpecies)
+                    {
+                        _nsapEntity = NSAPEntity.SpeciesName;
+                    }
                     var oiw = new OrphanItemsManagerWindow();
                     oiw.Owner = this;
                     oiw.NSAPEntity = _nsapEntity;
@@ -1248,8 +1261,8 @@ namespace NSAP_ODK
                     }
                     break;
                 case "menuLocateDatabase":
-                   
-                    LocateBackendDB(out  string backendPath);
+
+                    LocateBackendDB(out string backendPath);
                     break;
                 case "menuImportGPX":
                     OpenFileDialog opf = new OpenFileDialog();
@@ -1416,8 +1429,8 @@ namespace NSAP_ODK
                     {
                         var unload = (VesselUnload)GridNSAPData.SelectedItem;
                         var unloadEditWindow = VesselUnloadEditWindow.GetInstance();
-                        
-                        if(unloadEditWindow.Visibility==Visibility.Visible)
+
+                        if (unloadEditWindow.Visibility == Visibility.Visible)
                         {
                             unloadEditWindow.BringIntoView();
                         }
@@ -1925,6 +1938,14 @@ namespace NSAP_ODK
             targetGrid.SelectionUnit = DataGridSelectionUnit.FullRow;
             switch (summaryType)
             {
+                case SummaryLevelType.Enumerator:
+                case SummaryLevelType.EnumeratedMonth:
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSite") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("Gear") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Number of landings sampled", Binding = new Binding("NumberOfLandingsSampled") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "First sampling", Binding = new Binding("FirstSamplingDate") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Last sampling", Binding = new Binding("LastSamplingDate") });
+                    break;
                 case SummaryLevelType.AllRegions:
                     NSAPEntities.NSAPRegionViewModel.SetupSummary();
                     var dict = NSAPEntities.NSAPRegionViewModel.RegionSummaryDictionary;
@@ -2164,13 +2185,36 @@ namespace NSAP_ODK
                         case "NSAPEnumerator":
                             ShowEnumeratorSummary((NSAPEnumerator)tvItem.Tag);
                             break;
+                        case "DateTime":
+                            ShowEnumeratorSummary((NSAPEnumerator)((TreeViewItem)tvItem.Parent).Tag, (DateTime)tvItem.Tag);
+                            break;
                     }
                     break;
             }
         }
 
-        private void ShowEnumeratorSummary(NSAPEnumerator enumerator)
+        private void ShowEnumeratorSummary(NSAPEnumerator enumerator, DateTime? monthSampled = null)
         {
+            string titleLabel = $"Summary for {enumerator.ToString()}";
+            List<EnumeratorSummary> summaries = new List<EnumeratorSummary>();
+            if (monthSampled != null)
+            {
+                SetUpSummaryGrid(SummaryLevelType.EnumeratedMonth, dataGridSummary);
+                summaries = NSAPEntities.NSAPEnumeratorViewModel.GetSummary(enumerator, (DateTime)monthSampled);
+                titleLabel = $"Monthly summary for {enumerator.ToString()} on {((DateTime)monthSampled).ToString("MMMM, yyyy")}";
+            }
+            else
+            {
+                SetUpSummaryGrid(SummaryLevelType.Enumerator, dataGridSummary);
+                summaries = NSAPEntities.NSAPEnumeratorViewModel.GetSummary(enumerator);
+            }
+
+            
+            dataGridSummary.DataContext = summaries;
+
+            labelSummary.Content = titleLabel;
+            dataGridSummary.Visibility = Visibility.Visible;
+            panelOpening.Visibility = Visibility.Visible;
 
         }
         private void OnSummaryTreeItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -2188,6 +2232,18 @@ namespace NSAP_ODK
             {
                 _selectedTreeNode = (TreeViewItem)e.NewValue;
                 ProcessSummaryTreeSelection(_selectedTreeNode);
+                //if (_selectedTreeNode.Tag != null)
+                //{
+                //    switch (_selectedTreeNode.Tag.GetType().Name)
+                //    {
+                //        case "NSAPEnumerator":
+
+                //            break;
+                //        case "DateTime":
+
+                //            break;
+                //    }
+                //}
             }
         }
 

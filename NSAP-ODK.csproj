@@ -180,7 +180,7 @@
     <Compile Include="Entities\Database\LookupCSVFile.cs" />
     <Compile Include="Entities\Database\OrphanedEnumerator.cs" />
     <Compile Include="Entities\Database\OrphanedFishingGear.cs" />
-    <Compile Include="Entities\Database\OrphanedFishSpeciesName.cs" />
+    <Compile Include="Entities\Database\OrphanedSpeciesName.cs" />
     <Compile Include="Entities\Database\OrphanedLandingSite.cs" />
     <Compile Include="Entities\Database\UploadToDbEventArg.cs" />
     <Compile Include="Entities\Database\VesselCatch.cs" />

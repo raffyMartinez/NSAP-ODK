@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NSAP_ODK.Entities.Database
 {
-    public class OrphanedFishSpeciesName
+    public class OrphanedSpeciesName
     {
         public string Name { get; set; }
 
