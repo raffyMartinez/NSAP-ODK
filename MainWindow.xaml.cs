@@ -286,9 +286,9 @@ namespace NSAP_ODK
                     summaryTreeNodeEnumerators.Items.Clear();
 
 
-                    TreeViewItem tvi = new TreeViewItem { Header = "All regions", Tag = "EnumeratorAllRegions" };
-                    tvi.Expanded += OnSuumaryTreeItemExpanded;
-                    summaryTreeNodeEnumerators.Items.Add(tvi);
+                    //TreeViewItem tvi = new TreeViewItem { Header = "All regions", Tag = "EnumeratorAllRegions" };
+                    //tvi.Expanded += OnSuumaryTreeItemExpanded;
+                    //summaryTreeNodeEnumerators.Items.Add(tvi);
 
                     foreach (var region in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection)
                     {
@@ -1581,7 +1581,8 @@ namespace NSAP_ODK
                 .Where(t => t.Parent.LandingSiteName == e.LandingSiteText)
                 .Where(t => t.Parent.SamplingDate.Year == ((DateTime)e.MonthSampled).Year)
                 .Where(t => t.Parent.SamplingDate.Month == ((DateTime)e.MonthSampled).Month)
-                .OrderBy(t => t.GearUsedName).ToList();
+                .OrderBy(t => t.GearUsedName)
+                .ToList();
 
             _fishingCalendarViewModel = new FishingCalendarViewModel(listGearUnload);
             GridNSAPData.Columns.Clear();
@@ -1938,13 +1939,23 @@ namespace NSAP_ODK
             targetGrid.SelectionUnit = DataGridSelectionUnit.FullRow;
             switch (summaryType)
             {
+                case SummaryLevelType.EnumeratorRegion:
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("EnumeratorName") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSite") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("Gear") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Number of landings sampled", Binding = new Binding("NumberOfLandingsSampled") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Last sampling", Binding = new Binding("LastSamplingDate") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Date uploaded", Binding = new Binding("UploadDateString") });
+                    break;
                 case SummaryLevelType.Enumerator:
                 case SummaryLevelType.EnumeratedMonth:
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSite") });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("Gear") });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Number of landings sampled", Binding = new Binding("NumberOfLandingsSampled") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "With catch composition", Binding = new Binding("NumberOfLandingsWithCatchComposition") });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "First sampling", Binding = new Binding("FirstSamplingDate") });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Last sampling", Binding = new Binding("LastSamplingDate") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Last upload date", Binding = new Binding("UploadDateString") });
                     break;
                 case SummaryLevelType.AllRegions:
                     NSAPEntities.NSAPRegionViewModel.SetupSummary();
@@ -2120,6 +2131,7 @@ namespace NSAP_ODK
         }
         public void ShowSummaryAtLevel(SummaryLevelType summaryType, NSAPRegion region = null, FMA fma = null, FishingGround fg = null)
         {
+            
             string labelContent = "";
             dataGridSummary.Columns.Clear();
             dataGridSummary.AutoGenerateColumns = false;
@@ -2147,6 +2159,7 @@ namespace NSAP_ODK
 
         private void ProcessSummaryTreeSelection(TreeViewItem tvItem)
         {
+            labelSummary2.Visibility = Visibility.Collapsed;
             rowSummaryDataGrid.Height = new GridLength(1, GridUnitType.Star);
             rowOverallSummary.Height = new GridLength(0);
             string header = tvItem.Header.ToString();
@@ -2172,6 +2185,7 @@ namespace NSAP_ODK
                             switch (((TreeViewItem)tvItem.Parent).Header)
                             {
                                 case "Enumerators":
+                                    ShowEnumeratorSummary((NSAPRegion)tvItem.Tag);
                                     break;
                                 case "Regions":
                                     ShowSummaryAtLevel(SummaryLevelType.Region, (NSAPRegion)tvItem.Tag);
@@ -2193,6 +2207,18 @@ namespace NSAP_ODK
             }
         }
 
+        private void ShowEnumeratorSummary(NSAPRegion region)
+        {
+            var summaries = NSAPEntities.NSAPEnumeratorViewModel.GetSummary(region);
+            SetUpSummaryGrid(SummaryLevelType.EnumeratorRegion, dataGridSummary);
+            dataGridSummary.DataContext = summaries;
+
+            labelSummary.Content = $"Summary of enumerators for {region}";
+            labelSummary2.Content = "Latest upload to server and number of landings sampled";
+            labelSummary2.Visibility = Visibility.Visible;
+            dataGridSummary.Visibility = Visibility.Visible;
+            panelOpening.Visibility = Visibility.Visible;
+        }
         private void ShowEnumeratorSummary(NSAPEnumerator enumerator, DateTime? monthSampled = null)
         {
             string titleLabel = $"Summary for {enumerator.ToString()}";
@@ -2223,7 +2249,8 @@ namespace NSAP_ODK
 
             //checkLandingSiteWithLandings.Visibility = Visibility.Visible;
             treeViewSummary.Visibility = Visibility.Visible;
-            labelSummary.Visibility = Visibility.Visible;
+            //labelSummary.Visibility = Visibility.Visible;
+            panelSummaryLabel.Visibility = Visibility.Visible;
 
             propertyGridSummary.Visibility = Visibility.Collapsed; ;
             dataGridSummary.Visibility = Visibility.Collapsed;

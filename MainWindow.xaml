@@ -260,7 +260,10 @@
                 <TreeViewItem Header="Enumerators" x:Name="summaryTreeNodeEnumerators"/>
             </TreeView>
 
-            <Label x:Name="labelSummary" Grid.Column="1" Content="Database summary" FontWeight="Bold" Visibility="Collapsed" HorizontalAlignment="Center" Margin="0 10 0 20" FontSize="14"/>
+            <StackPanel Grid.Column="1" x:Name="panelSummaryLabel" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Label x:Name="labelSummary" Content="Database summary" FontWeight="Bold" Margin="0 10 0 0" FontSize="14" HorizontalContentAlignment="Center"/>
+                <Label x:Name="labelSummary2" Content="this is a sublabel11" FontWeight="Normal" FontSize="12" Visibility="Collapsed" HorizontalContentAlignment="Center"/>
+            </StackPanel>
 
             <xctk:PropertyGrid x:Name="propertyGridSummary" Grid.Column="1" Grid.Row="1" Margin="20"  ShowSortOptions="False" ShowSearchBox="False" Visibility="Collapsed"
                         ShowTitle="False" MouseDoubleClick="OnPropertyGridDblClick"   SelectedPropertyItemChanged="OnPropertyChanged" IsReadOnly="True"/>

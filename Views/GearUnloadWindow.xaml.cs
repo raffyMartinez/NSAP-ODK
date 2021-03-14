@@ -26,6 +26,7 @@ namespace NSAP_ODK.Views
         private VesselUnload _selectedVesselUnload;
         private VesselUnloadWIndow _vesselUnloadWindow;
         private MainWindow _parentWindow;
+        private List<VesselUnload> _listVesselUnload;
 
         public GearUnloadWindow(GearUnload gearUnload, TreeViewModelControl.AllSamplingEntitiesEventHandler treeItemData,MainWindow parent)
         {
@@ -78,7 +79,8 @@ namespace NSAP_ODK.Views
             GridVesselUnload.Columns.Clear();
             //GridVesselUnload.Items.Clear();
 
-            GridVesselUnload.DataContext = _gearUnload.ListVesselUnload;
+            //GridVesselUnload.DataContext = _gearUnload.ListVesselUnload;
+            GridVesselUnload.DataContext = NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(_gearUnload,true);
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("PK") });
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("UserName") });
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Vessel", Binding = new Binding("VesselName") });
@@ -87,6 +89,7 @@ namespace NSAP_ODK.Views
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Catch composition count", Binding = new Binding("CatchCompositionCountText") });
             GridVesselUnload.Columns.Add(new DataGridCheckBoxColumn { Header = "Tracking", Binding = new Binding("OperationIsTracked") });
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "GPS", Binding = new Binding("GPS.AssignedName") });
+            GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Notes", Binding = new Binding("Notes") });
         }
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {

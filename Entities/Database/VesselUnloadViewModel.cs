@@ -38,6 +38,14 @@ namespace NSAP_ODK.Entities.Database
         }
 
 
+        public List<VesselUnload> GetAllVesselUnloads(NSAPRegion region)
+        {
+            return VesselUnloadCollection
+                .Where(t => t.Parent.Parent.NSAPRegionID == region.Code)
+                .OrderBy(t => t.SamplingDate)
+                .ToList();
+        }
+
         public List<VesselUnload> GetAllVesselUnloads(NSAPEnumerator enumerator)
         {
             return VesselUnloadCollection
@@ -88,9 +96,19 @@ namespace NSAP_ODK.Entities.Database
             return VesselUnloadCollection.ToList();
         }
 
-        public List<VesselUnload> GetAllVesselUnloads(GearUnload parent)
+
+        public List<VesselUnload> GetAllVesselUnloads(GearUnload parent ,bool includeSimilarDateAndGear=false)
         {
-            return VesselUnloadCollection.Where(t=>t.Parent.PK==parent.PK).ToList();
+            if (includeSimilarDateAndGear)
+            {
+                return VesselUnloadCollection.Where(t => t.SamplingDate.Date == parent.Parent.SamplingDate.Date &&
+                t.Parent.GearUsedName == parent.GearUsedName &&
+                t.Parent.Parent.LandingSiteName==parent.Parent.LandingSiteName).ToList();
+            }
+            else
+            {
+                return VesselUnloadCollection.Where(t => t.Parent.PK == parent.PK).ToList();
+            }
         }
 
         public DateTime DateLatestDownload

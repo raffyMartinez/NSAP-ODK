@@ -13,15 +13,15 @@ namespace NSAP_ODK.Entities.Database
     class FishingCalendarDay
     {
         public List<bool> IsProcessed { get; set; }
-        public Gear Gear{ get; set; }
+        public Gear Gear { get; set; }
         public string GearName { get; set; }
         public DateTime MonthYear { get; set; }
         public List<GearUnload> GearUnloads { get; set; }
         public List<int?> NumberOfBoatsPerDay { get; set; }
         public List<double?> TotalCatchPerDay { get; set; }
         public List<bool> SamplingDay { get; set; }
-        
-        public List<int?> NumberOfSampledLandings{ get; set; }
+
+        public List<int?> NumberOfSampledLandings { get; set; }
 
         public override string ToString()
         {
@@ -58,7 +58,7 @@ namespace NSAP_ODK.Entities.Database
             DataTable.Columns.Add("GearCode");
             DataTable.Columns.Add("Month");
 
-            for(int n=1; n<=_numberOfDays;n++)
+            for (int n = 1; n <= _numberOfDays; n++)
             {
                 DataTable.Columns.Add(n.ToString());
             }
@@ -67,7 +67,7 @@ namespace NSAP_ODK.Entities.Database
             {
                 var row = DataTable.NewRow();
                 row["GearName"] = item.GearName;
-                row["GearCode"] = item.Gear!=null? item.Gear.Code:string.Empty;
+                row["GearCode"] = item.Gear != null ? item.Gear.Code : string.Empty;
                 row["Month"] = item.MonthYear.ToString("MMM-yyyy");
                 int counter = 1;
                 switch (view)
@@ -76,7 +76,7 @@ namespace NSAP_ODK.Entities.Database
 
                         foreach (var day in item.NumberOfSampledLandings)
                         {
-                            if(day!=null)
+                            if (day != null)
                             {
 
                             }
@@ -106,27 +106,29 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
+        public List<GearUnload> UnloadList { get; private set; }
         public FishingCalendarViewModel(List<GearUnload> unloadList)
         {
+            UnloadList = unloadList;
 
-            if (unloadList.Count == 0) return;
-
-            int c = 0;
-            List<string> gearNames = new List<string>();
-            var fishingCalendarDays = new ObservableCollection<FishingCalendarDay>();
-
-            DateTime samplingMonthYear = unloadList[0].Parent.SamplingDate;
-            _numberOfDays = DateTime.DaysInMonth(samplingMonthYear.Year, samplingMonthYear.Month);
-
-            if(unloadList.Count>0)
+            if (UnloadList.Count > 0)
             {
+
+                int c = 0;
+                List<string> gearNames = new List<string>();
+                var fishingCalendarDays = new ObservableCollection<FishingCalendarDay>();
+
+                DateTime samplingMonthYear = UnloadList[0].Parent.SamplingDate;
+                _numberOfDays = DateTime.DaysInMonth(samplingMonthYear.Year, samplingMonthYear.Month);
+
+
                 FishingCalendarDay calendarDay = null;
-                foreach (var item in unloadList.OrderBy(t=>t.GearUsedName).ThenBy(t=>t.Parent.SamplingDate))
+                foreach (var item in UnloadList.OrderBy(t => t.GearUsedName).ThenBy(t => t.Parent.SamplingDate))
                 {
 
                     if (!gearNames.Contains(item.GearUsedName))
                     {
-                        
+
                         calendarDay = new FishingCalendarDay
                         {
                             Gear = item.Gear,
@@ -139,6 +141,7 @@ namespace NSAP_ODK.Entities.Database
                         calendarDay.TotalCatchPerDay = new List<double?>();
                         calendarDay.IsProcessed = new List<bool>();
                         calendarDay.NumberOfSampledLandings = new List<int?>();
+                        
                         gearNames.Add(item.GearUsedName);
 
                         for (int n = 1; n <= _numberOfDays; n++)
@@ -149,7 +152,8 @@ namespace NSAP_ODK.Entities.Database
                                 calendarDay.GearUnloads.Add(item);
                                 calendarDay.NumberOfBoatsPerDay.Add(item.Boats);
                                 calendarDay.TotalCatchPerDay.Add(item.Catch);
-                                calendarDay.NumberOfSampledLandings.Add(item.ListVesselUnload.Count);
+                                //calendarDay.NumberOfSampledLandings.Add(item.ListVesselUnload.Count);
+                                calendarDay.NumberOfSampledLandings.Add(VesselUnloadCount(n, item.GearUsedName));
                                 calendarDay.IsProcessed.Add(true);
                             }
                             else
@@ -172,16 +176,29 @@ namespace NSAP_ODK.Entities.Database
                             calendarDay.GearUnloads[day] = item;
                             calendarDay.NumberOfBoatsPerDay[day] = item.Boats;
                             calendarDay.TotalCatchPerDay[day] = item.Catch;
-                            calendarDay.NumberOfSampledLandings[day] = item.ListVesselUnload.Count;
+                            //calendarDay.NumberOfSampledLandings[day] = item.ListVesselUnload.Count;
+                            //int vc = VesselUnloadCount(day, item.GearUsedName);
+                            calendarDay.NumberOfSampledLandings[day] = VesselUnloadCount(day+1, item.GearUsedName);
                             calendarDay.IsProcessed[day] = true;
                         }
                     }
                 }
+
+                FishingCalendarList = fishingCalendarDays;
+                BuildCalendar();
             }
-            FishingCalendarList = fishingCalendarDays;
-            BuildCalendar();
         }
 
+
+        private int VesselUnloadCount(int day, string gear)
+        {
+            int count = 0;
+            foreach(var unload in UnloadList.Where(t=>t.Parent.SamplingDate.Day==day && t.GearUsedName==gear))
+            {
+                count += unload.ListVesselUnload.Count;
+            }
+            return count;
+        }
         private void OnPropertyChanged(string propertyName)
         {
             if (PropertyChanged != null)

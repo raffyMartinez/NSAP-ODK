@@ -16,7 +16,48 @@ namespace NSAP_ODK.Entities
 
 
 
+        public List<EnumeratorSummary>SummaryByRegion(NSAPRegion region)
+        {
+            List<EnumeratorSummary> summaries = new List<EnumeratorSummary>();
 
+            return summaries;
+        }
+
+
+        public List<EnumeratorSummary> GetSummary(NSAPRegion region)
+        {
+            List<EnumeratorSummary> summaries = new List<EnumeratorSummary>();
+            var unloads = NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(region);
+            var enumerators = unloads.GroupBy(t => t.EnumeratorName).OrderBy(t => t.Key);
+
+            foreach(var e in enumerators)
+            {
+                if (e.Key.Length > 0)
+                {
+                    var enumerator_date = unloads
+                        .Where(t => t.EnumeratorName == e.Key)
+                        .GroupBy(t => t.SamplingDate.Date)
+                        .OrderByDescending(t => t.Key).ToList();
+
+                    var ve = unloads
+                        .Where(t => t.EnumeratorName == e.Key && t.SamplingDate.Date == enumerator_date[0].Key)
+                        .ToList();
+
+                    EnumeratorSummary es = new EnumeratorSummary
+                    {
+                        EnumeratorName = e.Key,
+                        LandingSite = ve[0].Parent.Parent.LandingSiteName,
+                        Gear = ve[0].Parent.GearUsedName,
+                        NumberOfLandingsSampled = ve.Count,
+                        DateOfLatestSampling = ve[0].SamplingDate,
+                        UploadDate = ve[0].DateTimeSubmitted
+                    };
+                    summaries.Add(es);
+                }
+            }
+
+            return summaries.OrderByDescending(t=>t.DateOfLatestSampling).ToList();
+        }
         public List<EnumeratorSummary> GetSummary(NSAPEnumerator enumerator)
         {
             List<EnumeratorSummary> summaries = new List<EnumeratorSummary>();
@@ -36,8 +77,13 @@ namespace NSAP_ODK.Entities
                         LandingSite = ls.Key,
                         Gear = g.Key,
                         NumberOfLandingsSampled = unloads.Count(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key),
+                        NumberOfLandingsWithCatchComposition = unloads.
+                            Where(t=>t.ListVesselCatch.Count>0 && 
+                            t.Parent.Parent.LandingSiteName==ls.Key &&
+                            t.Parent.GearUsedName==g.Key).ToList().Count,
                         DateOfFirstSampling = unloads.Where(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key).OrderBy(t => t.SamplingDate).FirstOrDefault().SamplingDate,
                         DateOfLatestSampling = unloads.Where(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key).OrderByDescending(t => t.SamplingDate).FirstOrDefault().SamplingDate,
+                        UploadDate= unloads.Where(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key).OrderByDescending(t => t.DateTimeSubmitted).FirstOrDefault().DateTimeSubmitted,
                     };
                     summaries.Add(es);
                 }
@@ -62,10 +108,15 @@ namespace NSAP_ODK.Entities
                     {
                         LandingSite = ls.Key,
                         Gear = g.Key,
+                        NumberOfLandingsWithCatchComposition = unloads.
+                            Where(t => t.ListVesselCatch.Count > 0 &&
+                            t.Parent.Parent.LandingSiteName == ls.Key &&
+                            t.Parent.GearUsedName == g.Key).ToList().Count,
                         NumberOfLandingsSampled = unloads.Count(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key),
                         MonthOfSampling = monthSampled,
                         DateOfFirstSampling = unloads.Where(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key).OrderBy(t => t.SamplingDate).FirstOrDefault().SamplingDate,
                         DateOfLatestSampling = unloads.Where(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key).OrderByDescending(t => t.SamplingDate).FirstOrDefault().SamplingDate,
+                        UploadDate= unloads.Where(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key).OrderByDescending(t => t.DateTimeSubmitted).FirstOrDefault().DateTimeSubmitted,
                     };
                     summaries.Add(es);
                 }

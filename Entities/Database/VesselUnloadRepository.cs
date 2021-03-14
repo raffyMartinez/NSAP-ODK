@@ -258,21 +258,6 @@ namespace NSAP_ODK.Entities.Database
             {
                 string vesselText = item.VesselText == null ? "" : item.VesselText;
                 conn.Open();
-                //var sql = $@"Insert into dbo_vessel_unload(v_unload_id, unload_gr_id,boat_id, boat_text, raising_factor,
-                //                                        catch_total,catch_samp,boxes_total,boxes_samp,is_boat_used)
-                //           Values 
-                //              (
-                //                {item.PK},
-                //                {item.GearUnloadID},
-                //                {(item.VesselID == null ? "null" : item.VesselID.ToString())},
-                //                '{vesselText}',
-                //                {(item.RaisingFactor == null ? "null" : item.RaisingFactor.ToString())},
-                //                {(item.WeightOfCatch == null ? "null" : item.WeightOfCatch.ToString())},
-                //                {(item.WeightOfCatchSample == null ? "null" : item.WeightOfCatchSample.ToString())},
-                //                {(item.Boxes == null ? "null" : item.Boxes.ToString())},
-                //                {(item.BoxesSampled == null ? "null" : item.BoxesSampled.ToString())},
-                //                {item.IsBoatUsed}
-                //             )";
 
                 var sql = $@"Insert into dbo_vessel_unload(v_unload_id, unload_gr_id,boat_id, boat_text, raising_factor,
                             catch_total,catch_samp,boxes_total,boxes_samp,is_boat_used)
@@ -348,37 +333,6 @@ namespace NSAP_ODK.Entities.Database
                         string dateAdded = item.DateAddedToDatabase == null ? "null" : ((DateTime)item.DateAddedToDatabase).ToString("MMM-dd-yyy HH:mm");
                         if (update.ExecuteNonQuery() > 0)
                         {
-                            string departure = item.DepartureFromLandingSite == null ? "null" : $"'{((DateTime)item.DepartureFromLandingSite).ToString(_dateFormat)}'";
-                            string arrival = item.ArrivalAtLandingSite == null ? "null" : $"'{((DateTime)item.ArrivalAtLandingSite).ToString(_dateFormat)}'";
-                            string xFormDate = item.XFormDate == null ? "null" : $"'{((DateTime)item.XFormDate).ToString("MMM-dd-yyy HH:mm:ss")}'";
-                            //sql = $@"Insert into dbo_vessel_unload_1 
-                            //                    (v_unload_id, Success, Tracked, DepartureLandingSite, ArrivalLandingSite, 
-                            //                    RowID, XFormIdentifier, XFormDate, SamplingDate,
-                            //                    user_name,device_id,datetime_submitted,form_version,
-                            //                    GPS,Notes,EnumeratorID,EnumeratorText,DateAdded,sector_code,FromExcelDownload)
-                            //        Values (
-                            //            {item.PK},
-                            //            {item.OperationIsSuccessful},
-                            //            {item.OperationIsTracked},
-                            //            {departure},
-                            //            {arrival},
-                            //            {{{item.ODKRowID}}},
-                            //            '{item.XFormIdentifier}',
-                            //             {xFormDate},
-                            //            '{item.SamplingDate}',
-                            //            '{item.UserName}',
-                            //            '{item.DeviceID}',
-                            //            '{item.DateTimeSubmitted}',
-                            //            '{item.FormVersion}',
-                            //            '{(item.GPSCode == null ? "null" : item.GPSCode)}',
-                            //            '{item.Notes}',
-                            //             {(item.NSAPEnumeratorID == null ? "null" : item.NSAPEnumeratorID.ToString())},
-                            //            '{item.EnumeratorText}',
-                            //            '{item.DateAddedToDatabase}',
-                            //            '{item.SectorCode}',
-                            //             {item.FromExcelDownload}
-                            //        )";
-
 
                             sql = $@"Insert into dbo_vessel_unload_1 
                                                 (v_unload_id, Success, Tracked, DepartureLandingSite, ArrivalLandingSite, 
@@ -469,7 +423,6 @@ namespace NSAP_ODK.Entities.Database
 
                                 update1.Parameters.Add("@from_excel", OleDbType.Boolean).Value = item.FromExcelDownload;
 
-                                //update1.Parameters.Add("@start", OleDbType.Date).Value = item.TimeStart;
                                 
                                 try
                                 {
@@ -516,81 +469,189 @@ namespace NSAP_ODK.Entities.Database
             int y;
         }
 
+
         public bool Update(VesselUnload item)
         {
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"UPDATE dbo_vessel_unload set
-                        unload_gr_id = {item.Parent.PK},
-                        boat_id = {(item.VesselID == null ? "null" : item.VesselID.ToString())}, 
-                        boat_text = '{item.VesselText}', 
-                        raising_factor = {(item.RaisingFactor == null ? "null" : item.RaisingFactor.ToString())},
-                        catch_total = {(item.WeightOfCatch == null ? "null" : item.WeightOfCatch.ToString())},
-                        catch_samp = {(item.WeightOfCatchSample == null ? "null" : item.WeightOfCatchSample.ToString())},
-                        boxes_total = {(item.Boxes == null ? "null" : item.Boxes.ToString())},
-                        boxes_samp = {(item.BoxesSampled == null ? "null" : item.BoxesSampled.ToString())},
-                        is_boat_used  = {item.IsBoatUsed}
-                        WHERE v_unload_id = {item.PK}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                using (OleDbCommand cmd = conn.CreateCommand())
                 {
+                    cmd.Parameters.Add("@Unload_Gear_id", OleDbType.Integer).Value = item.Parent.PK;
+                    if (item.VesselID == null)
+                    {
+                        cmd.Parameters.Add("@Boat_ID", OleDbType.Integer).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        cmd.Parameters.Add("@Boat_ID", OleDbType.Integer).Value = item.VesselID;
+                    }
+                    cmd.Parameters.Add("@Boat_text", OleDbType.VarChar).Value = item.VesselText;
+                    
+                    if(item.RaisingFactor==null)
+                    {
+                        cmd.Parameters.Add("@Raising_factor", OleDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        cmd.Parameters.Add("@Raising_factor", OleDbType.Double).Value = item.RaisingFactor;
+                    }
+
+                    if(item.WeightOfCatch==null)
+                    {
+                        cmd.Parameters.Add("@Weight_catch", OleDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        cmd.Parameters.Add("@Weight_catch", OleDbType.Double).Value = item.WeightOfCatch;
+                    }
+
+                    if(item.WeightOfCatchSample==null)
+                    {
+                        cmd.Parameters.Add("@Weight_sample", OleDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        cmd.Parameters.Add("@Weight_sample", OleDbType.Double).Value = item.WeightOfCatchSample;
+                    }
+
+                    if(item.Boxes==null)
+                    {
+                        cmd.Parameters.Add("@Boxes_count", OleDbType.Integer).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        cmd.Parameters.Add("@Boxes_count", OleDbType.Integer).Value = item.Boxes;
+                    }
+
+                    if (item.BoxesSampled == null)
+                    {
+                        cmd.Parameters.Add("@Boxes_sampled", OleDbType.Integer).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        cmd.Parameters.Add("@Boxes_sampled", OleDbType.Integer).Value = item.BoxesSampled;
+                    }
+
+                    cmd.Parameters.Add("@Is_boat_used", OleDbType.Boolean).Value = item.IsBoatUsed;
+                    cmd.Parameters.Add("@Unload_id", OleDbType.Integer).Value = item.PK;
+
+
+                    cmd.CommandText = $@"UPDATE dbo_vessel_unload set
+                        unload_gr_id = @Unload_Gear_id,
+                        boat_id = @Boat_ID, 
+                        boat_text = @Boat_text, 
+                        raising_factor = @Raising_factor,
+                        catch_total = @Weight_catch,
+                        catch_samp = @Weight_sample,
+                        boxes_total = @Boxes_count,
+                        boxes_samp = @Boxes_sampled,
+                        is_boat_used  = @Is_boat_used
+                        WHERE v_unload_id = @Unload_id";
                     try
                     {
-                        success = update.ExecuteNonQuery() > 0;
-                        string departure = item.DepartureFromLandingSite == null ? "null" : $"'{((DateTime)item.DepartureFromLandingSite).ToString(_dateFormat)}'";
-                        string arrival = item.ArrivalAtLandingSite == null ? "null" : $"'{((DateTime)item.ArrivalAtLandingSite).ToString(_dateFormat)}'";
-                        string xFormDate = item.XFormDate == null ? "null" : $"'{((DateTime)item.XFormDate).ToString("MMM-dd-yyy HH:mm:ss")}'";
-                        sql = $@"UPDATE dbo_vessel_unload_1 SET
-                            Success = {item.OperationIsSuccessful},
-                            Tracked =  {item.OperationIsTracked},
-                            DepartureLandingSite = {departure},
-                            ArrivalLandingSite = {arrival}, 
-                            RowID =  {{{item.ODKRowID}}},
-                            XFormIdentifier = '{item.XFormIdentifier}',
-                            XFormDate = {xFormDate}, 
-                            SamplingDate = '{item.SamplingDate}',
-                            user_name = '{item.UserName}',
-                            device_id = '{item.DeviceID}',
-                            datetime_submitted = '{item.DateTimeSubmitted}',
-                            form_version = '{item.FormVersion}',
-                            GPS = '{item.GPSCode}',
-                            Notes = '{item.Notes}',
-                            EnumeratorID = {(item.NSAPEnumeratorID == null ? "null" : item.NSAPEnumeratorID.ToString())},
-                            EnumeratorText = '{item.EnumeratorText}',
-                            DateAdded = '{item.DateAddedToDatabase}',
-                            sector_code = '{item.SectorCode}',
-                            FromExcelDownload =  {item.FromExcelDownload}
-                            WHERE v_unload_id = {item.PK}";
-
-
-                        using (OleDbCommand update1 = new OleDbCommand(sql, conn))
+                        success = cmd.ExecuteNonQuery() > 0;
+                        using (OleDbCommand cmd_1 = conn.CreateCommand())
                         {
+                            cmd_1.Parameters.Add("@Operation_success", OleDbType.Boolean).Value = item.OperationIsSuccessful;
+                            cmd_1.Parameters.Add("@Operation_is_tracked", OleDbType.Boolean).Value = item.OperationIsTracked;
+                            if (item.DepartureFromLandingSite == null)
+                            {
+                                cmd_1.Parameters.Add("@Departure_date", OleDbType.Date).Value = DBNull.Value;
+                            }
+                            else
+                            {
+                                cmd_1.Parameters.Add("@Departure_date", OleDbType.Date).Value = item.DepartureFromLandingSite;
+                            }
+                            if (item.ArrivalAtLandingSite == null)
+                            {
+                                cmd_1.Parameters.Add("@Arrival_date", OleDbType.Date).Value = DBNull.Value;
+                            }
+                            else
+                            {
+                                cmd_1.Parameters.Add("@Arrival_date", OleDbType.Date).Value = item.ArrivalAtLandingSite;
+                            }
+                            cmd_1.Parameters.Add("@ODK_row_id", OleDbType.VarChar).Value = item.ODKRowID;
+                            cmd_1.Parameters.Add("@XForm_id", OleDbType.VarChar).Value = item.XFormIdentifier;
+                            if (item.XFormDate == null)
+                            {
+                                cmd_1.Parameters.Add("@Xform_date", OleDbType.Date).Value = DBNull.Value;
+                            }
+                            else
+                            {
+                                cmd_1.Parameters.Add("@Xform_date", OleDbType.Date).Value = item.XFormDate;
+                            }
+                            cmd_1.Parameters.Add("@Sampling_date", OleDbType.Date).Value = item.SamplingDate;
+                            cmd_1.Parameters.Add("@User_name", OleDbType.VarChar).Value = item.UserName;
+                            cmd_1.Parameters.Add("@Device_id", OleDbType.VarChar).Value = item.DeviceID;
+                            cmd_1.Parameters.Add("@Date_submitted", OleDbType.Date).Value = item.DateTimeSubmitted;
+                            cmd_1.Parameters.Add("@Form_version", OleDbType.VarChar).Value = item.FormVersion;
+                            cmd_1.Parameters.Add("@GPS_code", OleDbType.VarChar).Value = item.GPSCode;
+                            cmd_1.Parameters.Add("@Notes", OleDbType.VarChar).Value = item.Notes;
+                            if (item.NSAPEnumeratorID == null)
+                            {
+                                cmd_1.Parameters.Add("@Enumerator_id", OleDbType.Integer).Value = DBNull.Value;
+                            }
+                            else
+                            {
+                                cmd_1.Parameters.Add("@Enumerator_id", OleDbType.Integer).Value = item.NSAPEnumeratorID;
+                            }
+                            cmd_1.Parameters.Add("@Enumerator_text", OleDbType.VarChar).Value = item.EnumeratorText;
+                            cmd_1.Parameters.Add("@Date_added", OleDbType.Date).Value = item.DateAddedToDatabase;
+                            cmd_1.Parameters.Add("@Sector_code", OleDbType.VarChar).Value = item.SectorCode;
+                            cmd_1.Parameters.Add("@From_excel", OleDbType.Boolean).Value = item.FromExcelDownload;
+                            cmd_1.Parameters.Add("@Vessel_unload_id", OleDbType.Integer).Value = item.PK;
+
+                            cmd_1.CommandText = $@"UPDATE dbo_vessel_unload_1 SET
+                                        Success = @Operation_success,
+                                        Tracked =  @Operation_is_tracked,
+                                        DepartureLandingSite = @Departure_date,
+                                        ArrivalLandingSite = @Arrival_date, 
+                                        RowID =  @ODK_row_id,
+                                        XFormIdentifier = @XForm_id,
+                                        XFormDate = @Xform_date, 
+                                        SamplingDate = @Sampling_date,
+                                        user_name = @User_name,
+                                        device_id = @Device_id,
+                                        datetime_submitted = @Date_submitted,
+                                        form_version = @Form_version,
+                                        GPS = @GPS_code,
+                                        Notes = @Notes,
+                                        EnumeratorID = @Enumerator_id,
+                                        EnumeratorText = @Enumerator_text,
+                                        DateAdded = @Date_added,
+                                        sector_code = @Sector_code,
+                                        FromExcelDownload =  @From_excel
+                                        WHERE v_unload_id =@Vessel_unload_id";
+
+
                             success = false;
+
                             try
                             {
-                                success = update1.ExecuteNonQuery() > 0;
+                                success = cmd_1.ExecuteNonQuery() > 0;
                             }
-                            catch (OleDbException)
+                            catch(OleDbException)
                             {
-                                success = false;
+                                //ignore
                             }
-                            catch (Exception ex)
+                            catch(Exception ex)
                             {
                                 Logger.Log(ex);
                             }
                         }
 
-
                     }
-                    catch (OleDbException)
+                    catch (OleDbException dbex)
                     {
-                        success = false;
+                        Logger.Log(dbex);
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
                     }
+
                 }
             }
             return success;

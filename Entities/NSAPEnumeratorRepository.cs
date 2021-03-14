@@ -76,10 +76,14 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Update NSAPENumerator set
-                                EnumeratorID = {ns.ID},
-                                ENumeratorName = '{ns.Name}'
-                            WHERE EnumeratorID={ns.ID}";
+                //var sql = $@"Update NSAPENumerator set
+                //                EnumeratorID = {ns.ID},
+                //                ENumeratorName = '{ns.Name}'
+                //            WHERE EnumeratorID={ns.ID}";
+
+                var sql = $@"Update NSAPENumerator set ENumeratorName = '{ns.Name}'
+                              WHERE EnumeratorID = { ns.ID }";
+
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
                     success = update.ExecuteNonQuery() > 0;
