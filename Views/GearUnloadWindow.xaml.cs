@@ -26,7 +26,6 @@ namespace NSAP_ODK.Views
         private VesselUnload _selectedVesselUnload;
         private VesselUnloadWIndow _vesselUnloadWindow;
         private MainWindow _parentWindow;
-        private List<VesselUnload> _listVesselUnload;
 
         public GearUnloadWindow(GearUnload gearUnload, TreeViewModelControl.AllSamplingEntitiesEventHandler treeItemData,MainWindow parent)
         {

@@ -80,6 +80,7 @@ namespace NSAP_ODK.Views
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("CrossTabCommon.FMA")  });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("CrossTabCommon.FishingGround") });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("CrossTabCommon.LandingSite")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("CrossTabCommon.Enumerator")  });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("CrossTabCommon.Sector")  });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Grid", Binding = new Binding("CrossTabCommon.FishingGroundGrid")  });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Longitude", Binding = new Binding("CrossTabCommon.xCoordinate")  });

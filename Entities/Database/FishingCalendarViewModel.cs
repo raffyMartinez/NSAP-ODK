@@ -177,7 +177,6 @@ namespace NSAP_ODK.Entities.Database
                             calendarDay.NumberOfBoatsPerDay[day] = item.Boats;
                             calendarDay.TotalCatchPerDay[day] = item.Catch;
                             //calendarDay.NumberOfSampledLandings[day] = item.ListVesselUnload.Count;
-                            //int vc = VesselUnloadCount(day, item.GearUsedName);
                             calendarDay.NumberOfSampledLandings[day] = VesselUnloadCount(day+1, item.GearUsedName);
                             calendarDay.IsProcessed[day] = true;
                         }
@@ -192,12 +191,15 @@ namespace NSAP_ODK.Entities.Database
 
         private int VesselUnloadCount(int day, string gear)
         {
-            int count = 0;
-            foreach(var unload in UnloadList.Where(t=>t.Parent.SamplingDate.Day==day && t.GearUsedName==gear))
-            {
-                count += unload.ListVesselUnload.Count;
-            }
-            return count;
+            //int count = 0;
+            //foreach(var unload in UnloadList.Where(t=>t.Parent.SamplingDate.Day==day && t.GearUsedName==gear))
+            //{
+            //    count += unload.ListVesselUnload.Count;
+            //}
+            //return count;
+            
+            return UnloadList.Where(t=>t.Parent.SamplingDate.Day==day && t.GearUsedName==gear).Sum(t=>t.ListVesselUnload.Count);
+
         }
         private void OnPropertyChanged(string propertyName)
         {

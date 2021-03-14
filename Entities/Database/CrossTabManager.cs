@@ -154,6 +154,10 @@ namespace NSAP_ODK.Entities.Database
             dc = new DataColumn { ColumnName = "Landing site" };
             _effortCrostabDataTable.Columns.Add(dc);
 
+            dc = new DataColumn { ColumnName = "Enumerator" };
+            _effortCrostabDataTable.Columns.Add(dc);
+
+
             dc = new DataColumn { ColumnName = "Sector" };
             _effortCrostabDataTable.Columns.Add(dc);
 
@@ -225,6 +229,8 @@ namespace NSAP_ODK.Entities.Database
                 }
 
                 row["Landing site"] = item.CrossTabCommon.LandingSite;
+                row["Enumerator"] = item.CrossTabCommon.Enumerator;
+
                 row["Region"] = item.CrossTabCommon.Region;
                 row["FMA"] = item.CrossTabCommon.FMA;
 
@@ -325,7 +331,11 @@ namespace NSAP_ODK.Entities.Database
             dc = new DataColumn { ColumnName = "Fishing ground" };
             _effortSpeciesCrostabDataTable.Columns.Add(dc);
 
+
             dc = new DataColumn { ColumnName = "Landing site" };
+            _effortSpeciesCrostabDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Enumerator" };
             _effortSpeciesCrostabDataTable.Columns.Add(dc);
 
             dc = new DataColumn { ColumnName = "Sector" };
@@ -411,6 +421,7 @@ namespace NSAP_ODK.Entities.Database
                 }
 
                 row["Landing site"] = item.CrossTabCommon.LandingSite;
+                row["Enumerator"] = item.CrossTabCommon.Enumerator;
                 
                 row["Region"] = item.CrossTabCommon.Region;
                 row["FMA"] = item.CrossTabCommon.FMA;

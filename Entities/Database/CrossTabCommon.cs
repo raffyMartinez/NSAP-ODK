@@ -65,6 +65,7 @@ namespace NSAP_ODK.Entities.Database
         private void SetCommonProperties()
         {
             DataID = _vesselUnload.PK;
+            Enumerator = _vesselUnload.EnumeratorName;
             FishingGround = _landingSiteSampling.FishingGround.ToString();
             Region = _landingSiteSampling.NSAPRegion.ShortName;
             FMA = _landingSiteSampling.FMA.Name;
@@ -93,6 +94,7 @@ namespace NSAP_ODK.Entities.Database
         }
         public int DataID { get; private set; }
        
+        public string Enumerator { get; private set; }
         public DateTime MonthSampled { get; private set; }
 
         public int Year { get { return MonthSampled.Year; } }
