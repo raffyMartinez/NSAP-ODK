@@ -19,7 +19,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
         private static int _pk;
         private int _rowID;
 
-        public static bool RowIDSet { get; set; }
+        public static bool RowIDSet { get; private set; }
         public static void SetRowIDs()
         {
             if (NSAPEntities.CatchLengthWeightViewModel.CatchLengthWeightCollection.Count == 0)
@@ -67,7 +67,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
     {
         private static int _pk;
         private int _rowID;
-        public static bool RowIDSet { get; set; }
+        public static bool RowIDSet { get; private set; }
         public static void SetRowIDs()
         {
             if (NSAPEntities.CatchLenFreqViewModel.CatchLenFreqCollection.Count == 0)
@@ -114,7 +114,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
     {
         private static int _pk;
         private int _rowID;
-        public static bool RowIDSet { get; set; }
+        public static bool RowIDSet { get; private set; }
         public static void SetRowIDs()
         {
             if (NSAPEntities.CatchLengthViewModel.CatchLengthCollection.Count == 0)
@@ -158,7 +158,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
         private static int _pk;
         private int _rowID;
 
-        public static bool RowIDSet { get; set; }
+        public static bool RowIDSet { get; private set; }
         public static void SetRowIDs()
         {
             if (NSAPEntities.CatchMaturityViewModel.CatchMaturityCollection.Count == 0)
@@ -393,7 +393,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
         //alias of SpeciesSampleWt
         public double? SampleWeightOfCatch { get { return SpeciesSampleWt; } }
-        public static bool RowIDSet { get; set; }
+        public static bool RowIDSet { get; private set; }
         public  static void SetRowIDs()
         {
 
@@ -464,7 +464,9 @@ namespace NSAP_ODK.Entities.Database.FromJson
         [JsonProperty("soak_time_group/soaktime_tracking_group/soak_time_repeat/set_time")]
         public DateTime SetTime { get; set; }
 
-        public static bool RowIDSet { get; set; }
+        public static bool RowIDSet { get; private set; }
+
+        
         public static void SetRowIDs()
         {
             if (NSAPEntities.GearSoakViewModel.GearSoakCollection.Count == 0)
@@ -539,7 +541,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                 return new Grid25GridCell(_utmZone, CompleteGridName);
             }
         }
-        public static bool RowIDSet { get; set; }
+        public static bool RowIDSet { get; private set; }
         public static void  SetRowIDs()
         {
             if (NSAPEntities.FishingGroundGridViewModel.FishingGroundGridCollection.Count == 0)
@@ -617,7 +619,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
             } 
         }
 
-        public static bool RowIDSet { get; set; }
+        public static bool RowIDSet { get; private set; }
         public static void SetRowIDs()
         {
             if (NSAPEntities.VesselEffortViewModel.VesselEffortCollection.Count == 0)
@@ -626,7 +628,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
             }
             else
             {
-                _pk = NSAPEntities.VesselUnloadViewModel.NextRecordNumber - 1;
+                _pk = NSAPEntities.VesselEffortViewModel.NextRecordNumber - 1;
             }
             RowIDSet = true;
         }
@@ -1137,7 +1139,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
         public string _status { get; set; }
 
 
-        public static bool RowIDSet { get; set; }
+        public static bool RowIDSet { get; private set; }
         public static void SetRowIDs()
         {
             if (NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.Count == 0)
@@ -1404,7 +1406,10 @@ namespace NSAP_ODK.Entities.Database.FromJson
             List<GridCoordGroupBingoRepeat> thisList = new List<GridCoordGroupBingoRepeat>();
             if (_listGridBingoCoordinates == null)
             {
-                GridCoordGroupBingoRepeat.SetRowIDs();
+                if (!GridCoordGroupBingoRepeat.RowIDSet)
+                {
+                    GridCoordGroupBingoRepeat.SetRowIDs();
+                }
                 foreach (var item in VesselLandings)
                 {
                     if (item.GridCoordinates != null)
@@ -1426,7 +1431,10 @@ namespace NSAP_ODK.Entities.Database.FromJson
             List<EffortsGroupEffortRepeat> thisList = new List<EffortsGroupEffortRepeat>();
             if (_listGearEfforts == null)
             {
-                EffortsGroupEffortRepeat.SetRowIDs();
+                if (!EffortsGroupEffortRepeat.RowIDSet)
+                {
+                    EffortsGroupEffortRepeat.SetRowIDs();
+                }
                 foreach (var item in VesselLandings)
                 {
                     if (item.GearEffortSpecs != null)
@@ -1449,7 +1457,10 @@ namespace NSAP_ODK.Entities.Database.FromJson
             List<SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat> thisList = new List<SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat>();
             if (_listGearSoakTimes == null)
             {
-                SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat.SetRowIDs();
+                if (!SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat.RowIDSet)
+                {
+                    SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat.SetRowIDs();
+                }
                 foreach (var item in VesselLandings)
                 {
                     if (item.GearSoakTimes != null)
@@ -1471,7 +1482,10 @@ namespace NSAP_ODK.Entities.Database.FromJson
             List<CatchCompGroupCatchCompositionRepeat> thisList = new List<CatchCompGroupCatchCompositionRepeat>();
             if (_listCatchComps == null)
             {
-                CatchCompGroupCatchCompositionRepeat.SetRowIDs();
+                if (!CatchCompGroupCatchCompositionRepeat.RowIDSet)
+                {
+                    CatchCompGroupCatchCompositionRepeat.SetRowIDs();
+                }
                 foreach (var item in VesselLandings)
                 {
                     if (item.CatchComposition != null)
@@ -1605,6 +1619,10 @@ namespace NSAP_ODK.Entities.Database.FromJson
                         
                         if (landing.GearEffortSpecs != null)
                         {
+                            if(!EffortsGroupEffortRepeat.RowIDSet)
+                            {
+                                EffortsGroupEffortRepeat.SetRowIDs();
+                            }
                             foreach (var effort in landing.GearEffortSpecs
                                 .Where(t => t.Parent.PK == landing.PK))
                             {
@@ -1622,6 +1640,10 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
                         if (landing.GearSoakTimes != null)
                         {
+                            if(!SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat.RowIDSet)
+                            {
+                                SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat.SetRowIDs();
+                            }
                             foreach (var soak in landing.GearSoakTimes
                                 .Where(t => t.Parent.PK == landing.PK))
                             {
@@ -1640,6 +1662,10 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
                         if (landing.GridCoordinates != null)
                         {
+                            if(!GridCoordGroupBingoRepeat.RowIDSet)
+                            {
+                                GridCoordGroupBingoRepeat.SetRowIDs();
+                            }
                             foreach (var gr in landing.GridCoordinates
                                  .Where(t => t.Parent.PK == landing.PK))
                             {
@@ -1656,6 +1682,10 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
                         if (landing.CatchComposition != null)
                         {
+                            if(!CatchCompGroupCatchCompositionRepeat.RowIDSet)
+                            {
+                                CatchCompGroupCatchCompositionRepeat.SetRowIDs();
+                            }
                             foreach (var catchComp in landing.CatchComposition
                                 .Where(t => t.Parent.PK == landing.PK))
                             {
@@ -1675,6 +1705,10 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                 {
                                     if (catchComp.LenFreqRepeat != null)
                                     {
+                                        if(!CatchCompGroupCatchCompositionRepeatLengthFreqRepeat.RowIDSet)
+                                        {
+                                            CatchCompGroupCatchCompositionRepeatLengthFreqRepeat.SetRowIDs();
+                                        }
                                         foreach (var lf in catchComp.LenFreqRepeat
                                             .Where(t => t.Parent.PK == catchComp.PK))
                                         {
@@ -1691,6 +1725,10 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
                                     if (catchComp.LenWtRepeat != null)
                                     {
+                                        if(!CatchCompGroupCatchCompositionRepeatLenWtRepeat.RowIDSet)
+                                        {
+                                            CatchCompGroupCatchCompositionRepeatLenWtRepeat.SetRowIDs();
+                                        }
                                         foreach (var lw in catchComp.LenWtRepeat
                                              .Where(t => t.Parent.PK == catchComp.PK))
                                         {
@@ -1707,6 +1745,10 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
                                     if (catchComp.LengthListRepeat != null)
                                     {
+                                        if(!CatchCompGroupCatchCompositionRepeatLengthListRepeat.RowIDSet)
+                                        {
+                                            CatchCompGroupCatchCompositionRepeatLengthListRepeat.SetRowIDs();
+                                        }
                                         foreach (var l in catchComp.LengthListRepeat
                                              .Where(t => t.Parent.PK == catchComp.PK))
                                         {
@@ -1723,6 +1765,10 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
                                     if (catchComp.GMSRepeat != null)
                                     {
+                                        if(!CatchCompGroupCatchCompositionRepeatGmsRepeatGroup.RowIDSet)
+                                        {
+                                            CatchCompGroupCatchCompositionRepeatGmsRepeatGroup.SetRowIDs();
+                                        }
                                         foreach (var m in catchComp.GMSRepeat
                                              .Where(t => t.Parent.PK == catchComp.PK))
                                         {

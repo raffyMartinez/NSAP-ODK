@@ -9,7 +9,7 @@ namespace NSAP_ODK.Entities.Database
 {
     public class VesselEffortViewModel
     {
-        public bool AddSucceeded { get; set; }
+        public bool EditSucceeded { get; set; }
         public ObservableCollection<VesselEffort> VesselEffortCollection { get; set; }
         private VesselEffortRepository VesselEfforts { get; set; }
 
@@ -81,21 +81,21 @@ namespace NSAP_ODK.Entities.Database
                 case NotifyCollectionChangedAction.Add:
                     {
                         int newIndex = e.NewStartingIndex;
-                        AddSucceeded = VesselEfforts.Add(VesselEffortCollection[newIndex]);
+                        EditSucceeded = VesselEfforts.Add(VesselEffortCollection[newIndex]);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<VesselEffort> tempListOfRemovedItems = e.OldItems.OfType<VesselEffort>().ToList();
-                        VesselEfforts.Delete(tempListOfRemovedItems[0].PK);
+                       EditSucceeded= VesselEfforts.Delete(tempListOfRemovedItems[0].PK);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<VesselEffort> tempList = e.NewItems.OfType<VesselEffort>().ToList();
-                        VesselEfforts.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        EditSucceeded=VesselEfforts.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -108,14 +108,16 @@ namespace NSAP_ODK.Entities.Database
 
         public bool AddRecordToRepo(VesselEffort item)
         {
+            EditSucceeded = false;
             if (item == null)
                 throw new ArgumentNullException("Error: The argument is Null");
             VesselEffortCollection.Add(item);
-            return AddSucceeded;
+            return EditSucceeded;
         }
 
-        public void UpdateRecordInRepo(VesselEffort item)
+        public bool UpdateRecordInRepo(VesselEffort item)
         {
+            EditSucceeded = false;
             if (item.PK == 0)
                 throw new Exception("Error: ID cannot be zero");
 
@@ -129,6 +131,7 @@ namespace NSAP_ODK.Entities.Database
                 }
                 index++;
             }
+            return EditSucceeded;
         }
 
         public int NextRecordNumber
@@ -146,8 +149,9 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-        public void DeleteRecordFromRepo(int id)
+        public bool DeleteRecordFromRepo(int id)
         {
+            EditSucceeded = false;
             if (id == 0)
                 throw new Exception("Record ID cannot be null");
 
@@ -161,6 +165,7 @@ namespace NSAP_ODK.Entities.Database
                 }
                 index++;
             }
+            return EditSucceeded;
         }
     }
 }

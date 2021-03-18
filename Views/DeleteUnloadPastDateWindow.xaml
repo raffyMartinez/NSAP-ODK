@@ -1,0 +1,21 @@
+﻿<Window x:Class="NSAP_ODK.Views.DeleteUnloadPastDateWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NSAP_ODK.Views"
+        mc:Ignorable="d"
+        Title="Provide date past" Height="172.059" Width="397.426" ResizeMode="NoResize">
+    <Grid>
+        <StackPanel>
+            <WrapPanel VerticalAlignment="Center" Margin="10 20 0 0">
+                <Label Content="Provide date" Margin="10"/>
+                <TextBox x:Name="textDate" Width="250" Height="30" VerticalContentAlignment="Center"/>
+            </WrapPanel>
+            <WrapPanel HorizontalAlignment="Right" Margin="0 10 30 0" >
+                <Button Content="Cancel" Height="30" Width="50" Margin="10" x:Name="buttonCancel" Click="OnButtonClick"/>
+                <Button Content="Ok" Height="30" Width="50" Margin="10" x:Name="buttonOk" Click="OnButtonClick"/>
+            </WrapPanel>
+        </StackPanel>
+    </Grid>
+</Window>

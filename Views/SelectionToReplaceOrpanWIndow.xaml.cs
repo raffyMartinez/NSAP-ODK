@@ -75,12 +75,12 @@ namespace NSAP_ODK.Views
                 {
                     ((RadioButton)panelButtons.Children[0]).IsChecked = true;
                 }
-                else if(count==0)
+                else if (count == 0)
                 {
                     TextBlock txtNotFound = null;
                     if (textSearch.Text.Length > 0)
                     {
-                        txtNotFound = new TextBlock{Text = $"{textSearch.Text} is not found in the database"};
+                        txtNotFound = new TextBlock { Text = $"{textSearch.Text} is not found in the database" };
                     }
                     else
                     {
@@ -110,14 +110,14 @@ namespace NSAP_ODK.Views
 
         private void OnRadioButtonRightMouseButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (NSAPEntity == NSAPEntity.FishSpecies || NSAPEntity == NSAPEntity.NonFishSpecies || NSAPEntity==NSAPEntity.SpeciesName)
+            if (NSAPEntity == NSAPEntity.FishSpecies || NSAPEntity == NSAPEntity.NonFishSpecies || NSAPEntity == NSAPEntity.SpeciesName)
             {
                 string speciesToBrowse = "";
-                if(sender.GetType().Name=="RadioButton")
+                if (sender.GetType().Name == "RadioButton")
                 {
                     speciesToBrowse = ((RadioButton)sender).Content.ToString();
                 }
-                else if(sender.GetType().Name == "TextBlock")
+                else if (sender.GetType().Name == "TextBlock")
                 {
                     if (textSearch.Text.Length > 0)
                     {
@@ -157,7 +157,7 @@ namespace NSAP_ODK.Views
                 m.Click += OnMenuClick;
                 cm.Items.Add(m);
 
-                if (_obiResponse != null && _obiResponse.total>0)
+                if (_obiResponse != null && _obiResponse.total > 0)
                 {
                     cm.Items.Add(new Separator());
 
@@ -225,12 +225,14 @@ namespace NSAP_ODK.Views
         public LandingSiteSampling LandingSiteSampling { get; set; }
 
 
+        public VesselUnload VesselUnload { get; set; }
+
 
         public GearUnload GearUnload { get; set; }
 
         public async void FillSelection()
         {
-            if (NSAPEntity == NSAPEntity.FishSpecies || NSAPEntity == NSAPEntity.NonFishSpecies || NSAPEntity==NSAPEntity.SpeciesName)
+            if (NSAPEntity == NSAPEntity.FishSpecies || NSAPEntity == NSAPEntity.NonFishSpecies || NSAPEntity == NSAPEntity.SpeciesName)
             {
                 _hasInternet = await CheckForInternet();
             }
@@ -238,7 +240,8 @@ namespace NSAP_ODK.Views
             rowSearch.Height = new GridLength(0);
             switch (NSAPEntity)
             {
-                //case Entities.NSAPEntity.FishSpecies:
+                case Entities.NSAPEntity.FishingVessel:
+                    break;
                 case Entities.NSAPEntity.SpeciesName:
                     linkSingle.Visibility = Visibility.Collapsed;
                     panelMultiSpecieslink.Visibility = Visibility.Collapsed;
@@ -273,9 +276,7 @@ namespace NSAP_ODK.Views
                 case Entities.NSAPEntity.Enumerator:
                     foreach (var regionEnumerator in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection
                         .Where(t => t.Code == LandingSiteSampling.NSAPRegionID)
-                        .FirstOrDefault().NSAPEnumerators
-                        .OrderBy(t => t.Enumerator.Name)
-                        )
+                        .FirstOrDefault().NSAPEnumerators.OrderBy(t => t.Enumerator.Name))
                     {
                         var rb = new RadioButton { Content = regionEnumerator.Enumerator.Name, Tag = regionEnumerator.Enumerator };
                         rb.Checked += OnButtonChecked;
@@ -289,8 +290,7 @@ namespace NSAP_ODK.Views
                     foreach (var regionGear in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection
                         .Where(t => t.Code == GearUnload.Parent.NSAPRegionID)
                         .FirstOrDefault().Gears
-                        .OrderBy(t => t.Gear.GearName)
-                        )
+                        .OrderBy(t => t.Gear.GearName))
                     {
                         var rb = new RadioButton { Content = regionGear.Gear.GearName, Tag = regionGear.Gear };
                         rb.Checked += OnButtonChecked;
@@ -301,6 +301,7 @@ namespace NSAP_ODK.Views
                     title = "Get replacement fishing gear";
                     break;
             }
+
             Title = title;
         }
         private void onButtonClick(object sender, RoutedEventArgs e)
@@ -321,9 +322,9 @@ namespace NSAP_ODK.Views
                         switch (NSAPEntity)
                         {
                             case NSAPEntity.SpeciesName:
-                                if(_isFish)
+                                if (_isFish)
                                 {
-                                     ((OrphanItemsManagerWindow)Owner).ReplacementFishSpecies = (FishSpecies)_selectedButton.Tag;
+                                    ((OrphanItemsManagerWindow)Owner).ReplacementFishSpecies = (FishSpecies)_selectedButton.Tag;
                                 }
                                 else
                                 {
@@ -404,7 +405,7 @@ namespace NSAP_ODK.Views
                             //}
                             //else
                             //{
-                                _obiResponse = await NSAPEntities.FishSpeciesViewModel.RequestDataFromOBI(ItemToReplace);
+                            _obiResponse = await NSAPEntities.FishSpeciesViewModel.RequestDataFromOBI(ItemToReplace);
                             //}
                             if (_obiResponse.total > 0)
                             {

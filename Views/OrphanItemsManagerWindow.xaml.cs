@@ -34,6 +34,7 @@ namespace NSAP_ODK.Views
         private FishSpecies _replacementFishSpecies;
         private NotFishSpecies _replacementNotFishSpecies;
         private bool _isMultiline;
+        private FishingVessel _fishingVessel;
         public OrphanItemsManagerWindow()
         {
             InitializeComponent();
@@ -76,6 +77,15 @@ namespace NSAP_ODK.Views
             }
         }
 
+        public FishingVessel FishingVessel
+        {
+            get { return _fishingVessel; }
+            set
+            {
+                _fishingVessel = value;
+                buttonReplace.IsEnabled = true;    
+            }
+        }
         public NSAPEnumerator ReplacementEnumerator
         {
             get { return _replacementEnumerator; }
@@ -133,6 +143,11 @@ namespace NSAP_ODK.Views
                     labelTitle.Content = "Manage orphaned fishing gears";
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "Gear name", Binding = new Binding("Name"), IsReadOnly = true });
                     break;
+
+                case NSAPEntity.FishingVessel:
+                    labelTitle.Content = "Manage orphaned fishing vessels";
+                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Vessel name", Binding = new Binding("Name"), IsReadOnly = true });
+                    break;
             }
 
             dataGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "Replace", Binding = new Binding("ForReplacement") });
@@ -143,8 +158,14 @@ namespace NSAP_ODK.Views
 
             switch (NSAPEntity)
             {
+                case NSAPEntity.FishingVessel:
+                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSiteName"), IsReadOnly = true });
+                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Sector"), IsReadOnly = true });
+                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of landings", Binding = new Binding("NumberOfUnload"), IsReadOnly = true });
+                    break;
 
                 case NSAPEntity.Enumerator:
+                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSiteName"), IsReadOnly = true });
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of landings", Binding = new Binding("NumberOfLandings"), IsReadOnly = true });
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of vessel countings", Binding = new Binding("NumberOfVesselCountings"), IsReadOnly = true });
                     break;
@@ -431,6 +452,9 @@ namespace NSAP_ODK.Views
                 case NSAPEntity.FishingGear:
                     dataGrid.DataContext = NSAPEntities.GearUnloadViewModel.OrphanedFishingGears();
                     break;
+                case NSAPEntity.FishingVessel:
+                    dataGrid.DataContext = NSAPEntities.FishingVesselViewModel.OrphanedFishingVesseks();
+                    break;
             }
 
             //if(dataGrid.Items.Count==0)
@@ -502,7 +526,20 @@ namespace NSAP_ODK.Views
                         switch (NSAPEntity)
                         {
 
-                            //case NSAPEntity.FishSpecies:
+                            case NSAPEntity.FishingVessel:
+                                if (((OrphanedFishingVessel)item).ForReplacement)
+                                {
+                                    if (!procced)
+                                    {
+                                        procced = true;
+                                        if (((OrphanedFishingVessel)item).VesselUnloads.Count > 0)
+                                        {
+                                            replacementWindow.VesselUnload = ((OrphanedFishingVessel)item).VesselUnloads[0];
+                                        }
+                                    }
+                                    _countForReplacement += ((OrphanedFishingVessel)item).VesselUnloads.Count;
+                                }
+                                break;
                             case NSAPEntity.SpeciesName:
                                 if (((OrphanedSpeciesName)item).ForReplacement)
                                 {

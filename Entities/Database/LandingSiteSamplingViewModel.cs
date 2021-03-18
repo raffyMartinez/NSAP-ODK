@@ -12,6 +12,11 @@ namespace NSAP_ODK.Entities.Database
         public bool EditSuccess { get; set; }
         public ObservableCollection<LandingSiteSampling> LandingSiteSamplingCollection { get; set; }
         private LandingSiteSamplingRepository LandingSiteSamplings { get; set; }
+
+        public List<LandingSiteSampling> GetSampledLandings(string enumeratorText,string landingSiteName)
+        {
+            return LandingSiteSamplingCollection.Where(t => t.EnumeratorID == null && t.EnumeratorText == enumeratorText && t.LandingSiteName==landingSiteName).ToList();
+        }
         public List<LandingSiteSampling> GetSampledLandings(string enumeratorText)
         {
             return LandingSiteSamplingCollection.Where(t => t.EnumeratorID == null && t.EnumeratorText == enumeratorText).ToList();

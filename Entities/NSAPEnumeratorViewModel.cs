@@ -16,7 +16,7 @@ namespace NSAP_ODK.Entities
 
 
 
-        public List<EnumeratorSummary>SummaryByRegion(NSAPRegion region)
+        public List<EnumeratorSummary> SummaryByRegion(NSAPRegion region)
         {
             List<EnumeratorSummary> summaries = new List<EnumeratorSummary>();
 
@@ -30,7 +30,7 @@ namespace NSAP_ODK.Entities
             var unloads = NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(region);
             var enumerators = unloads.GroupBy(t => t.EnumeratorName).OrderBy(t => t.Key);
 
-            foreach(var e in enumerators)
+            foreach (var e in enumerators)
             {
                 if (e.Key.Length > 0)
                 {
@@ -56,7 +56,7 @@ namespace NSAP_ODK.Entities
                 }
             }
 
-            return summaries.OrderByDescending(t=>t.DateOfLatestSampling).ToList();
+            return summaries.OrderByDescending(t => t.DateOfLatestSampling).ToList();
         }
         public List<EnumeratorSummary> GetSummary(NSAPEnumerator enumerator)
         {
@@ -78,12 +78,12 @@ namespace NSAP_ODK.Entities
                         Gear = g.Key,
                         NumberOfLandingsSampled = unloads.Count(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key),
                         NumberOfLandingsWithCatchComposition = unloads.
-                            Where(t=>t.ListVesselCatch.Count>0 && 
-                            t.Parent.Parent.LandingSiteName==ls.Key &&
-                            t.Parent.GearUsedName==g.Key).ToList().Count,
+                            Where(t => t.ListVesselCatch.Count > 0 &&
+                            t.Parent.Parent.LandingSiteName == ls.Key &&
+                            t.Parent.GearUsedName == g.Key).ToList().Count,
                         DateOfFirstSampling = unloads.Where(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key).OrderBy(t => t.SamplingDate).FirstOrDefault().SamplingDate,
                         DateOfLatestSampling = unloads.Where(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key).OrderByDescending(t => t.SamplingDate).FirstOrDefault().SamplingDate,
-                        UploadDate= unloads.Where(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key).OrderByDescending(t => t.DateTimeSubmitted).FirstOrDefault().DateTimeSubmitted,
+                        UploadDate = unloads.Where(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key).OrderByDescending(t => t.DateTimeSubmitted).FirstOrDefault().DateTimeSubmitted,
                     };
                     summaries.Add(es);
                 }
@@ -116,7 +116,7 @@ namespace NSAP_ODK.Entities
                         MonthOfSampling = monthSampled,
                         DateOfFirstSampling = unloads.Where(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key).OrderBy(t => t.SamplingDate).FirstOrDefault().SamplingDate,
                         DateOfLatestSampling = unloads.Where(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key).OrderByDescending(t => t.SamplingDate).FirstOrDefault().SamplingDate,
-                        UploadDate= unloads.Where(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key).OrderByDescending(t => t.DateTimeSubmitted).FirstOrDefault().DateTimeSubmitted,
+                        UploadDate = unloads.Where(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key).OrderByDescending(t => t.DateTimeSubmitted).FirstOrDefault().DateTimeSubmitted,
                     };
                     summaries.Add(es);
                 }
@@ -125,7 +125,100 @@ namespace NSAP_ODK.Entities
 
             return summaries;
         }
+
+
+        //    var itemsVesselSamplings = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
+        //.Where(t => t.VesselID == null && t.VesselName != null && t.VesselText.Length > 0)
+        //.GroupBy(t => new { Sector = t.Sector, LandingSite = t.Parent.Parent.LandingSiteName, Name = t.VesselName })
+        //.Select(vessel => new
+        //{
+        //    NameVessel = vessel.Key.Name,
+        //    SectorVessel = vessel.Key.Sector,
+        //    LandingSiteVessel = vessel.Key.LandingSite
+        //}
+        //)
+        //.ToList();
+
+        //    var list = new List<OrphanedFishingVessel>();
+        //        //var listNames = new List<string>();
+
+
+        //        foreach (var item in itemsVesselSamplings)
+        //        {
+        //            //listNames.Add(item.NameVessel);
+        //            var orphan = new OrphanedFishingVessel
+        //            {
+        //                Name = item.NameVessel,
+        //                VesselUnloads = NSAPEntities.VesselUnloadViewModel.GetSampledLandingsOfVessel(item.NameVessel, item.SectorVessel, item.LandingSiteVessel),
+        //            };
+
+        //    list.Add(orphan);
+        //        }
+
+        //List<OrphanedFishingVessel> sortedList = list.OrderBy(t => t.Sector).ThenBy(t => t.Name).ThenBy(t => t.LandingSiteName).ToList();
+        //        return sortedList;
+
         public List<OrphanedEnumerator> OrphanedEnumerators()
+        {
+            var itemsVesselSamplings = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
+                .Where(t => t.NSAPEnumeratorID == null && t.EnumeratorText != null && t.EnumeratorText.Length > 0)
+                .GroupBy(t => new { LandingsSiteName = t.Parent.Parent.LandingSiteName, EnumeratorName = t.EnumeratorName })
+                .Select(enumerator => new
+                {
+                    LandingSiteName = enumerator.Key.LandingsSiteName,
+                    EnumeratorName = enumerator.Key.EnumeratorName
+                }
+                 )
+                .ToList();
+
+            var list = new List<OrphanedEnumerator>();
+            var listNames = new List<string>();
+
+            var itemsLandingSiteSampling = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection
+                .Where(t => t.EnumeratorID == null && t.EnumeratorText != null && t.EnumeratorText.Length > 0)
+                .GroupBy(t => new { Name = t.EnumeratorText, LandingSite = t.LandingSiteName })
+                .Select(enumerator => new
+                {
+                    LandingSiteName = enumerator.Key.LandingSite,
+                    Name = enumerator.Key.Name
+
+                }
+                 )
+                .ToList();
+
+            foreach (var item in itemsVesselSamplings)
+            {
+                listNames.Add(item.EnumeratorName);
+                var orphan = new OrphanedEnumerator
+                {
+                    Name = item.EnumeratorName,
+                    SampledLandings = NSAPEntities.VesselUnloadViewModel.GetSampledLandings(item.EnumeratorName, item.LandingSiteName),
+                    LandingSiteSamplings = NSAPEntities.LandingSiteSamplingViewModel.GetSampledLandings(item.EnumeratorName, item.LandingSiteName)
+                };
+
+                list.Add(orphan);
+            }
+
+            foreach (var sl in itemsLandingSiteSampling)
+            {
+                if (!listNames.Contains(sl.Name))
+                {
+                    var orphan = new OrphanedEnumerator
+                    {
+                        Name = sl.Name,
+                        SampledLandings = NSAPEntities.VesselUnloadViewModel.GetSampledLandings(sl.Name,sl.LandingSiteName),
+                        LandingSiteSamplings = NSAPEntities.LandingSiteSamplingViewModel.GetSampledLandings(sl.Name,sl.LandingSiteName)
+                    };
+
+                    list.Add(orphan);
+                }
+            }
+            List<OrphanedEnumerator> sortedList = list.OrderBy(t => t.Name).ToList();
+            return sortedList;
+
+        }
+
+        public List<OrphanedEnumerator> OrphanedEnumerators1()
         {
             var itemsVesselSamplings = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
                 .Where(t => t.NSAPEnumeratorID == null && t.EnumeratorText != null && t.EnumeratorText.Length > 0)

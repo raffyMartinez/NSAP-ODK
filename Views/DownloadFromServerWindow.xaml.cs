@@ -30,7 +30,7 @@ namespace NSAP_ODK.Views
 {
     public enum ServerIntent
     {
-        IntentDonloadData,
+        IntentDownloadData,
         IntentUploadMedia
     }
 
@@ -60,7 +60,7 @@ namespace NSAP_ODK.Views
         {
             InitializeComponent();
             _parentWindow = parentWindow;
-            ServerIntent = ServerIntent.IntentDonloadData;
+            ServerIntent = ServerIntent.IntentDownloadData;
         }
 
         public ServerIntent ServerIntent { get; set; }
@@ -83,7 +83,7 @@ namespace NSAP_ODK.Views
                     ((TreeViewItem)treeForms.Items[item]).Items.Add(new TreeViewItem { Header = "Media", Tag = "form_media", });
                     switch (ServerIntent)
                     {
-                        case ServerIntent.IntentDonloadData:
+                        case ServerIntent.IntentDownloadData:
                             ((TreeViewItem)treeForms.Items[item]).Items.Add(new TreeViewItem { Header = "Download", Tag = "form_download" });
                             break;
                         case ServerIntent.IntentUploadMedia:
@@ -652,6 +652,55 @@ namespace NSAP_ODK.Views
                 }
             }
         }
+
+        private void SetDownloadOptionsVisibility()
+        {
+            foreach (var c in stackPanelJSON.Children)
+            {
+                switch (c.GetType().Name)
+                {
+                    case "CheckBox":
+                        ((CheckBox)c).Visibility = Visibility.Collapsed;
+                        break;
+                    case "RadioButton":
+                        if (((RadioButton)c).Name != "rbAll")
+                        {
+                            ((RadioButton)c).Visibility = Visibility.Visible;
+                        }
+                        break;
+                    case "WrapPanel":
+                        ((WrapPanel)c).Visibility = Visibility.Collapsed;
+                        break;
+                }
+            }
+
+            if (_formSummary.LastSaveDateInDatabase.Length > 0 && DateTime.TryParse(_formSummary.LastSaveDateInDatabase, out DateTime v))
+            {
+                _lastSubmittedDate = v;
+            }
+            else
+            {
+                foreach (var c in stackPanelJSON.Children)
+                {
+                    switch (c.GetType().Name)
+                    {
+                        case "CheckBox":
+                            ((CheckBox)c).Visibility = Visibility.Collapsed;
+                            break;
+                        case "RadioButton":
+                            if (((RadioButton)c).Name != "rbAll")
+                            {
+                                ((RadioButton)c).Visibility = Visibility.Collapsed;
+                            }
+                            break;
+                        case "WrapPanel":
+                            ((WrapPanel)c).Visibility = Visibility.Collapsed;
+                            break;
+                    }
+                }
+
+            }
+        }
         private void OnTreeItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             propertyGrid.Visibility = Visibility.Collapsed;
@@ -668,32 +717,33 @@ namespace NSAP_ODK.Views
                         _formID = treeViewItem.Header.ToString();
                         _formSummary = new FormSummary(_koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)));
                         SetODKServerDownloadType();
-                        if (_formSummary.LastSaveDateInDatabase.Length > 0 && DateTime.TryParse(_formSummary.LastSaveDateInDatabase, out DateTime v))
-                        {
-                            _lastSubmittedDate = v;
-                        }
-                        else
-                        {
-                            foreach (var c in stackPanelJSON.Children)
-                            {
-                                switch (c.GetType().Name)
-                                {
-                                    case "CheckBox":
-                                        ((CheckBox)c).Visibility = Visibility.Collapsed;
-                                        break;
-                                    case "RadioButton":
-                                        if (((RadioButton)c).Name != "rbAll")
-                                        {
-                                            ((RadioButton)c).Visibility = Visibility.Collapsed;
-                                        }
-                                        break;
-                                    case "WrapPanel":
-                                        ((WrapPanel)c).Visibility = Visibility.Collapsed;
-                                        break;
-                                }
-                            }
+                        SetDownloadOptionsVisibility();
+                        //if (_formSummary.LastSaveDateInDatabase.Length > 0 && DateTime.TryParse(_formSummary.LastSaveDateInDatabase, out DateTime v))
+                        //{
+                        //    _lastSubmittedDate = v;
+                        //}
+                        //else
+                        //{
+                        //    foreach (var c in stackPanelJSON.Children)
+                        //    {
+                        //        switch (c.GetType().Name)
+                        //        {
+                        //            case "CheckBox":
+                        //                ((CheckBox)c).Visibility = Visibility.Collapsed;
+                        //                break;
+                        //            case "RadioButton":
+                        //                if (((RadioButton)c).Name != "rbAll")
+                        //                {
+                        //                    ((RadioButton)c).Visibility = Visibility.Collapsed;
+                        //                }
+                        //                break;
+                        //            case "WrapPanel":
+                        //                ((WrapPanel)c).Visibility = Visibility.Collapsed;
+                        //                break;
+                        //        }
+                        //    }
 
-                        }
+                        //}
 
                         propertyGrid.SelectedObject = _formSummary;
                         propertyGrid.AutoGenerateProperties = false;
@@ -752,9 +802,11 @@ namespace NSAP_ODK.Views
                     case "form_download":
 
                         _formID = ((TreeViewItem)treeViewItem.Parent).Header.ToString();
+                         _formSummary = new FormSummary(_koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)));
                         _description = new FormSummary(_koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID))).Description;
                         _count = new FormSummary(_koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID))).NumberOfSubmissions;
                         SetODKServerDownloadType();
+                        SetDownloadOptionsVisibility();
                         gridDownload.Visibility = Visibility.Visible;
                         ((ComboBoxItem)comboboxDownloadOption.Items[0]).IsSelected = true;
 
@@ -820,7 +872,7 @@ namespace NSAP_ODK.Views
                     ButtonUploadMedia.Visibility = Visibility.Visible;
                     labelTitle.Content = "Upload media (CSV files) to the server";
                     break;
-                case ServerIntent.IntentDonloadData:
+                case ServerIntent.IntentDownloadData:
                     stackPanelDownload.Visibility = Visibility.Visible;
                     stackPanelUploadMedia.Visibility = Visibility.Collapsed;
                     ButtonDownload.Visibility = Visibility.Visible;

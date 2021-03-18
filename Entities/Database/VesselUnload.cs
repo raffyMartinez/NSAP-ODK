@@ -312,12 +312,12 @@ namespace NSAP_ODK.Entities.Database
             OperationIsTracked = vesselUnload.OperationIsTracked;
             DepartureFromLandingSite = vesselUnload.DepartureFromLandingSite == null ? "" : ((DateTime)vesselUnload.DepartureFromLandingSite).ToString("dd-MMM-yyyy HH:mm");
             ArrivalAtLandingSite = vesselUnload.ArrivalAtLandingSite == null ? "" : ((DateTime)vesselUnload.ArrivalAtLandingSite).ToString("dd-MMM-yyyy HH:mm");
-            GPS =   vesselUnload.GPS==null ? "" : vesselUnload.GPS.AssignedName;
+            GPS = vesselUnload.GPS == null ? "" : vesselUnload.GPS.AssignedName;
 
             UserName = vesselUnload.UserName;
             DeviceID = vesselUnload.DeviceID;
             XFormIdentifier = vesselUnload.XFormIdentifier;
-            XFormDate =   vesselUnload.XFormDate==null ? "" :  ((DateTime)vesselUnload.XFormDate).ToString("dd-MMM-yyyy HH:mm");
+            XFormDate = vesselUnload.XFormDate == null ? "" : ((DateTime)vesselUnload.XFormDate).ToString("dd-MMM-yyyy HH:mm");
             FormVersion = vesselUnload.FormVersion;
             Submitted = vesselUnload.DateTimeSubmitted.ToString("dd-MMM-yyyy HH:mm");
             DateAddedToDatabase = ((DateTime)vesselUnload.DateAddedToDatabase).ToString("dd-MMM-yyyy HH:mm");
@@ -530,7 +530,7 @@ namespace NSAP_ODK.Entities.Database
             get
             {
                 return NSAPEntities.VesselEffortViewModel.VesselEffortCollection
-                    .Where(t => t.Parent.PK == PK).ToList();
+                    .Where(t => t.Parent != null && t.Parent.PK == PK).ToList();
             }
         }
 
@@ -556,15 +556,16 @@ namespace NSAP_ODK.Entities.Database
             get
             {
                 return NSAPEntities.GearSoakViewModel.GearSoakCollection
-                    .Where(t => t.Parent.PK == PK).ToList();
+                    .Where(t => t.Parent != null && t.Parent.PK == PK).ToList();
             }
         }
         public List<FishingGroundGrid> ListFishingGroundGrid
         {
             get
             {
+
                 return NSAPEntities.FishingGroundGridViewModel.FishingGroundGridCollection
-                    .Where(t => t.Parent.PK == PK).ToList();
+                    .Where(t => t.Parent != null && t.Parent.PK == PK).ToList();
             }
         }
         public List<VesselCatch> ListVesselCatch
@@ -572,7 +573,7 @@ namespace NSAP_ODK.Entities.Database
             get
             {
                 return NSAPEntities.VesselCatchViewModel.VesselCatchCollection
-                    .Where(t => t.Parent.PK == PK).ToList();
+                    .Where(t => t.Parent != null && t.Parent.PK == PK).ToList();
             }
         }
         public bool OperationIsSuccessful { get; set; }

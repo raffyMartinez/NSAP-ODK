@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using NSAP_ODK.Entities.Database;
 
 namespace NSAP_ODK.Entities
 {
@@ -18,6 +19,40 @@ namespace NSAP_ODK.Entities
             FishingVesselCollection.CollectionChanged += FishingVesselCollection_CollectionChanged;
         }
 
+        public List<OrphanedFishingVessel> OrphanedFishingVesseks()
+        {
+            var itemsVesselSamplings = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
+                .Where(t => t.VesselID == null && t.VesselName!= null && t.VesselText.Length > 0)
+                .GroupBy(t => new { Sector = t.Sector, LandingSite = t.Parent.Parent.LandingSiteName, Name = t.VesselName  })
+                .Select(vessel => new
+                    {
+                        NameVessel = vessel.Key.Name,
+                        SectorVessel = vessel.Key.Sector,
+                        LandingSiteVessel = vessel.Key.LandingSite
+                    }
+                )
+                .ToList();
+
+            var list = new List<OrphanedFishingVessel>();
+            //var listNames = new List<string>();
+
+
+            foreach (var item in itemsVesselSamplings)
+            {
+                //listNames.Add(item.NameVessel);
+                var orphan = new OrphanedFishingVessel
+                {
+                    Name = item.NameVessel,
+                    VesselUnloads = NSAPEntities.VesselUnloadViewModel.GetSampledLandingsOfVessel(item.NameVessel,item.SectorVessel,item.LandingSiteVessel),
+                };
+
+                list.Add(orphan);
+            }
+
+            List<OrphanedFishingVessel> sortedList = list.OrderBy(t=>t.Sector).ThenBy(t =>  t.Name).ThenBy(t=>t.LandingSiteName).ToList() ;
+            return sortedList;
+
+        }
         public List<FishingVessel> GetAllGears()
         {
             return FishingVesselCollection.ToList();

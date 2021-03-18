@@ -170,6 +170,7 @@
     <Compile Include="Entities\Database\JSONFileViewModel.cs" />
     <Compile Include="Entities\Database\LandingSiteBoatLandingsFromServerRepository.cs" />
     <Compile Include="Entities\Database\GearUnloadViewModel.cs" />
+    <Compile Include="Entities\Database\OrphanedFishingVessel.cs" />
     <Compile Include="Entities\ItemSources\FishingGroundInRegionFMAItemsSource.cs" />
     <Compile Include="Entities\ItemSources\GearsInNSAPRegionItemsSource.cs" />
     <Compile Include="Entities\ItemSources\GPSItemsSource.cs" />
@@ -346,6 +347,9 @@
     <Compile Include="Views\CSVOptionsWindow.xaml.cs">
       <DependentUpon>CSVOptionsWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\DeleteUnloadPastDateWindow.xaml.cs">
+      <DependentUpon>DeleteUnloadPastDateWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\DownloadFromServerWindow.xaml.cs">
       <DependentUpon>DownloadFromServerWindow.xaml</DependentUpon>
     </Compile>
@@ -429,6 +433,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\CSVOptionsWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\DeleteUnloadPastDateWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -9,7 +9,7 @@ namespace NSAP_ODK.Entities.Database
 {
     public class CatchMaturityViewModel
     {
-        public bool AddSucceeded;
+        public bool EditSucceeded;
         public ObservableCollection<CatchMaturity> CatchMaturityCollection { get; set; }
         private CatchMaturityRepository CatchMaturities { get; set; }
 
@@ -56,26 +56,27 @@ namespace NSAP_ODK.Entities.Database
 
         private void CatchMaturityCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
                     {
                         int newIndex = e.NewStartingIndex;
-                        AddSucceeded = CatchMaturities.Add(CatchMaturityCollection[newIndex]);
+                        EditSucceeded = CatchMaturities.Add(CatchMaturityCollection[newIndex]);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<CatchMaturity> tempListOfRemovedItems = e.OldItems.OfType<CatchMaturity>().ToList();
-                        CatchMaturities.Delete(tempListOfRemovedItems[0].PK);
+                        EditSucceeded= CatchMaturities.Delete(tempListOfRemovedItems[0].PK);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<CatchMaturity> tempList = e.NewItems.OfType<CatchMaturity>().ToList();
-                        CatchMaturities.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        EditSucceeded= CatchMaturities.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -88,14 +89,16 @@ namespace NSAP_ODK.Entities.Database
 
         public bool AddRecordToRepo(CatchMaturity item)
         {
+            EditSucceeded = false;
             if (item == null)
                 throw new ArgumentNullException("Error: The argument is Null");
             CatchMaturityCollection.Add(item);
-            return AddSucceeded;
+            return EditSucceeded;
         }
 
-        public void UpdateRecordInRepo(CatchMaturity item)
+        public bool UpdateRecordInRepo(CatchMaturity item)
         {
+            EditSucceeded = false;
             if (item.PK == 0)
                 throw new Exception("Error: ID cannot be zero");
 
@@ -109,6 +112,7 @@ namespace NSAP_ODK.Entities.Database
                 }
                 index++;
             }
+            return EditSucceeded;
         }
 
         public int NextRecordNumber
@@ -126,8 +130,9 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-        public void DeleteRecordFromRepo(int id)
+        public bool DeleteRecordFromRepo(int id)
         {
+            EditSucceeded = false;
             if (id == 0)
                 throw new Exception("Record ID cannot be null");
 
@@ -141,6 +146,7 @@ namespace NSAP_ODK.Entities.Database
                 }
                 index++;
             }
+            return EditSucceeded;
         }
     }
 }

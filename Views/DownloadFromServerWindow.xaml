@@ -60,7 +60,7 @@
                                     ShowSortOptions="False" ShowTitle="False" ShowSummary="False" Visibility="Collapsed"/>
 
                 <!-- container grid showing a list for form users and form media-->
-                <Grid Grid.Column="1" Margin="5" x:Name="gridFormUsers" Visibility="Visible">
+                <Grid Grid.Column="1" Margin="5" x:Name="gridFormUsers" Visibility="Collapsed">
                     <Grid.RowDefinitions>
                         <RowDefinition/>
                         <RowDefinition Height="40"/>
@@ -76,14 +76,14 @@
 
 
                 <!--container grid for downloading from the server-->
-                <Grid Grid.Column="1" Margin="5" x:Name="gridDownload" Visibility="Collapsed">
+                <Grid Grid.Column="1" Margin="5" x:Name="gridDownload" Visibility="Visible">
                     <Grid.RowDefinitions>
                         <RowDefinition/>
                         <RowDefinition Height="40"/>
                     </Grid.RowDefinitions>
 
 
-                    <StackPanel x:Name="stackPanelDownload" Visibility="Collapsed">
+                    <StackPanel x:Name="stackPanelDownload" Visibility="Visible">
                         <WrapPanel>
                             <Label Content="Download option" Margin="10,5"/>
                             <ComboBox Width="200" Margin="10 5" SelectionChanged="OnComboSelectionChanged" x:Name="comboboxDownloadOption">
@@ -119,7 +119,7 @@
 
 
                     <!--container for uploading media to the server-->
-                    <StackPanel x:Name="stackPanelUploadMedia" Visibility="Visible" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <StackPanel x:Name="stackPanelUploadMedia" Visibility="Collapsed" VerticalAlignment="Center" HorizontalAlignment="Center">
 
                         <Label Content="Select folder that contains the media files for uploading to the server" Margin="20"/>
                         <Button x:Name="ButtonSelectMeidaFolder" Content="Select folder" Width="80" Height="30"/>

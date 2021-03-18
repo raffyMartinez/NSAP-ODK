@@ -925,6 +925,7 @@ namespace NSAP_ODK
                 case "menuVessels":
                     _nsapEntity = NSAPEntity.FishingVessel;
                     textOfTitle = "List of fishing vessels";
+                    buttonOrphan.Visibility = Visibility.Visible;
                     break;
 
                 case "menuFishSpecies":

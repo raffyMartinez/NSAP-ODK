@@ -67,6 +67,21 @@ namespace NSAP_ODK.Entities.Database
         public int NumberOfVesselCountings { get { return LandingSiteSamplings.Count; } }
         public int NumberOfLandings { get { return SampledLandings.Count; } }
 
+        public string LandingSiteName
+        {
+            get
+            {
+                if (SampledLandings.Count == 0)
+                {
+                    return LandingSiteSamplings[0].LandingSiteName;
+                }
+                else
+                {
+                    return SampledLandings[0].Parent.Parent.LandingSiteName;
+                }
+            }
+        }
+
 
     }
 

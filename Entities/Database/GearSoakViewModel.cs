@@ -10,7 +10,7 @@ namespace NSAP_ODK.Entities.Database
     public class GearSoakViewModel
     {
 
-        public bool AddSucceeded;
+        public bool UpdateSucceeded;
         public ObservableCollection<GearSoak> GearSoakCollection { get; set; }
         private GearSoakRepository GearSoaks { get; set; }
 
@@ -65,21 +65,21 @@ namespace NSAP_ODK.Entities.Database
                 case NotifyCollectionChangedAction.Add:
                     {
                         int newIndex = e.NewStartingIndex;
-                        AddSucceeded = GearSoaks.Add(GearSoakCollection[newIndex]);
+                        UpdateSucceeded = GearSoaks.Add(GearSoakCollection[newIndex]);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<GearSoak> tempListOfRemovedItems = e.OldItems.OfType<GearSoak>().ToList();
-                        GearSoaks.Delete(tempListOfRemovedItems[0].PK);
+                        UpdateSucceeded=GearSoaks.Delete(tempListOfRemovedItems[0].PK);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<GearSoak> tempList = e.NewItems.OfType<GearSoak>().ToList();
-                        GearSoaks.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        UpdateSucceeded=GearSoaks.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -92,14 +92,16 @@ namespace NSAP_ODK.Entities.Database
 
         public bool AddRecordToRepo(GearSoak item)
         {
+            UpdateSucceeded = false;
             if (item == null)
                 throw new ArgumentNullException("Error: The argument is Null");
             GearSoakCollection.Add(item);
-            return AddSucceeded;
+            return UpdateSucceeded;
         }
 
-        public void UpdateRecordInRepo(GearSoak item)
+        public bool UpdateRecordInRepo(GearSoak item)
         {
+            UpdateSucceeded = false;
             if (item.PK == 0)
                 throw new Exception("Error: ID cannot be zero");
 
@@ -113,6 +115,7 @@ namespace NSAP_ODK.Entities.Database
                 }
                 index++;
             }
+            return UpdateSucceeded;
         }
 
         public int NextRecordNumber
@@ -130,8 +133,9 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-        public void DeleteRecordFromRepo(int id)
+        public bool DeleteRecordFromRepo(int id)
         {
+            UpdateSucceeded = false;
             if (id == 0)
                 throw new Exception("Record ID cannot be null");
 
@@ -145,6 +149,8 @@ namespace NSAP_ODK.Entities.Database
                 }
                 index++;
             }
+
+            return UpdateSucceeded;
         }
     }
 }

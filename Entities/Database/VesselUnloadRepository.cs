@@ -707,16 +707,33 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $"Delete * from dbo_LC_FG_sample_day where unload_day_id={id}";
+                var sql = $"Delete * from dbo_vessel_unload_1 where v_unload_id={id}";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;
+                        sql = $"Delete * from dbo_vessel_unload where v_unload_id={id}";
+                        using (OleDbCommand update1 = new OleDbCommand(sql, conn))
+                        {
+                            try
+                            {
+                                success = update1.ExecuteNonQuery()>0;
+                                
+                            }
+                            catch (OleDbException odbex)
+                            {
+                                Logger.Log(odbex);
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Log(ex);
+                            }
+                        }
                     }
-                    catch (OleDbException)
+                    catch (OleDbException odbex)
                     {
-                        success = false;
+                        Logger.Log(odbex);
                     }
                     catch (Exception ex)
                     {

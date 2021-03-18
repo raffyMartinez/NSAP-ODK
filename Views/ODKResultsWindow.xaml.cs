@@ -139,6 +139,7 @@ namespace NSAP_ODK.Views
                 menuClearTables.Visibility = Visibility.Visible;
                 menuVesselCountJSON.Visibility = Visibility.Visible;
                 menuVesselUnloadJSON.Visibility = Visibility.Visible;
+                menuDeletePastDate.Visibility = Visibility.Visible;
             }
             menuSaveJson.IsEnabled = true;
 
@@ -287,6 +288,10 @@ namespace NSAP_ODK.Views
         {
             switch (((MenuItem)sender).Name)
             {
+                case "menuDeletePastDate":
+                    DeleteUnloadPastDateWindow dpw = new DeleteUnloadPastDateWindow();
+                    dpw.ShowDialog();
+                    break;
                 case "menuSaveJson":
                     //for saving the downloadd JSON text into a file.
                     if (await SaveJSONTextTask())

@@ -13,12 +13,12 @@ namespace NSAP_ODK.Entities.Database
         public ObservableCollection<VesselCatch> VesselCatchCollection { get; set; }
         private VesselCatchRepository VesselCatches { get; set; }
 
-        public List<VesselCatchEdited>GetVesselCatchEditedList(VesselUnload unload)
+        public List<VesselCatchEdited> GetVesselCatchEditedList(VesselUnload unload)
         {
             List<VesselCatchEdited> vces = new List<VesselCatchEdited>();
-            foreach(var vc in VesselCatchCollection.Where(t => t.Parent.PK == unload.PK))
+            foreach (var vc in VesselCatchCollection.Where(t => t.Parent.PK == unload.PK))
             {
-                vces.Add( new VesselCatchEdited(vc));
+                vces.Add(new VesselCatchEdited(vc));
             }
 
             return vces;
@@ -36,7 +36,7 @@ namespace NSAP_ODK.Entities.Database
             if (!getMultiLine)
             {
                 catches = VesselCatchCollection
-                    .Where(t =>  t.SpeciesID == null && t.SpeciesText != null && t.SpeciesText.Length > 0 && !t.SpeciesText.Contains('\n'))
+                    .Where(t => t.SpeciesID == null && t.SpeciesText != null && t.SpeciesText.Length > 0 && !t.SpeciesText.Contains('\n'))
                     .OrderBy(t => t.SpeciesText)
                     .GroupBy(t => t.SpeciesText).ToList();
             }
@@ -70,6 +70,76 @@ namespace NSAP_ODK.Entities.Database
 
             return list;
 
+        }
+
+        public int DeleteCatchFromUnloads(List<VesselUnload> listOfUnloads)
+        {
+            int counter = 0;
+            foreach (var unload in listOfUnloads)
+            {
+                var catchCollection = VesselCatchCollection.Where(t => t.Parent.PK == unload.PK).ToList();
+                if (catchCollection != null && catchCollection.Count > 0)
+                {
+                    foreach (VesselCatch vc in catchCollection)
+                    {
+                        var listMaturity = vc.ListCatchMaturity;
+                        if (listMaturity != null && listMaturity.Count > 0)
+                        {
+                            foreach (var item in listMaturity)
+                            {
+                                if (NSAPEntities.CatchMaturityViewModel.DeleteRecordFromRepo(item.PK))
+                                {
+                                    counter++;
+                                }
+                            }
+                        }
+
+                        var listLF = vc.ListCatchLenFreq;
+                        if (listLF != null && listLF.Count > 0)
+                        {
+                            foreach (var item in listLF)
+                            {
+                                if (NSAPEntities.CatchLenFreqViewModel.DeleteRecordFromRepo(item.PK))
+                                {
+                                    counter++;
+                                }
+                            }
+                        }
+
+                        var listLW = vc.ListCatchLengthWeight;
+                        if (listLW != null && listLF.Count > 0)
+                        {
+                            foreach (var item in listLW)
+                            {
+                                if (NSAPEntities.CatchLengthWeightViewModel.DeleteRecordFromRepo(item.PK))
+                                {
+                                    counter++;
+                                }
+                            }
+                        }
+
+                        var listL = vc.ListCatchLength;
+                        if (listL != null && listL.Count > 0)
+                        {
+                            foreach (var item in listL)
+                            {
+                                if (NSAPEntities.CatchLengthViewModel.DeleteRecordFromRepo(item.PK))
+                                {
+                                    counter++;
+                                }
+                            }
+                        }
+
+                        if (NSAPEntities.VesselCatchViewModel.DeleteRecordFromRepo(vc.PK))
+                        {
+                            counter++;
+                        }
+                    }
+                }
+
+
+            }
+            return counter;
         }
         public List<OrphanedSpeciesName> OrphanedFishSpeciesNames(bool getMultiLine = false)
         {
@@ -113,11 +183,11 @@ namespace NSAP_ODK.Entities.Database
 
         }
 
-        public List<VesselCatch>MulitpleCatchNamesText()
+        public List<VesselCatch> MulitpleCatchNamesText()
         {
             return VesselCatchCollection
-                .Where(t =>t.SpeciesID!=null && t.SpeciesText!=null &&  t.SpeciesText.Contains('\n') )
-                .OrderBy(t=>t.SpeciesText)
+                .Where(t => t.SpeciesID != null && t.SpeciesText != null && t.SpeciesText.Contains('\n'))
+                .OrderBy(t => t.SpeciesText)
                 .ToList();
         }
         public VesselCatch getVesselCatch(FromJson.VesselLanding parent, int? speciesID, string speciesText)
@@ -219,14 +289,14 @@ namespace NSAP_ODK.Entities.Database
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<VesselCatch> tempListOfRemovedItems = e.OldItems.OfType<VesselCatch>().ToList();
-                        EditSuccess= VesselCatches.Delete(tempListOfRemovedItems[0].PK);
+                        EditSuccess = VesselCatches.Delete(tempListOfRemovedItems[0].PK);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<VesselCatch> tempList = e.NewItems.OfType<VesselCatch>().ToList();
-                        EditSuccess= VesselCatches.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        EditSuccess = VesselCatches.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }

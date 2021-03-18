@@ -9,7 +9,7 @@ namespace NSAP_ODK.Entities.Database
 {
     public class CatchLengthViewModel
     {
-        public bool AddSucceeded;
+        public bool EditSucceeded;
         public ObservableCollection<CatchLength> CatchLengthCollection { get; set; }
         private CatchLengthRepository CatchLengths { get; set; }
 
@@ -64,21 +64,21 @@ namespace NSAP_ODK.Entities.Database
                 case NotifyCollectionChangedAction.Add:
                     {
                         int newIndex = e.NewStartingIndex;
-                        AddSucceeded = CatchLengths.Add(CatchLengthCollection[newIndex]);
+                        EditSucceeded = CatchLengths.Add(CatchLengthCollection[newIndex]);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<CatchLength> tempListOfRemovedItems = e.OldItems.OfType<CatchLength>().ToList();
-                        CatchLengths.Delete(tempListOfRemovedItems[0].PK);
+                        EditSucceeded= CatchLengths.Delete(tempListOfRemovedItems[0].PK);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<CatchLength> tempList = e.NewItems.OfType<CatchLength>().ToList();
-                        CatchLengths.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        EditSucceeded= CatchLengths.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -91,14 +91,16 @@ namespace NSAP_ODK.Entities.Database
 
         public bool AddRecordToRepo(CatchLength item)
         {
+            EditSucceeded = false;
             if (item == null)
                 throw new ArgumentNullException("Error: The argument is Null");
             CatchLengthCollection.Add(item);
-            return AddSucceeded;
+            return EditSucceeded;
         }
 
-        public void UpdateRecordInRepo(CatchLength item)
+        public bool UpdateRecordInRepo(CatchLength item)
         {
+            EditSucceeded = false;
             if (item.PK == 0)
                 throw new Exception("Error: ID cannot be zero");
 
@@ -112,10 +114,12 @@ namespace NSAP_ODK.Entities.Database
                 }
                 index++;
             }
+            return EditSucceeded;
         }
 
         public int NextRecordNumber
         {
+            
             get
             {
                 if (CatchLengthCollection.Count == 0)
@@ -129,8 +133,9 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-        public void DeleteRecordFromRepo(int id)
+        public bool DeleteRecordFromRepo(int id)
         {
+            EditSucceeded = false;
             if (id == 0)
                 throw new Exception("Record ID cannot be null");
 
@@ -144,6 +149,7 @@ namespace NSAP_ODK.Entities.Database
                 }
                 index++;
             }
+            return EditSucceeded;
         }
     }
 }

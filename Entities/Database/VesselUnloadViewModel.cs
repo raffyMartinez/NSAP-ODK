@@ -7,7 +7,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 namespace NSAP_ODK.Entities.Database
 {
-  public class VesselUnloadViewModel
+    public class VesselUnloadViewModel
     {
         public bool EditSucceeded;
         public ObservableCollection<VesselUnload> VesselUnloadCollection { get; set; }
@@ -22,14 +22,14 @@ namespace NSAP_ODK.Entities.Database
         //    }
         //}
 
-        
+
         public List<DateTime> MonthsSampledByEnumerator(NSAPEnumerator enumerator)
         {
             List<DateTime> list = new List<DateTime>();
-            foreach( var item in VesselUnloadCollection
-                .Where(t => t.NSAPEnumeratorID!=null &&  t.NSAPEnumerator.ID == enumerator.ID)
+            foreach (var item in VesselUnloadCollection
+                .Where(t => t.NSAPEnumeratorID != null && t.NSAPEnumerator.ID == enumerator.ID)
                 .GroupBy(t => t.MonthSampled)
-                .OrderBy(t=>t.Key)
+                .OrderBy(t => t.Key)
                 .ToList())
             {
                 list.Add(item.Key);
@@ -49,22 +49,22 @@ namespace NSAP_ODK.Entities.Database
         public List<VesselUnload> GetAllVesselUnloads(NSAPEnumerator enumerator)
         {
             return VesselUnloadCollection
-                .Where(t => t.NSAPEnumeratorID == enumerator.ID )
+                .Where(t => t.NSAPEnumeratorID == enumerator.ID)
                 .OrderBy(t => t.SamplingDate)
                 .ToList();
         }
         public List<VesselUnload> GetAllVesselUnloads(NSAPEnumerator enumerator, DateTime month)
         {
             return VesselUnloadCollection
-                .Where(t => t.NSAPEnumeratorID == enumerator.ID && t.MonthSampled==month)
-                .OrderBy(t=>t.SamplingDate)
+                .Where(t => t.NSAPEnumeratorID == enumerator.ID && t.MonthSampled == month)
+                .OrderBy(t => t.SamplingDate)
                 .ToList();
         }
         public int CountEnumeratorsWithUnloadRecord
         {
             get
             {
-                return VesselUnloadCollection.Where(t=>t.NSAPEnumeratorID!=null).GroupBy(t => t.NSAPEnumeratorID).ToList().Count;
+                return VesselUnloadCollection.Where(t => t.NSAPEnumeratorID != null).GroupBy(t => t.NSAPEnumeratorID).ToList().Count;
             }
         }
         public VesselUnloadViewModel()
@@ -74,16 +74,77 @@ namespace NSAP_ODK.Entities.Database
             VesselUnloadCollection.CollectionChanged += VesselUnloadCollection_CollectionChanged;
         }
 
-        public List<VesselUnload>GetSampledLandings(string enumeratorName)
+        public List<VesselUnload> GetSampledLandingsOfVessel(string veselName, string sector, string landingSiteName)
+        {
+            return VesselUnloadCollection
+                .Where(t => t.VesselID == null && t.VesselName == veselName && t.Sector == sector && t.Parent.Parent.LandingSiteName == landingSiteName)
+                .ToList();
+        }
+
+
+        public List<VesselUnload> GetUnloadsPastDateUploadLocalDB(DateTime dateUpload)
+        {
+            return VesselUnloadCollection.Where(t => t.DateAddedToDatabase > dateUpload).ToList();
+        }
+
+        public int DeleteUnloadChildren(List<VesselUnload> listUnload, out int countUnloadDeleted)
+        {
+            countUnloadDeleted = 0;
+            List<int> pks = new List<int>();
+
+            int counter = NSAPEntities.VesselCatchViewModel.DeleteCatchFromUnloads(listUnload);
+
+            foreach (var item in listUnload)
+            {
+                foreach (var soakItem in item.ListGearSoak)
+                {
+                    if (NSAPEntities.GearSoakViewModel.DeleteRecordFromRepo(soakItem.PK))
+                    {
+                        counter++;
+                    }
+                }
+
+
+                foreach (var gridItem in item.ListFishingGroundGrid)
+                {
+                    if (NSAPEntities.FishingGroundGridViewModel.DeleteRecordFromRepo(gridItem.PK))
+                    {
+                        counter++;
+                    }
+                }
+
+                foreach (var effortItem in item.ListVesselEffort)
+                {
+                    if (NSAPEntities.VesselEffortViewModel.DeleteRecordFromRepo(effortItem.PK))
+                    {
+                        counter++;
+                    }
+                }
+
+                if (DeleteRecordFromRepo(item.PK))
+                {
+                    countUnloadDeleted++;
+                }
+
+            }
+
+            return counter;
+
+        }
+        public List<VesselUnload> GetSampledLandings(string enumeratorName, string landingSiteName)
+        {
+            return VesselUnloadCollection.Where(t => t.NSAPEnumeratorID == null && t.EnumeratorName == enumeratorName && t.Parent.Parent.LandingSiteName == landingSiteName).ToList();
+        }
+        public List<VesselUnload> GetSampledLandings(string enumeratorName)
         {
             return VesselUnloadCollection.Where(t => t.NSAPEnumeratorID == null && t.EnumeratorName == enumeratorName).ToList();
         }
         public List<LandingSiteSampling> GetLandingSiteSamplings(string enumeratorName)
         {
             var list = new List<LandingSiteSampling>();
-            foreach(var item in VesselUnloadCollection.Where(t=>t.EnumeratorName==enumeratorName && t.NSAPEnumeratorID==null))
+            foreach (var item in VesselUnloadCollection.Where(t => t.EnumeratorName == enumeratorName && t.NSAPEnumeratorID == null))
             {
-                if(!list.Contains(item.Parent.Parent))
+                if (!list.Contains(item.Parent.Parent))
                 {
                     list.Add(item.Parent.Parent);
                 }
@@ -97,13 +158,13 @@ namespace NSAP_ODK.Entities.Database
         }
 
 
-        public List<VesselUnload> GetAllVesselUnloads(GearUnload parent ,bool includeSimilarDateAndGear=false)
+        public List<VesselUnload> GetAllVesselUnloads(GearUnload parent, bool includeSimilarDateAndGear = false)
         {
             if (includeSimilarDateAndGear)
             {
                 return VesselUnloadCollection.Where(t => t.SamplingDate.Date == parent.Parent.SamplingDate.Date &&
                 t.Parent.GearUsedName == parent.GearUsedName &&
-                t.Parent.Parent.LandingSiteName==parent.Parent.LandingSiteName).ToList();
+                t.Parent.Parent.LandingSiteName == parent.Parent.LandingSiteName).ToList();
             }
             else
             {
@@ -141,7 +202,7 @@ namespace NSAP_ODK.Entities.Database
             return VesselUnloads.ClearTable();
         }
 
-        public DateTime DateOfFirstSampledLanding 
+        public DateTime DateOfFirstSampledLanding
         {
             get { return VesselUnloadCollection.OrderBy(t => t.SamplingDate).FirstOrDefault().SamplingDate; }
         }
@@ -177,14 +238,14 @@ namespace NSAP_ODK.Entities.Database
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<VesselUnload> tempListOfRemovedItems = e.OldItems.OfType<VesselUnload>().ToList();
-                        EditSucceeded= VesselUnloads.Delete(tempListOfRemovedItems[0].PK);
+                        EditSucceeded = VesselUnloads.Delete(tempListOfRemovedItems[0].PK);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<VesselUnload> tempList = e.NewItems.OfType<VesselUnload>().ToList();
-                       EditSucceeded=  VesselUnloads.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        EditSucceeded = VesselUnloads.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -200,7 +261,7 @@ namespace NSAP_ODK.Entities.Database
             FishingGroundGrid grid = null;
             if (unload.ListFishingGroundGrid.Count > 0)
             {
-              grid = unload.ListFishingGroundGrid[0];
+                grid = unload.ListFishingGroundGrid[0];
             }
             return grid;
         }
@@ -240,7 +301,7 @@ namespace NSAP_ODK.Entities.Database
                 }
                 else
                 {
-                    return VesselUnloads.MaxRecordNumber()  + 1;
+                    return VesselUnloads.MaxRecordNumber() + 1;
                 }
             }
         }
