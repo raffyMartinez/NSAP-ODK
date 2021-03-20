@@ -19,8 +19,16 @@ namespace NSAP_ODK.Entities.Database
         private static DataTable _effortCrostabDataTable;
         private static List<GearUnload> _gearUnloads;
         private static TreeViewModelControl.AllSamplingEntitiesEventHandler _sev;
-        public static void GearByMonthYear(TreeViewModelControl.AllSamplingEntitiesEventHandler sev)
+
+        public static event EventHandler<CrossTabReportEventArg> CrossTabEvent;
+
+        public static Task<int> GearByMonthYearAsync(TreeViewModelControl.AllSamplingEntitiesEventHandler sev)
         {
+             return Task.Run(() => GearByMonthYear(sev));
+        }
+        private static int GearByMonthYear(TreeViewModelControl.AllSamplingEntitiesEventHandler sev)
+        {
+            int counter = 0;
             _sev = sev;
             _crossTabEfforts = new List<CrossTabEffort>();
             _crossTabLenFreqs = new List<CrossTabLenFreq>();
@@ -38,14 +46,16 @@ namespace NSAP_ODK.Entities.Database
             {
                 case "contextMenuCrosstabLandingSite":
                     _gearUnloads = NSAPEntities.GearUnloadViewModel.GearUnloadCollection
-                     .Where(t => t.Parent.NSAPRegion.Code == _sev.NSAPRegion.Code &&
+                     .Where(t => t.ListVesselUnload.Count>0 && 
+                                t.Parent.NSAPRegion.Code == _sev.NSAPRegion.Code &&
                                t.Parent.FMA.FMAID == _sev.FMA.FMAID &&
                                t.Parent.FishingGround.Code == _sev.FishingGround.Code &&
                                t.Parent.LandingSiteName == _sev.LandingSiteText).ToList();
                     break;
                 case "contextMenuCrosstabMonth":
                     _gearUnloads = NSAPEntities.GearUnloadViewModel.GearUnloadCollection
-                     .Where(t => t.Parent.NSAPRegion.Code == _sev.NSAPRegion.Code &&
+                     .Where(t => t.ListVesselUnload.Count>0 && 
+                                t.Parent.NSAPRegion.Code == _sev.NSAPRegion.Code &&
                                t.Parent.FMA.FMAID == _sev.FMA.FMAID &&
                                t.Parent.FishingGround.Code == _sev.FishingGround.Code &&
                                t.Parent.LandingSiteName == _sev.LandingSiteText &&
@@ -54,7 +64,8 @@ namespace NSAP_ODK.Entities.Database
                     break;
                 case "contextMenuCrosstabGear":
                     _gearUnloads = NSAPEntities.GearUnloadViewModel.GearUnloadCollection
-                     .Where(t => t.Parent.NSAPRegion.Code == _sev.NSAPRegion.Code &&
+                     .Where(t => t.ListVesselUnload.Count>0 &&
+                               t.Parent.NSAPRegion.Code == _sev.NSAPRegion.Code &&
                                t.Parent.FMA.FMAID == _sev.FMA.FMAID &&
                                t.Parent.FishingGround.Code == _sev.FishingGround.Code &&
                                t.Parent.LandingSiteName == _sev.LandingSiteText &&
@@ -64,56 +75,110 @@ namespace NSAP_ODK.Entities.Database
                     break;
             }
 
+
+
+            List<VesselUnload> unloads = new List<VesselUnload>();
+
             foreach (var gu in _gearUnloads)
             {
-                foreach (var item in NSAPEntities.VesselCatchViewModel.VesselCatchCollection
-                    .Where(t => t.Parent.Parent.PK == gu.PK).ToList())
+                //unloads.AddRange( NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.Where(t => t.Parent.PK == gu.PK).ToList());
+                unloads.AddRange(gu.ListVesselUnload);
+
+            }
+
+            CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { RowsToPrepare = unloads.Count,Context = "Start" });
+
+            foreach(var unload in unloads)
+            {
+
+                CrossTabCommon ctc = new CrossTabCommon(unload);
+                _crossTabEffortsAll.Add(new CrossTabEffortAll { CrossTabCommon = ctc, VesselUnload = unload });
+
+
+                List<VesselCatch> vesselCatch = unload.ListVesselCatch;
+                //List<VesselCatch> vesselCatch = NSAPEntities.VesselCatchViewModel.VesselCatchCollection.Where(t => t.Parent != null && t.Parent.PK == unload.PK).ToList();
+                foreach(var vc in vesselCatch)
                 {
-                    CrossTabCommon ctc = new CrossTabCommon(item);
+                    ctc = new CrossTabCommon(vc);
                     _crossTabEfforts.Add(new CrossTabEffort { CrossTabCommon = ctc });
-                }
-
-                foreach (var item in NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
-                    .Where(t => t.Parent.PK == gu.PK).ToList())
-                {
-                    CrossTabCommon ctc = new CrossTabCommon(item);
-                    _crossTabEffortsAll.Add(new CrossTabEffortAll { CrossTabCommon = ctc, VesselUnload = item });
-                }
-
-
-                foreach (var item in NSAPEntities.CatchLenFreqViewModel.CatchLenFreqCollection
-                    .Where(t => t.Parent.Parent.Parent.PK == gu.PK).ToList())
-                {
-                    CrossTabCommon ctc = new CrossTabCommon(item);
-                    _crossTabLenFreqs.Add(new CrossTabLenFreq { CrossTabCommon = ctc, Length = item.LengthClass, Freq = item.Frequency });
-                }
-
-                foreach (var item in NSAPEntities.CatchMaturityViewModel.CatchMaturityCollection
-                    .Where(t => t.Parent.Parent.Parent.PK == gu.PK).ToList())
-                {
-                    CrossTabCommon ctc = new CrossTabCommon(item);
-                    _crossTabMaturities.Add(new CrossTabMaturity
+                
+                    
+                    foreach(var clf in vc.ListCatchLenFreq)
                     {
-                        CrossTabCommon = ctc,
-                        Length = item.Length,
-                        Weight = item.Weight,
-                        Sex = item.Sex,
-                        MaturityStage = item.Maturity,
-                        GutContent = item.GutContentClassification
-                    });
-                }
+                        ctc = new CrossTabCommon(clf);
+                        _crossTabLenFreqs.Add(new CrossTabLenFreq { CrossTabCommon = ctc, Length = clf.LengthClass, Freq = clf.Frequency });
+                    }
 
-                foreach (var item in NSAPEntities.CatchLengthViewModel.CatchLengthCollection
-                    .Where(t => t.Parent.Parent.Parent.PK == gu.PK).ToList())
-                {
-                    CrossTabCommon ctc = new CrossTabCommon(item);
-                    _crossTabLengths.Add(new CrossTabLength { CrossTabCommon = ctc, Length = item.Length });
-                }
+                    foreach (var cm in vc.ListCatchMaturity)
+                    {
+                        ctc = new CrossTabCommon(cm);
+                        _crossTabMaturities.Add(new CrossTabMaturity
+                        {
+                            CrossTabCommon = ctc,
+                            Length = cm.Length,
+                            Weight = cm.Weight,
+                            Sex = cm.Sex,
+                            MaturityStage = cm.Maturity,
+                            GutContent = cm.GutContentClassification,
+                            GonadWeight = cm.GonadWeight
+                        });
+                    }
 
+                    foreach(var cl in vc.ListCatchLength)
+                    {
+                        ctc = new CrossTabCommon(cl);
+                        _crossTabLengths.Add(new CrossTabLength { CrossTabCommon = ctc, Length = cl.Length });
+                    }
+
+                }
+                //foreach (var item in NSAPEntities.VesselCatchViewModel.VesselCatchCollection
+                //    .Where(t => t.Parent !=null && t.Parent.PK == unload.PK).ToList())
+                //{
+                //    ctc = new CrossTabCommon(item);
+                //    _crossTabEfforts.Add(new CrossTabEffort { CrossTabCommon = ctc });
+                //}
+
+
+                //foreach (var item in NSAPEntities.CatchLenFreqViewModel.CatchLenFreqCollection
+                //    .Where(t => t.Parent.Parent.PK == unload.PK).ToList())
+                //{
+                //    ctc = new CrossTabCommon(item);
+                //    _crossTabLenFreqs.Add(new CrossTabLenFreq { CrossTabCommon = ctc, Length = item.LengthClass, Freq = item.Frequency });
+                //}
+
+                //foreach (var item in NSAPEntities.CatchMaturityViewModel.CatchMaturityCollection
+                //    .Where(t => t.Parent.Parent.PK == unload.PK).ToList())
+                //{
+                //    ctc = new CrossTabCommon(item);
+                //    _crossTabMaturities.Add(new CrossTabMaturity
+                //    {
+                //        CrossTabCommon = ctc,
+                //        Length = item.Length,
+                //        Weight = item.Weight,
+                //        Sex = item.Sex,
+                //        MaturityStage = item.Maturity,
+                //        GutContent = item.GutContentClassification,
+                //        GonadWeight = item.GonadWeight
+                //    });
+                //}
+
+                //foreach (var item in NSAPEntities.CatchLengthViewModel.CatchLengthCollection
+                //    .Where(t => t.Parent.Parent.PK == unload.PK).ToList())
+                //{
+                //    ctc = new CrossTabCommon(item);
+                //    _crossTabLengths.Add(new CrossTabLength { CrossTabCommon = ctc, Length = item.Length });
+                //}
+
+                counter++;
+
+                CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { RowsToPrepare = unloads.Count, RowsPrepared = counter,Context = "AddingRows"});
             }
 
             BuildEffortSpeciesCrossTabDataTable();
             BuildEffortCrossTabDataTable();
+
+            CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { IsDone = true,Context = "DoneAddingRows"});
+            return counter;
         }
 
         public static TreeViewModelControl.AllSamplingEntitiesEventHandler AllSamplingEntitiesEventHandler { get { return _sev; } }

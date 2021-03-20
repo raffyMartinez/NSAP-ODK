@@ -50,6 +50,7 @@ namespace NSAP_ODK.Entities.Database
                             CatchMaturity item = new CatchMaturity();
                             item.PK = (int)dr["catch_maturity_id"];
                             item.VesselCatchID = (int)dr["catch_id"];
+                            item.GonadWeight = dr["gonadWt"]==DBNull.Value?null:(double?)dr["gonadWt"];
                             item.Length = dr["length"]==DBNull.Value?null:(double?)dr["length"];
                             item.Weight = dr["weight"] == DBNull.Value ? null : (double?)dr["weight"];
                             item.SexCode = dr["sex"].ToString();
@@ -66,20 +67,57 @@ namespace NSAP_ODK.Entities.Database
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log(ex);
+                    if (ex.HResult == -2147024809)
+                    {
+                        conection.Close();
+                        UpdateTable();
+                    }
+                    else
+                    {
+                        Logger.Log(ex);
+                    }
 
                 }
                 return thisList;
             }
         }
 
+        private void UpdateTable()
+        {
+            using (var conn = new OleDbConnection(Global.ConnectionString))
+            {
+                conn.Open();
+                var sql = @"ALTER TABLE dbo_catch_maturity ADD COLUMN gonadWt FLOAT";
+                OleDbCommand cmd = new OleDbCommand();
+                cmd.Connection = conn;
+                cmd.CommandText = sql;
+
+                try
+                {
+                    cmd.ExecuteNonQuery();
+
+                }
+                catch (OleDbException dbex)
+                {
+                    Logger.Log(dbex);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(ex);
+                }
+
+                cmd.Connection.Close();
+                conn.Close();
+            }
+            getCatchMaturites();
+        }
         public bool Add(CatchMaturity item)
         {
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Insert into dbo_catch_maturity(catch_maturity_id, catch_id, length,weight,sex,maturity,gut_content_wt,gut_content_code)
+                var sql = $@"Insert into dbo_catch_maturity(catch_maturity_id, catch_id, length,weight,sex,maturity,gut_content_wt,gut_content_code,gonadWt)
                            Values (
                                 {item.PK}, 
                                 {item.VesselCatchID},
@@ -88,7 +126,8 @@ namespace NSAP_ODK.Entities.Database
                                 '{item.SexCode}',
                                 '{item.MaturityCode}',
                                 {(item.WeightGutContent == null ? "null" : item.WeightGutContent.ToString())},
-                                '{item.GutContentCode}'
+                                '{item.GutContentCode}',
+                                {(item.GonadWeight== null ? "null" : item.GonadWeight.ToString())},
                                 )";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
@@ -123,7 +162,8 @@ namespace NSAP_ODK.Entities.Database
                                 sex = '{item.SexCode}',
                                 maturity='{item.MaturityCode}',
                                 gut_content_wt =  {(item.WeightGutContent == null ? "null" : item.WeightGutContent.ToString())},
-                                gut_content_code = '{item.GutContentCode}'
+                                gut_content_code = '{item.GutContentCode}',
+                                gonadWt = {(item.GonadWeight == null ? "null" : item.GonadWeight.ToString())},    
                             WHERE catch_maturity_id = {item.PK}";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NSAP_ODK.Views"
         mc:Ignorable="d"
-        Title="Provide date past" Height="172.059" Width="397.426" ResizeMode="NoResize">
+        Title="Provide date past" Height="181.659" Width="397.426" ResizeMode="NoResize">
     <Grid>
         <StackPanel>
             <WrapPanel VerticalAlignment="Center" Margin="10 20 0 0">
@@ -15,6 +15,10 @@
             <WrapPanel HorizontalAlignment="Right" Margin="0 10 30 0" >
                 <Button Content="Cancel" Height="30" Width="50" Margin="10" x:Name="buttonCancel" Click="OnButtonClick"/>
                 <Button Content="Ok" Height="30" Width="50" Margin="10" x:Name="buttonOk" Click="OnButtonClick"/>
+            </WrapPanel>
+            <WrapPanel Margin="10 0" Visibility="Collapsed" x:Name="panelStatus">
+                <ProgressBar x:Name="statusBar" Width="150" Height="15"/>
+                <Label x:Name="statusLabel" Content="this is a status label"/>
             </WrapPanel>
         </StackPanel>
     </Grid>

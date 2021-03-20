@@ -163,6 +163,7 @@ namespace NSAP_ODK.Views
                         dataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("Weight") });
                         dataGrid.Columns.Add(new DataGridTextColumn { Header = "Sex", Binding = new Binding("Sex") });
                         dataGrid.Columns.Add(new DataGridTextColumn { Header = "Maturity", Binding = new Binding("MaturityStage") });
+                        dataGrid.Columns.Add(new DataGridTextColumn { Header = "Gonad weight", Binding = new Binding("GonadWeight") });
                         dataGrid.Columns.Add(new DataGridTextColumn { Header = "Gut content", Binding = new Binding("GutContent") });
                         mainLabel.Content = "Crosstab between maturity indicators of catch and fishing effort";
                         break;

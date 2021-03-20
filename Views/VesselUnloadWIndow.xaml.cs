@@ -278,6 +278,7 @@ namespace NSAP_ODK.Views
                     gridSelectedCatchProperty.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("Weight") });
                     gridSelectedCatchProperty.Columns.Add(new DataGridTextColumn { Header = "Sex", Binding = new Binding("Sex") });
                     gridSelectedCatchProperty.Columns.Add(new DataGridTextColumn { Header = "Maturity", Binding = new Binding("Maturity") });
+                    gridSelectedCatchProperty.Columns.Add(new DataGridTextColumn { Header = "Gonad weight", Binding = new Binding("GonadWeight") });
                     gridSelectedCatchProperty.Columns.Add(new DataGridTextColumn { Header = "Weight gut content", Binding = new Binding("WeightGutContent") });
                     gridSelectedCatchProperty.Columns.Add(new DataGridTextColumn { Header = "Gut content classification", Binding = new Binding("GutContentClassification") });
                     break;

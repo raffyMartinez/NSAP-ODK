@@ -218,6 +218,11 @@ namespace NSAP_ODK.Entities.Database.FromJson
         public string MaturityStage { get { return GMS; } }
         [JsonProperty("catch_comp_group/catch_composition_repeat/gms_repeat_group/gms_group/individual_length")]
         public double? Length { get; set; }
+
+
+        [JsonProperty("catch_comp_group/catch_composition_repeat/gms_repeat_group/gms_group/gonat_wt")]
+        public double? GonadWeight { get; set; }
+
         [JsonProperty("catch_comp_group/catch_composition_repeat/gms_repeat_group/gms_group/sex")]
         public string SexCode { get; set; }
 
@@ -1781,7 +1786,8 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                 SexCode = m.SexCode,
                                                 MaturityCode = m.GMSCode,
                                                 WeightGutContent = m.StomachContentWt,
-                                                GutContentCode = m.GutContentCategoryCode
+                                                GutContentCode = m.GutContentCategoryCode,
+                                                GonadWeight = m.GonadWeight
                                             };
                                             NSAPEntities.CatchMaturityViewModel.AddRecordToRepo(cm);
                                         }

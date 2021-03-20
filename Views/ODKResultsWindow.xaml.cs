@@ -911,6 +911,7 @@ namespace NSAP_ODK.Views
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("Weight") });
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Sex", Binding = new Binding("Sex") });
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Gonad maturity", Binding = new Binding("GMS") });
+                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Gonad weight", Binding = new Binding("GonadWeight") });
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Stomach content weight", Binding = new Binding("StomachContentWt") });
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Stomach content category", Binding = new Binding("GutContentCategory") });
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });

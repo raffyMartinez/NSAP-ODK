@@ -86,7 +86,8 @@ namespace NSAP_ODK.Entities.Database
             Gear = _gearUnload.GearUsedName;
             FBName = _vesselUnload.VesselName;
             FBL = _gearUnload.Boats;
-            FBM = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.Count(t=>t.Parent.PK==_gearUnload.PK);
+            //FBM = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.Count(t=>t.Parent.PK==_gearUnload.PK);
+            FBM = _gearUnload.ListVesselUnload.Count;
             SamplingDay = _landingSiteSampling.IsSamplingDay;
             TotalWeight = _vesselUnload.WeightOfCatch;
             MonthSampled = new DateTime(_samplingDate.Year, _samplingDate.Month, 1);

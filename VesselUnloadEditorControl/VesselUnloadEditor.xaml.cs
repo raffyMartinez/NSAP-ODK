@@ -225,6 +225,7 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                     catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("Weight") });
                     catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Sex", Binding = new Binding("Sex") });
                     catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Maturity", Binding = new Binding("Maturity") });
+                    catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Gonad weight", Binding = new Binding("GonadWeight") });
                     catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight gut content", Binding = new Binding("WeightGutContent") });
                     catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Gut content classification", Binding = new Binding("GutContentClassification") });
 

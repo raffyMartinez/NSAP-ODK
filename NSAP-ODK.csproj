@@ -150,9 +150,11 @@
     <Compile Include="Entities\Database\CrossTabLength.cs" />
     <Compile Include="Entities\Database\CrossTabManager.cs" />
     <Compile Include="Entities\Database\CrossTabMaturity.cs" />
+    <Compile Include="Entities\Database\CrossTabReportEventArg.cs" />
     <Compile Include="Entities\Database\CSVFIleManager.cs" />
     <Compile Include="Entities\Database\DatabaseEnumeratorSummary.cs" />
     <Compile Include="Entities\Database\DBSummary.cs" />
+    <Compile Include="Entities\Database\DeleteVesselUnloaResult.cs" />
     <Compile Include="Entities\Database\DownloadFromServerEventArg.cs" />
     <Compile Include="Entities\Database\EntitiesToDataTables.cs" />
     <Compile Include="Entities\Database\EnumeratorSummary.cs" />
@@ -171,6 +173,7 @@
     <Compile Include="Entities\Database\LandingSiteBoatLandingsFromServerRepository.cs" />
     <Compile Include="Entities\Database\GearUnloadViewModel.cs" />
     <Compile Include="Entities\Database\OrphanedFishingVessel.cs" />
+    <Compile Include="Entities\Database\UnloadChildrenSummary.cs" />
     <Compile Include="Entities\ItemSources\FishingGroundInRegionFMAItemsSource.cs" />
     <Compile Include="Entities\ItemSources\GearsInNSAPRegionItemsSource.cs" />
     <Compile Include="Entities\ItemSources\GPSItemsSource.cs" />

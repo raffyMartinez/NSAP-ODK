@@ -87,12 +87,20 @@ namespace NSAP_ODK.Entities.Database
             return VesselUnloadCollection.Where(t => t.DateAddedToDatabase > dateUpload).ToList();
         }
 
-        public int DeleteUnloadChildren(List<VesselUnload> listUnload, out int countUnloadDeleted)
+        public Task<DeleteVesselUnloaResult>DeleteUnloadChildrenAsync(List<VesselUnload> listUnload)
         {
-            countUnloadDeleted = 0;
+            return Task.Run(() => DeleteUnloadChildren(listUnload));
+        }
+
+        private int _countUnloadDeleted;
+         public event EventHandler DeleteUnloadChildrenEvent;
+        public DeleteVesselUnloaResult DeleteUnloadChildren(List<VesselUnload> listUnload)
+        {
+            int counter = 0;    
+            int countUnloadDeleted = 0;
             List<int> pks = new List<int>();
 
-            int counter = NSAPEntities.VesselCatchViewModel.DeleteCatchFromUnloads(listUnload);
+            //int counter = NSAPEntities.VesselCatchViewModel.DeleteCatchFromUnloads(listUnload);
 
             foreach (var item in listUnload)
             {
@@ -121,14 +129,17 @@ namespace NSAP_ODK.Entities.Database
                     }
                 }
 
+                NSAPEntities.VesselCatchViewModel.DeleteCatchFromUnload(item);
+
                 if (DeleteRecordFromRepo(item.PK))
                 {
                     countUnloadDeleted++;
+                    DeleteUnloadChildrenEvent?.Invoke(this, null);
                 }
 
             }
 
-            return counter;
+            return new DeleteVesselUnloaResult { CountDeleted = counter, VesselUnloadToDeleteCoount = countUnloadDeleted };
 
         }
         public List<VesselUnload> GetSampledLandings(string enumeratorName, string landingSiteName)

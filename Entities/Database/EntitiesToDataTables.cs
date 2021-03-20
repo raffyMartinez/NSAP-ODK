@@ -432,6 +432,7 @@ namespace NSAP_ODK.Entities.Database
             "Weight",
             "Sex",
             "Maturity",
+            "GonadWeight",
             "WeightGutContent",
             "GutContentClassification"
             ))

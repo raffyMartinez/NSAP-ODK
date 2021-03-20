@@ -22,6 +22,7 @@ namespace NSAP_ODK.Entities.Database
             Maturity = cm.Maturity;
             WeightGutContent = cm.WeightGutContent;
             GutContentClassification = cm.GutContentClassification;
+            GonadWeight = cm.GonadWeight;
 
         }
         public int ID { get; set; }
@@ -36,12 +37,15 @@ namespace NSAP_ODK.Entities.Database
         public string Maturity { get; set; }
         public double? WeightGutContent { get; set; }
 
+        public double? GonadWeight { get; set; }
         public string GutContentClassification { get; set; }
     }
     public class CatchMaturity
     {
         private VesselCatch _parent;
         public int PK { get; set; }
+
+        public double? GonadWeight { get; set; }
         public int VesselCatchID { get; set; }
 
         public double? Length { get; set; }

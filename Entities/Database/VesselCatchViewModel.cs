@@ -72,6 +72,71 @@ namespace NSAP_ODK.Entities.Database
 
         }
 
+
+        public int DeleteCatchFromUnload(VesselUnload unload)
+        {
+            int counter = 0;
+            var catchCollection = VesselCatchCollection.Where(t => t.Parent.PK == unload.PK).ToList();
+            if (catchCollection != null && catchCollection.Count > 0)
+            {
+                foreach (VesselCatch vc in catchCollection)
+                {
+                    var listMaturity = vc.ListCatchMaturity;
+                    if (listMaturity != null && listMaturity.Count > 0)
+                    {
+                        foreach (var item in listMaturity)
+                        {
+                            if (NSAPEntities.CatchMaturityViewModel.DeleteRecordFromRepo(item.PK))
+                            {
+                                counter++;
+                            }
+                        }
+                    }
+
+                    var listLF = vc.ListCatchLenFreq;
+                    if (listLF != null && listLF.Count > 0)
+                    {
+                        foreach (var item in listLF)
+                        {
+                            if (NSAPEntities.CatchLenFreqViewModel.DeleteRecordFromRepo(item.PK))
+                            {
+                                counter++;
+                            }
+                        }
+                    }
+
+                    var listLW = vc.ListCatchLengthWeight;
+                    if (listLW != null && listLF.Count > 0)
+                    {
+                        foreach (var item in listLW)
+                        {
+                            if (NSAPEntities.CatchLengthWeightViewModel.DeleteRecordFromRepo(item.PK))
+                            {
+                                counter++;
+                            }
+                        }
+                    }
+
+                    var listL = vc.ListCatchLength;
+                    if (listL != null && listL.Count > 0)
+                    {
+                        foreach (var item in listL)
+                        {
+                            if (NSAPEntities.CatchLengthViewModel.DeleteRecordFromRepo(item.PK))
+                            {
+                                counter++;
+                            }
+                        }
+                    }
+
+                    if (NSAPEntities.VesselCatchViewModel.DeleteRecordFromRepo(vc.PK))
+                    {
+                        counter++;
+                    }
+                }
+            }
+            return counter;
+        }
         public int DeleteCatchFromUnloads(List<VesselUnload> listOfUnloads)
         {
             int counter = 0;
@@ -195,14 +260,14 @@ namespace NSAP_ODK.Entities.Database
             if (speciesID == null)
             {
                 return VesselCatchCollection
-                    .Where(t => t.Parent.PK == parent.PK)
+                    .Where(t => t.Parent!=null &&  t.Parent.PK == parent.PK)
                     .Where(t => t.SpeciesText == speciesText)
                     .FirstOrDefault();
             }
             else
             {
                 return VesselCatchCollection
-                    .Where(t => t.Parent.ODKRowID == parent._uuid)
+                    .Where(t => t.Parent!=null &&  t.Parent.ODKRowID == parent._uuid)
                     .Where(t => t.SpeciesID == speciesID)
                     .FirstOrDefault();
             }

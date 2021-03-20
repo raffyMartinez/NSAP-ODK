@@ -15,5 +15,7 @@ namespace NSAP_ODK.Entities.Database
         public string MaturityStage { get; set; }
         public string GutContent { get; set; }
 
+        public double? GonadWeight { get; set; }
+
     }
 }
