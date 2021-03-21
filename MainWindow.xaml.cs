@@ -269,7 +269,7 @@ namespace NSAP_ODK
                         (
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
-                              mainStatusLabel.Content = $"Finished adding all gear unloads";
+                              mainStatusLabel.Content = $"Finished adding vessel unloads";
                               //do what you need to do on UI Thread
                               return null;
                           }
@@ -701,7 +701,7 @@ namespace NSAP_ODK
                                     if (fg.FishingGroundCode == fishingGround.Code)
                                     {
                                         message = "Selected fishing ground cannot be deleted because it is used in an FMA in a region\r\n" +
-                                                "Delete the fishing ground first in the list of fishing grounds in a FMA";
+                                                "Delete the fishing ground first in the list of fishing grounds in an FMA";
                                         break;
                                     }
                                 }

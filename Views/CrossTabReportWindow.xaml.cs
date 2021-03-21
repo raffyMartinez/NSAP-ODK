@@ -64,32 +64,33 @@ namespace NSAP_ODK.Views
 
         private void SetupGridColumns()
         {
-            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Data ID", Binding = new Binding("CrossTabCommon.DataID") });
-            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Year", Binding = new Binding("CrossTabCommon.Year") });
-            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Month", Binding = new Binding("CrossTabCommon.Month")  });
+            dataGrid.IsReadOnly = true;
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Data ID", Binding = new Binding("CrossTabCommon.CommonProperties.DataID") });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Year", Binding = new Binding("CrossTabCommon.CommonProperties.Year") });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Month", Binding = new Binding("CrossTabCommon.CommonProperties.Month")  });
 
-            DataGridTextColumn col = new DataGridTextColumn { Header = "Date", Binding = new Binding("CrossTabCommon.SamplingDate") };
+            DataGridTextColumn col = new DataGridTextColumn { Header = "Date", Binding = new Binding("CrossTabCommon.CommonProperties.SamplingDate") };
             col.Binding.StringFormat = "MMM-dd-yyyy";
             col.IsReadOnly = true;
             dataGrid.Columns.Add(col);
 
-            dataGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "Sampling day", Binding = new Binding("CrossTabCommon.SamplingDay")  });
-            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Province", Binding = new Binding("CrossTabCommon.Province")  });
-            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Municipality", Binding = new Binding("CrossTabCommon.Municipality")  });
-            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Region", Binding = new Binding("CrossTabCommon.Region")  });
-            dataGrid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("CrossTabCommon.FMA")  });
-            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("CrossTabCommon.FishingGround") });
-            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("CrossTabCommon.LandingSite")  });
-            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("CrossTabCommon.Enumerator")  });
-            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("CrossTabCommon.Sector")  });
-            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Grid", Binding = new Binding("CrossTabCommon.FishingGroundGrid")  });
-            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Longitude", Binding = new Binding("CrossTabCommon.xCoordinate")  });
-            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Latitude", Binding = new Binding("CrossTabCommon.yCoordinate")  });
-            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("CrossTabCommon.Gear")  });
-            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("CrossTabCommon.FBName")  });
-            dataGrid.Columns.Add(new DataGridTextColumn { Header = "FBL", Binding = new Binding("CrossTabCommon.FBL")  });
-            dataGrid.Columns.Add(new DataGridTextColumn { Header = "FBM", Binding = new Binding("CrossTabCommon.FBM")  });
-            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Total weight of catch", Binding = new Binding("CrossTabCommon.TotalWeight")  });
+            dataGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "Sampling day", Binding = new Binding("CrossTabCommon.CommonProperties.SamplingDay")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Province", Binding = new Binding("CrossTabCommon.CommonProperties.Province")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Municipality", Binding = new Binding("CrossTabCommon.CommonProperties.Municipality")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Region", Binding = new Binding("CrossTabCommon.CommonProperties.Region")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("CrossTabCommon.CommonProperties.FMA")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("CrossTabCommon.CommonProperties.FishingGround") });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("CrossTabCommon.CommonProperties.LandingSite")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("CrossTabCommon.CommonProperties.Enumerator")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("CrossTabCommon.CommonProperties.Sector")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Grid", Binding = new Binding("CrossTabCommon.CommonProperties.FishingGroundGrid")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Longitude", Binding = new Binding("CrossTabCommon.CommonProperties.xCoordinate")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Latitude", Binding = new Binding("CrossTabCommon.CommonProperties.yCoordinate")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("CrossTabCommon.CommonProperties.Gear")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("CrossTabCommon.CommonProperties.FBName")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "FBL", Binding = new Binding("CrossTabCommon.CommonProperties.FBL")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "FBM", Binding = new Binding("CrossTabCommon.CommonProperties.FBM")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Total weight of catch", Binding = new Binding("CrossTabCommon.CommonProperties.TotalWeight")  });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Family", Binding = new Binding("CrossTabCommon.Family")  });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Species", Binding = new Binding("CrossTabCommon.SN")  });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Species weight", Binding = new Binding("CrossTabCommon.SpeciesWeight")  });

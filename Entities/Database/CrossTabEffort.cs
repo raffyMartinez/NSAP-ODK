@@ -9,5 +9,7 @@ namespace NSAP_ODK.Entities.Database
     public class CrossTabEffort
     {
         public CrossTabCommon CrossTabCommon { get; set; }
+
+        public VesselUnload VesselUnload { get; set; }
     }
 }

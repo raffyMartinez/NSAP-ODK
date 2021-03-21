@@ -449,6 +449,10 @@ namespace NSAP_ODK.Entities.Database
         private FishingVessel _fishingVessel;
         private NSAPEnumerator _nsapEnumerator;
 
+        public override string ToString()
+        {
+            return $"[ID:{PK}] {VesselName}-{Parent.Parent.LandingSiteName}-{SamplingDate.ToString("MMM-dd-yyyy")}"; 
+        }
         public DateTime TimeStart { get; set; }
         public int PK { get; set; }
         public int GearUnloadID { get; set; }

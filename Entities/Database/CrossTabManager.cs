@@ -19,12 +19,13 @@ namespace NSAP_ODK.Entities.Database
         private static DataTable _effortCrostabDataTable;
         private static List<GearUnload> _gearUnloads;
         private static TreeViewModelControl.AllSamplingEntitiesEventHandler _sev;
+        public static Dictionary<int, CrossTabCommonProperties> UnloadCrossTabCommonPropertyDictionary { get; set; } = new Dictionary<int, CrossTabCommonProperties>();
 
         public static event EventHandler<CrossTabReportEventArg> CrossTabEvent;
 
         public static Task<int> GearByMonthYearAsync(TreeViewModelControl.AllSamplingEntitiesEventHandler sev)
         {
-             return Task.Run(() => GearByMonthYear(sev));
+            return Task.Run(() => GearByMonthYear(sev));
         }
         private static int GearByMonthYear(TreeViewModelControl.AllSamplingEntitiesEventHandler sev)
         {
@@ -46,7 +47,7 @@ namespace NSAP_ODK.Entities.Database
             {
                 case "contextMenuCrosstabLandingSite":
                     _gearUnloads = NSAPEntities.GearUnloadViewModel.GearUnloadCollection
-                     .Where(t => t.ListVesselUnload.Count>0 && 
+                     .Where(t => t.ListVesselUnload.Count > 0 &&
                                 t.Parent.NSAPRegion.Code == _sev.NSAPRegion.Code &&
                                t.Parent.FMA.FMAID == _sev.FMA.FMAID &&
                                t.Parent.FishingGround.Code == _sev.FishingGround.Code &&
@@ -54,7 +55,7 @@ namespace NSAP_ODK.Entities.Database
                     break;
                 case "contextMenuCrosstabMonth":
                     _gearUnloads = NSAPEntities.GearUnloadViewModel.GearUnloadCollection
-                     .Where(t => t.ListVesselUnload.Count>0 && 
+                     .Where(t => t.ListVesselUnload.Count > 0 &&
                                 t.Parent.NSAPRegion.Code == _sev.NSAPRegion.Code &&
                                t.Parent.FMA.FMAID == _sev.FMA.FMAID &&
                                t.Parent.FishingGround.Code == _sev.FishingGround.Code &&
@@ -64,7 +65,7 @@ namespace NSAP_ODK.Entities.Database
                     break;
                 case "contextMenuCrosstabGear":
                     _gearUnloads = NSAPEntities.GearUnloadViewModel.GearUnloadCollection
-                     .Where(t => t.ListVesselUnload.Count>0 &&
+                     .Where(t => t.ListVesselUnload.Count > 0 &&
                                t.Parent.NSAPRegion.Code == _sev.NSAPRegion.Code &&
                                t.Parent.FMA.FMAID == _sev.FMA.FMAID &&
                                t.Parent.FishingGround.Code == _sev.FishingGround.Code &&
@@ -81,29 +82,28 @@ namespace NSAP_ODK.Entities.Database
 
             foreach (var gu in _gearUnloads)
             {
-                //unloads.AddRange( NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.Where(t => t.Parent.PK == gu.PK).ToList());
                 unloads.AddRange(gu.ListVesselUnload);
-
             }
 
-            CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { RowsToPrepare = unloads.Count,Context = "Start" });
+            CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { RowsToPrepare = unloads.Count, Context = "Start" });
 
-            foreach(var unload in unloads)
+            UnloadCrossTabCommonPropertyDictionary.Clear();
+            foreach (var unload in unloads)
             {
 
                 CrossTabCommon ctc = new CrossTabCommon(unload);
+                UnloadCrossTabCommonPropertyDictionary.Add(unload.PK, ctc.CommonProperties);
                 _crossTabEffortsAll.Add(new CrossTabEffortAll { CrossTabCommon = ctc, VesselUnload = unload });
 
 
                 List<VesselCatch> vesselCatch = unload.ListVesselCatch;
-                //List<VesselCatch> vesselCatch = NSAPEntities.VesselCatchViewModel.VesselCatchCollection.Where(t => t.Parent != null && t.Parent.PK == unload.PK).ToList();
-                foreach(var vc in vesselCatch)
+                foreach (var vc in vesselCatch)
                 {
                     ctc = new CrossTabCommon(vc);
-                    _crossTabEfforts.Add(new CrossTabEffort { CrossTabCommon = ctc });
-                
-                    
-                    foreach(var clf in vc.ListCatchLenFreq)
+                    _crossTabEfforts.Add(new CrossTabEffort { CrossTabCommon = ctc, VesselUnload = unload });
+
+
+                    foreach (var clf in vc.ListCatchLenFreq)
                     {
                         ctc = new CrossTabCommon(clf);
                         _crossTabLenFreqs.Add(new CrossTabLenFreq { CrossTabCommon = ctc, Length = clf.LengthClass, Freq = clf.Frequency });
@@ -124,64 +124,27 @@ namespace NSAP_ODK.Entities.Database
                         });
                     }
 
-                    foreach(var cl in vc.ListCatchLength)
+                    foreach (var cl in vc.ListCatchLength)
                     {
                         ctc = new CrossTabCommon(cl);
                         _crossTabLengths.Add(new CrossTabLength { CrossTabCommon = ctc, Length = cl.Length });
                     }
 
                 }
-                //foreach (var item in NSAPEntities.VesselCatchViewModel.VesselCatchCollection
-                //    .Where(t => t.Parent !=null && t.Parent.PK == unload.PK).ToList())
-                //{
-                //    ctc = new CrossTabCommon(item);
-                //    _crossTabEfforts.Add(new CrossTabEffort { CrossTabCommon = ctc });
-                //}
-
-
-                //foreach (var item in NSAPEntities.CatchLenFreqViewModel.CatchLenFreqCollection
-                //    .Where(t => t.Parent.Parent.PK == unload.PK).ToList())
-                //{
-                //    ctc = new CrossTabCommon(item);
-                //    _crossTabLenFreqs.Add(new CrossTabLenFreq { CrossTabCommon = ctc, Length = item.LengthClass, Freq = item.Frequency });
-                //}
-
-                //foreach (var item in NSAPEntities.CatchMaturityViewModel.CatchMaturityCollection
-                //    .Where(t => t.Parent.Parent.PK == unload.PK).ToList())
-                //{
-                //    ctc = new CrossTabCommon(item);
-                //    _crossTabMaturities.Add(new CrossTabMaturity
-                //    {
-                //        CrossTabCommon = ctc,
-                //        Length = item.Length,
-                //        Weight = item.Weight,
-                //        Sex = item.Sex,
-                //        MaturityStage = item.Maturity,
-                //        GutContent = item.GutContentClassification,
-                //        GonadWeight = item.GonadWeight
-                //    });
-                //}
-
-                //foreach (var item in NSAPEntities.CatchLengthViewModel.CatchLengthCollection
-                //    .Where(t => t.Parent.Parent.PK == unload.PK).ToList())
-                //{
-                //    ctc = new CrossTabCommon(item);
-                //    _crossTabLengths.Add(new CrossTabLength { CrossTabCommon = ctc, Length = item.Length });
-                //}
-
                 counter++;
-
-                CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { RowsToPrepare = unloads.Count, RowsPrepared = counter,Context = "AddingRows"});
+                CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { RowsToPrepare = unloads.Count, RowsPrepared = counter, Context = "AddingRows" });
             }
 
-            BuildEffortSpeciesCrossTabDataTable();
             BuildEffortCrossTabDataTable();
+            BuildEffortSpeciesCrossTabDataTable();
 
-            CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { IsDone = true,Context = "DoneAddingRows"});
+
+            CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { IsDone = true, Context = "DoneAddingRows" });
             return counter;
         }
 
         public static TreeViewModelControl.AllSamplingEntitiesEventHandler AllSamplingEntitiesEventHandler { get { return _sev; } }
+
 
         private static void BuildEffortCrossTabDataTable()
         {
@@ -281,62 +244,60 @@ namespace NSAP_ODK.Entities.Database
             foreach (var item in _crossTabEffortsAll)
             {
                 var row = _effortCrostabDataTable.NewRow();
-                row["Data ID"] = item.CrossTabCommon.DataID;
-                row["Fishing ground"] = item.CrossTabCommon.FishingGround;
-                row["Year"] = item.CrossTabCommon.MonthSampled.Year;
-                row["Month"] = item.CrossTabCommon.MonthSampled.ToString("MMM");
-                row["Date"] = item.CrossTabCommon.SamplingDate.ToString("dd-MMM-yyyy");
+                CrossTabCommonProperties ctcp = item.CrossTabCommon.CommonProperties;
+                row["Data ID"] = ctcp.DataID;
+                row["Fishing ground"] = ctcp.FishingGround;
+                row["Year"] = ctcp.Year;
+                row["Month"] = ctcp.Month;
+                row["Date"] = ctcp.SamplingDate.ToString("dd-MMM-yyyy");
 
-                if (item.CrossTabCommon.LandingSite != null)
+
+                row["Province"] = ctcp.Province;
+                row["Municipality"] = ctcp.Municipality;
+
+
+                row["Landing site"] = ctcp.LandingSite;
+                row["Enumerator"] = ctcp.Enumerator;
+
+                row["Region"] = ctcp.Region;
+                row["FMA"] = ctcp.FMA;
+
+
+                row["Sector"] = ctcp.Sector;
+
+
+                if (ctcp.FishingGroundGrid != null)
                 {
-                    row["Province"] = item.CrossTabCommon.Province;
-                    row["Municipality"] = item.CrossTabCommon.Municipality;
+                    row["Grid location"] = ctcp.FishingGroundGrid;
+                    row["Longitude"] = ctcp.xCoordinate;
+                    row["Latitude"] = ctcp.yCoordinate;
                 }
 
-                row["Landing site"] = item.CrossTabCommon.LandingSite;
-                row["Enumerator"] = item.CrossTabCommon.Enumerator;
 
-                row["Region"] = item.CrossTabCommon.Region;
-                row["FMA"] = item.CrossTabCommon.FMA;
+                row["Gear"] = ctcp.Gear;
+                row["Fishing vessel"] = ctcp.FBName;
 
-
-                row["Sector"] = item.CrossTabCommon.Sector;
-
-                if (item.CrossTabCommon.FishingGroundGrid != null)
+                if (ctcp.FBL != null)
                 {
-                    row["Grid location"] = $"{item.CrossTabCommon.FishingGroundGrid.ToString()}";
-                    row["Longitude"] = item.CrossTabCommon.xCoordinate;
-                    row["Latitude"] = item.CrossTabCommon.yCoordinate;
+                    row["Fishing vessels landded"] = ctcp.FBL;
                 }
 
-                row["Gear"] = item.CrossTabCommon.Gear;
-                row["Fishing vessel"] = item.CrossTabCommon.FBName;
 
-                if (item.CrossTabCommon.FBL != null)
-                {
-                    row["Fishing vessels landded"] = item.CrossTabCommon.FBL;
-                }
+                row["Fishing vessels monitored"] = ctcp.FBM;
 
-                if (item.CrossTabCommon.FBM != null)
-                {
-                    row["Fishing vessels monitored"] = item.CrossTabCommon.FBM;
-                }
 
-                row["Sampling day"] = item.CrossTabCommon.SamplingDay;
-                row["Catch composition count"] = item.VesselUnload.ListVesselCatch.Count;
-                if (item.CrossTabCommon.TotalWeight == null)
+                row["Sampling day"] = ctcp.SamplingDay;
+                row["Catch composition count"] = ctcp.VesselUnload.ListVesselCatch.Count;
+                if (ctcp.TotalWeight == null)
                 {
                     row["Total weight of catch"] = DBNull.Value;
                 }
                 else
                 {
-                    row["Total weight of catch"] = item.CrossTabCommon?.TotalWeight;
+                    row["Total weight of catch"] = ctcp.TotalWeight;
                 }
 
-                foreach (var ve in NSAPEntities.VesselEffortViewModel.VesselEffortCollection
-                    .Where(t => t.Parent.PK == item.CrossTabCommon.DataID)
-                    .OrderBy(t => t.EffortSpecification.Name)
-                    .ToList())
+                foreach (var ve in ctcp.VesselUnload.ListVesselEffort)
                 {
                     switch (ve.EffortSpecification.ValueType)
                     {
@@ -361,6 +322,7 @@ namespace NSAP_ODK.Entities.Database
 
 
         }
+
         private static void BuildEffortSpeciesCrossTabDataTable()
         {
             _effortSpeciesCrostabDataTable = new DataTable();
@@ -412,7 +374,7 @@ namespace NSAP_ODK.Entities.Database
             dc = new DataColumn { ColumnName = "Longitude", DataType = typeof(double) };
             _effortSpeciesCrostabDataTable.Columns.Add(dc);
 
-            dc = new DataColumn { ColumnName = "Latitude" ,DataType = typeof(double)};
+            dc = new DataColumn { ColumnName = "Latitude", DataType = typeof(double) };
             _effortSpeciesCrostabDataTable.Columns.Add(dc);
 
             dc = new DataColumn { ColumnName = "Gear" };
@@ -442,12 +404,6 @@ namespace NSAP_ODK.Entities.Database
             _effortSpeciesCrostabDataTable.Columns.Add(dc);
 
 
-            //dc = new DataColumn { ColumnName = "Family", DataType = typeof(double) };
-            //_effortCrostabDataTable.Columns.Add(dc);
-
-            //dc = new DataColumn { ColumnName = "Catch weight", DataType = typeof(double) };
-            //_effortCrostabDataTable.Columns.Add(dc);
-
             foreach (var spec in NSAPEntities.EffortSpecificationViewModel.EffortSpecCollection.OrderBy(t => t.Name))
             {
                 dc = new DataColumn { ColumnName = spec.Name };
@@ -473,55 +429,52 @@ namespace NSAP_ODK.Entities.Database
             foreach (var item in _crossTabEfforts)
             {
                 var row = _effortSpeciesCrostabDataTable.NewRow();
-                row["Data ID"] = item.CrossTabCommon.DataID;
-                row["Fishing ground"] = item.CrossTabCommon.FishingGround;
-                row["Year"] = item.CrossTabCommon.MonthSampled.Year;
-                row["Month"] = item.CrossTabCommon.MonthSampled.ToString("MMM");
-                row["Date"] = item.CrossTabCommon.SamplingDate.ToString("dd-MMM-yyyy");
+                CrossTabCommonProperties ctcp = UnloadCrossTabCommonPropertyDictionary[item.VesselUnload.PK];
+                row["Data ID"] = ctcp.DataID;
+                row["Fishing ground"] = ctcp.FishingGround;
+                row["Year"] = ctcp.Year;
+                row["Month"] = ctcp.Month;
+                row["Date"] = ctcp.SamplingDate.ToString("dd-MMM-yyyy");
 
-                if (item.CrossTabCommon.LandingSite != null)
+
+                row["Province"] = ctcp.Province;
+                row["Municipality"] = ctcp.Municipality;
+
+
+                row["Landing site"] = ctcp.LandingSite;
+                row["Enumerator"] = ctcp.Enumerator;
+
+                row["Region"] = ctcp.Region;
+                row["FMA"] = ctcp.FMA;
+                row["Sector"] = ctcp.Sector;
+
+                if (ctcp.FishingGroundGrid != null)
                 {
-                    row["Province"] = item.CrossTabCommon.Province;
-                    row["Municipality"] = item.CrossTabCommon.Municipality;
+                    row["Grid location"] = ctcp.FishingGroundGrid;
+                    row["Longitude"] = ctcp.xCoordinate;
+                    row["Latitude"] = ctcp.yCoordinate;
                 }
 
-                row["Landing site"] = item.CrossTabCommon.LandingSite;
-                row["Enumerator"] = item.CrossTabCommon.Enumerator;
-                
-                row["Region"] = item.CrossTabCommon.Region;
-                row["FMA"] = item.CrossTabCommon.FMA;
-                row["Sector"] = item.CrossTabCommon.Sector;
+                row["Gear"] = ctcp.Gear;
+                row["Fishing vessel"] = ctcp.FBName;
 
-                if (item.CrossTabCommon.FishingGroundGrid != null)
+                if (ctcp.FBL != null)
                 {
-                    row["Grid location"] = $"{item.CrossTabCommon.FishingGroundGrid.ToString()}";
-                    row["Longitude"] = item.CrossTabCommon.xCoordinate;
-                    row["Latitude"] = item.CrossTabCommon.yCoordinate;
+                    row["Fishing vessels landded"] = ctcp.FBL;
                 }
 
-                row["Gear"] = item.CrossTabCommon.Gear;
-                row["Fishing vessel"] = item.CrossTabCommon.FBName;
-
-                if (item.CrossTabCommon.FBL != null)
+                if (ctcp.FBM != null)
                 {
-                    row["Fishing vessels landded"] = item.CrossTabCommon.FBL;
+                    row["Fishing vessels monitored"] = ctcp.FBM;
                 }
 
-                if (item.CrossTabCommon.FBM != null)
-                {
-                    row["Fishing vessels monitored"] = item.CrossTabCommon.FBM;
-                }
-
-                row["Sampling day"] = item.CrossTabCommon.SamplingDay;
+                row["Sampling day"] = ctcp.SamplingDay;
                 row["Family"] = item.CrossTabCommon.Family;
                 row["Species"] = item.CrossTabCommon.SN;
-                row["Total weight of catch"] = item.CrossTabCommon.TotalWeight;
+                row["Total weight of catch"] = ctcp.TotalWeight;
                 row["Weight of species"] = item.CrossTabCommon.SpeciesWeight;
 
-                foreach (var ve in NSAPEntities.VesselEffortViewModel.VesselEffortCollection
-                    .Where(t => t.Parent.PK == item.CrossTabCommon.DataID)
-                    .OrderBy(t => t.EffortSpecification.Name)
-                    .ToList())
+                foreach (var ve in ctcp.VesselUnload.ListVesselEffort)
                 {
                     switch (ve.EffortSpecification.ValueType)
                     {
@@ -598,7 +551,16 @@ namespace NSAP_ODK.Entities.Database
                     {
                         foreach (PropertyDescriptor pt in prop.GetChildProperties())
                         {
-                            table.Columns.Add(pt.Name, Nullable.GetUnderlyingType(pt.PropertyType) ?? pt.PropertyType);
+                            if (pt.Name == "CommonProperties")
+                            {
+                                foreach (PropertyDescriptor ptd in pt.GetChildProperties())
+                                {
+                                    if (ptd.Name != "VesselUnload")
+                                    {
+                                        table.Columns.Add(ptd.Name, Nullable.GetUnderlyingType(ptd.PropertyType) ?? ptd.PropertyType);
+                                    }
+                                }
+                            }
                         }
                     }
                     else
@@ -613,23 +575,34 @@ namespace NSAP_ODK.Entities.Database
                     {
                         if (prop.Name == "CrossTabCommon")
                         {
-                            CrossTabCommon ctc = null;
-                            switch (prop.ComponentType.Name)
+                            foreach (PropertyDescriptor ptd in prop.GetChildProperties())
                             {
-                                case "CrossTabLength":
-                                    ctc = (item as CrossTabLength).CrossTabCommon;
-                                    break;
-                                case "CrossTabLenFreq":
-                                    ctc = (item as CrossTabLenFreq).CrossTabCommon;
-                                    break;
-                                case "CrossTabMaturity":
-                                    ctc = (item as CrossTabMaturity).CrossTabCommon;
-                                    break;
-                            }
+                                if (ptd.Name == "CommonProperties")
+                                {
+                                    foreach (PropertyDescriptor ptdd in ptd.GetChildProperties())
+                                    {
+                                        if (ptdd.Name != "VesselUnload")
+                                        {
+                                            CrossTabCommon ctc = null;
+                                            switch (prop.ComponentType.Name)
+                                            {
+                                                case "CrossTabLength":
+                                                    ctc = (item as CrossTabLength).CrossTabCommon;
+                                                    break;
+                                                case "CrossTabLenFreq":
+                                                    ctc = (item as CrossTabLenFreq).CrossTabCommon;
+                                                    break;
+                                                case "CrossTabMaturity":
+                                                    ctc = (item as CrossTabMaturity).CrossTabCommon;
+                                                    break;
+                                            }
 
-                            foreach (PropertyDescriptor pt in prop.GetChildProperties())
-                            {
-                                row[pt.Name] = pt.GetValue(ctc) ?? DBNull.Value;
+
+                                            row[ptdd.Name] = ptdd.GetValue(ctc.CommonProperties) ?? DBNull.Value;
+
+                                        }
+                                    }
+                                }
                             }
 
                         }
