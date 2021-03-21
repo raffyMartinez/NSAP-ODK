@@ -18,7 +18,7 @@
             <ColumnDefinition/>
             <ColumnDefinition Width="100"/>
         </Grid.ColumnDefinitions>
-        
+
         <Label x:Name="LabelTitle" Content="Label titie" HorizontalAlignment="Left" Margin="5 0"/>
 
 
@@ -28,6 +28,19 @@
                     <DataGrid  x:Name="GridVesselUnload" IsReadOnly="True" ItemsSource="{Binding}" 
                   AutoGenerateColumns="False" MouseDoubleClick="OnGridDoubleClick" SelectionChanged="OnGridSelectionChanged"
                   Loaded="OnWindowLoaded" Margin="5"/>
+                </Grid>
+            </TabItem>
+
+
+
+            <TabItem Header="Unload entities summary">
+                <Grid Margin="5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Label x:Name="labelUnloadSummary" Content="Summary of vessel unload for sampled day" HorizontalAlignment="Center"/>
+                    <DataGrid Grid.Row="1" x:Name="dataGridUnloadSummary" IsReadOnly="True" ItemsSource="{Binding}" Loaded="OnWindowLoaded" MouseDoubleClick="OnGridDoubleClick" SelectionChanged="OnGridSelectionChanged"/>
                 </Grid>
             </TabItem>
 
@@ -51,12 +64,12 @@
                     <WrapPanel VerticalAlignment="Center" Grid.Row="2" HorizontalAlignment="Center">
                         <Button Content="Save" x:Name="ButtonSaveBoatsCatch" Click="OnButtonCLick" Width="80" Height="30" />
                     </WrapPanel>
-                     
-                    
-                    
+
+
+
                 </Grid>
             </TabItem>
-            
+
         </TabControl>
 
 

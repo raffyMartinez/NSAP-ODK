@@ -27,7 +27,7 @@ namespace NSAP_ODK.Views
         private VesselUnloadWIndow _vesselUnloadWindow;
         private MainWindow _parentWindow;
 
-        public GearUnloadWindow(GearUnload gearUnload, TreeViewModelControl.AllSamplingEntitiesEventHandler treeItemData,MainWindow parent)
+        public GearUnloadWindow(GearUnload gearUnload, TreeViewModelControl.AllSamplingEntitiesEventHandler treeItemData, MainWindow parent)
         {
             InitializeComponent();
             _gearUnload = gearUnload;
@@ -38,11 +38,29 @@ namespace NSAP_ODK.Views
             Title = $"Gear unload for {gearUnload.GearUsedName}";
         }
 
+        private void OnGridSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            switch (((DataGrid)sender).Name)
+            {
+                case "dataGridUnloadSummary":
+                    _selectedVesselUnload = ((UnloadChildrenSummary)dataGridUnloadSummary.SelectedItem).VesselUnload;
+                    break;
+                case "GridVesselUnload":
+                    _selectedVesselUnload = (VesselUnload)GridVesselUnload.SelectedItem;
+                    break;
+            }
+
+            if (_vesselUnloadWindow != null)
+            {
+                _vesselUnloadWindow.VesselUnload = _selectedVesselUnload;
+            }
+
+        }
         private void OnGridDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (_vesselUnloadWindow == null)
             {
-                _vesselUnloadWindow = new VesselUnloadWIndow(_selectedVesselUnload,this);
+                _vesselUnloadWindow = new VesselUnloadWIndow(_selectedVesselUnload, this);
                 _vesselUnloadWindow.Owner = this;
                 _vesselUnloadWindow.Show();
             }
@@ -50,6 +68,28 @@ namespace NSAP_ODK.Views
             {
                 _vesselUnloadWindow.VesselUnload = _selectedVesselUnload;
             }
+
+            //switch (((DataGrid)sender).Name)
+            //{
+            //    case "dataGridUnloadSummary":
+
+            //        break;
+
+            //    case "GridVesselUnload":
+
+
+            //        if (_vesselUnloadWindow == null)
+            //        {
+            //            _vesselUnloadWindow = new VesselUnloadWIndow(_selectedVesselUnload, this);
+            //            _vesselUnloadWindow.Owner = this;
+            //            _vesselUnloadWindow.Show();
+            //        }
+            //        else
+            //        {
+            //            _vesselUnloadWindow.VesselUnload = _selectedVesselUnload;
+            //        }
+            //        break;
+            //}
         }
 
         public GearUnload GearUnload
@@ -57,10 +97,27 @@ namespace NSAP_ODK.Views
             set
             {
                 _gearUnload = value;
-                ShowVesselUnloadGrid();
-                object item = GridVesselUnload.Items[0];
-                GridVesselUnload.SelectedItem = item;
-                GridVesselUnload.ScrollIntoView(item);
+                
+                //if (_gearUnload.ListVesselUnload.Count > 0)
+                if(NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(_gearUnload, true).Count>0)
+                {
+                    ShowVesselUnloadGrid();
+                    ShowUnloadSummaryGrid();
+                    object item = GridVesselUnload.Items[0];
+                    GridVesselUnload.SelectedItem = item;
+                    try
+                    {
+                        GridVesselUnload.ScrollIntoView(item);
+                    }
+                    catch(ArgumentOutOfRangeException )
+                    {
+                        //ignore
+                    }
+                    catch(Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
             }
             get
             {
@@ -79,7 +136,7 @@ namespace NSAP_ODK.Views
             //GridVesselUnload.Items.Clear();
 
             //GridVesselUnload.DataContext = _gearUnload.ListVesselUnload;
-            GridVesselUnload.DataContext = NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(_gearUnload,true);
+            GridVesselUnload.DataContext = NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(_gearUnload, true);
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("PK") });
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("UserName") });
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Vessel", Binding = new Binding("VesselName") });
@@ -90,9 +147,40 @@ namespace NSAP_ODK.Views
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "GPS", Binding = new Binding("GPS.AssignedName") });
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Notes", Binding = new Binding("Notes") });
         }
+
+        private void ShowUnloadSummaryGrid()
+        {
+            labelUnloadSummary.Content = "Summary of vessel unloads of selected sampling day";
+            List<UnloadChildrenSummary> list = new List<UnloadChildrenSummary>();
+            foreach (var unload in NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(_gearUnload, true))
+            {
+                list.Add(new UnloadChildrenSummary(unload));
+            }
+            dataGridUnloadSummary.Columns.Clear();
+            dataGridUnloadSummary.AutoGenerateColumns = false;
+            dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
+            dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Date sampled", Binding = new Binding("DateSampling") });
+            //dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Region", Binding = new Binding("Region") });
+            //dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("FMA") });
+            //dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("FishingGround") });
+            //dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSite") });
+            //dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("Gear") });
+            dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("Enumerator") });
+            dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Fishing grid count", Binding = new Binding("CountGridLocations") });
+            dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Soak time count", Binding = new Binding("CountSoakTimes") });
+            dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Effort indicator count", Binding = new Binding("CountEffortIndicators") });
+            dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Catch composition count", Binding = new Binding("CountCatchComposition") });
+
+            dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Length freq count", Binding = new Binding("CountCatchLengthFreqs") });
+            dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Length count", Binding = new Binding("CountCatchLengths") });
+            dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Length weight count", Binding = new Binding("CountCatchLengthWeights") });
+            dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Maturity count", Binding = new Binding("CountCatchMaturities") });
+            dataGridUnloadSummary.DataContext = list;
+        }
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
             ShowVesselUnloadGrid();
+            ShowUnloadSummaryGrid();
         }
 
         private void OnWindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -111,14 +199,14 @@ namespace NSAP_ODK.Views
 
         private void OnButtonCLick(object sender, RoutedEventArgs e)
         {
-            switch(((Button)sender).Name)
+            switch (((Button)sender).Name)
             {
                 case "ButtonSaveBoatsCatch":
-                    if (textBoxCatch.Text.Length > 0 && textBoxBoats.Text.Length > 0 
-                        && double.TryParse(textBoxCatch.Text,out double c)
-                        && int.TryParse(textBoxBoats.Text,out int b))
+                    if (textBoxCatch.Text.Length > 0 && textBoxBoats.Text.Length > 0
+                        && double.TryParse(textBoxCatch.Text, out double c)
+                        && int.TryParse(textBoxBoats.Text, out int b))
                     {
-                       
+
                         _gearUnload.Boats = b;
                         _gearUnload.Catch = c;
 
@@ -134,7 +222,7 @@ namespace NSAP_ODK.Views
                     }
                     else
                     {
-                        if(textBoxCatch.Text.Length>0 || textBoxBoats.Text.Length>0)
+                        if (textBoxCatch.Text.Length > 0 || textBoxBoats.Text.Length > 0)
                         {
                             MessageBox.Show("Number of boats and total catch are both required", "Validation error", MessageBoxButton.OK, MessageBoxImage.Information);
                         }
@@ -146,19 +234,11 @@ namespace NSAP_ODK.Views
             }
 
         }
-        private void OnGridSelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            _selectedVesselUnload = (VesselUnload)GridVesselUnload.SelectedItem;
-            if(_vesselUnloadWindow!=null)
-            {
-                _vesselUnloadWindow.VesselUnload = _selectedVesselUnload;
-            }
-                
-        }
+
 
         private void OnWindowClosed(object sender, EventArgs e)
         {
             ((MainWindow)Owner).Focus();
         }
-    }   
+    }
 }
