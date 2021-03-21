@@ -22,12 +22,12 @@
         <Label x:Name="LabelTitle" Content="Label titie" HorizontalAlignment="Left" Margin="5 0"/>
 
 
-        <TabControl Grid.Row="1" x:Name="TabControl" Margin="10">
+        <TabControl Grid.Row="1" x:Name="TabControl" Margin="10" SelectionChanged="OnTabSelectionChanged" >
             <TabItem Header="Vessel unload">
                 <Grid>
                     <DataGrid  x:Name="GridVesselUnload" IsReadOnly="True" ItemsSource="{Binding}" 
-                  AutoGenerateColumns="False" MouseDoubleClick="OnGridDoubleClick" SelectionChanged="OnGridSelectionChanged"
-                  Loaded="OnWindowLoaded" Margin="5"/>
+                  AutoGenerateColumns="False" MouseDoubleClick="OnGridDoubleClick" SelectionChanged="OnGridSelectionChanged" SelectionUnit="FullRow"/>
+                    <!--Loaded="OnWindowLoaded" Margin="5"/>-->
                 </Grid>
             </TabItem>
 
@@ -40,12 +40,13 @@
                         <RowDefinition/>
                     </Grid.RowDefinitions>
                     <Label x:Name="labelUnloadSummary" Content="Summary of vessel unload for sampled day" HorizontalAlignment="Center"/>
-                    <DataGrid Grid.Row="1" x:Name="dataGridUnloadSummary" IsReadOnly="True" ItemsSource="{Binding}" Loaded="OnWindowLoaded" MouseDoubleClick="OnGridDoubleClick" SelectionChanged="OnGridSelectionChanged"/>
+                    <DataGrid Grid.Row="1" x:Name="dataGridUnloadSummary" IsReadOnly="True" ItemsSource="{Binding}"  MouseDoubleClick="OnGridDoubleClick" SelectionChanged="OnGridSelectionChanged" SelectionUnit="FullRow"/>
+                    <!--Loaded="OnWindowLoaded"/>-->
                 </Grid>
             </TabItem>
 
             <TabItem Header="Number of boats and sum of catch">
-                <Grid>
+                <Grid x:Name="gridGearUnloadNumbers">
                     <Grid.RowDefinitions>
 
                         <RowDefinition/>
@@ -69,13 +70,13 @@
 
                 </Grid>
             </TabItem>
-
         </TabControl>
 
 
+
         <StackPanel Grid.Column="1" Grid.Row="1">
-            <Button Content="Close" Margin="20 20 20 10 " Height="30" Click="OnButtonCLick" x:Name="ButtonClose"/>
-        </StackPanel>
+                <Button Content="Close" Margin="20 20 20 10 " Height="30" Click="OnButtonCLick" x:Name="ButtonClose"/>
+            </StackPanel>
 
     </Grid>
 </Window>

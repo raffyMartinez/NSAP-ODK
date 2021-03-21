@@ -26,6 +26,7 @@ namespace NSAP_ODK.Views
         private VesselUnload _selectedVesselUnload;
         private VesselUnloadWIndow _vesselUnloadWindow;
         private MainWindow _parentWindow;
+        private bool _changeFromGridClick;
 
         public GearUnloadWindow(GearUnload gearUnload, TreeViewModelControl.AllSamplingEntitiesEventHandler treeItemData, MainWindow parent)
         {
@@ -37,13 +38,39 @@ namespace NSAP_ODK.Views
             _parentWindow = parent;
             Title = $"Gear unload for {gearUnload.GearUsedName}";
         }
+        private void OnTabSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_changeFromGridClick)
+            {
+                _changeFromGridClick = false;
+            }
+            else
+            {
+                switch (((TabItem)((TabControl)sender).SelectedItem).Header)
+                {
+                    case "Unload entities summary":
+                        ShowUnloadSummaryGrid();
+                        break;
+                    case "Vessel unload":
+                        ShowVesselUnloadGrid();
+                        break;
+                    case "Number of boats and sum of catch":
 
+                        //gridGearUnloadNumbers.Visibility = Visibility.Visible;
+                        break;
+                }
+            }
+        }
         private void OnGridSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            _changeFromGridClick = true;
             switch (((DataGrid)sender).Name)
             {
                 case "dataGridUnloadSummary":
-                    _selectedVesselUnload = ((UnloadChildrenSummary)dataGridUnloadSummary.SelectedItem).VesselUnload;
+                    if (dataGridUnloadSummary.SelectedItem != null)
+                    {
+                        _selectedVesselUnload = ((UnloadChildrenSummary)dataGridUnloadSummary.SelectedItem).VesselUnload;
+                    }
                     break;
                 case "GridVesselUnload":
                     _selectedVesselUnload = (VesselUnload)GridVesselUnload.SelectedItem;
@@ -92,17 +119,46 @@ namespace NSAP_ODK.Views
             //}
         }
 
+        public void TurnGridOff()
+        {
+            dataGridUnloadSummary.Visibility = Visibility.Hidden;
+            GridVesselUnload.Visibility = Visibility.Hidden;
+            gridGearUnloadNumbers.Visibility = Visibility.Hidden;
+            
+            //dataGridUnloadSummary.ItemsSource = null;
+            //GridVesselUnload.ItemsSource = null;
+            //dataGridUnloadSummary.Items.Clear();
+            //GridVesselUnload.Items.Clear();
+        }
         public GearUnload GearUnload
         {
             set
             {
+
                 _gearUnload = value;
                 
                 //if (_gearUnload.ListVesselUnload.Count > 0)
                 if(NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(_gearUnload, true).Count>0)
                 {
-                    ShowVesselUnloadGrid();
-                    ShowUnloadSummaryGrid();
+                    GridVesselUnload.Visibility = Visibility.Visible;
+                    dataGridUnloadSummary.Visibility = Visibility.Visible;
+                    gridGearUnloadNumbers.Visibility = Visibility.Visible;
+                    switch(((TabItem)this.TabControl.SelectedItem).Header)
+                    {
+                        case "Unload entities summary":
+                            ShowUnloadSummaryGrid();
+                            
+                            break;
+                        case "Vessel unload":
+                            ShowVesselUnloadGrid();
+                            break;
+                        case "Number of boats and sum of catch":
+                            //gridGearUnloadNumbers.Visibility = Visibility.Visible;
+                            break;
+                    }
+                    
+                    
+                    
                     object item = GridVesselUnload.Items[0];
                     GridVesselUnload.SelectedItem = item;
                     try
@@ -133,10 +189,9 @@ namespace NSAP_ODK.Views
         {
             LabelTitle.Content = $"Gear unload for {_gearUnload.GearUsedName} at {_treeItemData.LandingSiteText}, {_treeItemData.FishingGround}";
             GridVesselUnload.Columns.Clear();
-            //GridVesselUnload.Items.Clear();
 
-            //GridVesselUnload.DataContext = _gearUnload.ListVesselUnload;
             GridVesselUnload.DataContext = NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(_gearUnload, true);
+            
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("PK") });
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("UserName") });
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Vessel", Binding = new Binding("VesselName") });
@@ -150,6 +205,7 @@ namespace NSAP_ODK.Views
 
         private void ShowUnloadSummaryGrid()
         {
+            //dataGridUnloadSummary.Visibility = Visibility.Visible;
             labelUnloadSummary.Content = "Summary of vessel unloads of selected sampling day";
             List<UnloadChildrenSummary> list = new List<UnloadChildrenSummary>();
             foreach (var unload in NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(_gearUnload, true))
@@ -158,6 +214,8 @@ namespace NSAP_ODK.Views
             }
             dataGridUnloadSummary.Columns.Clear();
             dataGridUnloadSummary.AutoGenerateColumns = false;
+            dataGridUnloadSummary.DataContext = list;
+
             dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
             dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Date sampled", Binding = new Binding("DateSampling") });
             //dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Region", Binding = new Binding("Region") });
@@ -175,7 +233,7 @@ namespace NSAP_ODK.Views
             dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Length count", Binding = new Binding("CountCatchLengths") });
             dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Length weight count", Binding = new Binding("CountCatchLengthWeights") });
             dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Maturity count", Binding = new Binding("CountCatchMaturities") });
-            dataGridUnloadSummary.DataContext = list;
+
         }
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
@@ -240,5 +298,7 @@ namespace NSAP_ODK.Views
         {
             ((MainWindow)Owner).Focus();
         }
+
+
     }
 }

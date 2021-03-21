@@ -1691,9 +1691,13 @@ namespace NSAP_ODK
             _allSamplingEntitiesEventHandler = e;
             gridCalendarHeader.Visibility = Visibility.Visible;
             GridNSAPData.Visibility = Visibility.Visible;
-            //PropertyGrid.Visibility = Visibility.Visible;
+            _gearUnload = null;
+            if (_gearUnloadWindow != null)
+            {
+                _gearUnloadWindow.TurnGridOff();
+            }
 
-            string labelContent = "";
+                string labelContent = "";
             switch (e.TreeViewEntity)
             {
                 case "tv_NSAPRegionViewModel":
@@ -1801,9 +1805,13 @@ namespace NSAP_ODK
                             .Where(t => t.Parent.SamplingDate.Date == ((DateTime)_treeItemData.MonthSampled).AddDays(_gridCol - 3)).FirstOrDefault();
                     }
 
-                    if (_gearUnloadWindow != null && _gearUnload != null)
+                    if (_gearUnloadWindow != null )
                     {
-                        _gearUnloadWindow.GearUnload = _gearUnload;
+                        _gearUnloadWindow.TurnGridOff();
+                        if (_gearUnload != null)
+                        {
+                            _gearUnloadWindow.GearUnload = _gearUnload;
+                        }
                     }
                     break;
             }
