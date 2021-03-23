@@ -57,6 +57,8 @@ namespace NSAP_ODK
         private TreeViewModelControl.AllSamplingEntitiesEventHandler _allSamplingEntitiesEventHandler;
         private bool _acceptDataGridCellClick;
         private DispatcherTimer _timer;
+        private DBSummary _dbSummary;
+        private SummaryLevelType _summaryLevelType;
         public MainWindow()
         {
             InitializeComponent();
@@ -594,10 +596,39 @@ namespace NSAP_ODK
 
         private void OnDataGridSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            buttonEdit.IsEnabled = true;
+            switch (((DataGrid)sender).Name)
+            {
+                
+                case "dataGridSummary":
+                    if (dataGridSummary.SelectedItem != null)
+                    {
+                        switch (_summaryLevelType)
+                        {
+                            case SummaryLevelType.AllRegions:
+                                //_dbSummary = (DBSummary)dataGridSummary.SelectedItem;
+                                break;
+                            case SummaryLevelType.Region:
+                                break;
+                            case SummaryLevelType.FishingGround:
+                                //_dbSummary = (DBSummary)dataGridSummary.SelectedItem;
+                                break;
+                            case SummaryLevelType.EnumeratorRegion:
+                                break;
+                            case SummaryLevelType.Enumerator:
+                                break;
+                            case SummaryLevelType.EnumeratedMonth:
+                                break;
+                        }
+                    }
+                
+                    break;
+                default:
+                    buttonEdit.IsEnabled = true;
 
-            if (_nsapEntity != NSAPEntity.FMA && _nsapEntity != NSAPEntity.NSAPRegion)
-                buttonDelete.IsEnabled = true;
+                    if (_nsapEntity != NSAPEntity.FMA && _nsapEntity != NSAPEntity.NSAPRegion)
+                        buttonDelete.IsEnabled = true;
+                    break;
+            }
         }
 
         public void RefreshEntityGrid()
@@ -1484,9 +1515,71 @@ namespace NSAP_ODK
         }
         private void OnGridDoubleClick(object sender, MouseButtonEventArgs e)
         {
+            string summaryRegion;
+            string summaryFishingGround;
+            string summaryLandingSite;
+            List<VesselUnload> unloads = new List<VesselUnload>();
             string id = "";
             switch (((DataGrid)sender).Name)
             {
+                case "dataGridSummary":
+                    if (dataGridSummary.SelectedItem != null)
+                    {
+                        switch (_summaryLevelType)
+                        {
+                            case SummaryLevelType.AllRegions:
+                                //selected item is a region
+                                var cellinfo = dataGridSummary.SelectedCells[0];
+                                summaryRegion = ((TextBlock)cellinfo.Column.GetCellContent(cellinfo.Item)).Text;
+                                unloads = NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(summaryRegion);
+                                string formTitle = "";
+                                break;
+                            case SummaryLevelType.Region:
+                                //selected item is a fishing ground
+                                summaryRegion = ((TreeViewItem)treeViewSummary.SelectedItem).Header.ToString();
+                                cellinfo = dataGridSummary.SelectedCells[0];
+                                summaryFishingGround = ((TextBlock)cellinfo.Column.GetCellContent(cellinfo.Item)).Text;
+                                unloads = NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(summaryRegion,summaryFishingGround);
+                                break;
+                            case SummaryLevelType.FishingGround:
+                                summaryFishingGround = ((TreeViewItem)treeViewSummary.SelectedItem).Header.ToString();
+                                summaryRegion = ((TreeViewItem)((TreeViewItem)treeViewSummary.SelectedItem).Parent).Header.ToString();
+                                cellinfo = dataGridSummary.SelectedCells[0];
+                                summaryLandingSite = ((TextBlock)cellinfo.Column.GetCellContent(cellinfo.Item)).Text;
+                                unloads = NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(summaryRegion,summaryFishingGround,summaryLandingSite);
+                                //selected item is a landing site
+                                break;
+                            case SummaryLevelType.EnumeratorRegion:
+                                var es = (EnumeratorSummary)dataGridSummary.SelectedItem;
+                                unloads = es.VesselUnloads;
+                                break;
+                            case SummaryLevelType.Enumerator:
+                                es = (EnumeratorSummary)dataGridSummary.SelectedItem;
+                                unloads = es.VesselUnloads;
+                                //selected item is a month
+                                break;
+                            case SummaryLevelType.EnumeratedMonth:
+                                es = (EnumeratorSummary)dataGridSummary.SelectedItem;
+                                unloads = es.VesselUnloads;
+                                break;
+                        }
+
+                        if (unloads.Count > 0)
+                        {
+                            GearUnloadWindow guw = GearUnloadWindow.GetInstance(unloads);
+                            guw.Owner = this;
+                            if (guw.Visibility == Visibility.Visible)
+                            {
+                                guw.BringIntoView();
+                            }
+                            else
+                            {
+                                guw.Show();
+                            }
+                        }
+                    }
+                    
+                    break;
                 case "GridNSAPData":
                     if (_currentDisplayMode == DataDisplayMode.ODKData)
                     {
@@ -2309,14 +2402,17 @@ namespace NSAP_ODK
                     ShowSummary(header);
                     rowSummaryDataGrid.Height = new GridLength(0);
                     rowOverallSummary.Height = new GridLength(1, GridUnitType.Star);
+                    _summaryLevelType = SummaryLevelType.Overall;
                     break;
                 case "Regions":
                     ShowSummaryAtLevel(SummaryLevelType.AllRegions);
+                    _summaryLevelType = SummaryLevelType.AllRegions;
                     break;
                 case "Enumerators":
                     ShowSummary(header);
                     rowSummaryDataGrid.Height = new GridLength(0);
                     rowOverallSummary.Height = new GridLength(1, GridUnitType.Star);
+                    _summaryLevelType = SummaryLevelType.Enumerators;
                     break;
                 default:
                     switch (tvItem.Tag.GetType().Name)
@@ -2326,21 +2422,26 @@ namespace NSAP_ODK
                             {
                                 case "Enumerators":
                                     ShowEnumeratorSummary((NSAPRegion)tvItem.Tag);
+                                    _summaryLevelType = SummaryLevelType.EnumeratorRegion;
                                     break;
                                 case "Regions":
                                     ShowSummaryAtLevel(SummaryLevelType.Region, (NSAPRegion)tvItem.Tag);
+                                    _summaryLevelType = SummaryLevelType.Region;
                                     break;
                             }
 
                             break;
                         case "FishingGround":
                             ShowSummaryAtLevel(summaryType: SummaryLevelType.FishingGround, region: (NSAPRegion)((TreeViewItem)tvItem.Parent).Tag, fg: (FishingGround)tvItem.Tag);
+                            _summaryLevelType = SummaryLevelType.FishingGround;
                             break;
                         case "NSAPEnumerator":
                             ShowEnumeratorSummary((NSAPEnumerator)tvItem.Tag);
+                            _summaryLevelType = SummaryLevelType.Enumerator;
                             break;
                         case "DateTime":
                             ShowEnumeratorSummary((NSAPEnumerator)((TreeViewItem)tvItem.Parent).Tag, (DateTime)tvItem.Tag);
+                            _summaryLevelType = SummaryLevelType.EnumeratedMonth;
                             break;
                     }
                     break;

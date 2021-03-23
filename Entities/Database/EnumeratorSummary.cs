@@ -28,6 +28,8 @@ namespace NSAP_ODK.Entities.Database
         public string LastSamplingDate { get { return DateOfLatestSampling.ToString("MMM dd, yyyy HH:mm"); } }
         public DateTime DateOfLatestSampling { get;  set; }
 
+        public List<VesselUnload> VesselUnloads { get; set; }
+
 
     }
 }

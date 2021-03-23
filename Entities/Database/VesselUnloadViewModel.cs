@@ -36,8 +36,43 @@ namespace NSAP_ODK.Entities.Database
             }
             return list;
         }
+        public List<VesselUnload> GetAllVesselUnloadsWithDate(string region, string fishingGround = "", string landingSite = "", 
+             string enumerator="", string gear = "", DateTime? dateUploaded = null)
+        {
+            List<VesselUnload> list = new List<VesselUnload>();
 
-
+            if (landingSite.Length > 0 && gear.Length > 0 && dateUploaded != null && enumerator.Length>0)
+            {
+                list = VesselUnloadCollection
+                    .Where(t => t.Parent.Parent.NSAPRegion.ShortName == region &&
+                    t.Parent.Parent.LandingSiteName == landingSite &&
+                    t.Parent.GearUsedName==gear &&
+                    t.EnumeratorName==enumerator &&
+                    ((DateTime)t.DateAddedToDatabase).Date ==((DateTime)dateUploaded).Date).ToList();
+            }
+            return list;
+        }
+        public List<VesselUnload> GetAllVesselUnloads(string region, string fishingGround = "", string landingSite = "")
+        {
+            if (fishingGround.Length > 0 && landingSite.Length > 0)
+            {
+                return VesselUnloadCollection
+                    .Where(t => t.Parent.Parent.NSAPRegion.ShortName == region &&
+                    t.Parent.Parent.FishingGround.Name == fishingGround &&
+                    t.Parent.Parent.LandingSiteName == landingSite).ToList();
+            }
+            else if (fishingGround.Length > 0)
+            {
+                return VesselUnloadCollection
+                    .Where(t => t.Parent.Parent.NSAPRegion.ShortName == region &&
+                    t.Parent.Parent.FishingGround.Name == fishingGround).ToList();
+            }
+            else
+            {
+                return VesselUnloadCollection
+                    .Where(t => t.Parent.Parent.NSAPRegion.ShortName == region).ToList();
+            }
+        }
         public List<VesselUnload> GetAllVesselUnloads(NSAPRegion region)
         {
             return VesselUnloadCollection
@@ -87,16 +122,16 @@ namespace NSAP_ODK.Entities.Database
             return VesselUnloadCollection.Where(t => t.DateAddedToDatabase > dateUpload).ToList();
         }
 
-        public Task<DeleteVesselUnloaResult>DeleteUnloadChildrenAsync(List<VesselUnload> listUnload)
+        public Task<DeleteVesselUnloaResult> DeleteUnloadChildrenAsync(List<VesselUnload> listUnload)
         {
             return Task.Run(() => DeleteUnloadChildren(listUnload));
         }
 
         private int _countUnloadDeleted;
-         public event EventHandler DeleteUnloadChildrenEvent;
+        public event EventHandler DeleteUnloadChildrenEvent;
         public DeleteVesselUnloaResult DeleteUnloadChildren(List<VesselUnload> listUnload)
         {
-            int counter = 0;    
+            int counter = 0;
             int countUnloadDeleted = 0;
             List<int> pks = new List<int>();
 

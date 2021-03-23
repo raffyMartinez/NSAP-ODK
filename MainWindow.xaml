@@ -271,7 +271,7 @@
             <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Column="1" Grid.Row="2">
                 <StackPanel  x:Name="panelOpening">
                     <CheckBox x:Name="checkLandingSiteWithLandings" Margin="20 0 0 0" Visibility="Collapsed" Content="Only show landing sites with catch monitoring" Checked="OnCheckBoxChecked" Unchecked="OnCheckBoxChecked"/>
-                    <DataGrid x:Name="dataGridSummary" Visibility="Collapsed" ItemsSource="{Binding}" IsReadOnly="True" Margin="20" LoadingRow="Grid_LoadingRow" RowHeaderWidth="30"/>
+                    <DataGrid x:Name="dataGridSummary" Visibility="Collapsed" ItemsSource="{Binding}" IsReadOnly="True" Margin="20" LoadingRow="Grid_LoadingRow" RowHeaderWidth="30" SelectionChanged="OnDataGridSelectionChanged" MouseDoubleClick="OnGridDoubleClick"/>
                 </StackPanel>
             </ScrollViewer>
         </Grid>

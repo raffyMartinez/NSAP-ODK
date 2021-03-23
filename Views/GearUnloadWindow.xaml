@@ -8,6 +8,32 @@
         Closing="OnWindowClosing"
         Closed="OnWindowClosed"
         Title="GearUnloadWindow" Height="450" Width="800">
+    
+        <Window.Resources>
+        <Style TargetType="{x:Type DataGridRowHeader}">
+            <Setter Property="Control.Padding" Value="2 0 5 0"/>
+            <Setter Property="Control.Background" Value="#FFEEEEEE"/>
+            <Setter Property="Control.BorderBrush" Value ="#FFBAB9B9"/>
+            <Setter Property="Control.BorderThickness" Value ="0.5"/>
+
+        </Style>
+
+        <!--<Style TargetType="DataGridCell">-->
+        <Style TargetType="{x:Type DataGridCell}">
+            <Setter Property="Padding" Value="3" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DataGridCell}">
+                        <Border Padding="{TemplateBinding Padding}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                            <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"  />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+    </Window.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
@@ -25,7 +51,7 @@
         <TabControl Grid.Row="1" x:Name="TabControl" Margin="10" SelectionChanged="OnTabSelectionChanged" >
             <TabItem Header="Vessel unload">
                 <Grid>
-                    <DataGrid  x:Name="GridVesselUnload" IsReadOnly="True" ItemsSource="{Binding}" 
+                    <DataGrid  x:Name="GridVesselUnload" IsReadOnly="True" ItemsSource="{Binding}" LoadingRow="Grid_LoadingRow"
                   AutoGenerateColumns="False" MouseDoubleClick="OnGridDoubleClick" SelectionChanged="OnGridSelectionChanged" SelectionUnit="FullRow"/>
                     <!--Loaded="OnWindowLoaded" Margin="5"/>-->
                 </Grid>
@@ -40,12 +66,12 @@
                         <RowDefinition/>
                     </Grid.RowDefinitions>
                     <Label x:Name="labelUnloadSummary" Content="Summary of vessel unload for sampled day" HorizontalAlignment="Center"/>
-                    <DataGrid Grid.Row="1" x:Name="dataGridUnloadSummary" IsReadOnly="True" ItemsSource="{Binding}"  MouseDoubleClick="OnGridDoubleClick" SelectionChanged="OnGridSelectionChanged" SelectionUnit="FullRow"/>
+                    <DataGrid Grid.Row="1" x:Name="dataGridUnloadSummary" IsReadOnly="True" ItemsSource="{Binding}"  MouseDoubleClick="OnGridDoubleClick" LoadingRow="Grid_LoadingRow" SelectionChanged="OnGridSelectionChanged" SelectionUnit="FullRow"/>
                     <!--Loaded="OnWindowLoaded"/>-->
                 </Grid>
             </TabItem>
 
-            <TabItem Header="Number of boats and sum of catch">
+            <TabItem Header="Number of boats and sum of catch" x:Name="tabPageBoatCount">
                 <Grid x:Name="gridGearUnloadNumbers">
                     <Grid.RowDefinitions>
 

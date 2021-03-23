@@ -16,9 +16,16 @@ using NSAP_ODK.Entities;
 using NSAP_ODK.Utilities;
 namespace NSAP_ODK.Views
 {
+    public enum GearUnloadWindowListSource
+    {
+        ListSourceGearUnload,
+        listSourceVesselUnload
+    }
+
     /// <summary>
     /// Interaction logic for GearUnloadWindow.xaml
     /// </summary>
+    /// 
     public partial class GearUnloadWindow : Window
     {
         private GearUnload _gearUnload;
@@ -27,7 +34,30 @@ namespace NSAP_ODK.Views
         private VesselUnloadWIndow _vesselUnloadWindow;
         private MainWindow _parentWindow;
         private bool _changeFromGridClick;
+        private List<VesselUnload> _vesselUnloads;
+        private GearUnloadWindowListSource _listSource;
+        private static GearUnloadWindow _instance;
 
+        public static GearUnloadWindow GetInstance(List<VesselUnload> vesselUnloads)
+        {
+            NSAPEntities.NSAPRegion = vesselUnloads[0].Parent.Parent.NSAPRegion;
+            if (_instance == null) _instance = new GearUnloadWindow(vesselUnloads);
+            return _instance;
+        }
+
+        public static GearUnloadWindow GetInstance(GearUnload gearUnload, TreeViewModelControl.AllSamplingEntitiesEventHandler treeItemData, MainWindow parent)
+        {
+            if (_instance == null) _instance = new GearUnloadWindow(gearUnload, treeItemData, parent);
+            return _instance;
+        }
+        public GearUnloadWindow(List<VesselUnload> vesselUnloads)
+        {
+            InitializeComponent();
+            _vesselUnloads = vesselUnloads;
+            _listSource = GearUnloadWindowListSource.listSourceVesselUnload;
+            tabPageBoatCount.Visibility = Visibility.Collapsed;
+           
+        }
         public GearUnloadWindow(GearUnload gearUnload, TreeViewModelControl.AllSamplingEntitiesEventHandler treeItemData, MainWindow parent)
         {
             InitializeComponent();
@@ -37,6 +67,8 @@ namespace NSAP_ODK.Views
             textBoxCatch.Text = _gearUnload.Catch.ToString();
             _parentWindow = parent;
             Title = $"Gear unload for {gearUnload.GearUsedName}";
+            _listSource = GearUnloadWindowListSource.ListSourceGearUnload;
+            tabPageBoatCount.Visibility = Visibility.Visible;
         }
         private void OnTabSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -96,27 +128,6 @@ namespace NSAP_ODK.Views
                 _vesselUnloadWindow.VesselUnload = _selectedVesselUnload;
             }
 
-            //switch (((DataGrid)sender).Name)
-            //{
-            //    case "dataGridUnloadSummary":
-
-            //        break;
-
-            //    case "GridVesselUnload":
-
-
-            //        if (_vesselUnloadWindow == null)
-            //        {
-            //            _vesselUnloadWindow = new VesselUnloadWIndow(_selectedVesselUnload, this);
-            //            _vesselUnloadWindow.Owner = this;
-            //            _vesselUnloadWindow.Show();
-            //        }
-            //        else
-            //        {
-            //            _vesselUnloadWindow.VesselUnload = _selectedVesselUnload;
-            //        }
-            //        break;
-            //}
         }
 
         public void TurnGridOff()
@@ -124,11 +135,24 @@ namespace NSAP_ODK.Views
             dataGridUnloadSummary.Visibility = Visibility.Hidden;
             GridVesselUnload.Visibility = Visibility.Hidden;
             gridGearUnloadNumbers.Visibility = Visibility.Hidden;
-            
+
             //dataGridUnloadSummary.ItemsSource = null;
             //GridVesselUnload.ItemsSource = null;
             //dataGridUnloadSummary.Items.Clear();
             //GridVesselUnload.Items.Clear();
+        }
+
+        public List<VesselUnload> VesselUnloads
+        {
+            set
+            {
+                _vesselUnloads = value;
+                NSAPEntities.NSAPRegion = _vesselUnloads[0].Parent.Parent.NSAPRegion;
+            }
+            get
+            {
+                return _vesselUnloads;
+            }
         }
         public GearUnload GearUnload
         {
@@ -136,18 +160,18 @@ namespace NSAP_ODK.Views
             {
 
                 _gearUnload = value;
-                
+
                 //if (_gearUnload.ListVesselUnload.Count > 0)
-                if(NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(_gearUnload, true).Count>0)
+                if (NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(_gearUnload, true).Count > 0)
                 {
                     GridVesselUnload.Visibility = Visibility.Visible;
                     dataGridUnloadSummary.Visibility = Visibility.Visible;
                     gridGearUnloadNumbers.Visibility = Visibility.Visible;
-                    switch(((TabItem)this.TabControl.SelectedItem).Header)
+                    switch (((TabItem)this.TabControl.SelectedItem).Header)
                     {
                         case "Unload entities summary":
                             ShowUnloadSummaryGrid();
-                            
+
                             break;
                         case "Vessel unload":
                             ShowVesselUnloadGrid();
@@ -156,20 +180,20 @@ namespace NSAP_ODK.Views
                             //gridGearUnloadNumbers.Visibility = Visibility.Visible;
                             break;
                     }
-                    
-                    
-                    
+
+
+
                     object item = GridVesselUnload.Items[0];
                     GridVesselUnload.SelectedItem = item;
                     try
                     {
                         GridVesselUnload.ScrollIntoView(item);
                     }
-                    catch(ArgumentOutOfRangeException )
+                    catch (ArgumentOutOfRangeException)
                     {
                         //ignore
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Logger.Log(ex);
                     }
@@ -187,11 +211,22 @@ namespace NSAP_ODK.Views
 
         private void ShowVesselUnloadGrid()
         {
-            LabelTitle.Content = $"Gear unload for {_gearUnload.GearUsedName} at {_treeItemData.LandingSiteText}, {_treeItemData.FishingGround}";
+            
             GridVesselUnload.Columns.Clear();
 
-            GridVesselUnload.DataContext = NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(_gearUnload, true);
-            
+            switch (_listSource)
+            {
+                case GearUnloadWindowListSource.ListSourceGearUnload:
+                    LabelTitle.Content = $"Gear unload for {_gearUnload.GearUsedName} at {_treeItemData.LandingSiteText}, {_treeItemData.FishingGround}";
+                    GridVesselUnload.DataContext = NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(_gearUnload, true);
+                    break;
+                case GearUnloadWindowListSource.listSourceVesselUnload:
+                    LabelTitle.Content = "Vessel unloads from summary";
+                    GridVesselUnload.DataContext = _vesselUnloads;
+                    break;
+            }
+
+
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("PK") });
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("UserName") });
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Vessel", Binding = new Binding("VesselName") });
@@ -205,17 +240,28 @@ namespace NSAP_ODK.Views
 
         private void ShowUnloadSummaryGrid()
         {
-            //dataGridUnloadSummary.Visibility = Visibility.Visible;
             labelUnloadSummary.Content = "Summary of vessel unloads of selected sampling day";
-            List<UnloadChildrenSummary> list = new List<UnloadChildrenSummary>();
-            foreach (var unload in NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(_gearUnload, true))
-            {
-                list.Add(new UnloadChildrenSummary(unload));
-            }
             dataGridUnloadSummary.Columns.Clear();
             dataGridUnloadSummary.AutoGenerateColumns = false;
-            dataGridUnloadSummary.DataContext = list;
+            List<UnloadChildrenSummary> list = new List<UnloadChildrenSummary>();
+            switch (_listSource)
+            {
+                case GearUnloadWindowListSource.ListSourceGearUnload:
 
+                    foreach (var unload in NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(_gearUnload, true))
+                    {
+                        list.Add(new UnloadChildrenSummary(unload));
+                    }
+                    break;
+                case GearUnloadWindowListSource.listSourceVesselUnload:
+                    foreach (var unload in _vesselUnloads)
+                    {
+                        list.Add(new UnloadChildrenSummary(unload));
+                    }
+                    break;
+            }
+
+            dataGridUnloadSummary.DataContext = list;
             dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
             dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Date sampled", Binding = new Binding("DateSampling") });
             //dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Region", Binding = new Binding("Region") });
@@ -245,7 +291,11 @@ namespace NSAP_ODK.Views
         {
 
             this.SavePlacement();
-            _parentWindow.GearUnloadWindowClosed();
+            _instance = null;
+            if (_parentWindow != null)
+            {
+                _parentWindow.GearUnloadWindowClosed();
+            }
         }
 
         //This method is load the actual position of the window from the file
@@ -299,6 +349,9 @@ namespace NSAP_ODK.Views
             ((MainWindow)Owner).Focus();
         }
 
-
+        private void Grid_LoadingRow(object sender, DataGridRowEventArgs e)
+        {
+            e.Row.Header = (e.Row.GetIndex() + 1).ToString();
+        }
     }
 }

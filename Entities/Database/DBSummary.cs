@@ -20,7 +20,8 @@ namespace NSAP_ODK.Entities.Database
         LandingSite,
         Enumerator,
         EnumeratedMonth,
-        EnumeratorRegion
+        EnumeratorRegion,
+        Enumerators
 
     }
 

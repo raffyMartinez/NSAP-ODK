@@ -612,7 +612,7 @@ namespace NSAP_ODK.Entities.Database
                             {
                                 row[prop.Name] = prop.GetValue(item) ?? DBNull.Value;
                             }
-                            catch (Exception ex)
+                            catch 
                             {
                                 row[prop.Name] = DBNull.Value;
                             }
