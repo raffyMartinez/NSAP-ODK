@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 namespace NSAP_ODK.Utilities
 {
@@ -20,6 +21,7 @@ namespace NSAP_ODK.Utilities
     }
     public static class Logger
     {
+        private static string _appVersion=$"Version: {Assembly.GetExecutingAssembly().GetName().Version.ToString()}";
         private static LogType _logType = LogType.Logfile;
         private static string _filepath = "";
 
@@ -70,36 +72,13 @@ namespace NSAP_ODK.Utilities
         }
 
 
-        //public static async Task LogAsync(string s, string filePath="")
-        //{
-        //    if (filePath.Length>0)
-        //    {
-        //        if(File.Exists(filePath))
-        //        {
-        //            File.Delete(filePath);
-        //        }
-
-        //        using (StreamWriter writer = new StreamWriter(filePath, true))
-        //        {
-        //            await writer.WriteLineAsync(s);
-        //        }
-        //    }
-        //    else
-        //    {
-        //        using (StreamWriter writer = new StreamWriter(_filepath, true))
-        //        {
-        //            await writer.WriteLineAsync(s);
-        //        }
-        //    }
-        //}
-
         public static void Log(string s, bool simpleLog = false)
         {
             using (StreamWriter writer = new StreamWriter(_filepath, true))
             {
                 if (!simpleLog)
                 {
-                    writer.WriteLine($"Message: {s} Date :{DateTime.Now.ToString()}");
+                    writer.WriteLine($"Message: {s} Date :{DateTime.Now.ToString()} Version:{_appVersion}");
                 }
                 else
                 {
@@ -112,7 +91,7 @@ namespace NSAP_ODK.Utilities
         {
             using (StreamWriter writer = new StreamWriter(_filepath, true))
             {
-                writer.WriteLine($"Log message:{s}\r\nError: {ex.Message}\r\n{ex.StackTrace}\r\n Date :{DateTime.Now.ToString()}");
+                writer.WriteLine($"Log message:{s}\r\nError: {ex.Message}\r\n{ex.StackTrace}\r\n Date :{DateTime.Now.ToString()}\r\nVersion:{_appVersion}");
             }
         }
 
@@ -120,7 +99,7 @@ namespace NSAP_ODK.Utilities
         {
             using (StreamWriter writer = new StreamWriter(_filepath, true))
             {
-                writer.WriteLine($"Error: {ex.Message}\r\n{ex.StackTrace}\r\n Date :{DateTime.Now.ToString()}");
+                writer.WriteLine($"Error: {ex.Message}\r\n{ex.StackTrace}\r\n Date :{DateTime.Now.ToString()}\r\nVersion:{_appVersion}");
             }
         }
     }

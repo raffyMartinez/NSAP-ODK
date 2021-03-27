@@ -76,34 +76,65 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Insert into dbo_vessel_catch(catch_id, v_unload_id,species_id, catch_kg,samp_kg,taxa,species_text)
-                           Values 
-                           (
-                                {item.PK},
-                                {item.VesselUnloadID},
-                                {(item.SpeciesID == null ? "null" : item.SpeciesID.ToString())},
-                                {(item.Catch_kg == null ? "null" : item.Catch_kg.ToString())},
-                                {(item.Sample_kg == null ? "null" : item.Sample_kg.ToString())}, 
-                                '{item.TaxaCode}',
-                                '{item.SpeciesText}'
-                           )";
+
+                var sql = @"Insert into dbo_vessel_catch(catch_id, v_unload_id, species_id, catch_kg, samp_kg, taxa, species_text)
+                            Values (?, ?, ?, ?, ?, ?, ?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
+                    update.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
+                    update.Parameters.Add("@parent_id", OleDbType.Integer).Value = item.VesselUnloadID;
+                    if(item.SpeciesID==null)
+                    {
+                        update.Parameters.Add("@species_id", OleDbType.Integer).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@species_id", OleDbType.Integer).Value = item.SpeciesID;
+                    }
+
+                    if(item.Catch_kg==null)
+                    {
+                        update.Parameters.Add("@catch_kg", OleDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@catch_kg", OleDbType.Double).Value = item.Catch_kg;
+                    }
+
+                    if(item.Sample_kg==null)
+                    {
+                        update.Parameters.Add("@sample_kg", OleDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@sample_kg", OleDbType.Double).Value = item.Sample_kg;
+                    }
+                    update.Parameters.Add("@taxa", OleDbType.VarChar).Value = item.TaxaCode;
+                    if (item.SpeciesText == null)
+                    {
+                        update.Parameters.Add("@species_text", OleDbType.VarChar).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@species_text", OleDbType.VarChar).Value = item.SpeciesText;
+                    }
+
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException)
+                    catch(OleDbException dbex)
                     {
-                        
-                        success = false;
+                        Logger.Log(dbex);
                     }
-                    catch (Exception ex)
+                    catch(Exception ex)
                     {
                         Logger.Log(ex);
                     }
                 }
             }
+
+
             return success;
         }
 
@@ -113,31 +144,65 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Update dbo_vessel_catch set
-                                v_unload_id={item.VesselUnloadID},
-                                species_id = {(item.SpeciesID == null ? "null" : item.SpeciesID.ToString())},
-                                catch_kg = {(item.Catch_kg == null ? "null" : item.Catch_kg.ToString())},
-                                samp_kg = {(item.Sample_kg == null ? "null" : item.Sample_kg.ToString())},
-                                taxa = '{item.TaxaCode}',
-                                species_text = '{item.SpeciesText}'
-                            WHERE catch_id = {item.PK}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                using (OleDbCommand cmd = conn.CreateCommand())
                 {
+                    cmd.Parameters.Add("@v_unload_id", OleDbType.Integer).Value = item.Parent.PK;
+
+                    if (item.SpeciesID == null)
+                    {
+                        cmd.Parameters.Add("@species_id", OleDbType.Integer).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        cmd.Parameters.Add("@species_id", OleDbType.Integer).Value = item.SpeciesID;
+                    }
+
+                    if (item.Catch_kg == null)
+                    {
+                        cmd.Parameters.Add("@catch_kg", OleDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        cmd.Parameters.Add("@catch_kg", OleDbType.Double).Value = (double)item.Catch_kg;
+                    }
+
+                    if (item.Sample_kg == null)
+                    {
+                        cmd.Parameters.Add("@sample_kg", OleDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        cmd.Parameters.Add("@sample_kg", OleDbType.Double).Value = (double)item.Sample_kg;
+                    }
+
+                    cmd.Parameters.Add("@taxa", OleDbType.VarChar).Value = item.TaxaCode;
+                    cmd.Parameters.Add("@species_text", OleDbType.VarChar).Value = item.SpeciesText;
+                    cmd.Parameters.Add("@catch_id", OleDbType.Integer).Value = item.PK;
+
+                    cmd.CommandText = @"Update dbo_vessel_catch set
+                                v_unload_id=@v_unload_id,
+                                species_id = @species_id,
+                                catch_kg = @catch_kg,
+                                samp_kg = @sample_kg,
+                                taxa = @taxa,
+                                species_text = @species_text
+                            WHERE catch_id = @catch_id";
                     try
                     {
-                        success = update.ExecuteNonQuery() > 0;
+                        success = cmd.ExecuteNonQuery() > 0;
                     }
-                    catch(OleDbException dbex)
+                    catch (OleDbException dbex)
                     {
-                        //ignore
+                        Logger.Log(dbex);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Logger.Log(ex);
                     }
                 }
             }
-            return success;
+
+             return success;
         }
 
         public bool ClearTable()

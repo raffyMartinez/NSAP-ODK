@@ -552,11 +552,15 @@ namespace NSAP_ODK.Views
                     LabelTop.Content = "New fish species";
                     if (!_isNew)
                     {
+
                         var fs = NSAPEntities.FishSpeciesViewModel.GetSpecies(int.Parse(_entityID));
-                        LabelTop.Content = $"Details of the {fs.Family.TrimEnd(new char[] { 'a', 'e' })} fish {fs.GenericName} {fs.SpecificName}";
-                        fishSpeciesEdit = new FishSpeciesEdit(fs);
-                        _oldGenus = fs.GenericName;
-                        _oldSpecies = fs.SpecificName;
+                        if (fs != null)
+                        {
+                            LabelTop.Content = $"Details of the {fs.Family.TrimEnd(new char[] { 'a', 'e' })} fish {fs.GenericName} {fs.SpecificName}";
+                            fishSpeciesEdit = new FishSpeciesEdit(fs);
+                            _oldGenus = fs.GenericName;
+                            _oldSpecies = fs.SpecificName;
+                        }
                     }
                     else
                     {

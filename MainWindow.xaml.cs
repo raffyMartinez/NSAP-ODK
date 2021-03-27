@@ -65,6 +65,8 @@ namespace NSAP_ODK
             Loaded += OnWindowLoaded;
             Closing += OnWindowClosing;
         }
+
+        public DataDisplayMode DataDisplayMode { get { return _currentDisplayMode; } }
         private void OnTimerTick(object sender, EventArgs e)
         {
             _timer.Stop();
@@ -104,6 +106,7 @@ namespace NSAP_ODK
             }
             return false;
         }
+
 
         public void ShowSummary(string level)
         {
@@ -517,6 +520,7 @@ namespace NSAP_ODK
                     dataGridSpecies.Columns.Add(new DataGridTextColumn { Header = "Max length", Binding = new Binding("LengthMax") });
                     dataGridSpecies.Columns.Add(new DataGridTextColumn { Header = "Common length", Binding = new Binding("LengthCommon") });
                     dataGridSpecies.Columns.Add(new DataGridTextColumn { Header = "Max length type", Binding = new Binding("LengthType.Code") });
+                    dataGridSpecies.Columns.Add(new DataGridTextColumn { Header = "Synonym", Binding = new Binding("Synonym") });
                     break;
 
                 case NSAPEntity.FMA:
@@ -1520,6 +1524,7 @@ namespace NSAP_ODK
             string summaryLandingSite;
             List<VesselUnload> unloads = new List<VesselUnload>();
             string id = "";
+            string formTitle = "";
             switch (((DataGrid)sender).Name)
             {
                 case "dataGridSummary":
@@ -1532,7 +1537,7 @@ namespace NSAP_ODK
                                 var cellinfo = dataGridSummary.SelectedCells[0];
                                 summaryRegion = ((TextBlock)cellinfo.Column.GetCellContent(cellinfo.Item)).Text;
                                 unloads = NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(summaryRegion);
-                                string formTitle = "";
+                                formTitle = $"All vessel unload of {summaryRegion}";
                                 break;
                             case SummaryLevelType.Region:
                                 //selected item is a fishing ground
@@ -1540,6 +1545,7 @@ namespace NSAP_ODK
                                 cellinfo = dataGridSummary.SelectedCells[0];
                                 summaryFishingGround = ((TextBlock)cellinfo.Column.GetCellContent(cellinfo.Item)).Text;
                                 unloads = NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(summaryRegion,summaryFishingGround);
+                                formTitle = $"All vessel unload of {summaryFishingGround}, {summaryRegion} ";
                                 break;
                             case SummaryLevelType.FishingGround:
                                 summaryFishingGround = ((TreeViewItem)treeViewSummary.SelectedItem).Header.ToString();
@@ -1576,6 +1582,7 @@ namespace NSAP_ODK
                             {
                                 guw.Show();
                             }
+                            guw.Title = formTitle;
                         }
                     }
                     
@@ -1656,7 +1663,11 @@ namespace NSAP_ODK
                     var fs = (FishSpecies)dataGridSpecies.SelectedItem;
 
                     if (fs != null)
-                        id = fs.RowNumber.ToString();
+                    {
+                        //id = fs.RowNumber.ToString();
+                        id = ((int)fs.SpeciesCode).ToString();
+                    }
+                    
                     break;
 
                 case "dataGridEntities":

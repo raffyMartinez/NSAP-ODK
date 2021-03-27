@@ -74,6 +74,22 @@ namespace NSAP_ODK.Entities
         public string Family { get; set; }
         public int? SpeciesCode { get; set; }
 
+        public string PreviousName { get; set; }
+
+        public string Synonym
+        {
+            get
+            {
+                if (PreviousName.Length>0 && PreviousName!=ToString())
+                {
+                    return PreviousName;
+                }
+                else
+                {
+                    return "";
+                }
+            }
+        }
 
 
         public override string ToString()

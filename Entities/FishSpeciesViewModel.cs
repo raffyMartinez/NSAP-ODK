@@ -359,6 +359,51 @@ namespace NSAP_ODK.Entities
             }
         }
 
+
+        public List<FishSpeciesForCSV> BuildSpeciesCSVSource()
+        {
+            List<FishSpeciesForCSV> list = new List<FishSpeciesForCSV>();
+            try
+            {
+                foreach (var item in SpeciesCollection.OrderBy(t => t.GenericName).ThenBy(t => t.SpecificName))
+                {
+                    list.Add(new FishSpeciesForCSV
+                    {
+                        SpeciesCode = (int)item.SpeciesCode,
+                        Name = item.ToString(),
+                        MaxLength = item.LengthMax,
+                        LengthType = item.LengthType,
+                        SortName = item.ToString()
+                    });
+
+                    if (item.PreviousName.Length > 0 && item.PreviousName != item.ToString())
+                    {
+                        list.Add(new FishSpeciesForCSV
+                        {
+                            SpeciesCode = (int)item.SpeciesCode,
+                            Name = $"{item.PreviousName} <span style=\"color:blue\">({item.ToString()})</span>",
+                            MaxLength = item.LengthMax,
+                            LengthType = item.LengthType,
+                            SortName = item.PreviousName
+                        });
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                Logger.Log(ex);
+            }
+            return list;
+        }
+        public FishSpecies GetSpecies (string species)
+        {
+            return SpeciesCollection.FirstOrDefault(t => t.ToString() == species);
+        }
+
+        public FishSpecies GetSpeciesEx(int rowNo)
+        {
+            return SpeciesCollection.FirstOrDefault(n => n.RowNumber == rowNo);
+        }
         public FishSpecies GetSpecies(int rowNo)
         {
             return SpeciesCollection.FirstOrDefault(n => n.SpeciesCode == rowNo);

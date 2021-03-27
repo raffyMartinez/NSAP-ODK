@@ -31,7 +31,7 @@ namespace NSAP_ODK.Entities
 
             foreach (var e in enumerators)
             {
-                if (e.Key.Length > 0)
+                if (e.Key!=null && e.Key.Length > 0)
                 {
                     var enumerator_date = unloads
                         .Where(t => t.EnumeratorName == e.Key)

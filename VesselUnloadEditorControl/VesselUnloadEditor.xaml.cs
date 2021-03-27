@@ -191,9 +191,10 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                     effortDataGrid.DataContext = _vesselUnload.ListVesselEffort;
                     break;
                 case "treeItemCatchComposition":
+                    effortDataGrid.Columns.Clear();
                     effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("PK") });
                     effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Taxa", Binding = new Binding("Taxa") });
-                    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Name", Binding = new Binding("CatchName") });
+                    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Name", Binding = new Binding("CatchNameEx") });
                     effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("Catch_kg") });
                     effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight of sample", Binding = new Binding("Sample_kg") });
 
@@ -578,15 +579,15 @@ namespace NSAP_ODK.VesselUnloadEditorControl
             switch(((DataGrid)sender).Name)
             {
                 case "effortDataGrid":
-                    VesselCatch = (VesselCatch)effortDataGrid.SelectedItem;
-                    
-
-                    SetupDataGridsForDisplay(forCatchGrid: true);
-
-
-                    labelCatch.Content = $"{GetContextLabel()} {VesselCatch?.CatchName}";
+                    if (_unloadView == "treeItemCatchComposition")
+                    {
+                        VesselCatch = (VesselCatch)effortDataGrid.SelectedItem;
+                        SetupDataGridsForDisplay(forCatchGrid: true);
+                        labelCatch.Content = $"{GetContextLabel()} {VesselCatch?.CatchName}";
+                    }
                     break;
                 case "catchDataGrid":
+
                     break;
             }
             ;

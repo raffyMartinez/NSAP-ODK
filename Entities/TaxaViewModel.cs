@@ -10,15 +10,19 @@ namespace NSAP_ODK.Entities
     public class TaxaViewModel
     {
         public ObservableCollection<Taxa> TaxaCollection { get; set; }
-        private TaxaRepository Taxas{ get; set; }
+        private TaxaRepository Taxas { get; set; }
 
 
         public TaxaViewModel()
         {
-            
+
             Taxas = new TaxaRepository();
             TaxaCollection = new ObservableCollection<Taxa>(Taxas.Taxas);
             TaxaCollection.CollectionChanged += Taxas_CollectionChanged;
+            if (GetTaxa("NOID") == null)
+            {
+                AddRecordToRepo(new Taxa { Code = "NOID", Name = "Not identified", Description = "Taxa is not identified" });
+            }
         }
         public List<Taxa> GetAllTaxa()
         {
@@ -34,12 +38,12 @@ namespace NSAP_ODK.Entities
             }
             return list;
         }
-        public ObservableCollection<KeyValuePair<string,string>>AllTaxaTermsKV()
+        public ObservableCollection<KeyValuePair<string, string>> AllTaxaTermsKV()
         {
-            ObservableCollection<KeyValuePair<string,string>> list = new ObservableCollection<KeyValuePair<string,string>>();
-            foreach(var t in TaxaCollection)
+            ObservableCollection<KeyValuePair<string, string>> list = new ObservableCollection<KeyValuePair<string, string>>();
+            foreach (var t in TaxaCollection)
             {
-                list.Add(new KeyValuePair<string,string>(t.Code,t.Name));
+                list.Add(new KeyValuePair<string, string>(t.Code, t.Name));
             }
             return list;
         }
@@ -47,7 +51,7 @@ namespace NSAP_ODK.Entities
         {
             foreach (Taxa t in TaxaCollection)
             {
-                if (t.Name==name)
+                if (t.Name == name)
                 {
                     return true;
                 }
@@ -55,6 +59,13 @@ namespace NSAP_ODK.Entities
             return false;
         }
 
+        public Taxa NotIdentified
+        {
+            get
+            {
+                return TaxaCollection.FirstOrDefault(t => t.Code == "NOID");
+            }
+        }
         public Taxa FishTaxa
         {
             get
@@ -75,7 +86,7 @@ namespace NSAP_ODK.Entities
         }
         public Taxa GetTaxa(string code)
         {
-            return TaxaCollection.FirstOrDefault(n => n.Code== code);
+            return TaxaCollection.FirstOrDefault(n => n.Code == code);
 
         }
         private void Taxas_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)

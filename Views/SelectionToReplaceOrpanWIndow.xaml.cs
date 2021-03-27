@@ -324,11 +324,33 @@ namespace NSAP_ODK.Views
                             case NSAPEntity.SpeciesName:
                                 if (_isFish)
                                 {
-                                    ((OrphanItemsManagerWindow)Owner).ReplacementFishSpecies = (FishSpecies)_selectedButton.Tag;
+                                    try
+                                    {
+                                        ((OrphanItemsManagerWindow)Owner).ReplacementFishSpecies = (FishSpecies)_selectedButton.Tag;
+                                    }
+                                    catch (InvalidCastException)
+                                    {
+                                        ((OrphanItemsManagerWindow)Owner).ReplacementNotFishSpecies = (NotFishSpecies)_selectedButton.Tag;
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Logger.Log(ex);
+                                    }
                                 }
                                 else
                                 {
-                                    ((OrphanItemsManagerWindow)Owner).ReplacementNotFishSpecies = (NotFishSpecies)_selectedButton.Tag;
+                                    try
+                                    {
+                                        ((OrphanItemsManagerWindow)Owner).ReplacementNotFishSpecies = (NotFishSpecies)_selectedButton.Tag;
+                                    }
+                                    catch (InvalidCastException)
+                                    {
+                                        ((OrphanItemsManagerWindow)Owner).ReplacementFishSpecies = (FishSpecies)_selectedButton.Tag;
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Logger.Log(ex);
+                                    }
                                 }
                                 break;
                             case NSAPEntity.FishSpecies:

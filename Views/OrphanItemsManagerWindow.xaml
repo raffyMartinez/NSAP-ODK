@@ -50,7 +50,11 @@
             <Button Content="Cancel" Height="30" Width="120" Margin="10 0" x:Name="buttonCancel" Click="OnButtonClick"/>
             
             <Button Content="Replace" Height="30" Width="120" Margin="10 30 10 0" x:Name="buttonReplace" Click="OnButtonClick" IsEnabled="False"/>
+            
             <CheckBox Content="Multiple species" Margin="10 30 10 0" Checked="OnCheckChanged" Unchecked="OnCheckChanged" x:Name="checkMultipleSp" Visibility="Visible"/>
+
+            <CheckBox Content="Check all" Margin="10" x:Name="checkCheckAll" Checked="OnCheckChanged" IsEnabled="False" Unchecked="OnCheckChanged" Visibility="Collapsed"/>
+
             <Button Content="Fix" Height="30" Width="120" Margin="10" x:Name="buttonFix" Click="OnButtonClick" IsEnabled="False" Visibility="Collapsed"/>
         </StackPanel>
         <StatusBar Grid.Row="2" Margin="10 0 0 5">

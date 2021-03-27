@@ -37,6 +37,7 @@ namespace NSAP_ODK.Views
         private ODKServerDownload _odkServerDownload;
         private bool _uploadToDBSuccess;
         private JSONFile _jsonFile;
+        private DateTime? _jsonFileUseCreationDateForHistory;
         public string JSON { get; set; }
         public string FormID { get; set; }
 
@@ -328,9 +329,27 @@ namespace NSAP_ODK.Views
 
                 //get vessel unloads from json text file
                 case "menuVesselUnloadJSON":
+                    _jsonFileUseCreationDateForHistory = null;
                     try
                     {
-                        var json = System.IO.File.ReadAllText(GetJsonTextFileFromFileOpenDialog());
+                        FileInfo fi = new FileInfo(GetJsonTextFileFromFileOpenDialog());
+                        
+                        var result = MessageBox.Show($"File was created on {fi.CreationTime.ToString("MMM-dd-yyyy HH:mm")}\r\n" +
+                                            "Would you like to use this date on the download history?",
+                                            "NSAP-ODK Database",
+                                            MessageBoxButton.YesNoCancel,
+                                            MessageBoxImage.Question);
+
+                        if(result==MessageBoxResult.Cancel)
+                        {
+                            return;
+                        }
+                        else if(result==MessageBoxResult.Yes)
+                        {
+                            _jsonFileUseCreationDateForHistory = fi.CreationTime;
+                        }
+
+                        var json = System.IO.File.ReadAllText(fi.FullName);
                         if (json.Length > 0)
                         {
                             VesselUnloadServerRepository.ResetLists();
@@ -392,6 +411,7 @@ namespace NSAP_ODK.Views
                         {
                             if (dataGridExcel.Items.Count > 0)
                             {
+                                VesselUnloadServerRepository.JSONFileCreationTime = _jsonFileUseCreationDateForHistory;
                                 if (await VesselUnloadServerRepository.UploadToDBAsync())
                                 {
                                     dataGridExcel.ItemsSource = null;
@@ -406,12 +426,18 @@ namespace NSAP_ODK.Views
                                             MessageBoxButton.OK,
                                             MessageBoxImage.Information);
                                      
-                                        ((MainWindow)Owner).ShowSummary("Overall");
+                                        //((MainWindow)Owner).ShowSummary("Overall");
                                     }
                                     else
                                     {
                                         MessageBox.Show("Finished uploading to database", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
                                     }
+                                    //((MainWindow)Owner).ShowSummary("Overall");
+                                    //if (((MainWindow)Owner).DataDisplayMode == DataDisplayMode.DownloadHistory)
+                                    //{
+                                        //((MainWindow)Owner).RefreshDownloadHistory();
+                                        ((MainWindow)Owner).SetDataDisplayMode();
+                                    //}
                                 }
                                 else if (_savedCount == 0 && VesselUnloadServerRepository.VesselLandings.Count > 0)
                                 {

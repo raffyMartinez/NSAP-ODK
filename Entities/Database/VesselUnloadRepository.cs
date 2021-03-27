@@ -573,7 +573,14 @@ namespace NSAP_ODK.Entities.Database
                                 cmd_1.Parameters.Add("@Arrival_date", OleDbType.Date).Value = item.ArrivalAtLandingSite;
                             }
                             cmd_1.Parameters.Add("@ODK_row_id", OleDbType.VarChar).Value = item.ODKRowID;
-                            cmd_1.Parameters.Add("@XForm_id", OleDbType.VarChar).Value = item.XFormIdentifier;
+                            if (item.XFormIdentifier == null)
+                            {
+                                cmd_1.Parameters.Add("@XForm_id", OleDbType.VarChar).Value = DBNull.Value;
+                            }
+                            else
+                            {
+                                cmd_1.Parameters.Add("@XForm_id", OleDbType.VarChar).Value = item.XFormIdentifier;
+                            }
                             if (item.XFormDate == null)
                             {
                                 cmd_1.Parameters.Add("@Xform_date", OleDbType.Date).Value = DBNull.Value;
@@ -587,8 +594,22 @@ namespace NSAP_ODK.Entities.Database
                             cmd_1.Parameters.Add("@Device_id", OleDbType.VarChar).Value = item.DeviceID;
                             cmd_1.Parameters.Add("@Date_submitted", OleDbType.Date).Value = item.DateTimeSubmitted;
                             cmd_1.Parameters.Add("@Form_version", OleDbType.VarChar).Value = item.FormVersion;
-                            cmd_1.Parameters.Add("@GPS_code", OleDbType.VarChar).Value = item.GPSCode;
-                            cmd_1.Parameters.Add("@Notes", OleDbType.VarChar).Value = item.Notes;
+                            if (item.GPSCode == null)
+                            {
+                                 cmd_1.Parameters.Add("@GPS_code", OleDbType.VarChar).Value = DBNull.Value;
+                            }
+                            else
+                            {
+                                cmd_1.Parameters.Add("@GPS_code", OleDbType.VarChar).Value = item.GPSCode;
+                            }
+                            if (item.Notes == null)
+                            {
+                                cmd_1.Parameters.Add("@Notes", OleDbType.VarChar).Value = DBNull.Value;
+                            }
+                            else
+                            {
+                                cmd_1.Parameters.Add("@Notes", OleDbType.VarChar).Value = item.Notes;
+                            }
                             if (item.NSAPEnumeratorID == null)
                             {
                                 cmd_1.Parameters.Add("@Enumerator_id", OleDbType.Integer).Value = DBNull.Value;
@@ -632,8 +653,9 @@ namespace NSAP_ODK.Entities.Database
                             {
                                 success = cmd_1.ExecuteNonQuery() > 0;
                             }
-                            catch(OleDbException)
+                            catch(OleDbException dbex)
                             {
+                                Logger.Log(dbex);
                                 //ignore
                             }
                             catch(Exception ex)

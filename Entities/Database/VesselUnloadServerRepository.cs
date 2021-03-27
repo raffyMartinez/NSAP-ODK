@@ -1514,6 +1514,8 @@ namespace NSAP_ODK.Entities.Database.FromJson
             VesselLanding.SetRowIDs();
             VesselLandings = JsonConvert.DeserializeObject<List<VesselLanding>>(JSON);
         }
+
+        public static DateTime? JSONFileCreationTime { get; set; }
         public static Task<bool> UploadToDBAsync()
         {
             return Task.Run(() => UploadToLocalDatabase());
@@ -1618,6 +1620,11 @@ namespace NSAP_ODK.Entities.Database.FromJson
                         FromExcelDownload = false,
                         TimeStart = landing.start
                     };
+
+                    if(JSONFileCreationTime!=null)
+                    {
+                        vu.DateAddedToDatabase = (DateTime)JSONFileCreationTime;
+                    }
 
                     if(NSAPEntities.VesselUnloadViewModel.AddRecordToRepo(vu))
                     {

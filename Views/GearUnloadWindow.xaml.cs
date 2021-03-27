@@ -348,7 +348,7 @@ namespace NSAP_ODK.Views
         {
             ((MainWindow)Owner).Focus();
         }
-
+        
         private void Grid_LoadingRow(object sender, DataGridRowEventArgs e)
         {
             e.Row.Header = (e.Row.GetIndex() + 1).ToString();

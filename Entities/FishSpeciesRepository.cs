@@ -26,7 +26,8 @@ namespace NSAP_ODK.Entities
                 try
                 {
                     conection.Open();
-                    string query = $@"SELECT * from phFish";
+                    //string query = $@"SELECT * from phFish";
+                    var query = "SELECT phFish.*, [FBSpecies].[Genus] & ' ' & [FBSpecies].[Species] AS OldName FROM phFish LEFT JOIN FBSpecies ON phFish.SpeciesID = FBSpecies.SpecCode";
 
                     var adapter = new OleDbDataAdapter(query, conection);
                     adapter.Fill(dt);
@@ -61,6 +62,7 @@ namespace NSAP_ODK.Entities
                             {
                                 sp.LengthType = NSAPEntities.SizeTypeViewModel.GetSizeType(dr["LengthType"].ToString());
                             }
+                            sp.PreviousName = dr["OldName"].ToString().Trim(' ');
                             listSpecies.Add(sp);
                             //break;
                         }

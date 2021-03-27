@@ -90,6 +90,24 @@ namespace NSAP_ODK.Entities.Database
 
         public int? SpeciesID { get; set; }
         public string TaxaCode { get; set; }
+
+        private string FishSpeciesName(int speciesID)
+        {
+            var sp = NSAPEntities.FishSpeciesViewModel.GetSpecies((int)SpeciesID);
+            if (sp == null)
+            {
+                return "";
+            }
+            else
+            {
+                return sp.ToString();
+            }
+        }
+
+        private string NotFishSpeciesName(int speciesID)
+        {
+            return NSAPEntities.NotFishSpeciesViewModel.GetSpecies((int)SpeciesID).ToString();
+        }
         public FishSpecies FishSpecies
         {
             get
@@ -133,6 +151,31 @@ namespace NSAP_ODK.Entities.Database
 
         public double? Catch_kg { get; set; }
         public double? Sample_kg { get; set; }
+
+        public string CatchNameEx
+        {
+            get
+            {
+                string rv = "";
+                if(SpeciesID!=null)
+                {
+                    if ((int)SpeciesID < 500000)
+                    {
+                        rv= FishSpeciesName((int)SpeciesID);
+                    }
+                    else
+                    {
+                        rv = NotFishSpeciesName((int)SpeciesID);
+                    }
+                }
+                else if(SpeciesText != null && SpeciesText.Length>0)
+                {
+                    rv = SpeciesText;
+                }
+
+                return rv;
+            }
+        }
 
         public string CatchName
         {

@@ -72,11 +72,104 @@ namespace NSAP_ODK.Entities.Database
 
         }
 
+        public int ConvertToIindividualCatches(string multilineItem, List<SpeciesName_Weight> items)
+        {
+            bool isDone = false;
+            int counter=0;
+            foreach(var item in VesselCatchCollection.Where(t => t.CatchName == multilineItem).ToList())
+            {
+                if(item.VesselUnloadID==605)
+                {
 
+                }
+                counter = 0;
+                foreach(var speciesName in items)
+                {
+                    isDone = false;
+                    if(counter==0 && !isDone)
+                    {
+                        isDone = true;
+                        item.SpeciesText = speciesName.SpeciesName;
+                        item.Catch_kg = null;
+                        if(speciesName.Weight!=null)
+                        {
+                            item.Catch_kg = speciesName.Weight;
+                        }
+                        var fsp = NSAPEntities.FishSpeciesViewModel.GetSpecies(item.SpeciesText);
+                        item.TaxaCode = NSAPEntities.TaxaViewModel.NotIdentified.Code;
+                        if (fsp != null)
+                        {
+                            item.SpeciesID = fsp.SpeciesCode;
+                            item.TaxaCode = NSAPEntities.TaxaViewModel.FishTaxa.Code;
+                        }
+                        else
+                        {
+                            var nfsp = NSAPEntities.NotFishSpeciesViewModel.GetSpecies(item.SpeciesText);
+                            if (nfsp != null)
+                            {
+                                item.SpeciesID = nfsp.SpeciesID;
+                                item.TaxaCode = nfsp.Taxa.Code;
+                            }
+
+
+                        }
+
+                        if (item.SpeciesID != null)
+                        {
+                            item.SpeciesText = multilineItem;
+                        }
+
+                        if (UpdateRecordInRepo(item))
+                        {
+                            counter++;
+                        }
+                    }
+                    else
+                    {
+                        VesselCatch vc = new VesselCatch
+                        {
+                            SpeciesText = speciesName.SpeciesName,
+                            Parent = item.Parent,
+                            VesselUnloadID = item.Parent.PK,
+                            PK = NextRecordNumber,
+                            TaxaCode=NSAPEntities.TaxaViewModel.NotIdentified.Code
+                        };
+                        if(speciesName.Weight!=null)
+                        {
+                            vc.Catch_kg = speciesName.Weight;
+                        }
+
+                        var fsp = NSAPEntities.FishSpeciesViewModel.GetSpecies(vc.SpeciesText);
+                        if(fsp!=null)
+                        {
+                            vc.SpeciesID = fsp.SpeciesCode;
+                            vc.TaxaCode = NSAPEntities.TaxaViewModel.FishTaxa.Code;
+                        }
+                        else
+                        {
+                            var nfsp = NSAPEntities.NotFishSpeciesViewModel.GetSpecies(vc.SpeciesText);
+                            if(nfsp!=null)
+                            {
+                                vc.SpeciesID = nfsp.SpeciesID;
+                                vc.TaxaCode = nfsp.Taxa.Code;
+                            }
+                        }
+
+                       
+                       if( AddRecordToRepo(vc))
+                        {
+                            counter++;
+                        }
+                    }
+                   
+                }
+            }
+            return counter;
+        }
         public int DeleteCatchFromUnload(VesselUnload unload)
         {
             int counter = 0;
-            var catchCollection = VesselCatchCollection.Where(t => t.Parent.PK == unload.PK).ToList();
+            var catchCollection = VesselCatchCollection.Where(t =>t.Parent!=null &&  t.Parent.PK == unload.PK).ToList();
             if (catchCollection != null && catchCollection.Count > 0)
             {
                 foreach (VesselCatch vc in catchCollection)

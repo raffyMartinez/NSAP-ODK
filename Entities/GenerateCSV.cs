@@ -196,14 +196,23 @@ namespace NSAP_ODK.Entities
             if (CSVType == CSVType.ExtSelectFromFile)
             {
                 sb = new StringBuilder(header);
-                foreach (var fishspecies in NSAPEntities.FishSpeciesViewModel.SpeciesCollection
-                    .OrderBy(t => t.ToString()))
+                var source =  NSAPEntities.FishSpeciesViewModel.BuildSpeciesCSVSource().OrderBy(t=>t.SortName);
+                foreach(var item in source)
                 {
-                    maxSize = fishspecies.LengthMax == null ? -1 : (double)fishspecies.LengthMax;
-                    szType = fishspecies.LengthType == null ? string.Empty : fishspecies.LengthType.Code;
-                    sb.AppendLine($"FIS,{fishspecies.SpeciesCode},\"{fishspecies.ToString()}\",{maxSize},{szType}");
+                    maxSize = item.MaxLength== null ? -1 : (double)item.MaxLength;
+                    szType = item.LengthType == null ? string.Empty : item.LengthType.Code;
+                    sb.AppendLine($"FIS,{item.SpeciesCode},\"{item.Name}\",{maxSize},{szType}");
                     counter++;
                 }
+
+                //foreach (var fishspecies in NSAPEntities.FishSpeciesViewModel.SpeciesCollection
+                //    .OrderBy(t => t.ToString()))
+                //{
+                //    maxSize = fishspecies.LengthMax == null ? -1 : (double)fishspecies.LengthMax;
+                //    szType = fishspecies.LengthType == null ? string.Empty : fishspecies.LengthType.Code;
+                //    sb.AppendLine($"FIS,{fishspecies.SpeciesCode},\"{fishspecies.ToString()}\",{maxSize},{szType}");
+                //    counter++;
+                //}
                 await LogAsync(sb.ToString(), $"{_folderSaveLocation}\\fish_species.csv");
                 FilesCount++;
 
