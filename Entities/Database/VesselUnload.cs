@@ -38,7 +38,10 @@ namespace NSAP_ODK.Entities.Database
                 FishingGroundCode = FishingGround.Code;
                 LandingSite = vesselUnload.Parent.Parent.LandingSite;
                 LandingSiteName = vesselUnload.Parent.Parent.LandingSiteName;
-                LandingSiteID = LandingSite.LandingSiteID;
+                if (LandingSite!=null)
+                {
+                    LandingSiteID = LandingSite.LandingSiteID;
+                }
                 OtherLandingSite = vesselUnload.Parent.Parent.LandingSiteText;
 
                 Gear = vesselUnload.Parent.Gear;

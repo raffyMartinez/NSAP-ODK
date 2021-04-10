@@ -62,7 +62,7 @@ namespace NSAP_ODK.Entities
                             {
                                 sp.LengthType = NSAPEntities.SizeTypeViewModel.GetSizeType(dr["LengthType"].ToString());
                             }
-                            sp.PreviousName = dr["OldName"].ToString().Trim(' ');
+                            sp.NameInOldFishbase = dr["OldName"].ToString().Trim(' ');
                             listSpecies.Add(sp);
                             //break;
                         }

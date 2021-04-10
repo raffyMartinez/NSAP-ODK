@@ -274,10 +274,33 @@ namespace NSAP_ODK.Entities.Database
                     }
                     else
                     {
-                        update.Parameters.Add("@vesselid", OleDbType.Integer).Value = item.VesselID;
+                        if (NSAPEntities.FishingVesselViewModel.GetFishingVessel((int)item.VesselID) != null)
+                        {
+                            update.Parameters.Add("@vesselid", OleDbType.Integer).Value = item.VesselID;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@vesselid", OleDbType.Integer).Value = DBNull.Value;
+                            vesselText = ((int)item.VesselID).ToString();
+                            if(item.Notes==null)
+                            {
+                                item.Notes = "(orphaned vessel ID)";
+                            }
+                            else
+                            {
+                                item.Notes += " (orphaned vessel ID)";
+                            }
+                        }
                     }
 
-                    update.Parameters.Add("@vesseltext", OleDbType.VarChar).Value = vesselText;
+                    if (vesselText == null)
+                    {
+                        update.Parameters.Add("@vesseltext", OleDbType.VarChar).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@vesseltext", OleDbType.VarChar).Value = vesselText;
+                    }
                     
                     if(item.RaisingFactor==null)
                     {
@@ -330,7 +353,7 @@ namespace NSAP_ODK.Entities.Database
 
                     try
                     {
-                        string dateAdded = item.DateAddedToDatabase == null ? "null" : ((DateTime)item.DateAddedToDatabase).ToString("MMM-dd-yyy HH:mm");
+                        //string dateAdded = item.DateAddedToDatabase == null ? "null" : ((DateTime)item.DateAddedToDatabase).ToString("MMM-dd-yyy HH:mm");
                         if (update.ExecuteNonQuery() > 0)
                         {
 
@@ -449,8 +472,25 @@ namespace NSAP_ODK.Entities.Database
                     }
                     catch (OleDbException odbex)
                     {
-                        Logger.Log(odbex);
-                        success = false;
+                        switch (odbex.ErrorCode)
+                        {
+                            case -2147467259:
+                                switch(odbex.Message)
+                                {
+                                    case "You cannot add or change a record because a related record is required in table 'fishingVessel'.":
+                                        break;
+                                    default:
+                                        Logger.Log(odbex);
+                                        success = false;
+                                        break;
+                                }
+                                break;
+                            default:
+
+                                Logger.Log(odbex);
+                                success = false;
+                                break;
+                        }
                     }
                     catch (Exception ex)
                     {

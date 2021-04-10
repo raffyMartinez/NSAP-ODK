@@ -151,7 +151,15 @@ namespace NSAP_ODK.Entities.Database
                             update.Parameters.Add("@remarks", OleDbType.VarChar).Value = item.Remarks;
                         }
                         update.Parameters.Add("@is_sampling_day", OleDbType.Boolean).Value = item.IsSamplingDay;
-                        update.Parameters.Add("@landing_site_text", OleDbType.VarChar).Value = item.LandingSiteText;
+
+                        if (item.LandingSiteText == null)
+                        {
+                            update.Parameters.Add("@landing_site_text", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@landing_site_text", OleDbType.VarChar).Value = item.LandingSiteText;
+                        }
                         update.Parameters.Add("@fma_id", OleDbType.Integer).Value = item.FMAID;
 
 

@@ -220,7 +220,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
         public double? Length { get; set; }
 
 
-        [JsonProperty("catch_comp_group/catch_composition_repeat/gms_repeat_group/gms_group/gonat_wt")]
+        [JsonProperty("catch_comp_group/catch_composition_repeat/gms_repeat_group/gms_group/gonad_wt")]
         public double? GonadWeight { get; set; }
 
         [JsonProperty("catch_comp_group/catch_composition_repeat/gms_repeat_group/gms_group/sex")]
@@ -438,10 +438,13 @@ namespace NSAP_ODK.Entities.Database.FromJson
                 }
                 else
                 {
-                    if(_rowID==0)
+
+                    if(RowIDSet &&  _rowID==0)
                     {
+  
                         _rowID = ++_pk;
                     }
+
                 }
                 return _rowID;
 
@@ -1526,6 +1529,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
             var landings = VesselLandings.Where(t => t.SavedInLocalDatabase == false).ToList();
             if(landings.Count>0)
             {
+
                 UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadToSaveCount = landings.Count, Intent = UploadToDBIntent.StartOfUpload });
                 foreach (var landing in landings)
                 {
@@ -1796,6 +1800,10 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                 GutContentCode = m.GutContentCategoryCode,
                                                 GonadWeight = m.GonadWeight
                                             };
+                                            if(cm.GonadWeight!=null)
+                                            {
+
+                                            }
                                             NSAPEntities.CatchMaturityViewModel.AddRecordToRepo(cm);
                                         }
                                     }

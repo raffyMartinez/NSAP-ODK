@@ -483,5 +483,12 @@ namespace NSAP_ODK.Views
             }
         }
 
+        private void OnWindowLoaded(object sender, RoutedEventArgs e)
+        {
+            if (NSAPEntity == NSAPEntity.SpeciesName)
+            {
+                textSearch.Focus();
+            }
+        }
     }
 }

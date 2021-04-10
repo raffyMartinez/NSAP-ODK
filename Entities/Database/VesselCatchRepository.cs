@@ -125,6 +125,7 @@ namespace NSAP_ODK.Entities.Database
                     }
                     catch(OleDbException dbex)
                     {
+                        //Console.WriteLine($"item pk is {item.PK}");
                         Logger.Log(dbex);
                     }
                     catch(Exception ex)

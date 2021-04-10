@@ -376,15 +376,15 @@ namespace NSAP_ODK.Entities
                         SortName = item.ToString()
                     });
 
-                    if (item.PreviousName.Length > 0 && item.PreviousName != item.ToString())
+                    if (item.NameInOldFishbase.Length > 0 && item.NameInOldFishbase != item.ToString())
                     {
                         list.Add(new FishSpeciesForCSV
                         {
                             SpeciesCode = (int)item.SpeciesCode,
-                            Name = $"{item.PreviousName} <span style=\"color:blue\">({item.ToString()})</span>",
+                            Name = $"{item.NameInOldFishbase} <span style=\"color:blue\">({item.ToString()})</span>",
                             MaxLength = item.LengthMax,
                             LengthType = item.LengthType,
-                            SortName = item.PreviousName
+                            SortName = item.NameInOldFishbase
                         });
                     }
                 }
@@ -400,13 +400,11 @@ namespace NSAP_ODK.Entities
             return SpeciesCollection.FirstOrDefault(t => t.ToString() == species);
         }
 
-        public FishSpecies GetSpeciesEx(int rowNo)
+        //public FishSpecies GetSpecies
+
+        public FishSpecies GetSpecies(int speciesID)
         {
-            return SpeciesCollection.FirstOrDefault(n => n.RowNumber == rowNo);
-        }
-        public FishSpecies GetSpecies(int rowNo)
-        {
-            return SpeciesCollection.FirstOrDefault(n => n.SpeciesCode == rowNo);
+            return SpeciesCollection.FirstOrDefault(n => n.SpeciesCode == speciesID);
         }
 
         private void Species_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)

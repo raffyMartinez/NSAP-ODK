@@ -602,7 +602,7 @@ namespace NSAP_ODK
         {
             switch (((DataGrid)sender).Name)
             {
-                
+
                 case "dataGridSummary":
                     if (dataGridSummary.SelectedItem != null)
                     {
@@ -624,7 +624,7 @@ namespace NSAP_ODK
                                 break;
                         }
                     }
-                
+
                     break;
                 default:
                     buttonEdit.IsEnabled = true;
@@ -1544,7 +1544,7 @@ namespace NSAP_ODK
                                 summaryRegion = ((TreeViewItem)treeViewSummary.SelectedItem).Header.ToString();
                                 cellinfo = dataGridSummary.SelectedCells[0];
                                 summaryFishingGround = ((TextBlock)cellinfo.Column.GetCellContent(cellinfo.Item)).Text;
-                                unloads = NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(summaryRegion,summaryFishingGround);
+                                unloads = NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(summaryRegion, summaryFishingGround);
                                 formTitle = $"All vessel unload of {summaryFishingGround}, {summaryRegion} ";
                                 break;
                             case SummaryLevelType.FishingGround:
@@ -1552,7 +1552,7 @@ namespace NSAP_ODK
                                 summaryRegion = ((TreeViewItem)((TreeViewItem)treeViewSummary.SelectedItem).Parent).Header.ToString();
                                 cellinfo = dataGridSummary.SelectedCells[0];
                                 summaryLandingSite = ((TextBlock)cellinfo.Column.GetCellContent(cellinfo.Item)).Text;
-                                unloads = NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(summaryRegion,summaryFishingGround,summaryLandingSite);
+                                unloads = NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(summaryRegion, summaryFishingGround, summaryLandingSite);
                                 //selected item is a landing site
                                 break;
                             case SummaryLevelType.EnumeratorRegion:
@@ -1585,7 +1585,7 @@ namespace NSAP_ODK
                             guw.Title = formTitle;
                         }
                     }
-                    
+
                     break;
                 case "GridNSAPData":
                     if (_currentDisplayMode == DataDisplayMode.ODKData)
@@ -1667,7 +1667,7 @@ namespace NSAP_ODK
                         //id = fs.RowNumber.ToString();
                         id = ((int)fs.SpeciesCode).ToString();
                     }
-                    
+
                     break;
 
                 case "dataGridEntities":
@@ -1801,7 +1801,7 @@ namespace NSAP_ODK
                 _gearUnloadWindow.TurnGridOff();
             }
 
-                string labelContent = "";
+            string labelContent = "";
             switch (e.TreeViewEntity)
             {
                 case "tv_NSAPRegionViewModel":
@@ -1909,7 +1909,7 @@ namespace NSAP_ODK
                             .Where(t => t.Parent.SamplingDate.Date == ((DateTime)_treeItemData.MonthSampled).AddDays(_gridCol - 3)).FirstOrDefault();
                     }
 
-                    if (_gearUnloadWindow != null )
+                    if (_gearUnloadWindow != null)
                     {
                         _gearUnloadWindow.TurnGridOff();
                         if (_gearUnload != null)
@@ -1994,11 +1994,23 @@ namespace NSAP_ODK
         {
 
             var dt = DateTime.Parse(((TreeViewItem)treeViewDownloadHistory.SelectedItem).Header.ToString());
-            GridNSAPData.DataContext = _vesselDownloadHistory[dt];
+            try
+            {
+                GridNSAPData.DataContext = _vesselDownloadHistory[dt];
+            }
+            catch(System.Collections.Generic.KeyNotFoundException)
+            {
+
+            }
+            catch(Exception ex)
+            {
+                Logger.Log(ex);
+            }
         }
 
         private void OnHistoryTreeItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
+            var dt = DateTime.Now;
             if (e.NewValue != null)
             {
                 var tvItem = (TreeViewItem)e.NewValue;
@@ -2015,12 +2027,13 @@ namespace NSAP_ODK
                             UndoChangesToGearUnload(refresh: false);
                         }
 
-                        var dt = DateTime.Now;
+                        
                         if (tvItem.Tag.ToString() == "downloadDate")
                         {
+                            dt = DateTime.Parse(((TreeViewItem)tvItem).Header.ToString()).Date;
                             RefreshDownloadedItemsGrid();
                         }
-                        else if (tvItem.Tag.ToString() == "tracked")
+                        else if (tvItem.Tag.ToString() != "downloadDate")
                         {
                             dt = DateTime.Parse(((TreeViewItem)tvItem.Parent).Header.ToString()).Date;
                             GridNSAPData.DataContext = _vesselDownloadHistory[dt].Where(t => t.OperationIsTracked == true);
@@ -2034,7 +2047,7 @@ namespace NSAP_ODK
 
                         gridCalendarHeader.Visibility = Visibility.Visible;
                         MonthLabel.Content = $"Vessel unload by date of download";
-                        MonthSubLabel.Content = $" All items listed were downloaded on {dt.ToString("MMM-dd-yyyy")}";
+
 
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("UserName") });
@@ -2108,6 +2121,7 @@ namespace NSAP_ODK
 
                         break;
                     case "unloadSummary":
+                        dt = DateTime.Parse(((TreeViewItem)tvItem.Parent).Header.ToString()).Date;
                         RefreshDownloadedSummaryItemsGrid();
                         GridNSAPData.Columns.Clear();
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
@@ -2132,7 +2146,7 @@ namespace NSAP_ODK
                 }
 
 
-
+                MonthSubLabel.Content = $" All items listed were downloaded on {dt.ToString("MMM-dd-yyyy")}";
             }
         }
 

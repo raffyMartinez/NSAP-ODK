@@ -53,7 +53,9 @@ namespace NSAP_ODK.Views
             set
             {
                 _replacementNotFishSpecies = value;
+
                 buttonReplace.IsEnabled = true;
+
             }
         }
         public FishSpecies ReplacementFishSpecies
@@ -62,7 +64,9 @@ namespace NSAP_ODK.Views
             set
             {
                 _replacementFishSpecies = value;
+
                 buttonReplace.IsEnabled = true;
+
             }
         }
 
@@ -83,7 +87,7 @@ namespace NSAP_ODK.Views
             set
             {
                 _fishingVessel = value;
-                buttonReplace.IsEnabled = true;    
+                buttonReplace.IsEnabled = true;
             }
         }
         public NSAPEnumerator ReplacementEnumerator
@@ -123,6 +127,7 @@ namespace NSAP_ODK.Views
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "Species name", Binding = new Binding("Name"), IsReadOnly = true });
                     checkMultipleSp.Visibility = Visibility.Visible;
                     buttonFix.Visibility = Visibility.Visible;
+
                     break;
                 case NSAPEntity.NonFishSpecies:
                     labelTitle.Content = "Manage orphaned non-fish species names";
@@ -269,6 +274,7 @@ namespace NSAP_ODK.Views
                 case NSAPEntity.SpeciesName:
                 case NSAPEntity.FishSpecies:
                 case NSAPEntity.NonFishSpecies:
+                    var G = SpeciesTextToSpeciesConvert.FillDictionary();
                     if (!_isMultiline)
                     {
                         //if not multiline species
@@ -282,19 +288,20 @@ namespace NSAP_ODK.Views
                                     {
                                         if (vc.SpeciesID == null && vc.SpeciesText != null && vc.SpeciesText == sp.Name)
                                         {
-                                            if (ReplacementFishSpecies != null)
+                                            if (_replacementFishSpecies != null)
                                             {
-                                                vc.SpeciesID = ReplacementFishSpecies.SpeciesCode;
+                                                vc.SpeciesID = _replacementFishSpecies.SpeciesCode;
                                                 vc.SetTaxa(NSAPEntities.TaxaViewModel.FishTaxa);
                                             }
-                                            else if (ReplacementNotFishSpecies != null)
+                                            else if (_replacementNotFishSpecies != null)
                                             {
-                                                vc.SpeciesID = ReplacementNotFishSpecies.SpeciesID;
+                                                vc.SpeciesID = _replacementNotFishSpecies.SpeciesID;
                                                 vc.SetTaxa(ReplacementNotFishSpecies.Taxa);
                                             }
 
                                             if (NSAPEntities.VesselCatchViewModel.UpdateRecordInRepo(vc))
                                             {
+                                                Console.WriteLine(vc.SpeciesID);
                                                 _countReplaced++;
                                                 ShowProgressWhileReplacing(_countReplaced, $"Updated species names {_countReplaced} of {_countForReplacement}");
                                             }
@@ -307,6 +314,8 @@ namespace NSAP_ODK.Views
                                 }
                             }
                         }
+                        _replacementFishSpecies = null;
+                        _replacementNotFishSpecies = null;
                     }
                     else
                     {
@@ -690,8 +699,8 @@ namespace NSAP_ODK.Views
                         //            }
                         //        }
                         //    }
-                            
-                        
+
+
                         //}
                         _timer.Interval = TimeSpan.FromSeconds(3);
                         _timer.Start();
@@ -716,11 +725,11 @@ namespace NSAP_ODK.Views
             switch (chk.Name)
             {
                 case "checkMultipleSp":
-                    _isMultiline = (bool)chk.IsEnabled;
+                    _isMultiline = (bool)chk.IsChecked;
                     dataGrid.DataContext = NSAPEntities.VesselCatchViewModel.OrphanedSpeciesNames(getMultiLine: (bool)chk.IsChecked);
                     buttonFix.IsEnabled = (bool)chk.IsChecked;
                     checkCheckAll.IsEnabled = buttonFix.IsEnabled;
-                    buttonSelectReplacement.IsEnabled = (bool)chk.IsChecked;
+                    buttonSelectReplacement.IsEnabled = !(bool)chk.IsChecked;
                     break;
 
                 case "checkCheckAll":

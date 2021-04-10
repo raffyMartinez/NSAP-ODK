@@ -74,15 +74,15 @@ namespace NSAP_ODK.Entities
         public string Family { get; set; }
         public int? SpeciesCode { get; set; }
 
-        public string PreviousName { get; set; }
+        public string NameInOldFishbase { get; set; }
 
         public string Synonym
         {
             get
             {
-                if (PreviousName.Length>0 && PreviousName!=ToString())
+                if (NameInOldFishbase.Length>0 && NameInOldFishbase!=ToString())
                 {
-                    return PreviousName;
+                    return NameInOldFishbase;
                 }
                 else
                 {

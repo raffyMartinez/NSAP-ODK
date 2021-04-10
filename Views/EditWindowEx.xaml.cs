@@ -566,7 +566,7 @@ namespace NSAP_ODK.Views
                     {
                         fishSpeciesEdit.RowNumber = NSAPEntities.FishSpeciesViewModel.NextRecordNumber;
                     }
-                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "RowNumber", DisplayName = "Species ID", DisplayOrder = 1, Description = "Identifier used in the database" });
+                    //PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "RowNumber", DisplayName = "Row #", DisplayOrder = 1, Description = "Identifier used in the database" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SpeciesCode", DisplayName = "Fishbase species ID", DisplayOrder = 2, Description = "Identifier of the species in FishBase" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "GenericName", DisplayName = "Genus", DisplayOrder = 3, Description = "Generic name of the species" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SpecificName", DisplayName = "Species", DisplayOrder = 4, Description = "Specific name of the species" });

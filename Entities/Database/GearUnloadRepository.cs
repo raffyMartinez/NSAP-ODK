@@ -125,8 +125,23 @@ namespace NSAP_ODK.Entities.Database
                         update.Parameters.Add("@catch", OleDbType.Double).Value = item.Catch;
                     }
 
-                    update.Parameters.Add("@gear_text", OleDbType.VarChar).Value = item.GearUsedText;
-                    update.Parameters.Add("@remarks", OleDbType.VarChar).Value = item.Remarks;
+                    if (item.GearUsedText == null)
+                    {
+                        update.Parameters.Add("@gear_text", OleDbType.VarChar).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@gear_text", OleDbType.VarChar).Value = item.GearUsedText;
+                    }
+
+                    if (item.Remarks == null)
+                    {
+                        update.Parameters.Add("@remarks", OleDbType.VarChar).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@remarks", OleDbType.VarChar).Value = item.Remarks;
+                    }
 
 
                     try
