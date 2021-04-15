@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using NSAP_ODK.Entities.Database;
+using System.Data;
 
 namespace NSAP_ODK.Entities
 {
@@ -22,6 +23,37 @@ namespace NSAP_ODK.Entities
 
             return summaries;
         }
+        public DataSet DataSet()
+        {
+            DataSet ds = new DataSet();
+            DataTable dt = new DataTable("Enumerators");
+
+            DataColumn dc = new DataColumn { ColumnName = "Region", DataType = typeof(string) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Name", DataType = typeof(string) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Id", DataType = typeof(string) };
+            dt.Columns.Add(dc);
+
+
+
+            foreach (var rgn in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection.OrderBy(t=>t.Name))
+            {
+                foreach (var item in rgn.NSAPEnumerators.OrderBy(t=>t.Enumerator.Name))
+                {
+                    var row = dt.NewRow();
+                    row["Region"] = item.NSAPRegion.ShortName;
+                    row["Name"] = item.Enumerator.Name;
+                    row["Id"] = item.EnumeratorID;
+
+                    dt.Rows.Add(row);
+                }
+            }
+            ds.Tables.Add(dt);
+            return ds;
+        }
 
         public List<EnumeratorSummary> GetSummary(NSAPRegion region)
         {
@@ -31,17 +63,17 @@ namespace NSAP_ODK.Entities
 
             foreach (var e in enumerators)
             {
-                if (e.Key!=null && e.Key.Length > 0)
+                if (e.Key != null && e.Key.Length > 0)
                 {
                     var enumerator_date = unloads
                         .Where(t => t.EnumeratorName == e.Key)
                         //.GroupBy(t => t.SamplingDate.Date)
-                        .GroupBy(t=>((DateTime)t.DateAddedToDatabase).Date)
+                        .GroupBy(t => ((DateTime)t.DateAddedToDatabase).Date)
                         .OrderByDescending(t => t.Key).ToList();
 
                     var ve = unloads
                         .Where(t => t.EnumeratorName == e.Key && ((DateTime)t.DateAddedToDatabase).Date == enumerator_date[0].Key)
-                        .OrderByDescending(t=>t.DateAddedToDatabase)
+                        .OrderByDescending(t => t.DateAddedToDatabase)
                         .ToList();
 
                     var unloads_latest = ve.Where(t => t.Parent.GearUsedName == ve[0].Parent.GearUsedName).ToList();
@@ -81,7 +113,7 @@ namespace NSAP_ODK.Entities
                         LandingSite = ls.Key,
                         Gear = g.Key,
                         //NumberOfLandingsSampled = unloads.Count(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key),
-                        NumberOfLandingsSampled  = unloads_row.Count,
+                        NumberOfLandingsSampled = unloads_row.Count,
                         VesselUnloads = unloads_row,
                         NumberOfLandingsWithCatchComposition = unloads.
                             Where(t => t.ListVesselCatch.Count > 0 &&
@@ -214,8 +246,8 @@ namespace NSAP_ODK.Entities
                     var orphan = new OrphanedEnumerator
                     {
                         Name = sl.Name,
-                        SampledLandings = NSAPEntities.VesselUnloadViewModel.GetSampledLandings(sl.Name,sl.LandingSiteName),
-                        LandingSiteSamplings = NSAPEntities.LandingSiteSamplingViewModel.GetSampledLandings(sl.Name,sl.LandingSiteName)
+                        SampledLandings = NSAPEntities.VesselUnloadViewModel.GetSampledLandings(sl.Name, sl.LandingSiteName),
+                        LandingSiteSamplings = NSAPEntities.LandingSiteSamplingViewModel.GetSampledLandings(sl.Name, sl.LandingSiteName)
                     };
 
                     list.Add(orphan);

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using System.Data;
 
 namespace NSAP_ODK.Entities
 {
@@ -221,6 +222,63 @@ namespace NSAP_ODK.Entities
             SpeciesCollection.CollectionChanged += Species_CollectionChanged;
         }
 
+        public DataSet DataSet()
+        {
+            DataSet ds = new DataSet();
+            DataTable dt = new DataTable("Fish sepecies");
+
+
+            DataColumn dc = new DataColumn { ColumnName = "Genus", DataType = typeof(string) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Species", DataType = typeof(string) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Id", DataType = typeof(int) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Family", DataType = typeof(string) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Max length", DataType = typeof(double) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Length type", DataType = typeof(string) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Synonym", DataType = typeof(string) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Importance", DataType = typeof(string) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Main catching method", DataType = typeof(string) };
+            dt.Columns.Add(dc);
+
+            foreach (var item in SpeciesCollection)
+            {
+                var row = dt.NewRow();
+                row["Genus"] = item.GenericName;
+                row["Species"] = item.SpecificName;
+                row["Id"] = item.SpeciesCode;
+                row["Family"] = item.Family;
+                if (item.LengthMax == null)
+                {
+                    row["Max length"] = DBNull.Value;
+                }
+                else
+                {
+                    row["Max length"] = item.LengthMax;
+                }
+                row["Length type"] = item.LengthType;
+                row["Synonym"] = item.Synonym;
+                row["Importance"] = item.Importance;
+                row["Main catching method"] = item.MainCatchingMethod;
+                dt.Rows.Add(row);
+            }
+            ds.Tables.Add(dt);
+            return ds;
+        }
 
         public async Task<OBIResponseRoot> RequestDataFromOBI(string speciesName)
         {

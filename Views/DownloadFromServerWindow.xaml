@@ -34,10 +34,10 @@
         <!--login text fields-->
         <WrapPanel Grid.Row="1" Orientation="Vertical">
             <Label Content="User name" VerticalAlignment="Center" Margin="10 10"/>
-            <TextBox x:Name="TextBoxUserName" VerticalAlignment="Center" Width="150" Margin="10 10" Height="25"/>
+            <TextBox x:Name="TextBoxUserName" VerticalAlignment="Center" Width="200" Margin="10 10" Height="25" FontSize="14"/>
             <Label Content="Password" VerticalAlignment="Center" Margin="10 10"/>
             <!--<TextBox x:Name="TextBoxPassword" VerticalAlignment="Center" Width="150" Margin="10 10" Height="25"/>-->
-            <PasswordBox x:Name="TextBoxPassword" VerticalAlignment="Center" Width="150" Margin="10 10" Height="25"/>
+            <PasswordBox x:Name="TextBoxPassword" VerticalAlignment="Center" Width="200" Margin="10 10" Height="25" FontSize="14"/>
         </WrapPanel>
 
         <!--login button-->
@@ -93,7 +93,7 @@
                         </WrapPanel>
                         <StackPanel x:Name="stackPanelJSON" CanVerticallyScroll="True">
                             <RadioButton Content="Download all submissions" Margin="10 5" Checked="OnButtonChecked" Tag="all" x:Name="rbAll"/>
-                            <RadioButton Content="Get all not downloaded" Margin="10 5"  Checked="OnButtonChecked" Tag="all_not_downloaded"/>
+                            <RadioButton Content="Get all not downloaded" Margin="10 5"  Checked="OnButtonChecked" Tag="all_not_downloaded" x:Name="rbNotDownloaded"/>
                             <RadioButton Content="Specify date range" Margin="10 5"  Checked="OnButtonChecked" Tag="specify_date_range"/>
                             <WrapPanel x:Name="panelDateRange">
                                 <Label Content="Start:" Margin="10 5"/>

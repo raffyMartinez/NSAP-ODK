@@ -176,6 +176,7 @@
     <Compile Include="Entities\Database\SpeciesName_Weight.cs" />
     <Compile Include="Entities\Database\SpeciesTextToSpeciesConvert.cs" />
     <Compile Include="Entities\Database\UnloadChildrenSummary.cs" />
+    <Compile Include="Entities\Database\UnloadWithMaturityDatasetManager.cs" />
     <Compile Include="Entities\FishSpeciesForCSV.cs" />
     <Compile Include="Entities\ItemSources\FishingGroundInRegionFMAItemsSource.cs" />
     <Compile Include="Entities\ItemSources\GearsInNSAPRegionItemsSource.cs" />

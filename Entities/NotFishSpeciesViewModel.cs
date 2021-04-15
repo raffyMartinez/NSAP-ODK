@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Data;
 
 namespace NSAP_ODK.Entities
 {
@@ -21,11 +22,66 @@ namespace NSAP_ODK.Entities
             NotFishSpeciesCollection = new ObservableCollection<NotFishSpecies>(NotFishSpeciesRepo.ListSpeciesNotFish);
             NotFishSpeciesCollection.CollectionChanged += Collection_CollectionChanged;
         }
-        public List<NotFishSpecies> GetAllEngines()
+        public List<NotFishSpecies> GetAllSpeices()
         {
             return NotFishSpeciesCollection.ToList();
         }
 
+
+        public DataSet DataSet()
+        {
+            DataSet ds = new DataSet();
+            DataTable dt = new DataTable("Invertebrate sepecies");
+
+
+            DataColumn dc = new DataColumn { ColumnName = "Genus", DataType = typeof(string) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Species", DataType = typeof(string) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Id", DataType = typeof(int) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Taxa", DataType = typeof(string) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Max length", DataType = typeof(double) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Length type", DataType = typeof(string) };
+            dt.Columns.Add(dc);
+
+
+            foreach (var item in NotFishSpeciesCollection)
+            {
+                var row = dt.NewRow();
+                row["Genus"] = item.Genus;
+                row["Species"] = item.Species;
+                row["Id"] = item.SpeciesID;
+                row["Taxa"] = item.Taxa.ToString();
+                if (item.MaxSize == null)
+                {
+                    row["Max length"] = DBNull.Value;
+                }
+                else
+                {
+                    row["Max length"] = item.MaxSize;
+                }
+                if (item.SizeType == null)
+                {
+                    row["Length type"] = DBNull.Value;
+                }
+                else
+                {
+                    row["Length type"] = item.SizeType.ToString();
+                }
+
+                dt.Rows.Add(row);
+            }
+            ds.Tables.Add(dt);
+            return ds;
+        }
         public List<NotFishSpecies> GetAllSpecies(string search = "")
         {
             if (search.Length > 0)

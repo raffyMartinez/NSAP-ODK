@@ -235,6 +235,57 @@ namespace NSAP_ODK.Entities.Database
         [ReadOnly(true)]
         public bool FromExcelDownload { get; set; }
     }
+
+    public class VesselUnloadWithMaturityFlattened
+    {
+        public VesselUnloadWithMaturityFlattened()
+        {
+            ListOfCatchWithMaturity = new List<VesselCatch>();
+        }
+        public int SamplingDayID { get; set; }
+        public string Region { get; set; }
+        public string FMA { get; set; }
+        public string FishingGround { get; set; }
+
+        public string LandingSite { get; set; }
+        public DateTime SamplingDate { get; set; }
+        public int GearUnloadID { get; set; }
+        public string Gear { get; set; }
+        public int VesselUnloadID { get; set; }
+        public DateTime SamplingDateTime { get; set; }
+
+        public string Enumerator { get; set; }
+
+        public bool IsBoatUsed { get; set; }
+        public string Vessel { get; set; }
+        public double? CatchTotalWt { get; set; }
+        public bool IsTracked { get; set; }
+        public string GPS { get; set; }
+        public DateTime? Departure { get; set; }
+        public DateTime? Arrival { get; set; }
+        public string RowID { get; set; }
+        public string XFormIdentifier { get; set; }
+        public DateTime? XFormDate { get; set; }
+        public string UserName { get; set; }
+        public string DeviceID { get; set; }
+
+        public DateTime Submitted { get; set; }
+        public string FormVersion { get; set; }
+        public string Notes { get; set; }
+        public DateTime? DateAddedToDatabase { get; set; }
+
+        public string Sector { get; set; }
+
+        public bool FromExcelDownload { get; set; }
+
+        public List<VesselCatch> ListOfCatchWithMaturity { get; set; }
+
+        public string FishingGroundGird { get; set; }
+        public double? Longitude { get; set; }
+        public double? Latitude { get; set; }
+
+
+    }
     public class VesselUnloadTrackedFlattened
     {
         public int SamplingDayID { get; set; }

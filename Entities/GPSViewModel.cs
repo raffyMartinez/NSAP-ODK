@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Data;
 
 namespace NSAP_ODK.Entities
 {
@@ -13,7 +14,36 @@ namespace NSAP_ODK.Entities
         public ObservableCollection<GPS> GPSCollection { get; set; }
         private GPSRepository GPSes { get; set; }
 
+        public DataSet DataSet()
+        {
+            DataSet ds = new DataSet();
+            DataTable dt = new DataTable("GPS");
 
+            DataColumn dc = new DataColumn { ColumnName = "Name", DataType = typeof(string) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Code", DataType = typeof(string) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Brand", DataType = typeof(string) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Model", DataType = typeof(string) };
+            dt.Columns.Add(dc);
+
+            foreach (var item in GPSCollection.OrderBy(t => t.AssignedName))
+            {
+                var row = dt.NewRow();
+                row["Name"] = item.AssignedName;
+                row["Code"] = item.Code;
+                row["Brand"] = item.Brand;
+                row["Model"] = item.Model;
+                dt.Rows.Add(row);
+            }
+
+            ds.Tables.Add(dt);
+            return ds;
+        }
 
         public GPSViewModel()
         {

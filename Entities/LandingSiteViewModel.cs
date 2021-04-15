@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Data;
 
 namespace NSAP_ODK.Entities
 
@@ -14,6 +15,64 @@ namespace NSAP_ODK.Entities
 
         //public event EventHandler<EntityChangedEventArgs> EntityChanged;
 
+        public DataSet Dataset()
+        {
+            DataSet ds = new DataSet();
+            DataTable dt = new DataTable("Landing sites");
+
+
+            DataColumn dc = new DataColumn { ColumnName = "Landing site", DataType = typeof(string) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Id", DataType = typeof(int) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Province", DataType = typeof(string) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Municipality", DataType = typeof(string) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Brgy", DataType = typeof(string) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Longitude", DataType = typeof(double) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Latitude", DataType = typeof(double) };
+            dt.Columns.Add(dc);
+
+            foreach(var ls in LandingSiteCollection)
+            {
+                var row = dt.NewRow();
+                row["Landing site"] = ls.LandingSiteName;
+                row["Id"] = ls.LandingSiteID;
+                row["Province"] = ls.Municipality.Province.ProvinceName;
+                row["Municipality"] = ls.Municipality.MunicipalityName;
+                row["Brgy"] = ls.Barangay;
+                if(ls.Longitude==null)
+                {
+                    row["Longitude"] = DBNull.Value;
+
+                }
+                else
+                {
+                    row["Longitude"] = ls.Longitude;
+                }
+                if (ls.Latitude == null)
+                {
+                    row["Latitude"] = DBNull.Value;
+
+                }
+                else
+                {
+                    row["Latitude"] = ls.Latitude;
+                }
+                dt.Rows.Add(row);
+            }
+            ds.Tables.Add(dt);
+            return ds;
+        }
         public LandingSiteViewModel()
         {
             LandingSites = new LandingSiteRepository();

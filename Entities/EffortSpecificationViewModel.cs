@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Data;
 
 namespace NSAP_ODK.Entities
 {
@@ -18,6 +19,38 @@ namespace NSAP_ODK.Entities
             EffortSpecCollection.CollectionChanged += EffortSpecCollection_CollectionChanged;
         }
 
+        public DataSet DataSet()
+        {
+            DataSet ds = new DataSet();
+            DataTable dt = new DataTable("Fishing effort specifications");
+
+            DataColumn dc = new DataColumn { ColumnName = "Name", DataType = typeof(string) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Id", DataType = typeof(string) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Expected value", DataType = typeof(string) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Universal specification", DataType = typeof(bool) };
+            dt.Columns.Add(dc);
+
+
+
+            foreach (var item in EffortSpecCollection.OrderBy(t => t.Name))
+            {
+                var row = dt.NewRow();
+                row["Name"] = item.Name;
+                row["Id"] = item.ID;
+                row["Expected value"] = item.ValueTypeString;
+                row["Universal specification"] = item.IsForAllTypesFishing;
+                dt.Rows.Add(row);
+            }
+
+            ds.Tables.Add(dt);
+            return ds;
+        }
         public List<EffortSpecification> GetAllEffortSpecifications()
         {
             return EffortSpecCollection.ToList();

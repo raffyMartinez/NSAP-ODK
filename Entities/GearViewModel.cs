@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Data;
 
 namespace NSAP_ODK.Entities
 {
@@ -14,33 +15,65 @@ namespace NSAP_ODK.Entities
         public void Serialize(string fileName)
         {
             List<GearFlattened> gears = new List<GearFlattened>();
-            foreach(var item in GearCollection)
+            foreach (var item in GearCollection)
             {
                 GearFlattened g = new GearFlattened
-                { 
+                {
                     GearName = item.GearName,
                     Code = item.Code,
                     GenericCode = item.BaseGear.Code,
-                    IsGeneric =item.IsGenericGear
+                    IsGeneric = item.IsGenericGear
                 };
                 gears.Add(g);
             }
             SerializeGear serialize = new SerializeGear { Gears = gears };
             serialize.Save(fileName);
         }
+
+        public DataSet DataSet()
+        {
+            DataSet ds = new DataSet();
+            DataTable dt = new DataTable("Fishing gears");
+
+            DataColumn dc = new DataColumn { ColumnName = "Name", DataType = typeof(string) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Code", DataType = typeof(string) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Base gear", DataType = typeof(string) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Is generic gear", DataType = typeof(bool) };
+            dt.Columns.Add(dc);
+
+
+            foreach (var item in GearCollection.OrderBy(t=>t.GearName))
+            {
+                var row = dt.NewRow();
+                row["Name"] = item.GearName;
+                row["Code"] = item.Code;
+                row["Base gear"] = item.BaseGear.ToString();
+                row["Is generic gear"] = item.IsGenericGear;
+                dt.Rows.Add(row);
+            }
+
+            ds.Tables.Add(dt);
+            return ds;
+        }
         public Dictionary<string, GearEffortSpecification> GearEffortSpecifications { get; set; }
 
         public void DeleteEffortSpec(EffortSpecification effortSpec)
         {
             List<string> keysForDeletion = new List<string>();
-            foreach(var gearEffort in GearEffortSpecifications.Values)
+            foreach (var gearEffort in GearEffortSpecifications.Values)
             {
-                if(gearEffort.EffortSpecificationID==effortSpec.ID)
+                if (gearEffort.EffortSpecificationID == effortSpec.ID)
                 {
                     keysForDeletion.Add($"{gearEffort.Gear.Code}-{gearEffort.EffortSpecification.ID}");
                 }
             }
-            foreach(var gear in GearCollection)
+            foreach (var gear in GearCollection)
             {
                 foreach (var gearEffort in gear.GearEffortSpecificationViewModel.GearEffortSpecificationCollection)
                 {
@@ -50,7 +83,7 @@ namespace NSAP_ODK.Entities
                         if (gearEffort.EffortSpecification.IsForAllTypesFishing)
                         {
                             gear.GearEffortSpecificationViewModel.RemoveBaseGearEffortSpecification(gearEffort);
-                            if(gear.CodeOfBaseGear.Length>0)
+                            if (gear.CodeOfBaseGear.Length > 0)
                             {
                                 gear.BaseGear.GearEffortSpecificationViewModel.RemoveBaseGearEffortSpecification(gearEffort);
                             }
@@ -64,7 +97,7 @@ namespace NSAP_ODK.Entities
                 }
             }
 
-            foreach(var key in keysForDeletion)
+            foreach (var key in keysForDeletion)
             {
                 GearEffortSpecifications.Remove(key);
             }
@@ -72,15 +105,15 @@ namespace NSAP_ODK.Entities
 
         public void FillGearEffortSpecifications()
         {
-            foreach(Gear gear in GearCollection)
+            foreach (Gear gear in GearCollection)
             {
-                foreach(var gearEffort in gear.GearEffortSpecificationViewModel.GearEffortSpecificationCollection)
+                foreach (var gearEffort in gear.GearEffortSpecificationViewModel.GearEffortSpecificationCollection)
                 {
                     string key = $"{gear.Code}-{gearEffort.EffortSpecificationID}";
                     if (!GearEffortSpecifications.Keys.Contains(key))
-                        GearEffortSpecifications.Add(key,gearEffort);
+                        GearEffortSpecifications.Add(key, gearEffort);
                 }
-                if(gear.BaseGear!=null)
+                if (gear.BaseGear != null)
                 {
                     foreach (var gearEffort in gear.BaseGear.GearEffortSpecificationViewModel.GearEffortSpecificationCollection)
                     {
@@ -144,7 +177,7 @@ namespace NSAP_ODK.Entities
 
         public void AddUniversalSpec(EffortSpecification es)
         {
-            foreach(Gear gear in GearCollection)
+            foreach (Gear gear in GearCollection)
             {
                 if (gear.Code == gear.BaseGear.Code && gear.BaseGear.IsGenericGear)
                 {
@@ -164,18 +197,18 @@ namespace NSAP_ODK.Entities
             return GearCollection.ToList();
         }
 
-        public bool GearNameExist(string gearName , string code="")
+        public bool GearNameExist(string gearName, string code = "")
         {
             foreach (Gear g in GearCollection)
             {
                 if (code.Length > 0)
                 {
-                    if(g.GearName==gearName && g.Code != code)
+                    if (g.GearName == gearName && g.Code != code)
                     {
                         return true;
                     }
 
-                    if(g.GearName==gearName)
+                    if (g.GearName == gearName)
                     {
                         break;
                     }
@@ -219,7 +252,7 @@ namespace NSAP_ODK.Entities
                     {
                         int newIndex = e.NewStartingIndex;
                         Gear newGear = GearCollection[newIndex];
-                        if(Gears.Add(newGear))
+                        if (Gears.Add(newGear))
                         {
                             CurrentEntity = newGear;
                             _operationSucceeded = true;
@@ -230,14 +263,14 @@ namespace NSAP_ODK.Entities
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<Gear> tempListOfRemovedItems = e.OldItems.OfType<Gear>().ToList();
-                        _operationSucceeded= Gears.Delete(tempListOfRemovedItems[0].Code);
+                        _operationSucceeded = Gears.Delete(tempListOfRemovedItems[0].Code);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<Gear> tempList = e.NewItems.OfType<Gear>().ToList();
-                       _operationSucceeded= Gears.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        _operationSucceeded = Gears.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -252,7 +285,7 @@ namespace NSAP_ODK.Entities
         {
             if (gear == null)
                 throw new ArgumentNullException("Error: The argument is Null");
-            
+
             GearCollection.Add(gear);
 
             return _operationSucceeded;
@@ -296,14 +329,14 @@ namespace NSAP_ODK.Entities
             return _operationSucceeded;
         }
 
-        public EntityValidationResult ValidateEntity(Gear gear, bool isNew, string oldName="", string oldCode="")
+        public EntityValidationResult ValidateEntity(Gear gear, bool isNew, string oldName = "", string oldCode = "")
         {
             var result = new EntityValidationResult();
 
-            if (gear.GearName==null || gear.GearName.Length < 3)
+            if (gear.GearName == null || gear.GearName.Length < 3)
                 result.AddMessage("Fishing gear's name must be at least 3 characters long");
 
-            if (gear.Code==null ||  gear.Code.Length == 0)
+            if (gear.Code == null || gear.Code.Length == 0)
             {
                 result.AddMessage("Gear code cannot be empty");
             }
@@ -312,15 +345,15 @@ namespace NSAP_ODK.Entities
                 result.AddMessage("Gear code cannot be more than 5 letters");
             }
 
-            if (isNew && gear.GearName!=null && gear.GearName.Length > 0 && GearNameExist(gear.GearName))
+            if (isNew && gear.GearName != null && gear.GearName.Length > 0 && GearNameExist(gear.GearName))
                 result.AddMessage("Gear name already used");
 
-            if (isNew && gear.Code!=null &&  gear.Code.Length > 0 && GearCodeExist(gear.Code))
+            if (isNew && gear.Code != null && gear.Code.Length > 0 && GearCodeExist(gear.Code))
                 result.AddMessage("Gear code already used");
 
             if (!isNew && gear.GearName.Length > 0
                  && oldName != gear.GearName
-                && GearNameExist(gear.GearName,gear.Code))
+                && GearNameExist(gear.GearName, gear.Code))
                 result.AddMessage("Gear name already used");
 
             if (!isNew && gear.Code.Length > 0
@@ -328,11 +361,11 @@ namespace NSAP_ODK.Entities
                 && GearCodeExist(gear.Code))
                 result.AddMessage("Gear code already used");
 
-            if(!isNew && gear.BaseGear==null)
+            if (!isNew && gear.BaseGear == null)
             {
                 result.AddMessage("Base gear cannot be empty");
             }
-            else if(isNew && !gear.IsGenericGear && gear.BaseGear==null)
+            else if (isNew && !gear.IsGenericGear && gear.BaseGear == null)
             {
                 result.AddMessage("Base gear cannot be empty\r\nIf gear is not generic then you must select a base gear");
             }
@@ -340,6 +373,6 @@ namespace NSAP_ODK.Entities
 
             return result;
         }
-        
+
     }
 }

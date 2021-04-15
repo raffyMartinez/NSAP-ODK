@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-
+using System.Data;
 namespace NSAP_ODK.Entities
 {
     public class FishingGroundViewModel
@@ -13,7 +13,28 @@ namespace NSAP_ODK.Entities
         public ObservableCollection<FishingGround> FishingGroundCollection { get; set; }
         private FishingGroundRepository FishingGrounds { get; set; }
 
+        public DataSet DataSet()
+        {
+            DataSet ds = new DataSet();
+            DataTable dt = new DataTable("Fishing grounds");
 
+            DataColumn dc = new DataColumn { ColumnName = "Name", DataType = typeof(string) };
+            dt.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Code", DataType = typeof(string) };
+            dt.Columns.Add(dc);
+
+            foreach (var item in FishingGroundCollection.OrderBy(t=>t.Name))
+            {
+                var row = dt.NewRow();
+                row["Name"] = item.Name;
+                row["Code"] = item.Code;
+                dt.Rows.Add(row);
+            }
+
+            ds.Tables.Add(dt);
+            return ds;
+        }
 
         public FishingGroundViewModel()
         {
@@ -51,7 +72,7 @@ namespace NSAP_ODK.Entities
         }
         public FishingGround GetFishingGround(string code)
         {
-            CurrentEntity= FishingGroundCollection.FirstOrDefault(n => n.Code == code);
+            CurrentEntity = FishingGroundCollection.FirstOrDefault(n => n.Code == code);
             return CurrentEntity;
 
         }
@@ -63,7 +84,7 @@ namespace NSAP_ODK.Entities
                     {
                         int newIndex = e.NewStartingIndex;
                         FishingGround newFG = FishingGroundCollection[newIndex];
-                        if(FishingGrounds.Add(newFG))
+                        if (FishingGrounds.Add(newFG))
                         {
                             CurrentEntity = newFG;
                         }
@@ -130,15 +151,15 @@ namespace NSAP_ODK.Entities
             }
         }
 
-        public bool EntityValidated(FishingGround fg, out List<EntityValidationMessage> entityMessages, bool isNew,string oldName="", string oldCode="")
+        public bool EntityValidated(FishingGround fg, out List<EntityValidationMessage> entityMessages, bool isNew, string oldName = "", string oldCode = "")
         {
             entityMessages = new List<EntityValidationMessage>();
-            if (fg.Code==null || fg.Code.Length > 5)
+            if (fg.Code == null || fg.Code.Length > 5)
             {
                 entityMessages.Add(new EntityValidationMessage("Fishing ground code must made up of 1 to 5 characters"));
             }
 
-            if (FishingGroundCodeExist(fg.Code)&& isNew)
+            if (FishingGroundCodeExist(fg.Code) && isNew)
             {
                 entityMessages.Add(new EntityValidationMessage("Fishing ground code is already in use"));
             }
@@ -154,7 +175,7 @@ namespace NSAP_ODK.Entities
                 && FishingGroundNameExist(fg.Name))
                 entityMessages.Add(new EntityValidationMessage("Fishing ground name is already in use"));
 
-            if (!isNew 
+            if (!isNew
                  && oldCode != fg.Code
                 && FishingGroundCodeExist(fg.Code))
                 entityMessages.Add(new EntityValidationMessage("Gear code already used"));

@@ -677,6 +677,7 @@ namespace NSAP_ODK.Views
             if (_formSummary.LastSaveDateInDatabase.Length > 0 && DateTime.TryParse(_formSummary.LastSaveDateInDatabase, out DateTime v))
             {
                 _lastSubmittedDate = v;
+                rbNotDownloaded.IsChecked = true;
             }
             else
             {

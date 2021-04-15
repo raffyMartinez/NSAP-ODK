@@ -73,6 +73,7 @@ namespace NSAP_ODK.Utilities
             catch(Exception ex)
             {
                 Logger.Log(ex);
+                return false;
             }
             return true;
         }

@@ -22,7 +22,6 @@ namespace NSAP_ODK.Entities.Database
         //    }
         //}
 
-
         public List<DateTime> MonthsSampledByEnumerator(NSAPEnumerator enumerator)
         {
             List<DateTime> list = new List<DateTime>();

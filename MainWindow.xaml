@@ -60,6 +60,7 @@
             <Button Content="Edit" Margin="10" Height="30" x:Name="buttonEdit" Click="OnButtonClick" />
             <Button Content="Delete" Margin="10" Height="30" x:Name="buttonDelete" Click="OnButtonClick" />
             <Button Content="Orphan" Margin="10" Height="30" x:Name="buttonOrphan" Click="OnButtonClick" Visibility="Collapsed" />
+            <Button Content="Export" Margin="10" Height="30" x:Name="buttonExport" Click="OnButtonClick" Visibility="Collapsed" />
             <!--<Button Content="Summary" Margin="10" Height="30" x:Name="buttonEntitySummary" Click="OnButtonClick" Visibility="Collapsed" />-->
         </StackPanel>
 
@@ -200,7 +201,7 @@
             <treeViewControl:TreeControl Grid.Column="0" Grid.RowSpan="2" x:Name="samplingTree" 
                     TreeViewItemSelected="OnTreeViewItemSelected" TreeContextMenu="OnTreeContextMenu"/>
 
-            <TreeView x:Name="treeViewDownloadHistory" Grid.Column="0" Grid.RowSpan="2" SelectedItemChanged="OnHistoryTreeItemChanged"/>
+            <TreeView x:Name="treeViewDownloadHistory" Grid.Column="0" Grid.RowSpan="2" SelectedItemChanged="OnHistoryTreeItemChanged" />
 
 
             <Grid x:Name="GridContainer_NSAPData" Grid.Column="1" Grid.Row="1">
@@ -254,7 +255,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <TreeView x:Name="treeViewSummary" SelectedItemChanged="OnSummaryTreeItemChanged" Grid.RowSpan="3" Visibility="Collapsed">
+            <TreeView x:Name="treeViewSummary" SelectedItemChanged="OnSummaryTreeItemChanged" Grid.RowSpan="3" Visibility="Collapsed" MouseRightButtonDown="OnTreeMouseRightButtonDown">
                 <TreeViewItem Header="Overall" x:Name="summaryTreeNodeOverall"/>
                 <TreeViewItem Header="Regions" x:Name="summaryTreeNodeRegion"/>
                 <TreeViewItem Header="Enumerators" x:Name="summaryTreeNodeEnumerators"/>

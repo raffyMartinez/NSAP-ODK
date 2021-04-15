@@ -23,6 +23,72 @@ namespace NSAP_ODK.Entities.Database
 
             return vces;
         }
+
+        public List<VesselUnloadWithMaturityFlattened> GetUnloadsWithMaturity(NSAPRegion rg, FishingGround fg)
+        {
+            List<VesselUnloadWithMaturityFlattened> list = new List<VesselUnloadWithMaturityFlattened>();
+            HashSet<int> parentPKs = new HashSet<int>();
+            var catchesWithMaturity = VesselCatchCollection
+                .Where(t => t.ListCatchMaturity.Count > 0 &&
+                    t.Parent.Parent.Parent.FishingGround.Code == fg.Code &&
+                    t.Parent.Parent.Parent.NSAPRegionID==rg.Code)
+                .OrderBy(t => t.Parent.PK)
+                .ToList();
+
+            VesselUnloadWithMaturityFlattened vumf = null;
+            foreach (var c in catchesWithMaturity)
+            {
+                if (!parentPKs.Contains(c.Parent.PK))
+                {
+                    vumf = new VesselUnloadWithMaturityFlattened
+                    {
+                        SamplingDayID = c.Parent.Parent.Parent.PK,
+                        Region = rg.ShortName,
+                        FMA = c.Parent.Parent.Parent.FMA.Name,
+                        FishingGround = fg.Name,
+                        LandingSite = c.Parent.Parent.Parent.LandingSiteName,
+                        SamplingDateTime = c.Parent.SamplingDate,
+                        GearUnloadID = c.Parent.Parent.PK,
+                        Gear = c.Parent.Parent.GearUsedName,
+                        VesselUnloadID = c.Parent.PK,
+                        Enumerator = c.Parent.EnumeratorName,
+                        IsBoatUsed = c.Parent.IsBoatUsed,
+                        Vessel = c.Parent.VesselName,
+                        CatchTotalWt = c.Parent.WeightOfCatch,
+                        IsTracked = c.Parent.OperationIsTracked,
+                        GPS = c.Parent.GPSText,
+                        Departure = c.Parent.DepartureFromLandingSite,
+                        Arrival = c.Parent.ArrivalAtLandingSite,
+                        RowID = c.Parent.ODKRowID,
+                        XFormIdentifier = c.Parent.XFormIdentifier,
+                        XFormDate = c.Parent.XFormDate,
+                        UserName = c.Parent.UserName,
+                        DeviceID = c.Parent.DeviceID,
+                        Submitted = c.Parent.DateTimeSubmitted,
+                        FormVersion = c.Parent.FormVersion,
+                        Notes = c.Parent.Notes,
+                        DateAddedToDatabase = c.Parent.DateAddedToDatabase,
+                        Sector = c.Parent.Sector,
+                    };
+
+                    if(c.Parent.ListFishingGroundGrid.Count>0)
+                    {
+                        vumf.FishingGroundGird = c.Parent.ListFishingGroundGrid[0].ToString();
+                        vumf.Longitude = c.Parent.ListFishingGroundGrid[0].GridCell.Coordinate.Longitude;
+                        vumf.Latitude = c.Parent.ListFishingGroundGrid[0].GridCell.Coordinate.Latitude;
+                        
+                    }
+
+                    list.Add(vumf);
+                    parentPKs.Add(c.Parent.PK);
+
+                }
+                vumf.ListOfCatchWithMaturity.Add(c);
+
+            }
+
+            return list;
+        }
         public VesselCatchViewModel()
         {
             VesselCatches = new VesselCatchRepository();
@@ -75,23 +141,23 @@ namespace NSAP_ODK.Entities.Database
         public int ConvertToIindividualCatches(string multilineItem, List<SpeciesName_Weight> items)
         {
             bool isDone = false;
-            int counter=0;
-            foreach(var item in VesselCatchCollection.Where(t => t.CatchName == multilineItem).ToList())
+            int counter = 0;
+            foreach (var item in VesselCatchCollection.Where(t => t.CatchName == multilineItem).ToList())
             {
-                if(item.VesselUnloadID==605)
+                if (item.VesselUnloadID == 605)
                 {
 
                 }
                 counter = 0;
-                foreach(var speciesName in items)
+                foreach (var speciesName in items)
                 {
                     isDone = false;
-                    if(counter==0 && !isDone)
+                    if (counter == 0 && !isDone)
                     {
                         isDone = true;
                         item.SpeciesText = speciesName.SpeciesName;
                         item.Catch_kg = null;
-                        if(speciesName.Weight!=null)
+                        if (speciesName.Weight != null)
                         {
                             item.Catch_kg = speciesName.Weight;
                         }
@@ -132,15 +198,15 @@ namespace NSAP_ODK.Entities.Database
                             Parent = item.Parent,
                             VesselUnloadID = item.Parent.PK,
                             PK = NextRecordNumber,
-                            TaxaCode=NSAPEntities.TaxaViewModel.NotIdentified.Code
+                            TaxaCode = NSAPEntities.TaxaViewModel.NotIdentified.Code
                         };
-                        if(speciesName.Weight!=null)
+                        if (speciesName.Weight != null)
                         {
                             vc.Catch_kg = speciesName.Weight;
                         }
 
                         var fsp = NSAPEntities.FishSpeciesViewModel.GetSpecies(vc.SpeciesText);
-                        if(fsp!=null)
+                        if (fsp != null)
                         {
                             vc.SpeciesID = fsp.SpeciesCode;
                             vc.TaxaCode = NSAPEntities.TaxaViewModel.FishTaxa.Code;
@@ -148,20 +214,20 @@ namespace NSAP_ODK.Entities.Database
                         else
                         {
                             var nfsp = NSAPEntities.NotFishSpeciesViewModel.GetSpecies(vc.SpeciesText);
-                            if(nfsp!=null)
+                            if (nfsp != null)
                             {
                                 vc.SpeciesID = nfsp.SpeciesID;
                                 vc.TaxaCode = nfsp.Taxa.Code;
                             }
                         }
 
-                       
-                       if( AddRecordToRepo(vc))
+
+                        if (AddRecordToRepo(vc))
                         {
                             counter++;
                         }
                     }
-                   
+
                 }
             }
             return counter;
@@ -169,7 +235,7 @@ namespace NSAP_ODK.Entities.Database
         public int DeleteCatchFromUnload(VesselUnload unload)
         {
             int counter = 0;
-            var catchCollection = VesselCatchCollection.Where(t =>t.Parent!=null &&  t.Parent.PK == unload.PK).ToList();
+            var catchCollection = VesselCatchCollection.Where(t => t.Parent != null && t.Parent.PK == unload.PK).ToList();
             if (catchCollection != null && catchCollection.Count > 0)
             {
                 foreach (VesselCatch vc in catchCollection)
@@ -353,14 +419,14 @@ namespace NSAP_ODK.Entities.Database
             if (speciesID == null)
             {
                 return VesselCatchCollection
-                    .Where(t => t.Parent!=null &&  t.Parent.PK == parent.PK)
+                    .Where(t => t.Parent != null && t.Parent.PK == parent.PK)
                     .Where(t => t.SpeciesText == speciesText)
                     .FirstOrDefault();
             }
             else
             {
                 return VesselCatchCollection
-                    .Where(t => t.Parent!=null &&  t.Parent.ODKRowID == parent._uuid)
+                    .Where(t => t.Parent != null && t.Parent.ODKRowID == parent._uuid)
                     .Where(t => t.SpeciesID == speciesID)
                     .FirstOrDefault();
             }

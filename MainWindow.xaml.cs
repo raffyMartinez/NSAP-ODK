@@ -59,6 +59,8 @@ namespace NSAP_ODK
         private DispatcherTimer _timer;
         private DBSummary _dbSummary;
         private SummaryLevelType _summaryLevelType;
+        private FishingGround _selectFishingGroundInSummary;
+        private NSAPRegion _selectedRegionInSummary;
         public MainWindow()
         {
             InitializeComponent();
@@ -926,7 +928,97 @@ namespace NSAP_ODK
             MessageBox.Show($"Updated {ItemsRefreshed} species!");
         }
 
+        private void ExportSelectedEntityData()
+        {
+            string inFileName = "";
+            DataSet ds = null;
+            string entityExported = "";
+            switch(_nsapEntity)
+            {
+                case NSAPEntity.Enumerator:
+                    inFileName = "NSAP-ODK enumerators";
+                    entityExported = "Enumerators";
+                    break;
+                case NSAPEntity.LandingSite:
+                    inFileName = "NSAP-ODK landing sites";
+                    entityExported = "Landing sites";
+                    break;
+                case NSAPEntity.FishSpecies:
+                    inFileName = "NSAP-ODK fish species";
+                    entityExported = "Fish species";
+                    break;
+                case NSAPEntity.NonFishSpecies:
+                    inFileName = "NSAP-ODK invertebrates";
+                    entityExported = "Invertebrate species";
+                    break;
+                case NSAPEntity.FishingGround:
+                    inFileName = "NSAP-ODK fishing grounds";
+                    entityExported = "Fishing grounds";
+                    break;
+                case NSAPEntity.FishingGear:
+                    inFileName = "NSAP-ODK fishing gears";
+                    entityExported = "Fishing gears";
+                    break;
+                case NSAPEntity.GPS:
+                    inFileName = "NSAP-ODK GPS";
+                    entityExported = "GPS";
+                    break;
+                case NSAPEntity.EffortIndicator:
+                    inFileName = "NSAP-ODK effort specifications";
+                    entityExported = "Effort specifications";
+                    break;
+            }
 
+            string fileName = ExportExcel.GetSaveAsExcelFileName(this, inFileName);
+
+            if(fileName.Length>0)
+            {
+                switch(_nsapEntity)
+                {
+                    case NSAPEntity.LandingSite:
+                        ds = NSAPEntities.LandingSiteViewModel.Dataset();
+                        break;
+                    case NSAPEntity.FishSpecies:
+                        ds = NSAPEntities.FishSpeciesViewModel.DataSet();
+                        break;
+                    case NSAPEntity.NonFishSpecies:
+                        ds = NSAPEntities.NotFishSpeciesViewModel.DataSet();
+                        break;
+                    case NSAPEntity.Enumerator:
+                        ds = NSAPEntities.NSAPEnumeratorViewModel.DataSet();
+                        break;
+                    case NSAPEntity.FishingGround:
+                        ds = NSAPEntities.FishingGroundViewModel.DataSet();
+                        break;
+                    case NSAPEntity.FishingGear:
+                        ds = NSAPEntities.GearViewModel.DataSet();
+                        break;
+                    case NSAPEntity.GPS:
+                        ds = NSAPEntities.GPSViewModel.DataSet();
+                        break;
+                    case NSAPEntity.EffortIndicator:
+                        ds = NSAPEntities.EffortSpecificationViewModel.DataSet();
+                        break;
+                }
+
+                if(ExportExcel.ExportDatasetToExcel(ds,fileName))
+                {
+                     MessageBox.Show($"{entityExported} exported to Excel", "NSAP-ODK Database");
+                }
+                else
+                {
+                    if (ExportExcel.ErrorMessage.Length > 0)
+                    {
+                        MessageBox.Show(ExportExcel.ErrorMessage, "NSAP-ODK Database");
+                    }
+                    else
+                    {
+                        MessageBox.Show($"An error occurred when exporting {entityExported} to Excel\r\n" +
+                                        "Please report this error", "NSAP-ODK Database");
+                    }
+                }
+            }
+        }
 
         private void OnButtonClick(object sender, RoutedEventArgs e)
         {
@@ -934,6 +1026,9 @@ namespace NSAP_ODK
             {
                 //case "buttonEntitySummary":
                 //    break;
+                case "buttonExport":
+                    ExportSelectedEntityData();
+                    break;
                 case "buttonOrphan":
                     if (_nsapEntity == NSAPEntity.FishSpecies || _nsapEntity == NSAPEntity.NonFishSpecies)
                     {
@@ -979,6 +1074,7 @@ namespace NSAP_ODK
         {
             buttonImport.Visibility = Visibility.Collapsed;
             buttonOrphan.Visibility = Visibility.Collapsed;
+            buttonExport.Visibility = Visibility.Visible;
             if (dataGridEntities.ContextMenu != null)
             {
                 dataGridEntities.ContextMenu.Items.Clear();
@@ -996,6 +1092,7 @@ namespace NSAP_ODK
                     {
                         _selectedTreeNode.IsSelected = false;
                     }
+                    buttonExport.Visibility = Visibility.Collapsed;
                     break;
                 case "menuGPS":
                     _nsapEntity = NSAPEntity.GPS;
@@ -1004,23 +1101,25 @@ namespace NSAP_ODK
                 case "menuProvinces":
                     _nsapEntity = NSAPEntity.Province;
                     textOfTitle = "List of Provinces";
+                    buttonExport.Visibility = Visibility.Collapsed;
                     break;
 
                 case "menuEffortIndicators":
                     _nsapEntity = NSAPEntity.EffortIndicator;
                     textOfTitle = "List of fishing effort indicators";
                     contextMenu.Items.Add(new MenuItem { Header = "View gears using this indicator", Name = "menuViewGearsUsingIndicator", Tag = "nsapEntities" });
-
                     break;
 
                 case "menuFMAs":
                     _nsapEntity = NSAPEntity.FMA;
                     textOfTitle = "List of FMAs";
+                    buttonExport.Visibility = Visibility.Collapsed;
                     break;
 
                 case "menuNSAPRegions":
                     _nsapEntity = NSAPEntity.NSAPRegion;
                     textOfTitle = "List of NSAP Regions";
+                    buttonExport.Visibility = Visibility.Collapsed;
                     break;
 
                 case "menuFishingGrouds":
@@ -1052,6 +1151,7 @@ namespace NSAP_ODK
                     _nsapEntity = NSAPEntity.FishingVessel;
                     textOfTitle = "List of fishing vessels";
                     buttonOrphan.Visibility = Visibility.Visible;
+                    buttonExport.Visibility = Visibility.Collapsed;
                     break;
 
                 case "menuFishSpecies":
@@ -1354,6 +1454,36 @@ namespace NSAP_ODK
             }
             return success;
         }
+
+        private void ExportNSAPWithMaturityToExcel()
+        {
+            //var list = NSAPEntities.VesselCatchViewModel.GetUnloadsWithMaturity(_selectedRegionInSummary, _selectFishingGroundInSummary);
+            var ds = UnloadWithMaturityDatasetManager.MaturityDataSet(_selectedRegionInSummary, _selectFishingGroundInSummary);
+            if (ds.Tables[0].Rows.Count > 0)
+            {
+
+                string fn = ExportExcel.GetSaveAsExcelFileName(this, UnloadWithMaturityDatasetManager.FileName);
+                if (fn.Length > 0)
+                {
+                    if (ExportExcel.ExportDatasetToExcel(ds, fn))
+                    {
+                        MessageBox.Show("Successfully exported maturity data to Excel", "NSAP ODK Database");
+                    }
+                    else
+                    {
+                        MessageBox.Show(ExportExcel.ErrorMessage, "NSAP ODK Database");
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Export was cancelled", "NSAP ODK Database");
+                }
+            }
+            else
+            {
+                MessageBox.Show("Selected region and fishing ground does not contain maturity data", "NSAP ODK Database");
+            }
+        }
         private async void OnMenuClicked(object sender, RoutedEventArgs e)
         {
             string fileName = "";
@@ -1368,6 +1498,9 @@ namespace NSAP_ODK
 
             switch (itemName)
             {
+                case "menuExportExcelMaturity":
+                    ExportNSAPWithMaturityToExcel();
+                    break;
                 case "menuAbout":
                     AboutWindow aw = new AboutWindow();
                     aw.ShowDialog();
@@ -1998,11 +2131,11 @@ namespace NSAP_ODK
             {
                 GridNSAPData.DataContext = _vesselDownloadHistory[dt];
             }
-            catch(System.Collections.Generic.KeyNotFoundException)
+            catch (System.Collections.Generic.KeyNotFoundException)
             {
 
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Logger.Log(ex);
             }
@@ -2027,7 +2160,7 @@ namespace NSAP_ODK
                             UndoChangesToGearUnload(refresh: false);
                         }
 
-                        
+
                         if (tvItem.Tag.ToString() == "downloadDate")
                         {
                             dt = DateTime.Parse(((TreeViewItem)tvItem).Header.ToString()).Date;
@@ -2588,6 +2721,33 @@ namespace NSAP_ODK
                     SetDataDisplayMode();
                     break;
             }
+        }
+
+        private void OnTreeMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            _selectedRegionInSummary = null;
+            _selectFishingGroundInSummary = null;
+            ContextMenu cm = new ContextMenu();
+            MenuItem m = null;
+            switch (((TreeView)sender).Name)
+            {
+                case "treeViewSummary":
+                    if (((TreeViewItem)((TreeView)sender).SelectedItem).Tag.GetType().Name == "FishingGround")
+                    {
+                        _selectFishingGroundInSummary = ((TreeViewItem)((TreeView)sender).SelectedItem).Tag as FishingGround;
+                        _selectedRegionInSummary = ((TreeViewItem)((TreeViewItem)((TreeView)sender).SelectedItem).Parent).Tag as NSAPRegion;
+                        m = new MenuItem { Header = "Export vessel sampling with catch maturity", Name = "menuExportExcelMaturity" };
+                        m.Click += OnMenuClicked;
+                        cm.Items.Add(m);
+                    }
+                    break;
+            }
+
+            if(cm.Items.Count>0)
+            {
+                cm.IsOpen = true;
+            }
+
         }
     }
 }
