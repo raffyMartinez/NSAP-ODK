@@ -38,7 +38,7 @@ namespace NSAP_ODK.Entities.Database
                 FishingGroundCode = FishingGround.Code;
                 LandingSite = vesselUnload.Parent.Parent.LandingSite;
                 LandingSiteName = vesselUnload.Parent.Parent.LandingSiteName;
-                if (LandingSite!=null)
+                if (LandingSite != null)
                 {
                     LandingSiteID = LandingSite.LandingSiteID;
                 }
@@ -505,7 +505,7 @@ namespace NSAP_ODK.Entities.Database
 
         public override string ToString()
         {
-            return $"[ID:{PK}] {VesselName}-{Parent.Parent.LandingSiteName}-{SamplingDate.ToString("MMM-dd-yyyy")}"; 
+            return $"[ID:{PK}] {VesselName}-{Parent.Parent.LandingSiteName}-{SamplingDate.ToString("MMM-dd-yyyy")}";
         }
         public DateTime TimeStart { get; set; }
         public int PK { get; set; }
@@ -555,6 +555,36 @@ namespace NSAP_ODK.Entities.Database
         public string CatchCompositionCountText
         {
             get { return OperationIsSuccessful ? ListVesselCatch.Count.ToString() : ""; }
+        }
+
+        public int? CatchCompositionCountValue
+        {
+            get
+            {
+                if (OperationIsSuccessful)
+                {
+                    return ListVesselCatch.Count;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
+        public double? WeightOfCatchValue
+        {
+            get
+            {
+                if (OperationIsSuccessful)
+                {
+                    return (double)WeightOfCatch;
+                }
+                else
+                {
+                    return null;
+                }
+            }
         }
         public string WeightOfCatchText
         {

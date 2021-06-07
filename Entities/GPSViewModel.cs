@@ -11,9 +11,19 @@ namespace NSAP_ODK.Entities
 {
     public class GPSViewModel
     {
+        private bool _editSuccess;
         public ObservableCollection<GPS> GPSCollection { get; set; }
         private GPSRepository GPSes { get; set; }
 
+        public List<KeyValuePair<int, string>> DeviceTypeSources()
+        {
+            var list = new List<KeyValuePair<int, string>>();
+            list.Add(new KeyValuePair<int, string>(0, "None"));
+            list.Add(new KeyValuePair<int, string>(1, "GPS"));
+            list.Add(new KeyValuePair<int, string>(2, "Phone"));
+            list.Add(new KeyValuePair<int, string>(9, "Other"));
+            return list;
+        }
         public DataSet DataSet()
         {
             DataSet ds = new DataSet();
@@ -87,6 +97,7 @@ namespace NSAP_ODK.Entities
         }
         private void GPSCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            _editSuccess = false;
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
@@ -95,6 +106,7 @@ namespace NSAP_ODK.Entities
                         GPS newGPS = GPSCollection[newIndex];
                         if (GPSes.Add(newGPS))
                         {
+                            _editSuccess = true;
                             CurrentEntity = newGPS;
                         }
                     }
@@ -102,13 +114,13 @@ namespace NSAP_ODK.Entities
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<GPS> tempListOfRemovedItems = e.OldItems.OfType<GPS>().ToList();
-                        GPSes.Delete(tempListOfRemovedItems[0].Code);
+                        _editSuccess= GPSes.Delete(tempListOfRemovedItems[0].Code);
                     }
                     break;
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<GPS> tempList = e.NewItems.OfType<GPS>().ToList();
-                        GPSes.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        _editSuccess= GPSes.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -119,14 +131,16 @@ namespace NSAP_ODK.Entities
             get { return GPSCollection.Count; }
         }
 
-        public void AddRecordToRepo(GPS gps)
+        public bool AddRecordToRepo(GPS gps)
         {
             if (gps == null)
                 throw new ArgumentNullException("Error: The argument is Null");
             GPSCollection.Add(gps);
+
+            return _editSuccess;
         }
 
-        public void UpdateRecordInRepo(GPS gps)
+        public bool UpdateRecordInRepo(GPS gps)
         {
             if (gps.Code == null)
                 throw new Exception("Error: ID cannot be null");
@@ -141,9 +155,10 @@ namespace NSAP_ODK.Entities
                 }
                 index++;
             }
+            return _editSuccess;
         }
 
-        public void DeleteRecordFromRepo(string code)
+        public bool DeleteRecordFromRepo(string code)
         {
             if (code == null)
                 throw new Exception("Record ID cannot be null");
@@ -158,14 +173,15 @@ namespace NSAP_ODK.Entities
                 }
                 index++;
             }
+            return _editSuccess;
         }
         public EntityValidationResult ValidateGPS(GPS gps, bool isNew, string oldAssignedName, string oldCode)
         {
             EntityValidationResult evr = new EntityValidationResult();
 
-            if (isNew && gps.Code.Length != 3)
+            if (isNew && (gps.Code.Length < 3 || gps.Code.Length > 5))
             {
-                evr.AddMessage("Code must be 3 letters long");
+                evr.AddMessage("Code must be at least 3 to 5 letters long");
             }
 
             if (isNew && gps.AssignedName.Length < 5)
@@ -186,12 +202,12 @@ namespace NSAP_ODK.Entities
             if (!isNew && gps.AssignedName.Length > 0
                 && oldAssignedName != gps.AssignedName
                 && GPSAssignedNameExist(gps.AssignedName))
-                evr.AddMessage("Gear name already used");
+                evr.AddMessage("GPS name already used");
 
             if (!isNew && gps.Code.Length > 0
                 && oldCode != gps.Code
                 && GPSCodeExist(gps.Code))
-                evr.AddMessage("Gear code already used");
+                evr.AddMessage("GPS code already used");
 
             return evr;
         }

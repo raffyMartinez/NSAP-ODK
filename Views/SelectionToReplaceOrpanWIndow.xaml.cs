@@ -369,6 +369,7 @@ namespace NSAP_ODK.Views
                                 ((OrphanItemsManagerWindow)Owner).ReplacementGear = (Gear)_selectedButton.Tag;
                                 break;
                         }
+                        DialogResult = true;
                         Close();
                     }
                     else
@@ -378,6 +379,7 @@ namespace NSAP_ODK.Views
 
                     break;
                 case "buttonCancel":
+                    DialogResult = false;
                     Close();
                     break;
             }

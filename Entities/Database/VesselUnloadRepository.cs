@@ -41,84 +41,77 @@ namespace NSAP_ODK.Entities.Database
                 {
                     conection.Open();
                     string query = $@"SELECT 
-                                        dbo_LC_FG_sample_day.unload_day_id,
-                                        nsapRegion.RegionName, 
-                                        fma.FMAName, 
-                                        fishingGround.FishingGroundName, 
-                                        [LandingSiteName] & ', ' & [Municipalities.Municipality] & ', ' & [ProvinceName] AS LandingSite, 
-                                        dbo_LC_FG_sample_day.land_ctr_text, 
-                                        dbo_LC_FG_sample_day.sdate, 
-                                        dbo_gear_unload.unload_gr_id, 
-                                        gear.GearName, 
-                                        dbo_gear_unload.gr_text, 
-                                        dbo_gear_unload.boats, 
-                                        dbo_gear_unload.catch, 
-                                        dbo_vessel_unload.v_unload_id, 
-                                        dbo_vessel_unload_1.SamplingDate AS SamplingDateTime, 
-                                        fishingVessel.VesselName, 
-                                        fishingVessel.NameOfOwner, 
-                                        dbo_vessel_unload.is_boat_used, 
-                                        dbo_vessel_unload.boat_text, 
-                                        dbo_vessel_unload.catch_total, 
-                                        dbo_vessel_unload.catch_samp, 
-                                        dbo_vessel_unload.boxes_total, 
-                                        dbo_vessel_unload.boxes_samp, 
-                                        dbo_vessel_unload.raising_factor,
-                                        dbo_vessel_unload_1.Success, 
-                                        dbo_vessel_unload_1.Tracked, 
-                                        dbo_vessel_unload_1.DepartureLandingSite, 
-                                        dbo_vessel_unload_1.ArrivalLandingSite, 
-                                        dbo_vessel_unload_1.RowID, 
-                                        dbo_vessel_unload_1.XFormIdentifier, 
-                                        dbo_vessel_unload_1.XFormDate, 
-                                        dbo_vessel_unload_1.user_name, 
-                                        dbo_vessel_unload_1.device_id, 
-                                        dbo_vessel_unload_1.datetime_submitted, 
-                                        dbo_vessel_unload_1.form_version, 
-                                        dbo_vessel_unload_1.Notes, 
-                                        gps.AssignedName AS GPS, 
-                                        NSAPEnumerator.EnumeratorName, 
-                                        dbo_vessel_unload_1.EnumeratorText, 
-                                        dbo_vessel_unload_1.DateAdded, 
-                                        dbo_vessel_unload_1.sector_code, 
-                                        dbo_vessel_unload_1.FromExcelDownload
-                                    FROM Provinces 
-                                        RIGHT JOIN(Municipalities 
-                                        RIGHT JOIN (landingSite 
-                                        RIGHT JOIN (gear 
-                                        RIGHT JOIN (fma 
-                                        INNER JOIN (fishingVessel 
-                                        RIGHT JOIN (fishingGround 
-                                        INNER JOIN (((nsapRegion 
-                                        INNER JOIN dbo_LC_FG_sample_day 
-                                            ON nsapRegion.Code = dbo_LC_FG_sample_day.region_id) 
-                                        INNER JOIN(dbo_gear_unload 
-                                        INNER JOIN dbo_vessel_unload 
-                                            ON dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) 
-                                            ON dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) 
-                                        INNER JOIN((dbo_vessel_unload_1 
-                                        INNER JOIN gps 
-                                            ON dbo_vessel_unload_1.GPS = gps.GPSCode) 
-                                        LEFT JOIN NSAPEnumerator 
-                                            ON dbo_vessel_unload_1.EnumeratorID = NSAPEnumerator.EnumeratorID) 
-                                            ON dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) 
-                                            ON fishingGround.FishingGroundCode = dbo_LC_FG_sample_day.ground_id) 
-                                            ON fishingVessel.VesselID = dbo_vessel_unload.boat_id) 
-                                            ON fma.FMAID = dbo_LC_FG_sample_day.fma) 
-                                            ON gear.GearCode = dbo_gear_unload.gr_id) 
-                                            ON landingSite.LandingSiteID = dbo_LC_FG_sample_day.land_ctr_id) 
-                                            ON Municipalities.MunNo = landingSite.Municipality) 
-                                            ON Provinces.ProvNo = Municipalities.ProvNo
-                                        WHERE dbo_vessel_unload_1.Tracked = True
-                                        ORDER BY 
-                                            nsapRegion.RegionName, 
-                                            fma.FMAName, 
-                                            fishingGround.FishingGroundName, 
-                                            [LandingSiteName] & ', ' & [Municipalities.Municipality] & ', ' & [ProvinceName], 
-                                            dbo_LC_FG_sample_day.land_ctr_text, 
-                                            dbo_LC_FG_sample_day.sdate, 
-                                            gear.GearName";
-
+                        nsapRegion.RegionName, 
+                        dbo_LC_FG_sample_day.unload_day_id, 
+                        fma.FMAName, fishingGround.FishingGroundName, 
+                        [LandingSiteName] & ', ' & [Municipalities.Municipality] & ', ' & [ProvinceName] AS LandingSite, 
+                        dbo_LC_FG_sample_day.land_ctr_text, 
+                        dbo_LC_FG_sample_day.sdate, 
+                        dbo_gear_unload.unload_gr_id, 
+                        gear.GearName, dbo_gear_unload.gr_text, 
+                        dbo_gear_unload.boats, 
+                        dbo_gear_unload.catch, 
+                        dbo_vessel_unload.v_unload_id, 
+                        dbo_vessel_unload_1.SamplingDate AS SamplingDateTime, 
+                        fishingVessel.VesselName, 
+                        fishingVessel.NameOfOwner, 
+                        dbo_vessel_unload.is_boat_used, 
+                        dbo_vessel_unload.boat_text, 
+                        dbo_vessel_unload.catch_total, 
+                        dbo_vessel_unload.catch_samp, 
+                        dbo_vessel_unload.boxes_total, 
+                        dbo_vessel_unload.boxes_samp, 
+                        dbo_vessel_unload.raising_factor, 
+                        dbo_vessel_unload_1.Success, 
+                        dbo_vessel_unload_1.Tracked, 
+                        dbo_vessel_unload_1.GPS, 
+                        dbo_vessel_unload_1.DepartureLandingSite, 
+                        dbo_vessel_unload_1.ArrivalLandingSite, 
+                        dbo_vessel_unload_1.RowID, 
+                        dbo_vessel_unload_1.XFormIdentifier, 
+                        dbo_vessel_unload_1.XFormDate, 
+                        dbo_vessel_unload_1.user_name, 
+                        dbo_vessel_unload_1.device_id, 
+                        dbo_vessel_unload_1.datetime_submitted, 
+                        dbo_vessel_unload_1.form_version, 
+                        dbo_vessel_unload_1.Notes, 
+                        NSAPEnumerator.EnumeratorName, 
+                        dbo_vessel_unload_1.EnumeratorText, 
+                        dbo_vessel_unload_1.DateAdded, 
+                        dbo_vessel_unload_1.sector_code, 
+                        dbo_vessel_unload_1.FromExcelDownload
+                FROM nsapRegion RIGHT JOIN
+                    ((Provinces RIGHT JOIN 
+                    Municipalities ON 
+                    Provinces.ProvNo = Municipalities.ProvNo) RIGHT JOIN 
+                    (landingSite RIGHT JOIN 
+                    (gear RIGHT JOIN 
+                    (fma RIGHT JOIN 
+                    (fishingVessel RIGHT JOIN 
+                    (fishingGround RIGHT JOIN 
+                    ((dbo_LC_FG_sample_day INNER JOIN 
+                    (dbo_gear_unload INNER JOIN 
+                    dbo_vessel_unload ON 
+                    dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON
+                    dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN
+                    (dbo_vessel_unload_1 LEFT JOIN 
+                    NSAPEnumerator ON 
+                    dbo_vessel_unload_1.EnumeratorID = NSAPEnumerator.EnumeratorID) ON
+                    dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) ON
+                    fishingGround.FishingGroundCode = dbo_LC_FG_sample_day.ground_id) ON
+                    fishingVessel.VesselID = dbo_vessel_unload.boat_id) ON
+                    fma.FMAID = dbo_LC_FG_sample_day.fma) ON
+                    gear.GearCode = dbo_gear_unload.gr_id) ON
+                    landingSite.LandingSiteID = dbo_LC_FG_sample_day.land_ctr_id) ON
+                    Municipalities.MunNo = landingSite.Municipality) ON
+                    nsapRegion.Code = Provinces.NSAPRegion
+                WHERE (((dbo_vessel_unload_1.Tracked)=True))
+                ORDER BY fma.FMAName, 
+                    fishingGround.FishingGroundName, 
+                    [LandingSiteName] & ', ' & [Municipalities.Municipality] & ', ' & [ProvinceName],
+                    dbo_LC_FG_sample_day.land_ctr_text, 
+                    dbo_LC_FG_sample_day.sdate, 
+                    gear.GearName";
 
                     var adapter = new OleDbDataAdapter(query, conection);
                     adapter.Fill(dt);
@@ -578,7 +571,7 @@ namespace NSAP_ODK.Entities.Database
                     cmd.Parameters.Add("@Unload_id", OleDbType.Integer).Value = item.PK;
 
 
-                    cmd.CommandText = $@"UPDATE dbo_vessel_unload set
+                    cmd.CommandText = @"UPDATE dbo_vessel_unload set
                         unload_gr_id = @Unload_Gear_id,
                         boat_id = @Boat_ID, 
                         boat_text = @Boat_text, 

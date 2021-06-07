@@ -787,16 +787,20 @@ namespace NSAP_ODK.Views
                             Code = _oldIdentifier,
                             AssignedName = _oldName,
                             Brand = g.Brand,
-                            Model = g.Model
+                            Model = g.Model,
+                            DeviceType = g.DeviceType
                         };
                     }
+
+                    PropertyGrid.SelectedObject = gps;
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Code", DisplayName = "Code", DisplayOrder = 1, Description = "Code of gear. Must be made of 3 characters. Cannot be changed once sved" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "AssignedName", DisplayName = "Assigned name", DisplayOrder = 2, Description = "Assigned name of GPS" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Brand", DisplayName = "GPS brand", DisplayOrder = 3, Description = "Brand name of GPS" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Model", DisplayName = "Name of model", DisplayOrder = 4, Description = "Model name of GPS" });
+                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Model", DisplayName = "Name of model", DisplayOrder = 5, Description = "Model name of GPS" });
 
-
-                    PropertyGrid.SelectedObject = gps;
+                    PropertyDefinition prp = new PropertyDefinition { Name = "DeviceType", DisplayName = "Device type", DisplayOrder = 6, Description = "Type of device" };
+                    PropertyGrid.PropertyDefinitions.Add(prp);
 
                     if (!_isNew)
                     {

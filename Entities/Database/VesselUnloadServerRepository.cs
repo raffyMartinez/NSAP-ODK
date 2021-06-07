@@ -743,6 +743,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
     public class VesselLanding
     {
+        private string _gps2;
         private static int _pk;
         private int _rowid;
         private bool? _isSaved;
@@ -866,7 +867,18 @@ namespace NSAP_ODK.Entities.Database.FromJson
             }
         }
 
-
+        [JsonProperty("vessel_sampling/gps2")]
+        public string GPS2 {
+            get {return _gps2; }
+            set 
+            {
+                _gps2 = value ; 
+                if(_gps2.Length>0)
+                {
+                    IncludeTracking = true;
+                }
+            } 
+        }
 
         [JsonProperty("vessel_sampling/sampling_date")]
         public DateTime SamplingDate { get; set; }
@@ -1045,7 +1057,19 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
         [JsonProperty("soak_time_group/soaktime_tracking_group/gps")]
         public string GPSCode { get; set; }
-        public GPS GPS { get { return NSAPEntities.GPSViewModel.GetGPS(GPSCode); } }
+        public GPS GPS { 
+            get 
+            {
+                if (GPS2 != null)
+                {
+                    return NSAPEntities.GPSViewModel.GetGPS(GPS2);
+                }
+                else
+                {
+                    return NSAPEntities.GPSViewModel.GetGPS(GPSCode);
+                }
+            } 
+        }
         [JsonProperty("soak_time_group/soaktime_tracking_group/time_depart_landingsite")]
         public DateTime? TimeDepartLandingSite { get; set; }
         [JsonProperty("soak_time_group/soaktime_tracking_group/time_arrive_landingsite")]
@@ -1592,6 +1616,17 @@ namespace NSAP_ODK.Entities.Database.FromJson
                         NSAPEntities.GearUnloadViewModel.AddRecordToRepo(gu);
                     }
 
+                    var gpscode = "";
+                    if(landing.GPS2!=null)
+                    {
+                        gpscode = landing.GPS2;
+                    }
+                    else
+                    {
+                        gpscode = landing.GPSCode;
+                    }
+
+
                     VesselUnload vu = new VesselUnload
                     {
                         PK = landing.PK,
@@ -1615,7 +1650,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                         DeviceID = landing.device_id,
                         DateTimeSubmitted = landing._submission_time,
                         FormVersion = landing.intronote,
-                        GPSCode = landing.GPSCode,
+                        GPSCode = gpscode,
                         SamplingDate = landing.SamplingDate,
                         Notes = landing.Remarks,
                         NSAPEnumeratorID = landing.NSAPEnumerator == null ? null : (int?)landing.NSAPEnumerator.ID,

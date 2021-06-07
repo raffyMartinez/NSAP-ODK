@@ -660,7 +660,31 @@ namespace NSAP_ODK.Views
 
                         progressBar.Maximum = _countForReplacement;
                         replacementWindow.FillSelection();
-                        replacementWindow.ShowDialog();
+                        if (!(bool)replacementWindow.ShowDialog())
+                        {
+                            foreach (var item in dataGrid.Items)
+                            {
+                                switch (NSAPEntity)
+                                {
+                                    case NSAPEntity.FishingVessel:
+                                        ((OrphanedFishingVessel)item).ForReplacement = false;
+                                        break;
+                                    case NSAPEntity.SpeciesName:
+                                        ((OrphanedSpeciesName)item).ForReplacement = false;
+                                        break;
+                                    case NSAPEntity.LandingSite:
+                                        ((OrphanedLandingSite)item).ForReplacement = false;
+                                        break;
+                                    case NSAPEntity.FishingGear:
+                                        ((OrphanedFishingGear)item).ForReplacement = false;
+                                        break;
+                                    case NSAPEntity.Enumerator:
+                                        ((OrphanedEnumerator)item).ForReplacement = false;
+                                        break;
+                                }
+                            }
+                        }
+                        dataGrid.Items.Refresh();
                     }
                     else
                     {
