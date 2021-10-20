@@ -10,8 +10,11 @@ namespace NSAP_ODK.Utilities
 {
     public class Settings
     {
+        public static int DefaultCutoffUndesizedCW = 11;
         public string MDBPath { get; set; }
         public string JSONFolder { get; set; }
+
+        public int? CutOFFUndersizedCW { get; set; }
         //public List<string> Setting2 { get; set; }
 
         public void Save(string filename)

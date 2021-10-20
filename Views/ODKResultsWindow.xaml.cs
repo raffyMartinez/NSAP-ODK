@@ -704,7 +704,8 @@ namespace NSAP_ODK.Views
 
                     col = new DataGridTextColumn()
                     {
-                        Binding = new Binding("TimeDepartLandingSite"),
+                        //Binding = new Binding("TimeDepartLandingSite"),
+                        Binding = new Binding("DateTimeDepartLandingSite"),
                         Header = "Departure from landing site"
                     };
                     col.Binding.StringFormat = "MMM-dd-yyyy HH:mm";
@@ -712,7 +713,7 @@ namespace NSAP_ODK.Views
 
                     col = new DataGridTextColumn()
                     {
-                        Binding = new Binding("TimeArriveLandingSite"),
+                        Binding = new Binding("DateTimeArriveLandingSite"),
                         Header = "Arrival at landing site"
                     };
                     col.Binding.StringFormat = "MMM-dd-yyyy HH:mm";

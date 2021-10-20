@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NSAP_ODK.Views"
         mc:Ignorable="d"
-        Title="Settings window" Height="222.078" Width="800" WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+        Title="Settings window" Height="173.278" Width="776" WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="40"/>
@@ -14,24 +14,29 @@
 
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
-            <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="70"/>
         </Grid.ColumnDefinitions>
         <Label Content="NSAP-ODK Database Settings" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="14" FontWeight="Bold"/>
         <StackPanel Grid.Row="1" Grid.Column="0">
-            <WrapPanel Margin="10 10">
-                <Label Content="Backend database" Width="140" HorizontalContentAlignment="Right"/>
+            <WrapPanel Margin="10 2">
+                <Label Content="Backend database" Width="180" HorizontalContentAlignment="Right"/>
                 <TextBox x:Name="textBackenDB" Width="400" Margin="10 0" IsReadOnly="True"/>
-                <Button x:Name="buttonLocateBackendDB" Content="Locate" Click="OnButtonClick" Width="80" Height="25"/>
+                <Button x:Name="buttonLocateBackendDB" Content="Locate" Click="OnButtonClick" Width="50" Height="25"/>
             </WrapPanel>
-            <WrapPanel Margin="10 10">
-                <Label Content="Saved JSON files folder" Width="140" HorizontalContentAlignment="Right"/>
+            <WrapPanel Margin="10 2">
+                <Label Content="Saved JSON files folder" Width="180" HorizontalContentAlignment="Right"/>
                 <TextBox x:Name="textJsonFolder" Width="400" Margin="10 0" IsReadOnly="True"/>
-                <Button x:Name="buttonLocateJsonFolder" Content="Locate" Click="OnButtonClick" Width="80" Height="25"/>
+                <Button x:Name="buttonLocateJsonFolder" Content="Locate" Click="OnButtonClick" Width="50" Height="25"/>
+            </WrapPanel>
+            <WrapPanel Margin="10 2">
+                <Label Content="Cut-off CW for undersized crabs" Width="180" HorizontalContentAlignment="Right"/>
+                <TextBox x:Name="textCutoffWidth" Width="60" Margin="10 0" HorizontalContentAlignment="Right"/>
+
             </WrapPanel>
         </StackPanel>
         <StackPanel Grid.Row="1" Grid.Column="1">
-            <Button Content="Ok" Width="70" Height="25" x:Name="buttonOk" Click="OnButtonClick" Margin="0 10"/>
-            <Button Content="Cancel" Width="70" Height="25" x:Name="buttonCancel" Click="OnButtonClick" Margin="0 10"/>
+            <Button Content="Ok" Width="50" Height="25" x:Name="buttonOk" Click="OnButtonClick" Margin="0 2"/>
+            <Button Content="Cancel" Width="50" Height="25" x:Name="buttonCancel" Click="OnButtonClick" Margin="0 2"/>
         </StackPanel>
     </Grid>
 </Window>

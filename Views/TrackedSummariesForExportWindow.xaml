@@ -1,0 +1,36 @@
+﻿<Window x:Class="NSAP_ODK.Views.TrackedSummariesForExportWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NSAP_ODK.Views"
+        mc:Ignorable="d"
+        Title="Export tracked landings" Height="244.688" Width="378.677" ResizeMode="NoResize">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="60" x:Name="rowStatus"/>
+        </Grid.RowDefinitions>
+        <Label Content="Export tracked fish landings summary to Excel" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+        <WrapPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Left">
+            <Label Content="Cut-off length for undersized Carapace Width" Margin="20 0"/>
+            <TextBox Width="50" Height="25" x:Name="textCutoffCW" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"/>
+        </WrapPanel>
+        <WrapPanel Grid.Row="2" HorizontalAlignment="left" VerticalAlignment="Center">
+            <Label Content="Add xy coordinate to tracked data" Margin="20 0"/>
+            <CheckBox x:Name="checkAddXY" VerticalAlignment="Center" Margin=" 63 0 0 0"/>
+        </WrapPanel>
+        <WrapPanel Grid.Row="3" HorizontalAlignment="Right" VerticalAlignment="Center">
+            <Button Content="Cancel" Height="25" Width="50" Margin="5 0" Click="Button_Click"/>
+            <Button Content="Export" Height="25" Width="50" Margin="5 0" Click="Button_Click" x:Name="buttonExport"/>
+            <Button Content="Ok" Height="25" Width="50" Margin=" 5 0 10 0" Click="Button_Click" x:Name="buttonOk"/>
+        </WrapPanel>
+        <StackPanel Grid.Row="4">
+            <Label Content="This is the label for counting" HorizontalAlignment="Center" VerticalAlignment="Center" x:Name="labelCounter"/>
+            <ProgressBar Width="200" Height="15" x:Name="progressBarSummary"/>
+        </StackPanel>
+    </Grid>
+</Window>

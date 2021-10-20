@@ -2029,10 +2029,10 @@ namespace NSAP_ODK.Views
                     break;
 
                 case "EffortSpecifiers":
-                    LabelBottom.Content = $"List of effort specifiers for {NSAPEntities.GearViewModel.CurrentEntity}";
                     rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
                     rowBottomLabel.Height = new GridLength(40);
                     SetUpSubForm();
+                    //LabelBottom.Content = $"List of effort specifiers for {NSAPEntities.GearViewModel.CurrentEntity}";
                     break;
 
                 case "LandingSiteCount":
@@ -2094,9 +2094,15 @@ namespace NSAP_ODK.Views
 
                 case "EffortSpecifiers":
                     Gear gear = NSAPEntities.GearViewModel.GetGear(_entityID);
-                    if (gear.GearEffortSpecificationViewModel != null)
+                    if(gear.GearEffortSpecificationViewModel.Count==0)
+                    {
+                        sfDataGrid.ItemsSource = gear.BaseGear.GearEffortSpecificationViewModel.GearEffortSpecificationCollection.OrderBy(t => t.EffortSpecification.Name);
+                        LabelBottom.Content = $"List of effort specifiers (from base gear) for {NSAPEntities.GearViewModel.CurrentEntity}";
+                    }
+                    else if (gear.GearEffortSpecificationViewModel != null)
                     {
                         sfDataGrid.ItemsSource = gear.GearEffortSpecificationViewModel.GearEffortSpecificationCollection.OrderBy(t => t.EffortSpecification.Name);
+                        LabelBottom.Content = $"List of effort specifiers for {NSAPEntities.GearViewModel.CurrentEntity}";
                     }
                     break;
 

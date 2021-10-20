@@ -880,6 +880,12 @@ namespace NSAP_ODK.Entities.Database.FromJson
             } 
         }
 
+        [JsonProperty("vessel_sampling/time_depart_landingsite")]
+        public DateTime? DateTimeDepartLandingSite { get; set; }
+
+        [JsonProperty("vessel_sampling/time_arrive_landingsite")]
+        public DateTime? DateTimeArriveLandingSite { get; set; }
+
         [JsonProperty("vessel_sampling/sampling_date")]
         public DateTime SamplingDate { get; set; }
         [JsonProperty("vessel_sampling/nsap_region")]
@@ -1643,8 +1649,8 @@ namespace NSAP_ODK.Entities.Database.FromJson
                         RaisingFactor = landing.RaisingFactor,
                         OperationIsSuccessful = landing.TripIsSuccess,
                         OperationIsTracked = landing.IncludeTracking,
-                        DepartureFromLandingSite = landing.TimeDepartLandingSite,
-                        ArrivalAtLandingSite = landing.TimeArriveLandingSite,
+                        DepartureFromLandingSite = landing.DateTimeDepartLandingSite,
+                        ArrivalAtLandingSite = landing.DateTimeArriveLandingSite,
                         ODKRowID = landing._uuid,
                         UserName = landing.user_name,
                         DeviceID = landing.device_id,

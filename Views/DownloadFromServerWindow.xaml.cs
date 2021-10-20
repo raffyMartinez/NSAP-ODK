@@ -56,6 +56,7 @@ namespace NSAP_ODK.Views
         private DispatcherTimer _timer;
         private FormSummary _formSummary;
         private int _count;
+        private string _token;
         public DownloadFromServerWindow(ODKResultsWindow parentWindow)
         {
             InitializeComponent();
@@ -144,7 +145,8 @@ namespace NSAP_ODK.Views
                                 using (var request = new HttpRequestMessage(new HttpMethod("DELETE"), api_call))
                                 {
                                     var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_user}:{_password}"));
-                                    request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
+                                    //request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
+                                   request.Headers.TryAddWithoutValidation("Authorization", $"Token {_token}");
                                     try
                                     {
                                         var response = await httpClient.SendAsync(request);
@@ -256,6 +258,7 @@ namespace NSAP_ODK.Views
                     }
                     break;
                 case "buttonReplace":
+                    _metadataFilesForReplacement.Clear();
                     foreach (Metadata metadata in dataGrid.Items)
                     {
                         if (metadata.replace)
@@ -533,6 +536,34 @@ namespace NSAP_ODK.Views
                     using (var httpClient = new HttpClient())
                     {
                         ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ContactingServer });
+
+                        var token_call = "https://kf.kobotoolbox.org/token/?format=json";
+                        using (var token_request = new HttpRequestMessage(new HttpMethod("GET"), token_call))
+                        {
+                            var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{TextBoxUserName.Text}:{TextBoxPassword.Password}"));
+                            token_request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
+                            try
+                            {
+                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData });
+                                var response = await httpClient.SendAsync(token_request);
+                                var bytes = await response.Content.ReadAsByteArrayAsync();
+                                Encoding encoding = Encoding.GetEncoding("utf-8");
+                                string the_response = encoding.GetString(bytes, 0, bytes.Length);
+                                var arr = the_response.Trim('}').Split(':');
+                                _token = arr[1].Trim('"');
+                            }
+                            catch (HttpRequestException)
+                            {
+                                MessageBox.Show("Request time out\r\nYou may try again");
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Log(ex);
+                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.StoppedDueToError });
+                            }
+                        }
+
+
                         api_call = "https://kc.kobotoolbox.org/api/v1/forms?format=json";
                         using (var request = new HttpRequestMessage(new HttpMethod("GET"), api_call))
                         {
@@ -559,7 +590,8 @@ namespace NSAP_ODK.Views
                                     TextBoxUserName.Text = "";
                                     TextBoxPassword.Clear();
                                     ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.GotJSONString, JSONString = the_response });
-                                    _koboForms = KoboForms.MakeFormObjects(JsonConvert.DeserializeObject<JArray>(the_response));
+                                    //_koboForms = KoboForms.MakeFormObjects(JsonConvert.DeserializeObject<JArray>(the_response));
+                                    _koboForms = KoboForms.MakeFormObjects(the_response);
                                     AddFormIDToTree();
                                     ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
 
@@ -803,7 +835,7 @@ namespace NSAP_ODK.Views
                     case "form_download":
 
                         _formID = ((TreeViewItem)treeViewItem.Parent).Header.ToString();
-                         _formSummary = new FormSummary(_koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)));
+                        _formSummary = new FormSummary(_koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)));
                         _description = new FormSummary(_koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID))).Description;
                         _count = new FormSummary(_koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID))).NumberOfSubmissions;
                         SetODKServerDownloadType();

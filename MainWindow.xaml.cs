@@ -1499,6 +1499,7 @@ namespace NSAP_ODK
 
             switch (itemName)
             {
+
                 case "menuExportExcelMaturity":
                     ExportNSAPWithMaturityToExcel();
                     break;
@@ -1522,6 +1523,9 @@ namespace NSAP_ODK
                             NSAPEntities.GearViewModel.Serialize(sfd.FileName);
                         }
                     }
+                    break;
+                case "menuTrackedLandingSummay":
+
                     break;
                 case "menuLocateDatabase":
 
@@ -1547,7 +1551,9 @@ namespace NSAP_ODK
                     SetDataDisplayMode();
                     break;
                 case "menuExportExcelTracked":
-                    ExportNSAPToExcel(tracked: true);
+                    //ExportNSAPToExcel(tracked: true);
+                    TrackedSummariesForExportWindow tws = new TrackedSummariesForExportWindow();
+                    tws.ShowDialog();
                     break;
                 case "menuExportExcel":
                     ExportNSAPToExcel();
@@ -1751,6 +1757,9 @@ namespace NSAP_ODK
 
                                     break;
                                 case "downloadDate":
+                                    unload = (VesselUnload)GridNSAPData.SelectedItem;
+                                    break;
+                                case "tracked":
                                     unload = (VesselUnload)GridNSAPData.SelectedItem;
                                     break;
                                 default:
@@ -2172,6 +2181,7 @@ namespace NSAP_ODK
                             dt = DateTime.Parse(((TreeViewItem)tvItem.Parent).Header.ToString()).Date;
                             GridNSAPData.DataContext = _vesselDownloadHistory[dt].Where(t => t.OperationIsTracked == true);
                         }
+                        //labelRowCount.Content = $"Rows: {GridNSAPData.Items.Count}";
                         GridNSAPData.AutoGenerateColumns = false;
                         GridNSAPData.Columns.Clear();
                         GridNSAPData.SelectionUnit = DataGridSelectionUnit.FullRow;
@@ -2282,6 +2292,7 @@ namespace NSAP_ODK
 
 
                 MonthSubLabel.Content = $" All items listed were downloaded on {dt.ToString("MMM-dd-yyyy")}";
+                labelRowCount.Content = $"Rows: {GridNSAPData.Items.Count}";
             }
         }
 

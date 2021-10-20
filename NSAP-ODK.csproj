@@ -172,11 +172,17 @@
     <Compile Include="Entities\Database\JSONFileViewModel.cs" />
     <Compile Include="Entities\Database\LandingSiteBoatLandingsFromServerRepository.cs" />
     <Compile Include="Entities\Database\GearUnloadViewModel.cs" />
+    <Compile Include="Entities\Database\LandingWithMaturityData.cs" />
+    <Compile Include="Entities\Database\LandingsWithMaturityDataViewModel.cs" />
     <Compile Include="Entities\Database\OrphanedFishingVessel.cs" />
     <Compile Include="Entities\Database\SpeciesName_Weight.cs" />
     <Compile Include="Entities\Database\SpeciesTextToSpeciesConvert.cs" />
+    <Compile Include="Entities\Database\TrackedLandingCentroid.cs" />
+    <Compile Include="Entities\Database\TrackedLandingCentroidViewModel.cs" />
+    <Compile Include="Entities\Database\TrackedOperationSummary.cs" />
     <Compile Include="Entities\Database\UnloadChildrenSummary.cs" />
     <Compile Include="Entities\Database\UnloadWithMaturityDatasetManager.cs" />
+    <Compile Include="Entities\Database\TrackedVesselUnloadSummary.cs" />
     <Compile Include="Entities\FishSpeciesForCSV.cs" />
     <Compile Include="Entities\ItemSources\DeviceTypeItemsSource.cs" />
     <Compile Include="Entities\ItemSources\FishingGroundInRegionFMAItemsSource.cs" />
@@ -232,6 +238,8 @@
     <Compile Include="Entities\ItemSources\RegionLandingSiteItemsSource.cs" />
     <Compile Include="Entities\ItemSources\SectorTypeItemsSource.cs" />
     <Compile Include="Entities\SerializeGear.cs" />
+    <Compile Include="Entities\Database\TrackedOperationSummaryEventArgs.cs" />
+    <Compile Include="Entities\Database\TrackedOperationSummaryViewModel.cs" />
     <Compile Include="ISO_Classes\Coordinate.cs" />
     <Compile Include="Entities\DateTimePickerEditor.cs" />
     <Compile Include="Entities\EffortSpecification.cs" />
@@ -403,6 +411,9 @@
     <Compile Include="Views\SplashWindow.xaml.cs">
       <DependentUpon>SplashWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\TrackedSummariesForExportWindow.xaml.cs">
+      <DependentUpon>TrackedSummariesForExportWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\VesselUnloadEditWindow.xaml.cs">
       <DependentUpon>VesselUnloadEditWindow.xaml</DependentUpon>
     </Compile>
@@ -505,6 +516,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\SplashWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TrackedSummariesForExportWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

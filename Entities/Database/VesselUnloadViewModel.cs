@@ -22,6 +22,10 @@ namespace NSAP_ODK.Entities.Database
         //    }
         //}
 
+        public bool HasBSCInCatchComposition(VesselUnload vu)
+        {
+            return vu.ListVesselCatch.Where(t => t.CatchName == "Portunus pelagicus").FirstOrDefault() != null;
+        }
         public List<DateTime> MonthsSampledByEnumerator(NSAPEnumerator enumerator)
         {
             List<DateTime> list = new List<DateTime>();

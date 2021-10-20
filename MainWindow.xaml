@@ -103,7 +103,8 @@
                 <MenuItem Header="Download history" x:Name="menuDownloadHistory" Click="OnMenuClicked"/>
                 <MenuItem Header="Export" x:Name="menuNSAPDataExport" >
                     <MenuItem Header="Export to Excel" x:Name="menuExportExcel" Click="OnMenuClicked"/>
-                    <MenuItem Header="Export tracked landings to Excel" x:Name="menuExportExcelTracked" Click="OnMenuClicked"/>
+                    <MenuItem Header="Export tracked landings summary to Excel" x:Name="menuExportExcelTracked" Click="OnMenuClicked"/>
+                    <!--<MenuItem Header="Tracked landing summary sheet" x:Name="menuTrackedLandingSummay" Click="OnMenuClicked"/>-->
                 </MenuItem>
                 <Separator />
                 <MenuItem Header="Import GPX" x:Name="menuImportGPX" Click="OnMenuClicked"/>
@@ -183,7 +184,7 @@
                 <ColumnDefinition Width="8*"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="75"/>
+                <RowDefinition Height="100"/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
 
@@ -195,7 +196,10 @@
                     <RowDefinition/>
                 </Grid.RowDefinitions>
                 <Label x:Name="MonthLabel" Content="MonthLabel"  HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18" FontWeight="Bold"/>
-                <Label x:Name="MonthSubLabel" Grid.Row="1" Foreground="Gray"  Content="This is a sublabel"  HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12" />
+                <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Top">
+                    <Label x:Name="MonthSubLabel" Foreground="Gray"  Content="This is a sublabel"  HorizontalAlignment="Center" FontSize="12" />
+                    <Label x:Name="labelRowCount" Content="Rows: 100" HorizontalAlignment="Center"/>
+                </StackPanel>
             </Grid>
 
             <treeViewControl:TreeControl Grid.Column="0" Grid.RowSpan="2" x:Name="samplingTree" 

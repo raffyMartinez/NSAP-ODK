@@ -80,7 +80,7 @@ namespace NSAP_ODK.Entities
         {
             get
             {
-                if (NameInOldFishbase.Length>0 && NameInOldFishbase!=ToString())
+                if (NameInOldFishbase !=null &&  NameInOldFishbase.Length>0 && NameInOldFishbase!=ToString())
                 {
                     return NameInOldFishbase;
                 }

@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
 using NSAP_ODK.Utilities;
+using Newtonsoft.Json;
 
 public enum KoboFormType
 {
@@ -82,7 +83,8 @@ namespace NSAP_ODK.Entities
         {
             get
             {
-                return metadata.Where(t => t.file_hash.Length > 0 && t.data_value.Contains("csv")).ToList();
+                return metadata.Where(t => t.data_file_type == @"text/csv").ToList();
+                //return metadata.Where(t => t.file_hash.Length > 0 && t.data_value.Contains("csv")).ToList();
             }
         }
         public List<Metadata> metadata { get; set; }
@@ -319,6 +321,8 @@ namespace NSAP_ODK.Entities
             }
             return thisList;
         }
+
+        public static List<KoboForm> FormsFromJSON{ get; internal set; }
         public static string GetPath(string path)
         {
             const string PunctuationChars = "[]'.";
@@ -361,7 +365,13 @@ namespace NSAP_ODK.Entities
             }
             return path.Replace("/", "__");
         }
-        public static List<KoboForm> MakeFormObjects(JArray root)
+
+        public static List<KoboForm> MakeFormObjects(string json)
+        {
+            FormsFromJSON = JsonConvert.DeserializeObject<List<KoboForm>>(json);
+            return FormsFromJSON;
+        }
+        public static List<KoboForm> MakeFormObjects1(JArray root)
         {
             var thisList = new List<KoboForm>();
 

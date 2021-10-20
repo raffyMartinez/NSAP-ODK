@@ -19,6 +19,8 @@ namespace NSAP_ODK.Entities
         public int ID { get; set; }
 
         public string Name { get; set; }
+
+        
         public bool IsForAllTypesFishing { get; set; }
 
         [ItemsSource(typeof(EffortValueTypeItemsSource))]

@@ -314,142 +314,142 @@ namespace NSAP_ODK.Utilities
 
             try
             {
-                FileStream fs = new FileStream(_excelFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                var nameParts = Path.GetFileName(_excelFileName).Split('_');
-                string time = "";
-                string workBookName = nameParts[0];
-                DateTime? fileTime = null;
-                if (nameParts.Length > 4)
+                using (FileStream fs = new FileStream(_excelFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
-                    time = $"{nameParts[2]}/{nameParts[3]}/{nameParts[1]} {nameParts[4]}:{ nameParts[5]}";
-                }
-                else if(nameParts.Length==1)
-                {
-
-                }
-                else
-                {
-                    var daySplit = nameParts[3].Split('.');
-                    time = $"{nameParts[2]}/{daySplit[0]}/{nameParts[1]}";
-                }
-                if (time.Length > 0)
-                {
-                    fileTime = DateTime.Parse(time);
-                }
-                // Try to read workbook as XLSX:
-                try
-                {
-                    _wkBook = new XSSFWorkbook(fs);
-                }
-                catch
-                {
-                    _wkBook = null;
-                }
-
-                // If reading fails, try to read workbook as XLS:
-                if (_wkBook == null)
-                {
-                    _wkBook = new HSSFWorkbook(fs);
-                }
-
-                if(_wkBook.NumberOfSheets>1)
-                {
-                    ExcelSheets = new Dictionary<int, string>(_wkBook.NumberOfSheets);
-                    var importer = new Mapper(_wkBook);
-                    ExcelMainSheets = new List<ExcelMainSheet>();
-                    for (int n = 0; n < _wkBook.NumberOfSheets; n++)
+                    var nameParts = Path.GetFileName(_excelFileName).Split('_');
+                    string time = "";
+                    string workBookName = nameParts[0];
+                    DateTime? fileTime = null;
+                    if (nameParts.Length > 4)
                     {
-                        ExcelSheets.Add(n, _wkBook.GetSheetAt(n).SheetName);
-                        var sheetName = ExcelSheets[n];
+                        time = $"{nameParts[2]}/{nameParts[3]}/{nameParts[1]} {nameParts[4]}:{ nameParts[5]}";
+                    }
+                    else if (nameParts.Length == 1)
+                    {
 
+                    }
+                    else
+                    {
+                        var daySplit = nameParts[3].Split('.');
+                        time = $"{nameParts[2]}/{daySplit[0]}/{nameParts[1]}";
+                    }
+                    if (time.Length > 0)
+                    {
+                        fileTime = DateTime.Parse(time);
+                    }
+                    // Try to read workbook as XLSX:
+                    try
+                    {
+                        _wkBook = new XSSFWorkbook(fs);
+                    }
+                    catch
+                    {
+                        _wkBook = null;
+                    }
 
+                    // If reading fails, try to read workbook as XLS:
+                    if (_wkBook == null)
+                    {
+                        _wkBook = new HSSFWorkbook(fs);
+                    }
 
-                        if (sheetName == workBookName)
+                    if (_wkBook.NumberOfSheets > 1)
+                    {
+                        ExcelSheets = new Dictionary<int, string>(_wkBook.NumberOfSheets);
+                        var importer = new Mapper(_wkBook);
+                        ExcelMainSheets = new List<ExcelMainSheet>();
+                        for (int n = 0; n < _wkBook.NumberOfSheets; n++)
                         {
-                            var items = importer.Take<ExcelMainSheet>(n);
-                            foreach (var item in items.OrderByDescending(t=>t.Value.DateTimeSubmitted))
+                            ExcelSheets.Add(n, _wkBook.GetSheetAt(n).SheetName);
+                            var sheetName = ExcelSheets[n];
+
+                            if (sheetName == workBookName)
                             {
-                                var row = item.Value;
-                                row.XFormIdentifier = sheetName;
-                                if (fileTime != null)
+                                var items = importer.Take<ExcelMainSheet>(n);
+                                foreach (var item in items.OrderByDescending(t => t.Value.DateTimeSubmitted))
                                 {
-                                    row.XFormDate = (DateTime)fileTime;
+                                    var row = item.Value;
+                                    row.XFormIdentifier = sheetName;
+                                    if (fileTime != null)
+                                    {
+                                        row.XFormDate = (DateTime)fileTime;
+                                    }
+                                    ExcelMainSheets.Add(row);
                                 }
-                                ExcelMainSheets.Add(row);
                             }
-                        }
-                        else
-                        {
-                            switch(sheetName)
+                            else
                             {
-                                case "grid_coord_group_bingo_repeat":
-                                    ExcelBingoGroups = new List<ExcelBingoGroup>();
-                                    foreach (var item in importer.Take<ExcelBingoGroup>(n))
-                                    {
-                                        var row = item.Value;
-                                        ExcelBingoGroups.Add(row);
-                                    }
-                                    break;
-                                case "soak_time_group_soaktime_tracki":
-                                    ExcelSoakTimes = new List<ExcelSoakTime>();
-                                    foreach (var item in importer.Take<ExcelSoakTime>(n))
-                                    {
-                                        var row = item.Value;
-                                        ExcelSoakTimes.Add(row);
-                                    }
-                                    break;
-                                case "efforts_group_effort_repeat":
-                                    ExcelEffortRepeats = new List<ExcelEffortRepeat>();
-                                    foreach (var item in importer.Take<ExcelEffortRepeat>(n))
-                                    {
-                                        var row = item.Value;
-                                        ExcelEffortRepeats.Add(row);
-                                    }
-                                    break;
-                                case "catch_comp_group_catch_composit":
-                                    ExcelCatchCompositions = new List<ExcelCatchComposition>();
-                                    foreach (var item in importer.Take<ExcelCatchComposition>(n))
-                                    {
-                                        var row = item.Value;
-                                        ExcelCatchCompositions.Add(row);
-                                    }
-                                    break;
-                                case  "catch_comp_group_catch_composi1":
-                                    ExcelLengthLists = new List<ExcelLengthList>();
-                                    foreach (var item in importer.Take<ExcelLengthList>(n))
-                                    {
-                                        var row = item.Value;
-                                        ExcelLengthLists.Add(row);
-                                    }
-                                    break;
-                                case "catch_comp_group_catch_composi2":
-                                    ExcelLengthWeights = new List<ExcelLengthWeight>();
-                                    foreach (var item in importer.Take<ExcelLengthWeight>(n))
-                                    {
-                                        var row = item.Value;
-                                        ExcelLengthWeights.Add(row);
-                                    }
-                                    break;
-                                case "catch_comp_group_catch_composi3":
-                                    ExcelLenFreqs = new List<ExcelLenFreq>();
-                                    foreach (var item in importer.Take<ExcelLenFreq>(n))
-                                    {
-                                        var row = item.Value;
-                                        ExcelLenFreqs.Add(row);
-                                    }
-                                    break;
-                                case "catch_comp_group_catch_composi4":
-                                    ExcelGMSes = new List<ExcelGMS>();
-                                    foreach (var item in importer.Take<ExcelGMS>(n))
-                                    {
-                                        var row = item.Value;
-                                        ExcelGMSes.Add(row);
-                                    }
-                                    break;
+                                switch (sheetName)
+                                {
+                                    case "grid_coord_group_bingo_repeat":
+                                        ExcelBingoGroups = new List<ExcelBingoGroup>();
+                                        foreach (var item in importer.Take<ExcelBingoGroup>(n))
+                                        {
+                                            var row = item.Value;
+                                            ExcelBingoGroups.Add(row);
+                                        }
+                                        break;
+                                    case "soak_time_group_soaktime_tracki":
+                                        ExcelSoakTimes = new List<ExcelSoakTime>();
+                                        foreach (var item in importer.Take<ExcelSoakTime>(n))
+                                        {
+                                            var row = item.Value;
+                                            ExcelSoakTimes.Add(row);
+                                        }
+                                        break;
+                                    case "efforts_group_effort_repeat":
+                                        ExcelEffortRepeats = new List<ExcelEffortRepeat>();
+                                        foreach (var item in importer.Take<ExcelEffortRepeat>(n))
+                                        {
+                                            var row = item.Value;
+                                            ExcelEffortRepeats.Add(row);
+                                        }
+                                        break;
+                                    case "catch_comp_group_catch_composit":
+                                        ExcelCatchCompositions = new List<ExcelCatchComposition>();
+                                        foreach (var item in importer.Take<ExcelCatchComposition>(n))
+                                        {
+                                            var row = item.Value;
+                                            ExcelCatchCompositions.Add(row);
+                                        }
+                                        break;
+                                    case "catch_comp_group_catch_composi1":
+                                        ExcelLengthLists = new List<ExcelLengthList>();
+                                        foreach (var item in importer.Take<ExcelLengthList>(n))
+                                        {
+                                            var row = item.Value;
+                                            ExcelLengthLists.Add(row);
+                                        }
+                                        break;
+                                    case "catch_comp_group_catch_composi2":
+                                        ExcelLengthWeights = new List<ExcelLengthWeight>();
+                                        foreach (var item in importer.Take<ExcelLengthWeight>(n))
+                                        {
+                                            var row = item.Value;
+                                            ExcelLengthWeights.Add(row);
+                                        }
+                                        break;
+                                    case "catch_comp_group_catch_composi3":
+                                        ExcelLenFreqs = new List<ExcelLenFreq>();
+                                        foreach (var item in importer.Take<ExcelLenFreq>(n))
+                                        {
+                                            var row = item.Value;
+                                            ExcelLenFreqs.Add(row);
+                                        }
+                                        break;
+                                    case "catch_comp_group_catch_composi4":
+                                        ExcelGMSes = new List<ExcelGMS>();
+                                        foreach (var item in importer.Take<ExcelGMS>(n))
+                                        {
+                                            var row = item.Value;
+                                            ExcelGMSes.Add(row);
+                                        }
+                                        break;
+                                }
                             }
+
+
                         }
-
-
                     }
                 }
             }

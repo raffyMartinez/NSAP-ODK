@@ -514,6 +514,23 @@ namespace NSAP_ODK.Entities.Database
         public int? NSAPRegionEnumeratorID { get; set; }
         public string EnumeratorText { get; set; }
 
+
+        public bool HasBSCInCatchComposition()
+        {
+            if(ListVesselCatch==null)
+            {
+                return false;
+            }
+            else if(ListVesselCatch.Count==0)
+            {
+                return false;
+            }
+            else
+            {
+                return ListVesselCatch.Where(t => t.CatchName == "Portunus pelagicus").FirstOrDefault() != null;
+            }
+        }
+
         public DateTime MonthSampled
         {
             get
