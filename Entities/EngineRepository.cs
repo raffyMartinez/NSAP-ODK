@@ -61,11 +61,25 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Insert into engine(EngineID, Horsepower,ManufacturerName, ModelName)
-                           Values ({en.EngineID},{en.HorsePower},'{en.ManufacturerName}','{en.ModelName}')";
+                var sql = "Insert into engine(EngineID, Horsepower,ManufacturerName, ModelName) Values (?,?,?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = en.EngineID;
+                    update.Parameters.Add("@hp", OleDbType.Double).Value = en.HorsePower;
+                    update.Parameters.Add("@manuf", OleDbType.VarChar).Value = en.ManufacturerName;
+                    update.Parameters.Add("@model", OleDbType.VarChar).Value = en.ModelName;
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch(OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch(Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
             return success;
@@ -77,14 +91,31 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Update engine set
-                                Horsepower = {en.HorsePower},
-                                ManufacturerName='{en.ManufacturerName}',
-                                ModelName = '{en.ModelName}'
-                            WHERE EngineID = {en.EngineID}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+
+                using (OleDbCommand update = conn.CreateCommand())
                 {
-                    success = update.ExecuteNonQuery() > 0;
+
+                    update.Parameters.Add("@hp", OleDbType.Double).Value = en.HorsePower;
+                    update.Parameters.Add("@manuf", OleDbType.VarChar).Value = en.ManufacturerName;
+                    update.Parameters.Add("@model", OleDbType.VarChar).Value = en.ModelName;
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = en.EngineID;
+                    update.CommandText = @"Update engine set
+                                Horsepower = @hp,
+                                ManufacturerName = @manuf,
+                                ModelName = @model
+                            WHERE EngineID = @id";
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
             return success;

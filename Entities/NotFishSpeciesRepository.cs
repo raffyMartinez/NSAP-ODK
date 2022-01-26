@@ -67,11 +67,35 @@ namespace NSAP_ODK.Entities
             {
                 conn.Open();
 
-                var sql = $@"Insert into notFishSpecies(SpeciesID, Genus, Species, Taxa, SizeIndicator, MaxSize)
-                           Values ({nfs.SpeciesID},'{nfs.Genus}','{nfs.Species}','{nfs.Taxa.Code}',{sizeType},{maxSize})";
+                var sql = @"Insert into notFishSpecies(SpeciesID, Genus, Species, Taxa, SizeIndicator, MaxSize)
+                           Values (?,?,?,?,?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = nfs.SpeciesID;
+                    update.Parameters.Add("@genus", OleDbType.VarChar).Value = nfs.Genus;
+                    update.Parameters.Add("@species", OleDbType.VarChar).Value = nfs.Species;
+                    update.Parameters.Add("@taxa", OleDbType.VarChar).Value = nfs.Taxa.Code;
+                    update.Parameters.Add("@indicator", OleDbType.VarChar).Value = nfs.SizeType.Code;
+                    if (nfs.MaxSize == null)
+                    {
+                        update.Parameters.Add("@maxsize", OleDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@maxsize", OleDbType.Double).Value = nfs.MaxSize;
+                    }
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
             return success;
@@ -83,18 +107,48 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                string sizeType = nfs.SizeType == null ? "null" : $"'{nfs.SizeType.Code}'";
-                string maxSize = nfs.MaxSize == null ? "null" : nfs.MaxSize.ToString();
-                var sql = $@"Update notFishSpecies set
-                                Genus = '{nfs.Genus}',
-                                Species='{nfs.Species}',
-                                Taxa = '{nfs.Taxa.Code}',
-                                SizeIndicator={sizeType},
-                                MaxSize = {maxSize}
-                            WHERE SpeciesID = {nfs.SpeciesID}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                using (OleDbCommand update = conn.CreateCommand())
                 {
-                    success = update.ExecuteNonQuery() > 0;
+
+                    update.Parameters.Add("@genus", OleDbType.VarChar).Value = nfs.Genus;
+                    update.Parameters.Add("@species", OleDbType.VarChar).Value = nfs.Species;
+                    update.Parameters.Add("@taxa", OleDbType.VarChar).Value = nfs.Taxa.Code;
+                    if (nfs.SizeType == null)
+                    {
+                        update.Parameters.Add("@indicator", OleDbType.VarChar).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@indicator", OleDbType.VarChar).Value = nfs.SizeType.Code;
+                    }
+                    if (nfs.MaxSize == null)
+                    {
+                        update.Parameters.Add("@maxsize", OleDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@maxsize", OleDbType.Double).Value = nfs.MaxSize;
+                    }
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = nfs.SpeciesID;
+                    update.CommandText = @"Update notFishSpecies set
+                                Genus = @genus,
+                                Species=@species,
+                                Taxa = @taxa,
+                                SizeIndicator=@indicator,
+                                MaxSize = @maxSize
+                                WHERE SpeciesID = @id";
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
             return success;

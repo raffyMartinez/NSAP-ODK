@@ -1044,6 +1044,11 @@ namespace NSAP_ODK.Views
                     var entitiesRepository = NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(nsr);
                     switch (_nsapEntity)
                     {
+                        case NSAPEntity.FishingGear:
+                            var ges = (GearEffortSpecification)sfDataGrid.SelectedItem;
+                            var g = NSAPEntities.GearViewModel.GetGear(ges.Gear.Code);
+                            g.GearEffortSpecificationViewModel.DeleteRecordFromRepo(ges);
+                            break;
                         case NSAPEntity.NSAPRegionFMAFishingGround:
                             NSAPRegionFMAFishingGround nrfg = (NSAPRegionFMAFishingGround)_nsapObject;
                             NSAPRegionFMAFishingGroundLandingSite regionLandingSite = (NSAPRegionFMAFishingGroundLandingSite)sfDataGrid.SelectedItem;
@@ -1135,13 +1140,13 @@ namespace NSAP_ODK.Views
                                 if (_isNew)
 
                                 {
-                                    NSAPEntities.GPSViewModel.AddRecordToRepo(gps);
+                                    success = NSAPEntities.GPSViewModel.AddRecordToRepo(gps);
                                 }
                                 else
                                 {
-                                    NSAPEntities.GPSViewModel.UpdateRecordInRepo(gps);
+                                    success = NSAPEntities.GPSViewModel.UpdateRecordInRepo(gps);
                                 }
-                                success = true;
+                                //success = true;
                             }
                             break;
                         case NSAPEntity.Municipality:
@@ -1176,14 +1181,13 @@ namespace NSAP_ODK.Views
                                 {
                                     if (_isNew)
                                     {
-                                        municipality.Province.Municipalities.AddRecordToRepo(municipality);
+                                       success =  municipality.Province.Municipalities.AddRecordToRepo(municipality);
                                     }
                                     else
                                     {
-                                        municipality.Province.Municipalities.UpdateRecordInRepo(municipality);
+                                        success =  municipality.Province.Municipalities.UpdateRecordInRepo(municipality);
                                     }
-                                    success = true;
-                                }
+                                                                    }
                             }
                             break;
 
@@ -1209,13 +1213,13 @@ namespace NSAP_ODK.Views
                                 {
                                     if (_isNew)
                                     {
-                                        NSAPEntities.ProvinceViewModel.AddRecordToRepo (province);
+                                        success =  NSAPEntities.ProvinceViewModel.AddRecordToRepo (province);
                                     }
                                     else
                                     {
-                                        NSAPEntities.ProvinceViewModel.UpdateRecordInRepo (province);
+                                        success =  NSAPEntities.ProvinceViewModel.UpdateRecordInRepo (province);
                                     }
-                                    success = true;
+
                                 }
                             }
                             break;
@@ -1250,13 +1254,13 @@ namespace NSAP_ODK.Views
                             {
                                 if (_isNew)
                                 {
-                                    NSAPEntities.NotFishSpeciesViewModel.AddRecordToRepo(notFish);
+                                    success = NSAPEntities.NotFishSpeciesViewModel.AddRecordToRepo(notFish);
                                 }
                                 else
                                 {
-                                    NSAPEntities.NotFishSpeciesViewModel.UpdateRecordInRepo(notFish);
+                                    success = NSAPEntities.NotFishSpeciesViewModel.UpdateRecordInRepo(notFish);
                                 }
-                                success = true;
+
                             }
                             break;
 
@@ -1294,13 +1298,12 @@ namespace NSAP_ODK.Views
                             {
                                 if (_isNew)
                                 {
-                                    NSAPEntities.FishSpeciesViewModel.AddRecordToRepo(fishSpecies);
+                                   success =  NSAPEntities.FishSpeciesViewModel.AddRecordToRepo(fishSpecies);
                                 }
                                 else
                                 {
-                                    NSAPEntities.FishSpeciesViewModel.UpdateRecordInRepo(fishSpecies);
+                                   success= NSAPEntities.FishSpeciesViewModel.UpdateRecordInRepo(fishSpecies);
                                 }
-                                success = true;
                             }
                             break;
 
@@ -1568,13 +1571,13 @@ namespace NSAP_ODK.Views
                             {
                                 if (_isNew)
                                 {
-                                    NSAPEntities.FishingVesselViewModel.AddRecordToRepo(fishingVessel);
+                                   success =  NSAPEntities.FishingVesselViewModel.AddRecordToRepo(fishingVessel);
                                 }
                                 else
                                 {
-                                    NSAPEntities.FishingVesselViewModel.UpdateRecordInRepo(fishingVessel);
+                                    success = NSAPEntities.FishingVesselViewModel.UpdateRecordInRepo(fishingVessel);
                                 }
-                                success = true;
+
                             }
                             break;
 
@@ -1585,13 +1588,13 @@ namespace NSAP_ODK.Views
                                 if (_isNew)
                                 {
                                     nse.ID = NSAPEntities.NSAPEnumeratorViewModel.NextRecordNumber;
-                                    NSAPEntities.NSAPEnumeratorViewModel.AddRecordToRepo(nse);
+                                    success = NSAPEntities.NSAPEnumeratorViewModel.AddRecordToRepo(nse);
                                 }
                                 else
                                 {
-                                    NSAPEntities.NSAPEnumeratorViewModel.UpdateRecordInRepo(nse);
+                                    success = NSAPEntities.NSAPEnumeratorViewModel.UpdateRecordInRepo(nse);
                                 }
-                                success = true;
+
                             }
                             break;
 
@@ -1639,13 +1642,12 @@ namespace NSAP_ODK.Views
                             {
                                 if (_isNew)
                                 {
-                                    NSAPEntities.FishingGroundViewModel.AddRecordToRepo(fg);
+                                   success= NSAPEntities.FishingGroundViewModel.AddRecordToRepo(fg);
                                 }
                                 else
                                 {
-                                    NSAPEntities.FishingGroundViewModel.UpdateRecordInRepo(fg);
+                                   success= NSAPEntities.FishingGroundViewModel.UpdateRecordInRepo(fg);
                                 }
-                                success = true;
                             }
                             break;
 
@@ -1674,13 +1676,13 @@ namespace NSAP_ODK.Views
                             {
                                 if(_isNew)
                                 {
-                                    NSAPEntities.GearViewModel.AddRecordToRepo(gear);
+                                   success= NSAPEntities.GearViewModel.AddRecordToRepo(gear);
                                 }
                                 else
                                 {
-                                    NSAPEntities.GearViewModel.UpdateRecordInRepo(gear);
+                                    success=NSAPEntities.GearViewModel.UpdateRecordInRepo(gear);
                                 }
-                                success = true;
+
                             }
 
                             break;

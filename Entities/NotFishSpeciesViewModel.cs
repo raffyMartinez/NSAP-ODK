@@ -11,6 +11,7 @@ namespace NSAP_ODK.Entities
 {
     public class NotFishSpeciesViewModel
     {
+        private bool _editSuccess;
         public ObservableCollection<NotFishSpecies> NotFishSpeciesCollection { get; set; }
         private NotFishSpeciesRepository NotFishSpeciesRepo { get; set; }
 
@@ -125,24 +126,25 @@ namespace NSAP_ODK.Entities
         }
         private void Collection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            _editSuccess = false;
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
                     {
                         int newIndex = e.NewStartingIndex;
-                        NotFishSpeciesRepo.Add(NotFishSpeciesCollection[newIndex]);
+                        _editSuccess= NotFishSpeciesRepo.Add(NotFishSpeciesCollection[newIndex]);
                     }
                     break;
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<NotFishSpecies> tempListOfRemovedItems = e.OldItems.OfType<NotFishSpecies>().ToList();
-                        NotFishSpeciesRepo.Delete(tempListOfRemovedItems[0].SpeciesID);
+                        _editSuccess= NotFishSpeciesRepo.Delete(tempListOfRemovedItems[0].SpeciesID);
                     }
                     break;
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<NotFishSpecies> tempList = e.NewItems.OfType<NotFishSpecies>().ToList();
-                        NotFishSpeciesRepo.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        _editSuccess= NotFishSpeciesRepo.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -167,14 +169,15 @@ namespace NSAP_ODK.Entities
             get { return NotFishSpeciesCollection.Count; }
         }
 
-        public void AddRecordToRepo(NotFishSpecies nfs)
+        public bool AddRecordToRepo(NotFishSpecies nfs)
         {
             if (nfs == null)
                 throw new ArgumentNullException("Error: The argument is Null");
             NotFishSpeciesCollection.Add(nfs);
+            return _editSuccess;
         }
 
-        public void UpdateRecordInRepo(NotFishSpecies nfs)
+        public bool UpdateRecordInRepo(NotFishSpecies nfs)
         {
             if (nfs.SpeciesID == 0)
                 throw new Exception("Error: ID cannot be null");
@@ -189,9 +192,10 @@ namespace NSAP_ODK.Entities
                 }
                 index++;
             }
+            return _editSuccess;
         }
 
-        public void DeleteRecordFromRepo(int id)
+        public bool DeleteRecordFromRepo(int id)
         {
             if (id == 0)
                 throw new Exception("Record ID cannot be null");
@@ -206,6 +210,7 @@ namespace NSAP_ODK.Entities
                 }
                 index++;
             }
+            return _editSuccess;
         }
         public EntityValidationResult ValidateNonFishSpecies(NotFishSpecies species, bool isNew, string oldGenus, string oldSpecies)
         {

@@ -43,6 +43,8 @@ namespace NSAP_ODK.Entities.Database
 
             _gearUnloads = new List<GearUnload>();
 
+            CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { Context = "FilteringCatchData" });
+
             switch (topic)
             {
                 case "contextMenuCrosstabLandingSite":
@@ -93,10 +95,16 @@ namespace NSAP_ODK.Entities.Database
 
                 CrossTabCommon ctc = new CrossTabCommon(unload);
                 UnloadCrossTabCommonPropertyDictionary.Add(unload.PK, ctc.CommonProperties);
+
                 _crossTabEffortsAll.Add(new CrossTabEffortAll { CrossTabCommon = ctc, VesselUnload = unload });
 
-
                 List<VesselCatch> vesselCatch = unload.ListVesselCatch;
+
+                if (UnloadCrossTabCommonPropertyDictionary.Count == 1)
+                {
+                    CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { Context = "RowsPrepared" });
+                }
+
                 foreach (var vc in vesselCatch)
                 {
                     ctc = new CrossTabCommon(vc);
@@ -135,6 +143,7 @@ namespace NSAP_ODK.Entities.Database
                 CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { RowsToPrepare = unloads.Count, RowsPrepared = counter, Context = "AddingRows" });
             }
 
+             CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { IsDone = true, Context = "PreparingDisplayRows" });
             BuildEffortCrossTabDataTable();
             BuildEffortSpeciesCrossTabDataTable();
 
@@ -299,21 +308,35 @@ namespace NSAP_ODK.Entities.Database
 
                 foreach (var ve in ctcp.VesselUnload.ListVesselEffort)
                 {
-                    switch (ve.EffortSpecification.ValueType)
+                    try
                     {
-                        case ODKValueType.isBoolean:
-                            row[ve.EffortSpecification.Name] = bool.Parse(ve.EffortValue);
-                            break;
-                        case ODKValueType.isDecimal:
-                            row[ve.EffortSpecification.Name] = double.Parse(ve.EffortValue);
-                            break;
-                        case ODKValueType.isInteger:
-                            row[ve.EffortSpecification.Name] = int.Parse(ve.EffortValue);
-                            break;
-                        case ODKValueType.isText:
-                        case ODKValueType.isUndefined:
-                            row[ve.EffortSpecification.Name] = ve.EffortValue;
-                            break;
+                        if (ve.EffortSpecification != null)
+                        {
+                            switch (ve.EffortSpecification.ValueType)
+                            {
+                                case ODKValueType.isBoolean:
+                                    row[ve.EffortSpecification.Name] = bool.Parse(ve.EffortValue);
+                                    break;
+                                case ODKValueType.isDecimal:
+                                    row[ve.EffortSpecification.Name] = double.Parse(ve.EffortValue);
+                                    break;
+                                case ODKValueType.isInteger:
+                                    row[ve.EffortSpecification.Name] = int.Parse(ve.EffortValue);
+                                    break;
+                                case ODKValueType.isText:
+                                case ODKValueType.isUndefined:
+                                    row[ve.EffortSpecification.Name] = ve.EffortValue;
+                                    break;
+                            }
+                        }
+                    }
+                    catch(System.FormatException)
+                    {
+                        row[ve.EffortSpecification.Name] = DBNull.Value;
+                    }
+                    catch(Exception ex)
+                    {
+                        Utilities.Logger.Log(ex);
                     }
                 }
 
@@ -476,21 +499,35 @@ namespace NSAP_ODK.Entities.Database
 
                 foreach (var ve in ctcp.VesselUnload.ListVesselEffort)
                 {
-                    switch (ve.EffortSpecification.ValueType)
+                    try
                     {
-                        case ODKValueType.isBoolean:
-                            row[ve.EffortSpecification.Name] = bool.Parse(ve.EffortValue);
-                            break;
-                        case ODKValueType.isDecimal:
-                            row[ve.EffortSpecification.Name] = double.Parse(ve.EffortValue);
-                            break;
-                        case ODKValueType.isInteger:
-                            row[ve.EffortSpecification.Name] = int.Parse(ve.EffortValue);
-                            break;
-                        case ODKValueType.isText:
-                        case ODKValueType.isUndefined:
-                            row[ve.EffortSpecification.Name] = ve.EffortValue;
-                            break;
+                        if (ve.EffortSpecification != null)
+                        {
+                            switch (ve.EffortSpecification.ValueType)
+                            {
+                                case ODKValueType.isBoolean:
+                                    row[ve.EffortSpecification.Name] = bool.Parse(ve.EffortValue);
+                                    break;
+                                case ODKValueType.isDecimal:
+                                    row[ve.EffortSpecification.Name] = double.Parse(ve.EffortValue);
+                                    break;
+                                case ODKValueType.isInteger:
+                                    row[ve.EffortSpecification.Name] = int.Parse(ve.EffortValue);
+                                    break;
+                                case ODKValueType.isText:
+                                case ODKValueType.isUndefined:
+                                    row[ve.EffortSpecification.Name] = ve.EffortValue;
+                                    break;
+                            }
+                        }
+                    }
+                    catch(FormatException)
+                    {
+                        row[ve.EffortSpecification.Name] = DBNull.Value;
+                    }
+                    catch(Exception ex)
+                    {
+                        Utilities.Logger.Log(ex);
                     }
                 }
 

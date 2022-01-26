@@ -65,7 +65,7 @@
         </StackPanel>
 
         <!--first row for menu-->
-        <Menu Grid.ColumnSpan="2">
+        <Menu Grid.ColumnSpan="2" x:Name="menuBarMain">
             <MenuItem Header="_File">
                 <MenuItem Header="_Open database" x:Name="menuLocateDatabase" Click="OnMenuClicked" />
                 <MenuItem Header="_Save" x:Name="menuSave">

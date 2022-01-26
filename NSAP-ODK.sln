@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NSAP-ODK", "NSAP-ODK.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NSAP_ODK Console", "..\NSAP_ODK Console\NSAP_ODK Console.csproj", "{858DC054-A614-41D4-A554-9B0B3CEC6304}"
 EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "NSAP-ODK Setup", "..\install nsap-odk\NSAP-ODK Setup\NSAP-ODK Setup.vdproj", "{BA227C97-CFE7-4D87-919C-B1FDC69EA8ED}"
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup NSAP-ODK", "Setup NSAP-ODK\Setup NSAP-ODK.vdproj", "{B621AF08-AFF3-4CC8-AD96-AB661323584D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,8 +23,8 @@ Global
 		{858DC054-A614-41D4-A554-9B0B3CEC6304}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{858DC054-A614-41D4-A554-9B0B3CEC6304}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{858DC054-A614-41D4-A554-9B0B3CEC6304}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BA227C97-CFE7-4D87-919C-B1FDC69EA8ED}.Debug|Any CPU.ActiveCfg = Debug
-		{BA227C97-CFE7-4D87-919C-B1FDC69EA8ED}.Release|Any CPU.ActiveCfg = Release
+		{B621AF08-AFF3-4CC8-AD96-AB661323584D}.Debug|Any CPU.ActiveCfg = Debug
+		{B621AF08-AFF3-4CC8-AD96-AB661323584D}.Release|Any CPU.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

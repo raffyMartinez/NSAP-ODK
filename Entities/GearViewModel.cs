@@ -9,7 +9,7 @@ namespace NSAP_ODK.Entities
 {
     public class GearViewModel
     {
-        private bool _operationSucceeded = false;
+        private bool _editSuccess;
         public ObservableCollection<Gear> GearCollection { get; set; }
         private GearRepository Gears { get; set; }
         public void Serialize(string fileName)
@@ -246,6 +246,7 @@ namespace NSAP_ODK.Entities
 
         private void Gearss_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            _editSuccess = false;
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
@@ -255,7 +256,7 @@ namespace NSAP_ODK.Entities
                         if (Gears.Add(newGear))
                         {
                             CurrentEntity = newGear;
-                            _operationSucceeded = true;
+                            _editSuccess = true;
                         }
                     }
                     break;
@@ -263,14 +264,14 @@ namespace NSAP_ODK.Entities
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<Gear> tempListOfRemovedItems = e.OldItems.OfType<Gear>().ToList();
-                        _operationSucceeded = Gears.Delete(tempListOfRemovedItems[0].Code);
+                        _editSuccess = Gears.Delete(tempListOfRemovedItems[0].Code);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<Gear> tempList = e.NewItems.OfType<Gear>().ToList();
-                        _operationSucceeded = Gears.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        _editSuccess = Gears.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -288,7 +289,7 @@ namespace NSAP_ODK.Entities
 
             GearCollection.Add(gear);
 
-            return _operationSucceeded;
+            return _editSuccess;
         }
 
         public bool UpdateRecordInRepo(Gear gear)
@@ -307,7 +308,7 @@ namespace NSAP_ODK.Entities
                 index++;
             }
 
-            return _operationSucceeded;
+            return _editSuccess;
         }
 
         public bool DeleteRecordFromRepo(string code)
@@ -326,7 +327,7 @@ namespace NSAP_ODK.Entities
                 index++;
             }
 
-            return _operationSucceeded;
+            return _editSuccess;
         }
 
         public EntityValidationResult ValidateEntity(Gear gear, bool isNew, string oldName = "", string oldCode = "")

@@ -56,14 +56,27 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Insert into Provinces (ProvNo, ProvinceName, NSAPRegion)
-                           Values
-                           ({p.ProvinceID}, '{p.ProvinceName}', '{p.NSAPRegion.Code}')";
+                var sql = "Insert into Provinces (ProvNo, ProvinceName, NSAPRegion) Values (?,?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@prov_no", OleDbType.Integer).Value = p.ProvinceID;
+                    update.Parameters.Add("@prov_name", OleDbType.VarChar).Value = p.ProvinceName;
+                    update.Parameters.Add("@prov_region", OleDbType.VarChar).Value = p.NSAPRegion.Code;
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
+
             return success;
         }
 
@@ -73,13 +86,30 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Update Provinces set
-                                ProvinceName = '{p.ProvinceName}',
-                                NSAPRegion = '{p.NSAPRegion.Code}'
-                            WHERE ProvNo = {p.ProvinceID}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+
+                using (OleDbCommand update = conn.CreateCommand())
                 {
-                    success = update.ExecuteNonQuery() > 0;
+
+                    update.Parameters.Add("@prov_name", OleDbType.VarChar).Value = p.ProvinceName;
+                    update.Parameters.Add("@prov_region", OleDbType.VarChar).Value = p.NSAPRegion.Code;
+                    update.Parameters.Add("@prov_no", OleDbType.Integer).Value = p.ProvinceID;
+
+                    update.CommandText = @"Update Provinces set
+                                            ProvinceName = @prov_name,
+                                            NSAPRegion = @prov_region
+                                            WHERE ProvNo = @prov_no";
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
             return success;

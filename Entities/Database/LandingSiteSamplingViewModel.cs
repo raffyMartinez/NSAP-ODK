@@ -147,6 +147,10 @@ namespace NSAP_ODK.Entities.Database
                     .Where(t => t.FishingGroundID == landing.FishingGround.Code)
                     .Where(t => t.SamplingDate.Date == landing.SamplingDate.Date).FirstOrDefault();
             }
+            else if(landing.LandingSite==null)
+            {
+                return null;
+            }
             else
             {
                 return LandingSiteSamplingCollection

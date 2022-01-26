@@ -72,21 +72,49 @@ namespace NSAP_ODK.Entities
             return listLandingSites;
         }
 
+
         public bool Add(LandingSite ls)
         {
-            string lat = ls.Latitude == null ? "null" : $"{ls.Latitude.ToString()}";
-            string lon = ls.Longitude == null ? "null" : $"{ls.Longitude.ToString()}";
-            string brgy = ls.Barangay == null ? "null" : $"'{ls.Barangay}'";
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Insert into LandingSite (LandingSiteID, LandingSiteName,Municipality,Longitude,Latitude,Barangay)
-                           Values
-                           ({ls.LandingSiteID},'{ls.LandingSiteName}',{ls.Municipality.MunicipalityID},{lon},{lat},{brgy})";
+                var sql = "Insert into LandingSite (LandingSiteID, LandingSiteName,Municipality,Longitude,Latitude,Barangay) Values (?,?,?,?,?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = ls.LandingSiteID;
+                    update.Parameters.Add("@name", OleDbType.VarChar).Value = ls.LandingSiteName;
+                    update.Parameters.Add("@muni", OleDbType.Integer).Value = ls.Municipality.MunicipalityID;
+                    if(ls.Longitude==null || ls.Latitude==null)
+                    {
+                        update.Parameters.Add("@lon", OleDbType.Double).Value = DBNull.Value;
+                        update.Parameters.Add("@lat", OleDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@lon", OleDbType.Double).Value = ls.Longitude;
+                        update.Parameters.Add("@lat", OleDbType.Double).Value = ls.Latitude;
+                    }
+                    if (ls.Barangay == null)
+                    {
+                        update.Parameters.Add("@brgy", OleDbType.VarChar).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@brgy", OleDbType.VarChar).Value = ls.Barangay;
+                    }
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch(OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch(Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
             return success;
@@ -94,23 +122,55 @@ namespace NSAP_ODK.Entities
 
         public bool Update(LandingSite ls)
         {
-            string lat = ls.Latitude == null ? "null" : $"{ls.Latitude.ToString()}";
-            string lon = ls.Longitude == null ? "null" : $"{ls.Longitude.ToString()}";
-            string brgy = ls.Barangay == null ? "null" : $"'{ls.Barangay}'";
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Update LandingSite set
-                                LandingSiteName = '{ls.LandingSiteName}',
-                                Municipality = {ls.Municipality.MunicipalityID},
-                                Longitude = {lon},
-                                Latitude = {lat},
-                                Barangay = {brgy}
-                            WHERE LandingSiteID={ls.LandingSiteID}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+
+                using (OleDbCommand update = conn.CreateCommand())
                 {
-                    success = update.ExecuteNonQuery() > 0;
+
+                    update.Parameters.Add("@name", OleDbType.VarChar).Value = ls.LandingSiteName;
+                    update.Parameters.Add("@muni", OleDbType.Integer).Value = ls.Municipality.MunicipalityID;
+                    if (ls.Longitude == null || ls.Latitude == null)
+                    {
+                        update.Parameters.Add("@lon", OleDbType.Double).Value = DBNull.Value;
+                        update.Parameters.Add("@lat", OleDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@lon", OleDbType.Double).Value = ls.Longitude;
+                        update.Parameters.Add("@lat", OleDbType.Double).Value = ls.Latitude;
+                    }
+                    if (ls.Barangay == null)
+                    {
+                        update.Parameters.Add("@brgy", OleDbType.VarChar).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@brgy", OleDbType.VarChar).Value = ls.Barangay;
+                    }
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = ls.LandingSiteID;
+                    
+                    update.CommandText = @"Update LandingSite set
+                                            LandingSiteName = @name,
+                                            Municipality = @muni,
+                                            Longitude = @lon,
+                                            Latitude = @lat,
+                                            Barangay = @brgy
+                                            WHERE LandingSiteID=@id";
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch(OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch(Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
             return success;
@@ -129,14 +189,13 @@ namespace NSAP_ODK.Entities
                     {
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException)
+                    catch (OleDbException dbex)
                     {
-                        success = false;
+                        Logger.Log(dbex);
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
-                        success = false;
                     }
                 }
             }

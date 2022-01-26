@@ -333,13 +333,36 @@ namespace NSAP_ODK.Entities.Database
                 .Where(t => t.GearUsedName == ex.GearName).FirstOrDefault();
         }
 
+        //public GearUnload getGearUnload(FromJson.VesselLandingNew landing)
+        //{
+        //    if (landing.LandingSite == null && landing.LandingSiteText == null)
+        //    {
+        //        return null;
+        //    }
+        //    else
+        //    {
+        //        return GearUnloadCollection
+        //            .Where(t => t.Parent.LandingSiteName == landing.LandingSiteName)
+        //            .Where(t => t.Parent.FishingGroundID == landing.FishingGround.Code)
+        //            .Where(t => t.Parent.SamplingDate.Date == landing.SamplingDate.Date)
+        //            .Where(t => t.GearUsedName == landing.GearName).FirstOrDefault();
+        //    }
+        //}
+
         public GearUnload getGearUnload(FromJson.VesselLanding landing)
         {
-            return GearUnloadCollection
-                .Where(t => t.Parent.LandingSiteName == landing.LandingSiteName)
-                .Where(t => t.Parent.FishingGroundID == landing.FishingGround.Code)
-                .Where(t => t.Parent.SamplingDate.Date == landing.SamplingDate.Date)
-                .Where(t => t.GearUsedName == landing.GearName).FirstOrDefault();
+            if (landing.LandingSite == null && landing.LandingSiteText == null)
+            {
+                return null;
+            }
+            else
+            {
+                return GearUnloadCollection
+                    .Where(t => t.Parent.LandingSiteName == landing.LandingSiteName)
+                    .Where(t => t.Parent.FishingGroundID == landing.FishingGround.Code)
+                    .Where(t => t.Parent.SamplingDate.Date == landing.SamplingDate.Date)
+                    .Where(t => t.GearUsedName == landing.GearName).FirstOrDefault();
+            }
         }
 
 

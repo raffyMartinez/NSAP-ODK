@@ -9,6 +9,7 @@ namespace NSAP_ODK.Entities
 {
     public class FishingVesselViewModel
     {
+        private bool _editSuccess;
         public ObservableCollection<FishingVessel> FishingVesselCollection { get; set; }
         private FishingVesselRepository FishingVessels { get; set; }
 
@@ -79,6 +80,7 @@ namespace NSAP_ODK.Entities
 
         private void FishingVesselCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            _editSuccess = false;
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
@@ -88,6 +90,7 @@ namespace NSAP_ODK.Entities
                         if(FishingVessels.Add(newVessel))
                         {
                             CurrentEntity = newVessel;
+                            _editSuccess = true;
                         }
                     }
                     break;
@@ -95,14 +98,14 @@ namespace NSAP_ODK.Entities
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<FishingVessel> tempListOfRemovedItems = e.OldItems.OfType<FishingVessel>().ToList();
-                        FishingVessels.Delete(tempListOfRemovedItems[0].ID);
+                       _editSuccess= FishingVessels.Delete(tempListOfRemovedItems[0].ID);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<FishingVessel> tempList = e.NewItems.OfType<FishingVessel>().ToList();
-                        FishingVessels.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                       _editSuccess= FishingVessels.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -113,14 +116,15 @@ namespace NSAP_ODK.Entities
             get { return FishingVesselCollection.Count; }
         }
 
-        public void AddRecordToRepo(FishingVessel fv)
+        public bool AddRecordToRepo(FishingVessel fv)
         {
             if (fv == null)
                 throw new ArgumentNullException("Error: The argument is Null");
             FishingVesselCollection.Add(fv);
+            return _editSuccess;
         }
 
-        public void UpdateRecordInRepo(FishingVessel fv)
+        public bool UpdateRecordInRepo(FishingVessel fv)
         {
             if (fv.ID == 0)
                 throw new Exception("Error: ID cannot be null");
@@ -135,9 +139,10 @@ namespace NSAP_ODK.Entities
                 }
                 index++;
             }
+            return _editSuccess;
         }
 
-        public void DeleteRecordFromRepo(int id)
+        public bool DeleteRecordFromRepo(int id)
         {
             if (id == 0)
                 throw new Exception("Record ID cannot be null");
@@ -152,6 +157,7 @@ namespace NSAP_ODK.Entities
                 }
                 index++;
             }
+            return _editSuccess;
         }
 
         public int NextRecordNumber

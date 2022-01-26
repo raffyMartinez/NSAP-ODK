@@ -145,11 +145,26 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Insert into gps(GPSCode,AssignedName,Brand,Model,DeviceType)
-                           Values ('{gps.Code}','{gps.AssignedName}', '{gps.Brand}','{gps.Model}',{(int)gps.DeviceType})";
+                var sql = "Insert into gps(GPSCode,AssignedName,Brand,Model,DeviceType) Values (?,?,?,?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@code", OleDbType.VarChar).Value = gps.Code;
+                    update.Parameters.Add("@name", OleDbType.VarChar).Value = gps.AssignedName;
+                    update.Parameters.Add("@brand", OleDbType.VarChar).Value = gps.Brand;
+                    update.Parameters.Add("@model", OleDbType.VarChar).Value = gps.Model;
+                    update.Parameters.Add("@device_type", OleDbType.Integer).Value = (int)gps.DeviceType;
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch(OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch(Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
             return success;
@@ -161,15 +176,38 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Update gps set
-                                AssignedName= '{gps.AssignedName}',
-                                Brand = '{gps.Brand}',
-                                Model = '{gps.Model}',
-                                DeviceType = {(int)gps.DeviceType}    
-                            WHERE GPSCode = '{gps.Code}'";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                //var sql = $@"Update gps set
+                //                AssignedName= '{gps.AssignedName}',
+                //                Brand = '{gps.Brand}',
+                //                Model = '{gps.Model}',
+                //                DeviceType = {(int)gps.DeviceType}    
+                //            WHERE GPSCode = '{gps.Code}'";
+                using (OleDbCommand update = conn.CreateCommand())
                 {
-                    success = update.ExecuteNonQuery() > 0;
+
+                    update.Parameters.Add("@name", OleDbType.VarChar).Value = gps.AssignedName;
+                    update.Parameters.Add("@brand", OleDbType.VarChar).Value = gps.Brand;
+                    update.Parameters.Add("@model", OleDbType.VarChar).Value = gps.Model;
+                    update.Parameters.Add("@device_type", OleDbType.Integer).Value = (int)gps.DeviceType;
+                    update.Parameters.Add("@code", OleDbType.VarChar).Value = gps.Code;
+                    update.CommandText = @"Update gps set
+                                           AssignedName= @name,
+                                           Brand = @brand,
+                                           Model = @model,
+                                           DeviceType = @device_type    
+                                           WHERE GPSCode = @code";
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
             return success;
@@ -188,14 +226,13 @@ namespace NSAP_ODK.Entities
                     {
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException)
+                    catch (OleDbException dbex)
                     {
-                        success = false;
+                        Logger.Log(dbex);
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
-                        success = false;
                     }
                 }
             }

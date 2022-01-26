@@ -8,6 +8,7 @@ namespace NSAP_ODK.Entities
 {
     public class ProvinceViewModel
     {
+        private bool _editSuccess;
         public ObservableCollection<Province> ProvinceCollection { get; set; }
         private ProvinceRepository Provinces { get; set; }
 
@@ -67,26 +68,27 @@ namespace NSAP_ODK.Entities
 
         private void Provinces_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            _editSuccess = false;
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
                     {
                         int newIndex = e.NewStartingIndex;
-                        Provinces.Add(ProvinceCollection[newIndex]);
+                        _editSuccess= Provinces.Add(ProvinceCollection[newIndex]);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<Province> tempListOfRemovedItems = e.OldItems.OfType<Province>().ToList();
-                        Provinces.Delete(tempListOfRemovedItems[0].ProvinceID);
+                       _editSuccess= Provinces.Delete(tempListOfRemovedItems[0].ProvinceID);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<Province> tempList = e.NewItems.OfType<Province>().ToList();
-                        Provinces.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        _editSuccess= Provinces.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -97,14 +99,15 @@ namespace NSAP_ODK.Entities
             get { return ProvinceCollection.Count; }
         }
 
-        public void AddRecordToRepo(Province p)
+        public bool  AddRecordToRepo(Province p)
         {
             if (p == null)
                 throw new ArgumentNullException("Error: The argument is Null");
             ProvinceCollection.Add(p);
+            return _editSuccess;
         }
 
-        public void UpdateRecordInRepo(Province p)
+        public bool UpdateRecordInRepo(Province p)
         {
             if (p.ProvinceID == 0)
                 throw new Exception("Error: ID cannot be zero");
@@ -119,9 +122,11 @@ namespace NSAP_ODK.Entities
                 }
                 index++;
             }
+            return _editSuccess;
+
         }
 
-        public void DeleteRecordFromRepo(int id)
+        public bool DeleteRecordFromRepo(int id)
         {
             if (id == 0)
                 throw new Exception("Record ID cannot be null");
@@ -136,6 +141,7 @@ namespace NSAP_ODK.Entities
                 }
                 index++;
             }
+            return _editSuccess;
         }
 
        public EntityValidationResult ValidateProvince(Province prov, bool isNew, string oldName)

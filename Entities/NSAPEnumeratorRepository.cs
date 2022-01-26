@@ -59,18 +59,57 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Insert into NSAPEnumerator (EnumeratorID, EnumeratorName)
-                           Values 
-                           ({ns.ID},'{ns.Name}')";
+                var sql = "Insert into NSAPEnumerator (EnumeratorID, EnumeratorName) Values (?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@enumerator_id", OleDbType.Integer).Value = ns.ID;
+                    update.Parameters.Add("@enumertor_name", OleDbType.VarChar).Value = ns.Name;
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch(OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch(Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
             return success;
         }
 
         public bool Update(NSAPEnumerator ns)
+        {
+            bool success = false;
+            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            {
+                conn.Open();
+
+                using (OleDbCommand update = conn.CreateCommand())
+                {
+                    update.Parameters.Add("@enumerator_name", OleDbType.VarChar).Value = ns.Name;
+                    update.Parameters.Add("@enumerator_id", OleDbType.Integer).Value = ns.ID;
+                    update.CommandText = "Update NSAPENumerator set EnumeratorName = @enumerator_name WHERE EnumeratorID = @enumerator_id";
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch(OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch(Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
+        public bool Update1(NSAPEnumerator ns)
         {
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))

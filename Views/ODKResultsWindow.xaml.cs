@@ -1,28 +1,26 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using NSAP_ODK.Entities;
+using NSAP_ODK.Entities.Database;
+using NSAP_ODK.Entities.Database.FromJson;
+using NSAP_ODK.Utilities;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using NSAP_ODK.Utilities;
-using Microsoft.Win32;
-using NSAP_ODK.Entities.Database;
 using System.Windows.Threading;
-using NSAP_ODK.Entities.Database.FromJson;
-using System.Windows.Media;
-using System.Diagnostics;
-using NSAP_ODK.Entities;
-using System.Linq;
-using System.Threading.Tasks;
-using System.IO;
 
 namespace NSAP_ODK.Views
 {
-
     public enum ODKServerDownload
     {
         ServerDownloadVesselUnload,
         ServerDownloadLandings
     }
+
     /// <summary>
     /// Interaction logic for ODKResultsWindow.xaml
     /// </summary>
@@ -41,10 +39,12 @@ namespace NSAP_ODK.Views
         public string JSON { get; set; }
         public string FormID { get; set; }
 
+        public string Version { get; set; }
+
         public string Description { get; set; }
 
-
         public int Count { get; set; }
+
         public ODKServerDownload ODKServerDownload
         {
             get { return _odkServerDownload; }
@@ -54,7 +54,9 @@ namespace NSAP_ODK.Views
                 //menuView.Visibility = Visibility.Visible;
             }
         }
+
         public MainWindow ParentWindow { get; set; }
+
         public static ODKResultsWindow GetInstance()
         {
             if (_instance == null)
@@ -63,18 +65,21 @@ namespace NSAP_ODK.Views
             }
             return _instance;
         }
+
         public ODKResultsWindow()
         {
             InitializeComponent();
             Loaded += OnWindowLoaded;
             Closed += OnWindowClosed;
-
         }
+
+
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
             this.ApplyPlacement();
         }
+
         private void OnWindowClosed(object sender, EventArgs e)
         {
             _instance = null;
@@ -100,6 +105,7 @@ namespace NSAP_ODK.Views
                 return "";
             }
         }
+
         private void GetExcelFromFileOpen()
         {
             OpenFileDialog opf = new OpenFileDialog();
@@ -128,6 +134,7 @@ namespace NSAP_ODK.Views
                 }
             }
         }
+
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
             Title = "Manage NSAP-ODK data";
@@ -147,7 +154,6 @@ namespace NSAP_ODK.Views
             menuView.Visibility = Visibility.Collapsed;
         }
 
-
         private void SetMenuViewVisibility()
         {
             menuView.Visibility = Visibility.Visible;
@@ -165,6 +171,7 @@ namespace NSAP_ODK.Views
                                 menu.Visibility = Visibility.Visible;
                             }
                             break;
+
                         case ODKServerDownload.ServerDownloadLandings:
                             if (menu.Name.Contains("menuViewLandingSite"))
                             {
@@ -175,12 +182,12 @@ namespace NSAP_ODK.Views
                 }
             }
         }
+
         public List<LandingSiteBoatLandingFromServer> MainSheetsLanding
         {
             get { return _mainSheetsLanding; }
             set
             {
-
                 menuSaveToExcel.Visibility = Visibility.Visible;
                 _mainSheetsLanding = value;
                 _isJSONData = true;
@@ -194,37 +201,41 @@ namespace NSAP_ODK.Views
                     menuViewLandingSiteSampling.IsChecked = true;
                 }
                 SetMenuViewVisibility();
-
-
-
             }
+        }
 
 
+        private void SetMenus()
+        {
+            menuSaveToExcel.Visibility = Visibility.Visible;
+            _isJSONData = true;
+
+            menuDuplicatedEffortSpecs.IsEnabled = VesselUnloadServerRepository.DuplicatedEffortSpec.Count > 0;
+            menuDuplicatedCatchComp.IsEnabled = VesselUnloadServerRepository.DuplicatedCatchComposition.Count > 0;
+            menuDuplicatedLF.IsEnabled = VesselUnloadServerRepository.DuplicatedLenFreq.Count > 0;
+
+            if (menuViewEffort.IsChecked)
+            {
+                ShowResultFromAPI("effort");
+            }
+            else
+            {
+                menuViewEffort.IsChecked = true;
+            }
+            SetMenuViewVisibility();
         }
         public List<VesselLanding> MainSheets
         {
             get { return _mainSheets; }
             set
             {
-                menuSaveToExcel.Visibility = Visibility.Visible;
+
                 _mainSheets = value;
-                _isJSONData = true;
+                SetMenus();
 
-                menuDuplicatedEffortSpecs.IsEnabled = VesselUnloadServerRepository.DuplicatedEffortSpec.Count > 0;
-                menuDuplicatedCatchComp.IsEnabled = VesselUnloadServerRepository.DuplicatedCatchComposition.Count > 0;
-                menuDuplicatedLF.IsEnabled = VesselUnloadServerRepository.DuplicatedLenFreq.Count > 0;
-
-                if (menuViewEffort.IsChecked)
-                {
-                    ShowResultFromAPI("effort");
-                }
-                else
-                {
-                    menuViewEffort.IsChecked = true;
-                }
-                SetMenuViewVisibility();
             }
         }
+
         public string ExcelFileDownloaded
         {
             get { return _excelDownloaded; }
@@ -243,7 +254,6 @@ namespace NSAP_ODK.Views
                 {
                     menuViewEffort.IsChecked = true;
                 }
-
             }
         }
 
@@ -251,6 +261,7 @@ namespace NSAP_ODK.Views
         {
             return Task.Run(() => SaveJSONText(verbose));
         }
+
         private async Task<bool> SaveJSONText(bool verbose = true)
         {
             bool success = false;
@@ -284,7 +295,6 @@ namespace NSAP_ODK.Views
             return success;
         }
 
-
         private async void OnMenuClick(object sender, RoutedEventArgs e)
         {
             switch (((MenuItem)sender).Name)
@@ -293,6 +303,7 @@ namespace NSAP_ODK.Views
                     DeleteUnloadPastDateWindow dpw = new DeleteUnloadPastDateWindow();
                     dpw.ShowDialog();
                     break;
+
                 case "menuSaveJson":
                     //for saving the downloadd JSON text into a file.
                     if (await SaveJSONTextTask())
@@ -302,6 +313,7 @@ namespace NSAP_ODK.Views
                     }
 
                     break;
+
                 case "menuUploadMedia":
                     var serverForm = new DownloadFromServerWindow(this);
                     VesselUnloadServerRepository.ResetLists();
@@ -309,6 +321,7 @@ namespace NSAP_ODK.Views
                     serverForm.Owner = this;
                     serverForm.ShowDialog();
                     break;
+
                 case "menuVesselCountJSON":
                     try
                     {
@@ -333,18 +346,18 @@ namespace NSAP_ODK.Views
                     try
                     {
                         FileInfo fi = new FileInfo(GetJsonTextFileFromFileOpenDialog());
-                        
+
                         var result = MessageBox.Show($"File was created on {fi.CreationTime.ToString("MMM-dd-yyyy HH:mm")}\r\n" +
                                             "Would you like to use this date on the download history?",
                                             "NSAP-ODK Database",
                                             MessageBoxButton.YesNoCancel,
                                             MessageBoxImage.Question);
 
-                        if(result==MessageBoxResult.Cancel)
+                        if (result == MessageBoxResult.Cancel)
                         {
                             return;
                         }
-                        else if(result==MessageBoxResult.Yes)
+                        else if (result == MessageBoxResult.Yes)
                         {
                             _jsonFileUseCreationDateForHistory = fi.CreationTime;
                         }
@@ -365,6 +378,7 @@ namespace NSAP_ODK.Views
                         //ignore
                     }
                     break;
+
                 case "menuSaveToExcel":
                     if (dataGridExcel.ItemsSource != null)
                     {
@@ -384,22 +398,23 @@ namespace NSAP_ODK.Views
 
                             MessageBox.Show(exportResult, "Export", MessageBoxButton.OK, MessageBoxImage.Information);
                         }
-
-
                     }
                     break;
+
                 case "menuDownloadFromServer":
                     serverForm = new DownloadFromServerWindow(this);
                     VesselUnloadServerRepository.ResetLists();
                     serverForm.Owner = this;
                     serverForm.ShowDialog();
                     break;
+
                 case "menuClearTables":
                     if (ImportExcel.ClearNSAPDatabaseTables())
                     {
                         MessageBox.Show("All repo cleared");
                     }
                     break;
+
                 case "menuUpload":
                     _uploadToDBSuccess = false;
                     bool success = false;
@@ -418,26 +433,21 @@ namespace NSAP_ODK.Views
                                     dataGridExcel.ItemsSource = VesselUnloadServerRepository.VesselLandings;
                                     success = true;
                                     _uploadToDBSuccess = true;
-                                    if (JSON !=null &&  await SaveJSONTextTask(verbose: false))
+                                    if (JSON != null && await SaveJSONTextTask(verbose: false))
                                     {
                                         MessageBox.Show("Finished uploading to database\r\n" +
                                             $"and saving JSON file to {Global.Settings.JSONFolder}",
                                             "NSAP-ODK Database",
                                             MessageBoxButton.OK,
                                             MessageBoxImage.Information);
-                                     
-                                        //((MainWindow)Owner).ShowSummary("Overall");
                                     }
                                     else
                                     {
                                         MessageBox.Show("Finished uploading to database", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
                                     }
-                                    //((MainWindow)Owner).ShowSummary("Overall");
-                                    //if (((MainWindow)Owner).DataDisplayMode == DataDisplayMode.DownloadHistory)
-                                    //{
-                                        //((MainWindow)Owner).RefreshDownloadHistory();
-                                        ((MainWindow)Owner).SetDataDisplayMode();
-                                    //}
+
+                                    ((MainWindow)Owner).SetDataDisplayMode();
+
                                 }
                                 else if (_savedCount == 0 && VesselUnloadServerRepository.VesselLandings.Count > 0)
                                 {
@@ -511,15 +521,27 @@ namespace NSAP_ODK.Views
                         ParentWindow.RefreshDownloadHistory();
                     }
                     break;
+
                 case "menuImport":
                     GetExcelFromFileOpen();
                     break;
+
                 case "menuClose":
                     Close();
                     break;
             }
         }
 
+        private string VersionFromJSON(string json)
+        {
+            string versionNumber = "";
+            if (json.Contains("Version "))
+            {
+                int index = json.IndexOf("Version ");
+                versionNumber = json.Substring(index + 8, 4).Trim();
+            }
+            return versionNumber;
+        }
 
         private void OnUploadSubmissionToDB(object sender, UploadToDbEventArg e)
         {
@@ -546,9 +568,9 @@ namespace NSAP_ODK.Views
                           }
                          ), null);
 
-
                     _savedCount = e.VesselUnloadTotalSavedCount;
                     break;
+
                 case UploadToDBIntent.StartOfUpload:
                     progressBar.Dispatcher.BeginInvoke
                         (
@@ -560,6 +582,7 @@ namespace NSAP_ODK.Views
                           }), null);
 
                     break;
+
                 case UploadToDBIntent.Uploading:
                     progressBar.Dispatcher.BeginInvoke
                         (
@@ -581,11 +604,10 @@ namespace NSAP_ODK.Views
                           }
                          ), null);
 
-
                     break;
-
             }
         }
+
         private void ShowResultFromAPI(string result)
         {
             DataGridTextColumn col;
@@ -595,7 +617,6 @@ namespace NSAP_ODK.Views
             dataGridExcel.AutoGenerateColumns = false;
             switch (result)
             {
-
                 case "landingSiteSampling":
                     dataGridExcel.ItemsSource = LandingSiteBoatLandingsFromServerRepository.LandingSiteBoatLandings;
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "RowUUID", Binding = new Binding("_uuid"), Visibility = Visibility.Hidden });
@@ -631,6 +652,7 @@ namespace NSAP_ODK.Views
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
 
                     break;
+
                 case "landingSiteCounts":
                     dataGridExcel.ItemsSource = LandingSiteBoatLandingsFromServerRepository.GetLandings();
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("Parent.user_name") });
@@ -658,6 +680,7 @@ namespace NSAP_ODK.Views
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Parent", Binding = new Binding("Parent.PK") });
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
                     break;
+
                 case "effort":
                     dataGridExcel.ItemsSource = VesselUnloadServerRepository.VesselLandings;
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "RowUUID", Binding = new Binding("_uuid"), Visibility = Visibility.Hidden });
@@ -699,7 +722,6 @@ namespace NSAP_ODK.Views
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Number of boxes sampled", Binding = new Binding("BoxesSampled") });
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Raising factor", Binding = new Binding("RaisingFactor") });
 
-
                     dataGridExcel.Columns.Add(new DataGridCheckBoxColumn { Header = "Vessel tracking", Binding = new Binding("IncludeTracking") });
 
                     col = new DataGridTextColumn()
@@ -723,6 +745,7 @@ namespace NSAP_ODK.Views
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Remarks", Binding = new Binding("Remarks") });
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
                     break;
+
                 case "grid":
                     dataGridExcel.ItemsSource = VesselUnloadServerRepository.GetGridBingoCoordinates();
 
@@ -749,6 +772,7 @@ namespace NSAP_ODK.Views
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Parent ID", Binding = new Binding("Parent.PK") });
                     break;
+
                 case "soakTime":
                     dataGridExcel.ItemsSource = VesselUnloadServerRepository.GetGearSoakTimes();
 
@@ -791,6 +815,7 @@ namespace NSAP_ODK.Views
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Parent ID", Binding = new Binding("Parent.PK") });
 
                     break;
+
                 case "effortSpecs":
                 case "duplicatedEffort":
                     if (result == "effortSpecs")
@@ -824,6 +849,7 @@ namespace NSAP_ODK.Views
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Parent ID", Binding = new Binding("Parent.PK") });
 
                     break;
+
                 case "catchComposition":
                 case "duplicatedCatchComp":
                     if (result == "catchComposition")
@@ -859,6 +885,7 @@ namespace NSAP_ODK.Views
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Parent ID", Binding = new Binding("Parent.PK") });
                     break;
+
                 case "lengths":
                     dataGridExcel.ItemsSource = VesselUnloadServerRepository.GetLengthList();
 
@@ -895,6 +922,7 @@ namespace NSAP_ODK.Views
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Parent ID", Binding = new Binding("Parent.PK") });
                     break;
+
                 case "lengthFreq":
                 case "duplicatedLenFreq":
                     if (result == "lengthFreq")
@@ -921,6 +949,7 @@ namespace NSAP_ODK.Views
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Parent ID", Binding = new Binding("Parent.PK") });
                     break;
+
                 case "gms":
                     dataGridExcel.ItemsSource = VesselUnloadServerRepository.GetGMSList();
 
@@ -946,6 +975,7 @@ namespace NSAP_ODK.Views
                     break;
             }
         }
+
         private void ShowResultFromExcel(string result)
         {
             DataGridTextColumn col;
@@ -1018,6 +1048,7 @@ namespace NSAP_ODK.Views
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Remarks", Binding = new Binding("Remarks") });
 
                     break;
+
                 case "grid":
                     dataGridExcel.ItemsSource = ImportExcel.ExcelBingoGroups;
 
@@ -1042,8 +1073,8 @@ namespace NSAP_ODK.Views
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Coordinates", Binding = new Binding("Grid25Grid.Coordinate") });
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "UTM Coordinates", Binding = new Binding("Grid25Grid.UTMCoordinate") });
 
-
                     break;
+
                 case "soakTime":
                     dataGridExcel.ItemsSource = ImportExcel.ExcelSoakTimes;
 
@@ -1084,6 +1115,7 @@ namespace NSAP_ODK.Views
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Waypoint at haul", Binding = new Binding("GPSWaypointAtHaul") });
 
                     break;
+
                 case "effortSpecs":
                 case "duplicatedEffort":
                     if (result == "effortSpecs")
@@ -1092,7 +1124,6 @@ namespace NSAP_ODK.Views
                     }
                     else
                     {
-
                     }
 
                     col = new DataGridTextColumn()
@@ -1115,6 +1146,7 @@ namespace NSAP_ODK.Views
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Value", Binding = new Binding("EfforValueText") });
 
                     break;
+
                 case "catchComposition":
                 case "duplicatedCatchComp":
                     dataGridExcel.ItemsSource = ImportExcel.ExcelCatchCompositions;
@@ -1141,6 +1173,7 @@ namespace NSAP_ODK.Views
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Sample weight", Binding = new Binding("SpeciesSampleWeight") });
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Notes", Binding = new Binding("Notes") });
                     break;
+
                 case "lengths":
                     dataGridExcel.ItemsSource = ImportExcel.ExcelLengthLists;
 
@@ -1156,6 +1189,7 @@ namespace NSAP_ODK.Views
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Name of catch", Binding = new Binding("Parent.SpeciesName") });
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Length", Binding = new Binding("Length") });
                     break;
+
                 case "lengthWeight":
                     dataGridExcel.ItemsSource = ImportExcel.ExcelLengthWeights;
 
@@ -1172,6 +1206,7 @@ namespace NSAP_ODK.Views
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Length", Binding = new Binding("Length") });
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("Weight") });
                     break;
+
                 case "lengthFreq":
                 case "duplicatedLenFreq":
                     dataGridExcel.ItemsSource = ImportExcel.ExcelLenFreqs;
@@ -1189,6 +1224,7 @@ namespace NSAP_ODK.Views
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Length class", Binding = new Binding("LengthClass") });
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Frequency", Binding = new Binding("Frequency") });
                     break;
+
                 case "gms":
                     dataGridExcel.ItemsSource = ImportExcel.ExcelGMSes;
 
@@ -1211,6 +1247,7 @@ namespace NSAP_ODK.Views
                     break;
             }
         }
+
         private void OnMenuItemChecked(object sender, RoutedEventArgs e)
         {
             var menuTag = ((MenuItem)sender).Tag.ToString();
@@ -1233,6 +1270,7 @@ namespace NSAP_ODK.Views
                         labelDuplicated.Content = "Effort specs are duplicated";
                     }
                     break;
+
                 case "catchComposition":
 
                     if (VesselUnloadServerRepository.DuplicatedCatchComposition.Count > 0)
@@ -1240,6 +1278,7 @@ namespace NSAP_ODK.Views
                         labelDuplicated.Content = "Catch composition items are duplicated";
                     }
                     break;
+
                 case "lengthFreq":
 
                     if (VesselUnloadServerRepository.DuplicatedCatchComposition.Count > 0)
@@ -1248,8 +1287,6 @@ namespace NSAP_ODK.Views
                     }
                     break;
             }
-
-
 
             foreach (var mi in menuView.Items)
             {
@@ -1266,7 +1303,6 @@ namespace NSAP_ODK.Views
 
         private void OnDataGridSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-
         }
 
         private void OnWindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -1281,7 +1317,5 @@ namespace NSAP_ODK.Views
         {
             e.Row.Header = (e.Row.GetIndex() + 1).ToString();
         }
-
-
     }
 }

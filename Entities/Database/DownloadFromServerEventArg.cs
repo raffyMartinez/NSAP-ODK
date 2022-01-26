@@ -10,6 +10,7 @@ namespace NSAP_ODK.Entities.Database
     {
         ContactingServer,
         DownloadingData,
+        GotXLSFormVersion,
         GotJSONString,
         ConvertDataToExcel,
         ConvertDataToEntities,
@@ -21,5 +22,7 @@ namespace NSAP_ODK.Entities.Database
     {
         public DownloadFromServerIntent Intent { get; set; }
         public string JSONString { get; set; }
+
+        public string FormName { get; set; }
     }
 }

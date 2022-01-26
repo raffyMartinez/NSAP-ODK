@@ -989,7 +989,16 @@ namespace NSAP_ODK.Entities.Database.FromJson
             {
                 if (LandingSiteID != null)
                 {
-                    return RegionFishingGround.LandingSites.FirstOrDefault(t => t.RowID == (int)LandingSiteID).LandingSite;
+                    var ls = RegionFishingGround.LandingSites.FirstOrDefault(t => t.RowID == (int)LandingSiteID)?.LandingSite;
+                    if(ls!=null)
+                    {
+                        return ls;
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                    //return RegionFishingGround.LandingSites.FirstOrDefault(t => t.RowID == (int)LandingSiteID).LandingSite;
                 }
                 else
                 {
@@ -1243,7 +1252,6 @@ namespace NSAP_ODK.Entities.Database.FromJson
         }
 
     }
-
 
 
 

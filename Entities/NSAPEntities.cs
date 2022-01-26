@@ -52,6 +52,7 @@ namespace NSAP_ODK.Entities
         public static FishSpeciesViewModel FishSpeciesViewModel;
         public static LandingSiteViewModel LandingSiteViewModel;
         public static GearViewModel GearViewModel;
+        public static GearEffortSpecificationViewModel GearEffortSpecificationViewModel;
         public static ProvinceViewModel ProvinceViewModel;
 
         //public static MunicipalityViewModel MunicipalityViewModel;

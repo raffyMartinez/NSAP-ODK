@@ -60,14 +60,38 @@ namespace NSAP_ODK.Entities
             {
                 conn.Open();
                 var sql = $@"Insert into fishingGround(FishingGroundName,FishingGroundCode)
-                           Values ('{fg.Name}','{fg.Code}')";
+                           Values (?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@fg_name", OleDbType.VarChar).Value = fg.Name;
+                    update.Parameters.Add("@fg_code", OleDbType.VarChar).Value = fg.Code;
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        switch (dbex.ErrorCode)
+                        {
+                            case -2147467259:
+                                //database is corrupt
+                                CorruptedDatabase = true;
+                                break;
+                        }
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
+
             return success;
         }
+
+        public bool CorruptedDatabase { get; private set; }
+
 
         public bool Update(FishingGround fg)
         {
@@ -75,12 +99,25 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Update fishingGround set
-                                FishingGroundName = '{fg.Name}'
-                            WHERE FishingGroundCode = '{fg.Code}'";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                using (OleDbCommand update = conn.CreateCommand())
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@fgname", OleDbType.VarChar).Value = fg.Name;
+                    update.Parameters.Add("@fgcode", OleDbType.VarChar).Value = fg.Code;
+                    update.CommandText = @"UPDATE fishingground SET
+                                           FishingGroundName=@fgname
+                                           WHERE FishingGroundCode=@fgcode";
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch(OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch(Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
             return success;

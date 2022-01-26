@@ -10,6 +10,7 @@ namespace NSAP_ODK.Entities
 {
     public class FishingGroundViewModel
     {
+        private bool _editSuccess;
         public ObservableCollection<FishingGround> FishingGroundCollection { get; set; }
         private FishingGroundRepository FishingGrounds { get; set; }
 
@@ -78,6 +79,7 @@ namespace NSAP_ODK.Entities
         }
         private void FishingGroundCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            _editSuccess = false;
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
@@ -87,19 +89,20 @@ namespace NSAP_ODK.Entities
                         if (FishingGrounds.Add(newFG))
                         {
                             CurrentEntity = newFG;
+                            _editSuccess = true;
                         }
                     }
                     break;
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<FishingGround> tempListOfRemovedItems = e.OldItems.OfType<FishingGround>().ToList();
-                        FishingGrounds.Delete(tempListOfRemovedItems[0].Code);
+                        _editSuccess= FishingGrounds.Delete(tempListOfRemovedItems[0].Code);
                     }
                     break;
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<FishingGround> tempList = e.NewItems.OfType<FishingGround>().ToList();
-                        FishingGrounds.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        _editSuccess= FishingGrounds.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -110,14 +113,15 @@ namespace NSAP_ODK.Entities
             get { return FishingGroundCollection.Count; }
         }
 
-        public void AddRecordToRepo(FishingGround fg)
+        public bool AddRecordToRepo(FishingGround fg)
         {
             if (fg == null)
                 throw new ArgumentNullException("Error: The argument is Null");
             FishingGroundCollection.Add(fg);
+            return _editSuccess;
         }
 
-        public void UpdateRecordInRepo(FishingGround fg)
+        public bool UpdateRecordInRepo(FishingGround fg)
         {
             if (fg.Code == null)
                 throw new Exception("Error: ID cannot be null");
@@ -132,9 +136,10 @@ namespace NSAP_ODK.Entities
                 }
                 index++;
             }
+            return _editSuccess;
         }
 
-        public void DeleteRecordFromRepo(string code)
+        public bool DeleteRecordFromRepo(string code)
         {
             if (code == null)
                 throw new Exception("Record ID cannot be null");
@@ -149,6 +154,7 @@ namespace NSAP_ODK.Entities
                 }
                 index++;
             }
+            return _editSuccess; 
         }
 
         public bool EntityValidated(FishingGround fg, out List<EntityValidationMessage> entityMessages, bool isNew, string oldName = "", string oldCode = "")

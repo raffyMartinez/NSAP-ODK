@@ -352,7 +352,14 @@ namespace NSAP_ODK.Entities
         }
         public NSAPRegionWithEntitiesRepository GetNSAPRegionWithEntitiesRepository(NSAPRegion nsapRegion)
         {
-            return NSAPRegionsWithEntitiesRepositories[nsapRegion.Code];
+            if (nsapRegion == null)
+            {
+                return null;
+            }
+            else
+            {
+                return NSAPRegionsWithEntitiesRepositories[nsapRegion.Code];
+            }
         }
 
         public void SetNSAPRegionsWithEntitiesRepositories()

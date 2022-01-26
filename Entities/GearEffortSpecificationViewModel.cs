@@ -8,6 +8,7 @@ namespace NSAP_ODK.Entities
 {
     public class GearEffortSpecificationViewModel
     {
+        private bool _editSuccess;
         private bool _isBaseSpec = false;
         public ObservableCollection<GearEffortSpecification> GearEffortSpecificationCollection { get; set; }
         private GearEffortSpecificationRepository GearEffortSpecifications { get; set; }
@@ -41,6 +42,7 @@ namespace NSAP_ODK.Entities
 
         private void GearEffortSpecificationCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            _editSuccess = false;
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
@@ -48,7 +50,7 @@ namespace NSAP_ODK.Entities
                         if (!_isBaseSpec)
                         {
                             int newIndex = e.NewStartingIndex;
-                            GearEffortSpecifications.Add(GearEffortSpecificationCollection[newIndex]);
+                            _editSuccess = GearEffortSpecifications.Add(GearEffortSpecificationCollection[newIndex]);
                         }
                     }
                     break;
@@ -58,7 +60,7 @@ namespace NSAP_ODK.Entities
                         if (!_isBaseSpec)
                         {
                             List<GearEffortSpecification> tempListOfRemovedItems = e.OldItems.OfType<GearEffortSpecification>().ToList();
-                            GearEffortSpecifications.Delete(tempListOfRemovedItems[0].RowID);
+                            _editSuccess = GearEffortSpecifications.Delete(tempListOfRemovedItems[0].RowID);
                         }
                     }
                     break;
@@ -66,7 +68,7 @@ namespace NSAP_ODK.Entities
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<GearEffortSpecification> tempList = e.NewItems.OfType<GearEffortSpecification>().ToList();
-                        GearEffortSpecifications.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        _editSuccess = GearEffortSpecifications.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -97,16 +99,17 @@ namespace NSAP_ODK.Entities
             }
         }
 
-        public void AddRecordToRepo(GearEffortSpecification ges)
+        public bool AddRecordToRepo(GearEffortSpecification ges)
         {
             if (ges == null)
                 throw new ArgumentNullException("Error: The argument is Null");
 
             _isBaseSpec = false;
             GearEffortSpecificationCollection.Add(ges);
+            return _editSuccess;
         }
 
-        public void UpdateRecordInRepo(GearEffortSpecification ges)
+        public bool UpdateRecordInRepo(GearEffortSpecification ges)
         {
             if (ges.RowID == 0)
                 throw new Exception("Error: ID cannot be null");
@@ -121,9 +124,10 @@ namespace NSAP_ODK.Entities
                 }
                 index++;
             }
+            return _editSuccess;
         }
 
-        public void DeleteRecordFromRepo(GearEffortSpecification gearEffortSpec)
+        public bool DeleteRecordFromRepo(GearEffortSpecification gearEffortSpec)
         {
 
             if (GearEffortSpecificationCollection.Contains(gearEffortSpec))
@@ -131,6 +135,7 @@ namespace NSAP_ODK.Entities
                 _isBaseSpec = false;
                 GearEffortSpecificationCollection.Remove(gearEffortSpec);
             }
+            return _editSuccess;
         }
         public void DeleteRecordFromRepo(int id)
         {

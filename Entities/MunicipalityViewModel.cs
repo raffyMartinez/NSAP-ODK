@@ -8,6 +8,7 @@ namespace NSAP_ODK.Entities
 {
     public class MunicipalityViewModel
     {
+        private bool _editSuccess;
         public ObservableCollection<Municipality> MunicipalityCollection { get; set; }
         private MunicipalityRepository Municipalities { get; set; }
 
@@ -60,26 +61,27 @@ namespace NSAP_ODK.Entities
 
         private void Municipalities_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            _editSuccess = false;
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
                     {
                         int newIndex = e.NewStartingIndex;
-                        Municipalities.Add(MunicipalityCollection[newIndex]);
+                        _editSuccess= Municipalities.Add(MunicipalityCollection[newIndex]);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<Municipality> tempListOfRemovedItems = e.OldItems.OfType<Municipality>().ToList();
-                        Municipalities.Delete(tempListOfRemovedItems[0].MunicipalityID);
+                        _editSuccess= Municipalities.Delete(tempListOfRemovedItems[0].MunicipalityID);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<Municipality> tempList = e.NewItems.OfType<Municipality>().ToList();
-                        Municipalities.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        _editSuccess= Municipalities.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -90,14 +92,15 @@ namespace NSAP_ODK.Entities
             get { return MunicipalityCollection.Count; }
         }
 
-        public void AddRecordToRepo(Municipality m)
+        public bool AddRecordToRepo(Municipality m)
         {
             if (m == null)
                 throw new ArgumentNullException("Error: The argument is Null");
             MunicipalityCollection.Add(m);
+            return _editSuccess;
         }
 
-        public void UpdateRecordInRepo(Municipality m)
+        public bool UpdateRecordInRepo(Municipality m)
         {
             if (m.MunicipalityID == 0)
                 throw new Exception("Error: ID cannot be zero");
@@ -112,9 +115,10 @@ namespace NSAP_ODK.Entities
                 }
                 index++;
             }
+            return _editSuccess;
         }
 
-        public void DeleteRecordFromRepo(int id)
+        public bool DeleteRecordFromRepo(int id)
         {
             if (id == 0)
                 throw new Exception("Record ID cannot be null");
@@ -129,6 +133,7 @@ namespace NSAP_ODK.Entities
                 }
                 index++;
             }
+            return _editSuccess;
         }
 
         public int NextRecordNumber

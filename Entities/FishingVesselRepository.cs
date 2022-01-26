@@ -66,21 +66,76 @@ namespace NSAP_ODK.Entities
 
         public bool Add(FishingVessel fv)
         {
-            string length = fv.Length == null ? "null" : fv.Length.ToString();
-            string breadth = fv.Breadth == null ? "null" : fv.Breadth.ToString();
-            string depth = fv.Depth == null ? "null" : fv.Depth.ToString();
-            string vesselName = string.IsNullOrEmpty(fv.Name) ? "" : fv.Name;
-            string ownerName = string.IsNullOrEmpty(fv.NameOfOwner) ? "" : fv.NameOfOwner;
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Insert into fishingVessel (VesselID, VesselName, NameOfOwner, Length,Depth,Breadth,RegistrationNumber,Sector)
-                           Values
-                           ({fv.ID},'{vesselName}','{ownerName}',{length},{depth},{breadth},'{fv.RegistrationNumber}',{(int)fv.FisheriesSector})";
+                var sql = @"Insert into fishingVessel (VesselID, VesselName, NameOfOwner, Length,Depth,Breadth,RegistrationNumber,Sector)
+                           Values(?,?,?,?,?,?,?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = fv.ID;
+                    if (string.IsNullOrEmpty(fv.Name))
+                    {
+                        update.Parameters.Add("@name", OleDbType.VarChar).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@name", OleDbType.VarChar).Value = fv.Name;
+                    }
+                    if (string.IsNullOrEmpty(fv.NameOfOwner))
+                    {
+                        update.Parameters.Add("@owner_name", OleDbType.VarChar).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@owner_name", OleDbType.VarChar).Value = fv.NameOfOwner;
+                    }
+                    if (fv.Length == null)
+                    {
+                        update.Parameters.Add("@len", OleDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@len", OleDbType.Double).Value = fv.Length;
+                    }
+                    if (fv.Depth == null)
+                    {
+                        update.Parameters.Add("@dep", OleDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@dep", OleDbType.Double).Value = fv.Depth;
+                    }
+                    if (fv.Breadth == null)
+                    {
+                        update.Parameters.Add("@brd", OleDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@brd", OleDbType.Double).Value = fv.Breadth;
+                    }
+                    if (string.IsNullOrEmpty(fv.RegistrationNumber))
+                    {
+                        update.Parameters.Add("@reg_number", OleDbType.VarChar).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@reg_number", OleDbType.VarChar).Value = fv.RegistrationNumber;
+                    }
+                    update.Parameters.Add("@sector", OleDbType.Integer).Value = (int)fv.FisheriesSector;
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
             return success;
@@ -88,28 +143,85 @@ namespace NSAP_ODK.Entities
 
         public bool Update(FishingVessel fv)
         {
-            string length = fv.Length == null ? "null" : fv.Length.ToString();
-            string breadth = fv.Breadth == null ? "null" : fv.Breadth.ToString();
-            string depth = fv.Depth == null ? "null" : fv.Depth.ToString();
-            string vesselName = string.IsNullOrEmpty(fv.Name) ? "" : fv.Name;
-            string ownerName = string.IsNullOrEmpty(fv.NameOfOwner) ? "" : fv.NameOfOwner;
-            string regNo = string.IsNullOrEmpty(fv.RegistrationNumber) ? "" : fv.RegistrationNumber;
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Update fishingVessel set
-                                VesselName = '{vesselName}',
-                                NameOfOwner='{ownerName}',
-                                Length = {length},
-                                Depth = {depth},
-                                Breadth = {breadth},
-                                RegistrationNumber = '{regNo}',
-                                Sector = {(int)fv.FisheriesSector}
-                            WHERE VesselID={fv.ID}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                using (OleDbCommand update = conn.CreateCommand())
                 {
-                    success = update.ExecuteNonQuery() > 0;
+
+                    if (string.IsNullOrEmpty(fv.Name))
+                    {
+                        update.Parameters.Add("@name", OleDbType.VarChar).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@name", OleDbType.VarChar).Value = fv.Name;
+                    }
+                    if (string.IsNullOrEmpty(fv.NameOfOwner))
+                    {
+                        update.Parameters.Add("@owner_name", OleDbType.VarChar).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@owner_name", OleDbType.VarChar).Value = fv.NameOfOwner;
+                    }
+                    if (fv.Length == null)
+                    {
+                        update.Parameters.Add("@len", OleDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@len", OleDbType.Double).Value = fv.Length;
+                    }
+                    if (fv.Depth == null)
+                    {
+                        update.Parameters.Add("@dep", OleDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@dep", OleDbType.Double).Value = fv.Depth;
+                    }
+                    if (fv.Breadth == null)
+                    {
+                        update.Parameters.Add("@brd", OleDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@brd", OleDbType.Double).Value = fv.Breadth;
+                    }
+                    if (string.IsNullOrEmpty(fv.RegistrationNumber))
+                    {
+                        update.Parameters.Add("@reg_number", OleDbType.VarChar).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@reg_number", OleDbType.VarChar).Value = fv.RegistrationNumber;
+                    }
+                    update.Parameters.Add("@sector", OleDbType.Integer).Value = (int)fv.FisheriesSector;
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = fv.ID;
+
+                    update.CommandText = @"Update fishingVessel set
+                                VesselName = @name,
+                                NameOfOwner=@owner_name,
+                                Length = @len,
+                                Depth = @dep,
+                                Breadth = @brd,
+                                RegistrationNumber = @reg_number,
+                                Sector = @sector
+                                WHERE VesselID=@id";
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
             return success;

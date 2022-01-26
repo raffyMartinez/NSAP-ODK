@@ -11,10 +11,9 @@ namespace NSAP_ODK.Entities.Database
 
         public static int FillDictionary()
         {
-            return 1;
-            var catchList = NSAPEntities.VesselCatchViewModel.GetAllVesselCatches().Where(t => t.SpeciesText != null && t.SpeciesText.Length > 0 && t.SpeciesID != null).OrderBy(t=>t.SpeciesText);
+            var catchList = NSAPEntities.VesselCatchViewModel.GetAllVesselCatches().Where(t => t.SpeciesText != null && t.SpeciesText.Length > 0 && t.SpeciesID != null).OrderBy(t => t.SpeciesText);
             var list = catchList.GroupBy(x => new { x.SpeciesText, x.SpeciesID, x.Taxa, x.FishSpecies, x.NotFishSpecies }, (key, group) => new
-            { 
+            {
                 spText = key.SpeciesText,
                 spID = key.SpeciesID,
                 spTaxa = key.Taxa,
@@ -29,17 +28,17 @@ namespace NSAP_ODK.Entities.Database
                                  )
                                  .OrderBy(t => t.spName);
 
-            foreach(var item in nameCounts)
+            foreach (var item in nameCounts)
             {
                 List<SpeciesTextToSpeciesConvert> thislist = new List<SpeciesTextToSpeciesConvert>();
-                if(item.spCount==1)
+                if (item.spCount == 1)
                 {
                     var itemInList = list.Where(t => t.spText == item.spName).FirstOrDefault();
                     thislist.Add(new SpeciesTextToSpeciesConvert { SpeciesText = itemInList.spText, SpeciesID = (int)itemInList.spID, TaxaCode = itemInList.spTaxa.Code });
                 }
                 else
                 {
-                    foreach(var itemInList in list.Where(t=>t.spText==item.spName))
+                    foreach (var itemInList in list.Where(t => t.spText == item.spName))
                     {
                         thislist.Add(new SpeciesTextToSpeciesConvert { SpeciesText = itemInList.spText, SpeciesID = (int)itemInList.spID, TaxaCode = itemInList.spTaxa.Code });
                     }
@@ -47,7 +46,7 @@ namespace NSAP_ODK.Entities.Database
                 SpeciesConveterdDict.Add(item.spName, thislist);
 
             }
-            
+
             return SpeciesConveterdDict.Count();
         }
         public static Dictionary<string, List<SpeciesTextToSpeciesConvert>> SpeciesConveterdDict { get; set; } = new Dictionary<string, List<SpeciesTextToSpeciesConvert>>();
@@ -62,7 +61,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if(IsFishTaxa)
+                if (IsFishTaxa)
                 {
                     return null;
                 }
@@ -73,9 +72,10 @@ namespace NSAP_ODK.Entities.Database
             }
         }
         public FishSpecies FishSpecies
+        {
+            get
             {
-            get { 
-                if(IsFishTaxa)
+                if (IsFishTaxa)
                 {
                     return NSAPEntities.FishSpeciesViewModel.GetSpecies(SpeciesID);
                 }
@@ -83,7 +83,7 @@ namespace NSAP_ODK.Entities.Database
                 {
                     return null;
                 }
-                    }
             }
+        }
     }
 }

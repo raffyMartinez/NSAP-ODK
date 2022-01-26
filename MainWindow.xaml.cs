@@ -226,18 +226,75 @@ namespace NSAP_ODK
 
         private void OnCrossTabEvent(object sender, CrossTabReportEventArg e)
         {
+            //mainStatusBar.IsIndeterminate = false;
             switch (e.Context)
             {
+                case "FilteringCatchData":
+
+                    mainStatusBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusBar.IsIndeterminate = true;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+                    mainStatusLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusLabel.Content = $"Filtering catch data. Please wait...";
+                                                  //do what you need to do on UI Thread
+                                                  return null;
+                          }
+                         ), null);
+
+                    break;
+
                 case "Start":
 
                     mainStatusBar.Dispatcher.BeginInvoke
                         (
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
+                              //mainStatusBar.IsIndeterminate = false;
                               mainStatusBar.Maximum = e.RowsToPrepare;
                               //do what you need to do on UI Thread
                               return null;
                           }), null);
+
+                    mainStatusLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusLabel.Content = $"Preparing to add rows";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case "RowsPrepared":
+                    mainStatusBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusBar.IsIndeterminate = false;
+                              //mainStatusBar.Maximum = e.RowsToPrepare;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+
+                    mainStatusLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusLabel.Content = $"Rows prepared. Please wait for rows to start adding...";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
                     break;
                 case "AddingRows":
                     mainStatusBar.Dispatcher.BeginInvoke
@@ -255,6 +312,28 @@ namespace NSAP_ODK
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
                               mainStatusLabel.Content = $"Added {e.RowsPrepared} of {e.RowsToPrepare} vessel unloads";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+
+                    break;
+                case "PreparingDisplayRows":
+                    mainStatusBar.Dispatcher.BeginInvoke
+                         (
+                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                             {
+                                 mainStatusBar.IsIndeterminate=true;
+                                //do what you need to do on UI Thread
+                                return null;
+                             }
+                          ), null);
+
+                    mainStatusLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusLabel.Content = $"Preparing to show results. Please wait...";
                               //do what you need to do on UI Thread
                               return null;
                           }
@@ -871,32 +950,31 @@ namespace NSAP_ODK
                 }
                 else
                 {
+                    bool success = false;
                     switch (_nsapEntity)
                     {
                         case NSAPEntity.GPS:
-                            NSAPEntities.GPSViewModel.DeleteRecordFromRepo(((GPS)dataGridEntities.SelectedItem).Code);
+                            success = NSAPEntities.GPSViewModel.DeleteRecordFromRepo(((GPS)dataGridEntities.SelectedItem).Code);
                             break;
                         case NSAPEntity.FishingGround:
-                            NSAPEntities.FishingGroundViewModel.DeleteRecordFromRepo(((FishingGround)dataGridEntities.SelectedItem).Code);
+                            success = NSAPEntities.FishingGroundViewModel.DeleteRecordFromRepo(((FishingGround)dataGridEntities.SelectedItem).Code);
                             break;
 
                         case NSAPEntity.FishingVessel:
-                            NSAPEntities.FishingVesselViewModel.DeleteRecordFromRepo(((FishingVessel)dataGridEntities.SelectedItem).ID);
+                            success= NSAPEntities.FishingVesselViewModel.DeleteRecordFromRepo(((FishingVessel)dataGridEntities.SelectedItem).ID);
                             break;
 
                         case NSAPEntity.FishingGear:
-                            if (!NSAPEntities.GearViewModel.DeleteRecordFromRepo(((Gear)dataGridEntities.SelectedItem).Code))
-                            {
-                                return;
-                            }
+                            success = NSAPEntities.GearViewModel.DeleteRecordFromRepo(((Gear)dataGridEntities.SelectedItem).Code);
+                            
                             break;
 
                         case NSAPEntity.LandingSite:
-                            NSAPEntities.LandingSiteViewModel.DeleteRecordFromRepo(((LandingSite)dataGridEntities.SelectedItem).LandingSiteID);
+                            success= NSAPEntities.LandingSiteViewModel.DeleteRecordFromRepo(((LandingSite)dataGridEntities.SelectedItem).LandingSiteID);
                             break;
 
                         case NSAPEntity.Enumerator:
-                            NSAPEntities.NSAPEnumeratorViewModel.DeleteRecordFromRepo(((NSAPEnumerator)dataGridEntities.SelectedItem).ID);
+                            success= NSAPEntities.NSAPEnumeratorViewModel.DeleteRecordFromRepo(((NSAPEnumerator)dataGridEntities.SelectedItem).ID);
                             break;
 
                         case NSAPEntity.EffortIndicator:
@@ -906,7 +984,10 @@ namespace NSAP_ODK
 
                             break;
                     }
-                    SetDataGridSource();
+                    if (success)
+                    {
+                        SetDataGridSource();
+                    }
                 }
             }
         }
@@ -1934,6 +2015,7 @@ namespace NSAP_ODK
         }
         private async void OnTreeViewItemSelected(object sender, TreeViewModelControl.AllSamplingEntitiesEventHandler e)
         {
+            labelRowCount.Visibility = Visibility.Collapsed;          
             _acceptDataGridCellClick = false;
             _allSamplingEntitiesEventHandler = e;
             gridCalendarHeader.Visibility = Visibility.Visible;
@@ -2153,6 +2235,7 @@ namespace NSAP_ODK
 
         private void OnHistoryTreeItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
+            labelRowCount.Visibility = Visibility.Visible;
             var dt = DateTime.Now;
             if (e.NewValue != null)
             {
@@ -2760,6 +2843,11 @@ namespace NSAP_ODK
             {
                 cm.IsOpen = true;
             }
+
+        }
+
+        private void OnMainMenuGotFocus(object sender, RoutedEventArgs e)
+        {
 
         }
     }

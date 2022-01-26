@@ -757,6 +757,33 @@ namespace NSAP_ODK.Entities
             return success;
         }
 
+
+        public bool DeleteGearEffort(int id)
+        {
+            bool success = false;
+            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            {
+                conn.Open();
+                var sql = $"Delete * from GearEffortSpecification where RowID={id}";
+                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                {
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException)
+                    {
+                        success = false;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                        success = false;
+                    }
+                }
+            }
+            return success;
+        }
         public bool DeleteLandingSite(int id)
         {
             DatabaseErrorMessage = "";

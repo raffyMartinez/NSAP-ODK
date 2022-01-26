@@ -179,9 +179,9 @@ namespace NSAP_ODK.Entities
         {
             EntityValidationResult evr = new EntityValidationResult();
 
-            if (isNew && (gps.Code.Length < 3 || gps.Code.Length > 5))
+            if (isNew && (gps.Code.Length < 3 || gps.Code.Length > 6))
             {
-                evr.AddMessage("Code must be at least 3 to 5 letters long");
+                evr.AddMessage("Code must be at least 3 to 6 letters long");
             }
 
             if (isNew && gps.AssignedName.Length < 5)

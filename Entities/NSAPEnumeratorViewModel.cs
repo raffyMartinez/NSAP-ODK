@@ -415,7 +415,7 @@ namespace NSAP_ODK.Entities
                     {
                         List<NSAPEnumerator> tempListOfRemovedItems = e.OldItems.OfType<NSAPEnumerator>().ToList();
                         editedEnumerator = tempListOfRemovedItems[0];
-                        NSAPEnumerators.Delete(editedEnumerator.ID);
+                        EditSuccess= NSAPEnumerators.Delete(editedEnumerator.ID);
                     }
                     break;
 
@@ -457,7 +457,7 @@ namespace NSAP_ODK.Entities
             return EditSuccess;
         }
 
-        public void DeleteRecordFromRepo(int id)
+        public bool DeleteRecordFromRepo(int id)
         {
             if (id == 0)
                 throw new Exception("Record ID cannot be null");
@@ -472,6 +472,7 @@ namespace NSAP_ODK.Entities
                 }
                 index++;
             }
+            return EditSuccess;
         }
 
         public bool EntityValidated(NSAPEnumerator nse, out List<EntityValidationMessage> entityMessages, bool isNew)

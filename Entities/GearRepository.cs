@@ -49,20 +49,39 @@ namespace NSAP_ODK.Entities
                 return listGears;
             }
         }
-
         public bool Add(Gear g)
         {
-            //string genericCode = g.BaseGear == null ? "null" : g.BaseGear.Code;
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Insert into gear (GearName,GearCode,GenericCode,IsGeneric)
-                           Values
-                           ('{g.GearName}','{g.Code}', '{g.BaseGear.Code}', {g.IsGenericGear})";
+                var sql = "Insert into gear (GearName,GearCode,GenericCode,IsGeneric) Values (?,?,?,?)";
+
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@gearName", OleDbType.VarChar).Value = g.GearName;
+                    update.Parameters.Add("@gearcode", OleDbType.VarChar).Value = g.Code;
+                    if (g.BaseGear == null)
+                    {
+                        update.Parameters.Add("genericcode", OleDbType.VarChar).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@genericcode", OleDbType.VarChar).Value = g.BaseGear.Code;
+                    }
+                    update.Parameters.Add("@isgeneric", OleDbType.Boolean).Value = g.IsGenericGear;
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
             return success;
@@ -74,14 +93,34 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Update gear set
-                                GearName = '{g.GearName}',
-                                GenericCode = '{g.BaseGear.Code}',
-                                IsGeneric = {g.IsGenericGear}
-                            WHERE GearCode = '{g.Code}'";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                using (OleDbCommand update = conn.CreateCommand())
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@gearname", OleDbType.VarChar).Value = g.GearName;
+                    update.Parameters.Add("@genericcode", OleDbType.VarChar).Value = g.BaseGear.Code;
+                    update.Parameters.Add("@isgeneric", OleDbType.Boolean).Value = g.IsGenericGear;
+                    update.Parameters.Add("@gearcode", OleDbType.VarChar).Value = g.Code;
+
+                    update.CommandText = @"UPDATE gear SET
+                                           GearName = @gearname,
+                                           GenericCode = @genericcode,
+                                           IsGeneric = @isgeneric 
+                                           WHERE GearCode = @gearcode";
+                    try
+                    {
+                        //string commandString = update.CommandText;
+                        //foreach (OleDbParameter parameter in update.Parameters)
+                        //    commandString = commandString.Replace(parameter.ParameterName.ToString(), parameter.Value.ToString());
+
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
             return success;

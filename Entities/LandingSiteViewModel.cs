@@ -10,6 +10,7 @@ namespace NSAP_ODK.Entities
 {
     public class LandingSiteViewModel
     {
+        private bool _editSuccess;
         public ObservableCollection<LandingSite> LandingSiteCollection { get; set; }
         private LandingSiteRepository LandingSites { get; set; }
 
@@ -42,7 +43,7 @@ namespace NSAP_ODK.Entities
             dc = new DataColumn { ColumnName = "Latitude", DataType = typeof(double) };
             dt.Columns.Add(dc);
 
-            foreach(var ls in LandingSiteCollection)
+            foreach (var ls in LandingSiteCollection)
             {
                 var row = dt.NewRow();
                 row["Landing site"] = ls.LandingSiteName;
@@ -50,7 +51,7 @@ namespace NSAP_ODK.Entities
                 row["Province"] = ls.Municipality.Province.ProvinceName;
                 row["Municipality"] = ls.Municipality.MunicipalityName;
                 row["Brgy"] = ls.Barangay;
-                if(ls.Longitude==null)
+                if (ls.Longitude == null)
                 {
                     row["Longitude"] = DBNull.Value;
 
@@ -129,7 +130,7 @@ namespace NSAP_ODK.Entities
         public LandingSite CurrentEntity { get; set; }
         public LandingSite GetLandingSite(int landingSiteID)
         {
-            CurrentEntity= LandingSiteCollection.FirstOrDefault(n => n.LandingSiteID == landingSiteID);
+            CurrentEntity = LandingSiteCollection.FirstOrDefault(n => n.LandingSiteID == landingSiteID);
             return CurrentEntity;
         }
 
@@ -140,6 +141,7 @@ namespace NSAP_ODK.Entities
 
         private void LandingSiteCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            _editSuccess = false;
             LandingSite editedLandingSite = new LandingSite();
             switch (e.Action)
             {
@@ -147,9 +149,10 @@ namespace NSAP_ODK.Entities
                     {
                         int newIndex = e.NewStartingIndex;
                         editedLandingSite = LandingSiteCollection[newIndex];
-                        if(LandingSites.Add(editedLandingSite))
+                        if (LandingSites.Add(editedLandingSite))
                         {
                             CurrentEntity = editedLandingSite;
+                            _editSuccess = true;
                         }
 
                     }
@@ -159,7 +162,7 @@ namespace NSAP_ODK.Entities
                     {
                         List<LandingSite> tempListOfRemovedItems = e.OldItems.OfType<LandingSite>().ToList();
                         editedLandingSite = tempListOfRemovedItems[0];
-                        LandingSites.Delete(editedLandingSite.LandingSiteID);
+                        _editSuccess = LandingSites.Delete(editedLandingSite.LandingSiteID);
                     }
                     break;
 
@@ -167,7 +170,7 @@ namespace NSAP_ODK.Entities
                     {
                         List<LandingSite> tempListOfLandingSites = e.NewItems.OfType<LandingSite>().ToList();
                         editedLandingSite = tempListOfLandingSites[0];
-                        LandingSites.Update(editedLandingSite);      // As the IDs are unique, only one row will be effected hence first index only
+                        _editSuccess = LandingSites.Update(editedLandingSite);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -175,14 +178,15 @@ namespace NSAP_ODK.Entities
             //EntityChanged?.Invoke(this, args);
         }
 
-        public void AddRecordToRepo(LandingSite ls)
+        public bool AddRecordToRepo(LandingSite ls)
         {
             if (ls == null)
                 throw new ArgumentNullException("Error: The argument is Null");
             LandingSiteCollection.Add(ls);
+            return _editSuccess;
         }
 
-        public void UpdateRecordInRepo(LandingSite ls)
+        public bool UpdateRecordInRepo(LandingSite ls)
         {
             if (ls.LandingSiteID == 0)
                 throw new Exception("Error: ID cannot be null");
@@ -197,9 +201,10 @@ namespace NSAP_ODK.Entities
                 }
                 index++;
             }
+            return _editSuccess;
         }
 
-        public void DeleteRecordFromRepo(int id)
+        public bool DeleteRecordFromRepo(int id)
         {
             if (id == 0)
                 throw new Exception("Record ID cannot be null");
@@ -214,6 +219,7 @@ namespace NSAP_ODK.Entities
                 }
                 index++;
             }
+            return _editSuccess;
         }
 
         public EntityValidationResult EntityValidated(LandingSite landingSite, bool isNew)

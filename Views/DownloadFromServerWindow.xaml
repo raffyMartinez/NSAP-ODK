@@ -41,7 +41,7 @@
         </WrapPanel>
 
         <!--login button-->
-        <Button Grid.Row="2" Width="100" Margin="10" Content="Login" x:Name="ButtonLogin" Click="OnButtonClick" Height="25"/>
+        <Button Grid.Row="2" Width="100" Margin="10" Content="Login" x:Name="ButtonLogin" Click="OnButtonClick" Height="25" IsDefault="True"/>
 
 
         <!--main body of the form-->
@@ -113,7 +113,7 @@
                                 <Label Content="User name:" Margin="30 5 5 5"/>
                                 <ComboBox Width="200" Margin="5 7" x:Name="ComboUser"/>
                             </WrapPanel>
-                            <CheckBox Content="Limit to tracked operations" x:Name="CheckLimitoTracked" Margin="10 10" Checked="OnCheckStateChange" Unchecked="OnCheckStateChange"/>
+                            <CheckBox Content="Limit to tracked operations" x:Name="CheckLimitoTracked" Margin="10 10" Checked="OnCheckStateChange" Unchecked="OnCheckStateChange" Height="16"/>
                         </StackPanel>
                     </StackPanel>
 
@@ -147,7 +147,7 @@
 
         <!--panel for holding buttons on right side of form -->
         <StackPanel Grid.Column="1" Grid.Row="1" Grid.RowSpan="4">
-            <Button Content="Close" Height="25" Width="100" x:Name="ButtonClose" Click="OnButtonClick" Margin="10" />
+            <Button Content="Close" Height="25" Width="100" x:Name="ButtonClose" Click="OnButtonClick" Margin="10" IsCancel="True" />
         </StackPanel>
     </Grid>
 </Window>
