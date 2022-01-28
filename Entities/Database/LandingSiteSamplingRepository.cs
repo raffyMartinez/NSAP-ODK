@@ -104,22 +104,8 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                //var sql = $@"Insert into dbo_LC_FG_sample_day(
-                //                unload_day_id, region_id,sdate, land_ctr_id,ground_id,
-                //                remarks,sampleday,land_ctr_text,fma)
-                //           Values (
-                //                {item.PK},
-                //                '{item.NSAPRegionID}',
-                //                '{item.SamplingDate.ToString(_dateFormat)}',
-                //                {(item.LandingSiteID == null ? "null" : item.LandingSiteID.ToString())},
-                //                '{item.FishingGroundID}', 
-                //                '{item.Remarks}',
-                //                {item.IsSamplingDay},
-                //                '{item.LandingSiteText}',
-                //                {item.FMAID}
-                //            )";
 
-                var sql = $@"Insert into dbo_LC_FG_sample_day(
+                var sql = @"Insert into dbo_LC_FG_sample_day(
                                 unload_day_id, region_id,sdate, land_ctr_id,ground_id,
                                 remarks,sampleday,land_ctr_text,fma)
                            Values (?,?,?,?,?,?,?,?,?)";
@@ -168,34 +154,9 @@ namespace NSAP_ODK.Entities.Database
                         {
                             string dateSubmitted = item.DateSubmitted == null ? "null" : $@"'{item.DateSubmitted.ToString()}'";
                             string dateAdded = item.DateAdded == null ? "null" : $@"'{item.DateAdded.ToString()}'";
-                            //sql = $@"Insert into dbo_LC_FG_sample_day_1  (
-                            //            unload_day_id,
-                            //            datetime_submitted,
-                            //            user_name,
-                            //            device_id,
-                            //            XFormIdentifier,
-                            //            DateAdded,
-                            //            FromExcelDownload,
-                            //            form_version,
-                            //            RowID,
-                            //            EnumeratorID,
-                            //            EnumeratorText
-                            //        ) Values (
-                            //            {item.PK} ,
-                            //            {(item.DateSubmitted == null ? "null" : dateSubmitted)} ,
-                            //            '{item.UserName}' ,
-                            //            '{item.DeviceID}' ,
-                            //            '{item.XFormIdentifier}' ,
-                            //            {(item.DateAdded == null ? "null" : dateAdded)} ,
-                            //            {item.FromExcelDownload} ,
-                            //            '{item.FormVersion}' ,
-                            //            '{item.RowID}' ,
-                            //            {(item.EnumeratorID == null ? "null" : item.EnumeratorID.ToString())} ,
-                            //            '{item.EnumeratorText}' 
-                            //        )";
 
 
-                            sql = $@"Insert into dbo_LC_FG_sample_day_1  (
+                            sql = @"Insert into dbo_LC_FG_sample_day_1  (
                                         unload_day_id,
                                         datetime_submitted,
                                         user_name,
@@ -279,7 +240,7 @@ namespace NSAP_ODK.Entities.Database
                                 }
                                 else
                                 {
-                                    update1.Parameters.Add("@row_id", OleDbType.Guid).Value = Guid.Parse( item.RowID);
+                                    update1.Parameters.Add("@row_id", OleDbType.Guid).Value = Guid.Parse(item.RowID);
                                 }
 
                                 if (item.EnumeratorID == null)
@@ -308,7 +269,6 @@ namespace NSAP_ODK.Entities.Database
                                 catch (OleDbException odbex)
                                 {
                                     Logger.Log(odbex);
-                                    success = false;
                                 }
                                 catch (Exception ex)
                                 {
@@ -339,47 +299,112 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Update dbo_LC_FG_sample_day set
-                                region_id='{item.NSAPRegionID}',
-                                sdate = '{item.SamplingDate.ToString(_dateFormat)}',
-                                land_ctr_id = {(item.LandingSiteID == null ? item.LandingSite == null ? "null" : item.LandingSite.LandingSiteID.ToString() : item.LandingSiteID.ToString())},
-                                ground_id = '{item.FishingGroundID}',
-                                remarks = '{item.Remarks}',
-                                sampleday = {item.IsSamplingDay},
-                                land_ctr_text = '{item.LandingSiteText}',
-                                fma = {item.FMAID}
-                            WHERE unload_day_id = {item.PK}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+
+                using (OleDbCommand update = conn.CreateCommand())
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@region_id", OleDbType.Integer).Value = item.NSAPRegionID;
+                    update.Parameters.Add("@sdate", OleDbType.Date).Value = item.SamplingDate;
+                    if (item.LandingSiteID == null)
+                    {
+                        update.Parameters.Add("@landing_site_id", OleDbType.Integer).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@landing_site_id", OleDbType.Integer).Value = item.LandingSiteID;
+                    }
+                    update.Parameters.Add("@ground_id", OleDbType.VarChar).Value = item.FishingGroundID;
+                    update.Parameters.Add("@remarks", OleDbType.VarChar).Value = item.Remarks;
+                    update.Parameters.Add("@issampling_day", OleDbType.Boolean).Value = item.IsSamplingDay;
+                    update.Parameters.Add("landing_site_text", OleDbType.VarChar).Value = item.LandingSiteText;
+                    update.Parameters.Add("@fma", OleDbType.Integer).Value = item.FMAID;
+                    update.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
+
+                    update.CommandText = @"Update dbo_LC_FG_sample_day set
+                                        region_id=@region_id,
+                                        sdate = @sdate',
+                                        land_ctr_id = @land_ctr_id,
+                                        ground_id = @ground_id,
+                                        remarks = @remarks,
+                                        sampleday = @issampling_day,
+                                        land_ctr_text = @landing_site_text,
+                                        fma = @fma
+                                    WHERE unload_day_id = @pk";
+
+
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+
                     if (success && (item.XFormIdentifier != null && item.XFormIdentifier.Length > 0) || (item.Remarks != null && item.Remarks.Contains("orphaned")))
                     {
-                        string dateSubmitted = item.DateSubmitted == null ? "null" : $@"'{item.DateSubmitted.ToString()}'";
-                        string dateAdded = item.DateAdded == null ? "null" : $@"'{item.DateAdded.ToString()}'";
 
-                        sql = $@"Update dbo_LC_FG_sample_day_1 set
-                                        datetime_submitted = {dateSubmitted},
-                                        user_name = '{item.UserName}',
-                                        device_id = '{item.DeviceID}',
-                                        XFormIdentifier = '{item.XFormIdentifier}',
-                                        DateAdded = {dateAdded},
-                                        FromExcelDownload = {item.FromExcelDownload},
-                                        form_version = '{item.FormVersion}',
-                                        RowID = '{item.RowID}',
-                                        EnumeratorID = {(item.EnumeratorID == null ? "null" : item.EnumeratorID.ToString())},
-                                        EnumeratorText = '{item.EnumeratorText}'
-                                 WHERE unload_day_id = {item.PK}";
 
-                        using (OleDbCommand update1 = new OleDbCommand(sql, conn))
+                        using (OleDbCommand update1 = conn.CreateCommand())
                         {
+                            if (item.DateSubmitted == null)
+                            {
+                                update.Parameters.Add("@submitted", OleDbType.Date).Value = DBNull.Value;
+                            }
+                            else
+                            {
+                                update.Parameters.Add("@submitted", OleDbType.Date).Value = item.DateSubmitted;
+                            }
+                            update.Parameters.Add("@user", OleDbType.VarChar).Value = item.UserName;
+                            update.Parameters.Add("@device_id", OleDbType.VarChar).Value = item.DeviceID;
+                            update.Parameters.Add("@xform_id", OleDbType.VarChar).Value = item.XFormIdentifier;
+                            if (item.DateSubmitted == null)
+                            {
+                                update.Parameters.Add("@added", OleDbType.Date).Value = DBNull.Value;
+                            }
+                            else
+                            {
+                                update.Parameters.Add("@added", OleDbType.Date).Value = item.DateAdded;
+                            }
+                            update.Parameters.Add("@from_excel", OleDbType.Boolean).Value = item.FromExcelDownload;
+                            update.Parameters.Add("@form_version", OleDbType.VarChar).Value = item.FormVersion;
+                            update.Parameters.Add("@row_id", OleDbType.VarChar).Value = item.RowID;
+                            if (item.EnumeratorID == null)
+                            {
+                                update.Parameters.Add("@enum_id", OleDbType.VarChar).Value = DBNull.Value;
+                            }
+                            else
+                            {
+                                update.Parameters.Add("@enum_id", OleDbType.VarChar).Value = item.EnumeratorID;
+                            }
+                            update.Parameters.Add("@enum_text", OleDbType.VarChar).Value = item.EnumeratorText;
+                            update.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
+
+                            update.CommandText = @"Update dbo_LC_FG_sample_day_1 set
+                                                    datetime_submitted = @submitted,
+                                                    user_name = @user,
+                                                    device_id = @device_id,
+                                                    XFormIdentifier = @xform_id,
+                                                    DateAdded = @added,
+                                                    FromExcelDownload = @from_excel,
+                                                    form_version = @form_version,
+                                                    RowID = @row_id,
+                                                    EnumeratorID = @enum_id,
+                                                    EnumeratorText = @enum_text
+                                                 WHERE unload_day_id = @pk";
+
                             success = false;
+
                             try
                             {
                                 success = update1.ExecuteNonQuery() > 0;
                             }
-                            catch (OleDbException)
+                            catch (OleDbException dbex)
                             {
-                                success = false;
+                                Logger.Log(dbex);
                             }
                             catch (Exception ex)
                             {
@@ -448,39 +473,41 @@ namespace NSAP_ODK.Entities.Database
             {
                 conn.Open();
 
-                var sql = $"Delete * from dbo_LC_FG_sample_day_1 where unload_day_id={id}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+
+                using (OleDbCommand update = conn.CreateCommand())
                 {
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                    update.CommandText = "Delete * from dbo_LC_FG_sample_day_1 where unload_day_id=@id";
                     try
                     {
-                        success = update.ExecuteNonQuery() > 0;
-
-                        sql = $"Delete * from dbo_LC_FG_sample_day where unload_day_id={id}";
-                        using (OleDbCommand update1 = new OleDbCommand(sql, conn))
+                        if (update.ExecuteNonQuery() > 0)
                         {
-                            try
+                            using (OleDbCommand update1 = conn.CreateCommand())
                             {
-                                success = update1.ExecuteNonQuery() > 0;
-                            }
-                            catch (OleDbException)
-                            {
-                                success = false;
-                            }
-                            catch (Exception ex)
-                            {
-                                Logger.Log(ex);
-                                success = false;
+                                update1.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                                update1.CommandText = "Delete * from dbo_LC_FG_sample_day where unload_day_id=@id";
+                                try
+                                {
+                                    success = update1.ExecuteNonQuery() > 0;
+                                }
+                                catch (OleDbException dbex)
+                                {
+                                    Logger.Log(dbex);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Logger.Log(ex);
+                                }
                             }
                         }
                     }
-                    catch (OleDbException)
+                    catch (OleDbException dbex)
                     {
-                        success = false;
+                        Logger.Log(dbex);
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
-                        success = false;
                     }
                 }
 

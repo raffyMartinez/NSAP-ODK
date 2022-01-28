@@ -109,27 +109,7 @@ namespace NSAP_ODK.Entities
             }
             return success;
         }
-        public bool Update1(NSAPEnumerator ns)
-        {
-            bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
-            {
-                conn.Open();
-                //var sql = $@"Update NSAPENumerator set
-                //                EnumeratorID = {ns.ID},
-                //                ENumeratorName = '{ns.Name}'
-                //            WHERE EnumeratorID={ns.ID}";
 
-                var sql = $@"Update NSAPENumerator set ENumeratorName = '{ns.Name}'
-                              WHERE EnumeratorID = { ns.ID }";
-
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
-                {
-                    success = update.ExecuteNonQuery() > 0;
-                }
-            }
-            return success;
-        }
 
         public bool Delete(int id)
         {
@@ -137,9 +117,11 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $"Delete * from NSAPENumerator where EnumeratorID={id}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                
+                using (OleDbCommand update = conn.CreateCommand())
                 {
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                    update.CommandText="Delete * from NSAPENumerator where EnumeratorID=@id";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

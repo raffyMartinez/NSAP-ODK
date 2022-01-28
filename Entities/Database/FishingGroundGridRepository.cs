@@ -71,15 +71,13 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Insert into dbo_fg_grid(fg_grid_id, v_unload_id, utm_zone,grid25)
-                           Values (
-                                {item.PK}, 
-                                {item.VesselUnloadID},
-                                '{item.UTMZoneText}',
-                                '{item.Grid}'
-                                )";
+                var sql = @"Insert into dbo_fg_grid(fg_grid_id, v_unload_id, utm_zone,grid25) Values (?,?,?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
+                    update.Parameters.Add("@unload_id", OleDbType.Integer).Value = item.Parent.PK;
+                    update.Parameters.Add("@utm_zone", OleDbType.VarChar).Value = item.UTMZone.ToString();
+                    update.Parameters.Add("@grid25", OleDbType.VarChar).Value = item.GridCell.ToString();
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;
@@ -87,7 +85,6 @@ namespace NSAP_ODK.Entities.Database
                     catch (OleDbException dbex)
                     {
                         Logger.Log(dbex);
-                        success = false;
                     }
                     catch (Exception ex)
                     {
@@ -104,14 +101,33 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Update dbo_fg_grid set
-                                v_unload_id={item.VesselUnloadID},
-                                utm_zone = '{item.UTMZoneText}',
-                                grid25 = '{item.Grid}'
-                            WHERE gear_soak_id = {item.PK}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+
+                using (OleDbCommand update = conn.CreateCommand())
                 {
-                    success = update.ExecuteNonQuery() > 0;
+
+                    update.Parameters.Add("@unload_id", OleDbType.Integer).Value = item.Parent.PK;
+                    update.Parameters.Add("@utm_zone", OleDbType.VarChar).Value = item.UTMZone.ToString();
+                    update.Parameters.Add("@grid25", OleDbType.VarChar).Value = item.GridCell.ToString();
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
+
+                    update.CommandText = @"Update dbo_fg_grid set
+                                        v_unload_id=@unload_id,
+                                        utm_zone = @utm_zone,
+                                        grid25 = @grid25
+                                        WHERE gear_soak_id = @id";
+
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
             return success;
@@ -149,9 +165,11 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $"Delete * from dbo_fg_grid where gear_soak_id={id}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                
+                using (OleDbCommand update = conn.CreateCommand())
                 {
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                    update.CommandText="Delete * from dbo_fg_grid where gear_soak_id=@id";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

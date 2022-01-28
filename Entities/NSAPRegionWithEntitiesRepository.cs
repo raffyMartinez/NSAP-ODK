@@ -492,11 +492,27 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Insert into NSAPRegionEnumerator(RowID, NSAPRegionCode, EnumeratorID, DateStart, DateEnd)
-                           Values ({regionEnumerator.RowID}, '{NSAPRegion.Code}','{regionEnumerator.EnumeratorID}','{regionEnumerator.DateStart.ToString(_dateFormat)}',{dateEnd})";
+                
+                var sql = "Insert into NSAPRegionEnumerator(RowID, NSAPRegionCode, EnumeratorID, DateStart, DateEnd) Values (?,?,?,?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = regionEnumerator.RowID;
+                    update.Parameters.Add("@region_code", OleDbType.VarChar).Value = NSAPRegion.Code;
+                    update.Parameters.Add("@enum_id", OleDbType.Integer).Value = regionEnumerator.EnumeratorID;
+                    update.Parameters.Add("@start", OleDbType.Date).Value = regionEnumerator.DateStart;
+                    update.Parameters.Add("@end", OleDbType.Date).Value = regionEnumerator.DateEnd;
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch(OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch(Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                     if (success)
                     {
                         NSAPRegion.NSAPEnumerators.Add(regionEnumerator);
@@ -508,15 +524,38 @@ namespace NSAP_ODK.Entities
         public bool AddGear(NSAPRegionGear region_gear)
         {
             bool success = false;
-            string dateEnd = region_gear.DateEnd == null ? "null" : $"'{((DateTime)region_gear.DateEnd).ToString(_dateFormat)}'";
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Insert into NSAPRegionGear(RowID, NSAPRegionCode, GearCode, DateStart, DateEnd)
-                           Values ({region_gear.RowID}, '{region_gear.NSAPRegion.Code}','{region_gear.GearCode}','{region_gear.DateStart.ToString(_dateFormat)}',{dateEnd})";
+                
+
+                var sql = "Insert into NSAPRegionGear(RowID, NSAPRegionCode, GearCode, DateStart, DateEnd) Values (?,?,?,?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = region_gear.RowID;
+                    update.Parameters.Add("@region_code", OleDbType.VarChar).Value = region_gear.NSAPRegion.Code;
+                    update.Parameters.Add("@gear_code", OleDbType.VarChar).Value = region_gear.GearCode;
+                    update.Parameters.Add("@start", OleDbType.Date).Value = region_gear.DateStart;
+                    if (region_gear.DateEnd == null)
+                    {
+                        update.Parameters.Add("@end", OleDbType.Date).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@end", OleDbType.Date).Value = region_gear.DateEnd;
+                    }
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                     if (success)
                     {
                         NSAPRegion.Gears.Add(region_gear);
@@ -527,21 +566,43 @@ namespace NSAP_ODK.Entities
         }
 
 
-        public bool AddFMAFishingGround(NSAPRegionFMAFishingGround fishingGround)
+        public bool AddFMAFishingGround(NSAPRegionFMAFishingGround fg)
         {
             bool success = false;
-            string dateEnd = fishingGround.DateEnd == null ? "null" : $"'{((DateTime)fishingGround.DateEnd).ToString(_dateFormat)}'";
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Insert into NSAPRegionFMAFishingGrounds (RowID, FishingGround, RegionFMA, DateStart, DateEnd)
-                           Values ({fishingGround.RowID}, '{fishingGround.FishingGroundCode}',{fishingGround.RegionFMA.RowID},'{fishingGround.DateStart.ToString(_dateFormat)}',{dateEnd})";
+                
+                var sql = "Insert into NSAPRegionFMAFishingGrounds (RowID, FishingGround, RegionFMA, DateStart, DateEnd) Values (?,?,?,?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = fg.RowID;
+                    update.Parameters.Add("@fg_code", OleDbType.VarChar).Value = fg.FishingGroundCode;
+                    update.Parameters.Add("@region_fma", OleDbType.Integer).Value = fg.RegionFMA.RowID;
+                    update.Parameters.Add("@start", OleDbType.Date).Value = fg.DateStart;
+                    if (fg.DateEnd == null)
+                    {
+                        update.Parameters.Add("@end", OleDbType.Date).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@end", OleDbType.Date).Value = fg.DateEnd;
+                    }
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                     if (success)
                     {
-                        fishingGround.RegionFMA.FishingGrounds.Add(fishingGround);
+                        fg.RegionFMA.FishingGrounds.Add(fg);
                     }
                 }
             }
@@ -549,21 +610,44 @@ namespace NSAP_ODK.Entities
         }
 
 
-        public bool AddFMAFishingGroundLandingSite(NSAPRegionFMAFishingGroundLandingSite fishingGroundLandingSite)
+        public bool AddFMAFishingGroundLandingSite(NSAPRegionFMAFishingGroundLandingSite fgls)
         {
             bool success = false;
-            string dateEnd = fishingGroundLandingSite.DateEnd == null ? "null" : $"'{((DateTime)fishingGroundLandingSite.DateEnd).ToString(_dateFormat)}'";
+            
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Insert into NSAPRegionLandingSite (RowID, NSAPRegionFMAFishingGround, LandingSiteID, DateStart, DateEnd)
-                           Values ({fishingGroundLandingSite.RowID}, {fishingGroundLandingSite.NSAPRegionFMAFishingGround.RowID},{fishingGroundLandingSite.LandingSite.LandingSiteID},'{fishingGroundLandingSite.DateStart.ToString(_dateFormat)}',{dateEnd})";
+
+                var sql = "Insert into NSAPRegionLandingSite (RowID, NSAPRegionFMAFishingGround, LandingSiteID, DateStart, DateEnd) Values (?,?,?,?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = fgls.RowID;
+                    update.Parameters.Add("@fglS_id", OleDbType.Integer).Value = fgls.NSAPRegionFMAFishingGround.RowID;
+                    update.Parameters.Add("@ls_id", OleDbType.Integer).Value = fgls.LandingSite.LandingSiteID;
+                    update.Parameters.Add("@start", OleDbType.Date).Value = fgls.DateStart;
+                    if (fgls.DateEnd == null)
+                    {
+                        update.Parameters.Add("@end", OleDbType.Date).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@end", OleDbType.Date).Value = fgls.RowID;
+                    }
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                     if (success)
                     {
-                        fishingGroundLandingSite.NSAPRegionFMAFishingGround.LandingSites.Add(fishingGroundLandingSite);
+                        fgls.NSAPRegionFMAFishingGround.LandingSites.Add(fgls);
                     }
                 }
             }
@@ -571,21 +655,43 @@ namespace NSAP_ODK.Entities
         }
 
 
-        public bool AddFishingVessel(NSAPRegionFishingVessel region_vessel)
+        public bool AddFishingVessel(NSAPRegionFishingVessel rv)
         {
             bool success = false;
-            string dateEnd = region_vessel.DateEnd == null ? "null" : $"'{((DateTime)region_vessel.DateEnd).ToString(_dateFormat)}'";
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Insert into NSAPRegionVessel(RowID, NSAPRegionCode, VesselID, DateStart, DateEnd)
-                           Values ({region_vessel.RowID}, '{region_vessel.NSAPRegion.Code}',{region_vessel.FishingVesselID},'{region_vessel.DateStart.ToString(_dateFormat)}',{dateEnd})";
+
+                var sql = "Insert into NSAPRegionVessel(RowID, NSAPRegionCode, VesselID, DateStart, DateEnd) Values (?,?,?,?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = rv.RowID;
+                    update.Parameters.Add("@region_code", OleDbType.VarChar).Value = rv.NSAPRegion.Code;
+                    update.Parameters.Add("@vessel_id", OleDbType.Integer).Value = rv.FishingVesselID;
+                    update.Parameters.Add("@start", OleDbType.Date).Value = rv.DateStart;
+                    if (rv.DateEnd == null)
+                    {
+                        update.Parameters.Add("@end", OleDbType.Date).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@end", OleDbType.Date).Value = rv.DateEnd;
+                    }
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                     if (success)
                     {
-                        NSAPRegion.FishingVessels.Add(region_vessel);
+                        NSAPRegion.FishingVessels.Add(rv);
                     }
                 }
             }
@@ -595,19 +701,44 @@ namespace NSAP_ODK.Entities
         public bool EditLandingSite(NSAPRegionFMAFishingGroundLandingSite fmaFishingGroundLandingSite)
         {
             bool success = false;
-            string dateEnd = fmaFishingGroundLandingSite.DateEnd == null ? "null" : $"'{((DateTime)fmaFishingGroundLandingSite.DateEnd).ToString(_dateFormat)}'";
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Update NSAPRegionLandingSite set
-                                LandingSiteID = '{fmaFishingGroundLandingSite.LandingSite.LandingSiteID}',
-                                DateStart = '{fmaFishingGroundLandingSite.DateStart}',
-                                DateEnd = {dateEnd}
-                            Where RowID={fmaFishingGroundLandingSite.RowID}";
 
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                           
+
+                using (OleDbCommand update = conn.CreateCommand())
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@lsid", OleDbType.Integer).Value = fmaFishingGroundLandingSite.LandingSite.LandingSiteID;
+                    update.Parameters.Add("@start", OleDbType.Date).Value = fmaFishingGroundLandingSite.DateStart;
+                    if(fmaFishingGroundLandingSite.DateEnd==null)
+                    {
+                        update.Parameters.Add("@end", OleDbType.Date).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("end", OleDbType.Date).Value = fmaFishingGroundLandingSite.DateEnd;
+                    }
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = fmaFishingGroundLandingSite.RowID;
+
+                    update.CommandText = @"Update NSAPRegionLandingSite set
+                                            LandingSiteID = @id',
+                                            DateStart = @start',
+                                            DateEnd = @end
+                                        Where RowID=@id";
+
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                     if (success)
                     {
                         foreach (var ls in fmaFishingGroundLandingSite.NSAPRegionFMAFishingGround.LandingSites)
@@ -628,19 +759,43 @@ namespace NSAP_ODK.Entities
         public bool EditEnumerator(NSAPRegionEnumerator regionEnumerator)
         {
             bool success = false;
-            string dateEnd = regionEnumerator.DateEnd == null ? "null" : $"'{((DateTime)regionEnumerator.DateEnd).ToString(_dateFormat)}'";
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Update NSAPRegionEnumerator set
-                                EnumeratorID = {regionEnumerator.Enumerator.ID},
-                                DateStart = '{regionEnumerator.DateStart}',
-                                DateEnd = {dateEnd}
-                            Where RowID={regionEnumerator.RowID}";
 
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+
+                using (OleDbCommand update = conn.CreateCommand())
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@enum_id", OleDbType.Integer).Value = regionEnumerator.Enumerator.ID;
+                    update.Parameters.Add("@start", OleDbType.Date).Value = regionEnumerator.DateStart;
+                    if(regionEnumerator.DateEnd==null)
+                    {
+                        update.Parameters.Add("@end", OleDbType.Date).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@end", OleDbType.Date).Value = regionEnumerator.DateEnd;
+                    }
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = regionEnumerator.RowID;
+
+                    update.CommandText = @"Update NSAPRegionEnumerator set
+                                            EnumeratorID = @enum_id,
+                                            DateStart = @start,
+                                            DateEnd = @end
+                                        Where RowID=@id";
+
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                     if (success)
                     {
                         foreach (var en in regionEnumerator.NSAPRegion.NSAPEnumerators)
@@ -661,19 +816,43 @@ namespace NSAP_ODK.Entities
         public bool EditFMAFishingGround(NSAPRegionFMAFishingGround fmaFishngGround)
         {
             bool success = false;
-            string dateEnd = fmaFishngGround.DateEnd == null ? "null" : $"'{((DateTime)fmaFishngGround.DateEnd).ToString(_dateFormat)}'";
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Update NSAPRegionFMAFishingGrounds set
-                                FishingGround = '{fmaFishngGround.FishingGround.Code}',
-                                DateStart = '{fmaFishngGround.DateStart}',
-                                DateEnd = {dateEnd}
-                            Where RowID={fmaFishngGround.RowID}";
 
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+
+                using (OleDbCommand update = conn.CreateCommand())
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@fg_code", OleDbType.VarChar).Value = fmaFishngGround.FishingGround.Code;
+                    update.Parameters.Add("@start", OleDbType.Date).Value = fmaFishngGround.DateStart;
+                    if (fmaFishngGround.DateEnd == null)
+                    {
+                        update.Parameters.Add("@end", OleDbType.Date).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@end", OleDbType.Date).Value = fmaFishngGround.DateEnd;
+                    }
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = fmaFishngGround.RowID;
+
+                    update.CommandText = @"Update NSAPRegionFMAFishingGrounds set
+                                            FishingGround = @fg_code,
+                                            DateStart = @start,
+                                            DateEnd = @end
+                                        Where RowID=@id";
+
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                     if (success)
                     {
                         foreach (var fg in fmaFishngGround.RegionFMA.FishingGrounds)
@@ -694,19 +873,43 @@ namespace NSAP_ODK.Entities
         public bool EditFishingVessel(NSAPRegionFishingVessel regionFishingVessel)
         {
             bool success = false;
-            string dateEnd = regionFishingVessel.DateEnd == null ? "null" : $"'{((DateTime)regionFishingVessel.DateEnd).ToString(_dateFormat)}'";
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Update NSAPRegionVessel set
-                                VesselID = {regionFishingVessel.FishingVessel.ID},
-                                DateStart = '{regionFishingVessel.DateStart}',
-                                DateEnd = {dateEnd}
-                            Where RowID={regionFishingVessel.RowID}";
 
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+
+                using (OleDbCommand update = conn.CreateCommand())
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@vessel_id", OleDbType.Integer).Value = regionFishingVessel.FishingVessel.ID;
+                    update.Parameters.Add("@start", OleDbType.Date).Value = regionFishingVessel.DateStart;
+                    if (regionFishingVessel.DateEnd == null)
+                    {
+                        update.Parameters.Add("@end", OleDbType.Date).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@end", OleDbType.Date).Value = regionFishingVessel.DateEnd;
+                    }
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = regionFishingVessel.RowID;
+
+                    update.CommandText = @"Update NSAPRegionVessel set
+                                            VesselID = @vessel_id,
+                                            DateStart = @start,
+                                            DateEnd = @end
+                                        Where RowID=@id";
+
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                     if (success)
                     {
                         foreach (var vs in regionFishingVessel.NSAPRegion.FishingVessels)
@@ -727,19 +930,43 @@ namespace NSAP_ODK.Entities
         public bool EditGear(NSAPRegionGear regionGear)
         {
             bool success = false;
-            string dateEnd = regionGear.DateEnd == null ? "null" : $"'{((DateTime)regionGear.DateEnd).ToString(_dateFormat)}'";
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Update NSAPRegionGear set
-                                GearCode = '{regionGear.Gear.Code}',
-                                DateStart = '{regionGear.DateStart}',
-                                DateEnd = {dateEnd}
-                            Where RowID={regionGear.RowID}";
 
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+
+                using (OleDbCommand update = conn.CreateCommand())
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@gear_code", OleDbType.VarChar).Value = regionGear.Gear.Code;
+                    update.Parameters.Add("@start", OleDbType.Date).Value = regionGear.DateStart;
+                    if (regionGear.DateEnd == null)
+                    {
+                        update.Parameters.Add("@end", OleDbType.Date).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@end", OleDbType.Date).Value = regionGear.DateEnd;
+                    }
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = regionGear.RowID;
+
+                    update.CommandText = @"Update NSAPRegionGear set
+                                            GearCode = @gear_code,
+                                            DateStart = @start,
+                                            DateEnd = @end
+                                        Where RowID=@id";
+
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                     if (success)
                     {
                         foreach (var gear in regionGear.NSAPRegion.Gears)

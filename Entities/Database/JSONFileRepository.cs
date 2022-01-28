@@ -160,8 +160,7 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Insert into JSONFile (RowID, FileName, [Count], EarliestDate, LatestDate, DateAdded, MD5, FormID, [Description])
-                           Values (?,?,?,?,?,?,?,?,?)";
+                var sql = "Insert into JSONFile (RowID, FileName, [Count], EarliestDate, LatestDate, DateAdded, MD5, FormID, [Description]) Values (?,?,?,?,?,?,?,?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
                     update.Parameters.Add("@row_id", OleDbType.Integer).Value = jsonFile.RowID;
@@ -237,15 +236,17 @@ namespace NSAP_ODK.Entities.Database
             return success;
         }
 
-        public bool Delete(int ID)
+        public bool Delete(int id)
         {
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $"Delete * from JSONFile where RODID={ID}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                
+                using (OleDbCommand update = conn.CreateCommand())
                 {
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                    update.CommandText=$"Delete * from JSONFile where RowID=@id";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

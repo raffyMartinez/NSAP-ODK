@@ -60,12 +60,24 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Insert into taxa (TaxaCode, Taxa, Description)
-                           Values 
-                           ('{t.Code}', '{t.Name}','{t.Description}')";
+                var sql = "Insert into taxa (TaxaCode, Taxa, Description)Values (?,?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@code", OleDbType.VarChar).Value = t.Code;
+                    update.Parameters.Add("@taxa", OleDbType.VarChar).Value = t.Name;
+                    update.Parameters.Add("@description", OleDbType.VarChar).Value = t.Description;
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
             return success;
@@ -77,28 +89,36 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Update taxa set
-                                TaxaCode = '{t.Code}',
-                                Taxa = '{t.Name}',
-                                Description='{t.Description}'
-                            WHERE TaxaCode = '{t.Code}'";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+
+                using (OleDbCommand update = conn.CreateCommand())
                 {
+                    update.Parameters.Add("@code", OleDbType.VarChar).Value = t.Code;
+                    update.Parameters.Add("@taxa", OleDbType.VarChar).Value = t.Name;
+                    update.Parameters.Add("@description", OleDbType.VarChar).Value = t.Description;
+
+                    update.CommandText = @"Update taxa set
+                                            TaxaCode = @code,
+                                            Taxa = @taxa,
+                                            Description=@description
+                                        WHERE TaxaCode = @code";
+
                     success = update.ExecuteNonQuery() > 0;
                 }
             }
             return success;
         }
 
-        public bool Delete(string ID)
+        public bool Delete(string code)
         {
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $"Delete * from taxa  where TaxaCode={ID}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                
+                using (OleDbCommand update = conn.CreateCommand())
                 {
+                    update.Parameters.Add("@code", OleDbType.VarChar).Value = code;
+                    update.CommandText="Delete * from taxa  where TaxaCode=@code";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

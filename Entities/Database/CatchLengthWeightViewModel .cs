@@ -9,7 +9,7 @@ namespace NSAP_ODK.Entities.Database
 {
     public class CatchLengthWeightViewModel
     {
-        public bool EditSucceeded;
+        private bool _editSuccess;
         public ObservableCollection<CatchLengthWeight> CatchLengthWeightCollection { get; set; }
         private CatchLenWeightRepository CatchLengthWeights { get; set; }
 
@@ -59,26 +59,27 @@ namespace NSAP_ODK.Entities.Database
 
         private void CatchLengthWeightCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            _editSuccess = false;
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
                     {
                         int newIndex = e.NewStartingIndex;
-                        EditSucceeded = CatchLengthWeights.Add(CatchLengthWeightCollection[newIndex]);
+                        _editSuccess = CatchLengthWeights.Add(CatchLengthWeightCollection[newIndex]);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<CatchLengthWeight> tempListOfRemovedItems = e.OldItems.OfType<CatchLengthWeight>().ToList();
-                        EditSucceeded = CatchLengthWeights.Delete(tempListOfRemovedItems[0].PK);
+                        _editSuccess = CatchLengthWeights.Delete(tempListOfRemovedItems[0].PK);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<CatchLengthWeight> tempList = e.NewItems.OfType<CatchLengthWeight>().ToList();
-                        EditSucceeded = CatchLengthWeights.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        _editSuccess = CatchLengthWeights.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -91,16 +92,14 @@ namespace NSAP_ODK.Entities.Database
 
         public bool AddRecordToRepo(CatchLengthWeight item)
         {
-            EditSucceeded = false;
             if (item == null)
                 throw new ArgumentNullException("Error: The argument is Null");
             CatchLengthWeightCollection.Add(item);
-            return EditSucceeded;
+            return _editSuccess;
         }
 
         public bool UpdateRecordInRepo(CatchLengthWeight item)
         {
-            EditSucceeded = false;
             if (item.PK == 0)
                 throw new Exception("Error: ID cannot be zero");
 
@@ -114,7 +113,7 @@ namespace NSAP_ODK.Entities.Database
                 }
                 index++;
             }
-            return EditSucceeded;
+            return _editSuccess;
         }
 
         public int NextRecordNumber
@@ -134,7 +133,6 @@ namespace NSAP_ODK.Entities.Database
 
         public bool DeleteRecordFromRepo(int id)
         {
-            EditSucceeded = false;
             if (id == 0)
                 throw new Exception("Record ID cannot be null");
 
@@ -148,7 +146,7 @@ namespace NSAP_ODK.Entities.Database
                 }
                 index++;
             }
-            return EditSucceeded;
+            return _editSuccess;
         }
     }
 }

@@ -297,29 +297,6 @@ namespace NSAP_ODK.Entities.Database
 
              return success;
         }
-        public bool Update1(CatchMaturity item)
-        {
-            bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
-            {
-                conn.Open();
-                var sql = $@"Update dbo_catch_maturity set
-                                catch_id={item.VesselCatchID},
-                                length = {(item.Length == null ? "null" : item.Length.ToString())},
-                                weight = {(item.Weight == null ? "null" : item.Weight.ToString())},
-                                sex = '{item.SexCode}',
-                                maturity='{item.MaturityCode}',
-                                gut_content_wt =  {(item.WeightGutContent == null ? "null" : item.WeightGutContent.ToString())},
-                                gut_content_code = '{item.GutContentCode}',
-                                gonadWt = {(item.GonadWeight == null ? "null" : item.GonadWeight.ToString())},    
-                            WHERE catch_maturity_id = {item.PK}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
-                {
-                    success = update.ExecuteNonQuery() > 0;
-                }
-            }
-            return success;
-        }
         public bool ClearTable()
         {
             bool success = false;
@@ -354,8 +331,10 @@ namespace NSAP_ODK.Entities.Database
             {
                 conn.Open();
                 var sql = $"Delete * from dbo_catch_maturity where catch_maturity_id={id}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                using (OleDbCommand update =conn.CreateCommand())
                 {
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                    update.CommandText="Delete * from dbo_catch_maturity where catch_maturity_id=@id";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

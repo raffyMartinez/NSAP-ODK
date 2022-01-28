@@ -59,12 +59,23 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Insert into sizeTypes (SizeTypeCode, SizeTypeName)
-                           Values 
-                           ('{s.Code}', '{s.Name}')";
+                var sql = "Insert into sizeTypes (SizeTypeCode, SizeTypeName) Values (?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@size_code", OleDbType.VarChar).Value = s.Code;
+                    update.Parameters.Add("@size_name", OleDbType.VarChar).Value = s.Name;
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
             return success;
@@ -76,27 +87,45 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Update sizeType set
-                                SizeTypeCode = '{s.Code}',
-                                SizeTypeName = '{s.Name}'
-                            WHERE SizeTypeCode = '{s.Code}'";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+
+                using (OleDbCommand update = conn.CreateCommand())
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@size_code", OleDbType.VarChar).Value = s.Code;
+                    update.Parameters.Add("@size_name", OleDbType.VarChar).Value = s.Name;
+
+                    update.CommandText = @"Update sizeType set
+                                SizeTypeCode = @size_code,
+                                SizeTypeName = @size_name
+                            WHERE SizeTypeCode = @size_code";
+
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
             return success;
         }
 
-        public bool Delete(string ID)
+        public bool Delete(string code)
         {
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $"Delete * from sizeType  where TaxaCode={ID}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                
+                using (OleDbCommand update = conn.CreateCommand())
                 {
+                    update.Parameters.Add("@code", OleDbType.VarChar).Value = code;
+                    update.CommandText="Delete * from sizeType  where TaxaCode=@code";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

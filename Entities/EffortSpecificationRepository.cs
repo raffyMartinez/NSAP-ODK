@@ -53,18 +53,31 @@ namespace NSAP_ODK.Entities
                 return theList;
             }
         }
-
         public bool Add(EffortSpecification es)
         {
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Insert into effortSpecification(EffortSpecificationID, EffortSpecification, ForAllTypeOfFishing, ValueType)
-                           Values ({es.ID},'{es.Name}',{es.IsForAllTypesFishing}, {(int)es.ValueType})";
+                var sql = "Insert into effortSpecification(EffortSpecificationID, EffortSpecification, ForAllTypeOfFishing, ValueType) Values (?,?,?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = es.ID;
+                    update.Parameters.Add("@effort_spec", OleDbType.VarChar).Value = es.Name;
+                    update.Parameters.Add("@is_for_all", OleDbType.Boolean).Value = es.IsForAllTypesFishing;
+                    update.Parameters.Add("@type", OleDbType.Integer).Value = (int)es.ValueType;
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
             return success;
@@ -76,18 +89,39 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Update effortSpecification set
-                                EffortSpecification = '{es.Name}',
-                                ForAllTypeOfFishing={es.IsForAllTypesFishing},
-                                ValueType = {(int)es.ValueType}
-                            WHERE EffortSpecificationID = {es.ID}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+
+                using (OleDbCommand update = conn.CreateCommand())
                 {
-                    success = update.ExecuteNonQuery() > 0;
+
+                    update.Parameters.Add("@effort_spec", OleDbType.VarChar).Value = es.Name;
+                    update.Parameters.Add("@is_for_all", OleDbType.Boolean).Value = es.IsForAllTypesFishing;
+                    update.Parameters.Add("@type", OleDbType.Integer).Value = (int)es.ValueType;
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = es.ID;
+
+                    update.CommandText = @"Update effortSpecification set
+                                EffortSpecification = @effort_spec,
+                                ForAllTypeOfFishing=@is_for_all,
+                                ValueType = @type
+                                WHERE EffortSpecificationID = @id";
+
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+
                 }
             }
             return success;
         }
+
 
         public bool Delete(int id)
         {
@@ -95,9 +129,11 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $"Delete * from effortSpecification where EffortSpecificationID={id}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                
+                using (OleDbCommand update = conn.CreateCommand())
                 {
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                    update.CommandText="Delete * from effortSpecification where EffortSpecificationID=@id";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

@@ -76,19 +76,9 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                //var sql = $@"Insert into dbo_gear_unload(unload_gr_id, unload_day_id, gr_id,boats,catch,gr_text,remarks)
-                //           Values (
-                //                {item.PK}, 
-                //                {item.LandingSiteSamplingID},
-                //                {gearID},
-                //                {(item.Boats == null ? "null" : item.Boats.ToString())},
-                //                {(item.Catch == null ? "null" : item.Catch.ToString())},
-                //                '{item.GearUsedText}',
-                //                '{item.Remarks}'
-                //                )";
 
-                var sql = $@"Insert into dbo_gear_unload(unload_gr_id, unload_day_id, gr_id,boats,catch,gr_text,remarks)
-                           Values (?,?,?,?,?,?,?)";
+
+                var sql = "Insert into dbo_gear_unload(unload_gr_id, unload_day_id, gr_id,boats,catch,gr_text,remarks) Values (?,?,?,?,?,?,?)";
 
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
@@ -169,17 +159,66 @@ namespace NSAP_ODK.Entities.Database
             {
                 conn.Open();
 
-                string gearID = item.GearID==null || item.GearID.Length == 0 ? "null" :$"'{item.GearID}'";
-                var sql = $@"Update dbo_gear_unload set
-                            unload_day_id={item.LandingSiteSamplingID},
-                            gr_id = {gearID},
-                            boats = {(item.Boats == null ? "null" : item.Boats.ToString())},
-                            catch = {(item.Catch == null ? "null" : item.Catch.ToString())},
-                            gr_text = '{item.GearUsedText}'
-                        WHERE unload_gr_id = {item.PK}";
-
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                using (OleDbCommand update = conn.CreateCommand())
                 {
+
+                    update.Parameters.Add("@parent", OleDbType.Integer).Value = item.LandingSiteSamplingID;
+
+                    if (item.GearID == null)
+                    {
+                        update.Parameters.Add("@gear_id", OleDbType.Integer).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@gear_id", OleDbType.VarChar).Value = item.GearID;
+                    }
+
+                    if (item.Boats == null)
+                    {
+                        update.Parameters.Add("@boats", OleDbType.Integer).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@boats", OleDbType.Integer).Value = item.Boats;
+                    }
+
+                    if (item.Catch == null)
+                    {
+                        update.Parameters.Add("@catch", OleDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@catch", OleDbType.Double).Value = item.Catch;
+                    }
+
+                    if (item.GearUsedText == null)
+                    {
+                        update.Parameters.Add("@gear_text", OleDbType.VarChar).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@gear_text", OleDbType.VarChar).Value = item.GearUsedText;
+                    }
+
+                    if (item.Remarks == null)
+                    {
+                        update.Parameters.Add("@remarks", OleDbType.VarChar).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@remarks", OleDbType.VarChar).Value = item.Remarks;
+                    }
+                    update.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
+
+                    update.CommandText = @"Update dbo_gear_unload set
+                            unload_day_id=@parent,
+                            gr_id = @gear_id,
+                            boats = @boats,
+                            catch = @catch,
+                            gr_text = @gear_text,
+                            remarks = @remarks
+                        WHERE unload_gr_id = @pk";
+
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;
@@ -229,9 +268,11 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $"Delete * from dbo_gear_unload where unload_gr_id={id}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                
+                using (OleDbCommand update = conn.CreateCommand())
                 {
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                    update.CommandText="Delete * from dbo_gear_unload where unload_gr_id=@id";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

@@ -8,7 +8,7 @@ using System.Data.OleDb;
 using NSAP_ODK.Utilities;
 namespace NSAP_ODK.Entities.Database
 {
-   public class GearSoakRepository
+    public class GearSoakRepository
     {
         public List<GearSoak> GearSoaks { get; set; }
 
@@ -73,17 +73,16 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Insert into dbo_gear_soak(gear_soak_id, v_unload_id, time_set,time_hauled,wpt_set,wpt_haul)
-                           Values (
-                                {item.PK}, 
-                                {item.VesselUnloadID},
-                                '{item.TimeAtSet}',
-                                '{item.TimeAtHaul}',
-                                '{item.WaypointAtSet}',
-                                '{item.WaypointAtHaul}'
-                                )";
+                var sql = "Insert into dbo_gear_soak(v_unload_id, time_set,time_hauled,wpt_set,wpt_haul,gear_soak_id) Values (?,?,?,?,?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
+
+                    update.Parameters.Add("@unload_id", OleDbType.Integer).Value = item.Parent.PK;
+                    update.Parameters.Add("@time_set", OleDbType.Date).Value = item.TimeAtSet;
+                    update.Parameters.Add("@time_haul", OleDbType.Date).Value = item.TimeAtHaul;
+                    update.Parameters.Add("@wpt_set", OleDbType.VarChar).Value = item.WaypointAtSet;
+                    update.Parameters.Add("@wpt_haul", OleDbType.VarChar).Value = item.WaypointAtHaul;
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;
@@ -107,15 +106,36 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Update dbo_gear_soak set
-                                v_unload_id={item.VesselUnloadID},
-                                time_set = '{item.TimeAtSet}',
-                                time_hauled = '{item.TimeAtHaul}',
-                                wpt_set = '{item.WaypointAtSet}',
-                                wpt_haul='{item.WaypointAtHaul}'
-                            WHERE gear_soak_id = {item.PK}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+
+                using (OleDbCommand update = conn.CreateCommand())
                 {
+                    update.Parameters.Add("@unload_id", OleDbType.Integer).Value = item.Parent.PK;
+                    update.Parameters.Add("@time_set", OleDbType.Date).Value = item.TimeAtSet;
+                    update.Parameters.Add("@time_haul", OleDbType.Date).Value = item.TimeAtHaul;
+                    update.Parameters.Add("@wpt_set", OleDbType.VarChar).Value = item.WaypointAtSet;
+                    update.Parameters.Add("@wpt_haul", OleDbType.VarChar).Value = item.WaypointAtHaul;
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
+
+                    update.CommandText= @"Update dbo_gear_soak set
+                                            v_unload_id=@unload_id,
+                                            time_set = @time_set,
+                                            time_hauled = @time_haul,
+                                            wpt_set = @wpt_set,
+                                            wpt_haul=@wpt_haul
+                                        WHERE gear_soak_id = @id";
+
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException)
+                    {
+                        success = false;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                     success = update.ExecuteNonQuery() > 0;
                 }
             }
@@ -154,9 +174,11 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $"Delete * from dbo_gear_soak where gear_soak_id={id}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                
+                using (OleDbCommand update = conn.CreateCommand())
                 {
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                    update.CommandText="Delete * from dbo_gear_soak where gear_soak_id=@id";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

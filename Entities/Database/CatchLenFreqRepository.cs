@@ -51,22 +51,19 @@ namespace NSAP_ODK.Entities.Database
                 return thisList;
             }
         }
-
         public bool Add(CatchLenFreq item)
         {
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Insert into dbo_catch_len_freq(catch_len_freq_id, catch_id, len_class,freq)
-                           Values (
-                                {item.PK}, 
-                                {item.VesselCatchID},
-                                {item.LengthClass},
-                                {item.Frequency}
-                                )";
+                var sql = "Insert into dbo_catch_len_freq(catch_len_freq_id, catch_id, len_class,freq) Values (?,?,?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
+                    update.Parameters.Add("@catch_id", OleDbType.Integer).Value = item.Parent.PK;
+                    update.Parameters.Add("@len_class", OleDbType.Double).Value = item.LengthClass;
+                    update.Parameters.Add("@freq", OleDbType.Integer).Value = item.Frequency;
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;
@@ -84,6 +81,7 @@ namespace NSAP_ODK.Entities.Database
             return success;
         }
 
+
         public int MaxRecordNumber()
         {
             int max_rec_no = 0;
@@ -98,21 +96,39 @@ namespace NSAP_ODK.Entities.Database
             }
             return max_rec_no;
         }
-
         public bool Update(CatchLenFreq item)
         {
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Update dbo_catch_len_freq set
-                                catch_id={item.VesselCatchID},
-                                len_class = {item.LengthClass},
-                                freq = {item.Frequency}
-                            WHERE catch_len_freq_id = {item.PK}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+
+                using (OleDbCommand update = conn.CreateCommand())
                 {
-                    success = update.ExecuteNonQuery() > 0;
+
+                    update.Parameters.Add("@catch_id", OleDbType.Integer).Value = item.Parent.PK;
+                    update.Parameters.Add("@len_class", OleDbType.Double).Value = item.LengthClass;
+                    update.Parameters.Add("@freq", OleDbType.Integer).Value = item.Frequency;
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
+
+                    update.CommandText = @"Update dbo_catch_len_freq set
+                                        catch_id=@catch_id,
+                                        len_class = @len_class,
+                                        freq = @freq
+                                        WHERE catch_len_freq_id = @id";
+
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException)
+                    {
+                        success = false;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
             return success;
@@ -150,9 +166,11 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $"Delete * from dbo_catch_len_freq where catch_len_freq_id={id}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                
+                using (OleDbCommand update = conn.CreateCommand())
                 {
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                    update.CommandText="Delete * from dbo_catch_len_freq where catch_len_freq_id=@id";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

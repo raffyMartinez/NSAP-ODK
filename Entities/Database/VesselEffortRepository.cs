@@ -74,17 +74,52 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Insert into dbo_vessel_effort(effort_row_id, v_unload_id,effort_spec_id, effort_value_numeric,effort_value_text)
-                           Values ({item.PK},{item.VesselUnloadID},{item.EffortSpecID},
-                                    {(item.EffortValueNumeric==null?"null":item.EffortValueNumeric.ToString())},'{item.EffortValueText}')";
+
+                var sql = "Insert into dbo_vessel_effort(effort_row_id, v_unload_id,effort_spec_id, effort_value_numeric,effort_value_text) Values (?,?,?,?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
                     try
                     {
-                        success = update.ExecuteNonQuery() > 0;
-                        if(success)
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
+                        update.Parameters.Add("@unload_id", OleDbType.Integer).Value = item.VesselUnloadID;
+                        update.Parameters.Add("@effort_id", OleDbType.Integer).Value = item.EffortSpecID;
+                        if (item.EffortValueNumeric == null)
                         {
+                            update.Parameters.Add("@numeric_value", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@numeric_value", OleDbType.Double).Value = item.EffortValueNumeric;
+                        }
+                        if (item.EffortValueText == null)
+                        {
+                            update.Parameters.Add("@text_value", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@text_value", OleDbType.VarChar).Value = item.EffortValueText;
+                        }
 
+
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            switch(dbex.ErrorCode)
+                            {
+                                case -2147467259:
+                                    //error due to duplicated key or index
+                                    break;
+                                default:
+                                    Logger.Log(dbex);
+                                    break;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
                         }
                     }
                     catch (OleDbException odbex)
@@ -107,15 +142,42 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Update dbo_vessel_effort set
-                                v_unload_id='{item.VesselUnloadID}',
-                                effort_spec_id = {item.EffortSpecID},
-                                effort_value_numeric = {(item.EffortValueNumeric == null ? "null" : item.EffortValueNumeric.ToString())},
-                                effort_value_text = {item.EffortValueText}
-                            WHERE effort_row_id = {item.PK}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+
+                using (OleDbCommand update = conn.CreateCommand())
                 {
-                    success = update.ExecuteNonQuery() > 0;
+
+                    update.Parameters.Add("@unload_id", OleDbType.Integer).Value = item.VesselUnloadID;
+                    update.Parameters.Add("@effort_id", OleDbType.Integer).Value = item.EffortSpecID;
+                    if (item.EffortValueNumeric == null)
+                    {
+                        update.Parameters.Add("@numeric_value", OleDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@numeric_value", OleDbType.Double).Value = item.EffortValueNumeric;
+                    }
+                    update.Parameters.Add("@text_value", OleDbType.VarChar).Value = item.EffortValueText;
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
+
+                    update.CommandText = @"Update dbo_vessel_effort set
+                                            v_unload_id=@unload_id,
+                                            effort_spec_id = @effort_id,
+                                            effort_value_numeric = @numeric_value,
+                                            effort_value_text = @text_value
+                                        WHERE effort_row_id = @id";
+
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
             return success;
@@ -154,9 +216,11 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $"Delete * from dbo_vessel_effort where effort_row_id={id}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                
+                using (OleDbCommand update = conn.CreateCommand())
                 {
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                    update.CommandText="Delete * from dbo_vessel_effort where effort_row_id=@id";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

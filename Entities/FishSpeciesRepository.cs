@@ -84,12 +84,6 @@ namespace NSAP_ODK.Entities
 
         public bool Add(FishSpecies fishSpecies)
         {
-            string lenType = fishSpecies.LengthType == null ? "null" : $"'{fishSpecies.LengthType.Code}'";
-            string maxLength = fishSpecies.LengthMax == null ? "null" : fishSpecies.LengthMax.ToString();
-            string commonLength = fishSpecies.LengthCommon == null ? "null" : fishSpecies.LengthCommon.ToString();
-            string speciesFBID = fishSpecies.SpeciesCode == null ? "null" : fishSpecies.SpeciesCode.ToString();
-            string importance = string.IsNullOrEmpty(fishSpecies.Importance) ? "null" : $"'{fishSpecies.Importance}'";
-            string mainCatchingmethod = string.IsNullOrEmpty(fishSpecies.MainCatchingMethod) ? "null" : $"'{fishSpecies.MainCatchingMethod}'";
             bool success = false;
 
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
@@ -173,35 +167,7 @@ namespace NSAP_ODK.Entities
             return success;
         }
 
-        public bool Add1(FishSpecies fishSpecies)
-        {
-            string lenType = fishSpecies.LengthType == null ? "null" : $"'{fishSpecies.LengthType.Code}'";
-            string maxLength = fishSpecies.LengthMax == null ? "null" : fishSpecies.LengthMax.ToString();
-            string commonLength = fishSpecies.LengthCommon == null ? "null" : fishSpecies.LengthCommon.ToString();
-            string speciesFBID = fishSpecies.SpeciesCode == null ? "null" : fishSpecies.SpeciesCode.ToString();
-            string importance = string.IsNullOrEmpty(fishSpecies.Importance) ? "null" : $"'{fishSpecies.Importance}'";
-            string mainCatchingmethod = string.IsNullOrEmpty(fishSpecies.MainCatchingMethod) ? "null" : $"'{fishSpecies.MainCatchingMethod}'";
-            bool success = false;
 
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
-            {
-                conn.Open();
-
-                var sql = $@"Insert into phFish (RowNo, Genus,Species,
-                                                 SpeciesID,Importance,Family,
-                                                 MainCatchingMethod,LengthCommon,
-                                                 LengthMax,LengthType) Values
-                            ({fishSpecies.RowNumber}, '{fishSpecies.GenericName}', '{fishSpecies.SpecificName}',
-                            {speciesFBID}, {importance},'{fishSpecies.Family}',
-                            {mainCatchingmethod},{commonLength}, {maxLength}, {lenType})";
-
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
-                {
-                    success = update.ExecuteNonQuery() > 0;
-                }
-            }
-            return success;
-        }
 
         public bool Update(FishSpecies fishSpecies)
         {
@@ -284,11 +250,11 @@ namespace NSAP_ODK.Entities
                     {
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch(OleDbException dbex)
+                    catch (OleDbException dbex)
                     {
                         Logger.Log(dbex);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Logger.Log(ex);
                     }
@@ -306,9 +272,10 @@ namespace NSAP_ODK.Entities
                 var sql = "Delete * from phFish Where RowNo=?";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
+                    update.Parameters.Add(new OleDbParameter("RowNo", id));
                     try
                     {
-                        update.Parameters.Add(new OleDbParameter("RowNo", id));
+
                         success = update.ExecuteNonQuery() > 0;
                     }
                     catch (OleDbException)

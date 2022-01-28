@@ -10,7 +10,7 @@ namespace NSAP_ODK.Entities.Database
     public class GearSoakViewModel
     {
 
-        public bool UpdateSucceeded;
+        private bool _editSuccess;
         public ObservableCollection<GearSoak> GearSoakCollection { get; set; }
         private GearSoakRepository GearSoaks { get; set; }
 
@@ -26,13 +26,13 @@ namespace NSAP_ODK.Entities.Database
             return GearSoakCollection.ToList();
         }
 
-        public List<GearSoakFlattened> GetAllFlattenedItems(bool tracked=false)
+        public List<GearSoakFlattened> GetAllFlattenedItems(bool tracked = false)
         {
             List<GearSoakFlattened> thisList = new List<GearSoakFlattened>();
             if (tracked)
             {
                 foreach (var item in GearSoakCollection
-                    .Where(t=>t.Parent.OperationIsTracked==tracked))
+                    .Where(t => t.Parent.OperationIsTracked == tracked))
                 {
                     thisList.Add(new GearSoakFlattened(item));
                 }
@@ -60,26 +60,27 @@ namespace NSAP_ODK.Entities.Database
 
         private void GearSoaks_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            _editSuccess = false;
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
                     {
                         int newIndex = e.NewStartingIndex;
-                        UpdateSucceeded = GearSoaks.Add(GearSoakCollection[newIndex]);
+                        _editSuccess = GearSoaks.Add(GearSoakCollection[newIndex]);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<GearSoak> tempListOfRemovedItems = e.OldItems.OfType<GearSoak>().ToList();
-                        UpdateSucceeded=GearSoaks.Delete(tempListOfRemovedItems[0].PK);
+                        _editSuccess = GearSoaks.Delete(tempListOfRemovedItems[0].PK);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<GearSoak> tempList = e.NewItems.OfType<GearSoak>().ToList();
-                        UpdateSucceeded=GearSoaks.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        _editSuccess = GearSoaks.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -92,16 +93,14 @@ namespace NSAP_ODK.Entities.Database
 
         public bool AddRecordToRepo(GearSoak item)
         {
-            UpdateSucceeded = false;
             if (item == null)
                 throw new ArgumentNullException("Error: The argument is Null");
             GearSoakCollection.Add(item);
-            return UpdateSucceeded;
+            return _editSuccess;
         }
 
         public bool UpdateRecordInRepo(GearSoak item)
         {
-            UpdateSucceeded = false;
             if (item.PK == 0)
                 throw new Exception("Error: ID cannot be zero");
 
@@ -115,7 +114,7 @@ namespace NSAP_ODK.Entities.Database
                 }
                 index++;
             }
-            return UpdateSucceeded;
+            return _editSuccess;
         }
 
         public int NextRecordNumber
@@ -128,14 +127,13 @@ namespace NSAP_ODK.Entities.Database
                 }
                 else
                 {
-                    return GearSoaks.MaxRecordNumber()+ 1;
+                    return GearSoaks.MaxRecordNumber() + 1;
                 }
             }
         }
 
         public bool DeleteRecordFromRepo(int id)
         {
-            UpdateSucceeded = false;
             if (id == 0)
                 throw new Exception("Record ID cannot be null");
 
@@ -150,7 +148,7 @@ namespace NSAP_ODK.Entities.Database
                 index++;
             }
 
-            return UpdateSucceeded;
+            return _editSuccess;
         }
     }
 }

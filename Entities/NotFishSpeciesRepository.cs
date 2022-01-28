@@ -67,8 +67,7 @@ namespace NSAP_ODK.Entities
             {
                 conn.Open();
 
-                var sql = @"Insert into notFishSpecies(SpeciesID, Genus, Species, Taxa, SizeIndicator, MaxSize)
-                           Values (?,?,?,?,?,?)";
+                var sql ="Insert into notFishSpecies(SpeciesID, Genus, Species, Taxa, SizeIndicator, MaxSize) Values (?,?,?,?,?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
                     update.Parameters.Add("@id", OleDbType.Integer).Value = nfs.SpeciesID;
@@ -160,9 +159,11 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $"Delete * from notFishSpecies where SpeciesID={id}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                
+                using (OleDbCommand update = conn.CreateCommand())
                 {
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                    update.CommandText=$"Delete * from notFishSpecies where SpeciesID=@id";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

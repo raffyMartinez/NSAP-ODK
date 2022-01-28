@@ -59,8 +59,7 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Insert into fishingGround(FishingGroundName,FishingGroundCode)
-                           Values (?,?)";
+                var sql = "Insert into fishingGround(FishingGroundName,FishingGroundCode) Values (?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
                     update.Parameters.Add("@fg_name", OleDbType.VarChar).Value = fg.Name;
@@ -129,9 +128,11 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $"Delete * from fishingGround where FishingGroundCode='{code}'";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                
+                using (OleDbCommand update = conn.CreateCommand())
                 {
+                    update.Parameters.Add("@code", OleDbType.VarChar).Value = code;
+                    update.CommandText="Delete * from fishingGround where FishingGroundCode=@code";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

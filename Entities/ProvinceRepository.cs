@@ -115,15 +115,17 @@ namespace NSAP_ODK.Entities
             return success;
         }
 
-        public bool Delete(int ID)
+        public bool Delete(int id)
         {
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $"Delete * from Provinces where ProvNo={ID}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                
+                using (OleDbCommand update = conn.CreateCommand())
                 {
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                    update.CommandText="Delete * from Provinces where ProvNo=@id";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

@@ -37,8 +37,8 @@ namespace NSAP_ODK.Entities
                         foreach (DataRow dr in dt.Rows)
                         {
                             NSAPRegion nsr = new NSAPRegion();
-                            nsr.Code= dr["Code"].ToString();
-                            nsr.Name= dr["RegionName"].ToString();
+                            nsr.Code = dr["Code"].ToString();
+                            nsr.Name = dr["RegionName"].ToString();
                             nsr.ShortName = dr["ShortName"].ToString();
                             nsr.Sequence = Convert.ToInt32(dr["Sequence"]);
                             listRepositories.Add(nsr);
@@ -61,12 +61,25 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Insert into nsapRegion (Code, RegionName, ShortName,Sequence)
-                           Values 
-                           ('{nsr.Code}','{nsr.Name}','{nsr.ShortName}',{nsr.Sequence})";
+                var sql = @"Insert into nsapRegion (RegionName, ShortName,Sequence,Code) Values (?,?,?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@name", OleDbType.VarChar).Value = nsr.Name;
+                    update.Parameters.Add("@short_name", OleDbType.VarChar).Value = nsr.ShortName;
+                    update.Parameters.Add("@seq", OleDbType.VarChar).Value = nsr.Sequence;
+                    update.Parameters.Add("@code", OleDbType.VarChar).Value = nsr.Code;
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
             return success;
@@ -78,11 +91,33 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Update nsapRegion set RegionName = '{nsr.Name}', ShortName='{nsr.ShortName}', Sequence={nsr.Sequence}
-                            WHERE Code={nsr.Code}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+
+                using (OleDbCommand update = conn.CreateCommand())
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@name", OleDbType.VarChar).Value = nsr.Name;
+                    update.Parameters.Add("@short_name", OleDbType.VarChar).Value = nsr.ShortName;
+                    update.Parameters.Add("@seq", OleDbType.VarChar).Value = nsr.Sequence;
+                    update.Parameters.Add("@code", OleDbType.VarChar).Value = nsr.Code;
+
+
+                    update.CommandText = @"Update nsapRegion set 
+                                              RegionName = @name, 
+                                              ShortName=@short_name, 
+                                              Sequence=@seq
+                                            WHERE Code=@code";
+
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
             return success;
@@ -94,9 +129,11 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $"Delete * from nsapRegion where Code={code}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                
+                using (OleDbCommand update = conn.CreateCommand())
                 {
+                    update.Parameters.Add("@code", OleDbType.VarChar).Value = code;
+                    update.CommandText="Delete * from nsapRegion where Code=@code";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

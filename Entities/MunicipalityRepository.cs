@@ -65,7 +65,7 @@ namespace NSAP_ODK.Entities
                             m.Province = province;
                             m.MunicipalityID = (int)dr["MunNo"];
                             m.MunicipalityName = dr["Municipality"].ToString();
-                            
+
 
                             if (dr["yCoord"].GetType().Name != "DBNull")
                             {
@@ -90,18 +90,47 @@ namespace NSAP_ODK.Entities
 
         public bool Add(Municipality m)
         {
-            string lat = m.Latitude == null ? "null" : $"{m.Latitude.ToString()}";
-            string lon = m.Longitude == null ? "null" : $"{m.Longitude.ToString()}";
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Insert into Municipalities(ProvNo, MunNo, Municipality, xCoord, yCoord, IsCoastal)
-                           Values
-                           ({m.Province.ProvinceID}, {m.MunicipalityID}, '{m.MunicipalityName}', {lon}, {lat}, {m.IsCoastal})";
+                var sql = "Insert into Municipalities(ProvNo, Municipality, xCoord, yCoord, IsCoastal,MunNo) Values (?,?,?,?,?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@prv_no", OleDbType.Integer).Value = m.Province.ProvinceID;
+                    update.Parameters.Add("@name", OleDbType.VarChar).Value = m.MunicipalityName;
+
+
+                    if (m.Longitude == null)
+                    {
+                        update.Parameters.Add("@lon", OleDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@lon", OleDbType.Double).Value = m.Longitude;
+                    }
+                    if (m.Latitude == null)
+                    {
+                        update.Parameters.Add("@lat", OleDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@lat", OleDbType.Double).Value = m.Latitude;
+                    }
+                    update.Parameters.Add("@is_coastal", OleDbType.Boolean).Value = m.IsCoastal;
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = m.MunicipalityID;
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException odbex)
+                    {
+                        Logger.Log(odbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
             return success;
@@ -109,36 +138,73 @@ namespace NSAP_ODK.Entities
 
         public bool Update(Municipality m)
         {
-            string lat = m.Latitude == null ? "null" : $"{m.Latitude.ToString()}";
-            string lon = m.Longitude == null ? "null" : $"{m.Longitude.ToString()}";
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Update Municipalities set
-                                ProvNo = {m.Province.ProvinceID},
-                                Municipality='{m.MunicipalityName}',
-                                xCoord = {lon},
-                                yCoord = {lat},
-                                IsCoastal = {m.IsCoastal}
-                            WHERE MunNo = {m.MunicipalityID}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+
+                using (OleDbCommand update = conn.CreateCommand())
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@prv_no", OleDbType.Integer).Value = m.Province.ProvinceID;
+                    update.Parameters.Add("@name", OleDbType.VarChar).Value = m.MunicipalityName;
+
+
+                    if (m.Longitude == null)
+                    {
+                        update.Parameters.Add("@lon", OleDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@lon", OleDbType.Double).Value = m.Longitude;
+                    }
+                    if (m.Latitude == null)
+                    {
+                        update.Parameters.Add("@lat", OleDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@lat", OleDbType.Double).Value = m.Latitude;
+                    }
+                    update.Parameters.Add("@is_coastal", OleDbType.Boolean).Value = m.IsCoastal;
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = m.MunicipalityID;
+
+                    update.CommandText = @"Update Municipalities set
+                                            ProvNo = @prv_no,
+                                            Municipality=@name',
+                                            xCoord = @lon,
+                                            yCoord = @lat,
+                                            IsCoastal = @is_coastal
+                                        WHERE MunNo = @id";
+
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException odbex)
+                    {
+                        Logger.Log(odbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+
                 }
             }
             return success;
         }
 
-        public bool Delete(int ID)
+        public bool Delete(int id)
         {
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $"Delete * from Municipalities where MunNo={ID}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                
+                using (OleDbCommand update = conn.CreateCommand())
                 {
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                    update.CommandText="Delete * from Municipalities where MunNo=@id";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

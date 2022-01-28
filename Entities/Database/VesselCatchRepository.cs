@@ -126,7 +126,16 @@ namespace NSAP_ODK.Entities.Database
                     catch(OleDbException dbex)
                     {
                         //Console.WriteLine($"item pk is {item.PK}");
-                        Logger.Log(dbex);
+                        switch(dbex.ErrorCode)
+                        {
+                            case -2147467259:
+                                //error because of duplicated key or index
+                                break;
+                            default:
+                                Logger.Log(dbex);
+                                break;
+                        }
+                        //Logger.Log(dbex);
                     }
                     catch(Exception ex)
                     {
@@ -240,9 +249,11 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $"Delete * from dbo_vessel_catch where catch_id={id}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                
+                using (OleDbCommand update = conn.CreateCommand())
                 {
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                    update.CommandText="Delete * from dbo_vessel_catch where catch_id=@id";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

@@ -71,14 +71,12 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Insert into dbo_catch_len(catch_len_id, catch_id, length)
-                           Values (
-                                {item.PK}, 
-                                {item.VesselCatchID},
-                                {item.Length}
-                                )";
+                var sql = "Insert into dbo_catch_len(catch_len_id, catch_id, length) Values (?,?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
+                    update.Parameters.Add("@catch_id", OleDbType.Integer).Value = item.Parent.PK;
+                    update.Parameters.Add("@length", OleDbType.Double).Value = item.Length;
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;
@@ -103,13 +101,32 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Update dbo_catch_len set
-                                catch_id={item.VesselCatchID},
-                                length = {item.Length}
-                            WHERE catch_len_id = {item.PK}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+
+                using (OleDbCommand update = conn.CreateCommand())
                 {
-                    success = update.ExecuteNonQuery() > 0;
+
+                    update.Parameters.Add("@catch_id", OleDbType.Integer).Value = item.Parent.PK;
+                    update.Parameters.Add("@length", OleDbType.Double).Value = item.Length;
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
+
+                    update.CommandText = @"Update dbo_catch_len set
+                                        catch_id=@catch_id,
+                                        length = @length
+                                        WHERE catch_len_id = @id";
+
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException odbex)
+                    {
+                        Logger.Log(odbex);
+                        success = false;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
             return success;
@@ -147,9 +164,11 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $"Delete * from dbo_catch_len where catch_len_id={id}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                
+                using (OleDbCommand update = conn.CreateCommand())
                 {
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                    update.CommandText = "Delete * from dbo_catch_len where catch_len_id=@id";;
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

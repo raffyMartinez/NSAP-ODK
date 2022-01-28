@@ -252,7 +252,7 @@ namespace NSAP_ODK.Entities.Database
                 string vesselText = item.VesselText == null ? "" : item.VesselText;
                 conn.Open();
 
-                var sql = $@"Insert into dbo_vessel_unload(v_unload_id, unload_gr_id,boat_id, boat_text, raising_factor,
+                var sql = @"Insert into dbo_vessel_unload(v_unload_id, unload_gr_id,boat_id, boat_text, raising_factor,
                             catch_total,catch_samp,boxes_total,boxes_samp,is_boat_used)
                            Values (?,?,?,?,?,?,?,?,?,?)";       
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
@@ -350,7 +350,7 @@ namespace NSAP_ODK.Entities.Database
                         if (update.ExecuteNonQuery() > 0)
                         {
 
-                            sql = $@"Insert into dbo_vessel_unload_1 
+                            sql = @"Insert into dbo_vessel_unload_1 
                                                 (v_unload_id, Success, Tracked, DepartureLandingSite, ArrivalLandingSite, 
                                                 RowID, XFormIdentifier, XFormDate, SamplingDate,
                                                 user_name,device_id,datetime_submitted,form_version,
@@ -762,15 +762,19 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $"Delete * from dbo_vessel_unload_1 where v_unload_id={id}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                
+                using (OleDbCommand update = conn.CreateCommand())
                 {
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                    update.CommandText="Delete * from dbo_vessel_unload_1 where v_unload_id=@id";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;
-                        sql = $"Delete * from dbo_vessel_unload where v_unload_id={id}";
-                        using (OleDbCommand update1 = new OleDbCommand(sql, conn))
+                
+                        using (OleDbCommand update1 = conn.CreateCommand())
                         {
+                            update1.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                            update1.CommandText = "Delete * from dbo_vessel_unload where v_unload_id=@id";
                             try
                             {
                                 success = update1.ExecuteNonQuery()>0;

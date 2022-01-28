@@ -9,7 +9,7 @@ namespace NSAP_ODK.Entities.Database
 {
     public class CatchLenFreqViewModel
     {
-        public bool EditSucceeded;
+        private bool _editSuccess;
         public ObservableCollection<CatchLenFreq> CatchLenFreqCollection { get; set; }
         private CatchLenFreqRepository CatchLenFreqs { get; set; }
 
@@ -59,26 +59,28 @@ namespace NSAP_ODK.Entities.Database
 
         private void CatchLenFreqCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            _editSuccess = false;
+
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
                     {
                         int newIndex = e.NewStartingIndex;
-                        EditSucceeded = CatchLenFreqs.Add(CatchLenFreqCollection[newIndex]);
+                        _editSuccess = CatchLenFreqs.Add(CatchLenFreqCollection[newIndex]);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<CatchLenFreq> tempListOfRemovedItems = e.OldItems.OfType<CatchLenFreq>().ToList();
-                        EditSucceeded= CatchLenFreqs.Delete(tempListOfRemovedItems[0].PK);
+                        _editSuccess= CatchLenFreqs.Delete(tempListOfRemovedItems[0].PK);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<CatchLenFreq> tempList = e.NewItems.OfType<CatchLenFreq>().ToList();
-                        EditSucceeded =  CatchLenFreqs.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        _editSuccess =  CatchLenFreqs.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -91,16 +93,14 @@ namespace NSAP_ODK.Entities.Database
 
         public bool AddRecordToRepo(CatchLenFreq item)
         {
-            EditSucceeded = false;
             if (item == null)
                 throw new ArgumentNullException("Error: The argument is Null");
             CatchLenFreqCollection.Add(item);
-            return EditSucceeded;
+            return _editSuccess;
         }
 
         public bool UpdateRecordInRepo(CatchLenFreq item)
         {
-            EditSucceeded = false;
             if (item.PK == 0)
                 throw new Exception("Error: ID cannot be zero");
 
@@ -114,7 +114,7 @@ namespace NSAP_ODK.Entities.Database
                 }
                 index++;
             }
-            return EditSucceeded;
+            return _editSuccess;
         }
 
         public int NextRecordNumber
@@ -134,7 +134,6 @@ namespace NSAP_ODK.Entities.Database
 
         public bool DeleteRecordFromRepo(int id)
         {
-            EditSucceeded = false;
             if (id == 0)
                 throw new Exception("Record ID cannot be null");
 
@@ -148,7 +147,7 @@ namespace NSAP_ODK.Entities.Database
                 }
                 index++;
             }
-            return EditSucceeded;
+            return _editSuccess;
         }
     }
 }

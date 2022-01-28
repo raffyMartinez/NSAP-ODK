@@ -132,9 +132,11 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $"Delete * from gear where GearCode='{code}'";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                
+                using (OleDbCommand update =conn.CreateCommand())
                 {
+                    update.Parameters.Add("@code", OleDbType.VarChar).Value = code;
+                    update.CommandText="Delete * from gear where GearCode=@code";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

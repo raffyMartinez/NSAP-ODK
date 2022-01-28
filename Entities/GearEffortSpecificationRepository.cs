@@ -83,12 +83,24 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Insert into GearEffortSpecification (GearCode, EffortSpec, RowId)
-                           Values
-                           ('{ges.Gear.Code}',{ges.EffortSpecification.ID},{ges.RowID})";
+                var sql = "Insert into GearEffortSpecification (GearCode, EffortSpec, RowId) Values (?,?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@code", OleDbType.VarChar).Value = ges.Gear.Code;
+                    update.Parameters.Add("@spec", OleDbType.Integer).Value = ges.EffortSpecification.ID;
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = ges.RowID;
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
             return success;
@@ -100,13 +112,30 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Update GearEffortSpecification set
-                                GearCode = '{ges.Gear.Code}',
-                                EffortSpec = {ges.EffortSpecification.ID}
-                            WHERE RowdId={ges.RowID}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+
+                using (OleDbCommand update = conn.CreateCommand())
                 {
-                    success = update.ExecuteNonQuery() > 0;
+                    update.Parameters.Add("@code", OleDbType.VarChar).Value = ges.Gear.Code;
+                    update.Parameters.Add("@spec", OleDbType.Integer).Value = ges.EffortSpecification.ID;
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = ges.RowID;
+
+                    update.CommandText = @"Update GearEffortSpecification set
+                                            GearCode = @code,
+                                            EffortSpec =@spec
+                                            WHERE RowdId=@id";
+
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
             return success;
@@ -118,9 +147,11 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $"Delete * from GearEffortSpecification where RowId={id}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                
+                using (OleDbCommand update = conn.CreateCommand())
                 {
+                    update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                    update.CommandText="Delete * from GearEffortSpecification where RowId=@id";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

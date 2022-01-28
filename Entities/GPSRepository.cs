@@ -176,12 +176,7 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                //var sql = $@"Update gps set
-                //                AssignedName= '{gps.AssignedName}',
-                //                Brand = '{gps.Brand}',
-                //                Model = '{gps.Model}',
-                //                DeviceType = {(int)gps.DeviceType}    
-                //            WHERE GPSCode = '{gps.Code}'";
+
                 using (OleDbCommand update = conn.CreateCommand())
                 {
 
@@ -219,9 +214,11 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $"Delete * from gps where GPSCode='{code}'";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                
+                using (OleDbCommand update = conn.CreateCommand())
                 {
+                    update.Parameters.Add("@code", OleDbType.VarChar).Value = code;
+                    update.CommandText="Delete * from gps where GPSCode=@code";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;
