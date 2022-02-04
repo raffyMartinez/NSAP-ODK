@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Data.OleDb;
 using NSAP_ODK.Utilities;
+using NSAP_ODK.NSAPMysql;
+using MySql.Data.MySqlClient;
+
 namespace NSAP_ODK.Entities
 {
     class GPSRepository
@@ -16,68 +19,106 @@ namespace NSAP_ODK.Entities
         {
             GPSes = getGPSes();
         }
-
+        private List<GPS> getGPSMySQL()
+        {
+            List<GPS> listGPS = new List<GPS>();
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "Select * from gps";
+                    conn.Open();
+                    MySqlDataReader dr = cmd.ExecuteReader();
+                    while(dr.Read())
+                    {
+                        GPS gps = new GPS();
+                        gps.Code = dr["gps_code"].ToString();
+                        gps.AssignedName = dr["assigned_name"].ToString();
+                        gps.Brand = dr["brand"].ToString();
+                        gps.Model = dr["model"].ToString();
+                        if (dr["device_type"] != null && dr["device_type"].ToString().Length > 0)
+                        {
+                            gps.DeviceType = (DeviceType)Enum.Parse(typeof(DeviceType), dr["device_type"].ToString());
+                        }
+                        else
+                        {
+                            gps.DeviceType = DeviceType.DeviceTypeGPS;
+                        }
+                        listGPS.Add(gps);
+                    }
+                }
+            }
+            return listGPS;
+        }
         private List<GPS> getGPSes()
         {
             List<GPS> listGPS = new List<GPS>();
-            var dt = new DataTable();
-            using (var conection = new OleDbConnection(Global.ConnectionString))
+
+            if (Global.Settings.UsemySQL)
             {
-                try
+                return getGPSMySQL();
+            }
+            else
+            {
+                var dt = new DataTable();
+                using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    conection.Open();
-                    string query = $"Select * from gps";
-
-
-                    var adapter = new OleDbDataAdapter(query, conection);
-                    adapter.Fill(dt);
-                    if (dt.Rows.Count > 0)
+                    try
                     {
-                        listGPS.Clear();
-                        foreach (DataRow dr in dt.Rows)
+                        conection.Open();
+                        string query = $"Select * from gps";
+
+
+                        var adapter = new OleDbDataAdapter(query, conection);
+                        adapter.Fill(dt);
+                        if (dt.Rows.Count > 0)
                         {
-                            GPS gps = new GPS();
-                            gps.Code = dr["GPSCode"].ToString();
-                            gps.AssignedName = dr["AssignedName"].ToString();
-                            gps.Brand = dr["Brand"].ToString();
-                            gps.Model = dr["Model"].ToString();
-                            if (dr["DeviceType"] != null && dr["DeviceType"].ToString().Length > 0)
+                            listGPS.Clear();
+                            foreach (DataRow dr in dt.Rows)
                             {
-                                gps.DeviceType = (DeviceType)Enum.Parse(typeof(DeviceType), dr["DeviceType"].ToString());
+                                GPS gps = new GPS();
+                                gps.Code = dr["GPSCode"].ToString();
+                                gps.AssignedName = dr["AssignedName"].ToString();
+                                gps.Brand = dr["Brand"].ToString();
+                                gps.Model = dr["Model"].ToString();
+                                if (dr["DeviceType"] != null && dr["DeviceType"].ToString().Length > 0)
+                                {
+                                    gps.DeviceType = (DeviceType)Enum.Parse(typeof(DeviceType), dr["DeviceType"].ToString());
+                                }
+                                else
+                                {
+                                    gps.DeviceType = DeviceType.DeviceTypeGPS;
+                                }
+                                listGPS.Add(gps);
                             }
-                            else
-                            {
-                                gps.DeviceType = DeviceType.DeviceTypeGPS;
-                            }
-                            listGPS.Add(gps);
                         }
                     }
-                }
-                catch (OleDbException dbex)
-                {
-                    //switch(dbex.HResult)
-                    //{
-                    //    case -1:
-                    //        break;
-                    //}
-                }
-                catch (Exception ex)
-                {
-                    switch (ex.HResult)
+                    catch (OleDbException dbex)
                     {
-                        case -2147024809:
-                            if (AddColumn("DeviceType", "int") && UpdateAllDevicesToGPS())
-                            {
-
-                                return getGPSes();
-                            }
-
-                            break;
-                        default:
-                            Logger.Log(ex);
-                            break;
+                        //switch(dbex.HResult)
+                        //{
+                        //    case -1:
+                        //        break;
+                        //}
                     }
+                    catch (Exception ex)
+                    {
+                        switch (ex.HResult)
+                        {
+                            case -2147024809:
+                                if (AddColumn("DeviceType", "int") && UpdateAllDevicesToGPS())
+                                {
 
+                                    return getGPSes();
+                                }
+
+                                break;
+                            default:
+                                Logger.Log(ex);
+                                break;
+                        }
+
+                    }
                 }
                 return listGPS;
             }
@@ -157,11 +198,11 @@ namespace NSAP_ODK.Entities
                     {
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch(OleDbException dbex)
+                    catch (OleDbException dbex)
                     {
                         Logger.Log(dbex);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Logger.Log(ex);
                     }
@@ -214,11 +255,11 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                
+
                 using (OleDbCommand update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@code", OleDbType.VarChar).Value = code;
-                    update.CommandText="Delete * from gps where GPSCode=@code";
+                    update.CommandText = "Delete * from gps where GPSCode=@code";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

@@ -94,14 +94,15 @@ namespace NSAP_ODK.Entities
 
         public override string ToString()
         {
-            if (SpeciesCode != null)
-            {
-                return $"{GenericName} {SpecificName}";
-            }
-            else
-            {
-                return "";
-            }
+            return $"{GenericName} {SpecificName}";
+            //if (SpeciesCode != null)
+            //{
+            //    return $"{GenericName} {SpecificName}";
+            //}
+            //else
+            //{
+            //    return "";
+            //}
         }
         public FishSpecies(int rowNumber,string genus, string species)
         {

@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.OleDb;
+using MySql.Data.MySqlClient;
+using NSAP_ODK.NSAPMysql;
 
 namespace NSAP_ODK.Entities
 {
@@ -15,65 +17,133 @@ namespace NSAP_ODK.Entities
         {
             Specieses = getSpecies();
         }
-
-        private List<FishSpecies> getSpecies()
+        private List<FishSpecies> getFromMySQL()
         {
             int rowNo = 0;
-            List<FishSpecies> listSpecies = new List<FishSpecies>();
-            var dt = new DataTable();
-            using (var conection = new OleDbConnection(Global.ConnectionString))
+            List<FishSpecies> thisList = new List<FishSpecies>();
+
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                try
+                using (var cmd = conn.CreateCommand())
                 {
-                    conection.Open();
-                    //string query = $@"SELECT * from phFish";
-                    var query = "SELECT phFish.*, [FBSpecies].[Genus] & ' ' & [FBSpecies].[Species] AS OldName FROM phFish LEFT JOIN FBSpecies ON phFish.SpeciesID = FBSpecies.SpecCode";
-
-                    var adapter = new OleDbDataAdapter(query, conection);
-                    adapter.Fill(dt);
-                    if (dt.Rows.Count > 0)
+                    cmd.CommandText = "SELECT ph_fish.*, fb_species.genus & ' ' & fb_species.species AS old_name FROM ph_fish LEFT JOIN fb_species ON ph_fish.species_id = fb_species.spec_code";
+                    conn.Open();
+                    try
                     {
+                        MySqlDataReader dr = cmd.ExecuteReader();
 
-                        listSpecies.Clear();
-                        foreach (DataRow dr in dt.Rows)
+                        while (dr.Read())
                         {
-                            rowNo = Convert.ToInt32(dr["RowNo"]);
+                            rowNo = Convert.ToInt32(dr["row_no"]);
                             if (rowNo > _rowNo)
                             {
                                 _rowNo = rowNo;
                             }
-                            FishSpecies sp = new FishSpecies(rowNo, dr["Genus"].ToString(), dr["Species"].ToString());
-                            if (dr["SpeciesID"].ToString().Length > 0)
+                            FishSpecies sp = new FishSpecies(rowNo, dr["genus"].ToString(), dr["species"].ToString());
+                            if (dr["species_id"].ToString().Length > 0)
                             {
-                                sp.SpeciesCode = Convert.ToInt32(dr["SpeciesID"]);
+                                sp.SpeciesCode = Convert.ToInt32(dr["species_id"]);
                             }
-                            sp.Importance = dr["Importance"].ToString();
-                            sp.MainCatchingMethod = dr["MainCatchingMethod"].ToString();
-                            sp.Family = dr["Family"].ToString();
-                            if (dr["LengthCommon"].ToString().Length > 0)
+                            sp.Importance = dr["importance"].ToString();
+                            sp.MainCatchingMethod = dr["main_catching_method"].ToString();
+                            sp.Family = dr["family"].ToString();
+                            if (dr["length_common"].ToString().Length > 0)
                             {
-                                sp.LengthCommon = Convert.ToDouble(dr["LengthCommon"]);
+                                sp.LengthCommon = Convert.ToDouble(dr["length_common"]);
                             }
-                            if (dr["LengthMax"].ToString().Length > 0)
+                            if (dr["length_max"].ToString().Length > 0)
                             {
-                                sp.LengthMax = Convert.ToDouble(dr["LengthMax"]);
+                                sp.LengthMax = Convert.ToDouble(dr["length_max"]);
                             }
-                            if (dr["LengthType"].ToString().Length > 0)
+                            if (dr["length_type"].ToString().Length > 0)
                             {
-                                sp.LengthType = NSAPEntities.SizeTypeViewModel.GetSizeType(dr["LengthType"].ToString());
+                                sp.LengthType = NSAPEntities.SizeTypeViewModel.GetSizeType(dr["length_type"].ToString());
                             }
-                            sp.NameInOldFishbase = dr["OldName"].ToString().Trim(' ');
-                            listSpecies.Add(sp);
+                            sp.NameInOldFishbase = dr["old_name"].ToString().Trim(' ');
+                            thisList.Add(sp);
                             //break;
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log(ex);
+                    catch (MySqlException msex)
+                    {
+                        Logger.Log(msex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+
                 }
             }
 
+            return thisList;
+        }
+        private List<FishSpecies> getSpecies()
+        {
+            int rowNo = 0;
+            List<FishSpecies> listSpecies = new List<FishSpecies>();
+            if (Global.Settings.UsemySQL)
+            {
+                listSpecies = getFromMySQL();
+            }
+            else
+
+            {
+
+                var dt = new DataTable();
+                using (var conection = new OleDbConnection(Global.ConnectionString))
+                {
+                    try
+                    {
+                        conection.Open();
+                        //string query = $@"SELECT * from phFish";
+                        var query = "SELECT phFish.*, [FBSpecies].[Genus] & ' ' & [FBSpecies].[Species] AS OldName FROM phFish LEFT JOIN FBSpecies ON phFish.SpeciesID = FBSpecies.SpecCode";
+
+                        var adapter = new OleDbDataAdapter(query, conection);
+                        adapter.Fill(dt);
+                        if (dt.Rows.Count > 0)
+                        {
+
+                            listSpecies.Clear();
+                            foreach (DataRow dr in dt.Rows)
+                            {
+                                rowNo = Convert.ToInt32(dr["RowNo"]);
+                                if (rowNo > _rowNo)
+                                {
+                                    _rowNo = rowNo;
+                                }
+                                FishSpecies sp = new FishSpecies(rowNo, dr["Genus"].ToString(), dr["Species"].ToString());
+                                if (dr["SpeciesID"].ToString().Length > 0)
+                                {
+                                    sp.SpeciesCode = Convert.ToInt32(dr["SpeciesID"]);
+                                }
+                                sp.Importance = dr["Importance"].ToString();
+                                sp.MainCatchingMethod = dr["MainCatchingMethod"].ToString();
+                                sp.Family = dr["Family"].ToString();
+                                if (dr["LengthCommon"].ToString().Length > 0)
+                                {
+                                    sp.LengthCommon = Convert.ToDouble(dr["LengthCommon"]);
+                                }
+                                if (dr["LengthMax"].ToString().Length > 0)
+                                {
+                                    sp.LengthMax = Convert.ToDouble(dr["LengthMax"]);
+                                }
+                                if (dr["LengthType"].ToString().Length > 0)
+                                {
+                                    sp.LengthType = NSAPEntities.SizeTypeViewModel.GetSizeType(dr["LengthType"].ToString());
+                                }
+                                sp.NameInOldFishbase = dr["OldName"].ToString().Trim(' ');
+                                listSpecies.Add(sp);
+                                //break;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
             return listSpecies;
         }
 

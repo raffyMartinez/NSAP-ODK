@@ -3,7 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.OleDb;
-
+using MySql.Data.MySqlClient;
+using NSAP_ODK.NSAPMysql;
 namespace NSAP_ODK.Entities
 {
     internal class NotFishSpeciesRepository
@@ -14,48 +15,88 @@ namespace NSAP_ODK.Entities
         {
             ListSpeciesNotFish = getSpeciesNotFish();
         }
+        private List<NotFishSpecies> getFromMySQL()
+        {
+            List<NotFishSpecies> thisList = new List<NotFishSpecies>();
 
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "Select * from not_fish_species";
+                    conn.Open();
+                    MySqlDataReader dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        NotFishSpecies spnf = new NotFishSpecies();
+                        spnf.SpeciesID = Convert.ToInt32(dr["species_id"]);
+                        spnf.Genus = dr["genus"].ToString();
+                        spnf.Species = dr["species"].ToString();
+                        spnf.Taxa = NSAPEntities.TaxaViewModel.GetTaxa(dr["taxa"].ToString());
+                        if (double.TryParse(dr["max_size"].ToString(), out double v))
+                        {
+                            spnf.MaxSize = v;
+                        }
+                        if (dr["size_indicator"].ToString().Length > 0)
+                        {
+                            spnf.SizeType = NSAPEntities.SizeTypeViewModel.GetSizeType(dr["size_indicator"].ToString());
+                        }
+                        thisList.Add(spnf);
+                    }
+                }
+            }
+            return thisList;
+        }
         private List<NotFishSpecies> getSpeciesNotFish()
         {
             List<NotFishSpecies> thisList = new List<NotFishSpecies>();
-            var dt = new DataTable();
-            using (var conection = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                try
-                {
-                    conection.Open();
-                    string query = $"Select * from notFishSpecies";
+                thisList = getFromMySQL();
+            }
+            else
+            {
 
-                    var adapter = new OleDbDataAdapter(query, conection);
-                    adapter.Fill(dt);
-                    if (dt.Rows.Count > 0)
+                var dt = new DataTable();
+                using (var conection = new OleDbConnection(Global.ConnectionString))
+                {
+                    try
                     {
-                        thisList.Clear();
-                        foreach (DataRow dr in dt.Rows)
+                        conection.Open();
+                        string query = $"Select * from notFishSpecies";
+
+                        var adapter = new OleDbDataAdapter(query, conection);
+                        adapter.Fill(dt);
+                        if (dt.Rows.Count > 0)
                         {
-                            NotFishSpecies spnf = new NotFishSpecies();
-                            spnf.SpeciesID = Convert.ToInt32(dr["SpeciesID"]);
-                            spnf.Genus = dr["Genus"].ToString();
-                            spnf.Species = dr["Species"].ToString();
-                            spnf.Taxa = NSAPEntities.TaxaViewModel.GetTaxa(dr["Taxa"].ToString());
-                            if (double.TryParse(dr["MaxSize"].ToString(), out double v))
+                            thisList.Clear();
+                            foreach (DataRow dr in dt.Rows)
                             {
-                                spnf.MaxSize = v;
+                                NotFishSpecies spnf = new NotFishSpecies();
+                                spnf.SpeciesID = Convert.ToInt32(dr["SpeciesID"]);
+                                spnf.Genus = dr["Genus"].ToString();
+                                spnf.Species = dr["Species"].ToString();
+                                spnf.Taxa = NSAPEntities.TaxaViewModel.GetTaxa(dr["Taxa"].ToString());
+                                if (double.TryParse(dr["MaxSize"].ToString(), out double v))
+                                {
+                                    spnf.MaxSize = v;
+                                }
+                                if (dr["SizeIndicator"].ToString().Length > 0)
+                                {
+                                    spnf.SizeType = NSAPEntities.SizeTypeViewModel.GetSizeType(dr["SizeIndicator"].ToString());
+                                }
+                                thisList.Add(spnf);
                             }
-                            if (dr["SizeIndicator"].ToString().Length > 0)
-                            {
-                                spnf.SizeType = NSAPEntities.SizeTypeViewModel.GetSizeType(dr["SizeIndicator"].ToString());
-                            }
-                            thisList.Add(spnf);
                         }
                     }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    Logger.Log(ex);
-                }
-                return thisList;
+
             }
+            return thisList;
         }
 
         public bool Add(NotFishSpecies nfs)
@@ -67,7 +108,7 @@ namespace NSAP_ODK.Entities
             {
                 conn.Open();
 
-                var sql ="Insert into notFishSpecies(SpeciesID, Genus, Species, Taxa, SizeIndicator, MaxSize) Values (?,?,?,?,?,?)";
+                var sql = "Insert into notFishSpecies(SpeciesID, Genus, Species, Taxa, SizeIndicator, MaxSize) Values (?,?,?,?,?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
                     update.Parameters.Add("@id", OleDbType.Integer).Value = nfs.SpeciesID;
@@ -159,11 +200,11 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                
+
                 using (OleDbCommand update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@id", OleDbType.Integer).Value = id;
-                    update.CommandText=$"Delete * from notFishSpecies where SpeciesID=@id";
+                    update.CommandText = $"Delete * from notFishSpecies where SpeciesID=@id";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

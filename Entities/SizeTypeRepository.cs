@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Data.OleDb;
 using NSAP_ODK.Utilities;
+using MySql.Data.MySqlClient;
+using NSAP_ODK.NSAPMysql;
 
 namespace NSAP_ODK.Entities
 {
@@ -18,39 +20,70 @@ namespace NSAP_ODK.Entities
             SizeTypes = getSizeTypes();
         }
 
-        private List<SizeType> getSizeTypes()
+        private List<SizeType> getFromMySQL()
         {
-            List<SizeType> thisList= new List<SizeType>();
-            var dt = new DataTable();
-            using (var conection = new OleDbConnection(Global.ConnectionString))
+            List<SizeType> thisList = new List<SizeType>();
+
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                try
+                using (var cmd = conn.CreateCommand())
                 {
-                    conection.Open();
-                    string query = $"Select * from sizeTypes";
-
-
-                    var adapter = new OleDbDataAdapter(query, conection);
-                    adapter.Fill(dt);
-                    if (dt.Rows.Count > 0)
+                    cmd.CommandText = "Select * from size_types";
+                    conn.Open();
+                    MySqlDataReader dr = cmd.ExecuteReader();
+                    while (dr.Read())
                     {
-                        thisList.Clear();
-                        foreach (DataRow dr in dt.Rows)
-                        {
-                            SizeType st = new SizeType();
-                            st.Code = dr["SizeTypeCode"].ToString();
-                            st.Name = dr["SizeTypeName"].ToString();
-                            thisList.Add(st);
-                        }
+                        SizeType st = new SizeType();
+                        st.Code = dr["size_type_code"].ToString();
+                        st.Name = dr["size_type_name"].ToString();
+                        thisList.Add(st);
                     }
                 }
-                catch (Exception ex)
-                {
-                    Logger.Log(ex);
-
-                }
-                return thisList;
             }
+            return thisList;
+        }
+        private List<SizeType> getSizeTypes()
+        {
+            List<SizeType> thisList = new List<SizeType>();
+            if (Global.Settings.UsemySQL)
+            {
+                thisList = getFromMySQL();
+            }
+            else
+
+            {
+                var dt = new DataTable();
+                using (var conection = new OleDbConnection(Global.ConnectionString))
+                {
+                    try
+                    {
+                        conection.Open();
+                        string query = $"Select * from sizeTypes";
+
+
+                        var adapter = new OleDbDataAdapter(query, conection);
+                        adapter.Fill(dt);
+                        if (dt.Rows.Count > 0)
+                        {
+                            thisList.Clear();
+                            foreach (DataRow dr in dt.Rows)
+                            {
+                                SizeType st = new SizeType();
+                                st.Code = dr["SizeTypeCode"].ToString();
+                                st.Name = dr["SizeTypeName"].ToString();
+                                thisList.Add(st);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+
+                    }
+                }
+
+            }
+            return thisList;
         }
 
         public bool Add(SizeType s)
@@ -121,11 +154,11 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                
+
                 using (OleDbCommand update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@code", OleDbType.VarChar).Value = code;
-                    update.CommandText="Delete * from sizeType  where TaxaCode=@code";
+                    update.CommandText = "Delete * from sizeType  where TaxaCode=@code";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NSAP_ODK.Views"
         mc:Ignorable="d"
-        Title="Settings window" Height="173.278" Width="776" WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+        Title="Settings window" Height="202.685" Width="776" WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="40"/>
@@ -33,6 +33,11 @@
                 <TextBox x:Name="textCutoffWidth" Width="60" Margin="10 0" HorizontalContentAlignment="Right"/>
 
             </WrapPanel>
+            <WrapPanel Margin="10 2">
+                <Label Content="Use mySQL" Width="180" HorizontalContentAlignment="Right"/>
+                <CheckBox x:Name="chkUsemySQL" Width="60" Margin="10 0" HorizontalContentAlignment="Right" VerticalAlignment="Center"/>
+
+            </WrapPanel>            
         </StackPanel>
         <StackPanel Grid.Row="1" Grid.Column="1">
             <Button Content="Ok" Width="50" Height="25" x:Name="buttonOk" Click="OnButtonClick" Margin="0 2"/>

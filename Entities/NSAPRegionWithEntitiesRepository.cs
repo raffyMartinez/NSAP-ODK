@@ -3,6 +3,8 @@ using System;
 using System.Data;
 using System.Data.OleDb;
 using System.Linq;
+using MySql.Data.MySqlClient;
+using NSAP_ODK.NSAPMysql;
 
 namespace NSAP_ODK.Entities
 {
@@ -37,31 +39,54 @@ namespace NSAP_ODK.Entities
         /// </summary>
         private void GetFMAS()
         {
-            var dt = new DataTable();
-            using (var conection = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                try
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
                 {
-                    conection.Open();
-                    string query = $"Select * from NSAPRegionFMA  where NSAPRegion='{NSAPRegion.Code}'";
-
-                    var adapter = new OleDbDataAdapter(query, conection);
-                    adapter.Fill(dt);
-                    if (dt.Rows.Count > 0)
+                    using (var cmd = conn.CreateCommand())
                     {
-                        foreach (DataRow dr in dt.Rows)
+                        cmd.CommandText = $"Select * from nsap_region_fma  where nsap_region='{NSAPRegion.Code}'";
+                        conn.Open();
+                        MySqlDataReader dr = cmd.ExecuteReader();
+                        while (dr.Read())
                         {
                             NSAPRegionFMA nrf = new NSAPRegionFMA();
-                            nrf.RowID = Convert.ToInt32(dr["RowID"]);
+                            nrf.RowID = Convert.ToInt32(dr["row_id"]);
                             nrf.NSAPRegion = NSAPRegion;
-                            nrf.FMA = NSAPEntities.FMAViewModel.GetFMA(Convert.ToInt32(dr["FMA"]));
+                            nrf.FMA = NSAPEntities.FMAViewModel.GetFMA(Convert.ToInt32(dr["fma"]));
                             NSAPRegion.FMAs.Add(nrf);
                         }
                     }
                 }
-                catch (Exception ex)
+            }
+            else
+            {
+                var dt = new DataTable();
+                using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    Logger.Log(ex);
+                    try
+                    {
+                        conection.Open();
+                        string query = $"Select * from NSAPRegionFMA  where NSAPRegion='{NSAPRegion.Code}'";
+
+                        var adapter = new OleDbDataAdapter(query, conection);
+                        adapter.Fill(dt);
+                        if (dt.Rows.Count > 0)
+                        {
+                            foreach (DataRow dr in dt.Rows)
+                            {
+                                NSAPRegionFMA nrf = new NSAPRegionFMA();
+                                nrf.RowID = Convert.ToInt32(dr["RowID"]);
+                                nrf.NSAPRegion = NSAPRegion;
+                                nrf.FMA = NSAPEntities.FMAViewModel.GetFMA(Convert.ToInt32(dr["FMA"]));
+                                NSAPRegion.FMAs.Add(nrf);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
         }
@@ -201,62 +226,87 @@ namespace NSAP_ODK.Entities
 
         private void GetFishingGroundsInFMAs(NSAPRegionFMA regionFMA)
         {
-            var dt = new DataTable();
-            using (var conection = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                try
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
                 {
-                    conection.Open();
-                    string query = $"Select * from NSAPRegionFMAFishingGrounds where RegionFMA={regionFMA.RowID}";
-
-                    var adapter = new OleDbDataAdapter(query, conection);
-                    adapter.Fill(dt);
-                    if (dt.Rows.Count > 0)
+                    using (var cmd = conn.CreateCommand())
                     {
-                        foreach (DataRow dr in dt.Rows)
+                        cmd.CommandText = $"Select * from nsapregion_fma_fishing_grounds where region_fma={regionFMA.RowID}";
+                        conn.Open();
+                        MySqlDataReader dr = cmd.ExecuteReader();
+                        while (dr.Read())
                         {
                             NSAPRegionFMAFishingGround nrfg = new NSAPRegionFMAFishingGround();
-                            nrfg.RowID = Convert.ToInt32(dr["RowID"]);
+                            nrfg.RowID = Convert.ToInt32(dr["row_id"]);
                             nrfg.RegionFMA = regionFMA;
-                            nrfg.DateStart = (DateTime)dr["DateStart"];
-                            if (DateTime.TryParse(dr["DateEnd"].ToString(), out DateTime dte))
+                            nrfg.DateStart = (DateTime)dr["date_start"];
+                            if (DateTime.TryParse(dr["date_end"].ToString(), out DateTime dte))
                             {
                                 nrfg.DateEnd = dte;
                             }
-                            nrfg.FishingGround = NSAPEntities.FishingGroundViewModel.GetFishingGround(dr["FishingGround"].ToString());
+                            nrfg.FishingGround = NSAPEntities.FishingGroundViewModel.GetFishingGround(dr["fishing_ground"].ToString());
                             regionFMA.FishingGrounds.Add(nrfg);
                         }
                     }
                 }
-                catch (Exception ex)
+            }
+            else
+            {
+                var dt = new DataTable();
+                using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    Logger.Log(ex);
+                    try
+                    {
+                        conection.Open();
+                        string query = $"Select * from NSAPRegionFMAFishingGrounds where RegionFMA={regionFMA.RowID}";
+
+                        var adapter = new OleDbDataAdapter(query, conection);
+                        adapter.Fill(dt);
+                        if (dt.Rows.Count > 0)
+                        {
+                            foreach (DataRow dr in dt.Rows)
+                            {
+                                NSAPRegionFMAFishingGround nrfg = new NSAPRegionFMAFishingGround();
+                                nrfg.RowID = Convert.ToInt32(dr["RowID"]);
+                                nrfg.RegionFMA = regionFMA;
+                                nrfg.DateStart = (DateTime)dr["DateStart"];
+                                if (DateTime.TryParse(dr["DateEnd"].ToString(), out DateTime dte))
+                                {
+                                    nrfg.DateEnd = dte;
+                                }
+                                nrfg.FishingGround = NSAPEntities.FishingGroundViewModel.GetFishingGround(dr["FishingGround"].ToString());
+                                regionFMA.FishingGrounds.Add(nrfg);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
         }
 
         private void GetEnumerators()
         {
-            var dt = new DataTable();
-            using (var conection = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                try
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
                 {
-                    conection.Open();
-                    string query = $"Select * from NSAPRegionEnumerator where NSAPRegionCode='{NSAPRegion.Code}'";
-
-                    var adapter = new OleDbDataAdapter(query, conection);
-                    adapter.Fill(dt);
-                    if (dt.Rows.Count > 0)
+                    using (var cmd = conn.CreateCommand())
                     {
-                        foreach (DataRow dr in dt.Rows)
+                        cmd.CommandText = $"Select * from nsap_region_enumerator where nsap_region='{NSAPRegion.Code}'";
+                        conn.Open();
+                        MySqlDataReader dr = cmd.ExecuteReader();
+                        while (dr.Read())
                         {
                             NSAPRegionEnumerator nre = new NSAPRegionEnumerator();
-                            nre.RowID = Convert.ToInt32(dr["RowID"]);
+                            nre.RowID = Convert.ToInt32(dr["row_id"]);
                             nre.NSAPRegion = NSAPRegion;
-                            nre.Enumerator = NSAPEntities.NSAPEnumeratorViewModel.GetNSAPEnumerator(Convert.ToInt32(dr["EnumeratorID"]));
-                            nre.DateStart = (DateTime)dr["DateStart"];
-                            if (DateTime.TryParse(dr["DateEnd"].ToString(), out DateTime v))
+                            nre.Enumerator = NSAPEntities.NSAPEnumeratorViewModel.GetNSAPEnumerator(Convert.ToInt32(dr["enumerator_id"]));
+                            nre.DateStart = (DateTime)dr["date_start"];
+                            if (DateTime.TryParse(dr["date_end"].ToString(), out DateTime v))
                             {
                                 nre.DateEnd = v;
                             }
@@ -264,35 +314,63 @@ namespace NSAP_ODK.Entities
                         }
                     }
                 }
-                catch (Exception ex)
+            }
+            else
+            {
+                var dt = new DataTable();
+                using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    Logger.Log(ex);
+                    try
+                    {
+                        conection.Open();
+                        string query = $"Select * from NSAPRegionEnumerator where NSAPRegionCode='{NSAPRegion.Code}'";
+
+                        var adapter = new OleDbDataAdapter(query, conection);
+                        adapter.Fill(dt);
+                        if (dt.Rows.Count > 0)
+                        {
+                            foreach (DataRow dr in dt.Rows)
+                            {
+                                NSAPRegionEnumerator nre = new NSAPRegionEnumerator();
+                                nre.RowID = Convert.ToInt32(dr["RowID"]);
+                                nre.NSAPRegion = NSAPRegion;
+                                nre.Enumerator = NSAPEntities.NSAPEnumeratorViewModel.GetNSAPEnumerator(Convert.ToInt32(dr["EnumeratorID"]));
+                                nre.DateStart = (DateTime)dr["DateStart"];
+                                if (DateTime.TryParse(dr["DateEnd"].ToString(), out DateTime v))
+                                {
+                                    nre.DateEnd = v;
+                                }
+                                NSAPRegion.NSAPEnumerators.Add(nre);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
         }
 
         private void GetGears()
         {
-            var dt = new DataTable();
-            using (var conection = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                try
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
                 {
-                    conection.Open();
-                    string query = $"Select * from NSAPRegionGear where NSAPRegionCode='{NSAPRegion.Code}'";
-
-                    var adapter = new OleDbDataAdapter(query, conection);
-                    adapter.Fill(dt);
-                    if (dt.Rows.Count > 0)
+                    using (var cmd = conn.CreateCommand())
                     {
-                        foreach (DataRow dr in dt.Rows)
+                        cmd.CommandText = $"Select * from nsap_region_gear where nsap_region_code='{NSAPRegion.Code}'";
+                        conn.Open();
+                        MySqlDataReader dr = cmd.ExecuteReader();
+                        while (dr.Read())
                         {
                             NSAPRegionGear nrg = new NSAPRegionGear();
-                            nrg.RowID = Convert.ToInt32(dr["RowID"]);
+                            nrg.RowID = Convert.ToInt32(dr["row_id"]);
                             nrg.NSAPRegion = NSAPRegion;
-                            nrg.Gear = NSAPEntities.GearViewModel.GetGear(dr["GearCode"].ToString());
-                            nrg.DateStart = (DateTime)dr["DateStart"];
-                            if (DateTime.TryParse(dr["DateEnd"].ToString(), out DateTime v))
+                            nrg.Gear = NSAPEntities.GearViewModel.GetGear(dr["gear_code"].ToString());
+                            nrg.DateStart = (DateTime)dr["date_start"];
+                            if (DateTime.TryParse(dr["date_end"].ToString(), out DateTime v))
                             {
                                 nrg.DateEnd = v;
                             }
@@ -301,35 +379,65 @@ namespace NSAP_ODK.Entities
                         }
                     }
                 }
-                catch (Exception ex)
+            }
+            else
+            {
+
+                var dt = new DataTable();
+                using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    Logger.Log(ex);
+                    try
+                    {
+                        conection.Open();
+                        string query = $"Select * from NSAPRegionGear where NSAPRegionCode='{NSAPRegion.Code}'";
+
+                        var adapter = new OleDbDataAdapter(query, conection);
+                        adapter.Fill(dt);
+                        if (dt.Rows.Count > 0)
+                        {
+                            foreach (DataRow dr in dt.Rows)
+                            {
+                                NSAPRegionGear nrg = new NSAPRegionGear();
+                                nrg.RowID = Convert.ToInt32(dr["RowID"]);
+                                nrg.NSAPRegion = NSAPRegion;
+                                nrg.Gear = NSAPEntities.GearViewModel.GetGear(dr["GearCode"].ToString());
+                                nrg.DateStart = (DateTime)dr["DateStart"];
+                                if (DateTime.TryParse(dr["DateEnd"].ToString(), out DateTime v))
+                                {
+                                    nrg.DateEnd = v;
+                                }
+                                //GetSpecificationForGear(nrg.Gear);
+                                NSAPRegion.Gears.Add(nrg);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
         }
 
         private void GetFishingVessels()
         {
-            var dt = new DataTable();
-            using (var conection = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                try
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
                 {
-                    conection.Open();
-                    string query = $"Select * from NSAPRegionVessel where NSAPRegionCode='{NSAPRegion.Code}'";
-
-                    var adapter = new OleDbDataAdapter(query, conection);
-                    adapter.Fill(dt);
-                    if (dt.Rows.Count > 0)
+                    using (var cmd = conn.CreateCommand())
                     {
-                        foreach (DataRow dr in dt.Rows)
+                        cmd.CommandText = $"Select * from nsap_region_vessel where nsap_region_code='{NSAPRegion.Code}'";
+                        conn.Open();
+                        MySqlDataReader dr = cmd.ExecuteReader();
+                        while (dr.Read())
                         {
                             NSAPRegionFishingVessel nrfv = new NSAPRegionFishingVessel();
-                            nrfv.RowID = Convert.ToInt32(dr["RowID"]);
+                            nrfv.RowID = Convert.ToInt32(dr["row_id"]);
                             nrfv.NSAPRegion = NSAPRegion;
-                            nrfv.FishingVessel = NSAPEntities.FishingVesselViewModel.GetFishingVessel(Convert.ToInt32(dr["VesselID"]));
-                            nrfv.DateStart = (DateTime)dr["DateStart"];
-                            if (DateTime.TryParse(dr["DateEnd"].ToString(), out DateTime v))
+                            nrfv.FishingVessel = NSAPEntities.FishingVesselViewModel.GetFishingVessel(Convert.ToInt32(dr["vessel_id"]));
+                            nrfv.DateStart = (DateTime)dr["date_start"];
+                            if (DateTime.TryParse(dr["date_end"].ToString(), out DateTime v))
                             {
                                 nrfv.DateEnd = v;
                             }
@@ -337,9 +445,41 @@ namespace NSAP_ODK.Entities
                         }
                     }
                 }
-                catch (Exception ex)
+            }
+            else
+
+            {
+                var dt = new DataTable();
+                using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    Logger.Log(ex);
+                    try
+                    {
+                        conection.Open();
+                        string query = $"Select * from NSAPRegionVessel where NSAPRegionCode='{NSAPRegion.Code}'";
+
+                        var adapter = new OleDbDataAdapter(query, conection);
+                        adapter.Fill(dt);
+                        if (dt.Rows.Count > 0)
+                        {
+                            foreach (DataRow dr in dt.Rows)
+                            {
+                                NSAPRegionFishingVessel nrfv = new NSAPRegionFishingVessel();
+                                nrfv.RowID = Convert.ToInt32(dr["RowID"]);
+                                nrfv.NSAPRegion = NSAPRegion;
+                                nrfv.FishingVessel = NSAPEntities.FishingVesselViewModel.GetFishingVessel(Convert.ToInt32(dr["VesselID"]));
+                                nrfv.DateStart = (DateTime)dr["DateStart"];
+                                if (DateTime.TryParse(dr["DateEnd"].ToString(), out DateTime v))
+                                {
+                                    nrfv.DateEnd = v;
+                                }
+                                NSAPRegion.FishingVessels.Add(nrfv);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
         }
@@ -400,9 +540,9 @@ namespace NSAP_ODK.Entities
                         max_rec_no = (int)getMax.ExecuteScalar();
 
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
-                        switch(ex.Message)
+                        switch (ex.Message)
                         {
                             case "Specified cast is not valid.":
                             case "No data exists for the row/column.":
@@ -475,7 +615,7 @@ namespace NSAP_ODK.Entities
         }
 
 
-        public static NSAPRegionEnumerator CreateRegionEnumerator (NSAPEnumerator enumerator, NSAPRegion region, DateTime added)
+        public static NSAPRegionEnumerator CreateRegionEnumerator(NSAPEnumerator enumerator, NSAPRegion region, DateTime added)
         {
             return new NSAPRegionEnumerator
             {
@@ -492,7 +632,7 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                
+
                 var sql = "Insert into NSAPRegionEnumerator(RowID, NSAPRegionCode, EnumeratorID, DateStart, DateEnd) Values (?,?,?,?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
@@ -505,11 +645,11 @@ namespace NSAP_ODK.Entities
                     {
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch(OleDbException dbex)
+                    catch (OleDbException dbex)
                     {
                         Logger.Log(dbex);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Logger.Log(ex);
                     }
@@ -527,7 +667,7 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                
+
 
                 var sql = "Insert into NSAPRegionGear(RowID, NSAPRegionCode, GearCode, DateStart, DateEnd) Values (?,?,?,?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
@@ -565,6 +705,21 @@ namespace NSAP_ODK.Entities
             return success;
         }
 
+        private bool AddNSAPRegionFMAToMySQL(NSAPRegionFMA nf)
+        {
+            bool success = false;
+
+            return success;
+        }
+        public bool AddNSAPRegionFMA(NSAPRegionFMA nf)
+        {
+            bool success = false;
+            if(Global.Settings.UsemySQL)
+            {
+                success = AddNSAPRegionFMAToMySQL(nf);
+            }
+            return success;
+        }
 
         public bool AddFMAFishingGround(NSAPRegionFMAFishingGround fg)
         {
@@ -572,7 +727,7 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                
+
                 var sql = "Insert into NSAPRegionFMAFishingGrounds (RowID, FishingGround, RegionFMA, DateStart, DateEnd) Values (?,?,?,?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
@@ -613,7 +768,7 @@ namespace NSAP_ODK.Entities
         public bool AddFMAFishingGroundLandingSite(NSAPRegionFMAFishingGroundLandingSite fgls)
         {
             bool success = false;
-            
+
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
@@ -705,13 +860,13 @@ namespace NSAP_ODK.Entities
             {
                 conn.Open();
 
-                           
+
 
                 using (OleDbCommand update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@lsid", OleDbType.Integer).Value = fmaFishingGroundLandingSite.LandingSite.LandingSiteID;
                     update.Parameters.Add("@start", OleDbType.Date).Value = fmaFishingGroundLandingSite.DateStart;
-                    if(fmaFishingGroundLandingSite.DateEnd==null)
+                    if (fmaFishingGroundLandingSite.DateEnd == null)
                     {
                         update.Parameters.Add("@end", OleDbType.Date).Value = DBNull.Value;
                     }
@@ -768,7 +923,7 @@ namespace NSAP_ODK.Entities
                 {
                     update.Parameters.Add("@enum_id", OleDbType.Integer).Value = regionEnumerator.Enumerator.ID;
                     update.Parameters.Add("@start", OleDbType.Date).Value = regionEnumerator.DateStart;
-                    if(regionEnumerator.DateEnd==null)
+                    if (regionEnumerator.DateEnd == null)
                     {
                         update.Parameters.Add("@end", OleDbType.Date).Value = DBNull.Value;
                     }
@@ -1082,7 +1237,7 @@ namespace NSAP_ODK.Entities
                     {
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException dbex) 
+                    catch (OleDbException dbex)
                     {
                         DatabaseErrorMessage = dbex.Message;
                         success = false;

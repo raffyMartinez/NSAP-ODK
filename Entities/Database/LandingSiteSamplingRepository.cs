@@ -7,6 +7,9 @@ using System.Data;
 using System.Data.OleDb;
 using NSAP_ODK.Entities;
 using NSAP_ODK.Utilities;
+using MySql.Data.MySqlClient;
+using NSAP_ODK.NSAPMysql;
+
 namespace NSAP_ODK.Entities.Database
 {
     class LandingSiteSamplingRepository
@@ -32,16 +35,28 @@ namespace NSAP_ODK.Entities.Database
             }
             return max_rec_no;
         }
+
+        private List<LandingSiteSampling> getFromMySQL()
+        {
+            List<LandingSiteSampling> thisList = new List<LandingSiteSampling>();
+            return thisList;
+        }
         private List<LandingSiteSampling> getLandingSiteSamplings()
         {
             List<LandingSiteSampling> thisList = new List<LandingSiteSampling>();
-            var dt = new DataTable();
-            using (var conection = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                try
+                thisList = getFromMySQL();
+            }
+            else
+            {
+                var dt = new DataTable();
+                using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    conection.Open();
-                    string query = @"SELECT dbo_LC_FG_sample_day.*, 
+                    try
+                    {
+                        conection.Open();
+                        string query = @"SELECT dbo_LC_FG_sample_day.*, 
                                         dbo_LC_FG_sample_day_1.datetime_submitted, 
                                         dbo_LC_FG_sample_day_1.user_name, 
                                         dbo_LC_FG_sample_day_1.device_id, 
@@ -57,45 +72,48 @@ namespace NSAP_ODK.Entities.Database
                                             ON dbo_LC_FG_sample_day.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id";
 
 
-                    var adapter = new OleDbDataAdapter(query, conection);
-                    adapter.Fill(dt);
-                    if (dt.Rows.Count > 0)
-                    {
-                        thisList.Clear();
-                        foreach (DataRow dr in dt.Rows)
+                        var adapter = new OleDbDataAdapter(query, conection);
+                        adapter.Fill(dt);
+                        if (dt.Rows.Count > 0)
                         {
-                            LandingSiteSampling item = new LandingSiteSampling();
-                            item.PK = (int)dr["unload_day_id"];
-                            item.NSAPRegionID = dr["region_id"].ToString();
-                            item.SamplingDate = (DateTime)dr["sdate"];
-                            //item.LandingSiteID = string.IsNullOrEmpty( dr["land_ctr_id"].ToString())?null:(int?)dr["land_ctr_id"];
-                            item.LandingSiteID = dr["land_ctr_id"] == DBNull.Value ? null : (int?)dr["land_ctr_id"];
-                            item.FishingGroundID = dr["ground_id"].ToString();
-                            item.Remarks = dr["remarks"].ToString();
-                            item.IsSamplingDay = (bool)dr["sampleday"];
-                            item.LandingSiteText = dr["land_ctr_text"].ToString();
-                            item.FMAID = (int)dr["fma"];
-                            item.DateSubmitted = dr["datetime_submitted"] == DBNull.Value ? null : (DateTime?)dr["datetime_submitted"];
-                            item.UserName = dr["user_name"].ToString();
-                            item.DeviceID = dr["device_id"].ToString();
-                            item.XFormIdentifier = dr["XFormIdentifier"].ToString();
-                            item.DateAdded = dr["DateAdded"] == DBNull.Value ? null : (DateTime?)dr["DateAdded"];
-                            item.FromExcelDownload = dr["FromExcelDownload"] == DBNull.Value ? false : (bool)dr["FromExcelDownload"];
-                            item.FormVersion = dr["form_version"].ToString();
-                            item.RowID = dr["RowID"].ToString();
-                            item.EnumeratorID = dr["EnumeratorID"] == DBNull.Value ? null : (int?)int.Parse(dr["EnumeratorID"].ToString());
-                            item.EnumeratorText = dr["EnumeratorText"].ToString();
-                            thisList.Add(item);
+                            thisList.Clear();
+                            foreach (DataRow dr in dt.Rows)
+                            {
+                                LandingSiteSampling item = new LandingSiteSampling();
+                                item.PK = (int)dr["unload_day_id"];
+                                item.NSAPRegionID = dr["region_id"].ToString();
+                                item.SamplingDate = (DateTime)dr["sdate"];
+                                //item.LandingSiteID = string.IsNullOrEmpty( dr["land_ctr_id"].ToString())?null:(int?)dr["land_ctr_id"];
+                                item.LandingSiteID = dr["land_ctr_id"] == DBNull.Value ? null : (int?)dr["land_ctr_id"];
+                                item.FishingGroundID = dr["ground_id"].ToString();
+                                item.Remarks = dr["remarks"].ToString();
+                                item.IsSamplingDay = (bool)dr["sampleday"];
+                                item.LandingSiteText = dr["land_ctr_text"].ToString();
+                                item.FMAID = (int)dr["fma"];
+                                item.DateSubmitted = dr["datetime_submitted"] == DBNull.Value ? null : (DateTime?)dr["datetime_submitted"];
+                                item.UserName = dr["user_name"].ToString();
+                                item.DeviceID = dr["device_id"].ToString();
+                                item.XFormIdentifier = dr["XFormIdentifier"].ToString();
+                                item.DateAdded = dr["DateAdded"] == DBNull.Value ? null : (DateTime?)dr["DateAdded"];
+                                item.FromExcelDownload = dr["FromExcelDownload"] == DBNull.Value ? false : (bool)dr["FromExcelDownload"];
+                                item.FormVersion = dr["form_version"].ToString();
+                                item.RowID = dr["RowID"].ToString();
+                                item.EnumeratorID = dr["EnumeratorID"] == DBNull.Value ? null : (int?)int.Parse(dr["EnumeratorID"].ToString());
+                                item.EnumeratorText = dr["EnumeratorText"].ToString();
+                                thisList.Add(item);
+                            }
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log(ex);
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+
+                    }
 
                 }
-                return thisList;
+
             }
+            return thisList;
         }
 
         public bool Add(LandingSiteSampling item)

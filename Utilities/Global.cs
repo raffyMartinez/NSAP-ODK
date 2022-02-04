@@ -7,11 +7,15 @@ using System.IO;
 using System.Reflection;
 using System.Xml;
 using System.Net;
+using NSAP_ODK.Entities;
+using NSAP_ODK.Entities.Database;
 
 namespace NSAP_ODK.Utilities
 {
     public static class Global
     {
+        public static event EventHandler RequestLogIn = delegate { };
+
         public const string UserSettingsFilename = "settings.xml";
 
         public static string _DefaultSettingspath =
@@ -72,7 +76,7 @@ namespace NSAP_ODK.Utilities
             {
                 Settings = Settings.Read(_DefaultSettingspath);
             }
-            DoAppProceed();
+            //DoAppProceed();
         }
 
         public static bool IsValidXML(string xml, out string errorMessage)
@@ -98,26 +102,75 @@ namespace NSAP_ODK.Utilities
             }
             return success;
         }
+        public static void CreateConnectionString()
+        {
+            MDBPath = Settings.MDBPath;
+            ConnectionString = "Provider=Microsoft.JET.OLEDB.4.0;data source=" + MDBPath;
+        }
 
-        private static void DoAppProceed()
+        public static void LoadEntities()
+        {
+            NSAPEntities.GPSViewModel = new GPSViewModel();
+
+            NSAPEntities.FMAViewModel = new FMAViewModel();
+            NSAPEntities.EngineViewModel = new EngineViewModel();
+            NSAPEntities.FishingVesselViewModel = new FishingVesselViewModel();
+            NSAPEntities.FishingGroundViewModel = new FishingGroundViewModel();
+            NSAPEntities.EffortSpecificationViewModel = new EffortSpecificationViewModel();
+            NSAPEntities.GearViewModel = new GearViewModel();
+            NSAPEntities.NSAPEnumeratorViewModel = new NSAPEnumeratorViewModel();
+            NSAPEntities.NSAPRegionViewModel = new NSAPRegionViewModel();
+            NSAPEntities.ProvinceViewModel = new ProvinceViewModel();
+            NSAPEntities.LandingSiteViewModel = new LandingSiteViewModel();
+
+            NSAPEntities.NSAPRegionViewModel.SetNSAPRegionsWithEntitiesRepositories();
+
+            NSAPEntities.SizeTypeViewModel = new SizeTypeViewModel();
+            NSAPEntities.TaxaViewModel = new TaxaViewModel();
+            NSAPEntities.FishSpeciesViewModel = new FishSpeciesViewModel();
+            NSAPEntities.NotFishSpeciesViewModel = new NotFishSpeciesViewModel();
+            NSAPEntities.LandingSiteSamplingViewModel = new LandingSiteSamplingViewModel();
+            NSAPEntities.GearUnloadViewModel = new GearUnloadViewModel();
+            NSAPEntities.VesselUnloadViewModel = new VesselUnloadViewModel();
+            NSAPEntities.VesselEffortViewModel = new VesselEffortViewModel();
+            NSAPEntities.VesselCatchViewModel = new VesselCatchViewModel();
+            NSAPEntities.GearSoakViewModel = new GearSoakViewModel();
+            NSAPEntities.FishingGroundGridViewModel = new FishingGroundGridViewModel();
+            NSAPEntities.CatchLenFreqViewModel = new CatchLenFreqViewModel();
+            NSAPEntities.CatchLengthWeightViewModel = new CatchLengthWeightViewModel();
+            NSAPEntities.CatchLengthViewModel = new CatchLengthViewModel();
+            NSAPEntities.CatchMaturityViewModel = new CatchMaturityViewModel();
+            NSAPEntities.DBSummary = new DBSummary();
+            NSAPEntities.DatabaseEnumeratorSummary = new DatabaseEnumeratorSummary();
+            NSAPEntities.JSONFileViewModel = new JSONFileViewModel();
+        }
+        public static void DoAppProceed()
         {
             AppProceed = Settings != null && File.Exists(Settings.MDBPath);
             if (AppProceed)
             {
-                MDBPath = Settings.MDBPath;
-                ConnectionString = "Provider=Microsoft.JET.OLEDB.4.0;data source=" + MDBPath;
-                ConnectionStringGrid25 = "Provider=Microsoft.JET.OLEDB.4.0;data source=" + Grid25MDBPath;
-                AppProceed = Entities.Database.CSVFIleManager.ReadCSVXML();
-
-                if (Settings.JSONFolder!=null && Settings.JSONFolder.Length > 0 && !Directory.Exists(Settings.JSONFolder))
+                if (Settings.UsemySQL)
                 {
-                    Settings.JSONFolder = "";
-                    SaveGlobalSettings();
+                    RequestLogIn(null, EventArgs.Empty);
+
                 }
-
-                if (!AppProceed)
+                else
                 {
-                    Logger.Log(Entities.Database.CSVFIleManager.XMLError);
+                    MDBPath = Settings.MDBPath;
+                    ConnectionString = "Provider=Microsoft.JET.OLEDB.4.0;data source=" + MDBPath;
+                    ConnectionStringGrid25 = "Provider=Microsoft.JET.OLEDB.4.0;data source=" + Grid25MDBPath;
+                    AppProceed = Entities.Database.CSVFIleManager.ReadCSVXML();
+
+                    if (Settings.JSONFolder != null && Settings.JSONFolder.Length > 0 && !Directory.Exists(Settings.JSONFolder))
+                    {
+                        Settings.JSONFolder = "";
+                        SaveGlobalSettings();
+                    }
+
+                    if (!AppProceed)
+                    {
+                        Logger.Log(Entities.Database.CSVFIleManager.XMLError);
+                    }
                 }
             }
             else

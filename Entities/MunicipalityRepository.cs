@@ -3,7 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.OleDb;
-
+using MySql.Data.MySqlClient;
+using NSAP_ODK.NSAPMysql;
 namespace NSAP_ODK.Entities
 {
     public class MunicipalityRepository
@@ -14,7 +15,40 @@ namespace NSAP_ODK.Entities
         {
             Municipalities = getMunicipalities(province);
         }
+        private List<Municipality> getFromMySQL(Province province)
+        {
+            List<Municipality> thisList = new List<Municipality>();
 
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = $"Select * from municipalities where prov_no={province.ProvinceID}";
+                    conn.Open();
+                    MySqlDataReader dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        Municipality m = new Municipality();
+                        m.Province = province;
+                        m.MunicipalityID = (int)dr["mun_no"];
+                        m.MunicipalityName = dr["municipality"].ToString();
+
+
+                        if (dr["y_Coord"].GetType().Name != "DBNull")
+                        {
+                            m.Latitude = Convert.ToDouble(dr["y_Coord"]);
+                        }
+                        if (dr["x_Coord"].GetType().Name != "DBNull")
+                        {
+                            m.Longitude = Convert.ToDouble(dr["x_Coord"]);
+                        }
+                        m.IsCoastal = (bool)dr["is_coastal"];
+                        thisList.Add(m);
+                    }
+                }
+            }
+            return thisList;
+        }
         public static int MunicipalityMaxRecordNumber()
         {
             int maxRecordNumber = 0;
@@ -46,46 +80,54 @@ namespace NSAP_ODK.Entities
         private List<Municipality> getMunicipalities(Province province)
         {
             List<Municipality> listMunicipalities = new List<Municipality>();
-            var dt = new DataTable();
-            using (var conection = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                try
+                listMunicipalities = getFromMySQL(province);
+            }
+            else
+            {
+                var dt = new DataTable();
+                using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    conection.Open();
-                    string query = $"Select * from Municipalities where ProvNo={province.ProvinceID}";
-
-                    var adapter = new OleDbDataAdapter(query, conection);
-                    adapter.Fill(dt);
-                    if (dt.Rows.Count > 0)
+                    try
                     {
-                        listMunicipalities.Clear();
-                        foreach (DataRow dr in dt.Rows)
+                        conection.Open();
+                        string query = $"Select * from Municipalities where ProvNo={province.ProvinceID}";
+
+                        var adapter = new OleDbDataAdapter(query, conection);
+                        adapter.Fill(dt);
+                        if (dt.Rows.Count > 0)
                         {
-                            Municipality m = new Municipality();
-                            m.Province = province;
-                            m.MunicipalityID = (int)dr["MunNo"];
-                            m.MunicipalityName = dr["Municipality"].ToString();
+                            listMunicipalities.Clear();
+                            foreach (DataRow dr in dt.Rows)
+                            {
+                                Municipality m = new Municipality();
+                                m.Province = province;
+                                m.MunicipalityID = (int)dr["MunNo"];
+                                m.MunicipalityName = dr["Municipality"].ToString();
 
 
-                            if (dr["yCoord"].GetType().Name != "DBNull")
-                            {
-                                m.Latitude = Convert.ToDouble(dr["yCoord"]);
+                                if (dr["yCoord"].GetType().Name != "DBNull")
+                                {
+                                    m.Latitude = Convert.ToDouble(dr["yCoord"]);
+                                }
+                                if (dr["xCoord"].GetType().Name != "DBNull")
+                                {
+                                    m.Longitude = Convert.ToDouble(dr["xCoord"]);
+                                }
+                                m.IsCoastal = (bool)dr["IsCoastal"];
+                                listMunicipalities.Add(m);
                             }
-                            if (dr["xCoord"].GetType().Name != "DBNull")
-                            {
-                                m.Longitude = Convert.ToDouble(dr["xCoord"]);
-                            }
-                            m.IsCoastal = (bool)dr["IsCoastal"];
-                            listMunicipalities.Add(m);
                         }
                     }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+
                 }
-                catch (Exception ex)
-                {
-                    Logger.Log(ex);
-                }
-                return listMunicipalities;
             }
+            return listMunicipalities;
         }
 
         public bool Add(Municipality m)
@@ -200,11 +242,11 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                
+
                 using (OleDbCommand update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@id", OleDbType.Integer).Value = id;
-                    update.CommandText="Delete * from Municipalities where MunNo=@id";
+                    update.CommandText = "Delete * from Municipalities where MunNo=@id";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

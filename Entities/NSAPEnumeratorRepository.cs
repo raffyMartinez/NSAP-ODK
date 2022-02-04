@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using NSAP_ODK.Utilities;
 using System.Data;
 using System.Data.OleDb;
+using MySql.Data.MySqlClient;
+using NSAP_ODK.NSAPMysql;
+
 
 namespace NSAP_ODK.Entities
 {
@@ -17,36 +20,64 @@ namespace NSAP_ODK.Entities
         {
             NSAPEnumerators = getNSAPEnumerators();
         }
+        private List<NSAPEnumerator> getFromMySQL()
+        {
+            List<NSAPEnumerator> thisList = new List<NSAPEnumerator>();
 
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "Select * from nsap_enumerators";
+                    conn.Open();
+                    MySqlDataReader dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        NSAPEnumerator ns = new NSAPEnumerator();
+                        ns.ID = Convert.ToInt32(dr["enumerator_id"]);
+                        ns.Name = dr["enumerator_name"].ToString();
+                        thisList.Add(ns);
+                    }
+                }
+            }
+            return thisList;
+        }
         private List<NSAPEnumerator> getNSAPEnumerators()
         {
             List<NSAPEnumerator> listEnumerators = new List<NSAPEnumerator>();
-            var dt = new DataTable();
-            using (var conection = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                try
+                listEnumerators = getFromMySQL();
+            }
+            else
+            {
+                var dt = new DataTable();
+                using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    conection.Open();
-                    string query = $@"SELECT * from NSAPEnumerator";
-
-                    var adapter = new OleDbDataAdapter(query, conection);
-                    adapter.Fill(dt);
-                    if (dt.Rows.Count > 0)
+                    try
                     {
-                        listEnumerators.Clear();
-                        foreach (DataRow dr in dt.Rows)
+                        conection.Open();
+                        string query = $@"SELECT * from NSAPEnumerator";
+
+                        var adapter = new OleDbDataAdapter(query, conection);
+                        adapter.Fill(dt);
+                        if (dt.Rows.Count > 0)
                         {
-                            NSAPEnumerator ns = new NSAPEnumerator();
-                            ns.ID= Convert.ToInt32( dr["EnumeratorID"]);
-                            ns.Name= dr["EnumeratorName"].ToString();
-                            listEnumerators.Add(ns);
+                            listEnumerators.Clear();
+                            foreach (DataRow dr in dt.Rows)
+                            {
+                                NSAPEnumerator ns = new NSAPEnumerator();
+                                ns.ID = Convert.ToInt32(dr["EnumeratorID"]);
+                                ns.Name = dr["EnumeratorName"].ToString();
+                                listEnumerators.Add(ns);
+                            }
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log(ex);
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
 
+                    }
                 }
             }
 

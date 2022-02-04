@@ -3,7 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.OleDb;
-
+using MySql.Data.MySqlClient;
+using NSAP_ODK.NSAPMysql;
 namespace NSAP_ODK.Entities
 {
     public class GearRepository
@@ -15,39 +16,70 @@ namespace NSAP_ODK.Entities
             Gears = getGears();
         }
 
+        private List<Gear> getGearsMySQL()
+        {
+            List<Gear> thisList = new List<Gear>();
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "Select * from gears";
+                    conn.Open();
+                    MySqlDataReader dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        Gear g = new Gear();
+                        g.Code = dr["gear_code"].ToString();
+                        g.GearName = dr["gear_name"].ToString();
+                        g.CodeOfBaseGear = dr["generic_code"].ToString();
+                        g.IsGenericGear = Convert.ToBoolean(dr["is_generic"]);
+                        thisList.Add(g);
+                    }
+                }
+            }
+            return thisList;
+        }
         private List<Gear> getGears()
         {
             List<Gear> listGears = new List<Gear>();
-            var dt = new DataTable();
-            using (var conection = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                try
+                listGears = getGearsMySQL();
+            }
+            else
+            {
+                var dt = new DataTable();
+                using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    conection.Open();
-                    string query = $"Select * from gear";
-
-                    var adapter = new OleDbDataAdapter(query, conection);
-                    adapter.Fill(dt);
-                    if (dt.Rows.Count > 0)
+                    try
                     {
-                        listGears.Clear();
-                        foreach (DataRow dr in dt.Rows)
+                        conection.Open();
+                        string query = $"Select * from gear";
+
+                        var adapter = new OleDbDataAdapter(query, conection);
+                        adapter.Fill(dt);
+                        if (dt.Rows.Count > 0)
                         {
-                            Gear g = new Gear();
-                            g.GearName = dr["GearName"].ToString();
-                            g.CodeOfBaseGear = dr["GenericCode"].ToString();
-                            g.IsGenericGear = (bool)dr["IsGeneric"];
-                            g.Code = dr["GearCode"].ToString();
-                            listGears.Add(g);
+                            listGears.Clear();
+                            foreach (DataRow dr in dt.Rows)
+                            {
+                                Gear g = new Gear();
+                                g.GearName = dr["GearName"].ToString();
+                                g.CodeOfBaseGear = dr["GenericCode"].ToString();
+                                g.IsGenericGear = (bool)dr["IsGeneric"];
+                                g.Code = dr["GearCode"].ToString();
+                                listGears.Add(g);
+                            }
                         }
                     }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    Logger.Log(ex);
-                }
-                return listGears;
+
             }
+            return listGears;
         }
         public bool Add(Gear g)
         {
@@ -132,11 +164,11 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                
-                using (OleDbCommand update =conn.CreateCommand())
+
+                using (OleDbCommand update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@code", OleDbType.VarChar).Value = code;
-                    update.CommandText="Delete * from gear where GearCode=@code";
+                    update.CommandText = "Delete * from gear where GearCode=@code";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

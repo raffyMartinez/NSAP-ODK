@@ -187,6 +187,8 @@ namespace NSAP_ODK
 
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
+            Global.RequestLogIn += OnMysQLRequestLogin;
+            Global.DoAppProceed();
             if (Global.AppProceed)
             {
                 _currentDisplayMode = DataDisplayMode.Dashboard;
@@ -223,6 +225,27 @@ namespace NSAP_ODK
                 mainStatusLabel.Content = "Application database not found";
             }
         }
+        private void HideMainWindowUI(bool isHidden = true)
+        {
+            if (isHidden)
+            {
+                GridMain.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                GridMain.Visibility = Visibility.Visible;
+            }
+        }
+        private void OnMysQLRequestLogin(object sender, EventArgs e)
+        {
+            ResetDisplay();
+            LogInMySQLWindow logInWindow = new LogInMySQLWindow();
+            if ((bool)logInWindow.ShowDialog())
+            {
+                HideMainWindowUI(false);
+            }
+            Global.RequestLogIn -= OnMysQLRequestLogin;
+        }
 
         private void OnCrossTabEvent(object sender, CrossTabReportEventArg e)
         {
@@ -245,8 +268,8 @@ namespace NSAP_ODK
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
                               mainStatusLabel.Content = $"Filtering catch data. Please wait...";
-                                                  //do what you need to do on UI Thread
-                                                  return null;
+                              //do what you need to do on UI Thread
+                              return null;
                           }
                          ), null);
 
@@ -323,9 +346,9 @@ namespace NSAP_ODK
                          (
                            DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                              {
-                                 mainStatusBar.IsIndeterminate=true;
-                                //do what you need to do on UI Thread
-                                return null;
+                                 mainStatusBar.IsIndeterminate = true;
+                                 //do what you need to do on UI Thread
+                                 return null;
                              }
                           ), null);
 
@@ -961,20 +984,20 @@ namespace NSAP_ODK
                             break;
 
                         case NSAPEntity.FishingVessel:
-                            success= NSAPEntities.FishingVesselViewModel.DeleteRecordFromRepo(((FishingVessel)dataGridEntities.SelectedItem).ID);
+                            success = NSAPEntities.FishingVesselViewModel.DeleteRecordFromRepo(((FishingVessel)dataGridEntities.SelectedItem).ID);
                             break;
 
                         case NSAPEntity.FishingGear:
                             success = NSAPEntities.GearViewModel.DeleteRecordFromRepo(((Gear)dataGridEntities.SelectedItem).Code);
-                            
+
                             break;
 
                         case NSAPEntity.LandingSite:
-                            success= NSAPEntities.LandingSiteViewModel.DeleteRecordFromRepo(((LandingSite)dataGridEntities.SelectedItem).LandingSiteID);
+                            success = NSAPEntities.LandingSiteViewModel.DeleteRecordFromRepo(((LandingSite)dataGridEntities.SelectedItem).LandingSiteID);
                             break;
 
                         case NSAPEntity.Enumerator:
-                            success= NSAPEntities.NSAPEnumeratorViewModel.DeleteRecordFromRepo(((NSAPEnumerator)dataGridEntities.SelectedItem).ID);
+                            success = NSAPEntities.NSAPEnumeratorViewModel.DeleteRecordFromRepo(((NSAPEnumerator)dataGridEntities.SelectedItem).ID);
                             break;
 
                         case NSAPEntity.EffortIndicator:
@@ -1015,7 +1038,7 @@ namespace NSAP_ODK
             string inFileName = "";
             DataSet ds = null;
             string entityExported = "";
-            switch(_nsapEntity)
+            switch (_nsapEntity)
             {
                 case NSAPEntity.Enumerator:
                     inFileName = "NSAP-ODK enumerators";
@@ -1053,9 +1076,9 @@ namespace NSAP_ODK
 
             string fileName = ExportExcel.GetSaveAsExcelFileName(this, inFileName);
 
-            if(fileName.Length>0)
+            if (fileName.Length > 0)
             {
-                switch(_nsapEntity)
+                switch (_nsapEntity)
                 {
                     case NSAPEntity.LandingSite:
                         ds = NSAPEntities.LandingSiteViewModel.Dataset();
@@ -1083,9 +1106,9 @@ namespace NSAP_ODK
                         break;
                 }
 
-                if(ExportExcel.ExportDatasetToExcel(ds,fileName))
+                if (ExportExcel.ExportDatasetToExcel(ds, fileName))
                 {
-                     MessageBox.Show($"{entityExported} exported to Excel", "NSAP-ODK Database");
+                    MessageBox.Show($"{entityExported} exported to Excel", "NSAP-ODK Database");
                 }
                 else
                 {
@@ -2015,7 +2038,7 @@ namespace NSAP_ODK
         }
         private async void OnTreeViewItemSelected(object sender, TreeViewModelControl.AllSamplingEntitiesEventHandler e)
         {
-            labelRowCount.Visibility = Visibility.Collapsed;          
+            labelRowCount.Visibility = Visibility.Collapsed;
             _acceptDataGridCellClick = false;
             _allSamplingEntitiesEventHandler = e;
             gridCalendarHeader.Visibility = Visibility.Visible;
@@ -2839,7 +2862,7 @@ namespace NSAP_ODK
                     break;
             }
 
-            if(cm.Items.Count>0)
+            if (cm.Items.Count > 0)
             {
                 cm.IsOpen = true;
             }

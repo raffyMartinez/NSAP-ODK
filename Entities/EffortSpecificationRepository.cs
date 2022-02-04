@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System.Data.OleDb;
 using NSAP_ODK.Utilities;
 using System.Data;
+using MySql.Data.MySqlClient;
+using NSAP_ODK.NSAPMysql;
 namespace NSAP_ODK.Entities
 {
     public class EffortSpecificationRepository
@@ -17,41 +19,72 @@ namespace NSAP_ODK.Entities
             EffortSpecifications = getEffortSpecifications();
         }
 
+        private List<EffortSpecification> getEffortSpecificationsMySQL()
+        {
+            List<EffortSpecification> thisList = new List<EffortSpecification>();
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "Select * from effort_specification";
+                    conn.Open();
+                    MySqlDataReader dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        EffortSpecification es = new EffortSpecification();
+                        es.ID = Convert.ToInt32(dr["effort_specification_id"]);
+                        es.Name = dr["effort_specification"].ToString();
+                        es.IsForAllTypesFishing = Convert.ToBoolean(dr["for_all_types_of_fishing"]);
+                        es.ValueType = (ODKValueType)Convert.ToInt32(dr["value_type"]);
+                        thisList.Add(es);
+                    }
+                }
+            }
+            return thisList;
+        }
         private List<EffortSpecification> getEffortSpecifications()
         {
             List<EffortSpecification> theList = new List<EffortSpecification>();
-            var dt = new DataTable();
-            using (var conection = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                try
+                theList = getEffortSpecificationsMySQL();
+            }
+            else
+            {
+                var dt = new DataTable();
+                using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    conection.Open();
-                    string query = $"Select * from effortSpecification";
-
-
-                    var adapter = new OleDbDataAdapter(query, conection);
-                    adapter.Fill(dt);
-                    if (dt.Rows.Count > 0)
+                    try
                     {
-                        theList.Clear();
-                        foreach (DataRow dr in dt.Rows)
+                        conection.Open();
+                        string query = $"Select * from effortSpecification";
+
+
+                        var adapter = new OleDbDataAdapter(query, conection);
+                        adapter.Fill(dt);
+                        if (dt.Rows.Count > 0)
                         {
-                            EffortSpecification es = new EffortSpecification();
-                            es.ID = Convert.ToInt32(dr["EffortSpecificationID"]);
-                            es.IsForAllTypesFishing = (bool)dr["ForAllTypeOfFishing"];
-                            es.Name = dr["EffortSpecification"].ToString();
-                            es.ValueType = (ODKValueType)Convert.ToInt32(dr["ValueType"]);
-                            theList.Add(es);
+                            theList.Clear();
+                            foreach (DataRow dr in dt.Rows)
+                            {
+                                EffortSpecification es = new EffortSpecification();
+                                es.ID = Convert.ToInt32(dr["EffortSpecificationID"]);
+                                es.IsForAllTypesFishing = (bool)dr["ForAllTypeOfFishing"];
+                                es.Name = dr["EffortSpecification"].ToString();
+                                es.ValueType = (ODKValueType)Convert.ToInt32(dr["ValueType"]);
+                                theList.Add(es);
+                            }
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log(ex);
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
 
+                    }
                 }
-                return theList;
+                
             }
+            return theList;
         }
         public bool Add(EffortSpecification es)
         {
@@ -129,11 +162,11 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                
+
                 using (OleDbCommand update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@id", OleDbType.Integer).Value = id;
-                    update.CommandText="Delete * from effortSpecification where EffortSpecificationID=@id";
+                    update.CommandText = "Delete * from effortSpecification where EffortSpecificationID=@id";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

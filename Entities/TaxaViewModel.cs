@@ -29,6 +29,22 @@ namespace NSAP_ODK.Entities
             return TaxaCollection.ToList();
         }
 
+        public bool AddAllToMySQL()
+        {
+            int count = 0;
+            if (Utilities.Global.Settings.UsemySQL)
+            {
+                foreach (var t in TaxaCollection)
+                {
+                    if (Taxas.Add(t))
+                    {
+                        count++;
+                    }
+                }
+            }
+            return count == TaxaCollection.Count;
+        }
+
         public ObservableCollection<string> AllTaxaTerms()
         {
             ObservableCollection<string> list = new ObservableCollection<string>();

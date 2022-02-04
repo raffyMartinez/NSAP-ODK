@@ -6,51 +6,82 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Data.OleDb;
 using NSAP_ODK.Utilities;
+using MySql.Data.MySqlClient;
+using NSAP_ODK.NSAPMysql;
 
 namespace NSAP_ODK.Entities
 {
     public class FishingGroundRepository
     {
-        public List<FishingGround> FishingGrounds{ get; set; }
+        public List<FishingGround> FishingGrounds { get; set; }
 
         public FishingGroundRepository()
         {
             FishingGrounds = getFishingGrounds();
         }
 
+        private List<FishingGround>getFishingGroundsMySQL()
+        {
+            List<FishingGround> thisList = new List<FishingGround>();
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "Select * from fishing_grounds";
+                    conn.Open();
+                    MySqlDataReader dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        FishingGround fg = new FishingGround();
+                        fg.Code = dr["fishing_ground_code"].ToString();
+                        fg.Name = dr["fishing_ground_name"].ToString();
+                        thisList.Add(fg);
+                    }
+                }
+            }
+            return thisList;
+        }
         private List<FishingGround> getFishingGrounds()
         {
             List<FishingGround> listFishingGrounds = new List<FishingGround>();
-            var dt = new DataTable();
-            using (var conection = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                try
+                listFishingGrounds = getFishingGroundsMySQL();
+            }
+            else
+            {
+                var dt = new DataTable();
+                using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    conection.Open();
-                    string query = $"Select * from fishingGround";
-
-
-                    var adapter = new OleDbDataAdapter(query, conection);
-                    adapter.Fill(dt);
-                    if (dt.Rows.Count > 0)
+                    try
                     {
-                        listFishingGrounds.Clear();
-                        foreach (DataRow dr in dt.Rows)
+                        conection.Open();
+                        string query = $"Select * from fishingGround";
+
+
+                        var adapter = new OleDbDataAdapter(query, conection);
+                        adapter.Fill(dt);
+                        if (dt.Rows.Count > 0)
                         {
-                            FishingGround fg = new FishingGround();
-                            fg.Code = dr["FishingGroundCode"].ToString();
-                            fg.Name = dr["FishingGroundName"].ToString();
-                            listFishingGrounds.Add(fg);
+                            listFishingGrounds.Clear();
+                            foreach (DataRow dr in dt.Rows)
+                            {
+                                FishingGround fg = new FishingGround();
+                                fg.Code = dr["FishingGroundCode"].ToString();
+                                fg.Name = dr["FishingGroundName"].ToString();
+                                listFishingGrounds.Add(fg);
+                            }
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log(ex);
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
 
+                    }
                 }
-                return listFishingGrounds;
+
             }
+            return listFishingGrounds;
         }
 
         public bool Add(FishingGround fg)
@@ -109,11 +140,11 @@ namespace NSAP_ODK.Entities
                     {
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch(OleDbException dbex)
+                    catch (OleDbException dbex)
                     {
                         Logger.Log(dbex);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Logger.Log(ex);
                     }
@@ -128,11 +159,11 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                
+
                 using (OleDbCommand update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@code", OleDbType.VarChar).Value = code;
-                    update.CommandText="Delete * from fishingGround where FishingGroundCode=@code";
+                    update.CommandText = "Delete * from fishingGround where FishingGroundCode=@code";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

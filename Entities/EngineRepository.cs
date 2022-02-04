@@ -6,79 +6,150 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Data.OleDb;
 using NSAP_ODK.Utilities;
+using MySql.Data.MySqlClient;
+using NSAP_ODK.NSAPMysql;
 
 namespace NSAP_ODK.Entities
 {
     public class EngineRepository
     {
-        public List<Engine> Engines{ get; set; }
+        public List<Engine> Engines { get; set; }
 
         public EngineRepository()
         {
             Engines = getEngines();
         }
 
+        private List<Engine> getEnginesMySQL()
+        {
+            List<Engine> thisList = new List<Engine>();
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "Select * from engines";
+                    conn.Open();
+                    MySqlDataReader dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        Engine engine = new Engine();
+                        engine.EngineID= Convert.ToInt32(dr["engine_id"]);
+                        engine.ManufacturerName = dr["manufacturer_name"].ToString();
+                        engine.ModelName = dr["model_name"].ToString();
+                        if (double.TryParse(dr["horsepower"].ToString(),out double v))
+                        {
+                            engine.HorsePower = v;
+                        }
+                        thisList.Add(engine);
+                    }
+                }
+            }
+            return thisList;
+        }
         private List<Engine> getEngines()
         {
             List<Engine> listEngines = new List<Engine>();
-            var dt = new DataTable();
-            using (var conection = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                try
+                listEngines = getEnginesMySQL();
+            }
+            else
+            {
+                var dt = new DataTable();
+                using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    conection.Open();
-                    string query = $"Select * from engine";
-
-
-                    var adapter = new OleDbDataAdapter(query, conection);
-                    adapter.Fill(dt);
-                    if (dt.Rows.Count > 0)
+                    try
                     {
-                        listEngines.Clear();
-                        foreach (DataRow dr in dt.Rows)
+                        conection.Open();
+                        string query = $"Select * from engine";
+
+
+                        var adapter = new OleDbDataAdapter(query, conection);
+                        adapter.Fill(dt);
+                        if (dt.Rows.Count > 0)
                         {
-                            Engine en = new Engine();
-                            en.EngineID= Convert.ToInt32( dr["EngineID"]);
-                            en.HorsePower = Convert.ToDouble(dr["Horsepower"]);
-                            en.ManufacturerName = dr["ManufacturerName"].ToString();
-                            en.ModelName = dr["ModelName"].ToString();
-                            listEngines.Add(en);
+                            listEngines.Clear();
+                            foreach (DataRow dr in dt.Rows)
+                            {
+                                Engine en = new Engine();
+                                en.EngineID = Convert.ToInt32(dr["EngineID"]);
+                                en.HorsePower = Convert.ToDouble(dr["Horsepower"]);
+                                en.ManufacturerName = dr["ManufacturerName"].ToString();
+                                en.ModelName = dr["ModelName"].ToString();
+                                listEngines.Add(en);
+                            }
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log(ex);
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
 
+                    }
                 }
-                return listEngines;
+
             }
+            return listEngines;
         }
-
-        public bool Add(Engine en)
+        private bool AddToMySQL(Engine en)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-                var sql = "Insert into engine(EngineID, Horsepower,ManufacturerName, ModelName) Values (?,?,?,?)";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                using (var update = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = en.EngineID;
-                    update.Parameters.Add("@hp", OleDbType.Double).Value = en.HorsePower;
-                    update.Parameters.Add("@manuf", OleDbType.VarChar).Value = en.ManufacturerName;
-                    update.Parameters.Add("@model", OleDbType.VarChar).Value = en.ModelName;
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = en.EngineID;
+                    update.Parameters.Add("@hp", MySqlDbType.Double).Value = en.HorsePower;
+                    update.Parameters.Add("@manuf", MySqlDbType.VarChar).Value = en.ManufacturerName;
+                    update.Parameters.Add("@model", MySqlDbType.VarChar).Value = en.ModelName;
+                    update.CommandText = "Insert into engine(engine_id, horsepower,manufacturer_name, model_name) Values (@id,@hp,@manuf,@model)";
+                    conn.Open();
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch(OleDbException dbex)
+                    catch (OleDbException dbex)
                     {
                         Logger.Log(dbex);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
+        public bool Add(Engine en)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = AddToMySQL(en);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    var sql = "Insert into engine(EngineID, Horsepower,ManufacturerName, ModelName) Values (?,?,?,?)";
+                    using (OleDbCommand update = new OleDbCommand(sql, conn))
+                    {
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = en.EngineID;
+                        update.Parameters.Add("@hp", OleDbType.Double).Value = en.HorsePower;
+                        update.Parameters.Add("@manuf", OleDbType.VarChar).Value = en.ManufacturerName;
+                        update.Parameters.Add("@model", OleDbType.VarChar).Value = en.ModelName;
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
                     }
                 }
             }
@@ -127,7 +198,7 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                
+
                 using (OleDbCommand update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@id", OleDbType.Integer).Value = id;

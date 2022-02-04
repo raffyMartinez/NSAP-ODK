@@ -32,6 +32,7 @@ namespace NSAP_ODK.Views
         {
             textBackenDB.Text = Utilities.Global.Settings.MDBPath;
             textJsonFolder.Text = Utilities.Global.Settings.JSONFolder;
+            chkUsemySQL.IsChecked = Utilities.Global.Settings.UsemySQL;
             if (Utilities.Global.Settings.CutOFFUndersizedCW == null)
             {
                 textCutoffWidth.Text = Utilities.Settings.DefaultCutoffUndesizedCW.ToString(); ;
@@ -152,10 +153,13 @@ namespace NSAP_ODK.Views
                 case "buttonOk":
                     if (ValidateForm())
                     {
+                        
                         Utilities.Global.Settings.MDBPath = textBackenDB.Text;
                         Utilities.Global.Settings.JSONFolder = textJsonFolder.Text;
                         Utilities.Global.Settings.CutOFFUndersizedCW = int.Parse(textCutoffWidth.Text);
+                        Utilities.Global.Settings.UsemySQL = (bool)chkUsemySQL.IsChecked;
                         Utilities.Global.SaveGlobalSettings();
+                        
                         Close();
                     }
                     break;

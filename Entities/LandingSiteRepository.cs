@@ -3,7 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.OleDb;
-
+using MySql.Data.MySqlClient;
+using NSAP_ODK.NSAPMysql;
 namespace NSAP_ODK.Entities
 {
     public class LandingSiteRepository
@@ -15,57 +16,108 @@ namespace NSAP_ODK.Entities
         {
             landingSites = getLandingSites();
         }
+        private List<LandingSite> getFromMySQL()
+        {
+            List<LandingSite> thisList = new List<LandingSite>();
 
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    conn.Open();
+                    cmd.CommandText = @"SELECT ls.landing_site_id, ls.landing_site_name, 
+                                    ls.municipality, mun.prov_no,
+                                    ls.latitude, ls.longitude, ls.barangay
+                                    FROM municipalities as mun INNER JOIN landing_sites as ls ON mun.mun_no = ls.municipality";
+
+                    MySqlDataReader dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        Province province = NSAPEntities.ProvinceViewModel.GetProvince(Convert.ToInt32(dr["prov_no"]));
+                        LandingSite ls = new LandingSite();
+                        ls.LandingSiteID = Convert.ToInt32(dr["landing_site_id"]);
+                        ls.LandingSiteName = dr["landing_site_name"].ToString();
+                        if (dr["municipality"].ToString().Length > 0)
+                        {
+                            ls.Municipality = province.Municipalities.GetMunicipality(Convert.ToInt32(dr["municipality"]));
+                        }
+
+                        if (dr["barangay"].GetType().Name != "DBNull")
+                        {
+                            ls.Barangay = dr["barangay"].ToString();
+                        }
+
+                        if (dr["latitude"].GetType().Name != "DBNull")
+                        {
+                            ls.Latitude = Convert.ToDouble(dr["latitude"]);
+                        }
+                        if (dr["longitude"].GetType().Name != "DBNull")
+                        {
+                            ls.Longitude = Convert.ToDouble(dr["longitude"]);
+                        }
+                        thisList.Add(ls);
+                    }
+                }
+            }
+            return thisList;
+        }
         private List<LandingSite> getLandingSites()
         {
             List<LandingSite> listLandingSites = new List<LandingSite>();
-            var dt = new DataTable();
-            using (var conection = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                try
+                listLandingSites = getFromMySQL();
+            }
+            else
+            {
+                var dt = new DataTable();
+                using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    conection.Open();
-                    string query = @"SELECT landingSite.LandingSiteID, landingSite.LandingSiteName, 
+                    try
+                    {
+                        conection.Open();
+                        string query = @"SELECT landingSite.LandingSiteID, landingSite.LandingSiteName, 
                                     landingSite.Municipality, Municipalities.ProvNo,
                                     landingSite.Latitude, landingSite.Longitude, landingSite.Barangay
                                     FROM Municipalities INNER JOIN landingSite ON Municipalities.MunNo = landingSite.Municipality";
 
-                    var adapter = new OleDbDataAdapter(query, conection);
-                    adapter.Fill(dt);
-                    if (dt.Rows.Count > 0)
-                    {
-                        listLandingSites.Clear();
-                        foreach (DataRow dr in dt.Rows)
+                        var adapter = new OleDbDataAdapter(query, conection);
+                        adapter.Fill(dt);
+                        if (dt.Rows.Count > 0)
                         {
-                            Province province = NSAPEntities.ProvinceViewModel.GetProvince(Convert.ToInt32(dr["ProvNo"]));
-                            LandingSite ls = new LandingSite();
-                            ls.LandingSiteID = Convert.ToInt32(dr["LandingSiteId"]);
-                            ls.LandingSiteName = dr["LandingSiteName"].ToString();
-                            if (dr["Municipality"].ToString().Length > 0)
+                            listLandingSites.Clear();
+                            foreach (DataRow dr in dt.Rows)
                             {
-                                ls.Municipality = province.Municipalities.GetMunicipality(Convert.ToInt32(dr["Municipality"]));
-                            }
+                                Province province = NSAPEntities.ProvinceViewModel.GetProvince(Convert.ToInt32(dr["ProvNo"]));
+                                LandingSite ls = new LandingSite();
+                                ls.LandingSiteID = Convert.ToInt32(dr["LandingSiteId"]);
+                                ls.LandingSiteName = dr["LandingSiteName"].ToString();
+                                if (dr["Municipality"].ToString().Length > 0)
+                                {
+                                    ls.Municipality = province.Municipalities.GetMunicipality(Convert.ToInt32(dr["Municipality"]));
+                                }
 
-                            if (dr["Barangay"].GetType().Name != "DBNull")
-                            {
-                                ls.Barangay = dr["Barangay"].ToString();
-                            }
+                                if (dr["Barangay"].GetType().Name != "DBNull")
+                                {
+                                    ls.Barangay = dr["Barangay"].ToString();
+                                }
 
-                            if (dr["Latitude"].GetType().Name != "DBNull")
-                            {
-                                ls.Latitude = Convert.ToDouble(dr["Latitude"]);
+                                if (dr["Latitude"].GetType().Name != "DBNull")
+                                {
+                                    ls.Latitude = Convert.ToDouble(dr["Latitude"]);
+                                }
+                                if (dr["Longitude"].GetType().Name != "DBNull")
+                                {
+                                    ls.Longitude = Convert.ToDouble(dr["Longitude"]);
+                                }
+                                listLandingSites.Add(ls);
                             }
-                            if (dr["Longitude"].GetType().Name != "DBNull")
-                            {
-                                ls.Longitude = Convert.ToDouble(dr["Longitude"]);
-                            }
-                            listLandingSites.Add(ls);
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log(ex);
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
 

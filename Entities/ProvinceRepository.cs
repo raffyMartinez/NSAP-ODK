@@ -3,7 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.OleDb;
-
+using MySql.Data.MySqlClient;
+using NSAP_ODK.NSAPMysql;
 namespace NSAP_ODK.Entities
 {
     internal class ProvinceRepository
@@ -14,40 +15,71 @@ namespace NSAP_ODK.Entities
         {
             Provinces = getProvinces();
         }
+        private List<Province> getFromMySQL()
+        {
+            List<Province> thisList = new List<Province>();
 
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "Select * from provinces";
+                    conn.Open();
+                    MySqlDataReader dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        Province p = new Province();
+                        p.ProvinceID = Convert.ToInt32(dr["prov_no"]);
+                        p.ProvinceName = dr["province_name"].ToString();
+                        p.RegionCode = dr["nsap_region"].ToString();
+                        p.SetMunicipalities();
+                        thisList.Add(p);
+                    }
+                }
+            }
+            return thisList;
+        }
         private List<Province> getProvinces()
         {
             List<Province> listProvinces = new List<Province>();
-            var dt = new DataTable();
-            using (var conection = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                try
+                listProvinces = getFromMySQL();
+            }
+            else
+            {
+                var dt = new DataTable();
+                using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    conection.Open();
-                    string query = $"Select * from Provinces order by ProvinceName";
-
-                    var adapter = new OleDbDataAdapter(query, conection);
-                    adapter.Fill(dt);
-                    if (dt.Rows.Count > 0)
+                    try
                     {
-                        listProvinces.Clear();
-                        foreach (DataRow dr in dt.Rows)
+                        conection.Open();
+                        string query = $"Select * from Provinces order by ProvinceName";
+
+                        var adapter = new OleDbDataAdapter(query, conection);
+                        adapter.Fill(dt);
+                        if (dt.Rows.Count > 0)
                         {
-                            Province p = new Province();
-                            p.ProvinceID = Convert.ToInt32(dr["ProvNo"]);
-                            p.ProvinceName = dr["ProvinceName"].ToString();
-                            p.RegionCode = dr["NSAPRegion"].ToString();
-                            p.SetMunicipalities();
-                            listProvinces.Add(p);
+                            listProvinces.Clear();
+                            foreach (DataRow dr in dt.Rows)
+                            {
+                                Province p = new Province();
+                                p.ProvinceID = Convert.ToInt32(dr["ProvNo"]);
+                                p.ProvinceName = dr["ProvinceName"].ToString();
+                                p.RegionCode = dr["NSAPRegion"].ToString();
+                                p.SetMunicipalities();
+                                listProvinces.Add(p);
+                            }
                         }
                     }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    Logger.Log(ex);
-                }
-                return listProvinces;
+
             }
+            return listProvinces;
         }
 
         public bool Add(Province p)
@@ -121,11 +153,11 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                
+
                 using (OleDbCommand update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@id", OleDbType.Integer).Value = id;
-                    update.CommandText="Delete * from Provinces where ProvNo=@id";
+                    update.CommandText = "Delete * from Provinces where ProvNo=@id";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

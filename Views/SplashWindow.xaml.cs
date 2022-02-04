@@ -53,39 +53,40 @@ namespace NSAP_ODK.Views
         }
         private void LoadEntities()
         {
-            NSAPEntities.GPSViewModel = new GPSViewModel();
+            Utilities.Global.LoadEntities();
+            //NSAPEntities.GPSViewModel = new GPSViewModel();
 
-            NSAPEntities.FMAViewModel = new FMAViewModel();
-            NSAPEntities.EngineViewModel = new EngineViewModel();
-            NSAPEntities.FishingVesselViewModel = new FishingVesselViewModel();
-            NSAPEntities.FishingGroundViewModel = new FishingGroundViewModel();
-            NSAPEntities.EffortSpecificationViewModel = new EffortSpecificationViewModel();
-            NSAPEntities.GearViewModel = new GearViewModel();
-            NSAPEntities.NSAPEnumeratorViewModel = new NSAPEnumeratorViewModel();
-            NSAPEntities.NSAPRegionViewModel = new NSAPRegionViewModel();
-            NSAPEntities.ProvinceViewModel = new ProvinceViewModel();
-            NSAPEntities.LandingSiteViewModel = new LandingSiteViewModel();
+            //NSAPEntities.FMAViewModel = new FMAViewModel();
+            //NSAPEntities.EngineViewModel = new EngineViewModel();
+            //NSAPEntities.FishingVesselViewModel = new FishingVesselViewModel();
+            //NSAPEntities.FishingGroundViewModel = new FishingGroundViewModel();
+            //NSAPEntities.EffortSpecificationViewModel = new EffortSpecificationViewModel();
+            //NSAPEntities.GearViewModel = new GearViewModel();
+            //NSAPEntities.NSAPEnumeratorViewModel = new NSAPEnumeratorViewModel();
+            //NSAPEntities.NSAPRegionViewModel = new NSAPRegionViewModel();
+            //NSAPEntities.ProvinceViewModel = new ProvinceViewModel();
+            //NSAPEntities.LandingSiteViewModel = new LandingSiteViewModel();
 
-            NSAPEntities.NSAPRegionViewModel.SetNSAPRegionsWithEntitiesRepositories();
+            //NSAPEntities.NSAPRegionViewModel.SetNSAPRegionsWithEntitiesRepositories();
 
-            NSAPEntities.SizeTypeViewModel = new SizeTypeViewModel();
-            NSAPEntities.TaxaViewModel = new TaxaViewModel();
-            NSAPEntities.FishSpeciesViewModel = new FishSpeciesViewModel();
-            NSAPEntities.NotFishSpeciesViewModel = new NotFishSpeciesViewModel();
-            NSAPEntities.LandingSiteSamplingViewModel = new LandingSiteSamplingViewModel();
-            NSAPEntities.GearUnloadViewModel = new GearUnloadViewModel();
-            NSAPEntities.VesselUnloadViewModel = new VesselUnloadViewModel();
-            NSAPEntities.VesselEffortViewModel = new VesselEffortViewModel();
-            NSAPEntities.VesselCatchViewModel = new VesselCatchViewModel();
-            NSAPEntities.GearSoakViewModel = new GearSoakViewModel();
-            NSAPEntities.FishingGroundGridViewModel = new FishingGroundGridViewModel();
-            NSAPEntities.CatchLenFreqViewModel = new CatchLenFreqViewModel();
-            NSAPEntities.CatchLengthWeightViewModel = new CatchLengthWeightViewModel();
-            NSAPEntities.CatchLengthViewModel = new CatchLengthViewModel();
-            NSAPEntities.CatchMaturityViewModel = new CatchMaturityViewModel();
-            NSAPEntities.DBSummary = new DBSummary();
-            NSAPEntities.DatabaseEnumeratorSummary = new DatabaseEnumeratorSummary();
-            NSAPEntities.JSONFileViewModel = new JSONFileViewModel();
+            //NSAPEntities.SizeTypeViewModel = new SizeTypeViewModel();
+            //NSAPEntities.TaxaViewModel = new TaxaViewModel();
+            //NSAPEntities.FishSpeciesViewModel = new FishSpeciesViewModel();
+            //NSAPEntities.NotFishSpeciesViewModel = new NotFishSpeciesViewModel();
+            //NSAPEntities.LandingSiteSamplingViewModel = new LandingSiteSamplingViewModel();
+            //NSAPEntities.GearUnloadViewModel = new GearUnloadViewModel();
+            //NSAPEntities.VesselUnloadViewModel = new VesselUnloadViewModel();
+            //NSAPEntities.VesselEffortViewModel = new VesselEffortViewModel();
+            //NSAPEntities.VesselCatchViewModel = new VesselCatchViewModel();
+            //NSAPEntities.GearSoakViewModel = new GearSoakViewModel();
+            //NSAPEntities.FishingGroundGridViewModel = new FishingGroundGridViewModel();
+            //NSAPEntities.CatchLenFreqViewModel = new CatchLenFreqViewModel();
+            //NSAPEntities.CatchLengthWeightViewModel = new CatchLengthWeightViewModel();
+            //NSAPEntities.CatchLengthViewModel = new CatchLengthViewModel();
+            //NSAPEntities.CatchMaturityViewModel = new CatchMaturityViewModel();
+            //NSAPEntities.DBSummary = new DBSummary();
+            //NSAPEntities.DatabaseEnumeratorSummary = new DatabaseEnumeratorSummary();
+            //NSAPEntities.JSONFileViewModel = new JSONFileViewModel();
         }
     }
 }
