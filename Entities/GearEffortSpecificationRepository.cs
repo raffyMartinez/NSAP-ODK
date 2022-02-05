@@ -3,7 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.OleDb;
-
+using MySql.Data.MySqlClient;
+using NSAP_ODK.NSAPMysql;
 namespace NSAP_ODK.Entities
 {
     internal class GearEffortSpecificationRepository
@@ -43,63 +44,150 @@ namespace NSAP_ODK.Entities
             return maxRecordNumber;
         }
 
-        private List<GearEffortSpecification> getGearEffortSpecifications(Gear gear)
+        private List<GearEffortSpecification> getFromMySQL(Gear gear)
         {
             List<GearEffortSpecification> thisList = new List<GearEffortSpecification>();
-            var dt = new DataTable();
-            using (var conection = new OleDbConnection(Global.ConnectionString))
-            {
-                try
-                {
-                    conection.Open();
-                    string query = $"Select * from GearEffortSpecification where GearCode='{gear.Code}'";
 
-                    var adapter = new OleDbDataAdapter(query, conection);
-                    adapter.Fill(dt);
-                    if (dt.Rows.Count > 0)
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.Parameters.AddWithValue("@gear", gear.Code);
+                    cmd.CommandText = "Select * from gear_effort_specification where gear=@gear";
+                    conn.Open();
+                    try
                     {
-                        thisList.Clear();
-                        foreach (DataRow dr in dt.Rows)
+                        var dr = cmd.ExecuteReader();
+                        while (dr.Read())
                         {
                             GearEffortSpecification ges = new GearEffortSpecification();
-                            ges.EffortSpecification = NSAPEntities.EffortSpecificationViewModel.GetEffortSpecification(Convert.ToInt32(dr["EffortSpec"]));
+                            ges.EffortSpecification = NSAPEntities.EffortSpecificationViewModel.GetEffortSpecification(Convert.ToInt32(dr["effort_spec"]));
                             ges.Gear = gear;
-                            ges.RowID = Convert.ToInt32(dr["RowId"]);
+                            ges.RowID = Convert.ToInt32(dr["row_id"]);
                             thisList.Add(ges);
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log(ex);
-                }
-                return thisList;
-            }
-        }
+                    catch(MySqlException msex)
+                    {
 
-        public bool Add(GearEffortSpecification ges)
+                    }
+                    catch(Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return thisList;
+        }
+        private List<GearEffortSpecification> getGearEffortSpecifications(Gear gear)
         {
-            bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            List<GearEffortSpecification> thisList = new List<GearEffortSpecification>();
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-                var sql = "Insert into GearEffortSpecification (GearCode, EffortSpec, RowId) Values (?,?,?)";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                thisList = getFromMySQL(gear);
+            }
+            else
+            {
+                var dt = new DataTable();
+                using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    update.Parameters.Add("@code", OleDbType.VarChar).Value = ges.Gear.Code;
-                    update.Parameters.Add("@spec", OleDbType.Integer).Value = ges.EffortSpecification.ID;
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = ges.RowID;
                     try
                     {
-                        success = update.ExecuteNonQuery() > 0;
-                    }
-                    catch (OleDbException dbex)
-                    {
-                        Logger.Log(dbex);
+                        conection.Open();
+                        string query = $"Select * from GearEffortSpecification where GearCode='{gear.Code}'";
+
+                        var adapter = new OleDbDataAdapter(query, conection);
+                        adapter.Fill(dt);
+                        if (dt.Rows.Count > 0)
+                        {
+                            thisList.Clear();
+                            foreach (DataRow dr in dt.Rows)
+                            {
+                                GearEffortSpecification ges = new GearEffortSpecification();
+                                ges.EffortSpecification = NSAPEntities.EffortSpecificationViewModel.GetEffortSpecification(Convert.ToInt32(dr["EffortSpec"]));
+                                ges.Gear = gear;
+                                ges.RowID = Convert.ToInt32(dr["RowId"]);
+                                thisList.Add(ges);
+                            }
+                        }
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
+                    }
+                }
+
+            }
+            return thisList;
+        }
+        private bool AddToMySQL(GearEffortSpecification ges)
+        {
+            bool success = false;
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.Parameters.Add("@gear", MySqlDbType.VarChar).Value = ges.Gear.Code;
+                    cmd.Parameters.Add("@spec", MySqlDbType.Int32).Value = ges.EffortSpecification.ID;
+                    cmd.Parameters.Add("@id", MySqlDbType.Int32).Value = ges.RowID;
+                    cmd.CommandText="Insert into gear_effort_specification (gear, effort_spec, row_id) Values (@gear,@spec,@id)";
+                    try
+                    {
+                        conn.Open();
+                        success = cmd.ExecuteNonQuery() > 0;
+                    }
+                    catch (MySqlException msex)
+                    {
+                        switch (msex.ErrorCode)
+                        {
+                            case -2147467259:
+                                //duplicated unique index error
+                                break;
+                            default:
+                                Logger.Log(msex);
+                                break;
+                        }
+
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+
+                }
+            }
+            return success;
+        }
+        public bool Add(GearEffortSpecification ges)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = AddToMySQL(ges);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    var sql = "Insert into GearEffortSpecification (GearCode, EffortSpec, RowId) Values (?,?,?)";
+                    using (OleDbCommand update = new OleDbCommand(sql, conn))
+                    {
+                        update.Parameters.Add("@code", OleDbType.VarChar).Value = ges.Gear.Code;
+                        update.Parameters.Add("@spec", OleDbType.Integer).Value = ges.EffortSpecification.ID;
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = ges.RowID;
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
                     }
                 }
             }
@@ -147,11 +235,11 @@ namespace NSAP_ODK.Entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                
+
                 using (OleDbCommand update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@id", OleDbType.Integer).Value = id;
-                    update.CommandText="Delete * from GearEffortSpecification where RowId=@id";
+                    update.CommandText = "Delete * from GearEffortSpecification where RowId=@id";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

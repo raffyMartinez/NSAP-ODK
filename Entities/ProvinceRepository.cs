@@ -81,30 +81,65 @@ namespace NSAP_ODK.Entities
             }
             return listProvinces;
         }
-
-        public bool Add(Province p)
+        private bool AddToMySQL(Province p)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-                var sql = "Insert into Provinces (ProvNo, ProvinceName, NSAPRegion) Values (?,?,?)";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                using (var update = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@prov_no", OleDbType.Integer).Value = p.ProvinceID;
-                    update.Parameters.Add("@prov_name", OleDbType.VarChar).Value = p.ProvinceName;
-                    update.Parameters.Add("@prov_region", OleDbType.VarChar).Value = p.NSAPRegion.Code;
+                    update.Parameters.Add("@prov_no", MySqlDbType.Int32).Value = p.ProvinceID;
+                    update.Parameters.Add("@prov_name", MySqlDbType.VarChar).Value = p.ProvinceName;
+                    update.Parameters.Add("@prov_region", MySqlDbType.VarChar).Value = p.NSAPRegion.Code;
+                    update.CommandText = "Insert into Provinces (prov_no, province_name, nsap_region) Values (@prov_no,@prov_name,@prov_region)";
+                    conn.Open();
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException dbex)
+                    catch (MySqlException msex)
                     {
-                        Logger.Log(dbex);
+                        Logger.Log(msex);
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
+                    }
+
+                }
+            }
+            return success;
+        }
+        public bool Add(Province p)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = AddToMySQL(p);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    var sql = "Insert into Provinces (ProvNo, ProvinceName, NSAPRegion) Values (?,?,?)";
+                    using (OleDbCommand update = new OleDbCommand(sql, conn))
+                    {
+                        update.Parameters.Add("@prov_no", OleDbType.Integer).Value = p.ProvinceID;
+                        update.Parameters.Add("@prov_name", OleDbType.VarChar).Value = p.ProvinceName;
+                        update.Parameters.Add("@prov_region", OleDbType.VarChar).Value = p.NSAPRegion.Code;
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
                     }
                 }
             }

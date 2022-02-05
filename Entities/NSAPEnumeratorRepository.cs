@@ -84,28 +84,71 @@ namespace NSAP_ODK.Entities
             return listEnumerators;
         }
 
-        public bool Add(NSAPEnumerator ns)
+        private bool AddToMySQl(NSAPEnumerator ns)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-                var sql = "Insert into NSAPEnumerator (EnumeratorID, EnumeratorName) Values (?,?)";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                using (var update = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@enumerator_id", OleDbType.Integer).Value = ns.ID;
-                    update.Parameters.Add("@enumertor_name", OleDbType.VarChar).Value = ns.Name;
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = ns.ID;
+                    update.Parameters.Add("@name", MySqlDbType.VarChar).Value = ns.Name;
+                    update.CommandText = "Insert into nsap_enumerators (enumerator_id, enumerator_name) Values (@id,@name)";
+                    conn.Open();
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch(OleDbException dbex)
+                    catch(MySqlException msex)
                     {
-                        Logger.Log(dbex);
+                        switch (msex.ErrorCode)
+                        {
+                            case -2147467259:
+                                //duplicated unique index error
+                                break;
+                            default:
+                                Logger.Log(msex);
+                                break;
+                        }
                     }
                     catch(Exception ex)
                     {
                         Logger.Log(ex);
+                    }
+
+                }
+            }
+            return success;
+        }
+        public bool Add(NSAPEnumerator ns)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = AddToMySQl(ns);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    var sql = "Insert into NSAPEnumerator (EnumeratorID, EnumeratorName) Values (?,?)";
+                    using (OleDbCommand update = new OleDbCommand(sql, conn))
+                    {
+                        update.Parameters.Add("@enumerator_id", OleDbType.Integer).Value = ns.ID;
+                        update.Parameters.Add("@enumertor_name", OleDbType.VarChar).Value = ns.Name;
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
                     }
                 }
             }

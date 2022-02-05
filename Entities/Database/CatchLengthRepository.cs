@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Data.OleDb;
 using NSAP_ODK.Utilities;
+using MySql.Data.MySqlClient;
+using NSAP_ODK.NSAPMysql;
 namespace NSAP_ODK.Entities.Database
 {
     public class CatchLengthRepository
@@ -31,38 +33,69 @@ namespace NSAP_ODK.Entities.Database
             }
             return max_rec_no;
         }
+        private List<CatchLength> getFromMySQL()
+        {
+            List<CatchLength> thisList = new List<CatchLength>();
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    conn.Open();
+                    cmd.CommandText = "Select * from dbo_catch_length";
+
+                    MySqlDataReader dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        CatchLength item = new CatchLength();
+                        item.PK = (int)dr["catch_len_id"];
+                        item.VesselCatchID = (int)dr["catch_id"];
+                        item.Length = (double)dr["length"];
+                        thisList.Add(item);
+                    }
+                }
+            }
+            return thisList;
+        }
         private List<CatchLength> getCatchLengths()
         {
             List<CatchLength> thisList = new List<CatchLength>();
-            var dt = new DataTable();
-            using (var conection = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                try
+                thisList = getFromMySQL();
+            }
+            else
+            {
+                var dt = new DataTable();
+                using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    conection.Open();
-                    string query = $"Select * from dbo_catch_len";
-                    var adapter = new OleDbDataAdapter(query, conection);
-                    adapter.Fill(dt);
-                    if (dt.Rows.Count > 0)
+                    try
                     {
-                        thisList.Clear();
-                        foreach (DataRow dr in dt.Rows)
+                        conection.Open();
+                        string query = "Select * from dbo_catch_len";
+                        var adapter = new OleDbDataAdapter(query, conection);
+                        adapter.Fill(dt);
+                        if (dt.Rows.Count > 0)
                         {
-                            CatchLength item = new CatchLength();
-                            item.PK = (int)dr["catch_len_id"];
-                            item.VesselCatchID = (int)dr["catch_id"];
-                            item.Length = (double)dr["length"];
-                            thisList.Add(item);
+                            thisList.Clear();
+                            foreach (DataRow dr in dt.Rows)
+                            {
+                                CatchLength item = new CatchLength();
+                                item.PK = (int)dr["catch_len_id"];
+                                item.VesselCatchID = (int)dr["catch_id"];
+                                item.Length = (double)dr["length"];
+                                thisList.Add(item);
+                            }
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log(ex);
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+
+                    }
 
                 }
-                return thisList;
             }
+            return thisList;
         }
 
         public bool Add(CatchLength item)
@@ -164,11 +197,11 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                
+
                 using (OleDbCommand update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@id", OleDbType.Integer).Value = id;
-                    update.CommandText = "Delete * from dbo_catch_len where catch_len_id=@id";;
+                    update.CommandText = "Delete * from dbo_catch_len where catch_len_id=@id"; ;
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

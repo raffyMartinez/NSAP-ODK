@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Data.OleDb;
 using NSAP_ODK.Utilities;
+using MySql.Data.MySqlClient;
+using NSAP_ODK.NSAPMysql;
 namespace NSAP_ODK.Entities.Database
 {
     public class CatchLenFreqRepository
@@ -16,40 +18,71 @@ namespace NSAP_ODK.Entities.Database
         {
             CatchLenFreqs = getCatchLenFreqs();
         }
+        private List<CatchLenFreq> getFromMySQL()
+        {
+            List<CatchLenFreq> thisList = new List<CatchLenFreq>();
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    conn.Open();
+                    cmd.CommandText = "Select * from dbo_catch_len_freq";
 
+                    MySqlDataReader dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        CatchLenFreq item = new CatchLenFreq();
+                        item.PK = (int)dr["catch_lf_id"];
+                        item.VesselCatchID = (int)dr["catch_id"];
+                        item.LengthClass = (double)dr["length"];
+                        item.Frequency = (int)dr["freq"];
+                        thisList.Add(item);
+                    }
+                }
+            }
+            return thisList;
+        }
         private List<CatchLenFreq> getCatchLenFreqs()
         {
             List<CatchLenFreq> thisList = new List<CatchLenFreq>();
-            var dt = new DataTable();
-            using (var conection = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                try
+                thisList = getFromMySQL();
+            }
+            else
+            {
+                var dt = new DataTable();
+                using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    conection.Open();
-                    string query = $"Select * from dbo_catch_len_freq";
-                    var adapter = new OleDbDataAdapter(query, conection);
-                    adapter.Fill(dt);
-                    if (dt.Rows.Count > 0)
+                    try
                     {
-                        thisList.Clear();
-                        foreach (DataRow dr in dt.Rows)
+                        conection.Open();
+                        string query = $"Select * from dbo_catch_len_freq";
+                        var adapter = new OleDbDataAdapter(query, conection);
+                        adapter.Fill(dt);
+                        if (dt.Rows.Count > 0)
                         {
-                            CatchLenFreq item = new CatchLenFreq();
-                            item.PK = (int)dr["catch_len_freq_id"];
-                            item.VesselCatchID = (int)dr["catch_id"];
-                            item.LengthClass = (double)dr["len_class"];
-                            item.Frequency = (int)dr["freq"];
-                            thisList.Add(item);
+                            thisList.Clear();
+                            foreach (DataRow dr in dt.Rows)
+                            {
+                                CatchLenFreq item = new CatchLenFreq();
+                                item.PK = (int)dr["catch_len_freq_id"];
+                                item.VesselCatchID = (int)dr["catch_id"];
+                                item.LengthClass = (double)dr["len_class"];
+                                item.Frequency = (int)dr["freq"];
+                                thisList.Add(item);
+                            }
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log(ex);
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+
+                    }
 
                 }
-                return thisList;
             }
+            return thisList;
         }
         public bool Add(CatchLenFreq item)
         {
@@ -166,11 +199,11 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                
+
                 using (OleDbCommand update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@id", OleDbType.Integer).Value = id;
-                    update.CommandText="Delete * from dbo_catch_len_freq where catch_len_freq_id=@id";
+                    update.CommandText = "Delete * from dbo_catch_len_freq where catch_len_freq_id=@id";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

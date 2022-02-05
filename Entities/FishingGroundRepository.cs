@@ -84,9 +84,49 @@ namespace NSAP_ODK.Entities
             return listFishingGrounds;
         }
 
+        private bool AddToMySQL(FishingGround fg)
+        {
+            bool success = false;
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    conn.Open();
+                    cmd.Parameters.Add("@fg_name", MySqlDbType.VarChar).Value = fg.Name;
+                    cmd.Parameters.Add("@fg_code", MySqlDbType.VarChar).Value = fg.Code;
+                    cmd.CommandText= "Insert into fishing_grounds(fishing_ground_name,fishing_ground_code) Values (@fg_name, @fg_code)";
+                    try
+                    {
+                        success = cmd.ExecuteNonQuery() > 0;
+                    }
+                    catch (MySqlException msex)
+                    {
+                        switch (msex.ErrorCode)
+                        {
+                            case -2147467259:
+                                //duplicated unique index error
+                                break;
+                            default:
+                                Logger.Log(msex);
+                                break;
+                        }
+
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+                return success;
+        }
         public bool Add(FishingGround fg)
         {
             bool success = false;
+            if(Global.Settings.UsemySQL)
+            {
+                success = AddToMySQL(fg);
+            }
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();

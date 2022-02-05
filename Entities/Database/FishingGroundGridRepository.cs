@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Data.OleDb;
 using NSAP_ODK.Utilities;
+using MySql.Data.MySqlClient;
+using NSAP_ODK.NSAPMysql;
 namespace NSAP_ODK.Entities.Database
 {
     class FishingGroundGridRepository
@@ -30,39 +32,71 @@ namespace NSAP_ODK.Entities.Database
             }
             return max_rec_no;
         }
+        private List<FishingGroundGrid> getFromMySQL()
+        {
+            List<FishingGroundGrid> thisList = new List<FishingGroundGrid>();
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    conn.Open();
+                    cmd.CommandText = $"Select * from dbo_fg_grid";
+
+                    MySqlDataReader dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        FishingGroundGrid item = new FishingGroundGrid();
+                        item.PK = (int)dr["fg_grid_id"];
+                        item.VesselUnloadID = (int)dr["v_unload_id"];
+                        item.UTMZoneText = dr["utm_zone"].ToString();
+                        item.Grid = dr["grid25"].ToString();
+                        thisList.Add(item);
+                    }
+                }
+            }
+            return thisList;
+        }
         private List<FishingGroundGrid> getFishingGroundGrids()
         {
             List<FishingGroundGrid> thisList = new List<FishingGroundGrid>();
-            var dt = new DataTable();
-            using (var conection = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                try
+                thisList = getFromMySQL();
+            }
+            else
+            {
+                var dt = new DataTable();
+                using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    conection.Open();
-                    string query = $"Select * from dbo_fg_grid";
-                    var adapter = new OleDbDataAdapter(query, conection);
-                    adapter.Fill(dt);
-                    if (dt.Rows.Count > 0)
+                    try
                     {
-                        thisList.Clear();
-                        foreach (DataRow dr in dt.Rows)
+                        conection.Open();
+                        string query = "Select * from dbo_fg_grid";
+                        var adapter = new OleDbDataAdapter(query, conection);
+                        adapter.Fill(dt);
+                        if (dt.Rows.Count > 0)
                         {
-                            FishingGroundGrid item = new FishingGroundGrid();
-                            item.PK = (int)dr["fg_grid_id"];
-                            item.VesselUnloadID = (int)dr["v_unload_id"];
-                            item.UTMZoneText = dr["utm_zone"].ToString();
-                            item.Grid = dr["grid25"].ToString();
-                            thisList.Add(item);
+                            thisList.Clear();
+                            foreach (DataRow dr in dt.Rows)
+                            {
+                                FishingGroundGrid item = new FishingGroundGrid();
+                                item.PK = (int)dr["fg_grid_id"];
+                                item.VesselUnloadID = (int)dr["v_unload_id"];
+                                item.UTMZoneText = dr["utm_zone"].ToString();
+                                item.Grid = dr["grid25"].ToString();
+                                thisList.Add(item);
+                            }
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log(ex);
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+
+                    }
 
                 }
-                return thisList;
             }
+            return thisList;
         }
 
         public bool Add(FishingGroundGrid item)
@@ -165,11 +199,11 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                
+
                 using (OleDbCommand update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@id", OleDbType.Integer).Value = id;
-                    update.CommandText="Delete * from dbo_fg_grid where gear_soak_id=@id";
+                    update.CommandText = "Delete * from dbo_fg_grid where gear_soak_id=@id";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

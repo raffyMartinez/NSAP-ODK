@@ -173,9 +173,18 @@ namespace NSAP_ODK.Entities
                     {
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException dbex)
+                    catch (MySqlException msex)
                     {
-                        Logger.Log(dbex);
+                        switch (msex.ErrorCode)
+                        {
+                            case -2147467259:
+                                //duplicated unique index error
+                                break;
+                            default:
+                                Logger.Log(msex);
+                                break;
+                        }
+
                     }
                     catch (Exception ex)
                     {

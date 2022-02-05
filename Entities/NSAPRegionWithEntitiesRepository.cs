@@ -232,7 +232,7 @@ namespace NSAP_ODK.Entities
                 {
                     using (var cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = $"Select * from nsapregion_fma_fishing_grounds where region_fma={regionFMA.RowID}";
+                        cmd.CommandText = $"Select * from nsap_region_fma_fishing_grounds where region_fma={regionFMA.RowID}";
                         conn.Open();
                         MySqlDataReader dr = cmd.ExecuteReader();
                         while (dr.Read())
@@ -296,7 +296,7 @@ namespace NSAP_ODK.Entities
                 {
                     using (var cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = $"Select * from nsap_region_enumerator where nsap_region='{NSAPRegion.Code}'";
+                        cmd.CommandText = $"Select * from nsap_region_enumerator where region='{NSAPRegion.Code}'";
                         conn.Open();
                         MySqlDataReader dr = cmd.ExecuteReader();
                         while (dr.Read())
@@ -360,7 +360,7 @@ namespace NSAP_ODK.Entities
                 {
                     using (var cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = $"Select * from nsap_region_gear where nsap_region_code='{NSAPRegion.Code}'";
+                        cmd.CommandText = $"Select * from nsap_region_gear where nsap_region='{NSAPRegion.Code}'";
                         conn.Open();
                         MySqlDataReader dr = cmd.ExecuteReader();
                         while (dr.Read())
@@ -368,7 +368,7 @@ namespace NSAP_ODK.Entities
                             NSAPRegionGear nrg = new NSAPRegionGear();
                             nrg.RowID = Convert.ToInt32(dr["row_id"]);
                             nrg.NSAPRegion = NSAPRegion;
-                            nrg.Gear = NSAPEntities.GearViewModel.GetGear(dr["gear_code"].ToString());
+                            nrg.Gear = NSAPEntities.GearViewModel.GetGear(dr["gear"].ToString());
                             nrg.DateStart = (DateTime)dr["date_start"];
                             if (DateTime.TryParse(dr["date_end"].ToString(), out DateTime v))
                             {
@@ -427,7 +427,7 @@ namespace NSAP_ODK.Entities
                 {
                     using (var cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = $"Select * from nsap_region_vessel where nsap_region_code='{NSAPRegion.Code}'";
+                        cmd.CommandText = $"Select * from nsap_region_vessel where region='{NSAPRegion.Code}'";
                         conn.Open();
                         MySqlDataReader dr = cmd.ExecuteReader();
                         while (dr.Read())
@@ -435,7 +435,7 @@ namespace NSAP_ODK.Entities
                             NSAPRegionFishingVessel nrfv = new NSAPRegionFishingVessel();
                             nrfv.RowID = Convert.ToInt32(dr["row_id"]);
                             nrfv.NSAPRegion = NSAPRegion;
-                            nrfv.FishingVessel = NSAPEntities.FishingVesselViewModel.GetFishingVessel(Convert.ToInt32(dr["vessel_id"]));
+                            nrfv.FishingVessel = NSAPEntities.FishingVesselViewModel.GetFishingVessel(Convert.ToInt32(dr["vessel"]));
                             nrfv.DateStart = (DateTime)dr["date_start"];
                             if (DateTime.TryParse(dr["date_end"].ToString(), out DateTime v))
                             {
@@ -490,26 +490,23 @@ namespace NSAP_ODK.Entities
         /// <param name="regionFMA"></param>
         private void GetLandingSitesInFMAFishingGrounds(NSAPRegionFMAFishingGround regionFMAFishingGround)
         {
-            var dt = new DataTable();
-            using (var conection = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                try
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
                 {
-                    conection.Open();
-                    string query = $"Select * from NSAPRegionLandingSite where NSAPRegionFMAFishingGround={regionFMAFishingGround.RowID}";
-
-                    var adapter = new OleDbDataAdapter(query, conection);
-                    adapter.Fill(dt);
-                    if (dt.Rows.Count > 0)
+                    using (var cmd = conn.CreateCommand())
                     {
-                        foreach (DataRow dr in dt.Rows)
+                        cmd.CommandText = $"Select * from nsap_region_landing_site where nsap_region_fma_fg='{regionFMAFishingGround.RowID}'";
+                        conn.Open();
+                        MySqlDataReader dr = cmd.ExecuteReader();
+                        while (dr.Read())
                         {
                             NSAPRegionFMAFishingGroundLandingSite nrls = new NSAPRegionFMAFishingGroundLandingSite();
-                            nrls.RowID = Convert.ToInt32(dr["RowID"]);
+                            nrls.RowID = Convert.ToInt32(dr["row_id"]);
                             nrls.NSAPRegionFMAFishingGround = regionFMAFishingGround;
-                            nrls.LandingSite = NSAPEntities.LandingSiteViewModel.GetLandingSite(Convert.ToInt32(dr["LandingSiteID"]));
-                            nrls.DateStart = (DateTime)dr["DateStart"];
-                            if (DateTime.TryParse(dr["DateEnd"].ToString(), out DateTime v))
+                            nrls.LandingSite = NSAPEntities.LandingSiteViewModel.GetLandingSite(Convert.ToInt32(dr["landing_site"]));
+                            nrls.DateStart = (DateTime)dr["date_start"];
+                            if (DateTime.TryParse(dr["date_end"].ToString(), out DateTime v))
                             {
                                 nrls.DateEnd = v;
                             }
@@ -517,9 +514,40 @@ namespace NSAP_ODK.Entities
                         }
                     }
                 }
-                catch (Exception ex)
+            }
+            else
+            {
+                var dt = new DataTable();
+                using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    Logger.Log(ex);
+                    try
+                    {
+                        conection.Open();
+                        string query = $"Select * from NSAPRegionLandingSite where NSAPRegionFMAFishingGround={regionFMAFishingGround.RowID}";
+
+                        var adapter = new OleDbDataAdapter(query, conection);
+                        adapter.Fill(dt);
+                        if (dt.Rows.Count > 0)
+                        {
+                            foreach (DataRow dr in dt.Rows)
+                            {
+                                NSAPRegionFMAFishingGroundLandingSite nrls = new NSAPRegionFMAFishingGroundLandingSite();
+                                nrls.RowID = Convert.ToInt32(dr["RowID"]);
+                                nrls.NSAPRegionFMAFishingGround = regionFMAFishingGround;
+                                nrls.LandingSite = NSAPEntities.LandingSiteViewModel.GetLandingSite(Convert.ToInt32(dr["LandingSiteID"]));
+                                nrls.DateStart = (DateTime)dr["DateStart"];
+                                if (DateTime.TryParse(dr["DateEnd"].ToString(), out DateTime v))
+                                {
+                                    nrls.DateEnd = v;
+                                }
+                                regionFMAFishingGround.LandingSites.Add(nrls);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
         }
@@ -625,80 +653,183 @@ namespace NSAP_ODK.Entities
                 RowID = MaxRecordNumber_Enumerator() + 1
             };
         }
-        public bool AddEnumerator(NSAPRegionEnumerator regionEnumerator)
+
+        private bool AddEnumeratorToMySQL(NSAPRegionEnumerator nre)
         {
             bool success = false;
-            string dateEnd = regionEnumerator.DateEnd == null ? "null" : $"'{((DateTime)regionEnumerator.DateEnd).ToString(_dateFormat)}'";
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-
-                var sql = "Insert into NSAPRegionEnumerator(RowID, NSAPRegionCode, EnumeratorID, DateStart, DateEnd) Values (?,?,?,?,?)";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                using (var update = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = regionEnumerator.RowID;
-                    update.Parameters.Add("@region_code", OleDbType.VarChar).Value = NSAPRegion.Code;
-                    update.Parameters.Add("@enum_id", OleDbType.Integer).Value = regionEnumerator.EnumeratorID;
-                    update.Parameters.Add("@start", OleDbType.Date).Value = regionEnumerator.DateStart;
-                    update.Parameters.Add("@end", OleDbType.Date).Value = regionEnumerator.DateEnd;
+                    conn.Open();
+                    update.Parameters.Add("@row_id", MySqlDbType.VarChar).Value = nre.RowID;
+                    update.Parameters.Add("@enumerator", MySqlDbType.VarChar).Value = nre.EnumeratorID;
+                    update.Parameters.Add("@nsap_region", MySqlDbType.VarChar).Value = nre.NSAPRegion.Code;
+                    update.Parameters.Add("@start", MySqlDbType.DateTime).Value = nre.DateStart;
+                    update.Parameters.Add("@end", MySqlDbType.DateTime).Value = nre.DateEnd;
+                    update.CommandText = @"Insert into nsap_region_enumerator (row_id, enumerator_id,region,date_start,date_end)
+                                           Values (@row_id,@enumerator,@nsap_region,@start,@end)";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException dbex)
+                    catch (MySqlException msex)
                     {
-                        Logger.Log(dbex);
+                        switch (msex.ErrorCode)
+                        {
+                            case -2147467259:
+                                //duplicated unique index error
+                                break;
+                            default:
+                                Logger.Log(msex);
+                                break;
+                        }
+
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
                     }
-                    if (success)
+                }
+            }
+            return success;
+        }
+        public bool AddEnumerator(NSAPRegionEnumerator regionEnumerator)
+        {
+            bool success = false;
+
+            if (Global.Settings.UsemySQL)
+            {
+                success = AddEnumeratorToMySQL(regionEnumerator);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+
+                    var sql = "Insert into NSAPRegionEnumerator(RowID, NSAPRegionCode, EnumeratorID, DateStart, DateEnd) Values (?,?,?,?,?)";
+                    using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
-                        NSAPRegion.NSAPEnumerators.Add(regionEnumerator);
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = regionEnumerator.RowID;
+                        update.Parameters.Add("@region_code", OleDbType.VarChar).Value = NSAPRegion.Code;
+                        update.Parameters.Add("@enum_id", OleDbType.Integer).Value = regionEnumerator.EnumeratorID;
+                        update.Parameters.Add("@start", OleDbType.Date).Value = regionEnumerator.DateStart;
+                        update.Parameters.Add("@end", OleDbType.Date).Value = regionEnumerator.DateEnd;
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                        if (success)
+                        {
+                            NSAPRegion.NSAPEnumerators.Add(regionEnumerator);
+                        }
                     }
                 }
+            }
+            return success;
+        }
+        private bool AddGeartoMySQL(NSAPRegionGear region_gear)
+        {
+            bool success = false;
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var update = conn.CreateCommand())
+                {
+                    conn.Open();
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = region_gear.RowID;
+                    update.Parameters.Add("@region_code", MySqlDbType.VarChar).Value = region_gear.NSAPRegion.Code;
+                    update.Parameters.Add("@gear_code", MySqlDbType.VarChar).Value = region_gear.GearCode;
+                    update.Parameters.Add("@start", MySqlDbType.Date).Value = region_gear.DateStart;
+                    if (region_gear.DateEnd == null)
+                    {
+                        update.Parameters.Add("@end", MySqlDbType.Date).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@end", MySqlDbType.Date).Value = region_gear.DateEnd;
+                    }
+                    update.CommandText=@"Insert into nsap_region_gear(row_id, nsap_region, gear, date_start, date_end)
+                                        Values (@id,@region_code,@gear_code,@start,@end)";
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (MySqlException msex)
+                    {
+                        switch (msex.ErrorCode)
+                        {
+                            case -2147467259:
+                                //duplicated unique index error
+                                break;
+                            default:
+                                Logger.Log(msex);
+                                break;
+                        }
+
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+
             }
             return success;
         }
         public bool AddGear(NSAPRegionGear region_gear)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-
-
-                var sql = "Insert into NSAPRegionGear(RowID, NSAPRegionCode, GearCode, DateStart, DateEnd) Values (?,?,?,?,?)";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                success = AddGeartoMySQL(region_gear);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = region_gear.RowID;
-                    update.Parameters.Add("@region_code", OleDbType.VarChar).Value = region_gear.NSAPRegion.Code;
-                    update.Parameters.Add("@gear_code", OleDbType.VarChar).Value = region_gear.GearCode;
-                    update.Parameters.Add("@start", OleDbType.Date).Value = region_gear.DateStart;
-                    if (region_gear.DateEnd == null)
+                    conn.Open();
+
+
+                    var sql = "Insert into NSAPRegionGear(RowID, NSAPRegionCode, GearCode, DateStart, DateEnd) Values (?,?,?,?,?)";
+                    using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
-                        update.Parameters.Add("@end", OleDbType.Date).Value = DBNull.Value;
-                    }
-                    else
-                    {
-                        update.Parameters.Add("@end", OleDbType.Date).Value = region_gear.DateEnd;
-                    }
-                    try
-                    {
-                        success = update.ExecuteNonQuery() > 0;
-                    }
-                    catch (OleDbException dbex)
-                    {
-                        Logger.Log(dbex);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
-                    }
-                    if (success)
-                    {
-                        NSAPRegion.Gears.Add(region_gear);
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = region_gear.RowID;
+                        update.Parameters.Add("@region_code", OleDbType.VarChar).Value = region_gear.NSAPRegion.Code;
+                        update.Parameters.Add("@gear_code", OleDbType.VarChar).Value = region_gear.GearCode;
+                        update.Parameters.Add("@start", OleDbType.Date).Value = region_gear.DateStart;
+                        if (region_gear.DateEnd == null)
+                        {
+                            update.Parameters.Add("@end", OleDbType.Date).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@end", OleDbType.Date).Value = region_gear.DateEnd;
+                        }
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                        if (success)
+                        {
+                            NSAPRegion.Gears.Add(region_gear);
+                        }
                     }
                 }
             }
@@ -708,93 +839,179 @@ namespace NSAP_ODK.Entities
         private bool AddNSAPRegionFMAToMySQL(NSAPRegionFMA nf)
         {
             bool success = false;
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var update = conn.CreateCommand())
+                {
+                    conn.Open();
+                    update.Parameters.Add("@nsap_region", MySqlDbType.VarChar).Value = nf.NSAPRegion.Code;
+                    update.Parameters.Add("@fma", MySqlDbType.VarChar).Value = nf.FMA.FMAID;
+                    update.Parameters.Add("@row_id", MySqlDbType.VarChar).Value = nf.RowID;
+                    update.CommandText = @"Insert into nsap_region_fma (nsap_region, fma,row_id) Values (@nsap_region,@fma,@row_id)";
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (MySqlException msex)
+                    {
+                        switch (msex.ErrorCode)
+                        {
+                            case -2147467259:
+                                //duplicated unique index error
+                                break;
+                            default:
+                                Logger.Log(msex);
+                                break;
+                        }
 
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
             return success;
         }
         public bool AddNSAPRegionFMA(NSAPRegionFMA nf)
         {
             bool success = false;
-            if(Global.Settings.UsemySQL)
+            if (Global.Settings.UsemySQL)
             {
                 success = AddNSAPRegionFMAToMySQL(nf);
             }
             return success;
         }
 
-        public bool AddFMAFishingGround(NSAPRegionFMAFishingGround fg)
+        private bool AddFMAFishingGroundToMySQL(NSAPRegionFMAFishingGround fg)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-
-                var sql = "Insert into NSAPRegionFMAFishingGrounds (RowID, FishingGround, RegionFMA, DateStart, DateEnd) Values (?,?,?,?,?)";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                using (var update = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = fg.RowID;
-                    update.Parameters.Add("@fg_code", OleDbType.VarChar).Value = fg.FishingGroundCode;
-                    update.Parameters.Add("@region_fma", OleDbType.Integer).Value = fg.RegionFMA.RowID;
-                    update.Parameters.Add("@start", OleDbType.Date).Value = fg.DateStart;
+                    conn.Open();
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = fg.RowID;
+                    update.Parameters.Add("@fg_code", MySqlDbType.VarChar).Value = fg.FishingGroundCode;
+                    update.Parameters.Add("@region_fma", MySqlDbType.Int32).Value = fg.RegionFMA.RowID;
+                    update.Parameters.Add("@start", MySqlDbType.Date).Value = fg.DateStart;
                     if (fg.DateEnd == null)
                     {
-                        update.Parameters.Add("@end", OleDbType.Date).Value = DBNull.Value;
+                        update.Parameters.Add("@end", MySqlDbType.Date).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@end", OleDbType.Date).Value = fg.DateEnd;
+                        update.Parameters.Add("@end", MySqlDbType.Date).Value = fg.DateEnd;
                     }
+                    update.CommandText = @"Insert into nsap_region_fma_fishing_grounds (row_id, fishing_ground, region_fma, date_start, date_end) 
+                                         Values (@id,@fg_code,@region_fma,@start,@end)";
+
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException dbex)
+                    catch (MySqlException msex)
                     {
-                        Logger.Log(dbex);
+                        switch (msex.ErrorCode)
+                        {
+                            case -2147467259:
+                                //duplicated unique index error
+                                break;
+                            default:
+                                Logger.Log(msex);
+                                break;
+                        }
+
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
                     }
-                    if (success)
+                }
+            }
+            return success;
+        }
+        public bool AddFMAFishingGround(NSAPRegionFMAFishingGround fg)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = AddFMAFishingGroundToMySQL(fg);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+
+                    var sql = "Insert into NSAPRegionFMAFishingGrounds (RowID, FishingGround, RegionFMA, DateStart, DateEnd) Values (?,?,?,?,?)";
+                    using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
-                        fg.RegionFMA.FishingGrounds.Add(fg);
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = fg.RowID;
+                        update.Parameters.Add("@fg_code", OleDbType.VarChar).Value = fg.FishingGroundCode;
+                        update.Parameters.Add("@region_fma", OleDbType.Integer).Value = fg.RegionFMA.RowID;
+                        update.Parameters.Add("@start", OleDbType.Date).Value = fg.DateStart;
+                        if (fg.DateEnd == null)
+                        {
+                            update.Parameters.Add("@end", OleDbType.Date).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@end", OleDbType.Date).Value = fg.DateEnd;
+                        }
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                        if (success)
+                        {
+                            fg.RegionFMA.FishingGrounds.Add(fg);
+                        }
                     }
                 }
             }
             return success;
         }
 
-
-        public bool AddFMAFishingGroundLandingSite(NSAPRegionFMAFishingGroundLandingSite fgls)
+        private bool AddFMAFishingGroundLandingSiteToMySQL(NSAPRegionFMAFishingGroundLandingSite fgls)
         {
             bool success = false;
-
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-
-                var sql = "Insert into NSAPRegionLandingSite (RowID, NSAPRegionFMAFishingGround, LandingSiteID, DateStart, DateEnd) Values (?,?,?,?,?)";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                using (var update = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = fgls.RowID;
-                    update.Parameters.Add("@fglS_id", OleDbType.Integer).Value = fgls.NSAPRegionFMAFishingGround.RowID;
-                    update.Parameters.Add("@ls_id", OleDbType.Integer).Value = fgls.LandingSite.LandingSiteID;
-                    update.Parameters.Add("@start", OleDbType.Date).Value = fgls.DateStart;
+                    conn.Open();
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = fgls.RowID;
+                    update.Parameters.Add("@fglS_id", MySqlDbType.Int32).Value = fgls.NSAPRegionFMAFishingGround.RowID;
+                    update.Parameters.Add("@ls_id", MySqlDbType.Int32).Value = fgls.LandingSite.LandingSiteID;
+                    update.Parameters.Add("@start", MySqlDbType.Date).Value = fgls.DateStart;
+
                     if (fgls.DateEnd == null)
                     {
-                        update.Parameters.Add("@end", OleDbType.Date).Value = DBNull.Value;
+                        update.Parameters.Add("@end", MySqlDbType.Date).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@end", OleDbType.Date).Value = fgls.RowID;
+                        update.Parameters.Add("@end", MySqlDbType.Date).Value = fgls.RowID;
                     }
+
+                    update.CommandText = @"Insert into nsap_region_landing_site (row_id, nsap_region_fma_fg, landing_site, date_start, date_end) 
+                                        Values (@id,@fglS_id,@ls_id,@start,@end)";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException dbex)
+                    catch (MySqlException msex)
                     {
-                        Logger.Log(dbex);
+                        Logger.Log(msex);
                     }
                     catch (Exception ex)
                     {
@@ -808,45 +1025,140 @@ namespace NSAP_ODK.Entities
             }
             return success;
         }
-
-
-        public bool AddFishingVessel(NSAPRegionFishingVessel rv)
+        public bool AddFMAFishingGroundLandingSite(NSAPRegionFMAFishingGroundLandingSite fgls)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-
-                var sql = "Insert into NSAPRegionVessel(RowID, NSAPRegionCode, VesselID, DateStart, DateEnd) Values (?,?,?,?,?)";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                success = AddFMAFishingGroundLandingSiteToMySQL(fgls);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = rv.RowID;
-                    update.Parameters.Add("@region_code", OleDbType.VarChar).Value = rv.NSAPRegion.Code;
-                    update.Parameters.Add("@vessel_id", OleDbType.Integer).Value = rv.FishingVesselID;
-                    update.Parameters.Add("@start", OleDbType.Date).Value = rv.DateStart;
-                    if (rv.DateEnd == null)
+                    conn.Open();
+
+                    var sql = "Insert into NSAPRegionLandingSite (RowID, NSAPRegionFMAFishingGround, LandingSiteID, DateStart, DateEnd) Values (?,?,?,?,?)";
+                    using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
-                        update.Parameters.Add("@end", OleDbType.Date).Value = DBNull.Value;
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = fgls.RowID;
+                        update.Parameters.Add("@fglS_id", OleDbType.Integer).Value = fgls.NSAPRegionFMAFishingGround.RowID;
+                        update.Parameters.Add("@ls_id", OleDbType.Integer).Value = fgls.LandingSite.LandingSiteID;
+                        update.Parameters.Add("@start", OleDbType.Date).Value = fgls.DateStart;
+                        if (fgls.DateEnd == null)
+                        {
+                            update.Parameters.Add("@end", OleDbType.Date).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@end", OleDbType.Date).Value = fgls.RowID;
+                        }
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                        if (success)
+                        {
+                            fgls.NSAPRegionFMAFishingGround.LandingSites.Add(fgls);
+                        }
                     }
-                    else
-                    {
-                        update.Parameters.Add("@end", OleDbType.Date).Value = rv.DateEnd;
-                    }
+                }
+            }
+            return success;
+        }
+
+        private bool AddFishingVesselToMySQL(NSAPRegionFishingVessel rv)
+        {
+            bool success = false;
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var update = conn.CreateCommand())
+                {
+                    conn.Open();
+                    update.Parameters.Add("@row_id", MySqlDbType.VarChar).Value = rv.RowID;
+                    update.Parameters.Add("@vessel", MySqlDbType.VarChar).Value = rv.FishingVesselID;
+                    update.Parameters.Add("@nsap_region", MySqlDbType.VarChar).Value = rv.NSAPRegion.Code;
+                    update.Parameters.Add("@start", MySqlDbType.DateTime).Value = rv.DateStart;
+                    update.Parameters.Add("@end", MySqlDbType.DateTime).Value = rv.DateEnd;
+                    update.CommandText = @"Insert into NSAPRegionVessel(row_id, vessel,region, date_start, date_end)
+                                          Values (@row_id, @vessel, @nsap_region,@start,@end)";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException dbex)
+                    catch (MySqlException msex)
                     {
-                        Logger.Log(dbex);
+                        switch (msex.ErrorCode)
+                        {
+                            case -2147467259:
+                                //duplicated unique index error
+                                break;
+                            default:
+                                Logger.Log(msex);
+                                break;
+                        }
+
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
                     }
-                    if (success)
+                }
+            }
+            return success;
+        }
+        public bool AddFishingVessel(NSAPRegionFishingVessel rv)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = AddFishingVesselToMySQL(rv);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+
+                    var sql = "Insert into NSAPRegionVessel(RowID, NSAPRegionCode, VesselID, DateStart, DateEnd) Values (?,?,?,?,?)";
+                    using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
-                        NSAPRegion.FishingVessels.Add(rv);
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = rv.RowID;
+                        update.Parameters.Add("@region_code", OleDbType.VarChar).Value = rv.NSAPRegion.Code;
+                        update.Parameters.Add("@vessel_id", OleDbType.Integer).Value = rv.FishingVesselID;
+                        update.Parameters.Add("@start", OleDbType.Date).Value = rv.DateStart;
+                        if (rv.DateEnd == null)
+                        {
+                            update.Parameters.Add("@end", OleDbType.Date).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@end", OleDbType.Date).Value = rv.DateEnd;
+                        }
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                        if (success)
+                        {
+                            NSAPRegion.FishingVessels.Add(rv);
+                        }
                     }
                 }
             }

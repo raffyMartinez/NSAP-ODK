@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Data.OleDb;
 using NSAP_ODK.Utilities;
+using MySql.Data.MySqlClient;
+using NSAP_ODK.NSAPMysql;
 namespace NSAP_ODK.Entities.Database
 {
     class CatchLenWeightRepository
@@ -30,39 +32,70 @@ namespace NSAP_ODK.Entities.Database
             }
             return max_rec_no;
         }
+
+        private List<CatchLengthWeight> getFromMySQL()
+        {
+            List<CatchLengthWeight> thisList = new List<CatchLengthWeight>();
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    conn.Open();
+                    cmd.CommandText = "Select * from dbo_catch_len_wt";
+
+                    MySqlDataReader dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        CatchLengthWeight item = new CatchLengthWeight();
+                        item.PK = (int)dr["catch_lw_id"];
+                        item.VesselCatchID = (int)dr["catch_id"];
+                        item.Length = (double)dr["length"];
+                        item.Weight = (double)dr["weight"];
+                        thisList.Add(item);
+                    }
+                }
+            }
+            return thisList;
+        }
         private List<CatchLengthWeight> getCatchLengthWeights()
         {
             List<CatchLengthWeight> thisList = new List<CatchLengthWeight>();
-            var dt = new DataTable();
-            using (var conection = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                try
+                thisList = getFromMySQL();
+            }
+            else
+            {
+                var dt = new DataTable();
+                using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    conection.Open();
-                    string query = $"Select * from dbo_catch_len_wt";
-                    var adapter = new OleDbDataAdapter(query, conection);
-                    adapter.Fill(dt);
-                    if (dt.Rows.Count > 0)
+                    try
                     {
-                        thisList.Clear();
-                        foreach (DataRow dr in dt.Rows)
+                        conection.Open();
+                        string query = "Select * from dbo_catch_len_wt";
+                        var adapter = new OleDbDataAdapter(query, conection);
+                        adapter.Fill(dt);
+                        if (dt.Rows.Count > 0)
                         {
-                            CatchLengthWeight item = new CatchLengthWeight();
-                            item.PK = (int)dr["catch_len_wt_id"];
-                            item.VesselCatchID = (int)dr["catch_id"];
-                            item.Length = (double)dr["length"];
-                            item.Weight = (double)dr["weight"];
-                            thisList.Add(item);
+                            thisList.Clear();
+                            foreach (DataRow dr in dt.Rows)
+                            {
+                                CatchLengthWeight item = new CatchLengthWeight();
+                                item.PK = (int)dr["catch_len_wt_id"];
+                                item.VesselCatchID = (int)dr["catch_id"];
+                                item.Length = (double)dr["length"];
+                                item.Weight = (double)dr["weight"];
+                                thisList.Add(item);
+                            }
                         }
                     }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    Logger.Log(ex);
-
-                }
-                return thisList;
             }
+            return thisList;
         }
 
         public bool Add(CatchLengthWeight item)

@@ -117,6 +117,42 @@ namespace NSAP_ODK.NSAPMysql
                     }
                     #endregion
 
+                    #region NSAP Region enumerator
+                    cmd.CommandText = @"CREATE TABLE IF NOT EXISTS `nsap_region_enumerator`(
+                                    `row_id` INT NOT NULL,
+                                    `enumerator_id` INT NOT NULL,
+                                    `region` VARCHAR(6) NOT NULL,
+                                    `date_start` DATE NOT NULL,
+                                    `date_end` DATE NULL,
+                                    PRIMARY KEY (`row_id`),
+                                    INDEX `enumerator_id_nre_fk_idx` (`enumerator_id` ASC) VISIBLE,
+                                    INDEX `region_nre_fk_idx` (`region` ASC) VISIBLE,
+                                    CONSTRAINT `enumerator_id_nre_fk`
+                                      FOREIGN KEY (`enumerator_id`)
+                                      REFERENCES `nsap_enumerators` (`enumerator_id`)
+                                      ON DELETE NO ACTION
+                                      ON UPDATE NO ACTION,
+                                    CONSTRAINT `region_nre_fk`
+                                      FOREIGN KEY (`region`)
+                                      REFERENCES `nsap_region` (`code`)
+                                      ON DELETE NO ACTION
+                                      ON UPDATE NO ACTION )
+                                    COMMENT='Enumerators in a region'";
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        tableCount++;
+                    }
+                    catch (MySqlException msex)
+                    {
+
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                    #endregion
+
                     #region Provinces
                     cmd.CommandText = @"CREATE TABLE IF NOT EXISTS `provinces`(
                                         `prov_no` INT NOT NULL,
@@ -182,7 +218,7 @@ namespace NSAP_ODK.NSAPMysql
                     #region Landing sites
                     cmd.CommandText = @" CREATE TABLE IF NOT EXISTS `landing_sites`(
                                         `landing_site_id` INT NOT NULL,
-                                        `landing_site_name` VARCHAR(40) NOT NULL,
+                                        `landing_site_name` VARCHAR(100) NOT NULL,
                                         `municipality` INT NOT NULL,
                                         `latitude` DOUBLE NULL,
                                         `longitude` DOUBLE NULL,
@@ -1161,6 +1197,34 @@ namespace NSAP_ODK.NSAPMysql
                                           ON DELETE NO ACTION
                                           ON UPDATE NO ACTION )
                                         COMMENT='Length-weight data of catch'";
+
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        tableCount++;
+                    }
+                    catch (MySqlException msex)
+                    {
+
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                    #endregion
+
+                    #region JSON Files
+                    cmd.CommandText = @" CREATE TABLE IF NOT EXISTS `json_file`(
+                                        `row_id` INT NOT NULL,
+                                        `filename` VARCHAR(150) NOT NULL,
+                                        `count` INT NOT NULL,
+                                        `earliest_date` DATETIME NOT NULL,
+                                        `latest_date` DATETIME NOT NULL,
+                                        `date_added` DATETIME NOT NULL,
+                                        `md5`VARCHAR(40) NOT NULL,
+                                        `form_id` VARCHAR(20) NOT NULL,
+                                        `description` VARCHAR(100) NOT NULL,
+                                        PRIMARY KEY (`row_id`) )";
 
                     try
                     {

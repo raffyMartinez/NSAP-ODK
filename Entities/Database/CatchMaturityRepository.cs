@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Data.OleDb;
 using NSAP_ODK.Utilities;
+using MySql.Data.MySqlClient;
+using NSAP_ODK.NSAPMysql;
 namespace NSAP_ODK.Entities.Database
 {
     public class CatchMaturityRepository
@@ -30,56 +32,94 @@ namespace NSAP_ODK.Entities.Database
             }
             return max_rec_no;
         }
+
+        private List<CatchMaturity> getFromMySQL()
+        {
+            List<CatchMaturity> thisList = new List<CatchMaturity>();
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    conn.Open();
+                    cmd.CommandText = "Select * from dbo_catch_maturity";
+
+                    MySqlDataReader dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        CatchMaturity item = new CatchMaturity();
+                        item.PK = (int)dr["catch_maturity_id"];
+                        item.VesselCatchID = (int)dr["catch_id"];
+                        item.GonadWeight = dr["gonad_Wt"] == DBNull.Value ? null : (double?)dr["gonad_wt"];
+                        item.Length = dr["length"] == DBNull.Value ? null : (double?)dr["length"];
+                        item.Weight = dr["weight"] == DBNull.Value ? null : (double?)dr["weight"];
+                        item.SexCode = dr["sex"].ToString();
+                        item.MaturityCode = dr["maturity"].ToString();
+                        item.WeightGutContent = dr["gut_content_wt"] == DBNull.Value ? null : (double?)dr["gut_content_wt"];
+                        item.GutContentCode = dr["gut_content_class"].ToString();
+                        thisList.Add(item);
+                    }
+                }
+            }
+            return thisList;
+        }
         private List<CatchMaturity> getCatchMaturites()
         {
             List<CatchMaturity> thisList = new List<CatchMaturity>();
-            var dt = new DataTable();
-            using (var conection = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                try
+                thisList = getFromMySQL();
+            }
+            else
+            {
+                var dt = new DataTable();
+                using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    conection.Open();
-                    string query = $"Select * from dbo_catch_maturity";
-                    var adapter = new OleDbDataAdapter(query, conection);
-                    adapter.Fill(dt);
-                    if (dt.Rows.Count > 0)
+                    try
                     {
-                        thisList.Clear();
-                        foreach (DataRow dr in dt.Rows)
+                        conection.Open();
+                        string query = "Select * from dbo_catch_maturity";
+                        var adapter = new OleDbDataAdapter(query, conection);
+                        adapter.Fill(dt);
+                        if (dt.Rows.Count > 0)
                         {
-                            CatchMaturity item = new CatchMaturity();
-                            item.PK = (int)dr["catch_maturity_id"];
-                            item.VesselCatchID = (int)dr["catch_id"];
-                            item.GonadWeight = dr["gonadWt"]==DBNull.Value?null:(double?)dr["gonadWt"];
-                            item.Length = dr["length"]==DBNull.Value?null:(double?)dr["length"];
-                            item.Weight = dr["weight"] == DBNull.Value ? null : (double?)dr["weight"];
-                            item.SexCode = dr["sex"].ToString();
-                            item.MaturityCode = dr["maturity"].ToString();
-                            item.WeightGutContent = dr["gut_content_wt"] == DBNull.Value ? null : (double?)dr["gut_content_wt"];
-                            item.GutContentCode = dr["gut_content_code"].ToString();
-                            thisList.Add(item);
+                            thisList.Clear();
+                            foreach (DataRow dr in dt.Rows)
+                            {
+                                CatchMaturity item = new CatchMaturity();
+                                item.PK = (int)dr["catch_maturity_id"];
+                                item.VesselCatchID = (int)dr["catch_id"];
+                                item.GonadWeight = dr["gonadWt"] == DBNull.Value ? null : (double?)dr["gonadWt"];
+                                item.Length = dr["length"] == DBNull.Value ? null : (double?)dr["length"];
+                                item.Weight = dr["weight"] == DBNull.Value ? null : (double?)dr["weight"];
+                                item.SexCode = dr["sex"].ToString();
+                                item.MaturityCode = dr["maturity"].ToString();
+                                item.WeightGutContent = dr["gut_content_wt"] == DBNull.Value ? null : (double?)dr["gut_content_wt"];
+                                item.GutContentCode = dr["gut_content_code"].ToString();
+                                thisList.Add(item);
+                            }
                         }
                     }
-                }
-                catch(OleDbException dbex)
-                {
-                    Logger.Log(dbex);
-                }
-                catch (Exception ex)
-                {
-                    if (ex.HResult == -2147024809)
+                    catch (OleDbException dbex)
                     {
-                        conection.Close();
-                        UpdateTable();
+                        Logger.Log(dbex);
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        Logger.Log(ex);
+                        if (ex.HResult == -2147024809)
+                        {
+                            conection.Close();
+                            UpdateTable();
+                        }
+                        else
+                        {
+                            Logger.Log(ex);
+                        }
+
                     }
 
                 }
-                return thisList;
             }
+            return thisList;
         }
 
         private void UpdateTable()
@@ -125,7 +165,7 @@ namespace NSAP_ODK.Entities.Database
                 {
                     update.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
                     update.Parameters.Add("@parent_id", OleDbType.Integer).Value = item.VesselCatchID;
-                    if(item.Length==null)
+                    if (item.Length == null)
                     {
                         update.Parameters.Add("@len", OleDbType.Double).Value = DBNull.Value;
                     }
@@ -198,7 +238,7 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
 
-             return success;
+            return success;
         }
 
         public bool Update(CatchMaturity item)
@@ -295,7 +335,7 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
 
-             return success;
+            return success;
         }
         public bool ClearTable()
         {
@@ -331,10 +371,10 @@ namespace NSAP_ODK.Entities.Database
             {
                 conn.Open();
                 var sql = $"Delete * from dbo_catch_maturity where catch_maturity_id={id}";
-                using (OleDbCommand update =conn.CreateCommand())
+                using (OleDbCommand update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@id", OleDbType.Integer).Value = id;
-                    update.CommandText="Delete * from dbo_catch_maturity where catch_maturity_id=@id";
+                    update.CommandText = "Delete * from dbo_catch_maturity where catch_maturity_id=@id";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

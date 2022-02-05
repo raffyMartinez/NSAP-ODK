@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Data.OleDb;
 using NSAP_ODK.Utilities;
+using MySql.Data.MySqlClient;
+using NSAP_ODK.NSAPMysql;
 namespace NSAP_ODK.Entities.Database
 {
-   public class VesselEffortRepository
+    public class VesselEffortRepository
     {
         public List<VesselEffort> VesselEfforts { get; set; }
 
@@ -30,42 +32,75 @@ namespace NSAP_ODK.Entities.Database
             }
             return max_rec_no;
         }
+        private List<VesselEffort> getFromMySQL()
+        {
+            List<VesselEffort> thisList = new List<VesselEffort>();
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    conn.Open();
+                    cmd.CommandText = "Select * from dbo_vessel_effort";
+
+                    MySqlDataReader dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        VesselEffort item = new VesselEffort();
+                        item.PK = (int)dr["effort_row_id"];
+                        item.VesselUnloadID = (int)dr["v_unload_id"];
+                        item.EffortSpecID = (int)dr["effort_spec_id"];
+                        item.EffortValueNumeric = string.IsNullOrEmpty(dr["effort_value_numeric"].ToString()) ? null : (double?)dr["effort_value_numeric"];
+                        item.EffortValueText = dr["effort_value_text"].ToString();
+                        thisList.Add(item);
+                    }
+                }
+            }
+            return thisList;
+        }
         private List<VesselEffort> getVesselEfforts()
         {
             List<VesselEffort> thisList = new List<VesselEffort>();
-            var dt = new DataTable();
-            using (var conection = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                try
+                thisList = getFromMySQL();
+            }
+            else
+            {
+                var dt = new DataTable();
+                using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    conection.Open();
-                    string query = $"Select * from dbo_vessel_effort";
-
-
-                    var adapter = new OleDbDataAdapter(query, conection);
-                    adapter.Fill(dt);
-                    if (dt.Rows.Count > 0)
+                    try
                     {
-                        thisList.Clear();
-                        foreach (DataRow dr in dt.Rows)
+                        conection.Open();
+                        string query = "Select * from dbo_vessel_effort";
+
+
+                        var adapter = new OleDbDataAdapter(query, conection);
+                        adapter.Fill(dt);
+                        if (dt.Rows.Count > 0)
                         {
-                            VesselEffort item = new VesselEffort();
-                            item.PK = (int)dr["effort_row_id"];
-                            item.VesselUnloadID = (int)dr["v_unload_id"];
-                            item.EffortSpecID = (int)dr["effort_spec_id"];
-                            item.EffortValueNumeric = string.IsNullOrEmpty(dr["effort_value_numeric"].ToString()) ? null : (double?)dr["effort_value_numeric"];
-                            item.EffortValueText = dr["effort_value_text"].ToString();
-                            thisList.Add(item);
+                            thisList.Clear();
+                            foreach (DataRow dr in dt.Rows)
+                            {
+                                VesselEffort item = new VesselEffort();
+                                item.PK = (int)dr["effort_row_id"];
+                                item.VesselUnloadID = (int)dr["v_unload_id"];
+                                item.EffortSpecID = (int)dr["effort_spec_id"];
+                                item.EffortValueNumeric = string.IsNullOrEmpty(dr["effort_value_numeric"].ToString()) ? null : (double?)dr["effort_value_numeric"];
+                                item.EffortValueText = dr["effort_value_text"].ToString();
+                                thisList.Add(item);
+                            }
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log(ex);
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
 
+                    }
                 }
-                return thisList;
+
             }
+            return thisList;
         }
 
         public bool Add(VesselEffort item)
@@ -107,7 +142,7 @@ namespace NSAP_ODK.Entities.Database
                         }
                         catch (OleDbException dbex)
                         {
-                            switch(dbex.ErrorCode)
+                            switch (dbex.ErrorCode)
                             {
                                 case -2147467259:
                                     //error due to duplicated key or index
@@ -216,11 +251,11 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                
+
                 using (OleDbCommand update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@id", OleDbType.Integer).Value = id;
-                    update.CommandText="Delete * from dbo_vessel_effort where effort_row_id=@id";
+                    update.CommandText = "Delete * from dbo_vessel_effort where effort_row_id=@id";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

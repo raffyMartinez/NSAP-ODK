@@ -15,9 +15,61 @@ namespace NSAP_ODK.Entities
         {
             Municipalities = getMunicipalities(province);
         }
+
+        private bool AddToMySQL(Municipality m)
+        {
+            bool success = false;
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+
+                conn.Open();
+                using (var update = conn.CreateCommand())
+                {
+                    update.Parameters.Add("@prv_no", MySqlDbType.Int32).Value = m.Province.ProvinceID;
+                    update.Parameters.Add("@name", MySqlDbType.VarChar).Value = m.MunicipalityName;
+
+
+                    if (m.Longitude == null)
+                    {
+                        update.Parameters.Add("@lon", MySqlDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@lon", MySqlDbType.Double).Value = m.Longitude;
+                    }
+                    if (m.Latitude == null)
+                    {
+                        update.Parameters.Add("@lat", MySqlDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@lat", MySqlDbType.Double).Value = m.Latitude;
+                    }
+                    update.Parameters.AddWithValue("@is_coastal", m.IsCoastal);
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = m.MunicipalityID;
+                    update.CommandText= @"Insert into municipalities(prov_no,municipality, x_coord, y_coord, is_coastal,mun_no)
+                                        Values (@prv_no,@name,@lon,@lat,@is_coastal,@id)";
+                    try
+                    {
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (MySqlException msex)
+                    {
+                        Logger.Log(msex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+
+            }
+            return success;
+        }
         private List<Municipality> getFromMySQL(Province province)
         {
             List<Municipality> thisList = new List<Municipality>();
+
 
             using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
@@ -47,6 +99,7 @@ namespace NSAP_ODK.Entities
                     }
                 }
             }
+
             return thisList;
         }
         public static int MunicipalityMaxRecordNumber()
@@ -133,45 +186,52 @@ namespace NSAP_ODK.Entities
         public bool Add(Municipality m)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-                var sql = "Insert into Municipalities(ProvNo, Municipality, xCoord, yCoord, IsCoastal,MunNo) Values (?,?,?,?,?,?)";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                success = AddToMySQL(m);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
-                    update.Parameters.Add("@prv_no", OleDbType.Integer).Value = m.Province.ProvinceID;
-                    update.Parameters.Add("@name", OleDbType.VarChar).Value = m.MunicipalityName;
+                    conn.Open();
+                    var sql = "Insert into Municipalities(ProvNo, Municipality, xCoord, yCoord, IsCoastal,MunNo) Values (?,?,?,?,?,?)";
+                    using (OleDbCommand update = new OleDbCommand(sql, conn))
+                    {
+                        update.Parameters.Add("@prv_no", OleDbType.Integer).Value = m.Province.ProvinceID;
+                        update.Parameters.Add("@name", OleDbType.VarChar).Value = m.MunicipalityName;
 
 
-                    if (m.Longitude == null)
-                    {
-                        update.Parameters.Add("@lon", OleDbType.Double).Value = DBNull.Value;
-                    }
-                    else
-                    {
-                        update.Parameters.Add("@lon", OleDbType.Double).Value = m.Longitude;
-                    }
-                    if (m.Latitude == null)
-                    {
-                        update.Parameters.Add("@lat", OleDbType.Double).Value = DBNull.Value;
-                    }
-                    else
-                    {
-                        update.Parameters.Add("@lat", OleDbType.Double).Value = m.Latitude;
-                    }
-                    update.Parameters.Add("@is_coastal", OleDbType.Boolean).Value = m.IsCoastal;
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = m.MunicipalityID;
-                    try
-                    {
-                        success = update.ExecuteNonQuery() > 0;
-                    }
-                    catch (OleDbException odbex)
-                    {
-                        Logger.Log(odbex);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
+                        if (m.Longitude == null)
+                        {
+                            update.Parameters.Add("@lon", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@lon", OleDbType.Double).Value = m.Longitude;
+                        }
+                        if (m.Latitude == null)
+                        {
+                            update.Parameters.Add("@lat", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@lat", OleDbType.Double).Value = m.Latitude;
+                        }
+                        update.Parameters.Add("@is_coastal", OleDbType.Boolean).Value = m.IsCoastal;
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = m.MunicipalityID;
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException odbex)
+                        {
+                            Logger.Log(odbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
                     }
                 }
             }

@@ -29,7 +29,7 @@ namespace NSAP_ODK.Entities
                     cmd.CommandText = "Select * from gps";
                     conn.Open();
                     MySqlDataReader dr = cmd.ExecuteReader();
-                    while(dr.Read())
+                    while (dr.Read())
                     {
                         GPS gps = new GPS();
                         gps.Code = dr["gps_code"].ToString();
@@ -180,31 +180,70 @@ namespace NSAP_ODK.Entities
                 return true;
             }
         }
+
+        private bool AddToMySQL(GPS gps)
+        {
+            bool success = false;
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.Parameters.AddWithValue("@code", gps.Code);
+                    cmd.Parameters.AddWithValue("@name", gps.AssignedName);
+                    cmd.Parameters.AddWithValue("@brand", gps.Brand);
+                    cmd.Parameters.AddWithValue("@model", gps.Model);
+                    cmd.Parameters.AddWithValue("@type", (int)gps.DeviceType);
+                    cmd.CommandText = @"Insert into gps (gps_code, assigned_name, brand, model, device_type)
+                                    values (@code, @name, @brand, @model, @type)";
+                    conn.Open();
+                    try
+                    {
+                        success = cmd.ExecuteNonQuery() > 0;
+                    }
+                    catch(MySqlException msex)
+                    {
+
+                    }
+                    catch(Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
         public bool Add(GPS gps)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-                var sql = "Insert into gps(GPSCode,AssignedName,Brand,Model,DeviceType) Values (?,?,?,?,?)";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                success = AddToMySQL(gps);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
-                    update.Parameters.Add("@code", OleDbType.VarChar).Value = gps.Code;
-                    update.Parameters.Add("@name", OleDbType.VarChar).Value = gps.AssignedName;
-                    update.Parameters.Add("@brand", OleDbType.VarChar).Value = gps.Brand;
-                    update.Parameters.Add("@model", OleDbType.VarChar).Value = gps.Model;
-                    update.Parameters.Add("@device_type", OleDbType.Integer).Value = (int)gps.DeviceType;
-                    try
+                    conn.Open();
+                    var sql = "Insert into gps(GPSCode,AssignedName,Brand,Model,DeviceType) Values (?,?,?,?,?)";
+                    using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
-                        success = update.ExecuteNonQuery() > 0;
-                    }
-                    catch (OleDbException dbex)
-                    {
-                        Logger.Log(dbex);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
+                        update.Parameters.Add("@code", OleDbType.VarChar).Value = gps.Code;
+                        update.Parameters.Add("@name", OleDbType.VarChar).Value = gps.AssignedName;
+                        update.Parameters.Add("@brand", OleDbType.VarChar).Value = gps.Brand;
+                        update.Parameters.Add("@model", OleDbType.VarChar).Value = gps.Model;
+                        update.Parameters.Add("@device_type", OleDbType.Integer).Value = (int)gps.DeviceType;
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
                     }
                 }
             }

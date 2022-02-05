@@ -124,48 +124,103 @@ namespace NSAP_ODK.Entities
             return listLandingSites;
         }
 
-
-        public bool Add(LandingSite ls)
+        private bool AddToMySQL(LandingSite ls)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-                var sql = "Insert into LandingSite (LandingSiteID, LandingSiteName,Municipality,Longitude,Latitude,Barangay) Values (?,?,?,?,?,?)";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                using (var update = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = ls.LandingSiteID;
-                    update.Parameters.Add("@name", OleDbType.VarChar).Value = ls.LandingSiteName;
-                    update.Parameters.Add("@muni", OleDbType.Integer).Value = ls.Municipality.MunicipalityID;
-                    if(ls.Longitude==null || ls.Latitude==null)
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = ls.LandingSiteID;
+                    update.Parameters.Add("@name", MySqlDbType.VarChar).Value = ls.LandingSiteName;
+                    update.Parameters.Add("@muni", MySqlDbType.Int32).Value = ls.Municipality.MunicipalityID;
+                    if (ls.Longitude == null || ls.Latitude == null)
                     {
-                        update.Parameters.Add("@lon", OleDbType.Double).Value = DBNull.Value;
-                        update.Parameters.Add("@lat", OleDbType.Double).Value = DBNull.Value;
+                        update.Parameters.Add("@lon", MySqlDbType.Double).Value = DBNull.Value;
+                        update.Parameters.Add("@lat", MySqlDbType.Double).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@lon", OleDbType.Double).Value = ls.Longitude;
-                        update.Parameters.Add("@lat", OleDbType.Double).Value = ls.Latitude;
+                        update.Parameters.Add("@lon", MySqlDbType.Double).Value = ls.Longitude;
+                        update.Parameters.Add("@lat", MySqlDbType.Double).Value = ls.Latitude;
                     }
                     if (ls.Barangay == null)
                     {
-                        update.Parameters.Add("@brgy", OleDbType.VarChar).Value = DBNull.Value;
+                        update.Parameters.Add("@brgy", MySqlDbType.VarChar).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@brgy", OleDbType.VarChar).Value = ls.Barangay;
+                        update.Parameters.Add("@brgy", MySqlDbType.VarChar).Value = ls.Barangay;
                     }
+                    update.CommandText =@"Insert into landing_sites (landing_site_id, landing_site_name,municipality,longitude,latitude,barangay) 
+                                         Values (@id,@name,@muni,@lon,@lat,@brgy)";
+                    conn.Open();
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch(OleDbException dbex)
+                    catch (MySqlException msex)
                     {
-                        Logger.Log(dbex);
+                        Logger.Log(msex);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Logger.Log(ex);
+                    }
+
+                }
+            }
+            return success;
+        }
+        public bool Add(LandingSite ls)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = AddToMySQL(ls);
+            }
+            else
+            {
+
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    var sql = "Insert into LandingSite (LandingSiteID, LandingSiteName,Municipality,Longitude,Latitude,Barangay) Values (?,?,?,?,?,?)";
+                    using (OleDbCommand update = new OleDbCommand(sql, conn))
+                    {
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = ls.LandingSiteID;
+                        update.Parameters.Add("@name", OleDbType.VarChar).Value = ls.LandingSiteName;
+                        update.Parameters.Add("@muni", OleDbType.Integer).Value = ls.Municipality.MunicipalityID;
+                        if (ls.Longitude == null || ls.Latitude == null)
+                        {
+                            update.Parameters.Add("@lon", OleDbType.Double).Value = DBNull.Value;
+                            update.Parameters.Add("@lat", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@lon", OleDbType.Double).Value = ls.Longitude;
+                            update.Parameters.Add("@lat", OleDbType.Double).Value = ls.Latitude;
+                        }
+                        if (ls.Barangay == null)
+                        {
+                            update.Parameters.Add("@brgy", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@brgy", OleDbType.VarChar).Value = ls.Barangay;
+                        }
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
                     }
                 }
             }

@@ -57,7 +57,7 @@ namespace NSAP_ODK.Entities
                     try
                     {
                         conection.Open();
-                        string query = $"Select * from effortSpecification";
+                        string query = "Select * from effortSpecification";
 
 
                         var adapter = new OleDbDataAdapter(query, conection);
@@ -82,23 +82,26 @@ namespace NSAP_ODK.Entities
 
                     }
                 }
-                
+
             }
             return theList;
         }
-        public bool Add(EffortSpecification es)
+        private bool AddToMySQL(EffortSpecification es)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
                 conn.Open();
-                var sql = "Insert into effortSpecification(EffortSpecificationID, EffortSpecification, ForAllTypeOfFishing, ValueType) Values (?,?,?,?)";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                using (var update = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = es.ID;
-                    update.Parameters.Add("@effort_spec", OleDbType.VarChar).Value = es.Name;
-                    update.Parameters.Add("@is_for_all", OleDbType.Boolean).Value = es.IsForAllTypesFishing;
-                    update.Parameters.Add("@type", OleDbType.Integer).Value = (int)es.ValueType;
+
+
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = es.ID;
+                    update.Parameters.Add("@effort_spec", MySqlDbType.VarChar).Value = es.Name;
+                    update.Parameters.AddWithValue("@is_for_all", es.IsForAllTypesFishing);
+                    update.Parameters.Add("@type", MySqlDbType.Int32).Value = (int)es.ValueType;
+                    update.CommandText = @"Insert into effort_specification(effort_specification_id, effort_specification, for_all_types_of_fishing, value_type)
+                                            Values (@id,@effort_spec,@is_for_all,@type)";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;
@@ -110,6 +113,43 @@ namespace NSAP_ODK.Entities
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
+                    }
+
+                }
+            }
+            return success;
+        }
+        public bool Add(EffortSpecification es)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = AddToMySQL(es);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    var sql = "Insert into effortSpecification(EffortSpecificationID, EffortSpecification, ForAllTypeOfFishing, ValueType) Values (?,?,?,?)";
+                    using (OleDbCommand update = new OleDbCommand(sql, conn))
+                    {
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = es.ID;
+                        update.Parameters.Add("@effort_spec", OleDbType.VarChar).Value = es.Name;
+                        update.Parameters.Add("@is_for_all", OleDbType.Boolean).Value = es.IsForAllTypesFishing;
+                        update.Parameters.Add("@type", OleDbType.Integer).Value = (int)es.ValueType;
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
                     }
                 }
             }

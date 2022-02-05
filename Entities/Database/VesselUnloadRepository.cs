@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Data.OleDb;
 using NSAP_ODK.Utilities;
+using MySql.Data.MySqlClient;
+using NSAP_ODK.NSAPMysql;
 namespace NSAP_ODK.Entities.Database
 {
     class VesselUnloadRepository
@@ -179,69 +181,129 @@ namespace NSAP_ODK.Entities.Database
             return null;
         }
 
+        private List<VesselUnload> getFromMySQL()
+        {
+            List<VesselUnload> thisList = new List<VesselUnload>();
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    conn.Open();
+                    cmd.CommandText = @"SELECT dvu.*, dvu1.* FROM dbo_vessel_unload As dvu
+                        INNER JOIN dbo_vessel_unload_1 As dvu1 ON dvu.v_unload_id = dvu1.v_unload_id;";
+
+                    MySqlDataReader dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        VesselUnload item = new VesselUnload();
+                        item.PK = (int)dr["dvu.v_unload_id"];
+                        item.GearUnloadID = (int)dr["unload_gr_id"];
+                        item.IsBoatUsed = (bool)dr["is_boat_used"];
+                        item.VesselID = string.IsNullOrEmpty(dr["boat_id"].ToString()) ? null : (int?)dr["boat_id"];
+                        item.VesselText = dr["boat_text"].ToString();
+                        item.SectorCode = dr["sector_code"].ToString();
+                        item.WeightOfCatch = string.IsNullOrEmpty(dr["catch_total"].ToString()) ? null : (double?)dr["catch_total"];
+                        item.WeightOfCatchSample = string.IsNullOrEmpty(dr["catch_samp"].ToString()) ? null : (double?)dr["catch_samp"];
+                        item.Boxes = string.IsNullOrEmpty(dr["boxes_total"].ToString()) ? null : (int?)dr["boxes_total"];
+                        item.BoxesSampled = string.IsNullOrEmpty(dr["boxes_samp"].ToString()) ? null : (int?)dr["boxes_samp"];
+                        item.RaisingFactor = dr["raising_factor"] == DBNull.Value ? null : (double?)dr["raising_factor"];
+                        item.NSAPEnumeratorID = string.IsNullOrEmpty(dr["enumerator_id"].ToString()) ? null : (int?)dr["enumerator_id"];
+                        item.EnumeratorText = dr["enumerator_text"].ToString();
+
+                        item.OperationIsSuccessful = (bool)dr["success"];
+                        item.OperationIsTracked = (bool)dr["tracked"];
+                        item.ODKRowID = dr["row_id"].ToString();
+                        item.DepartureFromLandingSite = string.IsNullOrEmpty(dr["departure_landing_site"].ToString()) ? null : (DateTime?)dr["departure_landing_site"];
+                        item.ArrivalAtLandingSite = string.IsNullOrEmpty(dr["arrival_landing_site"].ToString()) ? null : (DateTime?)dr["arrival_landing_site"];
+                        item.XFormIdentifier = dr["xform_identifier"].ToString();
+                        item.XFormDate = dr["xform_date"] == DBNull.Value ? null : (DateTime?)dr["xform_date"];
+                        item.UserName = dr["user_name"].ToString();
+                        item.DeviceID = dr["device_id"].ToString();
+                        item.DateTimeSubmitted = (DateTime)dr["datetime_submitted"];
+                        item.FormVersion = dr["form_version"].ToString();
+                        item.GPSCode = dr["gps"].ToString();
+                        item.SamplingDate = (DateTime)dr["sampling_date"];
+                        item.Notes = dr["notes"].ToString();
+                        item.DateAddedToDatabase = dr["date_added"] == DBNull.Value ? null : (DateTime?)dr["date_added"];
+                        item.FromExcelDownload = (bool)dr["from_excel_download"];
+
+                        thisList.Add(item);
+                    }
+                }
+            }
+            return thisList;
+        }
         private List<VesselUnload> getVesselUnloads()
         {
             List<VesselUnload> thisList = new List<VesselUnload>();
-            var dt = new DataTable();
-            using (var conection = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                try
+                thisList = getFromMySQL();
+            }
+            else
+            {
+                var dt = new DataTable();
+                using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    conection.Open();
-                    string query = @"SELECT dbo_vessel_unload.*, dbo_vessel_unload_1.* FROM dbo_vessel_unload 
+                    try
+                    {
+                        conection.Open();
+                        string query = @"SELECT dbo_vessel_unload.*, dbo_vessel_unload_1.* FROM dbo_vessel_unload 
                         INNER JOIN dbo_vessel_unload_1 ON dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id;";
 
 
-                    var adapter = new OleDbDataAdapter(query, conection);
-                    adapter.Fill(dt);
-                    if (dt.Rows.Count > 0)
-                    {
-                        thisList.Clear();
-                        foreach (DataRow dr in dt.Rows)
+                        var adapter = new OleDbDataAdapter(query, conection);
+                        adapter.Fill(dt);
+                        if (dt.Rows.Count > 0)
                         {
-                            VesselUnload item = new VesselUnload();
-                            item.PK = (int)dr["dbo_vessel_unload.v_unload_id"];
-                            item.GearUnloadID = (int)dr["unload_gr_id"];
-                            item.IsBoatUsed = (bool)dr["is_boat_used"];
-                            item.VesselID = string.IsNullOrEmpty(dr["boat_id"].ToString()) ? null : (int?)dr["boat_id"];
-                            item.VesselText = dr["boat_text"].ToString();
-                            item.SectorCode = dr["sector_code"].ToString();
-                            item.WeightOfCatch = string.IsNullOrEmpty(dr["catch_total"].ToString()) ? null : (double?)dr["catch_total"];
-                            item.WeightOfCatchSample = string.IsNullOrEmpty(dr["catch_samp"].ToString()) ? null : (double?)dr["catch_samp"];
-                            item.Boxes = string.IsNullOrEmpty(dr["boxes_total"].ToString()) ? null : (int?)dr["boxes_total"];
-                            item.BoxesSampled = string.IsNullOrEmpty(dr["boxes_samp"].ToString()) ? null : (int?)dr["boxes_samp"];
-                            item.RaisingFactor = dr["raising_factor"] == DBNull.Value ? null : (double?)dr["raising_factor"];
-                            item.NSAPEnumeratorID = string.IsNullOrEmpty(dr["EnumeratorID"].ToString()) ? null : (int?)dr["EnumeratorID"];
-                            item.EnumeratorText = dr["EnumeratorText"].ToString();
+                            thisList.Clear();
+                            foreach (DataRow dr in dt.Rows)
+                            {
+                                VesselUnload item = new VesselUnload();
+                                item.PK = (int)dr["dbo_vessel_unload.v_unload_id"];
+                                item.GearUnloadID = (int)dr["unload_gr_id"];
+                                item.IsBoatUsed = (bool)dr["is_boat_used"];
+                                item.VesselID = string.IsNullOrEmpty(dr["boat_id"].ToString()) ? null : (int?)dr["boat_id"];
+                                item.VesselText = dr["boat_text"].ToString();
+                                item.SectorCode = dr["sector_code"].ToString();
+                                item.WeightOfCatch = string.IsNullOrEmpty(dr["catch_total"].ToString()) ? null : (double?)dr["catch_total"];
+                                item.WeightOfCatchSample = string.IsNullOrEmpty(dr["catch_samp"].ToString()) ? null : (double?)dr["catch_samp"];
+                                item.Boxes = string.IsNullOrEmpty(dr["boxes_total"].ToString()) ? null : (int?)dr["boxes_total"];
+                                item.BoxesSampled = string.IsNullOrEmpty(dr["boxes_samp"].ToString()) ? null : (int?)dr["boxes_samp"];
+                                item.RaisingFactor = dr["raising_factor"] == DBNull.Value ? null : (double?)dr["raising_factor"];
+                                item.NSAPEnumeratorID = string.IsNullOrEmpty(dr["EnumeratorID"].ToString()) ? null : (int?)dr["EnumeratorID"];
+                                item.EnumeratorText = dr["EnumeratorText"].ToString();
 
-                            item.OperationIsSuccessful = (bool)dr["Success"];
-                            item.OperationIsTracked = (bool)dr["Tracked"];
-                            item.ODKRowID = dr["RowID"].ToString();
-                            item.DepartureFromLandingSite = string.IsNullOrEmpty(dr["DepartureLandingSite"].ToString()) ? null : (DateTime?)dr["DepartureLandingSite"];
-                            item.ArrivalAtLandingSite = string.IsNullOrEmpty(dr["ArrivalLandingSite"].ToString()) ? null : (DateTime?)dr["ArrivalLandingSite"];
-                            item.XFormIdentifier = dr["XFormIdentifier"].ToString();
-                            item.XFormDate = dr["XFormDate"] == DBNull.Value ? null : (DateTime?)dr["XFormDate"];
-                            item.UserName = dr["user_name"].ToString();
-                            item.DeviceID = dr["device_id"].ToString();
-                            item.DateTimeSubmitted = (DateTime)dr["datetime_submitted"];
-                            item.FormVersion = dr["form_version"].ToString();
-                            item.GPSCode = dr["GPS"].ToString();
-                            item.SamplingDate = (DateTime)dr["SamplingDate"];
-                            item.Notes = dr["Notes"].ToString();
-                            item.DateAddedToDatabase = dr["DateAdded"] == DBNull.Value ? null : (DateTime?)dr["DateAdded"];
-                            item.FromExcelDownload = (bool)dr["FromExcelDownload"];
-                            
-                            thisList.Add(item);
+                                item.OperationIsSuccessful = (bool)dr["Success"];
+                                item.OperationIsTracked = (bool)dr["Tracked"];
+                                item.ODKRowID = dr["RowID"].ToString();
+                                item.DepartureFromLandingSite = string.IsNullOrEmpty(dr["DepartureLandingSite"].ToString()) ? null : (DateTime?)dr["DepartureLandingSite"];
+                                item.ArrivalAtLandingSite = string.IsNullOrEmpty(dr["ArrivalLandingSite"].ToString()) ? null : (DateTime?)dr["ArrivalLandingSite"];
+                                item.XFormIdentifier = dr["XFormIdentifier"].ToString();
+                                item.XFormDate = dr["XFormDate"] == DBNull.Value ? null : (DateTime?)dr["XFormDate"];
+                                item.UserName = dr["user_name"].ToString();
+                                item.DeviceID = dr["device_id"].ToString();
+                                item.DateTimeSubmitted = (DateTime)dr["datetime_submitted"];
+                                item.FormVersion = dr["form_version"].ToString();
+                                item.GPSCode = dr["GPS"].ToString();
+                                item.SamplingDate = (DateTime)dr["SamplingDate"];
+                                item.Notes = dr["Notes"].ToString();
+                                item.DateAddedToDatabase = dr["DateAdded"] == DBNull.Value ? null : (DateTime?)dr["DateAdded"];
+                                item.FromExcelDownload = (bool)dr["FromExcelDownload"];
+
+                                thisList.Add(item);
+                            }
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log(ex);
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
 
+                    }
                 }
-                return thisList;
+
             }
+            return thisList;
         }
 
         public bool Add(VesselUnload item)
@@ -254,7 +316,7 @@ namespace NSAP_ODK.Entities.Database
 
                 var sql = @"Insert into dbo_vessel_unload(v_unload_id, unload_gr_id,boat_id, boat_text, raising_factor,
                             catch_total,catch_samp,boxes_total,boxes_samp,is_boat_used)
-                           Values (?,?,?,?,?,?,?,?,?,?)";       
+                           Values (?,?,?,?,?,?,?,?,?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
 
@@ -275,7 +337,7 @@ namespace NSAP_ODK.Entities.Database
                         {
                             update.Parameters.Add("@vesselid", OleDbType.Integer).Value = DBNull.Value;
                             vesselText = ((int)item.VesselID).ToString();
-                            if(item.Notes==null)
+                            if (item.Notes == null)
                             {
                                 item.Notes = "(orphaned vessel ID)";
                             }
@@ -294,8 +356,8 @@ namespace NSAP_ODK.Entities.Database
                     {
                         update.Parameters.Add("@vesseltext", OleDbType.VarChar).Value = vesselText;
                     }
-                    
-                    if(item.RaisingFactor==null)
+
+                    if (item.RaisingFactor == null)
                     {
                         update.Parameters.Add("@raisingfactor", OleDbType.Double).Value = DBNull.Value;
                     }
@@ -408,7 +470,7 @@ namespace NSAP_ODK.Entities.Database
                                 update1.Parameters.Add("@form_version", OleDbType.VarChar).Value = item.FormVersion;
 
 
-                                if (item.GPSCode == null )
+                                if (item.GPSCode == null)
                                 {
                                     update1.Parameters.Add("@gps", OleDbType.VarChar).Value = "";
                                 }
@@ -429,9 +491,9 @@ namespace NSAP_ODK.Entities.Database
                                     update1.Parameters.Add("@enumerator", OleDbType.Integer).Value = item.NSAPEnumeratorID; ;
                                 }
 
-                                string en_text = item.EnumeratorText== null ? "" : item.EnumeratorText;
+                                string en_text = item.EnumeratorText == null ? "" : item.EnumeratorText;
                                 update1.Parameters.Add("@enumerator_text", OleDbType.VarChar).Value = en_text;
-                                
+
                                 update1.Parameters.Add("@date_added", OleDbType.Date).Value = item.DateAddedToDatabase;
 
                                 string sector = item.SectorCode == null ? "" : item.SectorCode;
@@ -439,7 +501,7 @@ namespace NSAP_ODK.Entities.Database
 
                                 update1.Parameters.Add("@from_excel", OleDbType.Boolean).Value = item.FromExcelDownload;
 
-                                
+
                                 try
                                 {
                                     success = update1.ExecuteNonQuery() > 0;
@@ -468,7 +530,7 @@ namespace NSAP_ODK.Entities.Database
                         switch (odbex.ErrorCode)
                         {
                             case -2147467259:
-                                switch(odbex.Message)
+                                switch (odbex.Message)
                                 {
                                     case "You cannot add or change a record because a related record is required in table 'fishingVessel'.":
                                         break;
@@ -498,7 +560,7 @@ namespace NSAP_ODK.Entities.Database
         {
             int s1 = errorMessage.IndexOf("name: '");
             int s2 = errorMessage.IndexOf("'.  Make");
-            string newField = errorMessage.Substring(s1 + 7, s2-(s1+7));
+            string newField = errorMessage.Substring(s1 + 7, s2 - (s1 + 7));
             int y;
         }
 
@@ -521,8 +583,8 @@ namespace NSAP_ODK.Entities.Database
                         cmd.Parameters.Add("@Boat_ID", OleDbType.Integer).Value = item.VesselID;
                     }
                     cmd.Parameters.Add("@Boat_text", OleDbType.VarChar).Value = item.VesselText;
-                    
-                    if(item.RaisingFactor==null)
+
+                    if (item.RaisingFactor == null)
                     {
                         cmd.Parameters.Add("@Raising_factor", OleDbType.Double).Value = DBNull.Value;
                     }
@@ -531,7 +593,7 @@ namespace NSAP_ODK.Entities.Database
                         cmd.Parameters.Add("@Raising_factor", OleDbType.Double).Value = item.RaisingFactor;
                     }
 
-                    if(item.WeightOfCatch==null)
+                    if (item.WeightOfCatch == null)
                     {
                         cmd.Parameters.Add("@Weight_catch", OleDbType.Double).Value = DBNull.Value;
                     }
@@ -540,7 +602,7 @@ namespace NSAP_ODK.Entities.Database
                         cmd.Parameters.Add("@Weight_catch", OleDbType.Double).Value = item.WeightOfCatch;
                     }
 
-                    if(item.WeightOfCatchSample==null)
+                    if (item.WeightOfCatchSample == null)
                     {
                         cmd.Parameters.Add("@Weight_sample", OleDbType.Double).Value = DBNull.Value;
                     }
@@ -549,7 +611,7 @@ namespace NSAP_ODK.Entities.Database
                         cmd.Parameters.Add("@Weight_sample", OleDbType.Double).Value = item.WeightOfCatchSample;
                     }
 
-                    if(item.Boxes==null)
+                    if (item.Boxes == null)
                     {
                         cmd.Parameters.Add("@Boxes_count", OleDbType.Integer).Value = DBNull.Value;
                     }
@@ -629,7 +691,7 @@ namespace NSAP_ODK.Entities.Database
                             cmd_1.Parameters.Add("@Form_version", OleDbType.VarChar).Value = item.FormVersion;
                             if (item.GPSCode == null)
                             {
-                                 cmd_1.Parameters.Add("@GPS_code", OleDbType.VarChar).Value = DBNull.Value;
+                                cmd_1.Parameters.Add("@GPS_code", OleDbType.VarChar).Value = DBNull.Value;
                             }
                             else
                             {
@@ -686,12 +748,12 @@ namespace NSAP_ODK.Entities.Database
                             {
                                 success = cmd_1.ExecuteNonQuery() > 0;
                             }
-                            catch(OleDbException dbex)
+                            catch (OleDbException dbex)
                             {
                                 Logger.Log(dbex);
                                 //ignore
                             }
-                            catch(Exception ex)
+                            catch (Exception ex)
                             {
                                 Logger.Log(ex);
                             }
@@ -762,23 +824,23 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                
+
                 using (OleDbCommand update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@id", OleDbType.Integer).Value = id;
-                    update.CommandText="Delete * from dbo_vessel_unload_1 where v_unload_id=@id";
+                    update.CommandText = "Delete * from dbo_vessel_unload_1 where v_unload_id=@id";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;
-                
+
                         using (OleDbCommand update1 = conn.CreateCommand())
                         {
                             update1.Parameters.Add("@id", OleDbType.Integer).Value = id;
                             update1.CommandText = "Delete * from dbo_vessel_unload where v_unload_id=@id";
                             try
                             {
-                                success = update1.ExecuteNonQuery()>0;
-                                
+                                success = update1.ExecuteNonQuery() > 0;
+
                             }
                             catch (OleDbException odbex)
                             {

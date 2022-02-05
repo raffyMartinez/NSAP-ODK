@@ -39,6 +39,54 @@ namespace NSAP_ODK.Entities.Database
         private List<LandingSiteSampling> getFromMySQL()
         {
             List<LandingSiteSampling> thisList = new List<LandingSiteSampling>();
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    conn.Open();
+                    cmd.CommandText = @"SELECT lc.*, 
+                                        lc1.datetime_submitted, 
+                                        lc1.user_name, 
+                                        lc1.device_id, 
+                                        lc1.xform_identifier, 
+                                        lc1.date_added, 
+                                        lc1.from_excel_download, 
+                                        lc1.form_version, 
+                                        lc1.row_id, 
+                                        lc1.enumerator_id, 
+                                        lc1.enumerator_text
+                                        FROM dbo_LC_FG_sample_day As lc
+                                            LEFT JOIN dbo_lc_fg_sample_day_1 AS lc1
+                                            ON lc.unload_day_id = lc1.unload_day_id";
+
+                    MySqlDataReader dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        LandingSiteSampling item = new LandingSiteSampling();
+                        item.PK = (int)dr["unload_day_id"];
+                        item.NSAPRegionID = dr["region_id"].ToString();
+                        item.SamplingDate = (DateTime)dr["sdate"];
+                        //item.LandingSiteID = string.IsNullOrEmpty( dr["land_ctr_id"].ToString())?null:(int?)dr["land_ctr_id"];
+                        item.LandingSiteID = dr["land_ctr_id"] == DBNull.Value ? null : (int?)dr["land_ctr_id"];
+                        item.FishingGroundID = dr["ground_id"].ToString();
+                        item.Remarks = dr["remarks"].ToString();
+                        item.IsSamplingDay = (bool)dr["is_sample-day"];
+                        item.LandingSiteText = dr["land_ctr_text"].ToString();
+                        item.FMAID = (int)dr["fma"];
+                        item.DateSubmitted = dr["datetime_submitted"] == DBNull.Value ? null : (DateTime?)dr["datetime_submitted"];
+                        item.UserName = dr["user_name"].ToString();
+                        item.DeviceID = dr["device_id"].ToString();
+                        item.XFormIdentifier = dr["xform_identifier"].ToString();
+                        item.DateAdded = dr["date_added"] == DBNull.Value ? null : (DateTime?)dr["DateAdded"];
+                        item.FromExcelDownload = dr["from_excel_download"] == DBNull.Value ? false : (bool)dr["FromExcelDownload"];
+                        item.FormVersion = dr["form_version"].ToString();
+                        item.RowID = dr["row_id"].ToString();
+                        item.EnumeratorID = dr["enumerator_id"] == DBNull.Value ? null : (int?)int.Parse(dr["EnumeratorID"].ToString());
+                        item.EnumeratorText = dr["enumerator_text"].ToString();
+                        thisList.Add(item);
+                    }
+                }
+            }
             return thisList;
         }
         private List<LandingSiteSampling> getLandingSiteSamplings()

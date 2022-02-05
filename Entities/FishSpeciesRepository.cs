@@ -151,86 +151,181 @@ namespace NSAP_ODK.Entities
         {
             return false;
         }
+        private bool AddToMySQL(FishSpecies fishSpecies)
+        {
+            bool success = false;
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var update = conn.CreateCommand())
+                {
+                    update.Parameters.Add("@row_no", MySqlDbType.Int32).Value = fishSpecies.RowNumber;
+                    update.Parameters.Add("@genus", MySqlDbType.VarChar).Value = fishSpecies.GenericName;
+                    update.Parameters.Add("@species", MySqlDbType.VarChar).Value = fishSpecies.SpecificName;
+                    if (fishSpecies.SpeciesCode == null)
+                    {
+                        update.Parameters.Add("@sp_code", MySqlDbType.Int32).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@sp_code", MySqlDbType.Int32).Value = fishSpecies.SpeciesCode;
+                    }
+                    if (fishSpecies.Importance == null)
+                    {
+                        update.Parameters.Add("@importance", MySqlDbType.VarChar).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@importance", MySqlDbType.VarChar).Value = fishSpecies.Importance;
+                    }
+                    update.Parameters.Add("@family", MySqlDbType.VarChar).Value = fishSpecies.Family;
+                    if (fishSpecies.MainCatchingMethod == null)
+                    {
+                        update.Parameters.Add("@catch_method", MySqlDbType.VarChar).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@catch_method", MySqlDbType.VarChar).Value = fishSpecies.MainCatchingMethod;
+                    }
+                    if (fishSpecies.LengthCommon == null)
+                    {
+                        update.Parameters.Add("@len_common", MySqlDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@len_common", MySqlDbType.Double).Value = fishSpecies.LengthCommon;
+                    }
+                    if (fishSpecies.LengthMax == null)
+                    {
+                        update.Parameters.Add("@len_max", MySqlDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@len_max", MySqlDbType.Double).Value = fishSpecies.LengthMax;
+                    }
+                    if (fishSpecies.LengthType == null)
+                    {
+                        update.Parameters.Add("@len_type", MySqlDbType.VarChar).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@len_type", MySqlDbType.VarChar).Value = fishSpecies.LengthType.Code;
+                    }
+                    update.CommandText = @"Insert into ph_fish (row_no, genus,species,
+                                                 species_id,importance,family,
+                                                 main_catching_method,length_common,
+                                                 length_max,length_type) Values
+                                                 (@row_no,@genus,@species,@sp_code,@importance,@family,@catch_method,@len_common,@len_max,@len_type)";
+                    try
+                    {
+                        conn.Open();
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (MySqlException msex)
+                    {
+                        switch (msex.ErrorCode)
+                        {
+                            case -2147467259:
+                                //duplicated unique index error
+                                break;
+                            default:
+                                Logger.Log(msex);
+                                break;
+                        }
 
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
         public bool Add(FishSpecies fishSpecies)
         {
             bool success = false;
-
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
+                success = AddToMySQL(fishSpecies);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
 
-                var sql = @"Insert into phFish (RowNo, Genus,Species,
+                    var sql = @"Insert into phFish (RowNo, Genus,Species,
                                                  SpeciesID,Importance,Family,
                                                  MainCatchingMethod,LengthCommon,
                                                  LengthMax,LengthType) Values
                                                  (?,?,?,?,?,?,?,?,?,?)";
 
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
-                {
-                    update.Parameters.Add("@row_no", OleDbType.Integer).Value = fishSpecies.RowNumber;
-                    update.Parameters.Add("@genus", OleDbType.VarChar).Value = fishSpecies.GenericName;
-                    update.Parameters.Add("@species", OleDbType.VarChar).Value = fishSpecies.SpecificName;
-                    if (fishSpecies.SpeciesCode == null)
+                    using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
-                        update.Parameters.Add("@sp_code", OleDbType.Integer).Value = DBNull.Value;
-                    }
-                    else
-                    {
-                        update.Parameters.Add("@sp_code", OleDbType.Integer).Value = fishSpecies.SpeciesCode;
-                    }
-                    if (fishSpecies.Importance == null)
-                    {
-                        update.Parameters.Add("@importance", OleDbType.VarChar).Value = DBNull.Value;
-                    }
-                    else
-                    {
-                        update.Parameters.Add("@importance", OleDbType.VarChar).Value = fishSpecies.Importance;
-                    }
-                    update.Parameters.Add("@family", OleDbType.VarChar).Value = fishSpecies.Family;
-                    if (fishSpecies.MainCatchingMethod == null)
-                    {
-                        update.Parameters.Add("@catch_method", OleDbType.VarChar).Value = DBNull.Value;
-                    }
-                    else
-                    {
-                        update.Parameters.Add("@catch_method", OleDbType.VarChar).Value = fishSpecies.MainCatchingMethod;
-                    }
-                    if (fishSpecies.LengthCommon == null)
-                    {
-                        update.Parameters.Add("@len_common", OleDbType.Double).Value = DBNull.Value;
-                    }
-                    else
-                    {
-                        update.Parameters.Add("@len_common", OleDbType.Double).Value = fishSpecies.LengthCommon;
-                    }
-                    if (fishSpecies.LengthMax == null)
-                    {
-                        update.Parameters.Add("@len_max", OleDbType.Double).Value = DBNull.Value;
-                    }
-                    else
-                    {
-                        update.Parameters.Add("@len_max", OleDbType.Double).Value = fishSpecies.LengthMax;
-                    }
-                    if (fishSpecies.LengthType == null)
-                    {
-                        update.Parameters.Add("@len_type", OleDbType.VarChar).Value = DBNull.Value;
-                    }
-                    else
-                    {
-                        update.Parameters.Add("@len_type", OleDbType.VarChar).Value = fishSpecies.LengthType.Code;
-                    }
-                    try
-                    {
-                        success = update.ExecuteNonQuery() > 0;
-                    }
-                    catch (OleDbException dbex)
-                    {
-                        Logger.Log(dbex);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
+                        update.Parameters.Add("@row_no", OleDbType.Integer).Value = fishSpecies.RowNumber;
+                        update.Parameters.Add("@genus", OleDbType.VarChar).Value = fishSpecies.GenericName;
+                        update.Parameters.Add("@species", OleDbType.VarChar).Value = fishSpecies.SpecificName;
+                        if (fishSpecies.SpeciesCode == null)
+                        {
+                            update.Parameters.Add("@sp_code", OleDbType.Integer).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@sp_code", OleDbType.Integer).Value = fishSpecies.SpeciesCode;
+                        }
+                        if (fishSpecies.Importance == null)
+                        {
+                            update.Parameters.Add("@importance", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@importance", OleDbType.VarChar).Value = fishSpecies.Importance;
+                        }
+                        update.Parameters.Add("@family", OleDbType.VarChar).Value = fishSpecies.Family;
+                        if (fishSpecies.MainCatchingMethod == null)
+                        {
+                            update.Parameters.Add("@catch_method", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@catch_method", OleDbType.VarChar).Value = fishSpecies.MainCatchingMethod;
+                        }
+                        if (fishSpecies.LengthCommon == null)
+                        {
+                            update.Parameters.Add("@len_common", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@len_common", OleDbType.Double).Value = fishSpecies.LengthCommon;
+                        }
+                        if (fishSpecies.LengthMax == null)
+                        {
+                            update.Parameters.Add("@len_max", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@len_max", OleDbType.Double).Value = fishSpecies.LengthMax;
+                        }
+                        if (fishSpecies.LengthType == null)
+                        {
+                            update.Parameters.Add("@len_type", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@len_type", OleDbType.VarChar).Value = fishSpecies.LengthType.Code;
+                        }
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
                     }
                 }
             }

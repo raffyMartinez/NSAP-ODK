@@ -81,38 +81,94 @@ namespace NSAP_ODK.Entities
             }
             return listGears;
         }
-        public bool Add(Gear g)
+
+        private bool AddToMySQL(Gear g)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
                 conn.Open();
-                var sql = "Insert into gear (GearName,GearCode,GenericCode,IsGeneric) Values (?,?,?,?)";
-
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                using (var update = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@gearName", OleDbType.VarChar).Value = g.GearName;
-                    update.Parameters.Add("@gearcode", OleDbType.VarChar).Value = g.Code;
+                    update.Parameters.Add("@gearName", MySqlDbType.VarChar).Value = g.GearName;
+                    update.Parameters.Add("@gearcode", MySqlDbType.VarChar).Value = g.Code;
+
                     if (g.BaseGear == null)
                     {
-                        update.Parameters.Add("genericcode", OleDbType.VarChar).Value = DBNull.Value;
+                        update.Parameters.Add("@genericcode", MySqlDbType.VarChar).Value = g.CodeOfBaseGear;
                     }
                     else
                     {
-                        update.Parameters.Add("@genericcode", OleDbType.VarChar).Value = g.BaseGear.Code;
+                        update.Parameters.Add("@genericcode", MySqlDbType.VarChar).Value = g.BaseGear.Code;
                     }
-                    update.Parameters.Add("@isgeneric", OleDbType.Boolean).Value = g.IsGenericGear;
+                    update.Parameters.AddWithValue("@isgeneric", g.IsGenericGear);
+                    update.CommandText = @"Insert into gears (gear_name,gear_code,generic_code,is_generic) 
+                                        Values (@gearName,@gearcode,@genericcode,@isgeneric)";
+
+                    
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException dbex)
+                    catch (MySqlException msex)
                     {
-                        Logger.Log(dbex);
+                        switch(msex.ErrorCode)
+                        {
+                            case -2147467259:
+                                break;
+                            default:
+                                Logger.Log(msex);
+                                break;
+                        }
+                        
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
+        public bool Add(Gear g)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = AddToMySQL(g);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    var sql = "Insert into gear (GearName,GearCode,GenericCode,IsGeneric) Values (?,?,?,?)";
+
+                    using (OleDbCommand update = new OleDbCommand(sql, conn))
+                    {
+                        update.Parameters.Add("@gearName", OleDbType.VarChar).Value = g.GearName;
+                        update.Parameters.Add("@gearcode", OleDbType.VarChar).Value = g.Code;
+                        if (g.BaseGear == null)
+                        {
+                            update.Parameters.Add("genericcode", OleDbType.VarChar).Value = g.CodeOfBaseGear;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@genericcode", OleDbType.VarChar).Value = g.BaseGear.Code;
+                        }
+                        update.Parameters.Add("@isgeneric", OleDbType.Boolean).Value = g.IsGenericGear;
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException msex)
+                        {
+                            Logger.Log(msex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
                     }
                 }
             }

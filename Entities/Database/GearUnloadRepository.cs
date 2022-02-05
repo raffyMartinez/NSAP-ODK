@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Data.OleDb;
 using NSAP_ODK.Utilities;
+using MySql.Data.MySqlClient;
+using NSAP_ODK.NSAPMysql;
+
 namespace NSAP_ODK.Entities.Database
 {
     class GearUnloadRepository
@@ -30,9 +33,41 @@ namespace NSAP_ODK.Entities.Database
             }
             return max_rec_no;
         }
+
+        private List<GearUnload>getFromMySQL()
+        {
+            List<GearUnload> thisList = new List<GearUnload>();
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    conn.Open();
+                    cmd.CommandText ="Select * from dbo_gear_unload";
+
+                    MySqlDataReader dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        GearUnload item = new GearUnload();
+                        item.PK = (int)dr["unload_gr_id"];
+                        item.LandingSiteSamplingID = (int)dr["unload_day_id"];
+                        item.GearID = dr["gr_id"].ToString();
+                        item.Boats = string.IsNullOrEmpty(dr["boats"].ToString()) ? null : (int?)dr["boats"];
+                        item.Catch = string.IsNullOrEmpty(dr["catch"].ToString()) ? null : (double?)dr["catch"];
+                        item.GearUsedText = dr["gr_text"].ToString();
+                        item.Remarks = dr["remarks"].ToString();
+                        thisList.Add(item);
+                    }
+                }
+            }
+            return thisList;
+        }
         private List<GearUnload> getGearUnloads()
         {
             List<GearUnload> thisList = new List<GearUnload>();
+            if(Global.Settings.UsemySQL)
+            {
+                thisList = getFromMySQL();
+            }
             var dt = new DataTable();
             using (var conection = new OleDbConnection(Global.ConnectionString))
             {
@@ -56,6 +91,7 @@ namespace NSAP_ODK.Entities.Database
                             item.Boats = string.IsNullOrEmpty(dr["boats"].ToString()) ? null: (int?)dr["boats"];
                             item.Catch = string.IsNullOrEmpty(dr["catch"].ToString()) ? null : (double?)dr["catch"];
                             item.GearUsedText = dr["gr_text"].ToString();
+                            item.Remarks = dr["remarks"].ToString();
                             thisList.Add(item);
                         }
                     }

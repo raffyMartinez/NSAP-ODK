@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Data.OleDb;
 using NSAP_ODK.Utilities;
+using MySql.Data.MySqlClient;
+using NSAP_ODK.NSAPMysql;
 namespace NSAP_ODK.Entities.Database
 {
     class VesselCatchRepository
@@ -30,44 +32,79 @@ namespace NSAP_ODK.Entities.Database
             }
             return max_rec_no;
         }
+        private List<VesselCatch> getFromMySQL()
+        {
+            List<VesselCatch> thisList = new List<VesselCatch>();
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    conn.Open();
+                    cmd.CommandText = "Select * from dbo_vessel_catch";
+
+                    MySqlDataReader dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        VesselCatch item = new VesselCatch();
+                        item.PK = (int)dr["catch_id"];
+                        item.VesselUnloadID = (int)dr["v_unload_id"];
+                        item.SpeciesID = string.IsNullOrEmpty(dr["species_id"].ToString()) ? null : (int?)dr["species_id"];
+                        item.Catch_kg = string.IsNullOrEmpty(dr["catch_kg"].ToString()) ? null : (double?)dr["catch_kg"];
+                        item.Sample_kg = string.IsNullOrEmpty(dr["samp_kg"].ToString()) ? null : (double?)dr["samp_kg"];
+                        item.TaxaCode = dr["taxa"].ToString();
+                        item.SpeciesText = dr["species_text"].ToString();
+                        thisList.Add(item);
+                    }
+                }
+            }
+            return thisList;
+        }
         private List<VesselCatch> getVesselCatches()
         {
             List<VesselCatch> thisList = new List<VesselCatch>();
-            var dt = new DataTable();
-            using (var conection = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                try
+                thisList = getFromMySQL();
+            }
+            else
+            {
+                var dt = new DataTable();
+                using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    conection.Open();
-                    string query = $"Select * from dbo_vessel_catch";
-
-
-                    var adapter = new OleDbDataAdapter(query, conection);
-                    adapter.Fill(dt);
-                    if (dt.Rows.Count > 0)
+                    try
                     {
-                        thisList.Clear();
-                        foreach (DataRow dr in dt.Rows)
+                        conection.Open();
+                        string query = "Select * from dbo_vessel_catch";
+
+
+                        var adapter = new OleDbDataAdapter(query, conection);
+                        adapter.Fill(dt);
+                        if (dt.Rows.Count > 0)
                         {
-                            VesselCatch item = new VesselCatch();
-                            item.PK = (int)dr["catch_id"];
-                            item.VesselUnloadID = (int)dr["v_unload_id"];
-                            item.SpeciesID = string.IsNullOrEmpty(dr["species_id"].ToString()) ? null : (int?)dr["species_id"];
-                            item.Catch_kg = string.IsNullOrEmpty(dr["catch_kg"].ToString()) ? null : (double?)dr["catch_kg"];
-                            item.Sample_kg = string.IsNullOrEmpty(dr["samp_kg"].ToString()) ? null : (double?)dr["samp_kg"];
-                            item.TaxaCode = dr["taxa"].ToString();
-                            item.SpeciesText = dr["species_text"].ToString();
-                            thisList.Add(item);
+                            thisList.Clear();
+                            foreach (DataRow dr in dt.Rows)
+                            {
+                                VesselCatch item = new VesselCatch();
+                                item.PK = (int)dr["catch_id"];
+                                item.VesselUnloadID = (int)dr["v_unload_id"];
+                                item.SpeciesID = string.IsNullOrEmpty(dr["species_id"].ToString()) ? null : (int?)dr["species_id"];
+                                item.Catch_kg = string.IsNullOrEmpty(dr["catch_kg"].ToString()) ? null : (double?)dr["catch_kg"];
+                                item.Sample_kg = string.IsNullOrEmpty(dr["samp_kg"].ToString()) ? null : (double?)dr["samp_kg"];
+                                item.TaxaCode = dr["taxa"].ToString();
+                                item.SpeciesText = dr["species_text"].ToString();
+                                thisList.Add(item);
+                            }
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log(ex);
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+
+                    }
 
                 }
-                return thisList;
             }
+            return thisList;
         }
 
         public bool Add(VesselCatch item)
@@ -83,7 +120,7 @@ namespace NSAP_ODK.Entities.Database
                 {
                     update.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
                     update.Parameters.Add("@parent_id", OleDbType.Integer).Value = item.VesselUnloadID;
-                    if(item.SpeciesID==null)
+                    if (item.SpeciesID == null)
                     {
                         update.Parameters.Add("@species_id", OleDbType.Integer).Value = DBNull.Value;
                     }
@@ -92,7 +129,7 @@ namespace NSAP_ODK.Entities.Database
                         update.Parameters.Add("@species_id", OleDbType.Integer).Value = item.SpeciesID;
                     }
 
-                    if(item.Catch_kg==null)
+                    if (item.Catch_kg == null)
                     {
                         update.Parameters.Add("@catch_kg", OleDbType.Double).Value = DBNull.Value;
                     }
@@ -101,7 +138,7 @@ namespace NSAP_ODK.Entities.Database
                         update.Parameters.Add("@catch_kg", OleDbType.Double).Value = item.Catch_kg;
                     }
 
-                    if(item.Sample_kg==null)
+                    if (item.Sample_kg == null)
                     {
                         update.Parameters.Add("@sample_kg", OleDbType.Double).Value = DBNull.Value;
                     }
@@ -123,10 +160,10 @@ namespace NSAP_ODK.Entities.Database
                     {
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch(OleDbException dbex)
+                    catch (OleDbException dbex)
                     {
                         //Console.WriteLine($"item pk is {item.PK}");
-                        switch(dbex.ErrorCode)
+                        switch (dbex.ErrorCode)
                         {
                             case -2147467259:
                                 //error because of duplicated key or index
@@ -137,7 +174,7 @@ namespace NSAP_ODK.Entities.Database
                         }
                         //Logger.Log(dbex);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Logger.Log(ex);
                     }
@@ -212,7 +249,7 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
 
-             return success;
+            return success;
         }
 
         public bool ClearTable()
@@ -249,11 +286,11 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                
+
                 using (OleDbCommand update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@id", OleDbType.Integer).Value = id;
-                    update.CommandText="Delete * from dbo_vessel_catch where catch_id=@id";
+                    update.CommandText = "Delete * from dbo_vessel_catch where catch_id=@id";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

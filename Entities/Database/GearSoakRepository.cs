@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Data.OleDb;
 using NSAP_ODK.Utilities;
+using MySql.Data.MySqlClient;
+using NSAP_ODK.NSAPMysql;
 namespace NSAP_ODK.Entities.Database
 {
     public class GearSoakRepository
@@ -30,41 +32,75 @@ namespace NSAP_ODK.Entities.Database
             }
             return max_rec_no;
         }
+        private List<GearSoak> getFromMySQL()
+        {
+            List<GearSoak> thisList = new List<GearSoak>();
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    conn.Open();
+                    cmd.CommandText = "Select * from dbo_gear_soak";
+
+                    MySqlDataReader dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        GearSoak item = new GearSoak();
+                        item.PK = (int)dr["gear_soak_id"];
+                        item.VesselUnloadID = (int)dr["v_unload_id"];
+                        item.TimeAtSet = (DateTime)dr["time_set"];
+                        item.TimeAtHaul = (DateTime)dr["time_hauled"];
+                        item.WaypointAtSet = dr["wpt_set"].ToString();
+                        item.WaypointAtHaul = dr["wpt_haul"].ToString();
+                        thisList.Add(item);
+                    }
+                }
+            }
+            return thisList;
+        }
         private List<GearSoak> getGearSoaks()
         {
             List<GearSoak> thisList = new List<GearSoak>();
-            var dt = new DataTable();
-            using (var conection = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                try
+                thisList = getFromMySQL();
+            }
+            else
+            {
+                var dt = new DataTable();
+                using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    conection.Open();
-                    string query = $"Select * from dbo_gear_soak";
-                    var adapter = new OleDbDataAdapter(query, conection);
-                    adapter.Fill(dt);
-                    if (dt.Rows.Count > 0)
+                    try
                     {
-                        thisList.Clear();
-                        foreach (DataRow dr in dt.Rows)
+                        conection.Open();
+                        string query = "Select * from dbo_gear_soak";
+                        var adapter = new OleDbDataAdapter(query, conection);
+                        adapter.Fill(dt);
+                        if (dt.Rows.Count > 0)
                         {
-                            GearSoak item = new GearSoak();
-                            item.PK = (int)dr["gear_soak_id"];
-                            item.VesselUnloadID = (int)dr["v_unload_id"];
-                            item.TimeAtSet = (DateTime)dr["time_set"];
-                            item.TimeAtHaul = (DateTime)dr["time_hauled"];
-                            item.WaypointAtSet = dr["wpt_set"].ToString();
-                            item.WaypointAtHaul = dr["wpt_haul"].ToString();
-                            thisList.Add(item);
+                            thisList.Clear();
+                            foreach (DataRow dr in dt.Rows)
+                            {
+                                GearSoak item = new GearSoak();
+                                item.PK = (int)dr["gear_soak_id"];
+                                item.VesselUnloadID = (int)dr["v_unload_id"];
+                                item.TimeAtSet = (DateTime)dr["time_set"];
+                                item.TimeAtHaul = (DateTime)dr["time_hauled"];
+                                item.WaypointAtSet = dr["wpt_set"].ToString();
+                                item.WaypointAtHaul = dr["wpt_haul"].ToString();
+                                thisList.Add(item);
+                            }
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log(ex);
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+
+                    }
 
                 }
-                return thisList;
             }
+            return thisList;
         }
 
         public bool Add(GearSoak item)
@@ -116,7 +152,7 @@ namespace NSAP_ODK.Entities.Database
                     update.Parameters.Add("@wpt_haul", OleDbType.VarChar).Value = item.WaypointAtHaul;
                     update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
 
-                    update.CommandText= @"Update dbo_gear_soak set
+                    update.CommandText = @"Update dbo_gear_soak set
                                             v_unload_id=@unload_id,
                                             time_set = @time_set,
                                             time_hauled = @time_haul,
@@ -174,11 +210,11 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                
+
                 using (OleDbCommand update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@id", OleDbType.Integer).Value = id;
-                    update.CommandText="Delete * from dbo_gear_soak where gear_soak_id=@id";
+                    update.CommandText = "Delete * from dbo_gear_soak where gear_soak_id=@id";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;

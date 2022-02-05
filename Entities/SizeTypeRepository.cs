@@ -85,29 +85,71 @@ namespace NSAP_ODK.Entities
             }
             return thisList;
         }
-
-        public bool Add(SizeType s)
+        private bool AddToMySQL(SizeType s)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-                var sql = "Insert into sizeTypes (SizeTypeCode, SizeTypeName) Values (?,?)";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                using (var cmd = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@size_code", OleDbType.VarChar).Value = s.Code;
-                    update.Parameters.Add("@size_name", OleDbType.VarChar).Value = s.Name;
+                    cmd.Parameters.AddWithValue("@code", s.Code);
+                    cmd.Parameters.AddWithValue("@name", s.Name);
+                    cmd.CommandText = "Insert into size_types (size_type_code,size_type_name) values (@code, @name)";
                     try
                     {
-                        success = update.ExecuteNonQuery() > 0;
+                        conn.Open();
+                        success = cmd.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException dbex)
+                    catch (MySqlException msex)
                     {
-                        Logger.Log(dbex);
+                        switch (msex.ErrorCode)
+                        {
+                            case -2147467259:
+                                //duplicated unique index error
+                                break;
+                            default:
+                                Logger.Log(msex);
+                                break;
+                        }
+
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
+                    }
+                }
+            }
+                return success;
+        }
+        public bool Add(SizeType s)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = AddToMySQL(s);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    var sql = "Insert into sizeTypes (SizeTypeCode, SizeTypeName) Values (?,?)";
+                    using (OleDbCommand update = new OleDbCommand(sql, conn))
+                    {
+                        update.Parameters.Add("@size_code", OleDbType.VarChar).Value = s.Code;
+                        update.Parameters.Add("@size_name", OleDbType.VarChar).Value = s.Name;
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
                     }
                 }
             }
