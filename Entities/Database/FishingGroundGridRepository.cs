@@ -21,13 +21,28 @@ namespace NSAP_ODK.Entities.Database
         public int MaxRecordNumber()
         {
             int max_rec_no = 0;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-                const string sql = "SELECT Max(fg_grid_id) AS max_id FROM dbo_fg_grid";
-                using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
                 {
-                    max_rec_no = (int)getMax.ExecuteScalar();
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        conn.Open();
+                        cmd.CommandText ="SELECT Max(fg_grid_id) AS max_id FROM dbo_fg_grid";
+                        max_rec_no = (int)cmd.ExecuteScalar();
+                    }
+                }
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    const string sql = "SELECT Max(fg_grid_id) AS max_id FROM dbo_fg_grid";
+                    using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                    {
+                        max_rec_no = (int)getMax.ExecuteScalar();
+                    }
                 }
             }
             return max_rec_no;
@@ -98,27 +113,26 @@ namespace NSAP_ODK.Entities.Database
             }
             return thisList;
         }
-
-        public bool Add(FishingGroundGrid item)
+        private bool AddToMySQL(FishingGroundGrid item)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-                var sql = @"Insert into dbo_fg_grid(fg_grid_id, v_unload_id, utm_zone,grid25) Values (?,?,?,?)";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                using (var update = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
-                    update.Parameters.Add("@unload_id", OleDbType.Integer).Value = item.Parent.PK;
-                    update.Parameters.Add("@utm_zone", OleDbType.VarChar).Value = item.UTMZone.ToString();
-                    update.Parameters.Add("@grid25", OleDbType.VarChar).Value = item.GridCell.ToString();
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = item.PK;
+                    update.Parameters.Add("@unload_id", MySqlDbType.Int32).Value = item.Parent.PK;
+                    update.Parameters.Add("@utm_zone", MySqlDbType.VarChar).Value = item.UTMZone.ToString();
+                    update.Parameters.Add("@grid25", MySqlDbType.VarChar).Value = item.GridCell.ToString();
+                    update.CommandText = @"Insert into dbo_fg_grid(fg_grid_id, v_unload_id, utm_zone,grid25) Values (@id,@unload_id,@utm_zone,@grid25)";
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException dbex)
+                    catch (MySqlException msex)
                     {
-                        Logger.Log(dbex);
+                        Logger.Log(msex);
                     }
                     catch (Exception ex)
                     {
@@ -128,39 +142,116 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
-
-        public bool Update(FishingGroundGrid item)
+        public bool Add(FishingGroundGrid item)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-
-                using (OleDbCommand update = conn.CreateCommand())
+                success = AddToMySQL(item);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
-
-                    update.Parameters.Add("@unload_id", OleDbType.Integer).Value = item.Parent.PK;
-                    update.Parameters.Add("@utm_zone", OleDbType.VarChar).Value = item.UTMZone.ToString();
-                    update.Parameters.Add("@grid25", OleDbType.VarChar).Value = item.GridCell.ToString();
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
+                    conn.Open();
+                    var sql = @"Insert into dbo_fg_grid(fg_grid_id, v_unload_id, utm_zone,grid25) Values (?,?,?,?)";
+                    using (OleDbCommand update = new OleDbCommand(sql, conn))
+                    {
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
+                        update.Parameters.Add("@unload_id", OleDbType.Integer).Value = item.Parent.PK;
+                        update.Parameters.Add("@utm_zone", OleDbType.VarChar).Value = item.UTMZone.ToString();
+                        update.Parameters.Add("@grid25", OleDbType.VarChar).Value = item.GridCell.ToString();
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
+        private bool UpdateMySQL(FishingGroundGrid item)
+        {
+            bool success = false;
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var update = conn.CreateCommand())
+                {
+                    update.Parameters.Add("@unload_id", MySqlDbType.Int32).Value = item.Parent.PK;
+                    update.Parameters.Add("@utm_zone", MySqlDbType.VarChar).Value = item.UTMZone.ToString();
+                    update.Parameters.Add("@grid25", MySqlDbType.VarChar).Value = item.GridCell.ToString();
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = item.PK;
 
                     update.CommandText = @"Update dbo_fg_grid set
                                         v_unload_id=@unload_id,
                                         utm_zone = @utm_zone,
                                         grid25 = @grid25
-                                        WHERE gear_soak_id = @id";
+                                        WHERE fg_grid_id = @id";
 
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException dbex)
+                    catch (MySqlException msex)
                     {
-                        Logger.Log(dbex);
+                        Logger.Log(msex);
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
+        public bool Update(FishingGroundGrid item)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = UpdateMySQL(item);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+
+                        update.Parameters.Add("@unload_id", OleDbType.Integer).Value = item.Parent.PK;
+                        update.Parameters.Add("@utm_zone", OleDbType.VarChar).Value = item.UTMZone.ToString();
+                        update.Parameters.Add("@grid25", OleDbType.VarChar).Value = item.GridCell.ToString();
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
+
+                        update.CommandText = @"Update dbo_fg_grid set
+                                        v_unload_id=@unload_id,
+                                        utm_zone = @utm_zone,
+                                        grid25 = @grid25
+                                        WHERE fg_grid_id = @id";
+
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
                     }
                 }
             }
@@ -193,29 +284,63 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
-        public bool Delete(int id)
+        private bool DeleteMySQL(int id)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-
-                using (OleDbCommand update = conn.CreateCommand())
+                using (var update = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = id;
-                    update.CommandText = "Delete * from dbo_fg_grid where gear_soak_id=@id";
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = id;
+                    update.CommandText = "Delete * from dbo_fg_grid where fg_grid_id=@id";
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException)
+                    catch (MySqlException msex)
                     {
-                        success = false;
+                        Logger.Log(msex);
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
-                        success = false;
+                    }
+
+                }
+            }
+            return success;
+        }
+        public bool Delete(int id)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = DeleteMySQL(id);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                        update.CommandText = "Delete * from dbo_fg_grid where fg_grid_id=@id";
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException)
+                        {
+                            success = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                            success = false;
+                        }
                     }
                 }
             }

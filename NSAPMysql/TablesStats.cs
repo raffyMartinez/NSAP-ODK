@@ -12,6 +12,7 @@ namespace NSAP_ODK.NSAPMysql
         public static List<TableStats> TablesStatistics { get; private set; } = new List<TableStats>();
         public static void GetStats()
         {
+            TablesStatistics.Clear();
             if (MySQLConnect.UserCanCreateDatabase)
             {
                 using (MySqlConnection dbconn = new MySqlConnection(MySQLConnect.ConnectionString()))

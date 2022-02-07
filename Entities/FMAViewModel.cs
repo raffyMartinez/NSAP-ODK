@@ -26,6 +26,7 @@ namespace NSAP_ODK.Entities
                 }
             }
         }
+
         public bool AddRecordToRepo(FMA fma)
         {
             if (fma == null)

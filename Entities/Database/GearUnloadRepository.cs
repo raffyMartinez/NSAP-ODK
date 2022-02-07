@@ -22,19 +22,34 @@ namespace NSAP_ODK.Entities.Database
         public int MaxRecordNumber()
         {
             int max_rec_no = 0;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-                const string sql = "SELECT Max(unload_gr_id) AS max_id FROM dbo_gear_unload";
-                using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
                 {
-                    max_rec_no = (int)getMax.ExecuteScalar();
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        conn.Open();
+                        cmd.CommandText = "SELECT Max(unload_gr_id) AS max_id FROM dbo_gear_unload";
+                        max_rec_no = (int)cmd.ExecuteScalar();
+                    }
+                }
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    const string sql = "SELECT Max(unload_gr_id) AS max_id FROM dbo_gear_unload";
+                    using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                    {
+                        max_rec_no = (int)getMax.ExecuteScalar();
+                    }
                 }
             }
             return max_rec_no;
         }
 
-        private List<GearUnload>getFromMySQL()
+        private List<GearUnload> getFromMySQL()
         {
             List<GearUnload> thisList = new List<GearUnload>();
             using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
@@ -42,7 +57,7 @@ namespace NSAP_ODK.Entities.Database
                 using (var cmd = conn.CreateCommand())
                 {
                     conn.Open();
-                    cmd.CommandText ="Select * from dbo_gear_unload";
+                    cmd.CommandText = "Select * from dbo_gear_unload";
 
                     MySqlDataReader dr = cmd.ExecuteReader();
                     while (dr.Read())
@@ -64,7 +79,7 @@ namespace NSAP_ODK.Entities.Database
         private List<GearUnload> getGearUnloads()
         {
             List<GearUnload> thisList = new List<GearUnload>();
-            if(Global.Settings.UsemySQL)
+            if (Global.Settings.UsemySQL)
             {
                 thisList = getFromMySQL();
             }
@@ -88,7 +103,7 @@ namespace NSAP_ODK.Entities.Database
                             item.PK = (int)dr["unload_gr_id"];
                             item.LandingSiteSamplingID = (int)dr["unload_day_id"];
                             item.GearID = dr["gr_id"].ToString();
-                            item.Boats = string.IsNullOrEmpty(dr["boats"].ToString()) ? null: (int?)dr["boats"];
+                            item.Boats = string.IsNullOrEmpty(dr["boats"].ToString()) ? null : (int?)dr["boats"];
                             item.Catch = string.IsNullOrEmpty(dr["catch"].ToString()) ? null : (double?)dr["catch"];
                             item.GearUsedText = dr["gr_text"].ToString();
                             item.Remarks = dr["remarks"].ToString();
@@ -105,146 +120,224 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-        public bool Add(GearUnload item)
+        private bool AddToMySQL(GearUnload item)
         {
-           // string gearID = string.IsNullOrEmpty(item.GearID) ? "null" : $"'{item.GearID}'";
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-
-
-                var sql = "Insert into dbo_gear_unload(unload_gr_id, unload_day_id, gr_id,boats,catch,gr_text,remarks) Values (?,?,?,?,?,?,?)";
-
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                using (var update = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
-                    update.Parameters.Add("@parent", OleDbType.Integer).Value = item.LandingSiteSamplingID;
-
-                    if (item.GearID == null)
+                    update.Parameters.Add("@pk", MySqlDbType.Int32).Value = item.PK;
+                    update.Parameters.Add("@parent", MySqlDbType.Int32).Value = item.LandingSiteSamplingID;
+                    //success = false;
+                    if (item.GearID == null || item.GearID.Length == 0)
                     {
-                        update.Parameters.Add("@gear_id", OleDbType.Integer).Value = DBNull.Value;
+                        update.Parameters.Add("@gear_id", MySqlDbType.Int32).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@gear_id", OleDbType.VarChar).Value = item.GearID;
+                        update.Parameters.Add("@gear_id", MySqlDbType.VarChar).Value = item.GearID;
                     }
-                        //var gearID = item.GearID == null ? DBNull.Value : item.GearID; 
-                    
-                    //}
 
-                    if (item.Boats== null)
+                    if (item.Boats == null)
                     {
-                        update.Parameters.Add("@boats", OleDbType.Integer).Value = DBNull.Value;
+                        update.Parameters.Add("@boats", MySqlDbType.Int32).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@boats", OleDbType.Integer).Value = item.Boats;
+                        update.Parameters.Add("@boats", MySqlDbType.Int32).Value = item.Boats;
                     }
 
                     if (item.Catch == null)
                     {
-                        update.Parameters.Add("@catch", OleDbType.Double).Value = DBNull.Value;
+                        update.Parameters.Add("@catch", MySqlDbType.Double).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@catch", OleDbType.Double).Value = item.Catch;
+                        update.Parameters.Add("@catch", MySqlDbType.Double).Value = item.Catch;
                     }
 
                     if (item.GearUsedText == null)
                     {
-                        update.Parameters.Add("@gear_text", OleDbType.VarChar).Value = DBNull.Value;
+                        update.Parameters.Add("@gear_text", MySqlDbType.VarChar).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@gear_text", OleDbType.VarChar).Value = item.GearUsedText;
+                        update.Parameters.Add("@gear_text", MySqlDbType.VarChar).Value = item.GearUsedText;
                     }
 
                     if (item.Remarks == null)
                     {
-                        update.Parameters.Add("@remarks", OleDbType.VarChar).Value = DBNull.Value;
+                        update.Parameters.Add("@remarks", MySqlDbType.VarChar).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@remarks", OleDbType.VarChar).Value = item.Remarks;
+                        update.Parameters.Add("@remarks", MySqlDbType.VarChar).Value = item.Remarks;
                     }
-
-
+                    update.CommandText = @"Insert into dbo_gear_unload(unload_gr_id, unload_day_id, gr_id,boats,catch,gr_text,remarks) 
+                                       Values (@pk,@parent,@gear_id,@boats,@catch,@gear_text,@remarks)";
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch(OleDbException odbex)
+                    catch (MySqlException msex)
                     {
-                        success = false;
-                        Logger.Log(odbex);
+                        Logger.Log(msex);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Logger.Log(ex);
                     }
                 }
             }
+
             return success;
         }
+        public bool Add(GearUnload item)
+        {
 
-        public bool Update(GearUnload item)
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = AddToMySQL(item);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+
+
+                    var sql = "Insert into dbo_gear_unload(unload_gr_id, unload_day_id, gr_id,boats,catch,gr_text,remarks) Values (?,?,?,?,?,?,?)";
+
+                    using (OleDbCommand update = new OleDbCommand(sql, conn))
+                    {
+                        update.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
+                        update.Parameters.Add("@parent", OleDbType.Integer).Value = item.LandingSiteSamplingID;
+
+                        if (item.GearID == null)
+                        {
+                            update.Parameters.Add("@gear_id", OleDbType.Integer).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@gear_id", OleDbType.VarChar).Value = item.GearID;
+                        }
+                        //var gearID = item.GearID == null ? DBNull.Value : item.GearID; 
+
+                        //}
+
+                        if (item.Boats == null)
+                        {
+                            update.Parameters.Add("@boats", OleDbType.Integer).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@boats", OleDbType.Integer).Value = item.Boats;
+                        }
+
+                        if (item.Catch == null)
+                        {
+                            update.Parameters.Add("@catch", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@catch", OleDbType.Double).Value = item.Catch;
+                        }
+
+                        if (item.GearUsedText == null)
+                        {
+                            update.Parameters.Add("@gear_text", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@gear_text", OleDbType.VarChar).Value = item.GearUsedText;
+                        }
+
+                        if (item.Remarks == null)
+                        {
+                            update.Parameters.Add("@remarks", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@remarks", OleDbType.VarChar).Value = item.Remarks;
+                        }
+
+
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException odbex)
+                        {
+                            success = false;
+                            Logger.Log(odbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
+        private bool UpdateMySQL(GearUnload item)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-
-                using (OleDbCommand update = conn.CreateCommand())
+                using (var update = conn.CreateCommand())
                 {
-
-                    update.Parameters.Add("@parent", OleDbType.Integer).Value = item.LandingSiteSamplingID;
+                    update.Parameters.Add("@parent", MySqlDbType.Int32).Value = item.LandingSiteSamplingID;
 
                     if (item.GearID == null)
                     {
-                        update.Parameters.Add("@gear_id", OleDbType.Integer).Value = DBNull.Value;
+                        update.Parameters.Add("@gear_id", MySqlDbType.Int32).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@gear_id", OleDbType.VarChar).Value = item.GearID;
+                        update.Parameters.Add("@gear_id", MySqlDbType.VarChar).Value = item.GearID;
                     }
 
                     if (item.Boats == null)
                     {
-                        update.Parameters.Add("@boats", OleDbType.Integer).Value = DBNull.Value;
+                        update.Parameters.Add("@boats", MySqlDbType.Int32).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@boats", OleDbType.Integer).Value = item.Boats;
+                        update.Parameters.Add("@boats", MySqlDbType.Int32).Value = item.Boats;
                     }
 
                     if (item.Catch == null)
                     {
-                        update.Parameters.Add("@catch", OleDbType.Double).Value = DBNull.Value;
+                        update.Parameters.Add("@catch", MySqlDbType.Double).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@catch", OleDbType.Double).Value = item.Catch;
+                        update.Parameters.Add("@catch", MySqlDbType.Double).Value = item.Catch;
                     }
 
                     if (item.GearUsedText == null)
                     {
-                        update.Parameters.Add("@gear_text", OleDbType.VarChar).Value = DBNull.Value;
+                        update.Parameters.Add("@gear_text", MySqlDbType.VarChar).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@gear_text", OleDbType.VarChar).Value = item.GearUsedText;
+                        update.Parameters.Add("@gear_text", MySqlDbType.VarChar).Value = item.GearUsedText;
                     }
 
                     if (item.Remarks == null)
                     {
-                        update.Parameters.Add("@remarks", OleDbType.VarChar).Value = DBNull.Value;
+                        update.Parameters.Add("@remarks", MySqlDbType.VarChar).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@remarks", OleDbType.VarChar).Value = item.Remarks;
+                        update.Parameters.Add("@remarks", MySqlDbType.VarChar).Value = item.Remarks;
                     }
-                    update.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
+                    update.Parameters.Add("@pk", MySqlDbType.Int32).Value = item.PK;
 
                     update.CommandText = @"Update dbo_gear_unload set
                             unload_day_id=@parent,
@@ -257,15 +350,106 @@ namespace NSAP_ODK.Entities.Database
 
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch(OleDbException)
+                    catch (MySqlException msex)
                     {
-                        success = false;
+                        Logger.Log(msex);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
+        public bool Update(GearUnload item)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = UpdateMySQL(item);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+
+                        update.Parameters.Add("@parent", OleDbType.Integer).Value = item.LandingSiteSamplingID;
+
+                        if (item.GearID == null)
+                        {
+                            update.Parameters.Add("@gear_id", OleDbType.Integer).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@gear_id", OleDbType.VarChar).Value = item.GearID;
+                        }
+
+                        if (item.Boats == null)
+                        {
+                            update.Parameters.Add("@boats", OleDbType.Integer).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@boats", OleDbType.Integer).Value = item.Boats;
+                        }
+
+                        if (item.Catch == null)
+                        {
+                            update.Parameters.Add("@catch", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@catch", OleDbType.Double).Value = item.Catch;
+                        }
+
+                        if (item.GearUsedText == null)
+                        {
+                            update.Parameters.Add("@gear_text", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@gear_text", OleDbType.VarChar).Value = item.GearUsedText;
+                        }
+
+                        if (item.Remarks == null)
+                        {
+                            update.Parameters.Add("@remarks", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@remarks", OleDbType.VarChar).Value = item.Remarks;
+                        }
+                        update.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
+
+                        update.CommandText = @"Update dbo_gear_unload set
+                            unload_day_id=@parent,
+                            gr_id = @gear_id,
+                            boats = @boats,
+                            catch = @catch,
+                            gr_text = @gear_text,
+                            remarks = @remarks
+                        WHERE unload_gr_id = @pk";
+
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException)
+                        {
+                            success = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
                     }
                 }
             }
@@ -298,33 +482,69 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
-        public bool Delete(int id)
+
+        private bool DeleteMySQL(int id)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-                
-                using (OleDbCommand update = conn.CreateCommand())
+                using (var update = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = id;
-                    update.CommandText="Delete * from dbo_gear_unload where unload_gr_id=@id";
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = id;
+                    update.CommandText = "Delete * from dbo_gear_unload where unload_gr_id=@id";
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException)
+                    catch (MySqlException msex)
                     {
-                        success = false;
+                        Logger.Log(msex);
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
-                        success = false;
+                    }
+
+                }
+            }
+            return success;
+        }
+        public bool Delete(int id)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = DeleteMySQL(id);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                        update.CommandText = "Delete * from dbo_gear_unload where unload_gr_id=@id";
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException)
+                        {
+                            success = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                            success = false;
+                        }
                     }
                 }
             }
             return success;
+
         }
     }
 }

@@ -10,9 +10,9 @@ namespace NSAP_ODK.Entities
     public class SizeTypeViewModel
     {
         public ObservableCollection<SizeType> SizeTypeCollection { get; set; }
-        private SizeTypeRepository SizeTypes{ get; set; }
+        private SizeTypeRepository SizeTypes { get; set; }
 
-
+        private bool _editSuccess;
 
         public SizeTypeViewModel()
         {
@@ -29,7 +29,7 @@ namespace NSAP_ODK.Entities
         {
             foreach (SizeType st in SizeTypeCollection)
             {
-                if (st.Code== code)
+                if (st.Code == code)
                 {
                     return true;
                 }
@@ -43,24 +43,25 @@ namespace NSAP_ODK.Entities
         }
         private void Collection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            _editSuccess = false;
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
                     {
                         int newIndex = e.NewStartingIndex;
-                        SizeTypes.Add(SizeTypeCollection[newIndex]);
+                        _editSuccess = SizeTypes.Add(SizeTypeCollection[newIndex]);
                     }
                     break;
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<SizeType> tempListOfRemovedItems = e.OldItems.OfType<SizeType>().ToList();
-                        SizeTypes.Delete(tempListOfRemovedItems[0].Code);
+                        _editSuccess = SizeTypes.Delete(tempListOfRemovedItems[0].Code);
                     }
                     break;
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<SizeType> tempList = e.NewItems.OfType<SizeType>().ToList();
-                        SizeTypes.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        _editSuccess = SizeTypes.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -71,14 +72,16 @@ namespace NSAP_ODK.Entities
             get { return SizeTypeCollection.Count; }
         }
 
-        public void AddRecordToRepo(SizeType s)
+        public bool AddRecordToRepo(SizeType s)
         {
             if (s == null)
                 throw new ArgumentNullException("Error: The argument is Null");
             SizeTypeCollection.Add(s);
+
+            return _editSuccess;
         }
 
-        public void UpdateRecordInRepo(SizeType s)
+        public bool UpdateRecordInRepo(SizeType s)
         {
             if (s.Code == null)
                 throw new Exception("Error: code cannot be null");
@@ -93,9 +96,10 @@ namespace NSAP_ODK.Entities
                 }
                 index++;
             }
+            return _editSuccess;
         }
 
-        public void DeleteRecordFromRepo(string code)
+        public bool DeleteRecordFromRepo(string code)
         {
             if (code == null)
                 throw new Exception("Record code cannot be null");
@@ -110,6 +114,7 @@ namespace NSAP_ODK.Entities
                 }
                 index++;
             }
+            return _editSuccess;
         }
     }
 }

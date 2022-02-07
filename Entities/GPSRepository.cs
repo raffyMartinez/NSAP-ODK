@@ -249,35 +249,34 @@ namespace NSAP_ODK.Entities
             }
             return success;
         }
-
-        public bool Update(GPS gps)
+        private bool UpdateMySQL(GPS gps)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-
-                using (OleDbCommand update = conn.CreateCommand())
+                using (var update = conn.CreateCommand())
                 {
+                    update.Parameters.Add("@name", MySqlDbType.VarChar).Value = gps.AssignedName;
+                    update.Parameters.Add("@brand", MySqlDbType.VarChar).Value = gps.Brand;
+                    update.Parameters.Add("@model", MySqlDbType.VarChar).Value = gps.Model;
+                    update.Parameters.Add("@device_type", MySqlDbType.Int32).Value = (int)gps.DeviceType;
+                    update.Parameters.Add("@code", MySqlDbType.VarChar).Value = gps.Code;
 
-                    update.Parameters.Add("@name", OleDbType.VarChar).Value = gps.AssignedName;
-                    update.Parameters.Add("@brand", OleDbType.VarChar).Value = gps.Brand;
-                    update.Parameters.Add("@model", OleDbType.VarChar).Value = gps.Model;
-                    update.Parameters.Add("@device_type", OleDbType.Integer).Value = (int)gps.DeviceType;
-                    update.Parameters.Add("@code", OleDbType.VarChar).Value = gps.Code;
                     update.CommandText = @"Update gps set
-                                           AssignedName= @name,
-                                           Brand = @brand,
-                                           Model = @model,
-                                           DeviceType = @device_type    
-                                           WHERE GPSCode = @code";
+                                           assigned_name= @name,
+                                           brand = @brand,
+                                           model = @model,
+                                           device_type = @device_type    
+                                           WHERE gps_code = @code";
+
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException dbex)
+                    catch (MySqlException msex)
                     {
-                        Logger.Log(dbex);
+                        Logger.Log(msex);
                     }
                     catch (Exception ex)
                     {
@@ -287,29 +286,105 @@ namespace NSAP_ODK.Entities
             }
             return success;
         }
+        public bool Update(GPS gps)
+        {
+            bool success = false; if (Global.Settings.UsemySQL)
+            {
+                success = UpdateMySQL(gps);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
 
-        public bool Delete(string code)
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+
+                        update.Parameters.Add("@name", OleDbType.VarChar).Value = gps.AssignedName;
+                        update.Parameters.Add("@brand", OleDbType.VarChar).Value = gps.Brand;
+                        update.Parameters.Add("@model", OleDbType.VarChar).Value = gps.Model;
+                        update.Parameters.Add("@device_type", OleDbType.Integer).Value = (int)gps.DeviceType;
+                        update.Parameters.Add("@code", OleDbType.VarChar).Value = gps.Code;
+                        update.CommandText = @"Update gps set
+                                           AssignedName= @name,
+                                           Brand = @brand,
+                                           Model = @model,
+                                           DeviceType = @device_type    
+                                           WHERE GPSCode = @code";
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
+        private bool DeleteMySQL(string code)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-
-                using (OleDbCommand update = conn.CreateCommand())
+                using (var update = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@code", OleDbType.VarChar).Value = code;
-                    update.CommandText = "Delete * from gps where GPSCode=@code";
+                    update.Parameters.Add("@code", MySqlDbType.VarChar).Value = code;
+                    update.CommandText = "Delete * from gps where gps_code=@code";
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException dbex)
+                    catch (MySqlException msex)
                     {
-                        Logger.Log(dbex);
+                        Logger.Log(msex);
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
+                    }
+
+                }
+            }
+            return success;
+        }
+        public bool Delete(string code)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = DeleteMySQL(code);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+                        update.Parameters.Add("@code", OleDbType.VarChar).Value = code;
+                        update.CommandText = "Delete * from gps where GPSCode=@code";
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
                     }
                 }
             }

@@ -21,13 +21,28 @@ namespace NSAP_ODK.Entities.Database
         public int MaxRecordNumber()
         {
             int max_rec_no = 0;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-                const string sql = "SELECT Max(catch_id) AS max_id FROM dbo_vessel_catch";
-                using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
                 {
-                    max_rec_no = (int)getMax.ExecuteScalar();
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        conn.Open();
+                        cmd.CommandText =  "SELECT Max(catch_id) AS max_id FROM dbo_vessel_catch";
+                        max_rec_no = (int)cmd.ExecuteScalar();
+                    }
+                }
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    const string sql = "SELECT Max(catch_id) AS max_id FROM dbo_vessel_catch";
+                    using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                    {
+                        max_rec_no = (int)getMax.ExecuteScalar();
+                    }
                 }
             }
             return max_rec_no;
@@ -106,125 +121,196 @@ namespace NSAP_ODK.Entities.Database
             }
             return thisList;
         }
-
-        public bool Add(VesselCatch item)
+        private bool AddToMySQL(VesselCatch item)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-
-                var sql = @"Insert into dbo_vessel_catch(catch_id, v_unload_id, species_id, catch_kg, samp_kg, taxa, species_text)
-                            Values (?, ?, ?, ?, ?, ?, ?)";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                using (var update = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
-                    update.Parameters.Add("@parent_id", OleDbType.Integer).Value = item.VesselUnloadID;
+                    update.Parameters.Add("@pk", MySqlDbType.Int32).Value = item.PK;
+                    
+                    update.Parameters.Add("@parent_id", MySqlDbType.Int32).Value = item.VesselUnloadID;
+                    
                     if (item.SpeciesID == null)
                     {
-                        update.Parameters.Add("@species_id", OleDbType.Integer).Value = DBNull.Value;
+                        update.Parameters.Add("@species_id", MySqlDbType.Int32).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@species_id", OleDbType.Integer).Value = item.SpeciesID;
+                        update.Parameters.Add("@species_id", MySqlDbType.Int32).Value = item.SpeciesID;
                     }
 
                     if (item.Catch_kg == null)
                     {
-                        update.Parameters.Add("@catch_kg", OleDbType.Double).Value = DBNull.Value;
+                        update.Parameters.Add("@catch_kg", MySqlDbType.Double).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@catch_kg", OleDbType.Double).Value = item.Catch_kg;
+                        update.Parameters.Add("@catch_kg", MySqlDbType.Double).Value = item.Catch_kg;
                     }
 
                     if (item.Sample_kg == null)
                     {
-                        update.Parameters.Add("@sample_kg", OleDbType.Double).Value = DBNull.Value;
+                        update.Parameters.Add("@sample_kg", MySqlDbType.Double).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@sample_kg", OleDbType.Double).Value = item.Sample_kg;
-                    }
-                    update.Parameters.Add("@taxa", OleDbType.VarChar).Value = item.TaxaCode;
-                    if (item.SpeciesText == null)
-                    {
-                        update.Parameters.Add("@species_text", OleDbType.VarChar).Value = DBNull.Value;
-                    }
-                    else
-                    {
-                        update.Parameters.Add("@species_text", OleDbType.VarChar).Value = item.SpeciesText;
+                        update.Parameters.Add("@sample_kg", MySqlDbType.Double).Value = item.Sample_kg;
                     }
 
+                    update.Parameters.Add("@taxa", MySqlDbType.VarChar).Value = item.TaxaCode;
+                    
+                    if (item.SpeciesText == null)
+                    {
+                        update.Parameters.Add("@species_text", MySqlDbType.VarChar).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@species_text", MySqlDbType.VarChar).Value = item.SpeciesText;
+                    }
+
+                    update.CommandText = @"Insert into dbo_vessel_catch(catch_id, v_unload_id, species_id, catch_kg, samp_kg, taxa, species_text)
+                            Values (@pk, @parent_id, @species_id, @catch_kg, @sample_kg, @taxa, @species_text)";
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException dbex)
+                    catch(MySqlException msex)
                     {
-                        //Console.WriteLine($"item pk is {item.PK}");
-                        switch (dbex.ErrorCode)
-                        {
-                            case -2147467259:
-                                //error because of duplicated key or index
-                                break;
-                            default:
-                                Logger.Log(dbex);
-                                break;
-                        }
-                        //Logger.Log(dbex);
+                        Logger.Log(msex);
                     }
-                    catch (Exception ex)
+                    catch(Exception ex)
                     {
                         Logger.Log(ex);
                     }
                 }
             }
+            return success;
+        }
+        public bool Add(VesselCatch item)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = AddToMySQL(item);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
 
+                    var sql = @"Insert into dbo_vessel_catch(catch_id, v_unload_id, species_id, catch_kg, samp_kg, taxa, species_text)
+                            Values (?, ?, ?, ?, ?, ?, ?)";
+                    using (OleDbCommand update = new OleDbCommand(sql, conn))
+                    {
+                        update.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
+                        update.Parameters.Add("@parent_id", OleDbType.Integer).Value = item.VesselUnloadID;
+                        if (item.SpeciesID == null)
+                        {
+                            update.Parameters.Add("@species_id", OleDbType.Integer).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@species_id", OleDbType.Integer).Value = item.SpeciesID;
+                        }
+
+                        if (item.Catch_kg == null)
+                        {
+                            update.Parameters.Add("@catch_kg", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@catch_kg", OleDbType.Double).Value = item.Catch_kg;
+                        }
+
+                        if (item.Sample_kg == null)
+                        {
+                            update.Parameters.Add("@sample_kg", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@sample_kg", OleDbType.Double).Value = item.Sample_kg;
+                        }
+                        update.Parameters.Add("@taxa", OleDbType.VarChar).Value = item.TaxaCode;
+                        if (item.SpeciesText == null)
+                        {
+                            update.Parameters.Add("@species_text", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@species_text", OleDbType.VarChar).Value = item.SpeciesText;
+                        }
+
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            //Console.WriteLine($"item pk is {item.PK}");
+                            switch (dbex.ErrorCode)
+                            {
+                                case -2147467259:
+                                    //error because of duplicated key or index
+                                    break;
+                                default:
+                                    Logger.Log(dbex);
+                                    break;
+                            }
+                            //Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
 
             return success;
         }
-
-        public bool Update(VesselCatch item)
+        private bool UpdateMySQL(VesselCatch item)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-                using (OleDbCommand cmd = conn.CreateCommand())
+                using (var cmd = conn.CreateCommand())
                 {
-                    cmd.Parameters.Add("@v_unload_id", OleDbType.Integer).Value = item.Parent.PK;
+                    cmd.Parameters.Add("@v_unload_id", MySqlDbType.Int32).Value = item.Parent.PK;
 
                     if (item.SpeciesID == null)
                     {
-                        cmd.Parameters.Add("@species_id", OleDbType.Integer).Value = DBNull.Value;
+                        cmd.Parameters.Add("@species_id", MySqlDbType.Int32).Value = DBNull.Value;
                     }
                     else
                     {
-                        cmd.Parameters.Add("@species_id", OleDbType.Integer).Value = item.SpeciesID;
+                        cmd.Parameters.Add("@species_id", MySqlDbType.Int32).Value = item.SpeciesID;
                     }
 
                     if (item.Catch_kg == null)
                     {
-                        cmd.Parameters.Add("@catch_kg", OleDbType.Double).Value = DBNull.Value;
+                        cmd.Parameters.Add("@catch_kg", MySqlDbType.Double).Value = DBNull.Value;
                     }
                     else
                     {
-                        cmd.Parameters.Add("@catch_kg", OleDbType.Double).Value = (double)item.Catch_kg;
+                        cmd.Parameters.Add("@catch_kg", MySqlDbType.Double).Value = (double)item.Catch_kg;
                     }
 
                     if (item.Sample_kg == null)
                     {
-                        cmd.Parameters.Add("@sample_kg", OleDbType.Double).Value = DBNull.Value;
+                        cmd.Parameters.Add("@sample_kg", MySqlDbType.Double).Value = DBNull.Value;
                     }
                     else
                     {
-                        cmd.Parameters.Add("@sample_kg", OleDbType.Double).Value = (double)item.Sample_kg;
+                        cmd.Parameters.Add("@sample_kg", MySqlDbType.Double).Value = (double)item.Sample_kg;
                     }
 
-                    cmd.Parameters.Add("@taxa", OleDbType.VarChar).Value = item.TaxaCode;
-                    cmd.Parameters.Add("@species_text", OleDbType.VarChar).Value = item.SpeciesText;
-                    cmd.Parameters.Add("@catch_id", OleDbType.Integer).Value = item.PK;
+                    cmd.Parameters.Add("@taxa", MySqlDbType.VarChar).Value = item.TaxaCode;
+                    cmd.Parameters.Add("@species_text", MySqlDbType.VarChar).Value = item.SpeciesText;
+                    cmd.Parameters.Add("@catch_id", MySqlDbType.Int32).Value = item.PK;
 
                     cmd.CommandText = @"Update dbo_vessel_catch set
                                 v_unload_id=@v_unload_id,
@@ -234,13 +320,15 @@ namespace NSAP_ODK.Entities.Database
                                 taxa = @taxa,
                                 species_text = @species_text
                             WHERE catch_id = @catch_id";
+
                     try
                     {
+                        conn.Open();
                         success = cmd.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException dbex)
+                    catch (MySqlException msex)
                     {
-                        Logger.Log(dbex);
+                        Logger.Log(msex);
                     }
                     catch (Exception ex)
                     {
@@ -248,7 +336,78 @@ namespace NSAP_ODK.Entities.Database
                     }
                 }
             }
+            return success;
+        }
+        public bool Update(VesselCatch item)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = UpdateMySQL(item);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    using (OleDbCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.Parameters.Add("@v_unload_id", OleDbType.Integer).Value = item.Parent.PK;
 
+                        if (item.SpeciesID == null)
+                        {
+                            cmd.Parameters.Add("@species_id", OleDbType.Integer).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            cmd.Parameters.Add("@species_id", OleDbType.Integer).Value = item.SpeciesID;
+                        }
+
+                        if (item.Catch_kg == null)
+                        {
+                            cmd.Parameters.Add("@catch_kg", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            cmd.Parameters.Add("@catch_kg", OleDbType.Double).Value = (double)item.Catch_kg;
+                        }
+
+                        if (item.Sample_kg == null)
+                        {
+                            cmd.Parameters.Add("@sample_kg", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            cmd.Parameters.Add("@sample_kg", OleDbType.Double).Value = (double)item.Sample_kg;
+                        }
+
+                        cmd.Parameters.Add("@taxa", OleDbType.VarChar).Value = item.TaxaCode;
+                        cmd.Parameters.Add("@species_text", OleDbType.VarChar).Value = item.SpeciesText;
+                        cmd.Parameters.Add("@catch_id", OleDbType.Integer).Value = item.PK;
+
+                        cmd.CommandText = @"Update dbo_vessel_catch set
+                                v_unload_id=@v_unload_id,
+                                species_id = @species_id,
+                                catch_kg = @catch_kg,
+                                samp_kg = @sample_kg,
+                                taxa = @taxa,
+                                species_text = @species_text
+                            WHERE catch_id = @catch_id";
+                        try
+                        {
+                            success = cmd.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
             return success;
         }
 
@@ -279,30 +438,63 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
-
-        public bool Delete(int id)
+        private bool DeleteMySQL(int id)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-
-                using (OleDbCommand update = conn.CreateCommand())
+                using (var update = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = id;
                     update.CommandText = "Delete * from dbo_vessel_catch where catch_id=@id";
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException)
+                    catch (MySqlException msex)
                     {
-                        success = false;
+                        Logger.Log(msex);
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
-                        success = false;
+                    }
+
+                }
+            }
+            return success;
+        }
+        public bool Delete(int id)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = DeleteMySQL(id);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                        update.CommandText = "Delete * from dbo_vessel_catch where catch_id=@id";
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException)
+                        {
+                            success = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                            success = false;
+                        }
                     }
                 }
             }

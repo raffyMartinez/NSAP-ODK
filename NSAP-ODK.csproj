@@ -272,6 +272,7 @@
     <Compile Include="Entities\ItemSources\LandingSiteInFMAFishingGroundItemsSource.cs" />
     <Compile Include="Entities\KoboForms.cs" />
     <Compile Include="Entities\Koboform_files.cs" />
+    <Compile Include="Entities\MDBTablesRowCount.cs" />
     <Compile Include="Entities\MySQLConnectEventArgs.cs" />
     <Compile Include="Entities\SummaryAtLevel.cs" />
     <Compile Include="Entities\MajorGridFMA.cs" />
@@ -374,6 +375,7 @@
     <Compile Include="Entities\UTMCoordinate.cs" />
     <Compile Include="Entities\UTMZone.cs" />
     <Compile Include="NSAPMysql\CreateMySQLTables.cs" />
+    <Compile Include="NSAPMysql\MigrateDataEventArg.cs" />
     <Compile Include="NSAPMysql\MigrateDataToMySQL.cs" />
     <Compile Include="NSAPMysql\TablesStats.cs" />
     <Compile Include="NSAPMysql\TableStats.cs" />

@@ -23,7 +23,7 @@ namespace NSAP_ODK.Entities
         private List<FMA> getFromMySQL()
         {
             List<FMA> thisList = new List<FMA>();
-            
+
             using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
                 using (var cmd = conn.CreateCommand())
@@ -43,6 +43,59 @@ namespace NSAP_ODK.Entities
             return thisList;
         }
 
+        public int RecordCountMDB()
+        {
+             int n = 0;
+            using (var conection = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = conection.CreateCommand())
+                {
+                    cmd.CommandText = "Select count(*) from fma";
+                    try
+                    {
+                        conection.Open();
+                        n = (int)cmd.ExecuteScalar();
+                    }
+                    catch (OleDbException oex)
+                    {
+                        Logger.Log(oex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return n;
+        }
+        public int RecordCountMySQL()
+        {
+            int n = 0;
+
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "Select count(*) from fma";
+                    try
+                    {
+                        conn.Open();
+                        n = (int)cmd.ExecuteScalar();
+                    }
+                    catch (MySqlException mex)
+                    {
+                        Logger.Log(mex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+
+                }
+            }
+
+            return n;
+        }
         public bool Add(FMA fma)
         {
             bool success = false;
@@ -60,7 +113,7 @@ namespace NSAP_ODK.Entities
                     }
                     catch (MySqlException msex)
                     {
-                        switch(msex.ErrorCode)
+                        switch (msex.ErrorCode)
                         {
                             case -2147467259:
                                 //duplicated unique index error
@@ -69,7 +122,7 @@ namespace NSAP_ODK.Entities
                                 Logger.Log(msex);
                                 break;
                         }
-                        
+
                     }
                     catch (Exception ex)
                     {

@@ -105,14 +105,14 @@ namespace NSAP_ODK.Entities
                     update.CommandText = @"Insert into gears (gear_name,gear_code,generic_code,is_generic) 
                                         Values (@gearName,@gearcode,@genericcode,@isgeneric)";
 
-                    
+
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;
                     }
                     catch (MySqlException msex)
                     {
-                        switch(msex.ErrorCode)
+                        switch (msex.ErrorCode)
                         {
                             case -2147467259:
                                 break;
@@ -120,7 +120,7 @@ namespace NSAP_ODK.Entities
                                 Logger.Log(msex);
                                 break;
                         }
-                        
+
                     }
                     catch (Exception ex)
                     {
@@ -174,36 +174,32 @@ namespace NSAP_ODK.Entities
             }
             return success;
         }
-
-        public bool Update(Gear g)
+        private bool UpdateMySQL(Gear g)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-                using (OleDbCommand update = conn.CreateCommand())
+                using (var update = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@gearname", OleDbType.VarChar).Value = g.GearName;
-                    update.Parameters.Add("@genericcode", OleDbType.VarChar).Value = g.BaseGear.Code;
-                    update.Parameters.Add("@isgeneric", OleDbType.Boolean).Value = g.IsGenericGear;
-                    update.Parameters.Add("@gearcode", OleDbType.VarChar).Value = g.Code;
+                    update.Parameters.Add("@gearname", MySqlDbType.VarChar).Value = g.GearName;
+                    update.Parameters.Add("@genericcode", MySqlDbType.VarChar).Value = g.BaseGear.Code;
+                    update.Parameters.AddWithValue("@isgeneric", g.IsGenericGear);
+                    update.Parameters.Add("@gearcode", MySqlDbType.VarChar).Value = g.Code;
 
-                    update.CommandText = @"UPDATE gear SET
-                                           GearName = @gearname,
-                                           GenericCode = @genericcode,
-                                           IsGeneric = @isgeneric 
-                                           WHERE GearCode = @gearcode";
+                    update.CommandText = @"UPDATE gears SET
+                                           gear_name = @gearname,
+                                           generic_code = @genericcode,
+                                           is_generic = @isgeneric 
+                                           WHERE gear_code = @gearcode";
+
                     try
                     {
-                        //string commandString = update.CommandText;
-                        //foreach (OleDbParameter parameter in update.Parameters)
-                        //    commandString = commandString.Replace(parameter.ParameterName.ToString(), parameter.Value.ToString());
-
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException dbex)
+                    catch (MySqlException msex)
                     {
-                        Logger.Log(dbex);
+                        Logger.Log(msex);
                     }
                     catch (Exception ex)
                     {
@@ -213,30 +209,108 @@ namespace NSAP_ODK.Entities
             }
             return success;
         }
-
-        public bool Delete(string code)
+        public bool Update(Gear g)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-
-                using (OleDbCommand update = conn.CreateCommand())
+                success = UpdateMySQL(g);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
-                    update.Parameters.Add("@code", OleDbType.VarChar).Value = code;
-                    update.CommandText = "Delete * from gear where GearCode=@code";
+                    conn.Open();
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+                        update.Parameters.Add("@gearname", OleDbType.VarChar).Value = g.GearName;
+                        update.Parameters.Add("@genericcode", OleDbType.VarChar).Value = g.BaseGear.Code;
+                        update.Parameters.Add("@isgeneric", OleDbType.Boolean).Value = g.IsGenericGear;
+                        update.Parameters.Add("@gearcode", OleDbType.VarChar).Value = g.Code;
+
+                        update.CommandText = @"UPDATE gear SET
+                                           GearName = @gearname,
+                                           GenericCode = @genericcode,
+                                           IsGeneric = @isgeneric 
+                                           WHERE GearCode = @gearcode";
+                        try
+                        {
+                            //string commandString = update.CommandText;
+                            //foreach (OleDbParameter parameter in update.Parameters)
+                            //    commandString = commandString.Replace(parameter.ParameterName.ToString(), parameter.Value.ToString());
+
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
+        private bool DeleteMySQL(string code)
+        {
+            bool success = false;
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var update = conn.CreateCommand())
+                {
+                    update.Parameters.Add("@code", MySqlDbType.VarChar).Value = code;
+                    update.CommandText = "Delete * from gears where gear_code=@code";
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException)
+                    catch (MySqlException msex)
                     {
-                        success = false;
+                        Logger.Log(msex);
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
-                        success = false;
+                    }
+
+                }
+            }
+            return success;
+        }
+        public bool Delete(string code)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = DeleteMySQL(code);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+                        update.Parameters.Add("@code", OleDbType.VarChar).Value = code;
+                        update.CommandText = "Delete * from gear where GearCode=@code";
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException)
+                        {
+                            success = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                            success = false;
+                        }
                     }
                 }
             }

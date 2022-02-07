@@ -21,13 +21,28 @@ namespace NSAP_ODK.Entities.Database
         public int MaxRecordNumber()
         {
             int max_rec_no = 0;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-                const string sql = "SELECT Max(catch_len_wt_id) AS max_id FROM dbo_catch_len_wt";
-                using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
                 {
-                    max_rec_no = (int)getMax.ExecuteScalar();
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        conn.Open();
+                        cmd.CommandText = "SELECT Max(catch_lw_id) AS max_id FROM dbo_catch_len_wt";
+                        max_rec_no = (int)cmd.ExecuteScalar();
+                    }
+                }
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    const string sql = "SELECT Max(catch_len_wt_id) AS max_id FROM dbo_catch_len_wt";
+                    using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                    {
+                        max_rec_no = (int)getMax.ExecuteScalar();
+                    }
                 }
             }
             return max_rec_no;
@@ -98,27 +113,27 @@ namespace NSAP_ODK.Entities.Database
             return thisList;
         }
 
-        public bool Add(CatchLengthWeight item)
+        private bool AddToMySQL(CatchLengthWeight item)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-                var sql = "Insert into dbo_catch_len_wt(catch_len_wt_id, catch_id, length,weight) Values (?,?,?,?)";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                using (var update = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
-                    update.Parameters.Add("@catch_id", OleDbType.Integer).Value = item.Parent.PK;
-                    update.Parameters.Add("@length", OleDbType.Double).Value = item.Length;
-                    update.Parameters.Add("@weight", OleDbType.Double).Value = item.Weight;
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = item.PK;
+                    update.Parameters.Add("@catch_id", MySqlDbType.Int32).Value = item.Parent.PK;
+                    update.Parameters.Add("@length", MySqlDbType.Double).Value = item.Length;
+                    update.Parameters.Add("@weight", MySqlDbType.Double).Value = item.Weight;
+                    update.CommandText = @"Insert into dbo_catch_len_wt(catch_lw_id, catch_id, length,weight) 
+                                          Values (@id,@catch_id,@length,@weight)";
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException dbex)
+                    catch (MySqlException msex)
                     {
-                        Logger.Log(dbex);
-                        success = false;
+                        Logger.Log(msex);
                     }
                     catch (Exception ex)
                     {
@@ -128,40 +143,118 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
-
-        public bool Update(CatchLengthWeight item)
+        public bool Add(CatchLengthWeight item)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-
-                using (OleDbCommand update = conn.CreateCommand())
+                success = AddToMySQL(item);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
-
-                    update.Parameters.Add("@catch_id", OleDbType.Integer).Value = item.Parent.PK;
-                    update.Parameters.Add("@length", OleDbType.Double).Value = item.Length;
-                    update.Parameters.Add("@weight", OleDbType.Double).Value = item.Weight;
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
+                    conn.Open();
+                    var sql = "Insert into dbo_catch_len_wt(catch_len_wt_id, catch_id, length,weight) Values (?,?,?,?)";
+                    using (OleDbCommand update = new OleDbCommand(sql, conn))
+                    {
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
+                        update.Parameters.Add("@catch_id", OleDbType.Integer).Value = item.Parent.PK;
+                        update.Parameters.Add("@length", OleDbType.Double).Value = item.Length;
+                        update.Parameters.Add("@weight", OleDbType.Double).Value = item.Weight;
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                            success = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
+        private bool UpdateMySQL(CatchLengthWeight item)
+        {
+            bool success = false;
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var update = conn.CreateCommand())
+                {
+                    update.Parameters.Add("@catch_id", MySqlDbType.Int32).Value = item.Parent.PK;
+                    update.Parameters.Add("@length", MySqlDbType.Double).Value = item.Length;
+                    update.Parameters.Add("@weight", MySqlDbType.Int32).Value = item.Weight;
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = item.PK;
 
                     update.CommandText = @"Update dbo_catch_len_wt set
                                         catch_id=@catch_id,
                                         length = @length,
                                         weight = @weight
-                                        WHERE catch_len_wt_id = @id";
+                                        WHERE catch_lw_id = @id";
 
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException dbex)
+                    catch (MySqlException msex)
                     {
-                        Logger.Log(dbex);
-                        success = false;
+                        Logger.Log(msex);
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
+        public bool Update(CatchLengthWeight item)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = UpdateMySQL(item);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+
+                        update.Parameters.Add("@catch_id", OleDbType.Integer).Value = item.Parent.PK;
+                        update.Parameters.Add("@length", OleDbType.Double).Value = item.Length;
+                        update.Parameters.Add("@weight", OleDbType.Double).Value = item.Weight;
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
+
+                        update.CommandText = @"Update dbo_catch_len_wt set
+                                        catch_id=@catch_id,
+                                        length = @length,
+                                        weight = @weight
+                                        WHERE catch_len_wt_id = @id";
+
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                            success = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
                     }
                 }
             }
@@ -194,29 +287,63 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
-        public bool Delete(int id)
+        private bool DeleteMySQL(int id)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-
-                using (OleDbCommand update = conn.CreateCommand())
+                using (var update = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = id;
-                    update.CommandText = "Delete * from dbo_catch_len_wt where catch_len_wt_id=@id";
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = id;
+                    update.CommandText = "Delete * from dbo_catch_len_wt where catch_lw_id=@id";
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException)
+                    catch (MySqlException msex)
                     {
-                        success = false;
+                        Logger.Log(msex);
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
-                        success = false;
+                    }
+
+                }
+            }
+            return success;
+        }
+        public bool Delete(int id)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = DeleteMySQL(id);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                        update.CommandText = "Delete * from dbo_catch_len_wt where catch_len_wt_id=@id";
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException)
+                        {
+                            success = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                            success = false;
+                        }
                     }
                 }
             }

@@ -11,6 +11,7 @@ namespace NSAP_ODK.Entities
 {
     public class NSAPRegionViewModel
     {
+        private bool _editSuccess;
         public DBSummary TotalOfSummary { get; set; }
 
         public Dictionary<DateTime, DBSummary> RegionMonthSampledSummaryDictionary { get; private set; }
@@ -463,6 +464,7 @@ namespace NSAP_ODK.Entities
 
         private void NSAPRegionCOllection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            _editSuccess = false;
             NSAPRegion editedNSAPRegion = new NSAPRegion();
             switch (e.Action)
             {
@@ -470,7 +472,7 @@ namespace NSAP_ODK.Entities
                     {
                         int newIndex = e.NewStartingIndex;
                         editedNSAPRegion = NSAPRegionCollection[newIndex];
-                        NSAPRegions.Add(editedNSAPRegion);
+                        _editSuccess= NSAPRegions.Add(editedNSAPRegion);
                     }
                     break;
 
@@ -478,7 +480,7 @@ namespace NSAP_ODK.Entities
                     {
                         List<NSAPRegion> tempListOfRemovedItems = e.OldItems.OfType<NSAPRegion>().ToList();
                         editedNSAPRegion = tempListOfRemovedItems[0];
-                        NSAPRegions.Delete(editedNSAPRegion.Code);
+                        _editSuccess= NSAPRegions.Delete(editedNSAPRegion.Code);
                     }
                     break;
 
@@ -486,7 +488,7 @@ namespace NSAP_ODK.Entities
                     {
                         List<NSAPRegion> tempList = e.NewItems.OfType<NSAPRegion>().ToList();
                         editedNSAPRegion = tempList[0];
-                        NSAPRegions.Update(editedNSAPRegion);      // As the IDs are unique, only one row will be effected hence first index only
+                        _editSuccess= NSAPRegions.Update(editedNSAPRegion);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -494,14 +496,15 @@ namespace NSAP_ODK.Entities
             //EntityChanged?.Invoke(this, args);
         }
 
-        public void AddRecordToRepo(NSAPRegion nsr)
+        public bool AddRecordToRepo(NSAPRegion nsr)
         {
             if (nsr == null)
                 throw new ArgumentNullException("Error: The argument is Null");
             NSAPRegionCollection.Add(nsr);
+            return _editSuccess;
         }
 
-        public void UpdateRecordInRepo(NSAPRegion nsr)
+        public bool UpdateRecordInRepo(NSAPRegion nsr)
         {
             if (nsr.Code == null)
                 throw new Exception("Error: ID cannot be null");
@@ -516,9 +519,10 @@ namespace NSAP_ODK.Entities
                 }
                 index++;
             }
+            return _editSuccess;
         }
 
-        public void DeleteRecordFromRepo(string code)
+        public bool DeleteRecordFromRepo(string code)
         {
             if (code == null)
                 throw new Exception("Record ID cannot be null");
@@ -533,6 +537,7 @@ namespace NSAP_ODK.Entities
                 }
                 index++;
             }
+            return _editSuccess;
         }
 
         public bool EntityValidated(NSAPRegion nsapRegion, out List<string> messages, bool isNew = false)

@@ -188,42 +188,52 @@ namespace NSAP_ODK
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
             Global.RequestLogIn += OnMysQLRequestLogin;
+
             Global.DoAppProceed();
             if (Global.AppProceed)
             {
                 _currentDisplayMode = DataDisplayMode.Dashboard;
                 SetDataDisplayMode();
 
-                ShowSplash();
-                //CSVFIleManager.ReadCSVXML();
-                if (
-                    NSAPEntities.NSAPRegionViewModel.Count > 0 &&
-                    NSAPEntities.FishSpeciesViewModel.Count > 0 &&
-                    NSAPEntities.NotFishSpeciesViewModel.Count > 0 &&
-                    NSAPEntities.FMAViewModel.Count > 0
-                    )
+                if (!Global.Settings.UsemySQL || !Global.MySQLLogInCancelled)
                 {
+                    ShowSplash();
+                    //CSVFIleManager.ReadCSVXML();
+                    if (
+                        NSAPEntities.NSAPRegionViewModel.Count > 0 &&
+                        NSAPEntities.FishSpeciesViewModel.Count > 0 &&
+                        NSAPEntities.NotFishSpeciesViewModel.Count > 0 &&
+                        NSAPEntities.FMAViewModel.Count > 0
+                        )
+                    {
 
-                    buttonDelete.IsEnabled = false;
-                    buttonEdit.IsEnabled = false;
-                    dbPathLabel.Content = Global.MDBPath;
-                    menuDatabaseSummary.IsChecked = true;
+                        buttonDelete.IsEnabled = false;
+                        buttonEdit.IsEnabled = false;
+                        dbPathLabel.Content = Global.MDBPath;
+                        menuDatabaseSummary.IsChecked = true;
 
-                    CrossTabManager.CrossTabEvent += OnCrossTabEvent;
-                    _timer = new DispatcherTimer();
-                    _timer.Tick += OnTimerTick;
+                        CrossTabManager.CrossTabEvent += OnCrossTabEvent;
+                        _timer = new DispatcherTimer();
+                        _timer.Tick += OnTimerTick;
+                    }
+                    else
+                    {
+                        ShowDatabaseNotFoundView();
+                    }
+                    mainStatusLabel.Content = string.Empty;
                 }
                 else
                 {
                     ShowDatabaseNotFoundView();
+                    mainStatusLabel.Content = "Application database not found";
                 }
-                mainStatusLabel.Content = string.Empty;
             }
-            else
+
+            if(Global.Settings.UsemySQL)
             {
-                ShowDatabaseNotFoundView();
-                mainStatusLabel.Content = "Application database not found";
+                Title += " - MySQL";
             }
+
         }
         private void HideMainWindowUI(bool isHidden = true)
         {
@@ -240,9 +250,25 @@ namespace NSAP_ODK
         {
             ResetDisplay();
             LogInMySQLWindow logInWindow = new LogInMySQLWindow();
+            //LogInMySQLWindow logInWindow = LogInMySQLWindow.GetInstance();
+            //logInWindow.Owner = this;
+            //if(logInWindow.Visibility==Visibility.Visible)
+            //{
+            //    logInWindow.BringIntoView();
+            //}
+            //else
+            //{
+            //    logInWindow.Visibility = Visibility.Visible;
+            //}
+            // HideMainWindowUI(false);
             if ((bool)logInWindow.ShowDialog())
             {
                 HideMainWindowUI(false);
+            }
+            else
+            {
+                Global.MySQLLogInCancelled = true;
+                Close();
             }
             Global.RequestLogIn -= OnMysQLRequestLogin;
         }

@@ -9,6 +9,7 @@ namespace NSAP_ODK.Entities
 {
     public class EffortSpecificationViewModel
     {
+        private bool _editSuccess;
         public ObservableCollection<EffortSpecification> EffortSpecCollection { get; set; }
         private EffortSpecificationRepository EffortSpecs { get; set; }
 
@@ -141,21 +142,21 @@ namespace NSAP_ODK.Entities
                 case NotifyCollectionChangedAction.Add:
                     {
                         int newIndex = e.NewStartingIndex;
-                        EffortSpecs.Add(EffortSpecCollection[newIndex]);
+                        _editSuccess= EffortSpecs.Add(EffortSpecCollection[newIndex]);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<EffortSpecification> tempListOfRemovedItems = e.OldItems.OfType<EffortSpecification>().ToList();
-                        EffortSpecs.Delete(tempListOfRemovedItems[0].ID);
+                        _editSuccess= EffortSpecs.Delete(tempListOfRemovedItems[0].ID);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<EffortSpecification> tempList = e.NewItems.OfType<EffortSpecification>().ToList();
-                        EffortSpecs.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        _editSuccess= EffortSpecs.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -166,14 +167,15 @@ namespace NSAP_ODK.Entities
             get { return EffortSpecCollection.Count; }
         }
 
-        public void AddRecordToRepo(EffortSpecification e)
+        public bool AddRecordToRepo(EffortSpecification e)
         {
             if (e == null)
                 throw new ArgumentNullException("Error: The argument is Null");
             EffortSpecCollection.Add(e);
+            return _editSuccess;
         }
 
-        public void UpdateRecordInRepo(EffortSpecification e)
+        public bool UpdateRecordInRepo(EffortSpecification e)
         {
             if (e.ID == 0)
                 throw new Exception("Error: ID cannot be zero");
@@ -188,6 +190,7 @@ namespace NSAP_ODK.Entities
                 }
                 index++;
             }
+            return _editSuccess;
         }
 
         public int NextRecordNumber
@@ -206,7 +209,7 @@ namespace NSAP_ODK.Entities
             }
         }
 
-        public void DeleteRecordFromRepo(int id)
+        public bool DeleteRecordFromRepo(int id)
         {
             if (id == 0)
                 throw new Exception("Record ID cannot be null");
@@ -221,6 +224,7 @@ namespace NSAP_ODK.Entities
                 }
                 index++;
             }
+            return _editSuccess;
         }
 
         public EntityValidationResult EntityValidated(EffortSpecification effortSpec, bool isNew, string oldName, bool oldIsForAllTypesFishing)

@@ -21,13 +21,28 @@ namespace NSAP_ODK.Entities.Database
         public int MaxRecordNumber()
         {
             int max_rec_no = 0;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-                const string sql = "SELECT Max(gear_soak_id) AS max_id FROM dbo_gear_soak";
-                using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
                 {
-                    max_rec_no = (int)getMax.ExecuteScalar();
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        conn.Open();
+                        cmd.CommandText = "SELECT Max(gear_soak_id) AS max_id FROM dbo_gear_soak";
+                        max_rec_no = (int)cmd.ExecuteScalar();
+                    }
+                }
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    const string sql = "SELECT Max(gear_soak_id) AS max_id FROM dbo_gear_soak";
+                    using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                    {
+                        max_rec_no = (int)getMax.ExecuteScalar();
+                    }
                 }
             }
             return max_rec_no;
@@ -103,31 +118,31 @@ namespace NSAP_ODK.Entities.Database
             return thisList;
         }
 
-        public bool Add(GearSoak item)
+        private bool AddToMySQL(GearSoak item)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-                var sql = "Insert into dbo_gear_soak(v_unload_id, time_set,time_hauled,wpt_set,wpt_haul,gear_soak_id) Values (?,?,?,?,?,?)";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                using (var update = conn.CreateCommand())
                 {
-
-                    update.Parameters.Add("@unload_id", OleDbType.Integer).Value = item.Parent.PK;
-                    update.Parameters.Add("@time_set", OleDbType.Date).Value = item.TimeAtSet;
-                    update.Parameters.Add("@time_haul", OleDbType.Date).Value = item.TimeAtHaul;
-                    update.Parameters.Add("@wpt_set", OleDbType.VarChar).Value = item.WaypointAtSet;
-                    update.Parameters.Add("@wpt_haul", OleDbType.VarChar).Value = item.WaypointAtHaul;
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
+                    update.Parameters.Add("@unload_id", MySqlDbType.Int32).Value = item.Parent.PK;
+                    update.Parameters.Add("@time_set", MySqlDbType.DateTime).Value = item.TimeAtSet;
+                    update.Parameters.Add("@time_haul", MySqlDbType.DateTime).Value = item.TimeAtHaul;
+                    update.Parameters.Add("@wpt_set", MySqlDbType.VarChar).Value = item.WaypointAtSet;
+                    update.Parameters.Add("@wpt_haul", MySqlDbType.VarChar).Value = item.WaypointAtHaul;
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = item.PK;
+                    update.CommandText = @"Insert into dbo_gear_soak(v_unload_id, time_set,time_hauled,wpt_set,wpt_haul,gear_soak_id) 
+                                        Values (@unload_id,@time_set,@time_haul,@wpt_set,@wpt_haul,@id)";
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException)
+                    catch(MySqlException msex)
                     {
-                        success = false;
+                        Logger.Log(msex);
                     }
-                    catch (Exception ex)
+                    catch(Exception ex)
                     {
                         Logger.Log(ex);
                     }
@@ -135,22 +150,58 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
-
-        public bool Update(GearSoak item)
+        public bool Add(GearSoak item)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-
-                using (OleDbCommand update = conn.CreateCommand())
+                success = AddToMySQL(item);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
-                    update.Parameters.Add("@unload_id", OleDbType.Integer).Value = item.Parent.PK;
-                    update.Parameters.Add("@time_set", OleDbType.Date).Value = item.TimeAtSet;
-                    update.Parameters.Add("@time_haul", OleDbType.Date).Value = item.TimeAtHaul;
-                    update.Parameters.Add("@wpt_set", OleDbType.VarChar).Value = item.WaypointAtSet;
-                    update.Parameters.Add("@wpt_haul", OleDbType.VarChar).Value = item.WaypointAtHaul;
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
+                    conn.Open();
+                    var sql = "Insert into dbo_gear_soak(v_unload_id, time_set,time_hauled,wpt_set,wpt_haul,gear_soak_id) Values (@,@,@,@,@,@)";
+                    using (OleDbCommand update = new OleDbCommand(sql, conn))
+                    {
+
+                        update.Parameters.Add("@unload_id", OleDbType.Integer).Value = item.Parent.PK;
+                        update.Parameters.Add("@time_set", OleDbType.Date).Value = item.TimeAtSet;
+                        update.Parameters.Add("@time_haul", OleDbType.Date).Value = item.TimeAtHaul;
+                        update.Parameters.Add("@wpt_set", OleDbType.VarChar).Value = item.WaypointAtSet;
+                        update.Parameters.Add("@wpt_haul", OleDbType.VarChar).Value = item.WaypointAtHaul;
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException)
+                        {
+                            success = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
+        private bool UpdateMySQL(GearSoak item)
+        {
+            bool success = false;
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var update = conn.CreateCommand())
+                {
+                    update.Parameters.Add("@unload_id", MySqlDbType.Int32).Value = item.Parent.PK;
+                    update.Parameters.Add("@time_set", MySqlDbType.DateTime).Value = item.TimeAtSet;
+                    update.Parameters.Add("@time_haul", MySqlDbType.DateTime).Value = item.TimeAtHaul;
+                    update.Parameters.Add("@wpt_set", MySqlDbType.VarChar).Value = item.WaypointAtSet;
+                    update.Parameters.Add("@wpt_haul", MySqlDbType.VarChar).Value = item.WaypointAtHaul;
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = item.PK;
 
                     update.CommandText = @"Update dbo_gear_soak set
                                             v_unload_id=@unload_id,
@@ -162,17 +213,65 @@ namespace NSAP_ODK.Entities.Database
 
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException)
+                    catch (MySqlException msex)
                     {
-                        success = false;
+                        Logger.Log(msex);
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
                     }
-                    success = update.ExecuteNonQuery() > 0;
+                }
+            }
+            return success;
+        }
+        public bool Update(GearSoak item)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = UpdateMySQL(item);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+                        update.Parameters.Add("@unload_id", OleDbType.Integer).Value = item.Parent.PK;
+                        update.Parameters.Add("@time_set", OleDbType.Date).Value = item.TimeAtSet;
+                        update.Parameters.Add("@time_haul", OleDbType.Date).Value = item.TimeAtHaul;
+                        update.Parameters.Add("@wpt_set", OleDbType.VarChar).Value = item.WaypointAtSet;
+                        update.Parameters.Add("@wpt_haul", OleDbType.VarChar).Value = item.WaypointAtHaul;
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
+
+                        update.CommandText = @"Update dbo_gear_soak set
+                                            v_unload_id=@unload_id,
+                                            time_set = @time_set,
+                                            time_hauled = @time_haul,
+                                            wpt_set = @wpt_set,
+                                            wpt_haul=@wpt_haul
+                                        WHERE gear_soak_id = @id";
+
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException)
+                        {
+                            success = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                        success = update.ExecuteNonQuery() > 0;
+                    }
                 }
             }
             return success;

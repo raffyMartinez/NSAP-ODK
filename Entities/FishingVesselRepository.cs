@@ -277,68 +277,158 @@ namespace NSAP_ODK.Entities
             }
             return success;
         }
-
-        public bool Update(FishingVessel fv)
+        private bool UpdateMySQL(FishingVessel fv)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-                using (OleDbCommand update = conn.CreateCommand())
+                using (var update = conn.CreateCommand())
                 {
-
                     if (string.IsNullOrEmpty(fv.Name))
                     {
-                        update.Parameters.Add("@name", OleDbType.VarChar).Value = DBNull.Value;
+                        update.Parameters.Add("@name", MySqlDbType.VarChar).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@name", OleDbType.VarChar).Value = fv.Name;
+                        update.Parameters.Add("@name", MySqlDbType.VarChar).Value = fv.Name;
                     }
                     if (string.IsNullOrEmpty(fv.NameOfOwner))
                     {
-                        update.Parameters.Add("@owner_name", OleDbType.VarChar).Value = DBNull.Value;
+                        update.Parameters.Add("@owner_name", MySqlDbType.VarChar).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@owner_name", OleDbType.VarChar).Value = fv.NameOfOwner;
+                        update.Parameters.Add("@owner_name", MySqlDbType.VarChar).Value = fv.NameOfOwner;
                     }
                     if (fv.Length == null)
                     {
-                        update.Parameters.Add("@len", OleDbType.Double).Value = DBNull.Value;
+                        update.Parameters.Add("@len", MySqlDbType.Double).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@len", OleDbType.Double).Value = fv.Length;
+                        update.Parameters.Add("@len", MySqlDbType.Double).Value = fv.Length;
                     }
                     if (fv.Depth == null)
                     {
-                        update.Parameters.Add("@dep", OleDbType.Double).Value = DBNull.Value;
+                        update.Parameters.Add("@dep", MySqlDbType.Double).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@dep", OleDbType.Double).Value = fv.Depth;
+                        update.Parameters.Add("@dep", MySqlDbType.Double).Value = fv.Depth;
                     }
                     if (fv.Breadth == null)
                     {
-                        update.Parameters.Add("@brd", OleDbType.Double).Value = DBNull.Value;
+                        update.Parameters.Add("@brd", MySqlDbType.Double).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@brd", OleDbType.Double).Value = fv.Breadth;
+                        update.Parameters.Add("@brd", MySqlDbType.Double).Value = fv.Breadth;
                     }
                     if (string.IsNullOrEmpty(fv.RegistrationNumber))
                     {
-                        update.Parameters.Add("@reg_number", OleDbType.VarChar).Value = DBNull.Value;
+                        update.Parameters.Add("@reg_number", MySqlDbType.VarChar).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@reg_number", OleDbType.VarChar).Value = fv.RegistrationNumber;
+                        update.Parameters.Add("@reg_number", MySqlDbType.VarChar).Value = fv.RegistrationNumber;
                     }
-                    update.Parameters.Add("@sector", OleDbType.Integer).Value = (int)fv.FisheriesSector;
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = fv.ID;
+                    update.Parameters.Add("@sector", MySqlDbType.Int32).Value = (int)fv.FisheriesSector;
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = fv.ID;
 
-                    update.CommandText = @"Update fishingVessel set
+                    update.CommandText = @"Update fishing_vessel set
+                                vessel_name = @name,
+                                name_of_owner=@owner_name,
+                                length = @len,
+                                depth = @dep,
+                                breadth = @brd,
+                                registration_number = @reg_number,
+                                sector = @sector
+                                WHERE vessel_id=@id";
+
+                    try
+                    {
+                        conn.Open();
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (MySqlException msex)
+                    {
+                        Logger.Log(msex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
+        public bool Update(FishingVessel fv)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = UpdateMySQL(fv);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+
+                        if (string.IsNullOrEmpty(fv.Name))
+                        {
+                            update.Parameters.Add("@name", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@name", OleDbType.VarChar).Value = fv.Name;
+                        }
+                        if (string.IsNullOrEmpty(fv.NameOfOwner))
+                        {
+                            update.Parameters.Add("@owner_name", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@owner_name", OleDbType.VarChar).Value = fv.NameOfOwner;
+                        }
+                        if (fv.Length == null)
+                        {
+                            update.Parameters.Add("@len", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@len", OleDbType.Double).Value = fv.Length;
+                        }
+                        if (fv.Depth == null)
+                        {
+                            update.Parameters.Add("@dep", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@dep", OleDbType.Double).Value = fv.Depth;
+                        }
+                        if (fv.Breadth == null)
+                        {
+                            update.Parameters.Add("@brd", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@brd", OleDbType.Double).Value = fv.Breadth;
+                        }
+                        if (string.IsNullOrEmpty(fv.RegistrationNumber))
+                        {
+                            update.Parameters.Add("@reg_number", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@reg_number", OleDbType.VarChar).Value = fv.RegistrationNumber;
+                        }
+                        update.Parameters.Add("@sector", OleDbType.Integer).Value = (int)fv.FisheriesSector;
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = fv.ID;
+
+                        update.CommandText = @"Update fishingVessel set
                                 VesselName = @name,
                                 NameOfOwner=@owner_name,
                                 Length = @len,
@@ -347,46 +437,80 @@ namespace NSAP_ODK.Entities
                                 RegistrationNumber = @reg_number,
                                 Sector = @sector
                                 WHERE VesselID=@id";
-                    try
-                    {
-                        success = update.ExecuteNonQuery() > 0;
-                    }
-                    catch (OleDbException dbex)
-                    {
-                        Logger.Log(dbex);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
                     }
                 }
             }
             return success;
         }
-
-        public bool Delete(int id)
+        private bool DeleteMySQL(int id)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-                //var sql = $"Delete * from fishingVessel where VesselID={id}";
-                using (OleDbCommand update = conn.CreateCommand())
+                using (var update = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = id;
-                    update.CommandText="Delete * from fishingVessel where VesselID=@id";
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = id;
+                    update.CommandText =  "Delete * from fishing_vessel where vessel_id=@id";
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException)
+                    catch (MySqlException msex)
                     {
-                        success = false;
+                        Logger.Log(msex);
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
-                        success = false;
+                    }
+
+                }
+            }
+            return success;
+        }
+        public bool Delete(int id)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = DeleteMySQL(id);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    //var sql = $"Delete * from fishingVessel where VesselID={id}";
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                        update.CommandText = "Delete * from fishingVessel where VesselID=@id";
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException)
+                        {
+                            success = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                            success = false;
+                        }
                     }
                 }
             }
@@ -395,13 +519,28 @@ namespace NSAP_ODK.Entities
         public int MaxRecordNumber()
         {
             int max_rec_no = 0;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-                const string sql = "SELECT Max(VesselID) AS max_id FROM fishingVessel";
-                using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
                 {
-                    max_rec_no = (int)getMax.ExecuteScalar();
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        conn.Open();
+                        cmd.CommandText ="SELECT Max(vessel_id) AS max_id FROM fishing_vessel";
+                        max_rec_no = (int)cmd.ExecuteScalar();
+                    }
+                }
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    const string sql = "SELECT Max(VesselID) AS max_id FROM fishingVessel";
+                    using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                    {
+                        max_rec_no = (int)getMax.ExecuteScalar();
+                    }
                 }
             }
             return max_rec_no;

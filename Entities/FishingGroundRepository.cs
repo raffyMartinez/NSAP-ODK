@@ -162,27 +162,27 @@ namespace NSAP_ODK.Entities
 
         public bool CorruptedDatabase { get; private set; }
 
-
-        public bool Update(FishingGround fg)
+        private bool UpdateMySQL(FishingGround fg)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-                using (OleDbCommand update = conn.CreateCommand())
+                using (var update = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@fgname", OleDbType.VarChar).Value = fg.Name;
-                    update.Parameters.Add("@fgcode", OleDbType.VarChar).Value = fg.Code;
-                    update.CommandText = @"UPDATE fishingground SET
-                                           FishingGroundName=@fgname
-                                           WHERE FishingGroundCode=@fgcode";
+                    update.Parameters.Add("@fgname", MySqlDbType.VarChar).Value = fg.Name;
+                    update.Parameters.Add("@fgcode", MySqlDbType.VarChar).Value = fg.Code;
+                    update.CommandText = @"UPDATE fishing_grounds SET
+                                           fishing_ground_name=@fgname
+                                           WHERE fishing_ground_code=@fgcode";
+
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException dbex)
+                    catch (MySqlException msex)
                     {
-                        Logger.Log(dbex);
+                        Logger.Log(msex);
                     }
                     catch (Exception ex)
                     {
@@ -192,30 +192,99 @@ namespace NSAP_ODK.Entities
             }
             return success;
         }
-
-        public bool Delete(string code)
+        public bool Update(FishingGround fg)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-
-                using (OleDbCommand update = conn.CreateCommand())
+                success = UpdateMySQL(fg);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
-                    update.Parameters.Add("@code", OleDbType.VarChar).Value = code;
-                    update.CommandText = "Delete * from fishingGround where FishingGroundCode=@code";
+                    conn.Open();
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+                        update.Parameters.Add("@fgname", OleDbType.VarChar).Value = fg.Name;
+                        update.Parameters.Add("@fgcode", OleDbType.VarChar).Value = fg.Code;
+                        update.CommandText = @"UPDATE fishingground SET
+                                           FishingGroundName=@fgname
+                                           WHERE FishingGroundCode=@fgcode";
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
+        private bool DeleteMySQL(string code)
+        {
+            bool success = false;
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var update = conn.CreateCommand())
+                {
+                    update.Parameters.Add("@code", MySqlDbType.VarChar).Value = code;
+                    update.CommandText = "Delete * from fishing_grounds where fishing_ground_code=@code";
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException)
+                    catch (MySqlException msex)
                     {
-                        success = false;
+                        Logger.Log(msex);
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
-                        success = false;
+                    }
+
+                }
+            }
+            return success;
+        }
+        public bool Delete(string code)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = DeleteMySQL(code);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+                        update.Parameters.Add("@code", OleDbType.VarChar).Value = code;
+                        update.CommandText = "Delete * from fishingGround where FishingGroundCode=@code";
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException)
+                        {
+                            success = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                            success = false;
+                        }
                     }
                 }
             }

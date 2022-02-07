@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         Loaded="OnWindowLoaded"
+        Closing="OnWindowClosing"
         xmlns:local="clr-namespace:NSAP_ODK.Views"
         mc:Ignorable="d"
         Title="Login to mySQL" Height="207.766" Width="385.745" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">

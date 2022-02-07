@@ -67,11 +67,11 @@ namespace NSAP_ODK.Entities
                             thisList.Add(ges);
                         }
                     }
-                    catch(MySqlException msex)
+                    catch (MySqlException msex)
                     {
 
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Logger.Log(ex);
                     }
@@ -130,7 +130,7 @@ namespace NSAP_ODK.Entities
                     cmd.Parameters.Add("@gear", MySqlDbType.VarChar).Value = ges.Gear.Code;
                     cmd.Parameters.Add("@spec", MySqlDbType.Int32).Value = ges.EffortSpecification.ID;
                     cmd.Parameters.Add("@id", MySqlDbType.Int32).Value = ges.RowID;
-                    cmd.CommandText="Insert into gear_effort_specification (gear, effort_spec, row_id) Values (@gear,@spec,@id)";
+                    cmd.CommandText = "Insert into gear_effort_specification (gear, effort_spec, row_id) Values (@gear,@spec,@id)";
                     try
                     {
                         conn.Open();
@@ -193,32 +193,30 @@ namespace NSAP_ODK.Entities
             }
             return success;
         }
-
-        public bool Update(GearEffortSpecification ges)
+        private bool UpdateMySQL(GearEffortSpecification ges)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-
-                using (OleDbCommand update = conn.CreateCommand())
+                using (var update = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@code", OleDbType.VarChar).Value = ges.Gear.Code;
-                    update.Parameters.Add("@spec", OleDbType.Integer).Value = ges.EffortSpecification.ID;
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = ges.RowID;
+                    update.Parameters.Add("@code", MySqlDbType.VarChar).Value = ges.Gear.Code;
+                    update.Parameters.Add("@spec", MySqlDbType.Int32).Value = ges.EffortSpecification.ID;
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = ges.RowID;
 
-                    update.CommandText = @"Update GearEffortSpecification set
-                                            GearCode = @code,
-                                            EffortSpec =@spec
-                                            WHERE RowdId=@id";
+                    update.CommandText = @"Update gear_effort_specification set
+                                            gear = @code,
+                                            effort_spec =@spec
+                                            WHERE row_id=@id";
 
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException dbex)
+                    catch (MySqlException msex)
                     {
-                        Logger.Log(dbex);
+                        Logger.Log(msex);
                     }
                     catch (Exception ex)
                     {
@@ -228,30 +226,104 @@ namespace NSAP_ODK.Entities
             }
             return success;
         }
-
-        public bool Delete(int id)
+        public bool Update(GearEffortSpecification ges)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-
-                using (OleDbCommand update = conn.CreateCommand())
+                success = UpdateMySQL(ges);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = id;
-                    update.CommandText = "Delete * from GearEffortSpecification where RowId=@id";
+                    conn.Open();
+
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+                        update.Parameters.Add("@code", OleDbType.VarChar).Value = ges.Gear.Code;
+                        update.Parameters.Add("@spec", OleDbType.Integer).Value = ges.EffortSpecification.ID;
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = ges.RowID;
+
+                        update.CommandText = @"Update GearEffortSpecification set
+                                            GearCode = @code,
+                                            EffortSpec =@spec
+                                            WHERE RowdId=@id";
+
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
+        private bool DeleteMySQL(int id)
+        {
+            bool success = false;
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var update = conn.CreateCommand())
+                {
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = id;
+                    update.CommandText = "Delete * from gear_effort_specification where row_id=@id";
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException)
+                    catch (MySqlException msex)
                     {
-                        success = false;
+                        Logger.Log(msex);
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
-                        success = false;
+                    }
+
+                }
+            }
+            return success;
+        }
+        public bool Delete(int id)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = DeleteMySQL(id);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                        update.CommandText = "Delete * from GearEffortSpecification where RowId=@id";
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException)
+                        {
+                            success = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                            success = false;
+                        }
                     }
                 }
             }
@@ -260,13 +332,28 @@ namespace NSAP_ODK.Entities
         public int MaxRecordNumber()
         {
             int max_rec_no = 0;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-                const string sql = "SELECT Max(RowId) AS max_record_no FROM GearEffortSpecification";
-                using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
                 {
-                    max_rec_no = (int)getMax.ExecuteScalar();
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        conn.Open();
+                        cmd.CommandText = "SELECT Max(row_id) AS max_id FROM gear_effort_specification";
+                        max_rec_no = (int)cmd.ExecuteScalar();
+                    }
+                }
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    const string sql = "SELECT Max(RowId) AS max_record_no FROM GearEffortSpecification";
+                    using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                    {
+                        max_rec_no = (int)getMax.ExecuteScalar();
+                    }
                 }
             }
             return max_rec_no;

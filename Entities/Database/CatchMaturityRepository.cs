@@ -21,13 +21,28 @@ namespace NSAP_ODK.Entities.Database
         public int MaxRecordNumber()
         {
             int max_rec_no = 0;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-                const string sql = "SELECT Max(catch_maturity_id) AS max_id FROM dbo_catch_maturity";
-                using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
                 {
-                    max_rec_no = (int)getMax.ExecuteScalar();
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        conn.Open();
+                        cmd.CommandText =  "SELECT Max(catch_maturity_id) AS max_id FROM dbo_catch_maturity";
+                        max_rec_no = (int)cmd.ExecuteScalar();
+                    }
+                }
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    const string sql = "SELECT Max(catch_maturity_id) AS max_id FROM dbo_catch_maturity";
+                    using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                    {
+                        max_rec_no = (int)getMax.ExecuteScalar();
+                    }
                 }
             }
             return max_rec_no;
@@ -152,84 +167,82 @@ namespace NSAP_ODK.Entities.Database
             getCatchMaturites();
         }
 
-        public bool Add(CatchMaturity item)
+        private bool AddToMySQL(CatchMaturity item)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-
-                var sql = @"Insert into dbo_catch_maturity(catch_maturity_id, catch_id, length, weight, sex, maturity, gut_content_wt, gut_content_code, gonadWt)
-                           Values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                using (var update = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
-                    update.Parameters.Add("@parent_id", OleDbType.Integer).Value = item.VesselCatchID;
+                    update.Parameters.Add("@pk", MySqlDbType.Int32).Value = item.PK;
+                    update.Parameters.Add("@parent_id", MySqlDbType.Int32).Value = item.VesselCatchID;
                     if (item.Length == null)
                     {
-                        update.Parameters.Add("@len", OleDbType.Double).Value = DBNull.Value;
+                        update.Parameters.Add("@len", MySqlDbType.Double).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@len", OleDbType.Double).Value = item.Length;
+                        update.Parameters.Add("@len", MySqlDbType.Double).Value = item.Length;
                     }
                     if (item.Weight == null)
                     {
-                        update.Parameters.Add("@wt", OleDbType.Double).Value = DBNull.Value;
+                        update.Parameters.Add("@wt", MySqlDbType.Double).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@wt", OleDbType.Double).Value = item.Weight;
+                        update.Parameters.Add("@wt", MySqlDbType.Double).Value = item.Weight;
                     }
                     if (item.SexCode == null)
                     {
-                        update.Parameters.Add("@sex_code", OleDbType.VarChar).Value = DBNull.Value;
+                        update.Parameters.Add("@sex_code", MySqlDbType.VarChar).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@sex_code", OleDbType.VarChar).Value = item.SexCode.ToString();
+                        update.Parameters.Add("@sex_code", MySqlDbType.VarChar).Value = item.SexCode.ToString();
                     }
 
                     if (item.MaturityCode == null)
                     {
-                        update.Parameters.Add("@maturity_code", OleDbType.VarChar).Value = DBNull.Value;
+                        update.Parameters.Add("@maturity_code", MySqlDbType.VarChar).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@maturity_code", OleDbType.VarChar).Value = item.MaturityCode.ToString();
+                        update.Parameters.Add("@maturity_code", MySqlDbType.VarChar).Value = item.MaturityCode.ToString();
                     }
                     if (item.WeightGutContent == null)
                     {
-                        update.Parameters.Add("@wt_gut_content", OleDbType.Double).Value = DBNull.Value;
+                        update.Parameters.Add("@wt_gut_content", MySqlDbType.Double).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@wt_gut_content", OleDbType.Double).Value = item.WeightGutContent;
+                        update.Parameters.Add("@wt_gut_content", MySqlDbType.Double).Value = item.WeightGutContent;
                     }
                     if (item.GutContentCode == null)
                     {
-                        update.Parameters.Add("@gut_content_code", OleDbType.VarChar).Value = DBNull.Value;
+                        update.Parameters.Add("@gut_content_code", MySqlDbType.VarChar).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@gut_content_code", OleDbType.VarChar).Value = item.GutContentCode.ToString();
+                        update.Parameters.Add("@gut_content_code", MySqlDbType.VarChar).Value = item.GutContentCode.ToString();
                     }
                     if (item.GonadWeight == null)
                     {
-                        update.Parameters.Add("@wt_gonad", OleDbType.Double).Value = DBNull.Value;
+                        update.Parameters.Add("@wt_gonad", MySqlDbType.Double).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@wt_gonad", OleDbType.Double).Value = item.GonadWeight;
+                        update.Parameters.Add("@wt_gonad", MySqlDbType.Double).Value = item.GonadWeight;
                     }
-
+                    update.CommandText = @"Insert into dbo_catch_maturity(catch_maturity_id, catch_id, length, weight, sex, maturity, gut_content_wt, gut_content_class, gonad_wt)
+                                            Values (@pk, @parent_id, @len, @wt, @sex_code, @maturity_code, @wt_gut_content, @gut_content_code, @wt_gonad)";
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException dbex)
+                    catch (MySqlException msex)
                     {
-                        Logger.Log(dbex);
+                        Logger.Log(msex);
                     }
                     catch (Exception ex)
                     {
@@ -237,79 +250,273 @@ namespace NSAP_ODK.Entities.Database
                     }
                 }
             }
-
             return success;
         }
-
-        public bool Update(CatchMaturity item)
+        public bool Add(CatchMaturity item)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-                using (OleDbCommand update = conn.CreateCommand())
+                success = AddToMySQL(item);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
-                    update.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
-                    update.Parameters.Add("@parent_id", OleDbType.Integer).Value = item.VesselCatchID;
+                    conn.Open();
+
+                    var sql = @"Insert into dbo_catch_maturity(catch_maturity_id, catch_id, length, weight, sex, maturity, gut_content_wt, gut_content_code, gonadWt)
+                           Values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    using (OleDbCommand update = new OleDbCommand(sql, conn))
+                    {
+                        update.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
+                        update.Parameters.Add("@parent_id", OleDbType.Integer).Value = item.VesselCatchID;
+                        if (item.Length == null)
+                        {
+                            update.Parameters.Add("@len", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@len", OleDbType.Double).Value = item.Length;
+                        }
+                        if (item.Weight == null)
+                        {
+                            update.Parameters.Add("@wt", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@wt", OleDbType.Double).Value = item.Weight;
+                        }
+                        if (item.SexCode == null)
+                        {
+                            update.Parameters.Add("@sex_code", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@sex_code", OleDbType.VarChar).Value = item.SexCode.ToString();
+                        }
+
+                        if (item.MaturityCode == null)
+                        {
+                            update.Parameters.Add("@maturity_code", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@maturity_code", OleDbType.VarChar).Value = item.MaturityCode.ToString();
+                        }
+                        if (item.WeightGutContent == null)
+                        {
+                            update.Parameters.Add("@wt_gut_content", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@wt_gut_content", OleDbType.Double).Value = item.WeightGutContent;
+                        }
+                        if (item.GutContentCode == null)
+                        {
+                            update.Parameters.Add("@gut_content_code", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@gut_content_code", OleDbType.VarChar).Value = item.GutContentCode.ToString();
+                        }
+                        if (item.GonadWeight == null)
+                        {
+                            update.Parameters.Add("@wt_gonad", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@wt_gonad", OleDbType.Double).Value = item.GonadWeight;
+                        }
+
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+
+            }
+            return success;
+        }
+        private bool UpdateMySQL(CatchMaturity item)
+        {
+            bool success = false;
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var update = conn.CreateCommand())
+                {
+                    update.Parameters.Add("@pk", MySqlDbType.Int32).Value = item.PK;
+                    update.Parameters.Add("@parent_id", MySqlDbType.Int32).Value = item.VesselCatchID;
                     if (item.Length == null)
                     {
-                        update.Parameters.Add("@len", OleDbType.Double).Value = DBNull.Value;
+                        update.Parameters.Add("@len", MySqlDbType.Double).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@len", OleDbType.Double).Value = item.Length;
+                        update.Parameters.Add("@len", MySqlDbType.Double).Value = item.Length;
                     }
                     if (item.Weight == null)
                     {
-                        update.Parameters.Add("@wt", OleDbType.Double).Value = DBNull.Value;
+                        update.Parameters.Add("@wt", MySqlDbType.Double).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@wt", OleDbType.Double).Value = item.Weight;
+                        update.Parameters.Add("@wt", MySqlDbType.Double).Value = item.Weight;
                     }
                     if (item.SexCode == null)
                     {
-                        update.Parameters.Add("@sex_code", OleDbType.VarChar).Value = DBNull.Value;
+                        update.Parameters.Add("@sex_code", MySqlDbType.VarChar).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@sex_code", OleDbType.VarChar).Value = item.SexCode.ToString();
+                        update.Parameters.Add("@sex_code", MySqlDbType.VarChar).Value = item.SexCode.ToString();
                     }
 
                     if (item.MaturityCode == null)
                     {
-                        update.Parameters.Add("@maturity_code", OleDbType.VarChar).Value = DBNull.Value;
+                        update.Parameters.Add("@maturity_code", MySqlDbType.VarChar).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@maturity_code", OleDbType.VarChar).Value = item.MaturityCode.ToString();
+                        update.Parameters.Add("@maturity_code", MySqlDbType.VarChar).Value = item.MaturityCode.ToString();
                     }
                     if (item.WeightGutContent == null)
                     {
-                        update.Parameters.Add("@wt_gut_content", OleDbType.Double).Value = DBNull.Value;
+                        update.Parameters.Add("@wt_gut_content", MySqlDbType.Double).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@wt_gut_content", OleDbType.Double).Value = item.WeightGutContent;
+                        update.Parameters.Add("@wt_gut_content", MySqlDbType.Double).Value = item.WeightGutContent;
                     }
                     if (item.GutContentCode == null)
                     {
-                        update.Parameters.Add("@gut_content_code", OleDbType.VarChar).Value = DBNull.Value;
+                        update.Parameters.Add("@gut_content_code", MySqlDbType.VarChar).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@gut_content_code", OleDbType.VarChar).Value = item.GutContentCode.ToString();
+                        update.Parameters.Add("@gut_content_code", MySqlDbType.VarChar).Value = item.GutContentCode.ToString();
                     }
                     if (item.GonadWeight == null)
                     {
-                        update.Parameters.Add("@wt_gonad", OleDbType.Double).Value = DBNull.Value;
+                        update.Parameters.Add("@wt_gonad", MySqlDbType.Double).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@wt_gonad", OleDbType.Double).Value = item.GonadWeight;
+                        update.Parameters.Add("@wt_gonad", MySqlDbType.Double).Value = item.GonadWeight;
                     }
 
                     update.CommandText = @"Update dbo_catch_maturity set
+                                catch_id=@parent_id,
+                                length = @len,
+                                weight = @wt,
+                                sex = @sex_code,
+                                maturity = @maturity_code,
+                                gut_content_wt =  @wt_gut_content,
+                                gut_content_class = @gut_content_code,
+                                gonad_wt = @wt_gonad,    
+                            WHERE catch_maturity_id = @pk";
+
+                    try
+                    {
+                        conn.Open();
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (MySqlException msex)
+                    {
+                        Logger.Log(msex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
+        public bool Update(CatchMaturity item)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = UpdateMySQL(item);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+                        update.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
+                        update.Parameters.Add("@parent_id", OleDbType.Integer).Value = item.VesselCatchID;
+                        if (item.Length == null)
+                        {
+                            update.Parameters.Add("@len", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@len", OleDbType.Double).Value = item.Length;
+                        }
+                        if (item.Weight == null)
+                        {
+                            update.Parameters.Add("@wt", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@wt", OleDbType.Double).Value = item.Weight;
+                        }
+                        if (item.SexCode == null)
+                        {
+                            update.Parameters.Add("@sex_code", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@sex_code", OleDbType.VarChar).Value = item.SexCode.ToString();
+                        }
+
+                        if (item.MaturityCode == null)
+                        {
+                            update.Parameters.Add("@maturity_code", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@maturity_code", OleDbType.VarChar).Value = item.MaturityCode.ToString();
+                        }
+                        if (item.WeightGutContent == null)
+                        {
+                            update.Parameters.Add("@wt_gut_content", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@wt_gut_content", OleDbType.Double).Value = item.WeightGutContent;
+                        }
+                        if (item.GutContentCode == null)
+                        {
+                            update.Parameters.Add("@gut_content_code", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@gut_content_code", OleDbType.VarChar).Value = item.GutContentCode.ToString();
+                        }
+                        if (item.GonadWeight == null)
+                        {
+                            update.Parameters.Add("@wt_gonad", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@wt_gonad", OleDbType.Double).Value = item.GonadWeight;
+                        }
+
+                        update.CommandText = @"Update dbo_catch_maturity set
                                 catch_id=@parent_id,
                                 length = @len,
                                 weight = @wt,
@@ -320,17 +527,18 @@ namespace NSAP_ODK.Entities.Database
                                 gonadWt = @wt_gonad,    
                             WHERE catch_maturity_id = @pk";
 
-                    try
-                    {
-                        success = update.ExecuteNonQuery() > 0;
-                    }
-                    catch (OleDbException dbex)
-                    {
-                        Logger.Log(dbex);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
                     }
                 }
             }
@@ -364,29 +572,63 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
-        public bool Delete(int id)
+        private bool DeleteMySQL(int id)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-                var sql = $"Delete * from dbo_catch_maturity where catch_maturity_id={id}";
-                using (OleDbCommand update = conn.CreateCommand())
+                using (var update = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = id;
                     update.CommandText = "Delete * from dbo_catch_maturity where catch_maturity_id=@id";
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException)
+                    catch (MySqlException msex)
                     {
-                        success = false;
+                        Logger.Log(msex);
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
-                        success = false;
+                    }
+
+                }
+            }
+            return success;
+        }
+        public bool Delete(int id)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = DeleteMySQL(id);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    var sql = $"Delete * from dbo_catch_maturity where catch_maturity_id={id}";
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                        update.CommandText = "Delete * from dbo_catch_maturity where catch_maturity_id=@id";
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException)
+                        {
+                            success = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                            success = false;
+                        }
                     }
                 }
             }

@@ -21,18 +21,27 @@ namespace NSAP_ODK.Views
     /// </summary>
     public partial class LogInMySQLWindow : Window
     {
-        private bool _databaseCreated;
-        private Entities.MySQLConnectEventArgs _ev;
-
+        private static LogInMySQLWindow _instance;
         public LogInMySQLWindow()
         {
             InitializeComponent();
 
         }
+
+        public static LogInMySQLWindow GetInstance()
+        {
+            if (_instance == null) _instance = new LogInMySQLWindow();
+
+            return _instance;
+        }
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+            this.ApplyPlacement();
+        }
         public LogInMySQLWindow(Entities.MySQLConnectEventArgs ev)
         {
             InitializeComponent();
-            _ev = ev;
         }
 
         private void OnButtonClick(object sender, RoutedEventArgs e)
@@ -42,7 +51,7 @@ namespace NSAP_ODK.Views
                 case "buttonStats":
 
                     MySQLDataStatisticsWindow msdw = new MySQLDataStatisticsWindow();
-                    Visibility = Visibility.Collapsed;
+                    //Visibility = Visibility.Hidden;
                     msdw.ShowDialog();
                     DialogResult = true;
                     break;
@@ -83,12 +92,11 @@ namespace NSAP_ODK.Views
                     DialogResult = false;
                     break;
                 case "buttonCreate":
-                    _databaseCreated = false;
                     MySQLConnect.CreateDatabase = true;
                     if (MySQLConnect.SetUP())
                     {
                         labelMessage.Content = $"NSAP-ODK Database created with {MySQLConnect.TableCount} tables";
-                        _databaseCreated = true;
+                        buttonStats.IsEnabled = true;
                     }
                     break;
             }
@@ -96,9 +104,12 @@ namespace NSAP_ODK.Views
 
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
-            _databaseCreated = false;
         }
 
-
+        private void OnWindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            _instance = null;
+            this.SavePlacement();
+        }
     }
 }

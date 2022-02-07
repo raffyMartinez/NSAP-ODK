@@ -11,7 +11,7 @@ namespace NSAP_ODK.Entities
     {
         public ObservableCollection<Taxa> TaxaCollection { get; set; }
         private TaxaRepository Taxas { get; set; }
-
+        private bool _editSuccess;
 
         public TaxaViewModel()
         {
@@ -107,24 +107,25 @@ namespace NSAP_ODK.Entities
         }
         private void Taxas_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            _editSuccess = false;
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
                     {
                         int newIndex = e.NewStartingIndex;
-                        Taxas.Add(TaxaCollection[newIndex]);
+                        _editSuccess = Taxas.Add(TaxaCollection[newIndex]);
                     }
                     break;
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<Taxa> tempListOfRemovedItems = e.OldItems.OfType<Taxa>().ToList();
-                        Taxas.Delete(tempListOfRemovedItems[0].Code);
+                        _editSuccess = Taxas.Delete(tempListOfRemovedItems[0].Code);
                     }
                     break;
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<Taxa> tempList = e.NewItems.OfType<Taxa>().ToList();
-                        Taxas.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        _editSuccess = Taxas.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -135,14 +136,16 @@ namespace NSAP_ODK.Entities
             get { return TaxaCollection.Count; }
         }
 
-        public void AddRecordToRepo(Taxa t)
+        public bool AddRecordToRepo(Taxa t)
         {
             if (t == null)
                 throw new ArgumentNullException("Error: The argument is Null");
             TaxaCollection.Add(t);
+
+            return _editSuccess;
         }
 
-        public void UpdateRecordInRepo(Taxa t)
+        public bool UpdateRecordInRepo(Taxa t)
         {
             if (t.Code == null)
                 throw new Exception("Error: ID cannot be null");
@@ -157,9 +160,10 @@ namespace NSAP_ODK.Entities
                 }
                 index++;
             }
+            return _editSuccess;
         }
 
-        public void DeleteRecordFromRepo(string code)
+        public bool DeleteRecordFromRepo(string code)
         {
             if (code == null)
                 throw new Exception("Record ID cannot be null");
@@ -174,6 +178,7 @@ namespace NSAP_ODK.Entities
                 }
                 index++;
             }
+            return _editSuccess;
         }
     }
 }

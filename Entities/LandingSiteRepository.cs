@@ -226,81 +226,51 @@ namespace NSAP_ODK.Entities
             }
             return success;
         }
-
-        public bool Update(LandingSite ls)
+        private bool UpdateMySQL(LandingSite ls)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-
-                using (OleDbCommand update = conn.CreateCommand())
+                using (var update = conn.CreateCommand())
                 {
-
-                    update.Parameters.Add("@name", OleDbType.VarChar).Value = ls.LandingSiteName;
-                    update.Parameters.Add("@muni", OleDbType.Integer).Value = ls.Municipality.MunicipalityID;
+                    update.Parameters.Add("@name", MySqlDbType.VarChar).Value = ls.LandingSiteName;
+                    update.Parameters.Add("@muni", MySqlDbType.Int32).Value = ls.Municipality.MunicipalityID;
                     if (ls.Longitude == null || ls.Latitude == null)
                     {
-                        update.Parameters.Add("@lon", OleDbType.Double).Value = DBNull.Value;
-                        update.Parameters.Add("@lat", OleDbType.Double).Value = DBNull.Value;
+                        update.Parameters.Add("@lon", MySqlDbType.Double).Value = DBNull.Value;
+                        update.Parameters.Add("@lat", MySqlDbType.Double).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@lon", OleDbType.Double).Value = ls.Longitude;
-                        update.Parameters.Add("@lat", OleDbType.Double).Value = ls.Latitude;
+                        update.Parameters.Add("@lon", MySqlDbType.Double).Value = ls.Longitude;
+                        update.Parameters.Add("@lat", MySqlDbType.Double).Value = ls.Latitude;
                     }
                     if (ls.Barangay == null)
                     {
-                        update.Parameters.Add("@brgy", OleDbType.VarChar).Value = DBNull.Value;
+                        update.Parameters.Add("@brgy", MySqlDbType.VarChar).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@brgy", OleDbType.VarChar).Value = ls.Barangay;
+                        update.Parameters.Add("@brgy", MySqlDbType.VarChar).Value = ls.Barangay;
                     }
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = ls.LandingSiteID;
-                    
-                    update.CommandText = @"Update LandingSite set
-                                            LandingSiteName = @name,
-                                            Municipality = @muni,
-                                            Longitude = @lon,
-                                            Latitude = @lat,
-                                            Barangay = @brgy
-                                            WHERE LandingSiteID=@id";
-                    try
-                    {
-                        success = update.ExecuteNonQuery() > 0;
-                    }
-                    catch(OleDbException dbex)
-                    {
-                        Logger.Log(dbex);
-                    }
-                    catch(Exception ex)
-                    {
-                        Logger.Log(ex);
-                    }
-                }
-            }
-            return success;
-        }
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = ls.LandingSiteID;
 
-        public bool Delete(int id)
-        {
-            bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
-            {
-                conn.Open();
-                
-                using (OleDbCommand update = conn.CreateCommand())
-                {
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = id;
-                    update.CommandText = "Delete * from LandingSite where LandingSiteId=@id";
+                    update.CommandText = @"Update landing_sites set
+                                            landing_site_name = @name,
+                                            municipality = @muni,
+                                            longitude = @lon,
+                                            latitude = @lat,
+                                            barangay = @brgy
+                                            WHERE landing_site_id=@id";
+
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException dbex)
+                    catch (MySqlException msex)
                     {
-                        Logger.Log(dbex);
+                        Logger.Log(msex);
                     }
                     catch (Exception ex)
                     {
@@ -310,17 +280,155 @@ namespace NSAP_ODK.Entities
             }
             return success;
         }
+        public bool Update(LandingSite ls)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = UpdateMySQL(ls);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+
+                        update.Parameters.Add("@name", OleDbType.VarChar).Value = ls.LandingSiteName;
+                        update.Parameters.Add("@muni", OleDbType.Integer).Value = ls.Municipality.MunicipalityID;
+                        if (ls.Longitude == null || ls.Latitude == null)
+                        {
+                            update.Parameters.Add("@lon", OleDbType.Double).Value = DBNull.Value;
+                            update.Parameters.Add("@lat", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@lon", OleDbType.Double).Value = ls.Longitude;
+                            update.Parameters.Add("@lat", OleDbType.Double).Value = ls.Latitude;
+                        }
+                        if (ls.Barangay == null)
+                        {
+                            update.Parameters.Add("@brgy", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@brgy", OleDbType.VarChar).Value = ls.Barangay;
+                        }
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = ls.LandingSiteID;
+
+                        update.CommandText = @"Update LandingSite set
+                                            LandingSiteName = @name,
+                                            Municipality = @muni,
+                                            Longitude = @lon,
+                                            Latitude = @lat,
+                                            Barangay = @brgy
+                                            WHERE LandingSiteID=@id";
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
+        private bool DeleteMySQL(int id)
+        {
+            bool success = false;
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var update = conn.CreateCommand())
+                {
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = id;
+                    update.CommandText = "Delete * from landing_sites where landing_site_id=@id";
+                    try
+                    {
+                        conn.Open();
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (MySqlException msex)
+                    {
+                        Logger.Log(msex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+
+                }
+            }
+            return success;
+        }
+        public bool Delete(int id)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = DeleteMySQL(id);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                        update.CommandText = "Delete * from LandingSite where LandingSiteId=@id";
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
 
         public int MaxRecordNumber()
         {
             int max_rec_no = 0;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-                const string sql = "SELECT Max(LandingSiteId) AS max_record_no FROM LandingSite";
-                using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
                 {
-                    max_rec_no = (int)getMax.ExecuteScalar();
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        conn.Open();
+                        cmd.CommandText = "SELECT Max(landing_site_id) AS max_id FROM landing_sites";
+                        max_rec_no = (int)cmd.ExecuteScalar();
+                    }
+                }
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    const string sql = "SELECT Max(LandingSiteId) AS max_record_no FROM LandingSite";
+                    using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                    {
+                        max_rec_no = (int)getMax.ExecuteScalar();
+                    }
                 }
             }
             return max_rec_no;

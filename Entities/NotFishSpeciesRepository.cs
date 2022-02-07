@@ -98,39 +98,43 @@ namespace NSAP_ODK.Entities
             }
             return thisList;
         }
-
-        public bool Add(NotFishSpecies nfs)
+        private bool AddToMySQL(NotFishSpecies nfs)
         {
-            string sizeType = nfs.SizeType == null ? "null" : $"'{nfs.SizeType.Code}'";
-            string maxSize = nfs.MaxSize == null ? "null" : nfs.MaxSize.ToString();
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-
-                var sql = "Insert into notFishSpecies(SpeciesID, Genus, Species, Taxa, SizeIndicator, MaxSize) Values (?,?,?,?,?,?)";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                using (var update = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = nfs.SpeciesID;
-                    update.Parameters.Add("@genus", OleDbType.VarChar).Value = nfs.Genus;
-                    update.Parameters.Add("@species", OleDbType.VarChar).Value = nfs.Species;
-                    update.Parameters.Add("@taxa", OleDbType.VarChar).Value = nfs.Taxa.Code;
-                    update.Parameters.Add("@indicator", OleDbType.VarChar).Value = nfs.SizeType.Code;
-                    if (nfs.MaxSize == null)
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = nfs.SpeciesID;
+                    update.Parameters.Add("@genus", MySqlDbType.VarChar).Value = nfs.Genus;
+                    update.Parameters.Add("@species", MySqlDbType.VarChar).Value = nfs.Species;
+                    update.Parameters.Add("@taxa", MySqlDbType.VarChar).Value = nfs.Taxa.Code;
+                    if (nfs.SizeType == null)
                     {
-                        update.Parameters.Add("@maxsize", OleDbType.Double).Value = DBNull.Value;
+                        update.Parameters.AddWithValue("@indicator", DBNull.Value);
                     }
                     else
                     {
-                        update.Parameters.Add("@maxsize", OleDbType.Double).Value = nfs.MaxSize;
+                        update.Parameters.Add("@indicator", MySqlDbType.VarChar).Value = nfs.SizeType.Code;
                     }
+                    if (nfs.MaxSize == null)
+                    {
+                        update.Parameters.Add("@maxsize", MySqlDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@maxsize", MySqlDbType.Double).Value = nfs.MaxSize;
+                    }
+
+                    update.CommandText = "Insert into not_fish_species(species_id, genus, species, taxa, size_indicator, max_size) Values (@id,@genus,@species,@taxa,@indicator,@maxsize)";
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException dbex)
+                    catch (MySqlException msex)
                     {
-                        Logger.Log(dbex);
+                        Logger.Log(msex.InnerException.Message);
                     }
                     catch (Exception ex)
                     {
@@ -140,11 +144,121 @@ namespace NSAP_ODK.Entities
             }
             return success;
         }
+        public bool Add(NotFishSpecies nfs)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = AddToMySQL(nfs);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
 
+                    var sql = "Insert into notFishSpecies(SpeciesID, Genus, Species, Taxa, SizeIndicator, MaxSize) Values (?,?,?,?,?,?)";
+                    using (OleDbCommand update = new OleDbCommand(sql, conn))
+                    {
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = nfs.SpeciesID;
+                        update.Parameters.Add("@genus", OleDbType.VarChar).Value = nfs.Genus;
+                        update.Parameters.Add("@species", OleDbType.VarChar).Value = nfs.Species;
+                        update.Parameters.Add("@taxa", OleDbType.VarChar).Value = nfs.Taxa.Code;
+                        if (nfs.SizeType == null)
+                        {
+                            update.Parameters.AddWithValue("@indicator", DBNull.Value);
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@indicator", OleDbType.VarChar).Value = nfs.SizeType.Code;
+                        }
+                        if (nfs.MaxSize == null)
+                        {
+                            update.Parameters.Add("@maxsize", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@maxsize", OleDbType.Double).Value = nfs.MaxSize;
+                        }
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
+        private bool UpdateMySQL(NotFishSpecies nfs)
+        {
+            bool success = false;
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var update = conn.CreateCommand())
+                {
+                    update.Parameters.Add("@genus", MySqlDbType.VarChar).Value = nfs.Genus;
+                    update.Parameters.Add("@species", MySqlDbType.VarChar).Value = nfs.Species;
+                    update.Parameters.Add("@taxa", MySqlDbType.VarChar).Value = nfs.Taxa.Code;
+                    if (nfs.SizeType == null)
+                    {
+                        update.Parameters.Add("@indicator", MySqlDbType.VarChar).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@indicator", MySqlDbType.VarChar).Value = nfs.SizeType.Code;
+                    }
+                    if (nfs.MaxSize == null)
+                    {
+                        update.Parameters.Add("@maxsize", MySqlDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@maxsize", MySqlDbType.Double).Value = nfs.MaxSize;
+                    }
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = nfs.SpeciesID;
+                    update.CommandText = @"Update not_fish_species set
+                                genus = @genus,
+                                species=@species,
+                                taxa = @taxa,
+                                size_indicator=@indicator,
+                                max_size = @maxSize
+                                WHERE species_id = @id";
+
+                    try
+                    {
+                        conn.Open();
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (MySqlException msex)
+                    {
+                        Logger.Log(msex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
         public bool Update(NotFishSpecies nfs)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
+            {
+                success = UpdateMySQL(nfs);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
                 using (OleDbCommand update = conn.CreateCommand())
@@ -191,32 +305,66 @@ namespace NSAP_ODK.Entities
                     }
                 }
             }
+                }
             return success;
         }
-
-        public bool Delete(int id)
+        private bool DeleteMySQL(int id)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-
-                using (OleDbCommand update = conn.CreateCommand())
+                using (var update = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = id;
-                    update.CommandText = $"Delete * from notFishSpecies where SpeciesID=@id";
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = id;
+                    update.CommandText = "Delete * from not_fish_species where species_id=@id";
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException)
+                    catch (MySqlException msex)
                     {
-                        success = false;
+                        Logger.Log(msex);
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
-                        success = false;
+                    }
+
+                }
+            }
+            return success;
+        }
+        public bool Delete(int id)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = DeleteMySQL(id);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                        update.CommandText = $"Delete * from notFishSpecies where SpeciesID=@id";
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException)
+                        {
+                            success = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                            success = false;
+                        }
                     }
                 }
             }
@@ -225,13 +373,28 @@ namespace NSAP_ODK.Entities
         public int MaxRecordNumber()
         {
             int max_rec_no = 0;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-                const string sql = "SELECT Max(SpeciesID) AS max_record_no FROM notFishSpecies";
-                using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
                 {
-                    max_rec_no = (int)getMax.ExecuteScalar();
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        conn.Open();
+                        cmd.CommandText = "SELECT Max(species_id) AS max_record_no FROM not_fish_species";
+                        max_rec_no = (int)cmd.ExecuteScalar();
+                    }
+                }
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    const string sql = "SELECT Max(SpeciesID) AS max_record_no FROM notFishSpecies";
+                    using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                    {
+                        max_rec_no = (int)getMax.ExecuteScalar();
+                    }
                 }
             }
             return max_rec_no;

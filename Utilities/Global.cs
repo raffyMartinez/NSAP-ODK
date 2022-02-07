@@ -144,6 +144,8 @@ namespace NSAP_ODK.Utilities
             NSAPEntities.DatabaseEnumeratorSummary = new DatabaseEnumeratorSummary();
             NSAPEntities.JSONFileViewModel = new JSONFileViewModel();
         }
+
+        public static bool MySQLLogInCancelled { get; set; }
         public static void DoAppProceed()
         {
             AppProceed = Settings != null && File.Exists(Settings.MDBPath);

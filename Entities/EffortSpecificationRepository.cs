@@ -155,35 +155,104 @@ namespace NSAP_ODK.Entities
             }
             return success;
         }
+        private bool UpdateMySQL(EffortSpecification es)
+        {
+            bool success = false;
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var update = conn.CreateCommand())
+                {
+                    update.Parameters.Add("@effort_spec", MySqlDbType.VarChar).Value = es.Name;
+                    update.Parameters.AddWithValue("@is_for_all", es.IsForAllTypesFishing);
+                    update.Parameters.Add("@type", MySqlDbType.Int32).Value = (int)es.ValueType;
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = es.ID;
 
+                    update.CommandText = @"Update effort_specification set
+                                effort_specification = @effort_spec,
+                                for_all_types_of_fishing=@is_for_all,
+                                value_type = @type
+                                WHERE effort_specification_id = @id";
+
+                    try
+                    {
+                        conn.Open();
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (MySqlException msex)
+                    {
+                        Logger.Log(msex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
         public bool Update(EffortSpecification es)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-
-                using (OleDbCommand update = conn.CreateCommand())
+                success = UpdateMySQL(es);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
+                    conn.Open();
 
-                    update.Parameters.Add("@effort_spec", OleDbType.VarChar).Value = es.Name;
-                    update.Parameters.Add("@is_for_all", OleDbType.Boolean).Value = es.IsForAllTypesFishing;
-                    update.Parameters.Add("@type", OleDbType.Integer).Value = (int)es.ValueType;
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = es.ID;
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
 
-                    update.CommandText = @"Update effortSpecification set
+                        update.Parameters.Add("@effort_spec", OleDbType.VarChar).Value = es.Name;
+                        update.Parameters.Add("@is_for_all", OleDbType.Boolean).Value = es.IsForAllTypesFishing;
+                        update.Parameters.Add("@type", OleDbType.Integer).Value = (int)es.ValueType;
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = es.ID;
+
+                        update.CommandText = @"Update effortSpecification set
                                 EffortSpecification = @effort_spec,
                                 ForAllTypeOfFishing=@is_for_all,
                                 ValueType = @type
                                 WHERE EffortSpecificationID = @id";
 
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+
+                    }
+                }
+            }
+            return success;
+        }
+
+        private bool DeleteMySQL(int id)
+        {
+            bool success = false;
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var update = conn.CreateCommand())
+                {
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = id;
+                    update.CommandText = "Delete * from effort_specification where effort_specification_id=@id";
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException dbex)
+                    catch (MySqlException msex)
                     {
-                        Logger.Log(dbex);
+                        Logger.Log(msex);
                     }
                     catch (Exception ex)
                     {
@@ -194,31 +263,36 @@ namespace NSAP_ODK.Entities
             }
             return success;
         }
-
-
         public bool Delete(int id)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-
-                using (OleDbCommand update = conn.CreateCommand())
+                success = DeleteMySQL(id);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = id;
-                    update.CommandText = "Delete * from effortSpecification where EffortSpecificationID=@id";
-                    try
+                    conn.Open();
+
+                    using (OleDbCommand update = conn.CreateCommand())
                     {
-                        success = update.ExecuteNonQuery() > 0;
-                    }
-                    catch (OleDbException)
-                    {
-                        success = false;
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
-                        success = false;
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                        update.CommandText = "Delete * from effortSpecification where EffortSpecificationID=@id";
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException)
+                        {
+                            success = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                            success = false;
+                        }
                     }
                 }
             }
@@ -227,13 +301,28 @@ namespace NSAP_ODK.Entities
         public int MaxRecordNumber()
         {
             int max_rec_no = 0;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-                const string sql = "SELECT Max(EffortSpecificationID) AS max_id FROM effortSpecification";
-                using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
                 {
-                    max_rec_no = (int)getMax.ExecuteScalar();
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        conn.Open();
+                        cmd.CommandText = "SELECT Max(effort_specification_id) AS max_id FROM effort_specification";
+                        max_rec_no = (int)cmd.ExecuteScalar();
+                    }
+                }
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    const string sql = "SELECT Max(EffortSpecificationID) AS max_id FROM effortSpecification";
+                    using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                    {
+                        max_rec_no = (int)getMax.ExecuteScalar();
+                    }
                 }
             }
             return max_rec_no;

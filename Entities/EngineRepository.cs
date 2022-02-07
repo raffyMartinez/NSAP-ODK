@@ -155,33 +155,32 @@ namespace NSAP_ODK.Entities
             }
             return success;
         }
-
-        public bool Update(Engine en)
+        private bool UpdateMySQL(Engine en)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-
-                using (OleDbCommand update = conn.CreateCommand())
+                using (var update = conn.CreateCommand())
                 {
+                    update.Parameters.Add("@hp", MySqlDbType.Double).Value = en.HorsePower;
+                    update.Parameters.Add("@manuf", MySqlDbType.VarChar).Value = en.ManufacturerName;
+                    update.Parameters.Add("@model", MySqlDbType.VarChar).Value = en.ModelName;
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = en.EngineID;
 
-                    update.Parameters.Add("@hp", OleDbType.Double).Value = en.HorsePower;
-                    update.Parameters.Add("@manuf", OleDbType.VarChar).Value = en.ManufacturerName;
-                    update.Parameters.Add("@model", OleDbType.VarChar).Value = en.ModelName;
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = en.EngineID;
-                    update.CommandText = @"Update engine set
-                                Horsepower = @hp,
-                                ManufacturerName = @manuf,
-                                ModelName = @model
-                            WHERE EngineID = @id";
+                    update.CommandText = @"Update engines set
+                                horsepower = @hp,
+                                manufacturer_name = @manuf,
+                                model_name = @model
+                            WHERE engine_id = @id";
+
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException dbex)
+                    catch (MySqlException msex)
                     {
-                        Logger.Log(dbex);
+                        Logger.Log(msex);
                     }
                     catch (Exception ex)
                     {
@@ -191,30 +190,106 @@ namespace NSAP_ODK.Entities
             }
             return success;
         }
-
-        public bool Delete(int id)
+        public bool Update(Engine en)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-
-                using (OleDbCommand update = conn.CreateCommand())
+                success = UpdateMySQL(en);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = id;
-                    update.CommandText = "Delete * from engine where EngineID=@id";
+                    conn.Open();
+
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+
+                        update.Parameters.Add("@hp", OleDbType.Double).Value = en.HorsePower;
+                        update.Parameters.Add("@manuf", OleDbType.VarChar).Value = en.ManufacturerName;
+                        update.Parameters.Add("@model", OleDbType.VarChar).Value = en.ModelName;
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = en.EngineID;
+
+                        update.CommandText = @"Update engine set
+                                Horsepower = @hp,
+                                ManufacturerName = @manuf,
+                                ModelName = @model
+                            WHERE EngineID = @id";
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
+        private bool DeleteMySQL(int id)
+        {
+            bool success = false;
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var update = conn.CreateCommand())
+                {
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = id;
+                    update.CommandText = "Delete * from engines where engine_id=@id";
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException)
+                    catch (MySqlException msex)
                     {
-                        success = false;
+                        Logger.Log(msex);
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
-                        success = false;
+                    }
+
+                }
+            }
+            return success;
+        }
+        public bool Delete(int id)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = DeleteMySQL(id);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                        update.CommandText = "Delete * from engine where EngineID=@id";
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException)
+                        {
+                            success = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                            success = false;
+                        }
                     }
                 }
             }
@@ -223,13 +298,28 @@ namespace NSAP_ODK.Entities
         public int MaxRecordNumber()
         {
             int max_rec_no = 0;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-                const string sql = "SELECT Max(EngineID) AS max_id FROM engine";
-                using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
                 {
-                    max_rec_no = (int)getMax.ExecuteScalar();
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        conn.Open();
+                        cmd.CommandText = "SELECT Max(engine_id) AS max_id FROM engines";
+                        max_rec_no = (int)cmd.ExecuteScalar();
+                    }
+                }
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    const string sql = "SELECT Max(EngineID) AS max_id FROM engine";
+                    using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                    {
+                        max_rec_no = (int)getMax.ExecuteScalar();
+                    }
                 }
             }
             return max_rec_no;

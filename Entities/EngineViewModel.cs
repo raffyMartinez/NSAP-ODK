@@ -10,8 +10,9 @@ namespace NSAP_ODK.Entities
 {
     public class EngineViewModel
     {
+        private bool _editSuccess;
         public ObservableCollection<Engine> EngineCollection { get; set; }
-        private EngineRepository Engines{ get; set; }
+        private EngineRepository Engines { get; set; }
 
 
 
@@ -33,24 +34,25 @@ namespace NSAP_ODK.Entities
         }
         private void EngineCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            _editSuccess = false;
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
                     {
                         int newIndex = e.NewStartingIndex;
-                        Engines.Add(EngineCollection[newIndex]);
+                        _editSuccess = Engines.Add(EngineCollection[newIndex]);
                     }
                     break;
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<Engine> tempListOfRemovedItems = e.OldItems.OfType<Engine>().ToList();
-                        Engines.Delete(tempListOfRemovedItems[0].EngineID);
+                        _editSuccess = Engines.Delete(tempListOfRemovedItems[0].EngineID);
                     }
                     break;
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<Engine> tempList = e.NewItems.OfType<Engine>().ToList();
-                        Engines.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        _editSuccess = Engines.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -61,16 +63,17 @@ namespace NSAP_ODK.Entities
             get { return EngineCollection.Count; }
         }
 
-        public void AddRecordToRepo(Engine en)
+        public bool AddRecordToRepo(Engine en)
         {
             if (en == null)
                 throw new ArgumentNullException("Error: The argument is Null");
             EngineCollection.Add(en);
+            return _editSuccess;
         }
 
-        public void UpdateRecordInRepo(Engine en)
+        public bool UpdateRecordInRepo(Engine en)
         {
-            if (en.EngineID== 0)
+            if (en.EngineID == 0)
                 throw new Exception("Error: ID cannot be null");
 
             int index = 0;
@@ -83,9 +86,10 @@ namespace NSAP_ODK.Entities
                 }
                 index++;
             }
+            return _editSuccess;
         }
 
-        public void DeleteRecordFromRepo(int id)
+        public bool DeleteRecordFromRepo(int id)
         {
             if (id == 0)
                 throw new Exception("Record ID cannot be null");
@@ -100,6 +104,7 @@ namespace NSAP_ODK.Entities
                 }
                 index++;
             }
+            return _editSuccess;
         }
     }
 }

@@ -1559,9 +1559,9 @@ namespace NSAP_ODK.Entities.Database.FromJson
         public static DateTime? JSONFileCreationTime { get; set; }
         public static Task<bool> UploadToDBAsync()
         {
-            return Task.Run(() => UploadToLocalDatabase());
+            return Task.Run(() => UploadToDatabase());
         }
-        public static bool UploadToLocalDatabase()
+        public static bool UploadToDatabase()
         {
             int savedCount = 0;
             var landings = VesselLandings.Where(t => t.SavedInLocalDatabase == false).ToList();

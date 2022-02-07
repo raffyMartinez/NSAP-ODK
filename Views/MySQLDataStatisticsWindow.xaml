@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        Closing="OnWindowClosing"
         xmlns:local="clr-namespace:NSAP_ODK.Views"
         mc:Ignorable="d"
         Title="Statistics of tables in MySQL" Height="450" Width="800">
@@ -10,6 +11,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
             <RowDefinition/>
+            <RowDefinition Height="35"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
@@ -36,5 +38,9 @@
                 </Style>
             </DataGrid.CellStyle>
         </DataGrid>
+        <StatusBar Grid.Row="2" Grid.ColumnSpan="2">
+            <Label Content="Processing table:" x:Name="labelCurrentTable" Width="400"/>
+            <ProgressBar x:Name="progressBarMigrate" Width="200" Height="20"/>
+        </StatusBar>
     </Grid>
 </Window>
