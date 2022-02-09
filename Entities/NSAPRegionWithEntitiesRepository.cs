@@ -557,28 +557,54 @@ namespace NSAP_ODK.Entities
         public static int MaxRecordNumber_Enumerator()
         {
             int max_rec_no = 0;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-                const string sql = "SELECT Max(RowId) AS max_record_no FROM NSAPRegionEnumerator";
-                using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
                 {
-                    try
+                    using (var cmd = conn.CreateCommand())
                     {
-                        max_rec_no = (int)getMax.ExecuteScalar();
-
-                    }
-                    catch (Exception ex)
-                    {
-                        switch (ex.Message)
+                        cmd.CommandText = "SELECT Max(row_id) AS max_record_no FROM nsap_region_enumerator";
+                        try
                         {
-                            case "Specified cast is not valid.":
-                            case "No data exists for the row/column.":
-                                max_rec_no = 0;
-                                break;
-                            default:
-                                Logger.Log(ex);
-                                break;
+                            conn.Open();
+                            max_rec_no = (int)cmd.ExecuteScalar();
+                        }
+                        catch (MySqlException msex)
+                        {
+                            Logger.Log(msex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    const string sql = "SELECT Max(RowId) AS max_record_no FROM NSAPRegionEnumerator";
+                    using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                    {
+                        try
+                        {
+                            max_rec_no = (int)getMax.ExecuteScalar();
+
+                        }
+                        catch (Exception ex)
+                        {
+                            switch (ex.Message)
+                            {
+                                case "Specified cast is not valid.":
+                                case "No data exists for the row/column.":
+                                    max_rec_no = 0;
+                                    break;
+                                default:
+                                    Logger.Log(ex);
+                                    break;
+                            }
                         }
                     }
                 }
@@ -748,16 +774,16 @@ namespace NSAP_ODK.Entities
                     update.Parameters.Add("@id", MySqlDbType.Int32).Value = region_gear.RowID;
                     update.Parameters.Add("@region_code", MySqlDbType.VarChar).Value = region_gear.NSAPRegion.Code;
                     update.Parameters.Add("@gear_code", MySqlDbType.VarChar).Value = region_gear.GearCode;
-                    update.Parameters.Add("@start", MySqlDbType.Date).Value = region_gear.DateStart;
+                    update.Parameters.Add("@start", MySqlDbType.DateTime).Value = region_gear.DateStart;
                     if (region_gear.DateEnd == null)
                     {
-                        update.Parameters.Add("@end", MySqlDbType.Date).Value = DBNull.Value;
+                        update.Parameters.Add("@end", MySqlDbType.DateTime).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@end", MySqlDbType.Date).Value = region_gear.DateEnd;
+                        update.Parameters.Add("@end", MySqlDbType.DateTime).Value = region_gear.DateEnd;
                     }
-                    update.CommandText=@"Insert into nsap_region_gear(row_id, nsap_region, gear, date_start, date_end)
+                    update.CommandText = @"Insert into nsap_region_gear(row_id, nsap_region, gear, date_start, date_end)
                                         Values (@id,@region_code,@gear_code,@start,@end)";
                     try
                     {
@@ -894,14 +920,14 @@ namespace NSAP_ODK.Entities
                     update.Parameters.Add("@id", MySqlDbType.Int32).Value = fg.RowID;
                     update.Parameters.Add("@fg_code", MySqlDbType.VarChar).Value = fg.FishingGroundCode;
                     update.Parameters.Add("@region_fma", MySqlDbType.Int32).Value = fg.RegionFMA.RowID;
-                    update.Parameters.Add("@start", MySqlDbType.Date).Value = fg.DateStart;
+                    update.Parameters.Add("@start", MySqlDbType.DateTime).Value = fg.DateStart;
                     if (fg.DateEnd == null)
                     {
-                        update.Parameters.Add("@end", MySqlDbType.Date).Value = DBNull.Value;
+                        update.Parameters.Add("@end", MySqlDbType.DateTime).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@end", MySqlDbType.Date).Value = fg.DateEnd;
+                        update.Parameters.Add("@end", MySqlDbType.DateTime).Value = fg.DateEnd;
                     }
                     update.CommandText = @"Insert into nsap_region_fma_fishing_grounds (row_id, fishing_ground, region_fma, date_start, date_end) 
                                          Values (@id,@fg_code,@region_fma,@start,@end)";
@@ -992,15 +1018,15 @@ namespace NSAP_ODK.Entities
                     update.Parameters.Add("@id", MySqlDbType.Int32).Value = fgls.RowID;
                     update.Parameters.Add("@fglS_id", MySqlDbType.Int32).Value = fgls.NSAPRegionFMAFishingGround.RowID;
                     update.Parameters.Add("@ls_id", MySqlDbType.Int32).Value = fgls.LandingSite.LandingSiteID;
-                    update.Parameters.Add("@start", MySqlDbType.Date).Value = fgls.DateStart;
+                    update.Parameters.Add("@start", MySqlDbType.DateTime).Value = fgls.DateStart;
 
                     if (fgls.DateEnd == null)
                     {
-                        update.Parameters.Add("@end", MySqlDbType.Date).Value = DBNull.Value;
+                        update.Parameters.Add("@end", MySqlDbType.DateTime).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@end", MySqlDbType.Date).Value = fgls.RowID;
+                        update.Parameters.Add("@end", MySqlDbType.DateTime).Value = fgls.RowID;
                     }
 
                     update.CommandText = @"Insert into nsap_region_landing_site (row_id, nsap_region_fma_fg, landing_site, date_start, date_end) 
@@ -1165,56 +1191,91 @@ namespace NSAP_ODK.Entities
             return success;
         }
 
-        public bool EditLandingSite(NSAPRegionFMAFishingGroundLandingSite fmaFishingGroundLandingSite)
+        private bool EditLandingSiteMySQL(NSAPRegionFMAFishingGroundLandingSite fmaFishingGroundLandingSite)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-
-
-
-                using (OleDbCommand update = conn.CreateCommand())
+                using (var update = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@lsid", OleDbType.Integer).Value = fmaFishingGroundLandingSite.LandingSite.LandingSiteID;
-                    update.Parameters.Add("@start", OleDbType.Date).Value = fmaFishingGroundLandingSite.DateStart;
+                    update.Parameters.Add("@lsid", MySqlDbType.Int32).Value = fmaFishingGroundLandingSite.LandingSite.LandingSiteID;
+                    update.Parameters.Add("@start", MySqlDbType.DateTime).Value = fmaFishingGroundLandingSite.DateStart;
                     if (fmaFishingGroundLandingSite.DateEnd == null)
                     {
-                        update.Parameters.Add("@end", OleDbType.Date).Value = DBNull.Value;
+                        update.Parameters.Add("@end", MySqlDbType.DateTime).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("end", OleDbType.Date).Value = fmaFishingGroundLandingSite.DateEnd;
+                        update.Parameters.Add("end", MySqlDbType.DateTime).Value = fmaFishingGroundLandingSite.DateEnd;
                     }
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = fmaFishingGroundLandingSite.RowID;
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = fmaFishingGroundLandingSite.RowID;
 
-                    update.CommandText = @"Update NSAPRegionLandingSite set
+                    update.CommandText = @"Update nsap_region_landing_site set
+                                            landing_site = @id',
+                                            date_start = @start',
+                                            date_emd = @end
+                                        Where RowID=@id";
+                }
+            }
+                return success;
+        }
+        public bool EditLandingSite(NSAPRegionFMAFishingGroundLandingSite fmaFishingGroundLandingSite)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = EditLandingSiteMySQL(fmaFishingGroundLandingSite);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+
+
+
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+                        update.Parameters.Add("@lsid", OleDbType.Integer).Value = fmaFishingGroundLandingSite.LandingSite.LandingSiteID;
+                        update.Parameters.Add("@start", OleDbType.Date).Value = fmaFishingGroundLandingSite.DateStart;
+                        if (fmaFishingGroundLandingSite.DateEnd == null)
+                        {
+                            update.Parameters.Add("@end", OleDbType.Date).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("end", OleDbType.Date).Value = fmaFishingGroundLandingSite.DateEnd;
+                        }
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = fmaFishingGroundLandingSite.RowID;
+
+                        update.CommandText = @"Update NSAPRegionLandingSite set
                                             LandingSiteID = @id',
                                             DateStart = @start',
                                             DateEnd = @end
                                         Where RowID=@id";
 
-                    try
-                    {
-                        success = update.ExecuteNonQuery() > 0;
-                    }
-                    catch (OleDbException dbex)
-                    {
-                        Logger.Log(dbex);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
-                    }
-                    if (success)
-                    {
-                        foreach (var ls in fmaFishingGroundLandingSite.NSAPRegionFMAFishingGround.LandingSites)
+                        try
                         {
-                            if (ls.RowID == fmaFishingGroundLandingSite.RowID)
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                        if (success)
+                        {
+                            foreach (var ls in fmaFishingGroundLandingSite.NSAPRegionFMAFishingGround.LandingSites)
                             {
-                                fmaFishingGroundLandingSite.NSAPRegionFMAFishingGround.LandingSites.Remove(ls);
-                                fmaFishingGroundLandingSite.NSAPRegionFMAFishingGround.LandingSites.Add(fmaFishingGroundLandingSite);
-                                break;
+                                if (ls.RowID == fmaFishingGroundLandingSite.RowID)
+                                {
+                                    fmaFishingGroundLandingSite.NSAPRegionFMAFishingGround.LandingSites.Remove(ls);
+                                    fmaFishingGroundLandingSite.NSAPRegionFMAFishingGround.LandingSites.Add(fmaFishingGroundLandingSite);
+                                    break;
+                                }
                             }
                         }
                     }
@@ -1226,52 +1287,94 @@ namespace NSAP_ODK.Entities
         public bool EditEnumerator(NSAPRegionEnumerator regionEnumerator)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-
-
-                using (OleDbCommand update = conn.CreateCommand())
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
                 {
-                    update.Parameters.Add("@enum_id", OleDbType.Integer).Value = regionEnumerator.Enumerator.ID;
-                    update.Parameters.Add("@start", OleDbType.Date).Value = regionEnumerator.DateStart;
-                    if (regionEnumerator.DateEnd == null)
+                    using (var update = conn.CreateCommand())
                     {
-                        update.Parameters.Add("@end", OleDbType.Date).Value = DBNull.Value;
-                    }
-                    else
-                    {
-                        update.Parameters.Add("@end", OleDbType.Date).Value = regionEnumerator.DateEnd;
-                    }
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = regionEnumerator.RowID;
+                        update.Parameters.Add("@enum_id", MySqlDbType.Int32).Value = regionEnumerator.Enumerator.ID;
+                        update.Parameters.Add("@start", MySqlDbType.Date).Value = regionEnumerator.DateStart;
+                        if (regionEnumerator.DateEnd == null)
+                        {
+                            update.Parameters.Add("@end", MySqlDbType.Date).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@end", MySqlDbType.Date).Value = regionEnumerator.DateEnd;
+                        }
+                        update.Parameters.Add("@id", MySqlDbType.Int32).Value = regionEnumerator.RowID;
 
-                    update.CommandText = @"Update NSAPRegionEnumerator set
+                        update.CommandText = @"Update nsap_region_enumerator set
+                                            enumerator_id = @enum_id,
+                                            date_start = @start,
+                                            date_end = @end
+                                        Where RowID=@row_id";
+                        try
+                        {
+                            conn.Open();
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (MySqlException mex)
+                        {
+                            Logger.Log(mex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+
+
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+                        update.Parameters.Add("@enum_id", OleDbType.Integer).Value = regionEnumerator.Enumerator.ID;
+                        update.Parameters.Add("@start", OleDbType.Date).Value = regionEnumerator.DateStart;
+                        if (regionEnumerator.DateEnd == null)
+                        {
+                            update.Parameters.Add("@end", OleDbType.Date).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@end", OleDbType.Date).Value = regionEnumerator.DateEnd;
+                        }
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = regionEnumerator.RowID;
+
+                        update.CommandText = @"Update NSAPRegionEnumerator set
                                             EnumeratorID = @enum_id,
                                             DateStart = @start,
                                             DateEnd = @end
                                         Where RowID=@id";
 
-                    try
-                    {
-                        success = update.ExecuteNonQuery() > 0;
-                    }
-                    catch (OleDbException dbex)
-                    {
-                        Logger.Log(dbex);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
-                    }
-                    if (success)
-                    {
-                        foreach (var en in regionEnumerator.NSAPRegion.NSAPEnumerators)
+                        try
                         {
-                            if (en.RowID == regionEnumerator.RowID)
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                        if (success)
+                        {
+                            foreach (var en in regionEnumerator.NSAPRegion.NSAPEnumerators)
                             {
-                                regionEnumerator.NSAPRegion.NSAPEnumerators.Remove(en);
-                                regionEnumerator.NSAPRegion.NSAPEnumerators.Add(regionEnumerator);
-                                break;
+                                if (en.RowID == regionEnumerator.RowID)
+                                {
+                                    regionEnumerator.NSAPRegion.NSAPEnumerators.Remove(en);
+                                    regionEnumerator.NSAPRegion.NSAPEnumerators.Add(regionEnumerator);
+                                    break;
+                                }
                             }
                         }
                     }
@@ -1279,58 +1382,146 @@ namespace NSAP_ODK.Entities
             }
             return success;
         }
-
-        public bool EditFMAFishingGround(NSAPRegionFMAFishingGround fmaFishngGround)
+        private bool EditFMAFishingGroundMySQL(NSAPRegionFMAFishingGround fmaFishngGround)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-
-
-                using (OleDbCommand update = conn.CreateCommand())
+                using (var update = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@fg_code", OleDbType.VarChar).Value = fmaFishngGround.FishingGround.Code;
-                    update.Parameters.Add("@start", OleDbType.Date).Value = fmaFishngGround.DateStart;
+                    update.Parameters.Add("@fg_code", MySqlDbType.VarChar).Value = fmaFishngGround.FishingGround.Code;
+                    update.Parameters.Add("@start", MySqlDbType.DateTime).Value = fmaFishngGround.DateStart;
                     if (fmaFishngGround.DateEnd == null)
                     {
-                        update.Parameters.Add("@end", OleDbType.Date).Value = DBNull.Value;
+                        update.Parameters.Add("@end", MySqlDbType.DateTime).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@end", OleDbType.Date).Value = fmaFishngGround.DateEnd;
+                        update.Parameters.Add("@end", MySqlDbType.DateTime).Value = fmaFishngGround.DateEnd;
                     }
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = fmaFishngGround.RowID;
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = fmaFishngGround.RowID;
 
-                    update.CommandText = @"Update NSAPRegionFMAFishingGrounds set
-                                            FishingGround = @fg_code,
-                                            DateStart = @start,
-                                            DateEnd = @end
-                                        Where RowID=@id";
-
+                    update.CommandText = @"Update nsap_region_fma_fishing_grounds set
+                                            fishing_ground = @fg_code,
+                                            date_start = @start,
+                                            date_end = @end
+                                            Where row_id=@id";
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException dbex)
+                    catch (MySqlException mse)
                     {
-                        Logger.Log(dbex);
+                        Logger.Log(mse);
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
                     }
-                    if (success)
+                }
+            }
+            return success;
+        }
+        public bool EditFMAFishingGround(NSAPRegionFMAFishingGround fmaFishngGround)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = EditFMAFishingGroundMySQL(fmaFishngGround);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+
+
+                    using (OleDbCommand update = conn.CreateCommand())
                     {
-                        foreach (var fg in fmaFishngGround.RegionFMA.FishingGrounds)
+                        update.Parameters.Add("@fg_code", OleDbType.VarChar).Value = fmaFishngGround.FishingGround.Code;
+                        update.Parameters.Add("@start", OleDbType.Date).Value = fmaFishngGround.DateStart;
+                        if (fmaFishngGround.DateEnd == null)
                         {
-                            if (fg.RowID == fmaFishngGround.RowID)
+                            update.Parameters.Add("@end", OleDbType.Date).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@end", OleDbType.Date).Value = fmaFishngGround.DateEnd;
+                        }
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = fmaFishngGround.RowID;
+
+                        update.CommandText = @"Update NSAPRegionFMAFishingGrounds set
+                                            FishingGround = @fg_code,
+                                            DateStart = @start,
+                                            DateEnd = @end
+                                        Where RowID=@id";
+
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                        if (success)
+                        {
+                            foreach (var fg in fmaFishngGround.RegionFMA.FishingGrounds)
                             {
-                                fmaFishngGround.RegionFMA.FishingGrounds.Remove(fg);
-                                fmaFishngGround.RegionFMA.FishingGrounds.Add(fmaFishngGround);
-                                break;
+                                if (fg.RowID == fmaFishngGround.RowID)
+                                {
+                                    fmaFishngGround.RegionFMA.FishingGrounds.Remove(fg);
+                                    fmaFishngGround.RegionFMA.FishingGrounds.Add(fmaFishngGround);
+                                    break;
+                                }
                             }
                         }
+                    }
+                }
+            }
+            return success;
+        }
+        private bool EditFishingVesselMySQL(NSAPRegionFishingVessel regionFishingVessel)
+        {
+            bool success = false;
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var update = conn.CreateCommand())
+                {
+                    update.Parameters.Add("@vessel_id", MySqlDbType.Int32).Value = regionFishingVessel.FishingVessel.ID;
+                    update.Parameters.Add("@start", MySqlDbType.DateTime).Value = regionFishingVessel.DateStart;
+                    if (regionFishingVessel.DateEnd == null)
+                    {
+                        update.Parameters.Add("@end", MySqlDbType.DateTime).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@end", MySqlDbType.DateTime).Value = regionFishingVessel.DateEnd;
+                    }
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = regionFishingVessel.RowID;
+
+                    update.CommandText = @"Update nsap_region_vessel set
+                                            vessel = @vessel_id,
+                                            date_start = @start,
+                                            date_end = @end
+                                        Where RowID=@row_id";
+                    try
+                    {
+                        conn.Open();
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch (MySqlException msx)
+                    {
+                        Logger.Log(msx);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
                     }
                 }
             }
@@ -1340,52 +1531,59 @@ namespace NSAP_ODK.Entities
         public bool EditFishingVessel(NSAPRegionFishingVessel regionFishingVessel)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-
-
-                using (OleDbCommand update = conn.CreateCommand())
+                success = EditFishingVesselMySQL(regionFishingVessel);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
-                    update.Parameters.Add("@vessel_id", OleDbType.Integer).Value = regionFishingVessel.FishingVessel.ID;
-                    update.Parameters.Add("@start", OleDbType.Date).Value = regionFishingVessel.DateStart;
-                    if (regionFishingVessel.DateEnd == null)
-                    {
-                        update.Parameters.Add("@end", OleDbType.Date).Value = DBNull.Value;
-                    }
-                    else
-                    {
-                        update.Parameters.Add("@end", OleDbType.Date).Value = regionFishingVessel.DateEnd;
-                    }
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = regionFishingVessel.RowID;
+                    conn.Open();
 
-                    update.CommandText = @"Update NSAPRegionVessel set
+
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+                        update.Parameters.Add("@vessel_id", OleDbType.Integer).Value = regionFishingVessel.FishingVessel.ID;
+                        update.Parameters.Add("@start", OleDbType.Date).Value = regionFishingVessel.DateStart;
+                        if (regionFishingVessel.DateEnd == null)
+                        {
+                            update.Parameters.Add("@end", OleDbType.Date).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@end", OleDbType.Date).Value = regionFishingVessel.DateEnd;
+                        }
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = regionFishingVessel.RowID;
+
+                        update.CommandText = @"Update NSAPRegionVessel set
                                             VesselID = @vessel_id,
                                             DateStart = @start,
                                             DateEnd = @end
                                         Where RowID=@id";
 
-                    try
-                    {
-                        success = update.ExecuteNonQuery() > 0;
-                    }
-                    catch (OleDbException dbex)
-                    {
-                        Logger.Log(dbex);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
-                    }
-                    if (success)
-                    {
-                        foreach (var vs in regionFishingVessel.NSAPRegion.FishingVessels)
+                        try
                         {
-                            if (vs.RowID == regionFishingVessel.RowID)
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                        if (success)
+                        {
+                            foreach (var vs in regionFishingVessel.NSAPRegion.FishingVessels)
                             {
-                                regionFishingVessel.NSAPRegion.FishingVessels.Remove(vs);
-                                regionFishingVessel.NSAPRegion.FishingVessels.Add(regionFishingVessel);
-                                break;
+                                if (vs.RowID == regionFishingVessel.RowID)
+                                {
+                                    regionFishingVessel.NSAPRegion.FishingVessels.Remove(vs);
+                                    regionFishingVessel.NSAPRegion.FishingVessels.Add(regionFishingVessel);
+                                    break;
+                                }
                             }
                         }
                     }
@@ -1393,56 +1591,103 @@ namespace NSAP_ODK.Entities
             }
             return success;
         }
-
-        public bool EditGear(NSAPRegionGear regionGear)
+        private bool EditGearMySQL(NSAPRegionGear regionGear)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-
-
-                using (OleDbCommand update = conn.CreateCommand())
+                using(var update = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@gear_code", OleDbType.VarChar).Value = regionGear.Gear.Code;
-                    update.Parameters.Add("@start", OleDbType.Date).Value = regionGear.DateStart;
+                    update.Parameters.Add("@gear_code", MySqlDbType.VarChar).Value = regionGear.Gear.Code;
+                    update.Parameters.Add("@start", MySqlDbType.DateTime).Value = regionGear.DateStart;
                     if (regionGear.DateEnd == null)
                     {
-                        update.Parameters.Add("@end", OleDbType.Date).Value = DBNull.Value;
+                        update.Parameters.Add("@end", MySqlDbType.DateTime).Value = DBNull.Value;
                     }
                     else
                     {
-                        update.Parameters.Add("@end", OleDbType.Date).Value = regionGear.DateEnd;
+                        update.Parameters.Add("@end", MySqlDbType.DateTime).Value = regionGear.DateEnd;
                     }
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = regionGear.RowID;
+                    update.Parameters.Add("@id", MySqlDbType.Int32).Value = regionGear.RowID;
 
-                    update.CommandText = @"Update NSAPRegionGear set
+                    update.CommandText = @"Update nsap_region_gear set
+                                            gear = @gear_code,
+                                            date_start = @start,
+                                            date_end = @end
+                                        Where row_id=@id";
+                    try
+                    {
+                        conn.Open();
+                        success = update.ExecuteNonQuery() > 0;
+                    }
+                    catch(MySqlException msx)
+                    {
+                        Logger.Log(msx);
+                    }
+                    catch(Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+                return success;
+        }
+        public bool EditGear(NSAPRegionGear regionGear)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = EditGearMySQL(regionGear);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+
+
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+                        update.Parameters.Add("@gear_code", OleDbType.VarChar).Value = regionGear.Gear.Code;
+                        update.Parameters.Add("@start", OleDbType.Date).Value = regionGear.DateStart;
+                        if (regionGear.DateEnd == null)
+                        {
+                            update.Parameters.Add("@end", OleDbType.Date).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@end", OleDbType.Date).Value = regionGear.DateEnd;
+                        }
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = regionGear.RowID;
+
+                        update.CommandText = @"Update NSAPRegionGear set
                                             GearCode = @gear_code,
                                             DateStart = @start,
                                             DateEnd = @end
                                         Where RowID=@id";
 
-                    try
-                    {
-                        success = update.ExecuteNonQuery() > 0;
-                    }
-                    catch (OleDbException dbex)
-                    {
-                        Logger.Log(dbex);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
-                    }
-                    if (success)
-                    {
-                        foreach (var gear in regionGear.NSAPRegion.Gears)
+                        try
                         {
-                            if (gear.RowID == regionGear.RowID)
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                        if (success)
+                        {
+                            foreach (var gear in regionGear.NSAPRegion.Gears)
                             {
-                                regionGear.NSAPRegion.Gears.Remove(gear);
-                                regionGear.NSAPRegion.Gears.Add(regionGear);
-                                break;
+                                if (gear.RowID == regionGear.RowID)
+                                {
+                                    regionGear.NSAPRegion.Gears.Remove(gear);
+                                    regionGear.NSAPRegion.Gears.Add(regionGear);
+                                    break;
+                                }
                             }
                         }
                     }
@@ -1451,171 +1696,367 @@ namespace NSAP_ODK.Entities
             return success;
         }
 
-
+        private bool DeleteGearEffortMySQL(int id)
+        {
+            bool success = false;
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.Parameters.AddWithValue("@id", id);
+                    cmd.CommandText = "Delete  from gear_effort_specification where row_id=@id";
+                    try
+                    {
+                        conn.Open();
+                        success = cmd.ExecuteNonQuery() > 0;
+                    }
+                    catch (MySqlException msx)
+                    {
+                        Logger.Log(msx);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
         public bool DeleteGearEffort(int id)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-                var sql = $"Delete * from GearEffortSpecification where RowID={id}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                success = DeleteGearEffortMySQL(id);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
-                    try
+                    conn.Open();
+                    var sql = $"Delete * from GearEffortSpecification where RowID={id}";
+                    using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
-                        success = update.ExecuteNonQuery() > 0;
-                    }
-                    catch (OleDbException)
-                    {
-                        success = false;
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
-                        success = false;
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException)
+                        {
+                            success = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                            success = false;
+                        }
                     }
                 }
             }
             return success;
+        }
+
+        private bool DeleteLandingSiteMySQL(int id)
+        {
+            bool success = false;
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.Parameters.AddWithValue("@id",id);
+                    cmd.CommandText = "Delete from nsap_region_landing_site where row_id=@id;";
+                    try
+                    {
+                        conn.Open();
+                        success = cmd.ExecuteNonQuery() > 0;
+                    }
+                    catch(MySqlException msx)
+                    {
+                        Logger.Log(msx);
+                    }
+                    catch(Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+                return success;
         }
         public bool DeleteLandingSite(int id)
         {
-            DatabaseErrorMessage = "";
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            DatabaseErrorMessage = "";
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-                var sql = $"Delete * from NSAPRegionLandingSite where RowID={id}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                success = DeleteLandingSiteMySQL(id);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
-                    try
+                    conn.Open();
+                    var sql = $"Delete * from NSAPRegionLandingSite where RowID={id}";
+                    using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
-                        success = update.ExecuteNonQuery() > 0;
-                    }
-                    catch (OleDbException)
-                    {
-                        success = false;
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
-                        success = false;
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException)
+                        {
+                            success = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                            success = false;
+                        }
                     }
                 }
             }
             return success;
         }
-
+        private bool DeleteFishingGroundMySQL(int id)
+        {
+            bool success = false;
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.Parameters.AddWithValue("@id", id);
+                    cmd.CommandText = "Delete  from nsap_region_fma_fishing_grounds where row_id=@id";
+                    try
+                    {
+                        conn.Open();
+                        success = cmd.ExecuteNonQuery() > 0;
+                    }
+                    catch (MySqlException msex)
+                    {
+                        Logger.Log(msex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
         public bool DeleteFishingGround(int id)
         {
-            DatabaseErrorMessage = "";
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-                var sql = $"Delete * from NSAPRegionFMAFishingGrounds where RowID={id}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                success = DeleteFishingGroundMySQL(id);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
-                    try
+                    conn.Open();
+                    var sql = $"Delete * from NSAPRegionFMAFishingGrounds where RowID={id}";
+                    using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
-                        success = update.ExecuteNonQuery() > 0;
-                    }
-                    catch (OleDbException dbex)
-                    {
-                        DatabaseErrorMessage = dbex.Message;
-                        success = false;
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
-                        success = false;
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            DatabaseErrorMessage = dbex.Message;
+                            success = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                            success = false;
+                        }
                     }
                 }
             }
             return success;
         }
-
+        private bool DeleteFishingVesselMySQL(int id)
+        {
+            bool success = false;
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.Parameters.AddWithValue("@id", id);
+                    cmd.CommandText = "Delete  from nsap_region_vessel where row_id={@id}";
+                    try
+                    {
+                        conn.Open();
+                        success = cmd.ExecuteNonQuery() > 0;
+                    }
+                    catch (MySqlException msx)
+                    {
+                        Logger.Log(msx);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
         public bool DeleteFishingVessel(int id)
         {
             DatabaseErrorMessage = "";
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-                var sql = $"Delete * from NSAPRegionVessel where RowID={id}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                success = DeleteFishingVesselMySQL(id);
+            }
+            else
+            {
+
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
-                    try
+                    conn.Open();
+                    var sql = $"Delete * from NSAPRegionVessel where RowID={id}";
+                    using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
-                        success = update.ExecuteNonQuery() > 0;
-                    }
-                    catch (OleDbException dbex)
-                    {
-                        DatabaseErrorMessage = dbex.Message;
-                        success = false;
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
-                        success = false;
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            DatabaseErrorMessage = dbex.Message;
+                            success = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                            success = false;
+                        }
                     }
                 }
             }
             return success;
         }
-
+        private bool DeleteEnumeratorMySQL(int id)
+        {
+            bool success = false;
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.Parameters.AddWithValue("@id", id);
+                    cmd.CommandText = $"Delete from nsap_region_enumerator where row_id=@id";
+                    try
+                    {
+                        conn.Open();
+                        success = cmd.ExecuteNonQuery() > 0;
+                    }
+                    catch (MySqlException mex)
+                    {
+                        Logger.Log(mex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
         public bool DeleteEnumerator(int id)
         {
             DatabaseErrorMessage = "";
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-                var sql = $"Delete * from NSAPRegionEnumerator where RowID={id}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                success = DeleteEnumeratorMySQL(id);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
-                    try
+                    conn.Open();
+                    var sql = $"Delete * from NSAPRegionEnumerator where RowID={id}";
+                    using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
-                        success = update.ExecuteNonQuery() > 0;
-                    }
-                    catch (OleDbException dbex)
-                    {
-                        DatabaseErrorMessage = dbex.Message;
-                        success = false;
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
-                        success = false;
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            DatabaseErrorMessage = dbex.Message;
+                            success = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                            success = false;
+                        }
                     }
                 }
             }
             return success;
         }
 
-        public bool DeleteGear(int id)
+        private bool DeleteGearMySQL(int id)
         {
-            DatabaseErrorMessage = "";
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-                var sql = $"Delete * from NSAPRegionGear where RowID={id}";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                using (var cmd = conn.CreateCommand())
                 {
+                    cmd.Parameters.AddWithValue("@id", id);
+                    cmd.CommandText = "Delete  from nsap_region_gear where row_id=@id";
                     try
                     {
-                        success = update.ExecuteNonQuery() > 0;
+                        conn.Open();
+                        success = cmd.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException dbex)
+                    catch (MySqlException msx)
                     {
-                        DatabaseErrorMessage = dbex.Message;
-                        success = false;
+                        Logger.Log(msx);
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
-                        success = false;
+                    }
+                }
+            }
+            return success;
+        }
+        public bool DeleteGear(int id)
+        {
+            DatabaseErrorMessage = "";
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = DeleteGearMySQL(id);
+            }
+            else
+            {
+
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    var sql = $"Delete * from NSAPRegionGear where RowID={id}";
+                    using (OleDbCommand update = new OleDbCommand(sql, conn))
+                    {
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            DatabaseErrorMessage = dbex.Message;
+                            success = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                            success = false;
+                        }
                     }
                 }
             }

@@ -240,14 +240,43 @@ namespace NSAP_ODK.Views
         {
             return Task.Run(() => DoTheReplacement());
         }
-
-        private void ShowProgressWhileReplacing(int counter, string message)
+        private void ShowProgressWhileSearching()
         {
+            progressBar.Dispatcher.BeginInvoke
+                (
+                  DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                  {
+                      progressBar.IsIndeterminate = true;
+                      //do what you need to do on UI Thread
+                      return null;
+                  }
+                 ), null);
+
+            labelStatus.Dispatcher.BeginInvoke
+                (
+                  DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                  {
+                      labelStatus.Content = "Searching...";
+
+                      //do what you need to do on UI Thread
+                      return null;
+                  }
+                 ), null);
+        }
+
+        private void ShowProgressWhileReplacing(int counter, string message, bool isDone = false)
+        {
+            if (isDone)
+            {
+                message = "Finished replacing";
+                counter = 0;
+            }
 
             progressBar.Dispatcher.BeginInvoke
                 (
                   DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                   {
+                      progressBar.IsIndeterminate = false;
                       progressBar.Value = counter;
                       //do what you need to do on UI Thread
                       return null;
@@ -267,19 +296,23 @@ namespace NSAP_ODK.Views
                  ), null);
         }
 
+
+
         private int DoTheReplacement()
         {
+
             switch (NSAPEntity)
             {
                 case NSAPEntity.SpeciesName:
                 case NSAPEntity.FishSpecies:
                 case NSAPEntity.NonFishSpecies:
-                    var G = SpeciesTextToSpeciesConvert.FillDictionary();
+                    //var G = SpeciesTextToSpeciesConvert.FillDictionary();
                     if (!_isMultiline)
                     {
                         //if not multiline species
                         foreach (OrphanedSpeciesName sp in dataGrid.Items)
                         {
+                            ShowProgressWhileSearching();
                             if (sp.ForReplacement)
                             {
                                 foreach (var unload in sp.SampledLandings)
@@ -314,8 +347,10 @@ namespace NSAP_ODK.Views
                                 }
                             }
                         }
+
                         _replacementFishSpecies = null;
                         _replacementNotFishSpecies = null;
+
                     }
                     else
                     {
@@ -326,6 +361,7 @@ namespace NSAP_ODK.Views
                 case NSAPEntity.FishingGear:
                     foreach (OrphanedFishingGear gear in dataGrid.Items)
                     {
+                        ShowProgressWhileSearching();
                         if (gear.ForReplacement)
                         {
                             foreach (var unload in gear.GearUnloads)
@@ -345,6 +381,7 @@ namespace NSAP_ODK.Views
                 case NSAPEntity.Enumerator:
                     foreach (OrphanedEnumerator orpahn in dataGrid.Items)
                     {
+                        ShowProgressWhileSearching();
                         if (orpahn.ForReplacement)
                         {
                             foreach (var unload in orpahn.SampledLandings)
@@ -378,6 +415,7 @@ namespace NSAP_ODK.Views
                     int counter = 0;
                     foreach (OrphanedLandingSite selectedOrphanedLandingSite in dataGrid.Items)
                     {
+                        ShowProgressWhileSearching();
                         if (selectedOrphanedLandingSite.ForReplacement)
                         {
                             foreach (var samplingWithOrphanedLandingSite in selectedOrphanedLandingSite.LandingSiteSamplings)
@@ -464,7 +502,7 @@ namespace NSAP_ODK.Views
                     break;
             }
 
-
+            ShowProgressWhileReplacing(0, "done", true);
             return _countReplaced;
         }
 

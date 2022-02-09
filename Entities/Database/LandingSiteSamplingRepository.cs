@@ -587,8 +587,8 @@ namespace NSAP_ODK.Entities.Database
 
                     update.CommandText = @"Update dbo_lc_fg_sample_day set
                                         region_id=@region_id,
-                                        sdate = @sdate',
-                                        land_ctr_id = @land_ctr_id,
+                                        sdate = @sdate,
+                                        land_ctr_id = @landing_site_id,
                                         ground_id = @ground_id,
                                         remarks = @remarks,
                                         is_sample_day = @issampling_day,
@@ -599,7 +599,8 @@ namespace NSAP_ODK.Entities.Database
                     try
                     {
                         conn.Open();
-                        if( update.ExecuteNonQuery() > 0 && (item.XFormIdentifier != null && item.XFormIdentifier.Length > 0) || (item.Remarks != null && item.Remarks.Contains("orphaned")))
+                        success = update.ExecuteNonQuery() > 0;
+                        if( success  && (item.XFormIdentifier != null && item.XFormIdentifier.Length > 0) || (item.Remarks != null && item.Remarks.Contains("orphaned")))
                         {
 
                             using (var update1 = conn.CreateCommand())

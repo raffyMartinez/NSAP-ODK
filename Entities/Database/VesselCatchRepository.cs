@@ -395,7 +395,8 @@ namespace NSAP_ODK.Entities.Database
                             WHERE catch_id = @catch_id";
                         try
                         {
-                            success = cmd.ExecuteNonQuery() > 0;
+                            var ressultCount = cmd.ExecuteNonQuery();
+                            success = ressultCount > 0;
                         }
                         catch (OleDbException dbex)
                         {

@@ -930,7 +930,7 @@ namespace NSAP_ODK.Entities.Database
                                 cmd_1.Parameters.Add("@Device_id", MySqlDbType.VarChar).Value = item.DeviceID;
                                 cmd_1.Parameters.Add("@Date_submitted", MySqlDbType.DateTime).Value = item.DateTimeSubmitted;
                                 cmd_1.Parameters.Add("@Form_version", MySqlDbType.VarChar).Value = item.FormVersion;
-                                if (item.GPSCode == null)
+                                if (item.GPSCode == null || item.GPSCode.Length==0)
                                 {
                                     cmd_1.Parameters.Add("@GPS_code", MySqlDbType.VarChar).Value = DBNull.Value;
                                 }

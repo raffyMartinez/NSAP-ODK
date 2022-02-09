@@ -28,23 +28,32 @@ namespace NSAP_ODK.Entities.Database
                                  )
                                  .OrderBy(t => t.spName);
 
+            var loop = 0;
             foreach (var item in nameCounts)
             {
-                List<SpeciesTextToSpeciesConvert> thislist = new List<SpeciesTextToSpeciesConvert>();
-                if (item.spCount == 1)
+                try
                 {
-                    var itemInList = list.Where(t => t.spText == item.spName).FirstOrDefault();
-                    thislist.Add(new SpeciesTextToSpeciesConvert { SpeciesText = itemInList.spText, SpeciesID = (int)itemInList.spID, TaxaCode = itemInList.spTaxa.Code });
-                }
-                else
-                {
-                    foreach (var itemInList in list.Where(t => t.spText == item.spName))
+                    List<SpeciesTextToSpeciesConvert> thislist = new List<SpeciesTextToSpeciesConvert>();
+                    if (item.spCount == 1)
                     {
+                        var itemInList = list.Where(t => t.spText == item.spName).FirstOrDefault();
                         thislist.Add(new SpeciesTextToSpeciesConvert { SpeciesText = itemInList.spText, SpeciesID = (int)itemInList.spID, TaxaCode = itemInList.spTaxa.Code });
                     }
+                    else
+                    {
+                        foreach (var itemInList in list.Where(t => t.spText == item.spName))
+                        {
+                            thislist.Add(new SpeciesTextToSpeciesConvert { SpeciesText = itemInList.spText, SpeciesID = (int)itemInList.spID, TaxaCode = itemInList.spTaxa.Code });
+                        }
+                    }
+                    SpeciesConveterdDict.Add(item.spName, thislist);
+                    loop++;
+                    Utilities.Logger.Log($"loop in {loop}");
                 }
-                SpeciesConveterdDict.Add(item.spName, thislist);
-
+                catch(Exception ex)
+                {
+                    Utilities.Logger.Log(ex);
+                }
             }
 
             return SpeciesConveterdDict.Count();

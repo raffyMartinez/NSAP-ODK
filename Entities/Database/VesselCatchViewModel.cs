@@ -542,6 +542,7 @@ namespace NSAP_ODK.Entities.Database
 
         public bool UpdateRecordInRepo(VesselCatch item)
         {
+
             if (item.PK == 0)
                 throw new Exception("Error: ID cannot be zero");
 

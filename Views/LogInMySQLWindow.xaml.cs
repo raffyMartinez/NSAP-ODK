@@ -64,7 +64,7 @@ namespace NSAP_ODK.Views
                     else
                     {
                         MySQLConnect.UserName = textUserName.Text;
-                        MySQLConnect.Password = textPassword.Text;
+                        MySQLConnect.Password = textPassword.Password;
                         if (MySQLConnect.SetUP())
                         {
                             DialogResult = true;
