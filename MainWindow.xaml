@@ -106,8 +106,13 @@
                     <MenuItem Header="Export tracked landings summary to Excel" x:Name="menuExportExcelTracked" Click="OnMenuClicked"/>
                     <!--<MenuItem Header="Tracked landing summary sheet" x:Name="menuTrackedLandingSummay" Click="OnMenuClicked"/>-->
                 </MenuItem>
+                <MenuItem Header="Review data">
+                    <MenuItem Header="Update responses to 'Has catch composition'" Click="OnMenuClicked" x:Name="menuUpdateHasCatchComposition"/>
+                </MenuItem>
                 <Separator />
                 <MenuItem Header="Import GPX" x:Name="menuImportGPX" Click="OnMenuClicked"/>
+                <Separator/>
+                <MenuItem Header="Backup MySQL Database" x:Name="menuBackupMySQL" Click="OnMenuClicked" Visibility="Collapsed"/>
             </MenuItem>
 
             <MenuItem Header="Generate CSV" x:Name="menuGenerateCSV">

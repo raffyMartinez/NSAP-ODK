@@ -158,6 +158,10 @@ namespace NSAP_ODK.NSAPMysql
                     }
                     catch (Exception ex)
                     {
+                        if(ex.InnerException.Message.Length>0)
+                        {
+                            LastError = ex.InnerException.Message;
+                        }
                         Logger.Log(ex);
                     }
 

@@ -51,7 +51,6 @@ namespace NSAP_ODK.Views
                 case "buttonStats":
 
                     MySQLDataStatisticsWindow msdw = new MySQLDataStatisticsWindow();
-                    //Visibility = Visibility.Hidden;
                     msdw.ShowDialog();
                     DialogResult = true;
                     break;
@@ -80,7 +79,8 @@ namespace NSAP_ODK.Views
                         }
                         else if (MySQLConnect.DatabaseExists)
                         {
-                            labelMessage.Content = $"NSAP-ODK Database ready with {MySQLConnect.TableCount} tables";
+                            //labelMessage.Content = $"NSAP-ODK Database ready with {MySQLConnect.TableCount} tables";
+                            labelMessage.Content = "NSAP-ODK Database ready ";
                             TablesStats.GetStats();
                             buttonStats.IsEnabled = true;
                         }
@@ -89,6 +89,7 @@ namespace NSAP_ODK.Views
 
                     break;
                 case "buttonCancel":
+                    
                     DialogResult = false;
                     break;
                 case "buttonCreate":
@@ -104,6 +105,7 @@ namespace NSAP_ODK.Views
 
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
+            textUserName.Focus();
         }
 
         private void OnWindowClosing(object sender, System.ComponentModel.CancelEventArgs e)

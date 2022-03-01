@@ -84,6 +84,7 @@ namespace NSAP_ODK.Utilities
                 {
                     writer.WriteLine(s);
                 }
+                 writer.WriteLine(Environment.NewLine);
             }
         }
 
@@ -92,6 +93,7 @@ namespace NSAP_ODK.Utilities
             using (StreamWriter writer = new StreamWriter(_filepath, true))
             {
                 writer.WriteLine($"Log message:{s}\r\nError: {ex.Message}\r\n{ex.StackTrace}\r\n Date :{DateTime.Now.ToString()}\r\nVersion:{_appVersion}");
+                 writer.WriteLine(Environment.NewLine);
             }
         }
 
@@ -100,6 +102,7 @@ namespace NSAP_ODK.Utilities
             using (StreamWriter writer = new StreamWriter(_filepath, true))
             {
                 writer.WriteLine($"Error: {ex.Message}\r\n{ex.StackTrace}\r\n Date :{DateTime.Now.ToString()}\r\nVersion:{_appVersion}");
+                writer.WriteLine(Environment.NewLine);
             }
         }
     }

@@ -22,6 +22,11 @@ namespace NSAP_ODK.Entities
         {
             List<Grid25InlandLocation> listCells = new List<Grid25InlandLocation>();
             var dt = new DataTable();
+            if(Global.ConnectionStringGrid25==null)
+            {
+                Global.CreateConnectionStringForGrid25();
+            }
+
             using (var conection = new OleDbConnection(Global.ConnectionStringGrid25))
             {
                 try

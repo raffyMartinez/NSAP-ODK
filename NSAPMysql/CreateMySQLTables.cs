@@ -26,7 +26,8 @@ namespace NSAP_ODK.NSAPMysql
                                         `fma_id` INT NOT NULL,
                                         `fma_name` VARCHAR(40) NOT NULL,
                                         PRIMARY KEY (`fma_id` ASC) VISIBLE )
-                                        COMMENT='Fishery management areas or FMAs';";
+                                        COMMENT='Fishery management areas or FMAs'
+                                        ENGINE=InnoDB;";
 
                     try
                     {
@@ -50,7 +51,8 @@ namespace NSAP_ODK.NSAPMysql
                                     `short_name` VARCHAR(30) NOT NULL,
                                     `sequence` INT NOT NULL,
                                     PRIMARY KEY (`code` ASC) VISIBLE )
-                                    COMMENT ='Philippines administrative regions';";
+                                    COMMENT ='Philippines administrative regions'
+                                    ENGINE=InnoDB;";
                     try
                     {
                         cmd.ExecuteNonQuery();
@@ -79,7 +81,8 @@ namespace NSAP_ODK.NSAPMysql
                                           REFERENCES `nsap_region` (`code`)
                                           ON DELETE NO ACTION
                                           ON UPDATE NO ACTION )
-                                        COMMENT = 'FMAs in administrative regions';";
+                                        COMMENT = 'FMAs in administrative regions'
+                                        ENGINE=InnoDB;";
 
                     try
                     {
@@ -101,7 +104,8 @@ namespace NSAP_ODK.NSAPMysql
                                     `enumerator_id` INT NOT NULL,
                                     `enumerator_name` VARCHAR(40) NOT NULL,
                                     PRIMARY KEY (`enumerator_id` ASC) VISIBLE )
-                                    COMMENT='NSAP enumerators';";
+                                    COMMENT='NSAP enumerators'
+                                    ENGINE=InnoDB;";
                     try
                     {
                         cmd.ExecuteNonQuery();
@@ -137,7 +141,8 @@ namespace NSAP_ODK.NSAPMysql
                                       REFERENCES `nsap_region` (`code`)
                                       ON DELETE NO ACTION
                                       ON UPDATE NO ACTION )
-                                    COMMENT='Enumerators in a region'";
+                                    COMMENT='Enumerators in a region'
+                                    ENGINE=InnoDB";
                     try
                     {
                         cmd.ExecuteNonQuery();
@@ -166,7 +171,8 @@ namespace NSAP_ODK.NSAPMysql
                                           REFERENCES `nsap_region`(`code`)
                                           ON DELETE NO ACTION
                                           ON UPDATE NO ACTION )
-                                        COMMENT='Philippines provinces';";
+                                        COMMENT='Philippines provinces'
+                                        ENGINE=InnoDB;";
 
                     try
                     {
@@ -198,7 +204,8 @@ namespace NSAP_ODK.NSAPMysql
                                       REFERENCES `provinces` (`prov_no`)
                                       ON DELETE NO ACTION
                                       ON UPDATE NO ACTION )
-                                    COMMENT='Philippines municipalities'";
+                                    COMMENT='Philippines municipalities'
+                                    ENGINE=InnoDB";
 
                     try
                     {
@@ -230,7 +237,8 @@ namespace NSAP_ODK.NSAPMysql
                                           REFERENCES `municipalities` (`mun_no`)
                                           ON DELETE NO ACTION
                                           ON UPDATE NO ACTION )
-                                        COMMENT='Landing sites monitored for fish landings'";
+                                        COMMENT='Landing sites monitored for fish landings'
+                                        ENGINE=InnoDB";
 
                     try
                     {
@@ -255,7 +263,8 @@ namespace NSAP_ODK.NSAPMysql
                                         `value_type` TINYINT NOT NULL,
                                         PRIMARY KEY (`effort_specification_id`),
                                         UNIQUE INDEX `effort_spec_idx` (`effort_specification` ASC) VISIBLE )
-                                        COMMENT='Fishing effort specifiers'";
+                                        COMMENT='Fishing effort specifiers'
+                                        ENGINE=InnoDB";
 
                     try
                     {
@@ -280,7 +289,8 @@ namespace NSAP_ODK.NSAPMysql
                                         `is_generic` TINYINT(1) NOT NULL,
                                         PRIMARY KEY (`gear_code`),
                                         UNIQUE INDEX `gear_name_idx` (`gear_name` ASC) VISIBLE )
-                                        COMMENT='Fishing gears'";
+                                        COMMENT='Fishing gears'
+                                        ENGINE=InnoDB";
 
                     try
                     {
@@ -315,7 +325,8 @@ namespace NSAP_ODK.NSAPMysql
                                           REFERENCES `effort_specification` (`effort_specification_id`)
                                           ON DELETE NO ACTION
                                           ON UPDATE NO ACTION )
-                                          COMMENT='Effort specifications of fishing gears'";
+                                          COMMENT='Effort specifications of fishing gears'
+                                        ENGINE=InnoDB";
 
                     try
                     {
@@ -338,7 +349,8 @@ namespace NSAP_ODK.NSAPMysql
                                         `fishing_ground_name` VARCHAR (40) NOT NULL,
                                         PRIMARY KEY (`fishing_ground_code`),
                                         UNIQUE INDEX `fishing_ground_name_idx` (`fishing_ground_name` ASC) VISIBLE )
-                                        COMMENT='Fishing grounds'";
+                                        COMMENT='Fishing grounds'
+                                        ENGINE=InnoDB";
 
                     try
                     {
@@ -375,7 +387,8 @@ namespace NSAP_ODK.NSAPMysql
                                           REFERENCES `nsap_region_fma` (`row_id`) 
                                           ON DELETE NO ACTION
                                           ON UPDATE NO ACTION )
-                                        COMMENT='Fishing grounds in FMAs in NSAP regions'";
+                                        COMMENT='Fishing grounds in FMAs in NSAP regions'
+                                        ENGINE=InnoDB";
 
                     try
                     {
@@ -412,7 +425,8 @@ namespace NSAP_ODK.NSAPMysql
                                           REFERENCES `landing_sites` (`landing_site_id`)
                                           ON DELETE NO ACTION
                                           ON UPDATE NO ACTION )
-                                        COMMENT='Landing site in fishing grounds in FMAs in NSAP regions'";
+                                        COMMENT='Landing site in fishing grounds in FMAs in NSAP regions'
+                                        ENGINE=InnoDB";
 
                     try
                     {
@@ -449,7 +463,8 @@ namespace NSAP_ODK.NSAPMysql
                                           REFERENCES `gears` (`gear_code`)
                                           ON DELETE NO ACTION
                                           ON UPDATE NO ACTION )
-                                        COMMENT='Gears in NSAP region'";
+                                        COMMENT='Gears in NSAP region'
+                                        ENGINE=InnoDB";
 
                     try
                     {
@@ -475,7 +490,8 @@ namespace NSAP_ODK.NSAPMysql
                                         `device_type` TINYINT NOT NULL,
                                         PRIMARY KEY (`gps_code`),
                                         UNIQUE INDEX `assigned_name_idx` (`assigned_name` ASC) VISIBLE )
-                                        COMMENT='GPS and other tracking devices'";
+                                        COMMENT='GPS and other tracking devices'
+                                        ENGINE=InnoDB";
 
                     try
                     {
@@ -499,7 +515,8 @@ namespace NSAP_ODK.NSAPMysql
                                         `model_name` VARCHAR(30) NULL,
                                         `horsepower` DOUBLE NOT NULL,
                                         PRIMARY KEY (`engine_id`) )
-                                        COMMENT='Fishing vessel engine brands and horsepower'";
+                                        COMMENT='Fishing vessel engine brands and horsepower'
+                                        ENGINE=InnoDB";
 
                     try
                     {
@@ -527,7 +544,8 @@ namespace NSAP_ODK.NSAPMysql
                                         `registration_number` VARCHAR(40) NULL,
                                         `sector` VARCHAR(3) NULL,
                                         PRIMARY KEY (`vessel_id`) )
-                                        COMMENT='Fishing vessels'";
+                                        COMMENT='Fishing vessels'
+                                        ENGINE=InnoDB";
 
                     try
                     {
@@ -564,7 +582,8 @@ namespace NSAP_ODK.NSAPMysql
                                           REFERENCES `nsap_region` (`code`)
                                           ON DELETE NO ACTION
                                           ON UPDATE NO ACTION )
-                                        COMMENT='Fishing vessels in NSAP region'";
+                                        COMMENT='Fishing vessels in NSAP region'
+                                        ENGINE=InnoDB";
 
                     try
                     {
@@ -588,7 +607,8 @@ namespace NSAP_ODK.NSAPMysql
                                         `spec_code` INT NOT NULL,
                                         PRIMARY KEY (`genus`, `species`),
                                         UNIQUE INDEX `spec_code_idx`(`spec_code` ASC) VISIBLE )
-                                        COMMENT='Species list in FishBase'";
+                                        COMMENT='Species list in FishBase'
+                                        ENGINE=InnoDB";
 
                     try
                     {
@@ -621,7 +641,8 @@ namespace NSAP_ODK.NSAPMysql
                                         PRIMARY KEY (`row_no`),
                                         UNIQUE INDEX `genus_species_idx` (`genus`, `species` ASC) VISIBLE,
                                         INDEX `species_id_idx` (`species_id` ASC) VISIBLE )
-                                        COMMENT='Fish species found in Philippines and confirmed by World Fish'";
+                                        COMMENT='Fish species found in Philippines and confirmed by World Fish'
+                                        ENGINE=InnoDB";
 
                     try
                     {
@@ -645,7 +666,8 @@ namespace NSAP_ODK.NSAPMysql
                                         `description` VARCHAR(80) NULL,
                                         PRIMARY KEY (`taxa_code`),
                                         UNIQUE INDEX `taxa_unique_idx` (`taxa` ASC) VISIBLE )
-                                        COMMENT='Taxonomic categories of catch'";
+                                        COMMENT='Taxonomic categories of catch'
+                                        ENGINE=InnoDB";
 
                     try
                     {
@@ -669,7 +691,8 @@ namespace NSAP_ODK.NSAPMysql
                                         `size_type_name` VARCHAR(40) NOT NULL,
                                         PRIMARY KEY (`size_type_code`),
                                         UNIQUE INDEX `size_type_name_unique_idx` (`size_type_name` ASC) VISIBLE )
-                                        COMMENT='Size categories of catch'";
+                                        COMMENT='Size categories of catch'
+                                        ENGINE=InnoDB";
 
                     try
                     {
@@ -708,7 +731,8 @@ namespace NSAP_ODK.NSAPMysql
                                           REFERENCES `size_types` (`size_type_code`)
                                           ON DELETE NO ACTION
                                           ON UPDATE NO ACTION )
-                                       COMMENT='Non-fish catch mostly crustaceans'";
+                                       COMMENT='Non-fish catch mostly crustaceans'
+                                        ENGINE=InnoDB";
 
                     try
                     {
@@ -761,7 +785,8 @@ namespace NSAP_ODK.NSAPMysql
                                       REFERENCES `fishing_grounds` (`fishing_ground_code`)
                                       ON DELETE NO ACTION
                                       ON UPDATE NO ACTION )
-                                    COMMENT='Information related to a day of sampling'";
+                                    COMMENT='Information related to a day of sampling'
+                                    ENGINE=InnoDB";
 
                     try
                     {
@@ -803,7 +828,8 @@ namespace NSAP_ODK.NSAPMysql
                                           REFERENCES `dbo_LC_FG_sample_day` (`unload_day_id`)
                                           ON DELETE NO ACTION
                                           ON UPDATE NO ACTION )
-                                        COMMENT='Device metadata collected when capturing number of landed boats and total catch per landing site'";
+                                        COMMENT='Device metadata collected when capturing number of landed boats and total catch per landing site'
+                                        ENGINE=InnoDB";
 
                     try
                     {
@@ -842,7 +868,8 @@ namespace NSAP_ODK.NSAPMysql
                                           REFERENCES `gears` (`gear_code`)
                                           ON DELETE NO ACTION
                                           ON UPDATE NO ACTION )
-                                        COMMENT='Gear sampled with number of boats and total catch using the gear'";
+                                        COMMENT='Gear sampled with number of boats and total catch using the gear'
+                                        ENGINE=InnoDB";
 
                     try
                     {
@@ -884,7 +911,8 @@ namespace NSAP_ODK.NSAPMysql
                                       REFERENCES fishing_vessel (`vessel_id`)
                                       ON DELETE NO ACTION
                                       ON UPDATE NO ACTION )
-                                    COMMENT='Data captured for each sampled landing'";
+                                    COMMENT='Data captured for each sampled landing'
+                                    ENGINE=InnoDB";
                     try
                     {
                         cmd.ExecuteNonQuery();
@@ -921,7 +949,8 @@ namespace NSAP_ODK.NSAPMysql
                                         `enumerator_id` INT NULL,
                                         `enumerator_text` VARCHAR(40) NULL,
                                         `date_added` DATETIME NULL,
-                                        `from_excel_download` TINYINT(1),
+                                        `from_excel_download` TINYINT(1) 0,
+                                        `has_catch_composition` TINYINT(1) NULL,
                                         PRIMARY KEY (`v_unload_id`),
                                         INDEX `gps_vu1_fk_idx` (`gps` ASC) VISIBLE,
                                         INDEX `enumerator_id_vu1_fk_idx` (`enumerator_id` ASC) VISIBLE,
@@ -940,7 +969,8 @@ namespace NSAP_ODK.NSAPMysql
                                           REFERENCES `dbo_vessel_unload` (`v_unload_id`)
                                           ON DELETE NO ACTION
                                           ON UPDATE NO ACTION )
-                                        COMMENT='Other data including device metadata captured when sampling a landing' ";
+                                        COMMENT='Other data including device metadata captured when sampling a landing'
+                                        ENGINE=InnoDB";
 
                     try
                     {
@@ -970,7 +1000,8 @@ namespace NSAP_ODK.NSAPMysql
                                           REFERENCES `dbo_vessel_unload` (`v_unload_id`)
                                           ON DELETE NO ACTION
                                           ON UPDATE NO ACTION )
-                                        COMMENT='Location of fishing ground based on a 2x2 kilometer grid'";
+                                        COMMENT='Location of fishing ground based on a 2x2 kilometer grid'
+                                        ENGINE=InnoDB";
 
                     try
                     {
@@ -1002,7 +1033,8 @@ namespace NSAP_ODK.NSAPMysql
                                           REFERENCES `dbo_vessel_unload` (`v_unload_id`)
                                           ON DELETE NO ACTION
                                           ON UPDATE NO ACTION )
-                                        COMMENT='Soak time of fishing gear for each fishing operation'";
+                                        COMMENT='Soak time of fishing gear for each fishing operation'
+                                        ENGINE=InnoDB";
                     try
                     {
                         cmd.ExecuteNonQuery();
@@ -1032,7 +1064,8 @@ namespace NSAP_ODK.NSAPMysql
                                           REFERENCES `dbo_vessel_unload` (`v_unload_id`)
                                           ON DELETE NO ACTION
                                           ON UPDATE NO ACTION )
-                                        COMMENT='Values of fishing effort for each operation'";
+                                        COMMENT='Values of fishing effort for each operation'
+                                        ENGINE=InnoDB";
 
                     try
                     {
@@ -1072,7 +1105,8 @@ namespace NSAP_ODK.NSAPMysql
                                           REFERENCES `taxa` (`taxa_code`)
                                           ON DELETE NO ACTION
                                           ON UPDATE NO ACTION )
-                                        COMMENT='Catch composition of sampled landing'";
+                                        COMMENT='Catch composition of sampled landing'
+                                        ENGINE=InnoDB";
 
                     try
                     {
@@ -1101,7 +1135,8 @@ namespace NSAP_ODK.NSAPMysql
                                       REFERENCES `dbo_vessel_catch` (`catch_id`)
                                       ON DELETE NO ACTION
                                       ON UPDATE NO ACTION )
-                                    COMMENT='Lengths of catch'";
+                                    COMMENT='Lengths of catch'
+                                    ENGINE=InnoDB";
 
                     try
                     {
@@ -1136,7 +1171,8 @@ namespace NSAP_ODK.NSAPMysql
                                       REFERENCES `dbo_vessel_catch` (`catch_id`)
                                       ON DELETE NO ACTION
                                       ON UPDATE NO ACTION )
-                                    COMMENT='Maturity indicators of catch'";
+                                    COMMENT='Maturity indicators of catch'
+                                    ENGINE=InnoDB";
 
                     try
                     {
@@ -1166,7 +1202,8 @@ namespace NSAP_ODK.NSAPMysql
                                           REFERENCES  `dbo_vessel_catch` (`catch_id`)
                                           ON DELETE NO ACTION
                                           ON UPDATE NO ACTION )
-                                        COMMENT='Length frequency data of catch'";
+                                        COMMENT='Length frequency data of catch'
+                                        ENGINE=InnoDB";
 
                     try
                     {
@@ -1196,7 +1233,8 @@ namespace NSAP_ODK.NSAPMysql
                                           REFERENCES  `dbo_vessel_catch` (`catch_id`)
                                           ON DELETE NO ACTION
                                           ON UPDATE NO ACTION )
-                                        COMMENT='Length-weight data of catch'";
+                                        COMMENT='Length-weight data of catch'
+                                        ENGINE=InnoDB";
 
                     try
                     {
@@ -1224,7 +1262,8 @@ namespace NSAP_ODK.NSAPMysql
                                         `md5`VARCHAR(40) NOT NULL,
                                         `form_id` VARCHAR(20) NOT NULL,
                                         `description` VARCHAR(100) NOT NULL,
-                                        PRIMARY KEY (`row_id`) )";
+                                        PRIMARY KEY (`row_id`) )
+                                        ENGINE=InnoDB";
 
                     try
                     {

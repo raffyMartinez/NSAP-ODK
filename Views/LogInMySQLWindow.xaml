@@ -35,8 +35,8 @@
             </StackPanel>
         </StackPanel>
         <StackPanel Grid.Column="1" Grid.Row="1">
-            <Button x:Name="buttonOk" Content="Ok" Margin="10 5" Click="OnButtonClick"></Button>
-            <Button x:Name="buttonCancel" Content="Cancel" Margin="10 5" Click="OnButtonClick"></Button>
+            <Button x:Name="buttonOk" Content="Ok" Margin="10 5" Click="OnButtonClick" IsDefault="True"/>
+            <Button x:Name="buttonCancel" Content="Cancel" Margin="10 5" Click="OnButtonClick" IsCancel="True"></Button>
             <Button x:Name="buttonCreate" Content="Create DB" Margin="10 5" Click="OnButtonClick" IsEnabled="False"></Button>
             <Button x:Name="buttonStats" Content="Statistics" Margin="10 5" Click="OnButtonClick" IsEnabled="False"></Button>
         </StackPanel>

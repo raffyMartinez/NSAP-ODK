@@ -46,7 +46,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                 {
                     if (_rowID == 0)
                     {
-                        _rowID= ++_pk;
+                        _rowID = ++_pk;
                     }
                     return _rowID;
                 }
@@ -91,7 +91,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                 }
                 else
                 {
-                    if(_rowID==0)
+                    if (_rowID == 0)
                     {
                         _rowID = ++_pk;
                     }
@@ -138,7 +138,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                 }
                 else
                 {
-                   if(_rowID==0)
+                    if (_rowID == 0)
                     {
                         _rowID = ++_pk;
                     }
@@ -182,7 +182,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                 }
                 else
                 {
-                    if(_rowID==0)
+                    if (_rowID == 0)
                     {
                         _rowID = ++_pk;
                     }
@@ -231,8 +231,8 @@ namespace NSAP_ODK.Entities.Database.FromJson
             get
             {
                 return SexCode == "f" ? "Female" :
-                       SexCode == "m" ? "Male" : 
-                       SexCode == "j" ? "Juvenile":"";
+                       SexCode == "m" ? "Male" :
+                       SexCode == "j" ? "Juvenile" : "";
             }
         }
         [JsonProperty("catch_comp_group/catch_composition_repeat/gms_repeat_group/gms_group/gut_content_category")]
@@ -257,6 +257,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
     {
         private static int _pk;
         private int _rowID;
+        private string _speciesNameSelected;
 
         private List<CatchCompGroupCatchCompositionRepeatLenWtRepeat> _lenWtRepeat;
         private List<CatchCompGroupCatchCompositionRepeatLengthFreqRepeat> _lenFreqRepeat;
@@ -267,7 +268,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
         public int ParentID { get { return Parent.PK; } }
 
-        public List<CatchCompGroupCatchCompositionRepeatLengthFreqRepeat>GetDuplicatedLenFreq()
+        public List<CatchCompGroupCatchCompositionRepeatLengthFreqRepeat> GetDuplicatedLenFreq()
         {
             var thisList = new List<CatchCompGroupCatchCompositionRepeatLengthFreqRepeat>();
 
@@ -360,15 +361,23 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
         public string TaxaName { get { return Taxa.ToString(); } }
 
-        
+
         //this is the combined name from fish species, invert species or other name
         [JsonProperty("catch_comp_group/catch_composition_repeat/speciesname_group/species_name_selected")]
-        public string SpeciesNameSelected { get; set; }
+        public string SpeciesNameSelected
+        {
+            get
+            {
+                return _speciesNameSelected.Replace("0 <span style=\"color:blue\">(","").Replace(")</span>","");
+                //return _speciesNameSelected; 
+            }
+            set { _speciesNameSelected = value; }
+        }
 
         //alias of SpeciesNameSelected
         public string SpeciesName { get { return SpeciesNameSelected; } }
-        
-        
+
+
         //this is the invert species ID
         [JsonProperty("catch_comp_group/catch_composition_repeat/speciesname_group/species_notfish")]
         public int? SpeciesNotFish { get; set; }
@@ -399,7 +408,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
         //alias of SpeciesSampleWt
         public double? SampleWeightOfCatch { get { return SpeciesSampleWt; } }
         public static bool RowIDSet { get; private set; }
-        public  static void SetRowIDs()
+        public static void SetRowIDs()
         {
 
             if (NSAPEntities.VesselCatchViewModel.VesselCatchCollection.Count == 0)
@@ -430,7 +439,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                             $"\r\n Vessel unload PK is {Parent.PK}" +
                             $"\r\n Vessel name is {Parent.FishingVesselName}" +
                             $"\r\n Catch name is {SpeciesNameSelected}" +
-                            $"\r\n Vessel unload is saved is {Parent.SavedInLocalDatabase}" );
+                            $"\r\n Vessel unload is saved is {Parent.SavedInLocalDatabase}");
 
                         Utilities.VesselLandingFixDownload.VesselLandingToRepair(Parent);
 
@@ -439,9 +448,9 @@ namespace NSAP_ODK.Entities.Database.FromJson
                 else
                 {
 
-                    if(RowIDSet &&  _rowID==0)
+                    if (RowIDSet && _rowID == 0)
                     {
-  
+
                         _rowID = ++_pk;
                     }
 
@@ -474,7 +483,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
         public static bool RowIDSet { get; private set; }
 
-        
+
         public static void SetRowIDs()
         {
             if (NSAPEntities.GearSoakViewModel.GearSoakCollection.Count == 0)
@@ -500,7 +509,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                 {
                     if (_rowID == 0)
                     {
-                        _rowID=++_pk;
+                        _rowID = ++_pk;
                     }
                     return _rowID;
                 }
@@ -550,7 +559,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
             }
         }
         public static bool RowIDSet { get; private set; }
-        public static void  SetRowIDs()
+        public static void SetRowIDs()
         {
             if (NSAPEntities.FishingGroundGridViewModel.FishingGroundGridCollection.Count == 0)
             {
@@ -573,7 +582,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                 }
                 else
                 {
-                    if(_rowID==0)
+                    if (_rowID == 0)
                     {
                         _rowID = ++_pk;
                     }
@@ -612,11 +621,11 @@ namespace NSAP_ODK.Entities.Database.FromJson
         public double? EffortNumericValue { get { return EffortIntensity; } }
 
         public string EffortTextValue { get { return EffortDescription; } }
-        public bool? EffortBooleanValue 
-        { 
+        public bool? EffortBooleanValue
+        {
             get
             {
-                if (EffortBoolYesNo!=null &&  EffortBoolYesNo.Length > 0)
+                if (EffortBoolYesNo != null && EffortBoolYesNo.Length > 0)
                 {
                     return EffortBool;
                 }
@@ -624,7 +633,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                 {
                     return null;
                 }
-            } 
+            }
         }
 
         public static bool RowIDSet { get; private set; }
@@ -651,7 +660,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                 }
                 else
                 {
-                    if(_rowID==0)
+                    if (_rowID == 0)
                     {
                         _rowID = ++_pk;
                     }
@@ -674,7 +683,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
             SamplingDate = vl.SamplingDate;
             NSAPRegion = vl.NSAPRegion.Name;
             Enumerator = vl.EnumeratorName;
-            FMA = vl.FMA==null?"": vl.FMA.ToString();
+            FMA = vl.FMA == null ? "" : vl.FMA.ToString();
             FishingGround = vl.FishingGround.Name;
             LandingSite = vl.LandingSiteName;
             Gear = vl.GearName;
@@ -754,7 +763,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
         private List<SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat> _gearSoakTimes;
         private List<CatchCompGroupCatchCompositionRepeat> _catchComps;
 
-        public List<CatchCompGroupCatchCompositionRepeat>GetDuplicatedCatchComposition()
+        public List<CatchCompGroupCatchCompositionRepeat> GetDuplicatedCatchComposition()
         {
             var thisList = new List<CatchCompGroupCatchCompositionRepeat>();
             if (_catchComps != null && _catchComps.Count > 1)
@@ -868,16 +877,17 @@ namespace NSAP_ODK.Entities.Database.FromJson
         }
 
         [JsonProperty("vessel_sampling/gps2")]
-        public string GPS2 {
-            get {return _gps2; }
-            set 
+        public string GPS2
+        {
+            get { return _gps2; }
+            set
             {
-                _gps2 = value ; 
-                if(_gps2.Length>0)
+                _gps2 = value;
+                if (_gps2.Length > 0)
                 {
                     IncludeTracking = true;
                 }
-            } 
+            }
         }
 
         [JsonProperty("vessel_sampling/time_depart_landingsite")]
@@ -990,7 +1000,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                 if (LandingSiteID != null)
                 {
                     var ls = RegionFishingGround.LandingSites.FirstOrDefault(t => t.RowID == (int)LandingSiteID)?.LandingSite;
-                    if(ls!=null)
+                    if (ls != null)
                     {
                         return ls;
                     }
@@ -1072,8 +1082,9 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
         [JsonProperty("soak_time_group/soaktime_tracking_group/gps")]
         public string GPSCode { get; set; }
-        public GPS GPS { 
-            get 
+        public GPS GPS
+        {
+            get
             {
                 if (GPS2 != null)
                 {
@@ -1083,7 +1094,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                 {
                     return NSAPEntities.GPSViewModel.GetGPS(GPSCode);
                 }
-            } 
+            }
         }
         [JsonProperty("soak_time_group/soaktime_tracking_group/time_depart_landingsite")]
         public DateTime? TimeDepartLandingSite { get; set; }
@@ -1144,7 +1155,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                     else
                     {
 
-                      return boatUsed.ToString();
+                        return boatUsed.ToString();
                     }
                 }
             }
@@ -1206,7 +1217,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
         {
             get
             {
-                if(!SavedInLocalDatabase)
+                if (!SavedInLocalDatabase)
                 {
                     if (_rowid == 0)
                     {
@@ -1220,9 +1231,9 @@ namespace NSAP_ODK.Entities.Database.FromJson
                         _savedVesselUnloadObject = SavedVesselUnloadObject;
                     }
 
-                    
-                   _rowid = _savedVesselUnloadObject.PK;
-                    
+
+                    _rowid = _savedVesselUnloadObject.PK;
+
                 }
                 return _rowid;
             }
@@ -1230,9 +1241,9 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
         private VesselUnload SavedVesselUnloadObject
         {
-            get 
+            get
             {
-                _savedVesselUnloadObject= NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.FirstOrDefault(t => t.ODKRowID == _uuid);
+                _savedVesselUnloadObject = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.FirstOrDefault(t => t.ODKRowID == _uuid);
                 return _savedVesselUnloadObject;
             }
 
@@ -1241,7 +1252,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
         {
             get
             {
-                if (_isSaved==null)
+                if (_isSaved == null)
                 {
                     _isSaved = SavedVesselUnloadObject != null;
                 }
@@ -1265,9 +1276,13 @@ namespace NSAP_ODK.Entities.Database.FromJson
         private static List<CatchCompGroupCatchCompositionRepeatGmsRepeatGroup> _listGMS;
         private static List<CatchCompGroupCatchCompositionRepeatLenWtRepeat> _listLenWts;
         private static List<CatchCompGroupCatchCompositionRepeatLengthListRepeat> _listLengths;
-        
-        public static string JSON { get; set; }
 
+        public static string JSON { get; set; }
+        public static void CreateLandingsFromJSON()
+        {
+            VesselLanding.SetRowIDs();
+            VesselLandings = JsonConvert.DeserializeObject<List<VesselLanding>>(JSON);
+        }
         public static DateTime DownloadedLandingsEarliestLandingDate()
         {
             return VesselLandings.OrderBy(t => t.SamplingDate).FirstOrDefault().SamplingDate;
@@ -1293,7 +1308,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
             _listGearSoakTimes = null;
             _listCatchComps = null;
             _listLenFreqs = null;
-            _listGMS=null;
+            _listGMS = null;
             _listLenWts = null;
             _listLengths = null;
 
@@ -1421,13 +1436,13 @@ namespace NSAP_ODK.Entities.Database.FromJson
             }
             return _listLenFreqs;
         }
-        public static List<CatchCompGroupCatchCompositionRepeatGmsRepeatGroup>GetGMSList()
+        public static List<CatchCompGroupCatchCompositionRepeatGmsRepeatGroup> GetGMSList()
         {
             List<CatchCompGroupCatchCompositionRepeatGmsRepeatGroup> thisList = new List<CatchCompGroupCatchCompositionRepeatGmsRepeatGroup>();
-            if(_listGMS==null)
+            if (_listGMS == null)
             {
                 CatchCompGroupCatchCompositionRepeatGmsRepeatGroup.SetRowIDs();
-                foreach(var landing in VesselLandings)
+                foreach (var landing in VesselLandings)
                 {
                     if (landing.CatchComposition != null)
                     {
@@ -1550,11 +1565,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
         }
 
 
-        public static void CreateLandingsFromJSON()
-        {
-            VesselLanding.SetRowIDs();
-            VesselLandings = JsonConvert.DeserializeObject<List<VesselLanding>>(JSON);
-        }
+
 
         public static DateTime? JSONFileCreationTime { get; set; }
         public static Task<bool> UploadToDBAsync()
@@ -1565,7 +1576,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
         {
             int savedCount = 0;
             var landings = VesselLandings.Where(t => t.SavedInLocalDatabase == false).ToList();
-            if(landings.Count>0)
+            if (landings.Count > 0)
             {
 
                 UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadToSaveCount = landings.Count, Intent = UploadToDBIntent.StartOfUpload });
@@ -1583,7 +1594,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                             IsSamplingDay = true,
                             SamplingDate = landing.SamplingDate.Date,
                             NSAPRegionID = landing.NSAPRegion.Code,
-                            LandingSiteText = landing.LandingSiteText==null?"":landing.LandingSiteText,
+                            LandingSiteText = landing.LandingSiteText == null ? "" : landing.LandingSiteText,
                             FMAID = landing.NSAPRegionFMA.FMA.FMAID
                         };
 
@@ -1607,18 +1618,18 @@ namespace NSAP_ODK.Entities.Database.FromJson
                             LandingSiteSamplingID = landingSiteSampling.PK,
                             //GearID = item.Vessel_sampling__gear_used != null ? item.Gear.Code : null,
                             //GearID = landing.GearUsed != null ? landing.NSAPRegion.Gears.FirstOrDefault(t => t.RowID == (int)landing.GearUsed).Gear.Code : null,
-                            GearUsedText = landing.GearUsedText==null?"":landing.GearUsedText,
-                            Remarks=""
+                            GearUsedText = landing.GearUsedText == null ? "" : landing.GearUsedText,
+                            Remarks = ""
                         };
 
-                        if(landing.GearUsed==null)
+                        if (landing.GearUsed == null)
                         {
                             gu.GearID = null;
                         }
                         else
                         {
                             var gear = landing.NSAPRegion.Gears.FirstOrDefault(t => t.RowID == (int)landing.GearUsed);
-                            if(gear==null)
+                            if (gear == null)
                             {
                                 gu.GearID = null;
                             }
@@ -1631,7 +1642,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                     }
 
                     var gpscode = "";
-                    if(landing.GPS2!=null)
+                    if (landing.GPS2 != null)
                     {
                         gpscode = landing.GPS2;
                     }
@@ -1674,17 +1685,17 @@ namespace NSAP_ODK.Entities.Database.FromJson
                         TimeStart = landing.start
                     };
 
-                    if(JSONFileCreationTime!=null)
+                    if (JSONFileCreationTime != null)
                     {
                         vu.DateAddedToDatabase = (DateTime)JSONFileCreationTime;
                     }
 
-                    if(NSAPEntities.VesselUnloadViewModel.AddRecordToRepo(vu))
+                    if (NSAPEntities.VesselUnloadViewModel.AddRecordToRepo(vu))
                     {
-                        
+
                         if (landing.GearEffortSpecs != null)
                         {
-                            if(!EffortsGroupEffortRepeat.RowIDSet)
+                            if (!EffortsGroupEffortRepeat.RowIDSet)
                             {
                                 EffortsGroupEffortRepeat.SetRowIDs();
                             }
@@ -1705,7 +1716,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
                         if (landing.GearSoakTimes != null)
                         {
-                            if(!SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat.RowIDSet)
+                            if (!SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat.RowIDSet)
                             {
                                 SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat.SetRowIDs();
                             }
@@ -1727,7 +1738,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
                         if (landing.GridCoordinates != null)
                         {
-                            if(!GridCoordGroupBingoRepeat.RowIDSet)
+                            if (!GridCoordGroupBingoRepeat.RowIDSet)
                             {
                                 GridCoordGroupBingoRepeat.SetRowIDs();
                             }
@@ -1747,7 +1758,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
                         if (landing.CatchComposition != null)
                         {
-                            if(!CatchCompGroupCatchCompositionRepeat.RowIDSet)
+                            if (!CatchCompGroupCatchCompositionRepeat.RowIDSet)
                             {
                                 CatchCompGroupCatchCompositionRepeat.SetRowIDs();
                             }
@@ -1770,7 +1781,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                 {
                                     if (catchComp.LenFreqRepeat != null)
                                     {
-                                        if(!CatchCompGroupCatchCompositionRepeatLengthFreqRepeat.RowIDSet)
+                                        if (!CatchCompGroupCatchCompositionRepeatLengthFreqRepeat.RowIDSet)
                                         {
                                             CatchCompGroupCatchCompositionRepeatLengthFreqRepeat.SetRowIDs();
                                         }
@@ -1790,7 +1801,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
                                     if (catchComp.LenWtRepeat != null)
                                     {
-                                        if(!CatchCompGroupCatchCompositionRepeatLenWtRepeat.RowIDSet)
+                                        if (!CatchCompGroupCatchCompositionRepeatLenWtRepeat.RowIDSet)
                                         {
                                             CatchCompGroupCatchCompositionRepeatLenWtRepeat.SetRowIDs();
                                         }
@@ -1810,7 +1821,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
                                     if (catchComp.LengthListRepeat != null)
                                     {
-                                        if(!CatchCompGroupCatchCompositionRepeatLengthListRepeat.RowIDSet)
+                                        if (!CatchCompGroupCatchCompositionRepeatLengthListRepeat.RowIDSet)
                                         {
                                             CatchCompGroupCatchCompositionRepeatLengthListRepeat.SetRowIDs();
                                         }
@@ -1830,7 +1841,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
                                     if (catchComp.GMSRepeat != null)
                                     {
-                                        if(!CatchCompGroupCatchCompositionRepeatGmsRepeatGroup.RowIDSet)
+                                        if (!CatchCompGroupCatchCompositionRepeatGmsRepeatGroup.RowIDSet)
                                         {
                                             CatchCompGroupCatchCompositionRepeatGmsRepeatGroup.SetRowIDs();
                                         }
@@ -1849,7 +1860,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                 GutContentCode = m.GutContentCategoryCode,
                                                 GonadWeight = m.GonadWeight
                                             };
-                                            if(cm.GonadWeight!=null)
+                                            if (cm.GonadWeight != null)
                                             {
 
                                             }

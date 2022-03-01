@@ -166,35 +166,71 @@ namespace NSAP_ODK.Entities
         public bool Update(NSAPRegion nsr)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-
-                using (OleDbCommand update = conn.CreateCommand())
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
                 {
-                    update.Parameters.Add("@name", OleDbType.VarChar).Value = nsr.Name;
-                    update.Parameters.Add("@short_name", OleDbType.VarChar).Value = nsr.ShortName;
-                    update.Parameters.Add("@seq", OleDbType.VarChar).Value = nsr.Sequence;
-                    update.Parameters.Add("@code", OleDbType.VarChar).Value = nsr.Code;
+                    using (var update = conn.CreateCommand())
+                    {
+                        update.Parameters.Add("@name", MySqlDbType.VarChar).Value = nsr.Name;
+                        update.Parameters.Add("@short_name", MySqlDbType.VarChar).Value = nsr.ShortName;
+                        update.Parameters.Add("@seq", MySqlDbType.VarChar).Value = nsr.Sequence;
+                        update.Parameters.Add("@code", MySqlDbType.VarChar).Value = nsr.Code;
+
+                        update.CommandText = @"Update nsap_region set 
+                                              region_name = @name, 
+                                              short_name=@short_name, 
+                                              sequence=@seq
+                                            WHERE code=@code";
+
+                        try
+                        {
+                            conn.Open();
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (MySqlException msx)
+                        {
+                            Logger.Log(msx);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+                        update.Parameters.Add("@name", OleDbType.VarChar).Value = nsr.Name;
+                        update.Parameters.Add("@short_name", OleDbType.VarChar).Value = nsr.ShortName;
+                        update.Parameters.Add("@seq", OleDbType.VarChar).Value = nsr.Sequence;
+                        update.Parameters.Add("@code", OleDbType.VarChar).Value = nsr.Code;
 
 
-                    update.CommandText = @"Update nsapRegion set 
+                        update.CommandText = @"Update nsapRegion set 
                                               RegionName = @name, 
                                               ShortName=@short_name, 
                                               Sequence=@seq
                                             WHERE Code=@code";
 
-                    try
-                    {
-                        success = update.ExecuteNonQuery() > 0;
-                    }
-                    catch (OleDbException dbex)
-                    {
-                        Logger.Log(dbex);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
                     }
                 }
             }
@@ -204,26 +240,55 @@ namespace NSAP_ODK.Entities
         public bool Delete(string code)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-                
-                using (OleDbCommand update = conn.CreateCommand())
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
                 {
-                    update.Parameters.Add("@code", OleDbType.VarChar).Value = code;
-                    update.CommandText="Delete * from nsapRegion where Code=@code";
-                    try
+                    using (var update = conn.CreateCommand())
                     {
-                        success = update.ExecuteNonQuery() > 0;
+                        update.Parameters.Add("@code", MySqlDbType.VarChar).Value = code;
+                        update.CommandText = "Delete * from nsap_region where code=@code";
+
+                        try
+                        {
+                            conn.Open();
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (MySqlException msx)
+                        {
+                            Logger.Log(msx);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+
                     }
-                    catch (OleDbException)
+                }
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+
+                    using (OleDbCommand update = conn.CreateCommand())
                     {
-                        success = false;
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
-                        success = false;
+                        update.Parameters.Add("@code", OleDbType.VarChar).Value = code;
+                        update.CommandText = "Delete * from nsapRegion where Code=@code";
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException oex)
+                        {
+                            Logger.Log(oex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+
+                        }
                     }
                 }
             }

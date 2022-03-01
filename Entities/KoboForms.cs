@@ -318,6 +318,7 @@ namespace NSAP_ODK.Entities
                             kf.Version_ID = x.version_id;
                             //Version_ID = x.version_id;
                             XLSFormVersion = x.content.settings.version;
+                            kf.xlsform_version = XLSFormVersion;
                             XLSForm_idString = x.content.settings.id_string;
 
                         }

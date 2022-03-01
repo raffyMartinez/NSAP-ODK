@@ -272,7 +272,8 @@ namespace NSAP_ODK.Views
                             cboProv.Items.Add(provinceItem);
                             cboProv.SelectedValue = provinceItem;
                             cboProv.DisplayMemberPath = "Value";
-                            dictProperties["RowID"].Value = NSAPEntities.GetMaxItemSetID() + 1;
+                            //dictProperties["RowID"].Value = NSAPEntities.GetMaxItemSetID() + 1;
+                            dictProperties["RowID"].Value = NSAPEntities.LandingSiteViewModel.NextRecordNumber;
                             dictProperties["Province"].Editor = cboProv;
                             dictProperties["Province"].Value = province.ProvinceID;
                             ((ComboBox)dictProperties["Municipality"].Editor).SelectedValue = new KeyValuePair<int, string>(municipality.MunicipalityID, municipality.MunicipalityName);
@@ -460,8 +461,8 @@ namespace NSAP_ODK.Views
                     else
                     {
                         nsapRegionFishingVesselEdit.FisheriesSector = FisheriesSector.Municipal;
-                        nsapRegionFishingVesselEdit.RowID = NSAPEntities.GetMaxItemSetID() + 1;
-
+                        //nsapRegionFishingVesselEdit.RowID = NSAPEntities.GetMaxItemSetID() + 1;
+                        nsapRegionFishingVesselEdit.RowID = NSAPRegionWithEntitiesRepository.MaxRecordNumber_FishingVessel();
                     }
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "FisheriesSector", DisplayName = "Fisheries sector", DisplayOrder = 1, Description = "Fisheries sector" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "FishingVesselID", DisplayName = "Name of fishing vessel/Owner's name*", DisplayOrder = 2, Description = "Name of fishing vessel included the region\r\nDouble click to directly add a fishing vessel to a region" });
@@ -1308,6 +1309,10 @@ namespace NSAP_ODK.Views
                             break;
 
                         case NSAPEntity.NSAPRegion:
+                            var r = (NSAPRegionEdit)PropertyGrid.SelectedObject;
+                            NSAPRegion nr = new NSAPRegion { Code = r.NSAPRegion.Code, Name = r.Name, ShortName = r.ShortName,Sequence=r.NSAPRegion.Sequence };
+                            success = NSAPEntities.NSAPRegionViewModel.UpdateRecordInRepo(nr);
+                            break;
                         case NSAPEntity.NSAPRegionFMA:
                             success = true;
                             break;
@@ -1397,7 +1402,8 @@ namespace NSAP_ODK.Views
                                 {
                                     if (_isNew)
                                     {
-                                        nsapRegionFMAFishingGroundLandingSite.RowID = NSAPEntities.GetMaxItemSetID() + 1;
+                                        //nsapRegionFMAFishingGroundLandingSite.RowID = NSAPEntities.GetMaxItemSetID() + 1;
+                                        nsapRegionFMAFishingGroundLandingSite.RowID = NSAPRegionWithEntitiesRepository.MaxRecordNumber_LandingSite()+1;
                                         success = rvm.AddFMAFishingGroundLandingSite(nsapRegionFMAFishingGroundLandingSite);
                                     }
                                     else
@@ -1429,7 +1435,8 @@ namespace NSAP_ODK.Views
                                 {
                                     if (_isNew)
                                     {
-                                        fmaFishngGround.RowID = NSAPEntities.GetMaxItemSetID() + 1;
+                                        //fmaFishngGround.RowID = NSAPEntities.GetMaxItemSetID() + 1;
+                                        fmaFishngGround.RowID= NSAPRegionWithEntitiesRepository.MaxRecordNumber_FishingGround()+1;
                                         success = rvm.AddFMAFishingGround(fmaFishngGround);
                                     }
                                     else
@@ -1473,6 +1480,7 @@ namespace NSAP_ODK.Views
                                     }
                                     else
                                     {
+                                        regionVessel.RowID = NSAPRegionWithEntitiesRepository.MaxRecordNumber_FishingVessel();
                                         success = rvm.EditFishingVessel(regionVessel);
                                     }
                                 }
@@ -1501,7 +1509,8 @@ namespace NSAP_ODK.Views
                                 {
                                     if (_isNew)
                                     {
-                                        regionGear.RowID = NSAPEntities.GetMaxItemSetID() + 1;
+                                        //regionGear.RowID = NSAPEntities.GetMaxItemSetID() + 1;
+                                        regionGear.RowID = NSAPRegionWithEntitiesRepository.MaxRecordNumber_Gear()+1;
                                         success = rvm.AddGear(regionGear);
                                     }
                                     else
@@ -1533,7 +1542,8 @@ namespace NSAP_ODK.Views
                             {
                                 if (_isNew)
                                 {
-                                    effortSpec.ID = NSAPEntities.GetMaxItemSetID() + 1;
+                                    //effortSpec.ID = NSAPEntities.GetMaxItemSetID() + 1;
+                                    effortSpec.ID = NSAPEntities.EffortSpecificationViewModel.NextRecordNumber;
                                     NSAPEntities.EffortSpecificationViewModel.AddRecordToRepo(effortSpec);
                                 }
                                 else
@@ -1571,6 +1581,7 @@ namespace NSAP_ODK.Views
                             {
                                 if (_isNew)
                                 {
+                                    fishingVessel.ID = NSAPEntities.FishingVesselViewModel.NextRecordNumber;
                                    success =  NSAPEntities.FishingVesselViewModel.AddRecordToRepo(fishingVessel);
                                 }
                                 else

@@ -67,6 +67,8 @@ namespace NSAP_ODK.Entities.Database
                 BoxesSampled = vesselUnload.BoxesSampled;
                 OperationIsSuccessful = vesselUnload.OperationIsSuccessful;
                 RaisingFactor = vesselUnload.RaisingFactor;
+                HasCatchComposition = vesselUnload.HasCatchComposition;
+                
 
                 //NSAPRegionEnumeratorID = vesselUnload.NSAPRegionEnumeratorID;
                 NSAPEnumeratorID = vesselUnload.NSAPEnumeratorID;
@@ -182,7 +184,8 @@ namespace NSAP_ODK.Entities.Database
 
         [ReadOnly(true)]
         public string DateAddedToDatabase { get; set; }
-
+        //[ReadOnly(true)]
+        public bool HasCatchComposition { get; set; }
 
         //ODK Metadata
 
@@ -376,6 +379,7 @@ namespace NSAP_ODK.Entities.Database
             Submitted = vesselUnload.DateTimeSubmitted.ToString("dd-MMM-yyyy HH:mm");
             DateAddedToDatabase = ((DateTime)vesselUnload.DateAddedToDatabase).ToString("dd-MMM-yyyy HH:mm");
 
+            HasCatchComposition = vesselUnload.HasCatchComposition;
         }
         public string Region { get; private set; }
         public string FMA { get; private set; }
@@ -421,6 +425,8 @@ namespace NSAP_ODK.Entities.Database
         public string DateAddedToDatabase { get; private set; }
         public string FromExcelDownload { get; private set; }
 
+        public bool HasCatchComposition { get; private set; }
+
 
     }
     public class VesselUnloadFlattened
@@ -457,6 +463,7 @@ namespace NSAP_ODK.Entities.Database
             DateAddedToDatabase = vesselUnload.DateAddedToDatabase;
             Sector = vesselUnload.Sector;
             FromExcelDownload = vesselUnload.FromExcelDownload;
+            HasCatchComposition = vesselUnload.HasCatchComposition;
         }
         public int ID { get; set; }
         public int ParentID { get; set; }
@@ -495,6 +502,7 @@ namespace NSAP_ODK.Entities.Database
         public DateTime? DateAddedToDatabase { get; set; }
 
         public bool FromExcelDownload { get; set; }
+        public bool HasCatchComposition { get; set; }
     }
     public class VesselUnload
     {
@@ -507,6 +515,7 @@ namespace NSAP_ODK.Entities.Database
         {
             return $"[ID:{PK}] {VesselName}-{Parent.Parent.LandingSiteName}-{SamplingDate.ToString("MMM-dd-yyyy")}";
         }
+        public bool HasCatchComposition { get; set; }
         public DateTime TimeStart { get; set; }
         public int PK { get; set; }
         public int GearUnloadID { get; set; }
@@ -517,11 +526,11 @@ namespace NSAP_ODK.Entities.Database
 
         public bool HasBSCInCatchComposition()
         {
-            if(ListVesselCatch==null)
+            if (ListVesselCatch == null)
             {
                 return false;
             }
-            else if(ListVesselCatch.Count==0)
+            else if (ListVesselCatch.Count == 0)
             {
                 return false;
             }

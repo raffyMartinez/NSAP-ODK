@@ -61,6 +61,7 @@ namespace NSAP_ODK.Views
         private string _token;
         private string _xlsFormVersion;
         private bool _replaceCSVFilesSuccess;
+        private int _numberOfSubmissions;
         public DownloadFromServerWindow(ODKResultsWindow parentWindow)
         {
             InitializeComponent();
@@ -209,7 +210,7 @@ namespace NSAP_ODK.Views
                         //redeploy form
                         if (_replaceCSVFilesSuccess)
                         {
-                            using (var patchrequest = new HttpRequestMessage(new HttpMethod("PATCH"),$"{baseURL}/deployment/?format=json"))
+                            using (var patchrequest = new HttpRequestMessage(new HttpMethod("PATCH"), $"{baseURL}/deployment/?format=json"))
                             {
                                 patchrequest.Headers.TryAddWithoutValidation("Authorization", $"Token {_token}");
 
@@ -220,7 +221,7 @@ namespace NSAP_ODK.Views
                                 patchrequest.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/x-www-form-urlencoded");
 
                                 response = await httpClient.SendAsync(patchrequest);
-                                if(response.IsSuccessStatusCode)
+                                if (response.IsSuccessStatusCode)
                                 {
 
                                 }
@@ -242,7 +243,7 @@ namespace NSAP_ODK.Views
             return replacedCount;
         }
 
-        
+
         private async Task<int> ProcesssCSVFiles()
         {
             _updateCancelled = false;
@@ -360,13 +361,19 @@ namespace NSAP_ODK.Views
             }
             return result;
         }
-
+        public RadioButton ButtonSelectedColumn { get; set; }
         private async void OnButtonClick(object sender, RoutedEventArgs e)
         {
             _downloadType = "";
             string api_call = "";
             switch (((Button)sender).Name)
             {
+                case "buttonSpecifyColumn":
+                    var scuw = new SelectColumnToUpdateWindow();
+                    scuw.Owner = this;
+                    scuw.ShowDialog();
+
+                    break;
                 case "buttonUpload":
                     OpenFileDialog ofd = new OpenFileDialog();
                     ofd.Title = "Select CSV file for uploading";
@@ -427,7 +434,7 @@ namespace NSAP_ODK.Views
 
                             dataGrid.Items.Refresh();
                             _timer.Start();
-                            if(_replaceCSVFilesSuccess)
+                            if (_replaceCSVFilesSuccess)
                             {
                                 //call to redeploy form
                                 RedeplyForm();
@@ -537,147 +544,174 @@ namespace NSAP_ODK.Views
                             ProgressBar.Maximum = 5;
                             if (!string.IsNullOrEmpty(_jsonOption))
                             {
-                                using (var httpClient = new HttpClient())
+                                if (_jsonOption == "download_all_for_review")
                                 {
-                                    switch (_jsonOption)
+                                    if (ButtonSelectedColumn != null)
                                     {
-                                        case "all":
-                                            api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json";
-                                            break;
-                                        case "all_not_downloaded":
-                                            string lastSubmissionDate = ((DateTime)_lastSubmittedDate).ToString("yyyy-MM-ddThh:mm:ss");
-                                            api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gt\":\"{lastSubmissionDate}\"}}}}";
-                                            break;
-                                        case "specify_date_range":
-                                            string start_date = ((DateTime)dateStart.Value).ToString("yyyy-MM-dd");
-                                            string end_date = ((DateTime)dateEnd.Value).ToString("yyyy-MM-dd");
-                                            api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gt\":\"{start_date}\",\"$lt\":\"{end_date}\"}}}}";
-                                            break;
-                                        case "specify_range_records":
-                                            string start_date1 = ((DateTime)dateStart2.Value).ToString("yyyy-MM-dd");
-                                            api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gt\":\"{start_date1}\"}}}}&limit={TextBoxLimit.Text}";
-                                            break;
+                                        string field = "";
+                                        switch (ButtonSelectedColumn.Tag.ToString())
+                                        {
+                                            case "has catch composition":
+                                                field = "catch_comp_group/include_catchcomp";
+                                                break;
+                                        }
+
+                                        await ProcessDownloadForReviewEx(field);
                                     }
 
-                                    if ((bool)CheckFilterUser.IsChecked || (bool)CheckLimitoTracked.IsChecked)
+                                    MessageBox.Show($"Finished updating database {_updateCount} rows in column {ButtonSelectedColumn.Tag.ToString()}",
+                                        "NSAP-ODK Database",
+                                        MessageBoxButton.OK,
+                                        MessageBoxImage.Information
+                                        );
+                                }
+                                else
+                                {
+                                    using (var httpClient = new HttpClient())
                                     {
-                                        string first_part = "";
-                                        string last_part = "";
-                                        string user = "";
-                                        string toInsert = "";
-
-                                        if (ComboUser.SelectedItem != null)
+                                        switch (_jsonOption)
                                         {
-                                            user = ((ComboBoxItem)ComboUser.SelectedItem).Content.ToString();
+                                            case "all":
+                                                api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json";
+                                                break;
+                                            case "all_not_downloaded":
+                                                string lastSubmissionDate = ((DateTime)_lastSubmittedDate).ToString("yyyy-MM-ddThh:mm:ss");
+                                                api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gt\":\"{lastSubmissionDate}\"}}}}";
+                                                break;
+                                            case "specify_date_range":
+                                                string start_date = ((DateTime)dateStart.Value).ToString("yyyy-MM-dd");
+                                                string end_date = ((DateTime)dateEnd.Value).ToString("yyyy-MM-dd");
+                                                api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gt\":\"{start_date}\",\"$lt\":\"{end_date}\"}}}}";
+                                                break;
+                                            case "specify_range_records":
+                                                string start_date1 = ((DateTime)dateStart2.Value).ToString("yyyy-MM-dd");
+                                                api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gt\":\"{start_date1}\"}}}}&limit={TextBoxLimit.Text}";
+                                                break;
                                         }
 
-                                        if ((bool)CheckFilterUser.IsChecked && user.Length == 0)
+                                        if ((bool)CheckFilterUser.IsChecked || (bool)CheckLimitoTracked.IsChecked)
                                         {
-                                            MessageBox.Show("Please select a user name");
-                                            return;
-                                        }
+                                            string first_part = "";
+                                            string last_part = "";
+                                            string user = "";
+                                            string toInsert = "";
 
-                                        if (user.Length > 0)
-                                        {
-                                            toInsert = $"\"user_name\":\"{user}\",";
-                                        }
-
-                                        if ((bool)CheckLimitoTracked.IsChecked)
-                                        {
-                                            toInsert += "\"soak_time_group/include_tracking\":\"yes\",";
-                                        }
-
-
-                                        if (api_call.Contains("query"))
-                                        {
-                                            int index = api_call.IndexOf("query={") + "query={".Length;
-                                            first_part = api_call.Substring(0, index);
-                                            last_part = api_call.Substring(index, api_call.Length - index);
-
-                                            api_call = first_part + toInsert + last_part;
-                                        }
-                                        else
-                                        {
-                                            api_call += $"&query={{{toInsert.Trim(',')}}}";
-                                        }
-                                    }
-
-                                    using (var request = new HttpRequestMessage(new HttpMethod("GET"), api_call))
-                                    {
-                                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ContactingServer });
-                                        var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_user}:{_password}"));
-                                        request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
-                                        try
-                                        {
-                                            ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData });
-                                            var response = await httpClient.SendAsync(request);
-                                            var bytes = await response.Content.ReadAsByteArrayAsync();
-                                            Encoding encoding = Encoding.GetEncoding("utf-8");
-                                            string the_response = encoding.GetString(bytes, 0, bytes.Length);
-
-                                            ((ODKResultsWindow)Owner).JSON = the_response;
-                                            ((ODKResultsWindow)Owner).FormID = _formID;
-                                            ((ODKResultsWindow)Owner).Description = _description;
-                                            ((ODKResultsWindow)Owner).Count = _count;
-
-
-                                            DateTime? versionDate = null;
-
-                                            switch (_parentWindow.ODKServerDownload)
+                                            if (ComboUser.SelectedItem != null)
                                             {
-                                                case ODKServerDownload.ServerDownloadVesselUnload:
-                                                    if (DateTime.TryParse(_xlsFormVersion, out DateTime versionDate1))
-                                                    {
-                                                        versionDate = versionDate1;
-                                                        if (versionDate >= new DateTime(2021, 10, 1))
+                                                user = ((ComboBoxItem)ComboUser.SelectedItem).Content.ToString();
+                                            }
+
+                                            if ((bool)CheckFilterUser.IsChecked && user.Length == 0)
+                                            {
+                                                MessageBox.Show("Please select a user name");
+                                                return;
+                                            }
+
+                                            if (user.Length > 0)
+                                            {
+                                                toInsert = $"\"user_name\":\"{user}\",";
+                                            }
+
+                                            if ((bool)CheckLimitoTracked.IsChecked)
+                                            {
+                                                toInsert += "\"soak_time_group/include_tracking\":\"yes\",";
+                                            }
+
+
+                                            if (api_call.Contains("query"))
+                                            {
+                                                int index = api_call.IndexOf("query={") + "query={".Length;
+                                                first_part = api_call.Substring(0, index);
+                                                last_part = api_call.Substring(index, api_call.Length - index);
+
+                                                api_call = first_part + toInsert + last_part;
+                                            }
+                                            else
+                                            {
+                                                api_call += $"&query={{{toInsert.Trim(',')}}}";
+                                            }
+                                        }
+
+                                        using (var request = new HttpRequestMessage(new HttpMethod("GET"), api_call))
+                                        {
+                                            ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ContactingServer });
+                                            var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_user}:{_password}"));
+                                            request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
+                                            try
+                                            {
+                                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData });
+
+                                                var response = await httpClient.SendAsync(request);
+                                                var bytes = await response.Content.ReadAsByteArrayAsync();
+                                                Encoding encoding = Encoding.GetEncoding("utf-8");
+                                                string the_response = encoding.GetString(bytes, 0, bytes.Length);
+                                                ((ODKResultsWindow)Owner).JSON = the_response;
+                                                ((ODKResultsWindow)Owner).FormID = _formID;
+                                                ((ODKResultsWindow)Owner).Description = _description;
+                                                ((ODKResultsWindow)Owner).Count = _count;
+
+
+                                                DateTime? versionDate = null;
+
+                                                switch (_parentWindow.ODKServerDownload)
+                                                {
+                                                    case ODKServerDownload.ServerDownloadVesselUnload:
+                                                        if (DateTime.TryParse(_xlsFormVersion, out DateTime versionDate1))
                                                         {
-                                                            VesselUnloadServerRepository.JSON = JsonNewToOldVersion(the_response);
+                                                            versionDate = versionDate1;
+                                                            if (versionDate >= new DateTime(2021, 10, 1))
+                                                            {
+                                                                VesselUnloadServerRepository.JSON = JsonNewToOldVersion(the_response);
+                                                            }
+                                                            else
+                                                            {
+                                                                throw new Exception("catch and effort version is not handled");
+                                                            }
                                                         }
                                                         else
                                                         {
-                                                            throw new Exception("catch and effort version is not handled");
+                                                            VesselUnloadServerRepository.JSON = the_response;
                                                         }
-                                                    }
-                                                    else
-                                                    {
-                                                        VesselUnloadServerRepository.JSON = the_response;
-                                                    }
-                                                    VesselUnloadServerRepository.ResetLists();
-                                                    VesselUnloadServerRepository.CreateLandingsFromJSON();
-                                                    VesselUnloadServerRepository.FillDuplicatedLists();
+                                                        VesselUnloadServerRepository.ResetLists();
+                                                        VesselUnloadServerRepository.CreateLandingsFromJSON();
+                                                        VesselUnloadServerRepository.FillDuplicatedLists();
 
 
-                                                    break;
-                                                case ODKServerDownload.ServerDownloadLandings:
-                                                    LandingSiteBoatLandingsFromServerRepository.JSON = the_response;
-                                                    LandingSiteBoatLandingsFromServerRepository.CreateLandingSiteBoatLandingsFromJson();
-                                                    break;
+                                                        break;
+                                                    case ODKServerDownload.ServerDownloadLandings:
+                                                        LandingSiteBoatLandingsFromServerRepository.JSON = the_response;
+                                                        LandingSiteBoatLandingsFromServerRepository.CreateLandingSiteBoatLandingsFromJson();
+                                                        break;
+                                                }
+
+
+                                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.GotJSONString, JSONString = the_response });
+                                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ConvertDataToEntities });
+
+                                                switch (_parentWindow.ODKServerDownload)
+                                                {
+                                                    case ODKServerDownload.ServerDownloadVesselUnload:
+                                                        _parentWindow.MainSheets = VesselUnloadServerRepository.VesselLandings;
+                                                        break;
+                                                    case ODKServerDownload.ServerDownloadLandings:
+                                                        _parentWindow.MainSheetsLanding = LandingSiteBoatLandingsFromServerRepository.LandingSiteBoatLandings;
+                                                        break;
+                                                }
+                                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
+                                                Close();
+
                                             }
-
-                                            ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.GotJSONString, JSONString = the_response });
-                                            ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ConvertDataToEntities });
-
-                                            switch (_parentWindow.ODKServerDownload)
+                                            catch (HttpRequestException)
                                             {
-                                                case ODKServerDownload.ServerDownloadVesselUnload:
-                                                    _parentWindow.MainSheets = VesselUnloadServerRepository.VesselLandings;
-                                                    break;
-                                                case ODKServerDownload.ServerDownloadLandings:
-                                                    _parentWindow.MainSheetsLanding = LandingSiteBoatLandingsFromServerRepository.LandingSiteBoatLandings;
-                                                    break;
+                                                MessageBox.Show("Request time out\r\nYou may try again");
                                             }
-                                            ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
-                                            Close();
+                                            catch (Exception ex)
+                                            {
+                                                Logger.Log(ex);
+                                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.StoppedDueToError });
+                                            }
                                         }
-                                        catch (HttpRequestException)
-                                        {
-                                            MessageBox.Show("Request time out\r\nYou may try again");
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            Logger.Log(ex);
-                                            ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.StoppedDueToError });
-                                        }
+
                                     }
                                 }
                             }
@@ -765,10 +799,8 @@ namespace NSAP_ODK.Views
 
                                         foreach (KoboForm kf in _koboForms)
                                         {
-
                                             KoboForms.ResetVersion_and_ID();
                                             if (await KoboForms.GetVersionFromXLSForm(kf, user_name, password))
-
                                             {
                                                 kf.xlsform_version = KoboForms.XLSFormVersion;
                                                 kf.xlsForm_idstring = KoboForms.XLSForm_idString;
@@ -806,6 +838,148 @@ namespace NSAP_ODK.Views
             }
         }
 
+        private int _updateCount;
+        private int _updateRounds;
+        private async Task ProcessDownloadForReviewEx(string field)
+        {
+            var api_call = $"https://kf.kobotoolbox.org/api/v2/assets/{_formSummary.KPI_id_uid}/data/?fields=[\"{field}\",\"_uuid\"]&format=json&sort={{\"_id\":1}}";
+            var call = "";
+            int rowStart=0;
+            double limit = 30000; //30,000 is download limit 
+            NSAPEntities.VesselUnloadViewModel.ColumnUpdatedEvent += VesselUnloadViewModel_ColumnUpdatedEvent;
+            if(int.TryParse(textRowStart.Text,out int v))
+            {
+                rowStart = v;
+            }
+
+
+            if (_formSummary.NumberOfSubmissions > limit && (_formSummary.NumberOfSubmissions-rowStart) > limit)
+            {
+                double rounds;
+                if (rowStart > 0)
+                {
+                    rounds = (_formSummary.NumberOfSubmissions - rowStart) / limit;
+                }
+                else
+                {
+                    rounds = _formSummary.NumberOfSubmissions / limit;
+                }
+                _updateRounds = (int)rounds + 1;
+                for (int x = 1; x <= (int)rounds + 1; x++)
+                {
+                    call = api_call + $"&start={limit * (x - 1)}";
+                    _updateCount += await ProcessDownloadForReview(call,x);
+                }
+            }
+            else
+            {
+                _updateRounds = 1;
+                call = api_call + $"&start={rowStart}";
+                _updateCount = await ProcessDownloadForReview(call,1);
+            }
+            NSAPEntities.VesselUnloadViewModel.ColumnUpdatedEvent -= VesselUnloadViewModel_ColumnUpdatedEvent;
+        }
+
+        private int _updateColumnRound;
+        private int _rowsForUpdating;
+        private void VesselUnloadViewModel_ColumnUpdatedEvent(object sender, EventArgs e)
+        {
+            UpdateDatabaseColumnEventArg ev = (UpdateDatabaseColumnEventArg)e;
+           switch( ev.Intent)
+            {
+                case "start":
+                    _rowsForUpdating = ev.RowsToUpdate;
+                    _updateColumnRound = ev.Round;
+                    ProgressBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              ProgressBar.Value = 0;
+                              ProgressBar.Maximum = _rowsForUpdating;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case "row updated":
+                    labelProgress.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              labelProgress.Content =$"Round {_updateColumnRound} of {_updateRounds}: Updated row {ev.RunningCount} of {_rowsForUpdating}";
+                                                  //do what you need to do on UI Thread
+                                                  return null;
+                          }
+                         ), null);
+
+                    ProgressBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              ProgressBar.Value ++;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case "finished":
+                    labelProgress.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              labelProgress.Content = $"Finished updating {_updateCount} rows";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+
+                    break;
+            }
+        }
+
+        private async Task<int> ProcessDownloadForReview(string apiCall, int round)
+        {
+            var result = 0;
+            using (var httpClient = new HttpClient())
+            {
+                using (var request = new HttpRequestMessage(new HttpMethod("GET"), apiCall))
+                {
+                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ContactingServer });
+                    var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_user}:{_password}"));
+                    request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
+                    try
+                    {
+                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData });
+
+                        var response = await httpClient.SendAsync(request);
+                        try
+                        {
+                            var bytes = await response.Content.ReadAsByteArrayAsync();
+
+                            Encoding encoding = Encoding.GetEncoding("utf-8");
+                            string the_response = encoding.GetString(bytes, 0, bytes.Length);
+                            UpdateHasCatchCompositionRepository.JSON = the_response;
+                            UpdateHasCatchCompositionRepository.CreateCatchCompUpdatesFromJSON();
+                            result = await UpdateHasCatchCompositionRepository.UpdateDatabase(round);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                    catch (HttpRequestException)
+                    {
+                        MessageBox.Show("Request time out\r\nYou may try again");
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.StoppedDueToError });
+                    }
+                }
+            }
+            return result;
+        }
         private void RedeplyForm()
         {
 
@@ -963,6 +1137,7 @@ namespace NSAP_ODK.Views
                         _formID = treeViewItem.Header.ToString();
                         _formSummary = new FormSummary(_koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)));
                         _versionID = _formSummary.KoboForm.Version_ID;
+                        _numberOfSubmissions = _formSummary.NumberOfSubmissions;
                         SetODKServerDownloadType(_formSummary);
                         SetDownloadOptionsVisibility();
 
@@ -1136,7 +1311,7 @@ namespace NSAP_ODK.Views
             _jsonOption = ((RadioButton)sender).Tag.ToString();
             panelDateRange.Visibility = _jsonOption == "specify_date_range" ? Visibility.Visible : Visibility.Collapsed;
             panelStartDateRecords.Visibility = _jsonOption == "specify_range_records" ? Visibility.Visible : Visibility.Collapsed;
-
+            panelDownloadAgain.Visibility = _jsonOption == "download_all_for_review" ? Visibility.Visible : Visibility.Collapsed;
         }
 
 

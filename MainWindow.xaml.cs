@@ -76,6 +76,10 @@ namespace NSAP_ODK
 
         }
 
+        public void CloseAppilication()
+        {
+            Close();
+        }
         private void OnWindowClosing(object sender, CancelEventArgs e)
         {
 
@@ -264,11 +268,15 @@ namespace NSAP_ODK
             if ((bool)logInWindow.ShowDialog())
             {
                 HideMainWindowUI(false);
+                menuBackupMySQL.Visibility = Visibility.Visible;
             }
             else
             {
                 Global.MySQLLogInCancelled = true;
-                Close();
+                if (NSAPMysql.MySQLConnect.LastError==null || NSAPMysql.MySQLConnect.LastError.Length == 0)
+                {
+                    Close();
+                }
             }
             Global.RequestLogIn -= OnMysQLRequestLogin;
         }
@@ -1629,6 +1637,31 @@ namespace NSAP_ODK
 
             switch (itemName)
             {
+                case "menuUpdateHasCatchComposition":
+                    //var updateCount= NSAPEntities.VesselUnloadViewModel.UpdateHasCatchCompositionColumns();
+                    break;
+                case "menuBackupMySQL":
+                    if (Global.Settings.MySQLBackupFolder.Length > 0)
+                    {
+                        var backupWindow = backupMySQLWindow.GetInstance();
+                        if (backupWindow.Visibility == Visibility.Visible)
+                        {
+                            backupWindow.BringIntoView();
+                        }
+                        else
+                        {
+                            backupWindow.Show();
+                            backupWindow.Owner = this;
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("Please provide backup folder for MySQL data using the Settings dialog",
+                                        "NSAP-ODK Database",
+                                        MessageBoxButton.OK,
+                                        MessageBoxImage.Information);
+                    }
+                    break;
 
                 case "menuExportExcelMaturity":
                     ExportNSAPWithMaturityToExcel();
@@ -1717,11 +1750,11 @@ namespace NSAP_ODK
 
                 case "menuGenerateItemSets":
 
-                    if (SelectRegions() && GetCSVSaveLocationFromSaveAsDialog(out fileName, LogType.ItemSets_csv))
-                    {
-                        Logger.FilePath = fileName;
-                        MessageBox.Show($"{await GenerateCSV.GenerateItemsetsCSV()} items in itemsets.csv generated\r maxrow is {NSAPEntities.GetMaxItemSetID()}", "CSV file created", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
+                    //if (SelectRegions() && GetCSVSaveLocationFromSaveAsDialog(out fileName, LogType.ItemSets_csv))
+                    //{
+                    //    Logger.FilePath = fileName;
+                    //    MessageBox.Show($"{await GenerateCSV.GenerateItemsetsCSV()} items in itemsets.csv generated\r maxrow is {NSAPEntities.GetMaxItemSetID()}", "CSV file created", MessageBoxButton.OK, MessageBoxImage.Information);
+                    //}
                     break;
 
 
@@ -2356,6 +2389,7 @@ namespace NSAP_ODK
                             GridNSAPData.Columns.Add(new DataGridCheckBoxColumn { Header = "Successful operation ", Binding = new Binding("OperationIsSuccessful") });
                             //GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Catch weight ", Binding = new Binding("WeightOfCatchText") });
                             GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Catch weight ", Binding = new Binding("WeightOfCatchValue") });
+                            GridNSAPData.Columns.Add(new DataGridCheckBoxColumn { Header = "Catch composition included ", Binding = new Binding("HasCatchComposition") });
                             GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Catch composition count ", Binding = new Binding("CatchCompositionCountValue") });
                         }
                         else if (tvItem.Tag.ToString() == "tracked")
@@ -2850,6 +2884,7 @@ namespace NSAP_ODK
                     aw.ShowDialog();
                     break;
                 case "buttonSettings":
+                    //SettingsWindow sw = new SettingsWindow(this);
                     SettingsWindow sw = new SettingsWindow();
                     sw.Owner = this;
                     sw.ShowDialog();

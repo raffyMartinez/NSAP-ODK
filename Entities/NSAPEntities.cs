@@ -79,7 +79,7 @@ namespace NSAP_ODK.Entities
         public static DatabaseEnumeratorSummary DatabaseEnumeratorSummary;
         public static JSONFileViewModel JSONFileViewModel;
 
-        
+
         static NSAPEntities()
         {
             FisheriesSector = FisheriesSector.Municipal;
@@ -90,7 +90,7 @@ namespace NSAP_ODK.Entities
 
         public static NSAPRegion NSAPRegion { get; set; }
 
-        public static  NSAPRegionFMA NSAPRegionFMA { get; set; }
+        public static NSAPRegionFMA NSAPRegionFMA { get; set; }
         public static NSAPRegionFMAFishingGround NSAPRegionFMAFishingGround { get; set; }
 
         public static int? MunicipalityID { get; set; }
@@ -98,22 +98,24 @@ namespace NSAP_ODK.Entities
 
         public static FisheriesSector FisheriesSector { get; set; }
 
-        public static  List<string> Regions { get;  set; }
+        public static List<string> Regions { get; set; }
         public static NSAPEntity EntityToRefresh { get; set; }
-        public static int GetMaxItemSetID()
-        {
-            int maxRowID = 0;
-            using (var conn = new OleDbConnection(Global.ConnectionString))
-            {
-                conn.Open();
-                const string sql = "SELECT Max(itemsets.name) AS [max row number] FROM itemsets";
+        //public static int GetMaxItemSetID()
+        //{
+        //    int maxRowID = 0;
 
-                using (OleDbCommand getCount = new OleDbCommand(sql, conn))
-                {
-                    maxRowID = (int)getCount.ExecuteScalar();
-                }
-            }
-            return maxRowID;
-        }
+        //    using (var conn = new OleDbConnection(Global.ConnectionString))
+        //    {
+        //        conn.Open();
+        //        const string sql = "SELECT Max(itemsets.name) AS [max row number] FROM itemsets";
+
+        //        using (OleDbCommand getCount = new OleDbCommand(sql, conn))
+        //        {
+        //            maxRowID = (int)getCount.ExecuteScalar();
+        //        }
+        //    }
+
+        //    return maxRowID;
+        //}
     }
 }

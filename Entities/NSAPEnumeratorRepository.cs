@@ -154,30 +154,64 @@ namespace NSAP_ODK.Entities
             }
             return success;
         }
-
-        public bool Update(NSAPEnumerator ns)
+        private bool UpdateInMySQL(NSAPEnumerator ns)
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                conn.Open();
-
-                using (OleDbCommand update = conn.CreateCommand())
+                using (var update = conn.CreateCommand())
                 {
-                    update.Parameters.Add("@enumerator_name", OleDbType.VarChar).Value = ns.Name;
-                    update.Parameters.Add("@enumerator_id", OleDbType.Integer).Value = ns.ID;
-                    update.CommandText = "Update NSAPENumerator set EnumeratorName = @enumerator_name WHERE EnumeratorID = @enumerator_id";
+                    update.Parameters.Add("@enumerator_name", MySqlDbType.VarChar).Value = ns.Name;
+                    update.Parameters.Add("@enumerator_id", MySqlDbType.Int32).Value = ns.ID;
+                    update.CommandText = "Update nsap_enumerators set enumerator_name = @enumerator_name WHERE enumerator_id = @enumerator_id";
+
                     try
                     {
+                        conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch (OleDbException dbex)
+                    catch (MySqlException msx)
                     {
-                        Logger.Log(dbex);
+                        Logger.Log(msx);
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
+        public bool Update(NSAPEnumerator ns)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                success = UpdateInMySQL(ns);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+                        update.Parameters.Add("@enumerator_name", OleDbType.VarChar).Value = ns.Name;
+                        update.Parameters.Add("@enumerator_id", OleDbType.Integer).Value = ns.ID;
+                        update.CommandText = "Update NSAPENumerator set EnumeratorName = @enumerator_name WHERE EnumeratorID = @enumerator_id";
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException dbex)
+                        {
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
                     }
                 }
             }
@@ -198,82 +232,82 @@ namespace NSAP_ODK.Entities
                         conn.Open();
                         success = cmd.ExecuteNonQuery() > 0;
                     }
-                    catch(MySqlException msex)
+                    catch (MySqlException msex)
                     {
                         Logger.Log(msex);
-                    }
-                    catch(Exception ex)
-                    {
-                        Logger.Log(ex);
-                    }
-                }
-            }
-                return success;
-        }
-    public bool Delete(int id)
-    {
-        bool success = false;
-        if (Global.Settings.UsemySQL)
-        {
-            success = DeleteInMySQL(id);
-        }
-        else
-        {
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
-            {
-                conn.Open();
-
-                using (OleDbCommand update = conn.CreateCommand())
-                {
-                    update.Parameters.Add("@id", OleDbType.Integer).Value = id;
-                    update.CommandText = "Delete * from NSAPENumerator where EnumeratorID=@id";
-                    try
-                    {
-                        success = update.ExecuteNonQuery() > 0;
-                    }
-                    catch (OleDbException)
-                    {
-                        success = false;
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
-                        success = false;
                     }
                 }
             }
+            return success;
         }
-        return success;
-    }
-    public int MaxRecordNumber()
-    {
-        int max_rec_no = 0;
-        if (Global.Settings.UsemySQL)
+        public bool Delete(int id)
         {
-            using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+            bool success = false;
+            if (Global.Settings.UsemySQL)
             {
-                using (var cmd = conn.CreateCommand())
+                success = DeleteInMySQL(id);
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
                     conn.Open();
-                    cmd.CommandText = "SELECT Max(enumerator_id) AS max_id FROM nsap_enumerators";
-                    max_rec_no = (int)cmd.ExecuteScalar();
-                }
-            }
-        }
-        else
-        {
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
-            {
-                conn.Open();
-                const string sql = "SELECT Max(EnumeratorID) AS max_record_no FROM NSAPENumerator";
-                using (OleDbCommand getMax = new OleDbCommand(sql, conn))
-                {
-                    max_rec_no = (int)getMax.ExecuteScalar();
-                }
-            }
-        }
-        return max_rec_no;
-    }
 
-}
+                    using (OleDbCommand update = conn.CreateCommand())
+                    {
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                        update.CommandText = "Delete * from NSAPENumerator where EnumeratorID=@id";
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException)
+                        {
+                            success = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                            success = false;
+                        }
+                    }
+                }
+            }
+            return success;
+        }
+        public int MaxRecordNumber()
+        {
+            int max_rec_no = 0;
+            if (Global.Settings.UsemySQL)
+            {
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+                {
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        conn.Open();
+                        cmd.CommandText = "SELECT Max(enumerator_id) AS max_id FROM nsap_enumerators";
+                        max_rec_no = (int)cmd.ExecuteScalar();
+                    }
+                }
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    const string sql = "SELECT Max(EnumeratorID) AS max_record_no FROM NSAPENumerator";
+                    using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                    {
+                        max_rec_no = (int)getMax.ExecuteScalar();
+                    }
+                }
+            }
+            return max_rec_no;
+        }
+
+    }
 }

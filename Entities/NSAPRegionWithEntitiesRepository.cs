@@ -614,13 +614,28 @@ namespace NSAP_ODK.Entities
         public static int MaxRecordNumber_Gear()
         {
             int max_rec_no = 0;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-                const string sql = "SELECT Max(RowId) AS max_record_no FROM NSAPRegionGear";
-                using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
                 {
-                    max_rec_no = (int)getMax.ExecuteScalar();
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        conn.Open();
+                        cmd.CommandText = "SELECT Max(row_id) AS max_record_no FROM nsap_region_gear";
+                        max_rec_no = (int)cmd.ExecuteScalar();
+                    }
+                }
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    const string sql = "SELECT Max(row_id) AS max_record_no FROM nsap_region_gear";
+                    using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                    {
+                        max_rec_no = (int)getMax.ExecuteScalar();
+                    }
                 }
             }
             return max_rec_no;
@@ -628,13 +643,28 @@ namespace NSAP_ODK.Entities
         public static int MaxRecordNumber_FishingGround()
         {
             int max_rec_no = 0;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-                const string sql = "SELECT Max(RowId) AS max_record_no FROM NSAPRegionFMAFishingGrounds";
-                using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
                 {
-                    max_rec_no = (int)getMax.ExecuteScalar();
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        conn.Open();
+                        cmd.CommandText="SELECT Max(row_id) AS max_record_no FROM nsap_region_fma_fishing_grounds";
+                        max_rec_no = (int)cmd.ExecuteScalar();
+                    }
+                }
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    const string sql = "SELECT Max(RowId) AS max_record_no FROM NSAPRegionFMAFishingGrounds";
+                    using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                    {
+                        max_rec_no = (int)getMax.ExecuteScalar();
+                    }
                 }
             }
             return max_rec_no;
@@ -642,13 +672,28 @@ namespace NSAP_ODK.Entities
         public static int MaxRecordNumber_LandingSite()
         {
             int max_rec_no = 0;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-                const string sql = "SELECT Max(RowId) AS max_record_no FROM NSAPRegionLandingSite";
-                using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
                 {
-                    max_rec_no = (int)getMax.ExecuteScalar();
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        conn.Open();
+                        cmd.CommandText = "SELECT Max(row_id) AS max_record_no FROM nsap_region_landing_site";
+                        max_rec_no = (int)cmd.ExecuteScalar();
+                    }
+                }
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    const string sql = "SELECT Max(RowId) AS max_record_no FROM NSAPRegionLandingSite";
+                    using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                    {
+                        max_rec_no = (int)getMax.ExecuteScalar();
+                    }
                 }
             }
             return max_rec_no;
@@ -656,13 +701,28 @@ namespace NSAP_ODK.Entities
         public static int MaxRecordNumber_FishingVessel()
         {
             int max_rec_no = 0;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-                const string sql = "SELECT Max(RowId) AS max_record_no FROM NSAPRegionVessel";
-                using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
                 {
-                    max_rec_no = (int)getMax.ExecuteScalar();
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        conn.Open();
+                        cmd.CommandText = "SELECT Max(row_id) AS max_record_no FROM nsap_region_vessel";
+                        max_rec_no = (int)cmd.ExecuteScalar();
+                    }
+                }
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    const string sql = "SELECT Max(RowId) AS max_record_no FROM NSAPRegionVessel";
+                    using (OleDbCommand getMax = new OleDbCommand(sql, conn))
+                    {
+                        max_rec_no = (int)getMax.ExecuteScalar();
+                    }
                 }
             }
             return max_rec_no;
@@ -754,12 +814,13 @@ namespace NSAP_ODK.Entities
                         {
                             Logger.Log(ex);
                         }
-                        if (success)
-                        {
-                            NSAPRegion.NSAPEnumerators.Add(regionEnumerator);
-                        }
+
                     }
                 }
+            }
+            if (success)
+            {
+                NSAPRegion.NSAPEnumerators.Add(regionEnumerator);
             }
             return success;
         }
@@ -852,12 +913,13 @@ namespace NSAP_ODK.Entities
                         {
                             Logger.Log(ex);
                         }
-                        if (success)
-                        {
-                            NSAPRegion.Gears.Add(region_gear);
-                        }
+
                     }
                 }
+            }
+            if (success)
+            {
+                NSAPRegion.Gears.Add(region_gear);
             }
             return success;
         }
@@ -997,12 +1059,13 @@ namespace NSAP_ODK.Entities
                         {
                             Logger.Log(ex);
                         }
-                        if (success)
-                        {
-                            fg.RegionFMA.FishingGrounds.Add(fg);
-                        }
+
                     }
                 }
+            }
+            if (success)
+            {
+                fg.RegionFMA.FishingGrounds.Add(fg);
             }
             return success;
         }
@@ -1043,10 +1106,10 @@ namespace NSAP_ODK.Entities
                     {
                         Logger.Log(ex);
                     }
-                    if (success)
-                    {
-                        fgls.NSAPRegionFMAFishingGround.LandingSites.Add(fgls);
-                    }
+                    //if (success)
+                    //{
+                    //    fgls.NSAPRegionFMAFishingGround.LandingSites.Add(fgls);
+                    //}
                 }
             }
             return success;
@@ -1091,12 +1154,13 @@ namespace NSAP_ODK.Entities
                         {
                             Logger.Log(ex);
                         }
-                        if (success)
-                        {
-                            fgls.NSAPRegionFMAFishingGround.LandingSites.Add(fgls);
-                        }
+
                     }
                 }
+            }
+            if (success)
+            {
+                fgls.NSAPRegionFMAFishingGround.LandingSites.Add(fgls);
             }
             return success;
         }
@@ -1181,12 +1245,13 @@ namespace NSAP_ODK.Entities
                         {
                             Logger.Log(ex);
                         }
-                        if (success)
-                        {
-                            NSAPRegion.FishingVessels.Add(rv);
-                        }
+
                     }
                 }
+            }
+            if (success)
+            {
+                NSAPRegion.FishingVessels.Add(rv);
             }
             return success;
         }

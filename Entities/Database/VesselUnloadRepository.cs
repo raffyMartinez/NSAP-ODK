@@ -242,11 +242,163 @@ namespace NSAP_ODK.Entities.Database
                         item.DateAddedToDatabase = dr["date_added"] == DBNull.Value ? null : (DateTime?)dr["date_added"];
                         item.FromExcelDownload = (bool)dr["from_excel_download"];
 
-                        thisList.Add(item);
+                        if (dr["has_catch_composition"] == DBNull.Value)
+                        {
+                            item.HasCatchComposition = false;
+                        }
+                        else
+                        {
+                            item.HasCatchComposition = (bool)dr["has_catch_composition"];
+                        }
+                        try
+                        {
+                            thisList.Add(item);
+                        }
+                        catch (MySqlException mx)
+                        {
+                            Logger.Log(mx);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
                     }
                 }
             }
             return thisList;
+        }
+
+        public bool UpdateHasCatchCompositionColumn(UpdateHasCatchCompositionResultItem item)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+                {
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        if (item.CatchCompGroupIncludeCatchcomp == null)
+                        {
+                            cmd.Parameters.AddWithValue("@hascc", 0);
+                        }
+                        else if (item.CatchCompGroupIncludeCatchcomp == "yes")
+                        {
+                            cmd.Parameters.AddWithValue("@hascc", 1);
+                        }
+                        else
+                        {
+                            cmd.Parameters.AddWithValue("@hascc", 0);
+                        }
+                        cmd.Parameters.AddWithValue("@rowID", item._uuid);
+                        cmd.CommandText = "UPDATE dbo_vessel_unload_1 set has_catch_composition=@hascc WHERE row_id=@rowID";
+                        try
+                        {
+                            conn.Open();
+                            success = cmd.ExecuteNonQuery() > 0;
+                        }
+                        catch (MySqlException mx)
+                        {
+                            Logger.Log(mx);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        if (item.CatchCompGroupIncludeCatchcomp == null)
+                        {
+                            cmd.Parameters.AddWithValue("@hascc", false);
+                        }
+                        else if (item.CatchCompGroupIncludeCatchcomp == "yes")
+                        {
+                            cmd.Parameters.AddWithValue("@hascc", true);
+                        }
+                        else
+                        {
+                            cmd.Parameters.AddWithValue("@hascc", false);
+                        }
+                        cmd.Parameters.AddWithValue("@rowID",  $"{{{item._uuid}}}");
+                        cmd.CommandText = "UPDATE dbo_vessel_unload_1 set HasCatchComposition=@hascc WHERE RowID=@rowID";
+                        try
+                        {
+                            conn.Open();
+                            success = cmd.ExecuteNonQuery() > 0;
+                        }
+                        catch (MySqlException mx)
+                        {
+                            Logger.Log(mx);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
+        public bool UpdateHasCatchCompositionColumn(bool hasCatchComposition, int rowID)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+                {
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@hascc", hasCatchComposition);
+                        cmd.Parameters.AddWithValue("@rowID", rowID);
+                        cmd.CommandText = "UPDATE dbo_vessel_unload_1 set has_catch_composition=@hascc WHERE v_unload_id=@rowID";
+                        try
+                        {
+                            conn.Open();
+                            success = cmd.ExecuteNonQuery() > 0;
+                        }
+                        catch (MySqlException mx)
+                        {
+                            Logger.Log(mx);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@hascc", hasCatchComposition);
+                        cmd.Parameters.AddWithValue("@rowID", rowID);
+                        cmd.CommandText = "UPDATE dbo_vessel_unload_1 set HasCatchComposition=@hascc WHERE v_unload_id=@rowID";
+                        try
+                        {
+                            conn.Open();
+                            success = cmd.ExecuteNonQuery() > 0;
+                        }
+                        catch (MySqlException mx)
+                        {
+                            Logger.Log(mx);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
         }
         private List<VesselUnload> getVesselUnloads()
         {
@@ -305,6 +457,7 @@ namespace NSAP_ODK.Entities.Database
                                 item.Notes = dr["Notes"].ToString();
                                 item.DateAddedToDatabase = dr["DateAdded"] == DBNull.Value ? null : (DateTime?)dr["DateAdded"];
                                 item.FromExcelDownload = (bool)dr["FromExcelDownload"];
+                                item.HasCatchComposition = (bool)dr["HasCatchComposition"];
 
                                 thisList.Add(item);
                             }
@@ -312,6 +465,19 @@ namespace NSAP_ODK.Entities.Database
                     }
                     catch (Exception ex)
                     {
+                        switch (ex.HResult)
+                        {
+                            case -2147024809:
+                                if (ex.Message.Contains("does not belong to table"))
+                                {
+                                    var arr = ex.Message.Split('\'');
+                                    if (UpdateTable(arr[1]))
+                                    {
+                                        thisList= getVesselUnloads();
+                                    }
+                                }
+                                break;
+                        }
                         Logger.Log(ex);
 
                     }
@@ -321,6 +487,44 @@ namespace NSAP_ODK.Entities.Database
             return thisList;
         }
 
+        private bool UpdateTable(string colName)
+        {
+            bool success = false;
+            using (var conn = new OleDbConnection(Global.ConnectionString))
+            {
+                conn.Open();
+                var sql = "";
+                switch (colName)
+                {
+                    case "HasCatchComposition":
+                        sql = $@"ALTER TABLE dbo_vessel_unload_1 ADD COLUMN {colName} YESNO";
+                        break;
+                }
+
+                OleDbCommand cmd = new OleDbCommand();
+                cmd.Connection = conn;
+                cmd.CommandText = sql;
+
+                try
+                {
+                    cmd.ExecuteNonQuery();
+                    success = true;
+
+                }
+                catch (OleDbException dbex)
+                {
+                    Logger.Log(dbex);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(ex);
+                }
+
+                cmd.Connection.Close();
+                conn.Close();
+            }
+            return success;
+        }
         private bool AddToMySQL(VesselUnload item)
         {
             bool success = false;
@@ -503,15 +707,16 @@ namespace NSAP_ODK.Entities.Database
                                 update1.Parameters.Add("@sector_code", MySqlDbType.VarChar).Value = sector;
 
                                 update1.Parameters.AddWithValue("@from_excel", item.FromExcelDownload);
+                                update1.Parameters.AddWithValue("@has_catch_composition", item.HasCatchComposition);
 
                                 update1.CommandText = @"Insert into dbo_vessel_unload_1 
                                                 (v_unload_id, success, tracked, departure_landing_site, arrival_landing_site, 
                                                 row_id, xform_identifier, xform_date, sampling_date,
                                                 user_name,device_id,datetime_submitted,form_version,
-                                                gps,notes,enumerator_id,enumerator_text,date_added,sector_code,from_excel_download)
+                                                gps,notes,enumerator_id,enumerator_text,date_added,sector_code,from_excel_download,has_catch_composition)
                                                 Values (@unloadid,@operation_success,@operation_tracked,@departure_date,@arrival_date,
                                                         @row_id,@xform_id,@xform_date,@sampling_date,@user_name,@device_id,@date_submitted,
-                                                        @form_version,@gps,@notes,@enumerator,@enumerator_text,@date_added,@sector_code,@from_excel)";
+                                                        @form_version,@gps,@notes,@enumerator,@enumerator_text,@date_added,@sector_code,@from_excel,@has_catch_composition)";
                                 try
                                 {
                                     success = update1.ExecuteNonQuery() > 0;
@@ -655,8 +860,8 @@ namespace NSAP_ODK.Entities.Database
                                                 (v_unload_id, Success, Tracked, DepartureLandingSite, ArrivalLandingSite, 
                                                 RowID, XFormIdentifier, XFormDate, SamplingDate,
                                                 user_name,device_id,datetime_submitted,form_version,
-                                                GPS,Notes,EnumeratorID,EnumeratorText,DateAdded,sector_code,FromExcelDownload)
-                                    Values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                                                GPS,Notes,EnumeratorID,EnumeratorText,DateAdded,sector_code,FromExcelDownload,HasCatchComposition)
+                                    Values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
                                 using (OleDbCommand update1 = new OleDbCommand(sql, conn))
                                 {
@@ -739,7 +944,7 @@ namespace NSAP_ODK.Entities.Database
                                     update1.Parameters.Add("@sector_code", OleDbType.VarChar).Value = sector;
 
                                     update1.Parameters.Add("@from_excel", OleDbType.Boolean).Value = item.FromExcelDownload;
-
+                                    update1.Parameters.Add("@hasCatchComposition", OleDbType.Boolean).Value = item.HasCatchComposition;
 
                                     try
                                     {
@@ -930,7 +1135,7 @@ namespace NSAP_ODK.Entities.Database
                                 cmd_1.Parameters.Add("@Device_id", MySqlDbType.VarChar).Value = item.DeviceID;
                                 cmd_1.Parameters.Add("@Date_submitted", MySqlDbType.DateTime).Value = item.DateTimeSubmitted;
                                 cmd_1.Parameters.Add("@Form_version", MySqlDbType.VarChar).Value = item.FormVersion;
-                                if (item.GPSCode == null || item.GPSCode.Length==0)
+                                if (item.GPSCode == null || item.GPSCode.Length == 0)
                                 {
                                     cmd_1.Parameters.Add("@GPS_code", MySqlDbType.VarChar).Value = DBNull.Value;
                                 }
@@ -958,7 +1163,9 @@ namespace NSAP_ODK.Entities.Database
                                 cmd_1.Parameters.Add("@Date_added", MySqlDbType.Date).Value = item.DateAddedToDatabase;
                                 cmd_1.Parameters.Add("@Sector_code", MySqlDbType.VarChar).Value = item.SectorCode;
                                 cmd_1.Parameters.AddWithValue("@From_excel", item.FromExcelDownload);
+                                cmd_1.Parameters.AddWithValue("@has_catch_composition", item.HasCatchComposition);
                                 cmd_1.Parameters.Add("@Vessel_unload_id", MySqlDbType.Int32).Value = item.PK;
+
 
                                 cmd_1.CommandText = $@"UPDATE dbo_vessel_unload_1 SET
                                         success = @Operation_success,
@@ -979,7 +1186,8 @@ namespace NSAP_ODK.Entities.Database
                                         enumerator_text = @Enumerator_text,
                                         date_added = @Date_added,
                                         sector_code = @Sector_code,
-                                        from_excel_download =  @From_excel
+                                        from_excel_download =  @From_excel,
+                                        has_catch_composition = @has_catch_composition
                                         WHERE v_unload_id =@Vessel_unload_id";
 
                                 try
@@ -1167,6 +1375,7 @@ namespace NSAP_ODK.Entities.Database
                                 cmd_1.Parameters.Add("@Date_added", OleDbType.Date).Value = item.DateAddedToDatabase;
                                 cmd_1.Parameters.Add("@Sector_code", OleDbType.VarChar).Value = item.SectorCode;
                                 cmd_1.Parameters.Add("@From_excel", OleDbType.Boolean).Value = item.FromExcelDownload;
+                                cmd_1.Parameters.Add("@has_catch_composition", OleDbType.Boolean).Value = item.HasCatchComposition;
                                 cmd_1.Parameters.Add("@Vessel_unload_id", OleDbType.Integer).Value = item.PK;
 
                                 cmd_1.CommandText = $@"UPDATE dbo_vessel_unload_1 SET
@@ -1188,7 +1397,8 @@ namespace NSAP_ODK.Entities.Database
                                         EnumeratorText = @Enumerator_text,
                                         DateAdded = @Date_added,
                                         sector_code = @Sector_code,
-                                        FromExcelDownload =  @From_excel
+                                        FromExcelDownload =  @From_excel,
+                                        HasCatchComposition = @has_catch_composition
                                         WHERE v_unload_id =@Vessel_unload_id";
 
 

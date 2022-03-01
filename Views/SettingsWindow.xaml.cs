@@ -22,7 +22,14 @@ namespace NSAP_ODK.Views
     /// </summary>
     public partial class SettingsWindow : Window
     {
+        private bool _chkMySQlClicked;
         public SettingsWindow()
+        {
+            InitializeComponent();
+            Loaded += OnWindowLoaded;
+        }
+
+        public SettingsWindow(MainWindow owner)
         {
             InitializeComponent();
             Loaded += OnWindowLoaded;
@@ -30,9 +37,13 @@ namespace NSAP_ODK.Views
 
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
+
             textBackenDB.Text = Utilities.Global.Settings.MDBPath;
             textJsonFolder.Text = Utilities.Global.Settings.JSONFolder;
+            textmySQLBackupFolder.Text = Utilities.Global.Settings.MySQLBackupFolder;
             chkUsemySQL.IsChecked = Utilities.Global.Settings.UsemySQL;
+            buttonLocateMySQlBackupFolder.IsEnabled = (bool)chkUsemySQL.IsChecked;
+            chkUsemySQL.Click += ChkUsemySQL_Click;
             if (Utilities.Global.Settings.CutOFFUndersizedCW == null)
             {
                 textCutoffWidth.Text = Utilities.Settings.DefaultCutoffUndesizedCW.ToString(); ;
@@ -43,11 +54,19 @@ namespace NSAP_ODK.Views
             }
 
         }
+
+        private void ChkUsemySQL_Click(object sender, RoutedEventArgs e)
+        {
+            _chkMySQlClicked = true;
+            buttonLocateMySQlBackupFolder.IsEnabled = (bool)chkUsemySQL.IsChecked;
+        }
+
         private bool ValidateForm()
         {
             string allMessages = "";
             string msg1 = "Path to backend BD cannot be empty";
             string msg2 = "Name of folder for saving backup JSON files cannot be empyy";
+            string msg3 = "Name of folder of NSAP-ODK Databse for MySQL cannot be empyy";
             string msg = "";
 
             if (textBackenDB.Text.Length > 0)
@@ -60,7 +79,16 @@ namespace NSAP_ODK.Views
                 msg2 = "";
             }
 
-            if (msg1.Length == 0 && msg2.Length == 0)
+            if ((bool)chkUsemySQL.IsChecked && textmySQLBackupFolder.Text.Length > 0)
+            {
+                msg3 = "";
+            }
+            else if((bool)chkUsemySQL.IsChecked==false)
+            {
+                msg3 = "";
+            }
+
+            if (msg1.Length == 0 && msg2.Length == 0 && msg3.Length==0)
             {
                 msg = "Expected value cannot be empty and must be a whole number";
                 string cutoff = textCutoffWidth.Text;
@@ -83,7 +111,7 @@ namespace NSAP_ODK.Views
                     }
                 }
             }
-            if (msg.Length > 0 || msg1.Length > 0 || msg2.Length > 0)
+            if (msg.Length > 0 || msg1.Length > 0 || msg2.Length > 0 || msg3.Length > 0)
             {
 
                 if (msg1.Length > 0)
@@ -99,6 +127,18 @@ namespace NSAP_ODK.Views
                     else
                     {
                         allMessages = msg2;
+                    }
+
+                }
+                if (msg3.Length > 0)
+                {
+                    if (allMessages.Length > 0)
+                    {
+                        allMessages += msg3 + "\r\n";
+                    }
+                    else
+                    {
+                        allMessages = msg3;
                     }
 
                 }
@@ -125,8 +165,24 @@ namespace NSAP_ODK.Views
         }
         private void OnButtonClick(object sender, RoutedEventArgs e)
         {
+            VistaFolderBrowserDialog fbd;
             switch (((Button)sender).Name)
             {
+                case "buttonLocateMySQlBackupFolder":
+                    fbd = new VistaFolderBrowserDialog();
+                    fbd.UseDescriptionForTitle = true;
+                    fbd.Description = "Locate folder to save NSAP-ODK Database for MySQL";
+
+                    if (textmySQLBackupFolder.Text.Length > 0)
+                    {
+                        fbd.SelectedPath = textmySQLBackupFolder.Text;
+                    }
+
+                    if ((bool)fbd.ShowDialog() && fbd.SelectedPath.Length > 0)
+                    {
+                        textmySQLBackupFolder.Text = fbd.SelectedPath;
+                    }
+                    break;
                 case "buttonLocateBackendDB":
                     Visibility = Visibility.Hidden;
                     if (((MainWindow)Owner).LocateBackendDB(out string backend))
@@ -136,7 +192,7 @@ namespace NSAP_ODK.Views
                     Visibility = Visibility.Visible;
                     break;
                 case "buttonLocateJsonFolder":
-                    VistaFolderBrowserDialog fbd = new VistaFolderBrowserDialog();
+                    fbd = new VistaFolderBrowserDialog();
                     fbd.UseDescriptionForTitle = true;
                     fbd.Description = "Locate folder for saving JSON files";
 
@@ -153,14 +209,21 @@ namespace NSAP_ODK.Views
                 case "buttonOk":
                     if (ValidateForm())
                     {
-                        
+
                         Utilities.Global.Settings.MDBPath = textBackenDB.Text;
                         Utilities.Global.Settings.JSONFolder = textJsonFolder.Text;
                         Utilities.Global.Settings.CutOFFUndersizedCW = int.Parse(textCutoffWidth.Text);
                         Utilities.Global.Settings.UsemySQL = (bool)chkUsemySQL.IsChecked;
+                        Utilities.Global.Settings.MySQLBackupFolder = textmySQLBackupFolder.Text;
                         Utilities.Global.SaveGlobalSettings();
-                        
+
+
                         Close();
+                        if (_chkMySQlClicked)
+                        {
+                            MessageBox.Show("The application need to restart to switch to another database backend", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                            ((MainWindow)Owner).CloseAppilication();
+                        }
                     }
                     break;
                 case "buttonCancel":

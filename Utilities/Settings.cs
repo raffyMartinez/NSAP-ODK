@@ -16,6 +16,8 @@ namespace NSAP_ODK.Utilities
 
         public bool UsemySQL { get; set; }
 
+        public string MySQLBackupFolder { get; set; }
+
         public int? CutOFFUndersizedCW { get; set; }
 
 

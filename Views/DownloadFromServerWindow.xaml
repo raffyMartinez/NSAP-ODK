@@ -7,7 +7,7 @@
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         mc:Ignorable="d"
         Closing="OnFormClosing" Loaded="OnFormLoaded"
-        Title="DownloadFromServerWindow" Height="450" Width="800">
+        Title="DownloadFromServerWindow" Height="567.202" Width="800">
 
     <Grid>
         <Grid.ColumnDefinitions>
@@ -91,25 +91,35 @@
                                 <ComboBoxItem Content="Database query" Tag="json"/>
                             </ComboBox>
                         </WrapPanel>
-                        <StackPanel x:Name="stackPanelJSON" CanVerticallyScroll="True">
+                        <StackPanel x:Name="stackPanelJSON" CanVerticallyScroll="True" Height="282">
                             <RadioButton Content="Download all submissions" Margin="10 5" Checked="OnButtonChecked" Tag="all" x:Name="rbAll"/>
                             <RadioButton Content="Get all not downloaded" Margin="10 5"  Checked="OnButtonChecked" Tag="all_not_downloaded" x:Name="rbNotDownloaded"/>
                             <RadioButton Content="Specify date range" Margin="10 5"  Checked="OnButtonChecked" Tag="specify_date_range"/>
-                            <WrapPanel x:Name="panelDateRange">
+                            <WrapPanel x:Name="panelDateRange" Visibility="Collapsed">
                                 <Label Content="Start:" Margin="10 5"/>
                                 <xctk:DateTimePicker x:Name="dateStart" Width="150" Margin="5 7" TimePickerVisibility="Collapsed" Format="ShortDate"/>
                                 <Label Content="End:" Margin="30 5 5 5"/>
                                 <xctk:DateTimePicker x:Name="dateEnd" Width="150" Margin="5 7" TimePickerVisibility="Collapsed" Format="ShortDate"/>
                             </WrapPanel>
                             <RadioButton Content="Specify start date with a limit to number of records returned" Margin="10 5" Checked="OnButtonChecked" Tag="specify_range_records"/>
-                            <WrapPanel x:Name="panelStartDateRecords">
+                            <WrapPanel x:Name="panelStartDateRecords" Visibility="Collapsed">
                                 <Label Content="Start:" Margin="10 5"/>
                                 <xctk:DateTimePicker x:Name="dateStart2" Width="150" Margin="5 7" TimePickerVisibility="Collapsed" Format="ShortDate"/>
                                 <Label Content="Limit:" Margin="30 5 5 5"/>
                                 <TextBox Width="50" Margin="5 7" x:Name="TextBoxLimit"/>
                             </WrapPanel>
+                            <RadioButton Content="Update data of database column" Margin="10 5" Checked="OnButtonChecked" Tag="download_all_for_review"/>
+                            <WrapPanel x:Name="panelDownloadAgain" Visibility="Visible">
+                                <StackPanel>
+                                    <Button Content="Specify column to update" Height="28" Padding="5" Margin="5" Width="150" HorizontalAlignment="Left" x:Name="buttonSpecifyColumn" Click="OnButtonClick"/>
+                                    <WrapPanel>
+                                        <Label Content="Row start (leave blank to start at the beginning"/>
+                                        <TextBox x:Name="textRowStart" Width="75" Margin="10 0 0 0"/>
+                                    </WrapPanel>
+                                </StackPanel>
+                            </WrapPanel>
                             <CheckBox Content="Filter by user name" x:Name="CheckFilterUser" Margin="10 10" Checked="OnCheckStateChange" Unchecked="OnCheckStateChange"/>
-                            <WrapPanel x:Name="panelFilterByUser">
+                            <WrapPanel x:Name="panelFilterByUser" Visibility="Collapsed">
                                 <Label Content="User name:" Margin="30 5 5 5"/>
                                 <ComboBox Width="200" Margin="5 7" x:Name="ComboUser"/>
                             </WrapPanel>

@@ -9,6 +9,7 @@ namespace NSAP_ODK.Entities.Database
 {
     public class VesselUnloadViewModel
     {
+        public event EventHandler ColumnUpdatedEvent;
         public bool EditSucceeded;
         public ObservableCollection<VesselUnload> VesselUnloadCollection { get; set; }
         private VesselUnloadRepository VesselUnloads { get; set; }
@@ -21,7 +22,65 @@ namespace NSAP_ODK.Entities.Database
         //        NSAPEntities.NSAPRegionViewModel.GetEnumeratorInRegion
         //    }
         //}
+        private void ManageUpdateColumnEvent(string intent, int? round = null, int? runningCount = null, int? rowsForUpdating = null)
+        {
+            EventHandler h = ColumnUpdatedEvent;
+            if (h != null)
+            {
+                switch (intent)
+                {
+                    case "start":
+                        var ev = new UpdateDatabaseColumnEventArg
+                        {
+                            Intent = intent,
+                            Round = (int)round,
+                            RowsToUpdate = (int)rowsForUpdating
+                        };
+                        h(null, ev);
+                        break;
+                    case "row updated":
+                        ev = new UpdateDatabaseColumnEventArg
+                        {
+                            Intent = intent,
+                            RunningCount = (int)runningCount
+                        };
+                        h(null, ev);
+                        break;
+                    case "finished":
+                        h(null, new UpdateDatabaseColumnEventArg { Intent = intent });
+                        break;
+                }
 
+            }
+        }
+        public Task<int> UpdateHasCatchCompositionColumnsAsync(List<UpdateHasCatchCompositionResultItem> updateItems, int round)
+        {
+            return Task.Run(() => UpdateHasCatchCompositionColumns(updateItems,round));
+        }
+        public int UpdateHasCatchCompositionColumns(List<UpdateHasCatchCompositionResultItem> updateItems, int round)
+        {
+            ManageUpdateColumnEvent(intent: "start", round: round, rowsForUpdating: updateItems.Count);
+            int results = 0;
+            foreach (var item in updateItems)
+            {
+                VesselUnloads.UpdateHasCatchCompositionColumn(item);
+                results++;
+                ManageUpdateColumnEvent(intent: "row updated", runningCount: results);
+            }
+            ManageUpdateColumnEvent(intent: "finished");
+            return results;
+        }
+
+        public int UpdateHasCatchCompositionColumns()
+        {
+            int results = 0;
+            foreach (var vl in VesselUnloadCollection)
+            {
+                VesselUnloads.UpdateHasCatchCompositionColumn(vl.ListVesselCatch.Count > 0, vl.PK);
+                results++;
+            }
+            return results;
+        }
         public bool HasBSCInCatchComposition(VesselUnload vu)
         {
             return vu.ListVesselCatch.Where(t => t.CatchName == "Portunus pelagicus").FirstOrDefault() != null;
@@ -39,19 +98,19 @@ namespace NSAP_ODK.Entities.Database
             }
             return list;
         }
-        public List<VesselUnload> GetAllVesselUnloadsWithDate(string region, string fishingGround = "", string landingSite = "", 
-             string enumerator="", string gear = "", DateTime? dateUploaded = null)
+        public List<VesselUnload> GetAllVesselUnloadsWithDate(string region, string fishingGround = "", string landingSite = "",
+             string enumerator = "", string gear = "", DateTime? dateUploaded = null)
         {
             List<VesselUnload> list = new List<VesselUnload>();
 
-            if (landingSite.Length > 0 && gear.Length > 0 && dateUploaded != null && enumerator.Length>0)
+            if (landingSite.Length > 0 && gear.Length > 0 && dateUploaded != null && enumerator.Length > 0)
             {
                 list = VesselUnloadCollection
                     .Where(t => t.Parent.Parent.NSAPRegion.ShortName == region &&
                     t.Parent.Parent.LandingSiteName == landingSite &&
-                    t.Parent.GearUsedName==gear &&
-                    t.EnumeratorName==enumerator &&
-                    ((DateTime)t.DateAddedToDatabase).Date ==((DateTime)dateUploaded).Date).ToList();
+                    t.Parent.GearUsedName == gear &&
+                    t.EnumeratorName == enumerator &&
+                    ((DateTime)t.DateAddedToDatabase).Date == ((DateTime)dateUploaded).Date).ToList();
             }
             return list;
         }

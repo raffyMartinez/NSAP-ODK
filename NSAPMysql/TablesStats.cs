@@ -49,9 +49,20 @@ namespace NSAP_ODK.NSAPMysql
                     //c.Parameters.Add("@tableName", MySqlDbType.VarChar).Value = ts.TableName;
                     //c.CommandText = "Select count(*) from @tableName";
                     c.CommandText = $"Select Count(*) from {ts.TableName}";
-                    dbconn.Open();
-                    //var r = c.ExecuteReader();
-                    ts.Rows = Convert.ToInt32(c.ExecuteScalar());
+                    try
+                    {
+                        dbconn.Open();
+                        //var r = c.ExecuteReader();
+                        ts.Rows = Convert.ToInt32(c.ExecuteScalar());
+                    }
+                    catch(MySqlException msx)
+                    {
+                        Logger.Log(msx);
+                    }
+                    catch(Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
         }

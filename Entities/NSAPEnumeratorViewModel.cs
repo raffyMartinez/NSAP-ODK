@@ -427,8 +427,7 @@ namespace NSAP_ODK.Entities
                     }
                     break;
             }
-            //EntityChangedEventArgs args = new EntityChangedEventArgs(editedLandingSite.GetType().Name,editedLandingSite);
-            //EntityChanged?.Invoke(this, args);
+
         }
 
         public bool AddRecordToRepo(NSAPEnumerator nse)

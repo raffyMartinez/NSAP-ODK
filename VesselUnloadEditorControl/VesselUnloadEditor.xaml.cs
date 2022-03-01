@@ -264,7 +264,8 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Boxes", DisplayName = "Number of boxes", DisplayOrder = 12, Description = "Number of boxes", Category = "Effort" });
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "BoxesSampled", DisplayName = "Number of boxes sampled", DisplayOrder = 13, Description = "Number of boxes sampled", Category = "Effort" });
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "RaisingFactor", DisplayName = "Raising factor", DisplayOrder = 14, Description = "Raising factor", Category = "Effort" });
-                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Notes", DisplayName = "Notes", DisplayOrder = 15, Description = "Notes", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "HasCatchComposition", DisplayName = "Catch composition is included", DisplayOrder = 15, Description = "Whether or not catch composition of the landing was included", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Notes", DisplayName = "Notes", DisplayOrder = 16, Description = "Notes", Category = "Effort" });
 
 
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "OperationIsTracked", DisplayName = "This operation is tracked", DisplayOrder = 11, Description = "Is this fishing operation tracked", Category = "Tracking" });

@@ -83,41 +83,45 @@ namespace NSAP_ODK.Entities.Database
             {
                 thisList = getFromMySQL();
             }
-            var dt = new DataTable();
-            using (var conection = new OleDbConnection(Global.ConnectionString))
+            else
             {
-                try
+                var dt = new DataTable();
+                using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    conection.Open();
-                    string query = $"Select * from dbo_gear_unload";
-
-
-                    var adapter = new OleDbDataAdapter(query, conection);
-                    adapter.Fill(dt);
-                    if (dt.Rows.Count > 0)
+                    try
                     {
-                        thisList.Clear();
-                        foreach (DataRow dr in dt.Rows)
+                        conection.Open();
+                        string query = $"Select * from dbo_gear_unload";
+
+
+                        var adapter = new OleDbDataAdapter(query, conection);
+                        adapter.Fill(dt);
+                        if (dt.Rows.Count > 0)
                         {
-                            GearUnload item = new GearUnload();
-                            item.PK = (int)dr["unload_gr_id"];
-                            item.LandingSiteSamplingID = (int)dr["unload_day_id"];
-                            item.GearID = dr["gr_id"].ToString();
-                            item.Boats = string.IsNullOrEmpty(dr["boats"].ToString()) ? null : (int?)dr["boats"];
-                            item.Catch = string.IsNullOrEmpty(dr["catch"].ToString()) ? null : (double?)dr["catch"];
-                            item.GearUsedText = dr["gr_text"].ToString();
-                            item.Remarks = dr["remarks"].ToString();
-                            thisList.Add(item);
+                            thisList.Clear();
+                            foreach (DataRow dr in dt.Rows)
+                            {
+                                GearUnload item = new GearUnload();
+                                item.PK = (int)dr["unload_gr_id"];
+                                item.LandingSiteSamplingID = (int)dr["unload_day_id"];
+                                item.GearID = dr["gr_id"].ToString();
+                                item.Boats = string.IsNullOrEmpty(dr["boats"].ToString()) ? null : (int?)dr["boats"];
+                                item.Catch = string.IsNullOrEmpty(dr["catch"].ToString()) ? null : (double?)dr["catch"];
+                                item.GearUsedText = dr["gr_text"].ToString();
+                                item.Remarks = dr["remarks"].ToString();
+                                thisList.Add(item);
+                            }
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log(ex);
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
 
+                    }
                 }
-                return thisList;
+
             }
+            return thisList;
         }
 
         private bool AddToMySQL(GearUnload item)

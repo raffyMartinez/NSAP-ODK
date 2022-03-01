@@ -123,40 +123,43 @@ namespace NSAP_ODK.Entities
         public bool Add(FishingGround fg)
         {
             bool success = false;
-            if(Global.Settings.UsemySQL)
+            if (Global.Settings.UsemySQL)
             {
                 success = AddToMySQL(fg);
             }
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            else
+
             {
-                conn.Open();
-                var sql = "Insert into fishingGround(FishingGroundName,FishingGroundCode) Values (?,?)";
-                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
-                    update.Parameters.Add("@fg_name", OleDbType.VarChar).Value = fg.Name;
-                    update.Parameters.Add("@fg_code", OleDbType.VarChar).Value = fg.Code;
-                    try
+                    conn.Open();
+                    var sql = "Insert into fishingGround(FishingGroundName,FishingGroundCode) Values (?,?)";
+                    using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
-                        success = update.ExecuteNonQuery() > 0;
-                    }
-                    catch (OleDbException dbex)
-                    {
-                        switch (dbex.ErrorCode)
+                        update.Parameters.Add("@fg_name", OleDbType.VarChar).Value = fg.Name;
+                        update.Parameters.Add("@fg_code", OleDbType.VarChar).Value = fg.Code;
+                        try
                         {
-                            case -2147467259:
-                                //database is corrupt
-                                CorruptedDatabase = true;
-                                break;
+                            success = update.ExecuteNonQuery() > 0;
                         }
-                        Logger.Log(dbex);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
+                        catch (OleDbException dbex)
+                        {
+                            switch (dbex.ErrorCode)
+                            {
+                                case -2147467259:
+                                    //database is corrupt
+                                    CorruptedDatabase = true;
+                                    break;
+                            }
+                            Logger.Log(dbex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
                     }
                 }
             }
-
             return success;
         }
 

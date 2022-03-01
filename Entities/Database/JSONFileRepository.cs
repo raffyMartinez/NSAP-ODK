@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Data.OleDb;
 using NSAP_ODK.Utilities;
+using MySql.Data.MySqlClient;
+using NSAP_ODK.NSAPMysql;
 namespace NSAP_ODK.Entities.Database
 {
     public class JSONFileRepository
@@ -21,6 +23,10 @@ namespace NSAP_ODK.Entities.Database
         {
             List<JSONFile> thisList = new List<JSONFile>();
             var dt = new DataTable();
+            if(Global.Settings.UsemySQL)
+            {
+                Global.CreateConnectionString();
+            }
             using (var conection = new OleDbConnection(Global.ConnectionString))
             {
                 try

@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.OleDb;
 using MySql.Data.MySqlClient;
 using NSAP_ODK.NSAPMysql;
+using NSAP_ODK.NSAPMysql;
 namespace NSAP_ODK.Entities
 {
     internal class GearEffortSpecificationRepository
@@ -19,25 +20,51 @@ namespace NSAP_ODK.Entities
         public static int AllGearEffortSpecificationMaxRecordNumber()
         {
             int maxRecordNumber = 0;
-            using (var conn = new OleDbConnection(Global.ConnectionString))
+            if (Global.Settings.UsemySQL)
             {
-                conn.Open();
-                const string sql = "SELECT Max([RowId]) AS MaxRowID FROM GearEffortSpecification";
-
-                using (OleDbCommand getCount = new OleDbCommand(sql, conn))
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
                 {
-                    try
+                    using (var cmd = conn.CreateCommand())
                     {
-                        maxRecordNumber = (int)getCount.ExecuteScalar();
+                        cmd.CommandText =  "SELECT Max([row_id]) AS MaxRowID FROM gear_effort_specification";
+                        try
+                        {
+                            conn.Open();
+                            maxRecordNumber = (int)cmd.ExecuteScalar();
+                        }
+                        catch(MySqlException msx)
+                        {
+                            Logger.Log(msx);
+                        }
+                        catch(Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
                     }
-                    catch (OleDbException oex)
+                }
+            }
+            else
+            {
+                using (var conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    const string sql = "SELECT Max([RowId]) AS MaxRowID FROM GearEffortSpecification";
+
+                    using (OleDbCommand getCount = new OleDbCommand(sql, conn))
                     {
-                        Logger.Log(oex);
-                        maxRecordNumber = 0;
-                    }
-                    catch
-                    {
-                        maxRecordNumber = 0;
+                        try
+                        {
+                            maxRecordNumber = (int)getCount.ExecuteScalar();
+                        }
+                        catch (OleDbException oex)
+                        {
+                            Logger.Log(oex);
+                            maxRecordNumber = 0;
+                        }
+                        catch
+                        {
+                            maxRecordNumber = 0;
+                        }
                     }
                 }
             }

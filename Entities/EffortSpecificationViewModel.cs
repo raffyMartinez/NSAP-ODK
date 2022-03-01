@@ -253,7 +253,7 @@ namespace NSAP_ODK.Entities
 
             if (!isNew && effortSpec.Name.Length > 0
                  && oldName != effortSpec.Name
-                && EffortSpeficiationNameExist(oldName))
+                && EffortSpeficiationNameExist(effortSpec.Name))
                 evr.AddMessage(new EntityValidationMessage("Specification already exists"));
 
             return evr;

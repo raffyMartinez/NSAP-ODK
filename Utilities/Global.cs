@@ -64,6 +64,12 @@ namespace NSAP_ODK.Utilities
         public static string ConnectionString { get; private set; }
 
         public static string ConnectionStringGrid25 { get; private set; }
+
+        public static string CreateConnectionStringForGrid25()
+        {
+            ConnectionStringGrid25=  "Provider=Microsoft.JET.OLEDB.4.0;data source=" + Grid25MDBPath;
+            return ConnectionStringGrid25;
+        }
         static Global()
         {
 
