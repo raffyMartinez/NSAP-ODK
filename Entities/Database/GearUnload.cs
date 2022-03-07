@@ -103,7 +103,14 @@ namespace NSAP_ODK.Entities.Database
 
         public override string ToString()
         {
-            return $"{Parent.LandingSite.LandingSiteName} {GearUsedName} {Parent.SamplingDate.ToString("MMM-dd-yyyy")} - ({ListVesselUnload.Count})";
+            if (Parent.LandingSite == null)
+            {
+                return "";
+            }
+            else
+            {
+                return $"{Parent.LandingSite.LandingSiteName} {GearUsedName} {Parent.SamplingDate.ToString("MMM-dd-yyyy")} - ({ListVesselUnload.Count})";
+            }
         }
 
     }

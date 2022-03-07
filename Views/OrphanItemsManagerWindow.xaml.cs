@@ -532,11 +532,6 @@ namespace NSAP_ODK.Views
                     break;
             }
 
-            //if(dataGrid.Items.Count==0)
-            //{
-            //    MessageBox.Show("There are no orphaned items for now","GPX Manager",MessageBoxButton.OK,MessageBoxImage.Information);
-            //    Close();
-            //}
         }
         private async void OnButtonClick(object sender, RoutedEventArgs e)
         {

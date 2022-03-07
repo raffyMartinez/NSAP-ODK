@@ -231,6 +231,7 @@
     <Compile Include="Entities\Database\UpdateHasCatchCompositionRepo.cs" />
     <Compile Include="Entities\Database\VesselUnloadServerRepository.cs" />
     <Compile Include="Entities\Database\XLSForm.cs" />
+    <Compile Include="Entities\Download summary.cs" />
     <Compile Include="Entities\FishBaseSpecies.cs" />
     <Compile Include="Entities\FishSpeciesForCSV.cs" />
     <Compile Include="Entities\ItemSources\DeviceTypeItemsSource.cs" />
@@ -386,6 +387,7 @@
     <Compile Include="NSAPMysql\TablesStats.cs" />
     <Compile Include="NSAPMysql\TableStats.cs" />
     <Compile Include="Oware\LatLngUTMConverter.cs" />
+    <Compile Include="Utilities\GridCellHelper.cs" />
     <Compile Include="Utilities\MD5.cs" />
     <Compile Include="Utilities\Settings.cs" />
     <Compile Include="TreeViewModelControl\AllSamplingEntitiesEventHandler.cs" />

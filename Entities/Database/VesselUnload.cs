@@ -68,7 +68,7 @@ namespace NSAP_ODK.Entities.Database
                 OperationIsSuccessful = vesselUnload.OperationIsSuccessful;
                 RaisingFactor = vesselUnload.RaisingFactor;
                 HasCatchComposition = vesselUnload.HasCatchComposition;
-                
+
 
                 //NSAPRegionEnumeratorID = vesselUnload.NSAPRegionEnumeratorID;
                 NSAPEnumeratorID = vesselUnload.NSAPEnumeratorID;
@@ -522,6 +522,15 @@ namespace NSAP_ODK.Entities.Database
         public double? WeightOfCatch { get; set; }
         public int? NSAPRegionEnumeratorID { get; set; }
         public string EnumeratorText { get; set; }
+
+        public int CountGrids { get; set; }
+        public int CountGearSoak { get; set; }
+        public int CountEffortIndicators { get; set; }
+        public int CountCatchCompositionItems { get; set; }
+        public int CountLengthRows { get; set; }
+        public int CountLenFreqRows { get; set; }
+        public int CountLenWtRows { get; set; }
+        public int CountMaturityRows { get; set; }
 
 
         public bool HasBSCInCatchComposition()

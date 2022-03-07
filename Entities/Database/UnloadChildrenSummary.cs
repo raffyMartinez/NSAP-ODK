@@ -27,137 +27,40 @@ namespace NSAP_ODK.Entities.Database
 
         public string Gear { get { return _vesselUnload.Parent.GearUsedName; } }
         public int PK { get { return _vesselUnload.PK; } }
-        public int CountGridLocations { get { return _vesselUnload.ListFishingGroundGrid.Count; } }
-        public int CountEffortIndicators { get { return _vesselUnload.ListVesselEffort.Count; } }
-        public int CountSoakTimes { get { return _vesselUnload.ListGearSoak.Count; } }
+        public int CountGridLocations { get { return _vesselUnload.CountGrids; } }
+        public int CountEffortIndicators { get { return _vesselUnload.CountEffortIndicators; } }
+        public int CountSoakTimes { get { return _vesselUnload.CountGearSoak; } }
 
-        public int CountCatchComposition { get { return _vesselUnload.ListVesselCatch.Count; } }
+        public int CountCatchComposition { get { return _vesselUnload.CountCatchCompositionItems; } }
 
 
-        public string CountCatchMaturities
+        public int CountCatchMaturities
         {
             get
             {
-                int speciesWithMeasurements = 0;
-                if (CountCatchComposition > 0)
-                {
-                    int count = 0;
-                    foreach (var item in _vesselUnload.ListVesselCatch)
-                    {
-                        if (item.ListCatchMaturity.Count > 0)
-                        {
-                            count += item.ListCatchMaturity.Count;
-                            speciesWithMeasurements++;
-                        }
-
-                    }
-                    if (speciesWithMeasurements > 0)
-                    {
-                        return $"{count}/{speciesWithMeasurements}";
-                    }
-                    else
-                    {
-                        return _noCounts;
-                    }
-                }
-                else
-                {
-                    return _noCounts;
-                }
+                return _vesselUnload.CountMaturityRows;
             }
         }
 
-        public string CountCatchLengthFreqs
+        public int CountCatchLengthFreqs
         {
             get
             {
-                int speciesWithMeasurements = 0;
-                if (CountCatchComposition > 0)
-                {
-                    int count = 0;
-                    foreach (var item in _vesselUnload.ListVesselCatch)
-                    {
-                        if (item.ListCatchLenFreq.Count > 0)
-                        {
-                            count += item.ListCatchLenFreq.Count;
-                            speciesWithMeasurements++;
-                        }
-                    }
-                    if (speciesWithMeasurements > 0)
-                    {
-                        return $"{count}/{speciesWithMeasurements}";
-                    }
-                    else
-                    {
-                        return _noCounts;
-                    }
-                }
-                else
-                {
-                    return _noCounts;
-                }
+                return _vesselUnload.CountLenFreqRows;
             }
         }
-        public string CountCatchLengthWeights
+        public int CountCatchLengthWeights
         {
             get
             {
-                int speciesWithMeasurements = 0;
-                if (CountCatchComposition > 0)
-                {
-                    int count = 0;
-                    foreach (var item in _vesselUnload.ListVesselCatch)
-                    {
-                        if (item.ListCatchLengthWeight.Count > 0)
-                        {
-                            count += item.ListCatchLengthWeight.Count;
-                            speciesWithMeasurements++;
-                        }
-                    }
-                    if (speciesWithMeasurements > 0)
-                    {
-                        return $"{count}/{speciesWithMeasurements}";
-                    }
-                    else
-                    {
-                        return _noCounts;
-                    }
-                }
-                else
-                {
-                    return _noCounts;
-                }
+                return _vesselUnload.CountLenWtRows;
             }
         }
-        public string CountCatchLengths
+        public int CountCatchLengths
         {
             get
             {
-                int speciesWithMeasurements = 0;
-                if (CountCatchComposition > 0)
-                {
-                    int count = 0;
-                    foreach (var item in _vesselUnload.ListVesselCatch)
-                    {
-                        if (item.ListCatchLength.Count > 0)
-                        {
-                            count += item.ListCatchLength.Count;
-                            speciesWithMeasurements++;
-                        }
-                    }
-                    if (speciesWithMeasurements > 0)
-                    {
-                        return $"{count}/{speciesWithMeasurements}";
-                    }
-                    else
-                    {
-                        return _noCounts;
-                    }
-                }
-                else
-                {
-                    return _noCounts;
-                }
+                return _vesselUnload.CountLengthRows;
             }
         }
     }

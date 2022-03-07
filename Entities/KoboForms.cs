@@ -153,6 +153,7 @@ namespace NSAP_ODK.Entities
             XLSForm_Version = form.xlsform_version;
             XLSForm_IDString = form.xlsForm_idstring;
             KPI_id_uid = form.kpi_asset_uid;
+            Owner = form.owner;
             if (Title.Contains("Fisheries landing survey"))
             {
                 KoboFormType = KoboFormType.FormTypeCatchAndEffort;
@@ -178,6 +179,7 @@ namespace NSAP_ODK.Entities
         public string KPI_id_uid { get; internal set; }
         public string XLSForm_IDString { get; internal set; }
         public string XLSForm_Version { get; internal set; }
+        public string Owner { get; internal set; }
 
         public int NumberSavedToDatabase
         {

@@ -113,6 +113,8 @@
                 <MenuItem Header="Import GPX" x:Name="menuImportGPX" Click="OnMenuClicked"/>
                 <Separator/>
                 <MenuItem Header="Backup MySQL Database" x:Name="menuBackupMySQL" Click="OnMenuClicked" Visibility="Collapsed"/>
+                <MenuItem Header="Setup MysQL tables" x:Name="menuSetupMySQLTables" Click="OnMenuClicked" Visibility="Collapsed"/>
+                <MenuItem Header="Update unload statistics" x:Name="menuUpdateUnloadStats" Click="OnMenuClicked" />
             </MenuItem>
 
             <MenuItem Header="Generate CSV" x:Name="menuGenerateCSV">
@@ -222,7 +224,9 @@
                 <DataGrid Margin="5" x:Name="GridNSAPData"  SelectionUnit="Cell" LoadingRow="Grid_LoadingRow" Visibility="Collapsed"
                       ItemsSource="{Binding}" MouseDoubleClick="OnGridDoubleClick" IsReadOnly="True" 
                       SelectedCellsChanged="OnSelectedCellsChanged" SelectionMode="Single" CellEditEnding="OnCellEditEnding"
-                      AutoGeneratingColumn="OnGeneratingColumn"/>
+                      AutoGeneratingColumn="OnGeneratingColumn" MouseRightButtonUp="OnMenuRightClick">
+
+                </DataGrid>
                 <StackPanel Grid.Column="1" Visibility="Collapsed" x:Name="GearUnload_ButtonsPanel">
                     <Button Content="Save" Height="30" Margin="10 20 10 10" x:Name="ButtonSaveGearUnload" Click="OnButtonClick"/>
                     <Button Content="Undo changes" Height="30" Margin="10 10 10 10" x:Name="ButtonUndoGearUnload" Click="OnButtonClick" />
@@ -234,21 +238,26 @@
 
             <xctk:PropertyGrid  x:Name="PropertyGrid" Margin="10" ShowSearchBox="False"  Grid.Column="1" Grid.RowSpan="2"
                                         ShowSortOptions="False" ShowTitle="True" IsReadOnly="True" ShowDescriptionByTooltip="True"
-                                        AutoGenerateProperties="False" Visibility="Collapsed" ShowSummary="False" />
+                                        AutoGenerateProperties="False" Visibility="Collapsed" ShowSummary="False" GotFocus="OnPropertyGridFGotFocus"
+                                        MouseRightButtonUp="OnPropertyGridContextMenu" />
         </Grid>
 
         <!--species row-->
         <DataGrid  Margin="10" x:Name="dataGridSpecies" RowHeaderWidth="NaN" ItemsSource="{Binding}" Visibility="Collapsed"
                       Grid.Row="5" AutoGenerateColumns="false" IsReadOnly="True" SelectionChanged="OnDataGridSelectionChanged"
-                      LoadingRow="Grid_LoadingRow" MouseDoubleClick="OnGridDoubleClick" />
+                      LoadingRow="Grid_LoadingRow" MouseDoubleClick="OnGridDoubleClick"  MouseRightButtonUp="OnMenuRightClick">
+
+        </DataGrid>
 
 
 
         <!--row for entities-->
         <Grid Grid.Row="6">
             <DataGrid ItemsSource="{Binding}" AutoGenerateColumns="False" Margin="10" Visibility="Collapsed"
-                      x:Name="dataGridEntities" IsReadOnly="True" LoadingRow="Grid_LoadingRow"
-                      MouseDoubleClick="OnGridDoubleClick" SelectionChanged="OnDataGridSelectionChanged"/>
+                      x:Name="dataGridEntities" IsReadOnly="True" LoadingRow="Grid_LoadingRow" 
+                      MouseDoubleClick="OnGridDoubleClick" SelectionChanged="OnDataGridSelectionChanged" MouseRightButtonUp="OnMenuRightClick">
+ 
+            </DataGrid>
         </Grid>
 
 
@@ -276,12 +285,14 @@
             </StackPanel>
 
             <xctk:PropertyGrid x:Name="propertyGridSummary" Grid.Column="1" Grid.Row="1" Margin="20"  ShowSortOptions="False" ShowSearchBox="False" Visibility="Collapsed"
-                        ShowTitle="False" MouseDoubleClick="OnPropertyGridDblClick"   SelectedPropertyItemChanged="OnPropertyChanged" IsReadOnly="True"/>
+                        ShowTitle="False" MouseDoubleClick="OnPropertyGridDblClick"   SelectedPropertyItemChanged="OnPropertyChanged" IsReadOnly="True" GotFocus="OnPropertyGridFGotFocus"
+                               MouseRightButtonUp="OnPropertyGridContextMenu" />
 
             <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Column="1" Grid.Row="2">
                 <StackPanel  x:Name="panelOpening">
                     <CheckBox x:Name="checkLandingSiteWithLandings" Margin="20 0 0 0" Visibility="Collapsed" Content="Only show landing sites with catch monitoring" Checked="OnCheckBoxChecked" Unchecked="OnCheckBoxChecked"/>
-                    <DataGrid x:Name="dataGridSummary" Visibility="Collapsed" ItemsSource="{Binding}" IsReadOnly="True" Margin="20" LoadingRow="Grid_LoadingRow" RowHeaderWidth="30" SelectionChanged="OnDataGridSelectionChanged" MouseDoubleClick="OnGridDoubleClick"/>
+                    <DataGrid x:Name="dataGridSummary" Visibility="Collapsed" ItemsSource="{Binding}" IsReadOnly="True" Margin="20" LoadingRow="Grid_LoadingRow" RowHeaderWidth="30" SelectionChanged="OnDataGridSelectionChanged" MouseDoubleClick="OnGridDoubleClick"  MouseRightButtonUp="OnMenuRightClick">
+                    </DataGrid>
                 </StackPanel>
             </ScrollViewer>
         </Grid>

@@ -1279,6 +1279,40 @@ namespace NSAP_ODK.NSAPMysql
                         Logger.Log(ex);
                     }
                     #endregion
+
+                    #region LandingStat
+                    cmd.CommandText = @"CREATE TABLE IF NOT EXISTS `dbo_vessel_unload_stats` (
+                                        `v_unload_id` INT NOT NULL,
+                                        `count_effort` INT  NULL,
+                                        `count_grid` INT  NULL,
+                                        `count_soak` INT  NULL,
+                                        `count_catch_composition` INT  NULL,
+                                        `count_lengths` INT  NULL,
+                                        `count_lenfreq` INT  NULL,
+                                        `count_lenwt` INT  NULL,
+                                        `count_maturity` INT  NULL,
+                                        PRIMARY KEY (`v_unload_id`),
+                                        CONSTRAINT `v_unload_id_vu2_fk` 
+                                          FOREIGN KEY (`v_unload_id`)
+                                          REFERENCES `dbo_vessel_unload` (`v_unload_id`)
+                                          ON DELETE NO ACTION
+                                          ON UPDATE NO ACTION )
+                                        COMMENT='Summary statistics of a sampled landing'
+                                        ENGINE=InnoDB";
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        tableCount++;
+                    }
+                    catch (MySqlException msex)
+                    {
+
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                    #endregion
                 }
             }
 

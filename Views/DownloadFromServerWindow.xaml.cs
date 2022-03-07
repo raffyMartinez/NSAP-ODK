@@ -846,7 +846,7 @@ namespace NSAP_ODK.Views
             var call = "";
             int rowStart=0;
             double limit = 30000; //30,000 is download limit 
-            NSAPEntities.VesselUnloadViewModel.ColumnUpdatedEvent += VesselUnloadViewModel_ColumnUpdatedEvent;
+            NSAPEntities.VesselUnloadViewModel.DatabaseUpdatedEvent += VesselUnloadViewModel_ColumnUpdatedEvent;
             if(int.TryParse(textRowStart.Text,out int v))
             {
                 rowStart = v;
@@ -877,7 +877,7 @@ namespace NSAP_ODK.Views
                 call = api_call + $"&start={rowStart}";
                 _updateCount = await ProcessDownloadForReview(call,1);
             }
-            NSAPEntities.VesselUnloadViewModel.ColumnUpdatedEvent -= VesselUnloadViewModel_ColumnUpdatedEvent;
+            NSAPEntities.VesselUnloadViewModel.DatabaseUpdatedEvent -= VesselUnloadViewModel_ColumnUpdatedEvent;
         }
 
         private int _updateColumnRound;
@@ -1149,17 +1149,18 @@ namespace NSAP_ODK.Views
                         propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Title", DisplayName = "Name", DisplayOrder = 1, Description = "Name of the form", Category = "Server data" });
                         propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Description", DisplayName = "Description", DisplayOrder = 2, Description = "Description of the form", Category = "Server data" });
                         propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "FormID", DisplayName = "Form ID", DisplayOrder = 3, Description = "Form identifier", Category = "Server data" });
+                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Owner", DisplayName = "Owner", DisplayOrder = 4, Description = "User name of form owner", Category = "Server data" });
 
-                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "XLSForm_IDString", DisplayName = "XLSForm ID", DisplayOrder = 4, Description = "ID from XLSForm", Category = "Server data" });
-                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "XLSForm_Version", DisplayName = "XLSForm version", DisplayOrder = 5, Description = "Version from XLSForm", Category = "Server data" });
+                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "XLSForm_IDString", DisplayName = "XLSForm ID", DisplayOrder = 5, Description = "ID from XLSForm", Category = "Server data" });
+                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "XLSForm_Version", DisplayName = "XLSForm version", DisplayOrder = 6, Description = "Version from XLSForm", Category = "Server data" });
 
-                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DateCreated", DisplayName = "Date created", DisplayOrder = 6, Description = "Date created", Category = "Server data" });
-                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DateModified", DisplayName = "Date modified", DisplayOrder = 7, Description = "Date modified", Category = "Server data" });
-                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DateLastSubmission", DisplayName = "Date of last submission", DisplayOrder = 8, Description = "Date of last submission", Category = "Server data" });
-                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "NumberOfSubmissions", DisplayName = "Number of submissions", DisplayOrder = 9, Description = "Number of submissions", Category = "Server data" });
-                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "NumberOfUsers", DisplayName = "Number of users", DisplayOrder = 10, Description = "Number of users", Category = "Server data" });
-                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "NumberSavedToDatabase", DisplayName = "Number of submissions", DisplayOrder = 11, Description = "Number of submissions saved", Category = "Saved in database" });
-                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LastSaveDateInDatabase", DisplayName = "Date of last submission", DisplayOrder = 12, Description = "Date of last sumission", Category = "Saved in database" });
+                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DateCreated", DisplayName = "Date created", DisplayOrder = 7, Description = "Date created", Category = "Server data" });
+                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DateModified", DisplayName = "Date modified", DisplayOrder = 8, Description = "Date modified", Category = "Server data" });
+                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DateLastSubmission", DisplayName = "Date of last submission", DisplayOrder = 9, Description = "Date of last submission", Category = "Server data" });
+                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "NumberOfSubmissions", DisplayName = "Number of submissions", DisplayOrder = 10, Description = "Number of submissions", Category = "Server data" });
+                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "NumberOfUsers", DisplayName = "Number of users", DisplayOrder = 11, Description = "Number of users", Category = "Server data" });
+                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "NumberSavedToDatabase", DisplayName = "Number of submissions", DisplayOrder = 12, Description = "Number of submissions saved", Category = "Saved in database" });
+                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LastSaveDateInDatabase", DisplayName = "Date of last submission", DisplayOrder = 13, Description = "Date of last sumission", Category = "Saved in database" });
 
                         propertyGrid.Visibility = Visibility.Visible;
 

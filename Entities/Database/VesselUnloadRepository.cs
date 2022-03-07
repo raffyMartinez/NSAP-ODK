@@ -196,6 +196,148 @@ namespace NSAP_ODK.Entities.Database
             return null;
         }
 
+        public bool AddUnloadStats(VesselUnload vu)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+                {
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@efforts", vu.CountEffortIndicators);
+                        cmd.Parameters.AddWithValue("@grids", vu.CountGrids);
+                        cmd.Parameters.AddWithValue("@soaks", vu.CountGearSoak);
+                        cmd.Parameters.AddWithValue("@catch", vu.CountCatchCompositionItems);
+
+                        cmd.Parameters.AddWithValue("@lns", vu.CountLengthRows);
+                        cmd.Parameters.AddWithValue("@lfs", vu.CountLenFreqRows);
+                        cmd.Parameters.AddWithValue("@lws", vu.CountLenWtRows);
+                        cmd.Parameters.AddWithValue("@ms", vu.CountMaturityRows);
+                        cmd.Parameters.AddWithValue("@id", vu.PK);
+
+                        cmd.CommandText = @"INSERT INTO dbo_vessel_unload_stats (count_effort,count_grid,count_soak,count_catch_composition,count_lengths,count_lenfreq,count_lenwt,count_maturity,v_unload_id) 
+                                          values
+                                          (@efforts,@grids,@soaks,@catch,@lns,@lfs,@lws,@ms,@id)";
+                        try
+                        {
+                            conn.Open();
+                            success = cmd.ExecuteNonQuery() > 0;
+                        }
+                        catch (MySqlException mx)
+                        {
+                            if (mx.Message.Contains("Duplicate entry"))
+                            {
+
+                            }
+                            else
+                            {
+                                Logger.Log(mx);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@efforts", vu.CountEffortIndicators);
+                        cmd.Parameters.AddWithValue("@grids", vu.CountGrids);
+                        cmd.Parameters.AddWithValue("@soaks", vu.CountGearSoak);
+                        cmd.Parameters.AddWithValue("@catch", vu.CountCatchCompositionItems);
+
+                        cmd.Parameters.AddWithValue("@lns", vu.CountLengthRows);
+                        cmd.Parameters.AddWithValue("@lfs", vu.CountLenFreqRows);
+                        cmd.Parameters.AddWithValue("@lws", vu.CountLenWtRows);
+                        cmd.Parameters.AddWithValue("@ms", vu.CountMaturityRows);
+                        cmd.Parameters.AddWithValue("@id", vu.PK);
+
+                        cmd.CommandText = @"INSERT INTO dbo_vessel_unload_stats (count_effort,count_grid,count_soak,count_catch_composition,count_lengths,count_lenfreq,count_lenwt,count_maturity,v_unload_id) 
+                                          values
+                                          (@efforts,@grids,@soaks,@catch,@lns,@lfs,@lws,@ms,@id)";
+                        try
+                        {
+                            conn.Open();
+                            success = cmd.ExecuteNonQuery() > 0;
+                        }
+                        catch (MySqlException mx)
+                        {
+                            Logger.Log(mx);
+                        }
+                        catch (Exception ex)
+                        {
+                            if (ex.Message.Contains("Could not find output table"))
+                            {
+                                var arr = ex.Message.Split('\'');
+                                if (CreateTable(arr[1]))
+                                {
+                                    return AddUnloadStats(vu);
+                                }
+
+                            }
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
+
+        private bool CreateTable(string tableName)
+        {
+            bool success = false;
+            using (var conn = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    switch (tableName)
+                    {
+                        case "dbo_vessel_unload_stats":
+                            cmd.CommandText = @"CREATE TABLE dbo_vessel_unload_stats (
+                                                v_unload_id INTEGER,
+                                                count_effort INTEGER,
+                                                count_grid INTEGER,
+                                                count_soak INTEGER,
+                                                count_catch_composition INTEGER,
+                                                count_lengths INTEGER,
+                                                count_lenfreq INTEGER,
+                                                count_lenwt INTEGER,
+                                                count_maturity INTEGER,
+                                                CONSTRAINT PrimaryKey PRIMARY KEY (v_unload_id),
+                                                CONSTRAINT FK_unload_stats
+                                                    FOREIGN KEY (v_unload_id) REFERENCES
+                                                    dbo_vessel_unload (v_unload_id)
+                                                )";
+                            break;
+                    }
+
+                    try
+                    {
+                        conn.Open();
+                        cmd.ExecuteNonQuery();
+                        success = true;
+
+                    }
+                    catch (OleDbException odx)
+                    {
+                        Logger.Log(odx);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+
+            return success;
+        }
         private List<VesselUnload> getFromMySQL()
         {
             List<VesselUnload> thisList = new List<VesselUnload>();
@@ -204,64 +346,88 @@ namespace NSAP_ODK.Entities.Database
                 using (var cmd = conn.CreateCommand())
                 {
                     conn.Open();
-                    cmd.CommandText = @"SELECT dvu.*, dvu1.* FROM dbo_vessel_unload As dvu
-                        INNER JOIN dbo_vessel_unload_1 As dvu1 ON dvu.v_unload_id = dvu1.v_unload_id;";
+                    //cmd.CommandText = @"SELECT dvu.*, dvu1.* FROM dbo_vessel_unload As dvu
+                    //    INNER JOIN dbo_vessel_unload_1 As dvu1 ON dvu.v_unload_id = dvu1.v_unload_id;";
+                    cmd.CommandText = @"SELECT dvu.*, dvu1.*, dvu2.* FROM nsap_odk.dbo_vessel_unload As dvu 
+                                        INNER JOIN nsap_odk.dbo_vessel_unload_1 As dvu1 ON dvu.v_unload_id = dvu1.v_unload_id 
+                                        LEFT JOIN nsap_odk.dbo_vessel_unload_stats as dvu2 on dvu.v_unload_id=dvu2.v_unload_id";
 
-                    MySqlDataReader dr = cmd.ExecuteReader();
-                    while (dr.Read())
+                    try
                     {
-                        VesselUnload item = new VesselUnload();
-                        item.PK = (int)dr["v_unload_id"];
-                        item.GearUnloadID = (int)dr["unload_gr_id"];
-                        item.IsBoatUsed = (bool)dr["is_boat_used"];
-                        item.VesselID = string.IsNullOrEmpty(dr["boat_id"].ToString()) ? null : (int?)dr["boat_id"];
-                        item.VesselText = dr["boat_text"].ToString();
-                        item.SectorCode = dr["sector_code"].ToString();
-                        item.WeightOfCatch = string.IsNullOrEmpty(dr["catch_total"].ToString()) ? null : (double?)dr["catch_total"];
-                        item.WeightOfCatchSample = string.IsNullOrEmpty(dr["catch_samp"].ToString()) ? null : (double?)dr["catch_samp"];
-                        item.Boxes = string.IsNullOrEmpty(dr["boxes_total"].ToString()) ? null : (int?)dr["boxes_total"];
-                        item.BoxesSampled = string.IsNullOrEmpty(dr["boxes_samp"].ToString()) ? null : (int?)dr["boxes_samp"];
-                        item.RaisingFactor = dr["raising_factor"] == DBNull.Value ? null : (double?)dr["raising_factor"];
-                        item.NSAPEnumeratorID = string.IsNullOrEmpty(dr["enumerator_id"].ToString()) ? null : (int?)dr["enumerator_id"];
-                        item.EnumeratorText = dr["enumerator_text"].ToString();
+                        MySqlDataReader dr = cmd.ExecuteReader();
+                        while (dr.Read())
+                        {
+                            VesselUnload item = new VesselUnload();
+                            item.PK = (int)dr["v_unload_id"];
+                            item.GearUnloadID = (int)dr["unload_gr_id"];
+                            item.IsBoatUsed = (bool)dr["is_boat_used"];
+                            item.VesselID = string.IsNullOrEmpty(dr["boat_id"].ToString()) ? null : (int?)dr["boat_id"];
+                            item.VesselText = dr["boat_text"].ToString();
+                            item.SectorCode = dr["sector_code"].ToString();
+                            item.WeightOfCatch = string.IsNullOrEmpty(dr["catch_total"].ToString()) ? null : (double?)dr["catch_total"];
+                            item.WeightOfCatchSample = string.IsNullOrEmpty(dr["catch_samp"].ToString()) ? null : (double?)dr["catch_samp"];
+                            item.Boxes = string.IsNullOrEmpty(dr["boxes_total"].ToString()) ? null : (int?)dr["boxes_total"];
+                            item.BoxesSampled = string.IsNullOrEmpty(dr["boxes_samp"].ToString()) ? null : (int?)dr["boxes_samp"];
+                            item.RaisingFactor = dr["raising_factor"] == DBNull.Value ? null : (double?)dr["raising_factor"];
+                            item.NSAPEnumeratorID = string.IsNullOrEmpty(dr["enumerator_id"].ToString()) ? null : (int?)dr["enumerator_id"];
+                            item.EnumeratorText = dr["enumerator_text"].ToString();
 
-                        item.OperationIsSuccessful = (bool)dr["success"];
-                        item.OperationIsTracked = (bool)dr["tracked"];
-                        item.ODKRowID = dr["row_id"].ToString();
-                        item.DepartureFromLandingSite = string.IsNullOrEmpty(dr["departure_landing_site"].ToString()) ? null : (DateTime?)dr["departure_landing_site"];
-                        item.ArrivalAtLandingSite = string.IsNullOrEmpty(dr["arrival_landing_site"].ToString()) ? null : (DateTime?)dr["arrival_landing_site"];
-                        item.XFormIdentifier = dr["xform_identifier"].ToString();
-                        item.XFormDate = dr["xform_date"] == DBNull.Value ? null : (DateTime?)dr["xform_date"];
-                        item.UserName = dr["user_name"].ToString();
-                        item.DeviceID = dr["device_id"].ToString();
-                        item.DateTimeSubmitted = (DateTime)dr["datetime_submitted"];
-                        item.FormVersion = dr["form_version"].ToString();
-                        item.GPSCode = dr["gps"].ToString();
-                        item.SamplingDate = (DateTime)dr["sampling_date"];
-                        item.Notes = dr["notes"].ToString();
-                        item.DateAddedToDatabase = dr["date_added"] == DBNull.Value ? null : (DateTime?)dr["date_added"];
-                        item.FromExcelDownload = (bool)dr["from_excel_download"];
+                            item.OperationIsSuccessful = (bool)dr["success"];
+                            item.OperationIsTracked = (bool)dr["tracked"];
+                            item.ODKRowID = dr["row_id"].ToString();
+                            item.DepartureFromLandingSite = string.IsNullOrEmpty(dr["departure_landing_site"].ToString()) ? null : (DateTime?)dr["departure_landing_site"];
+                            item.ArrivalAtLandingSite = string.IsNullOrEmpty(dr["arrival_landing_site"].ToString()) ? null : (DateTime?)dr["arrival_landing_site"];
+                            item.XFormIdentifier = dr["xform_identifier"].ToString();
+                            item.XFormDate = dr["xform_date"] == DBNull.Value ? null : (DateTime?)dr["xform_date"];
+                            item.UserName = dr["user_name"].ToString();
+                            item.DeviceID = dr["device_id"].ToString();
+                            item.DateTimeSubmitted = (DateTime)dr["datetime_submitted"];
+                            item.FormVersion = dr["form_version"].ToString();
+                            item.GPSCode = dr["gps"].ToString();
+                            item.SamplingDate = (DateTime)dr["sampling_date"];
+                            item.Notes = dr["notes"].ToString();
+                            item.DateAddedToDatabase = dr["date_added"] == DBNull.Value ? null : (DateTime?)dr["date_added"];
+                            item.FromExcelDownload = (bool)dr["from_excel_download"];
 
-                        if (dr["has_catch_composition"] == DBNull.Value)
-                        {
-                            item.HasCatchComposition = false;
+
+                            if (dr["count_catch_composition"] != DBNull.Value)
+                            {
+                                item.CountCatchCompositionItems = (int)dr["count_catch_composition"];
+                                item.CountEffortIndicators = (int)dr["count_effort"];
+                                item.CountGearSoak = (int)dr["count_soak"];
+                                item.CountGrids = (int)dr["count_grid"];
+                                item.CountLenFreqRows = (int)dr["count_lenfreq"];
+                                item.CountLengthRows = (int)dr["count_lengths"];
+                                item.CountLenWtRows = (int)dr["count_lenwt"];
+                                item.CountMaturityRows = (int)dr["count_maturity"];
+                            }
+
+
+                            if (dr["has_catch_composition"] == DBNull.Value)
+                            {
+                                item.HasCatchComposition = false;
+                            }
+                            else
+                            {
+                                item.HasCatchComposition = (bool)dr["has_catch_composition"];
+                            }
+                            try
+                            {
+                                thisList.Add(item);
+                            }
+                            catch (MySqlException mx)
+                            {
+                                Logger.Log(mx);
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Log(ex);
+                            }
                         }
-                        else
-                        {
-                            item.HasCatchComposition = (bool)dr["has_catch_composition"];
-                        }
-                        try
-                        {
-                            thisList.Add(item);
-                        }
-                        catch (MySqlException mx)
-                        {
-                            Logger.Log(mx);
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Log(ex);
-                        }
+                    }
+                    catch(Exception ex)
+                    {
+
                     }
                 }
             }
@@ -325,7 +491,7 @@ namespace NSAP_ODK.Entities.Database
                         {
                             cmd.Parameters.AddWithValue("@hascc", false);
                         }
-                        cmd.Parameters.AddWithValue("@rowID",  $"{{{item._uuid}}}");
+                        cmd.Parameters.AddWithValue("@rowID", $"{{{item._uuid}}}");
                         cmd.CommandText = "UPDATE dbo_vessel_unload_1 set HasCatchComposition=@hascc WHERE RowID=@rowID";
                         try
                         {
@@ -415,8 +581,9 @@ namespace NSAP_ODK.Entities.Database
                     try
                     {
                         conection.Open();
-                        string query = @"SELECT dbo_vessel_unload.*, dbo_vessel_unload_1.* FROM dbo_vessel_unload 
-                        INNER JOIN dbo_vessel_unload_1 ON dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id;";
+                        string query = @"SELECT t1.*, t2.*, t3.* FROM (dbo_vessel_unload as t1
+                        INNER JOIN dbo_vessel_unload_1 as t2 ON t1.v_unload_id = t2.v_unload_id)
+                        LEFT JOIN dbo_vessel_unload_stats as t3 ON t1.v_unload_id = t3.v_unload_id";
 
 
                         var adapter = new OleDbDataAdapter(query, conection);
@@ -427,7 +594,7 @@ namespace NSAP_ODK.Entities.Database
                             foreach (DataRow dr in dt.Rows)
                             {
                                 VesselUnload item = new VesselUnload();
-                                item.PK = (int)dr["dbo_vessel_unload.v_unload_id"];
+                                item.PK = (int)dr["t1.v_unload_id"];
                                 item.GearUnloadID = (int)dr["unload_gr_id"];
                                 item.IsBoatUsed = (bool)dr["is_boat_used"];
                                 item.VesselID = string.IsNullOrEmpty(dr["boat_id"].ToString()) ? null : (int?)dr["boat_id"];
@@ -459,6 +626,18 @@ namespace NSAP_ODK.Entities.Database
                                 item.FromExcelDownload = (bool)dr["FromExcelDownload"];
                                 item.HasCatchComposition = (bool)dr["HasCatchComposition"];
 
+                                if (dr["count_catch_composition"] != DBNull.Value)
+                                {
+                                    item.CountCatchCompositionItems = (int)dr["count_catch_composition"];
+                                    item.CountEffortIndicators = (int)dr["count_effort"];
+                                    item.CountGearSoak = (int)dr["count_soak"];
+                                    item.CountGrids = (int)dr["count_grid"];
+                                    item.CountLenFreqRows = (int)dr["count_lenfreq"];
+                                    item.CountLengthRows = (int)dr["count_lengths"];
+                                    item.CountLenWtRows = (int)dr["count_lenwt"];
+                                    item.CountMaturityRows = (int)dr["count_maturity"];
+                                }
+
                                 thisList.Add(item);
                             }
                         }
@@ -467,13 +646,23 @@ namespace NSAP_ODK.Entities.Database
                     {
                         switch (ex.HResult)
                         {
+                            case -2147217865:
+                                if(ex.Message.Contains("The Microsoft Jet database engine cannot find the input table or query"))
+                                {
+                                    var arr = ex.Message.Split('\'');
+                                    if(CreateTable(arr[1]))
+                                    {
+                                        return thisList = getVesselUnloads();
+                                    }
+                                }
+                                break;
                             case -2147024809:
                                 if (ex.Message.Contains("does not belong to table"))
                                 {
                                     var arr = ex.Message.Split('\'');
-                                    if (UpdateTable(arr[1]))
+                                    if (UpdateTableDefinition(arr[1]))
                                     {
-                                        thisList= getVesselUnloads();
+                                       return thisList = getVesselUnloads();
                                     }
                                 }
                                 break;
@@ -487,7 +676,7 @@ namespace NSAP_ODK.Entities.Database
             return thisList;
         }
 
-        private bool UpdateTable(string colName)
+        private bool UpdateTableDefinition(string colName)
         {
             bool success = false;
             using (var conn = new OleDbConnection(Global.ConnectionString))

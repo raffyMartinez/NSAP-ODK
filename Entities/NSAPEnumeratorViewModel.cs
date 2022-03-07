@@ -39,9 +39,9 @@ namespace NSAP_ODK.Entities
 
 
 
-            foreach (var rgn in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection.OrderBy(t=>t.Name))
+            foreach (var rgn in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection.OrderBy(t => t.Name))
             {
-                foreach (var item in rgn.NSAPEnumerators.OrderBy(t=>t.Enumerator.Name))
+                foreach (var item in rgn.NSAPEnumerators.OrderBy(t => t.Enumerator.Name))
                 {
                     var row = dt.NewRow();
                     row["Region"] = item.NSAPRegion.ShortName;
@@ -55,48 +55,84 @@ namespace NSAP_ODK.Entities
             return ds;
         }
 
-        public List<EnumeratorSummary> GetSummary(NSAPRegion region)
+        public List<EnumeratorSummary> GetSummary(NSAPRegion region, bool summaryForAll = false)
         {
             List<EnumeratorSummary> summaries = new List<EnumeratorSummary>();
-            var unloads = NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(region);
+
+            var unloads = NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(region, sorted: summaryForAll == false);
             var enumerators = unloads.GroupBy(t => t.EnumeratorName).OrderBy(t => t.Key);
 
-            foreach (var e in enumerators)
+            if (summaryForAll)
             {
-                if (e.Key != null && e.Key.Length > 0)
+                foreach (var en in enumerators)
                 {
-                    var enumerator_date = unloads
-                        .Where(t => t.EnumeratorName == e.Key)
-                        //.GroupBy(t => t.SamplingDate.Date)
-                        .GroupBy(t => ((DateTime)t.DateAddedToDatabase).Date)
-                        .OrderByDescending(t => t.Key).ToList();
-
-                    var ve = unloads
-                        .Where(t => t.EnumeratorName == e.Key && ((DateTime)t.DateAddedToDatabase).Date == enumerator_date[0].Key)
-                        .OrderByDescending(t => t.DateAddedToDatabase)
-                        .ToList();
-
-                    var unloads_latest = ve.Where(t => t.Parent.GearUsedName == ve[0].Parent.GearUsedName).ToList();
-
-                    EnumeratorSummary es = new EnumeratorSummary
+                    if (en.Key != null && en.Key.Length > 0)
                     {
-                        EnumeratorName = e.Key,
-                        LandingSite = ve[0].Parent.Parent.LandingSiteName,
-                        Gear = ve[0].Parent.GearUsedName,
-                        VesselUnloads = unloads_latest,
-                        NumberOfLandingsSampled = unloads_latest.Count,
-                        DateOfLatestSampling = ve[0].SamplingDate,
-                        UploadDate = (DateTime)ve[0].DateAddedToDatabase
-                    };
-                    summaries.Add(es);
+                        var ve = unloads.Where(t => t.EnumeratorName == en.Key).ToList();
+                        EnumeratorSummary es = new EnumeratorSummary
+                        {
+                            EnumeratorName = en.Key,
+                            NumberOfLandingsSampled = en.Count(),
+                            NumberOfLandingsWithCatchComposition = ve.Count(t => t.HasCatchComposition == true),
+                            DateOfLatestSampling = ve.OrderByDescending(t => t.SamplingDate).FirstOrDefault().SamplingDate,
+                            UploadDate = ve.OrderByDescending(t => t.DateTimeSubmitted).FirstOrDefault().DateTimeSubmitted
+                        };
+                        summaries.Add(es);
+                    }
+                }
+                return summaries.OrderBy(t => t.EnumeratorName).ToList();
+            }
+            else
+            {
+                foreach (var e in enumerators)
+                {
+                    if (e.Key != null && e.Key.Length > 0)
+                    {
+                        var enumerator_date = unloads
+                            .Where(t => t.EnumeratorName == e.Key)
+                            //.GroupBy(t => t.SamplingDate.Date)
+                            .GroupBy(t => ((DateTime)t.DateAddedToDatabase).Date)
+                            .OrderByDescending(t => t.Key).ToList();
+
+                        var ve = unloads
+                            .Where(t => t.EnumeratorName == e.Key && ((DateTime)t.DateAddedToDatabase).Date == enumerator_date[0].Key)
+                            .OrderByDescending(t => t.DateAddedToDatabase)
+                            .ToList();
+
+                        var unloads_latest = ve.Where(t => t.Parent.GearUsedName == ve[0].Parent.GearUsedName).ToList();
+
+                        EnumeratorSummary es = new EnumeratorSummary
+                        {
+                            EnumeratorName = e.Key,
+                            LandingSite = ve[0].Parent.Parent.LandingSiteName,
+                            Gear = ve[0].Parent.GearUsedName,
+                            VesselUnloads = unloads_latest,
+                            NumberOfLandingsSampled = unloads_latest.Count,
+                            DateOfLatestSampling = ve[0].SamplingDate,
+                            UploadDate = (DateTime)ve[0].DateAddedToDatabase
+                        };
+                        summaries.Add(es);
+                    }
                 }
             }
 
             return summaries.OrderByDescending(t => t.UploadDate).ToList();
         }
+
+        public List<EnumeratorSummary> GetSummary(NSAPRegion region, string fishingGroundName)
+        {
+            List<EnumeratorSummary> summaries = new List<EnumeratorSummary>();
+            var unloads = NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(region.ShortName, fishingGroundName).OrderBy(t => t.EnumeratorName);
+            foreach (var item in unloads)
+            {
+
+            }
+            return summaries;
+        }
         public List<EnumeratorSummary> GetSummary(NSAPEnumerator enumerator)
         {
             List<EnumeratorSummary> summaries = new List<EnumeratorSummary>();
+
             var unloads = NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(enumerator);
             var landingSites = unloads.GroupBy(t => t.Parent.Parent.LandingSiteName).OrderBy(t => t.Key);
             foreach (var ls in landingSites)
@@ -115,8 +151,12 @@ namespace NSAP_ODK.Entities
                         //NumberOfLandingsSampled = unloads.Count(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key),
                         NumberOfLandingsSampled = unloads_row.Count,
                         VesselUnloads = unloads_row,
+                        //NumberOfLandingsWithCatchComposition = unloads.
+                        //    Where(t => t.ListVesselCatch.Count > 0 &&
+                        //    t.Parent.Parent.LandingSiteName == ls.Key &&
+                        //    t.Parent.GearUsedName == g.Key).ToList().Count,
                         NumberOfLandingsWithCatchComposition = unloads.
-                            Where(t => t.ListVesselCatch.Count > 0 &&
+                            Where(t => t.HasCatchComposition == true &&
                             t.Parent.Parent.LandingSiteName == ls.Key &&
                             t.Parent.GearUsedName == g.Key).ToList().Count,
                         DateOfFirstSampling = unloads.Where(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key).OrderBy(t => t.SamplingDate).FirstOrDefault().SamplingDate,
@@ -126,6 +166,7 @@ namespace NSAP_ODK.Entities
                     summaries.Add(es);
                 }
             }
+
             return summaries;
         }
         public List<EnumeratorSummary> GetSummary(NSAPEnumerator enumerator, DateTime monthSampled)
@@ -146,11 +187,15 @@ namespace NSAP_ODK.Entities
                     {
                         LandingSite = ls.Key,
                         Gear = g.Key,
+                        //NumberOfLandingsWithCatchComposition = unloads.
+                        //    Where(t => t.ListVesselCatch.Count > 0 &&
+                        //    t.Parent.Parent.LandingSiteName == ls.Key &&
+                        //    t.Parent.GearUsedName == g.Key).ToList().Count,
+                        //NumberOfLandingsSampled = unloads.Count(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key),
                         NumberOfLandingsWithCatchComposition = unloads.
-                            Where(t => t.ListVesselCatch.Count > 0 &&
+                            Where(t => t.HasCatchComposition == true &&
                             t.Parent.Parent.LandingSiteName == ls.Key &&
                             t.Parent.GearUsedName == g.Key).ToList().Count,
-                        //NumberOfLandingsSampled = unloads.Count(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key),
                         NumberOfLandingsSampled = unloads_row.Count,
                         VesselUnloads = unloads_row,
                         MonthOfSampling = monthSampled,
@@ -415,7 +460,7 @@ namespace NSAP_ODK.Entities
                     {
                         List<NSAPEnumerator> tempListOfRemovedItems = e.OldItems.OfType<NSAPEnumerator>().ToList();
                         editedEnumerator = tempListOfRemovedItems[0];
-                        EditSuccess= NSAPEnumerators.Delete(editedEnumerator.ID);
+                        EditSuccess = NSAPEnumerators.Delete(editedEnumerator.ID);
                     }
                     break;
 

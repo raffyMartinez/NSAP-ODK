@@ -21,7 +21,8 @@ namespace NSAP_ODK.Entities.Database
         Enumerator,
         EnumeratedMonth,
         EnumeratorRegion,
-        Enumerators
+        Enumerators,
+        SummaryOfEnumerators
 
     }
 
@@ -57,12 +58,16 @@ namespace NSAP_ODK.Entities.Database
                 SavedJSONFolder = Global.Settings.JSONFolder;
                 SavedFishingEffortJSONCount = NSAPEntities.JSONFileViewModel.CountSavedEffortJsonFile();
                 SavedVesselCountsJSONCount = NSAPEntities.JSONFileViewModel.CountSavedVesselCountsJsonFile();
+                CountLandingsWithCatchComposition = NSAPEntities.VesselUnloadViewModel.CountLandingWithCatchComposition();
             }
         }
         public DBSummary()
         {
 
         }
+
+        [ReadOnly(true)]
+        public int CountLandingsWithCatchComposition { get; set; }
         public bool IsTotal { get; set; }
         public FMA FMA { get; set; }
         [ReadOnly(true)]

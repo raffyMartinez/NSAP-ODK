@@ -368,7 +368,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
         {
             get
             {
-                return _speciesNameSelected.Replace("0 <span style=\"color:blue\">(","").Replace(")</span>","");
+                return _speciesNameSelected.Replace("0 <span style=\"color:blue\">(", "").Replace(")</span>", "");
                 //return _speciesNameSelected; 
             }
             set { _speciesNameSelected = value; }
@@ -1126,6 +1126,8 @@ namespace NSAP_ODK.Entities.Database.FromJson
         public string GearName { get; set; }
         [JsonProperty("fishing_vessel_group/is_boat_used")]
         public string IsBoatUsedYesNo { get; set; }
+        [JsonProperty("catch_comp_group/include_catchcomp")]
+        public string IncludeCatchComposition { get; set; }
         public bool IsBoatUsed
         {
             get
@@ -1651,6 +1653,15 @@ namespace NSAP_ODK.Entities.Database.FromJson
                         gpscode = landing.GPSCode;
                     }
 
+                    bool withCatchComp;
+                    if (landing.IncludeCatchComposition == null)
+                    {
+                        withCatchComp = false;
+                    }
+                    else
+                    {
+                        withCatchComp = landing.IncludeCatchComposition == "yes" ? true : false;
+                    }
 
                     VesselUnload vu = new VesselUnload
                     {
@@ -1682,7 +1693,8 @@ namespace NSAP_ODK.Entities.Database.FromJson
                         EnumeratorText = landing.EnumeratorText,
                         DateAddedToDatabase = DateTime.Now,
                         FromExcelDownload = false,
-                        TimeStart = landing.start
+                        TimeStart = landing.start,
+                        HasCatchComposition = withCatchComp
                     };
 
                     if (JSONFileCreationTime != null)
@@ -1695,6 +1707,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
                         if (landing.GearEffortSpecs != null)
                         {
+                            vu.CountEffortIndicators = landing.GearEffortSpecs.Count;
                             if (!EffortsGroupEffortRepeat.RowIDSet)
                             {
                                 EffortsGroupEffortRepeat.SetRowIDs();
@@ -1711,11 +1724,15 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                     EffortValueText = effort.EffortDescription
                                 };
                                 NSAPEntities.VesselEffortViewModel.AddRecordToRepo(ve);
+
+
+
                             }
                         }
 
                         if (landing.GearSoakTimes != null)
                         {
+                            vu.CountGearSoak = landing.GearSoakTimes.Count;
                             if (!SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat.RowIDSet)
                             {
                                 SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat.SetRowIDs();
@@ -1733,11 +1750,15 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                     WaypointAtHaul = soak.WaypointAtHaul
                                 };
                                 NSAPEntities.GearSoakViewModel.AddRecordToRepo(gs);
+
+
+
                             }
                         }
 
                         if (landing.GridCoordinates != null)
                         {
+                            vu.CountGrids = landing.GridCoordinates.Count;
                             if (!GridCoordGroupBingoRepeat.RowIDSet)
                             {
                                 GridCoordGroupBingoRepeat.SetRowIDs();
@@ -1753,11 +1774,14 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                     Grid = gr.CompleteGridName
                                 };
                                 NSAPEntities.FishingGroundGridViewModel.AddRecordToRepo(fgg);
+
+
                             }
                         }
 
                         if (landing.CatchComposition != null)
                         {
+                            vu.CountCatchCompositionItems = landing.CatchComposition.Count;
                             if (!CatchCompGroupCatchCompositionRepeat.RowIDSet)
                             {
                                 CatchCompGroupCatchCompositionRepeat.SetRowIDs();
@@ -1779,8 +1803,10 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
                                 if (NSAPEntities.VesselCatchViewModel.AddRecordToRepo(vc))
                                 {
+
                                     if (catchComp.LenFreqRepeat != null)
                                     {
+                                        vu.CountLenFreqRows += catchComp.LenFreqRepeat.Count;
                                         if (!CatchCompGroupCatchCompositionRepeatLengthFreqRepeat.RowIDSet)
                                         {
                                             CatchCompGroupCatchCompositionRepeatLengthFreqRepeat.SetRowIDs();
@@ -1795,12 +1821,16 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                 LengthClass = lf.LengthClass,
                                                 Frequency = lf.Frequency
                                             };
-                                            NSAPEntities.CatchLenFreqViewModel.AddRecordToRepo(clf);
+                                            if (NSAPEntities.CatchLenFreqViewModel.AddRecordToRepo(clf))
+                                            {
+                                                vu.CountLenFreqRows++;
+                                            }
                                         }
                                     }
 
                                     if (catchComp.LenWtRepeat != null)
                                     {
+                                        vu.CountLenWtRows += catchComp.LenWtRepeat.Count;
                                         if (!CatchCompGroupCatchCompositionRepeatLenWtRepeat.RowIDSet)
                                         {
                                             CatchCompGroupCatchCompositionRepeatLenWtRepeat.SetRowIDs();
@@ -1821,6 +1851,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
                                     if (catchComp.LengthListRepeat != null)
                                     {
+                                        vu.CountLengthRows += catchComp.LengthListRepeat.Count;
                                         if (!CatchCompGroupCatchCompositionRepeatLengthListRepeat.RowIDSet)
                                         {
                                             CatchCompGroupCatchCompositionRepeatLengthListRepeat.SetRowIDs();
@@ -1841,6 +1872,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
                                     if (catchComp.GMSRepeat != null)
                                     {
+                                        vu.CountMaturityRows += catchComp.GMSRepeat.Count;
                                         if (!CatchCompGroupCatchCompositionRepeatGmsRepeatGroup.RowIDSet)
                                         {
                                             CatchCompGroupCatchCompositionRepeatGmsRepeatGroup.SetRowIDs();
@@ -1870,13 +1902,18 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                 }
                             }
                         }
+                        NSAPEntities.VesselUnloadViewModel.UpdateUnloadStats(vu);
                         savedCount++;
                         landing.SavedInLocalDatabase = true;
                         UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadSavedCount = savedCount, Intent = UploadToDBIntent.Uploading });
                     }
                 }
             }
-            UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadTotalSavedCount = savedCount, Intent = UploadToDBIntent.EndOfUpload });
+            UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg
+            {
+                VesselUnloadTotalSavedCount = savedCount,
+                Intent = UploadToDBIntent.EndOfUpload
+            });
             return savedCount > 0;
         }
 

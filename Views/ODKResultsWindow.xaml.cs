@@ -721,6 +721,7 @@ namespace NSAP_ODK.Views
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Number of boxes", Binding = new Binding("BoxesTotal") });
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Number of boxes sampled", Binding = new Binding("BoxesSampled") });
                     dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Raising factor", Binding = new Binding("RaisingFactor") });
+                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Includes catch composition", Binding = new Binding("IncludeCatchComposition") });
 
                     dataGridExcel.Columns.Add(new DataGridCheckBoxColumn { Header = "Vessel tracking", Binding = new Binding("IncludeTracking") });
 

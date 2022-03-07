@@ -26,9 +26,9 @@ namespace NSAP_ODK.NSAPMysql
 
         public static bool IsEmptyDatabase_ { get; set; }
 
-        public static string ConnectionString ()
+        public static string ConnectionString()
         {
-            return  $"server=localhost;userid={UserName};password={Password};database=nsap_odk";
+            return $"server=localhost;userid={UserName};password={Password};database=nsap_odk";
         }
 
         public static string GetUserHostName()
@@ -102,18 +102,18 @@ namespace NSAP_ODK.NSAPMysql
                             cmd.CommandText = "CREATE DATABASE IF NOT EXISTS `nsap_odk`;";
                             try
                             {
-                                success = cmd.ExecuteNonQuery()>0;
+                                success = cmd.ExecuteNonQuery() > 0;
                                 DatabaseExists = success;
-                                if(success)
+                                if (success)
                                 {
                                     //CreateMySQLTables.UserName = UserName;
                                     //CreateMySQLTables.Password = Password;
                                     TableCount = CreateMySQLTables.CreateTables();
                                 }
                             }
-                            catch(MySqlException msex)
+                            catch (MySqlException msex)
                             {
-                                switch(msex.ErrorCode)
+                                switch (msex.ErrorCode)
                                 {
                                     case -2147467259:
                                         //not enough privilege to execute database action
@@ -132,13 +132,42 @@ namespace NSAP_ODK.NSAPMysql
                     }
                 }
             }
-            return success && LastError.Length==0;
+            return success && LastError.Length == 0;
         }
-        
 
-        private static bool dbExists(string conn, string dbName, bool isEmpty=false)
+        public static int SchemaTableCount(string schemaName = "nsap_odk")
         {
-            
+            int count = 0;
+            using (MySqlConnection conn = new MySqlConnection(ConnectionString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.Parameters.AddWithValue("@schema", schemaName);
+                    cmd.CommandText = "SELECT count(*) FROM information_schema.TABLES where table_schema=@schema";
+                    try
+                    {
+                        conn.Open();
+                        if (int.TryParse(cmd.ExecuteScalar().ToString(), out int r))
+                        {
+                            count = r;
+                            TableCount = r;
+                        }
+                    }
+                    catch(MySqlException mx)
+                    {
+                        Logger.Log(mx);
+                    }
+                    catch(Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return count;
+        }
+        private static bool dbExists(string conn, string dbName, bool isEmpty = false)
+        {
+
             bool exists = false;
             ValidUser = false;
             try
@@ -150,7 +179,7 @@ namespace NSAP_ODK.NSAPMysql
                     {
                         dbconn.Open();
                         ValidUser = true;
-                        UserCanCreateDatabase=LoggedInUserCanCreateDatabase();
+                        UserCanCreateDatabase = LoggedInUserCanCreateDatabase();
                     }
                     catch (MySqlException msex)
                     {
@@ -158,7 +187,7 @@ namespace NSAP_ODK.NSAPMysql
                     }
                     catch (Exception ex)
                     {
-                        if(ex.InnerException.Message.Length>0)
+                        if (ex.InnerException.Message.Length > 0)
                         {
                             LastError = ex.InnerException.Message;
                         }
@@ -177,9 +206,9 @@ namespace NSAP_ODK.NSAPMysql
                                     var rows = c.ExecuteReader();
                                     exists = true;
                                 }
-                                catch(MySqlException msex)
+                                catch (MySqlException msex)
                                 {
-                                    switch(msex.ErrorCode)
+                                    switch (msex.ErrorCode)
                                     {
                                         case -2147467259:
                                             //unknown database which means that the database does not exist
@@ -189,7 +218,7 @@ namespace NSAP_ODK.NSAPMysql
                                             break;
                                     }
                                 }
-                                catch(Exception ex)
+                                catch (Exception ex)
                                 {
                                     Logger.Log(ex);
                                 }
@@ -221,15 +250,15 @@ namespace NSAP_ODK.NSAPMysql
                     }
                 }
             }
-            catch(MySqlException msex)
+            catch (MySqlException msex)
             {
                 LastError = msex.Message;
             }
-            catch(ArgumentException aex)
+            catch (ArgumentException aex)
             {
                 LastError = aex.Message;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Logger.Log(ex);
             }
