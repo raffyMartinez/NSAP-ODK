@@ -335,7 +335,22 @@ namespace NSAP_ODK.Entities.Database
                         }
                         catch (OleDbException dbex)
                         {
-                            Logger.Log(dbex);
+                            if (dbex.ErrorCode == -2147217900)
+                            {
+                                if (dbex.Message.Contains("does not belong to table"))
+                                {
+                                    var arr = dbex.Message.Split('\'');
+                                    if (UpdateTableDefinition(arr[1]))
+                                    {
+                                        return Add(item);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine(dbex.Message);
+                                success = false;
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -344,6 +359,45 @@ namespace NSAP_ODK.Entities.Database
                     }
                 }
 
+            }
+            return success;
+        }
+        private bool UpdateTableDefinition(string colName)
+        {
+            bool success = false;
+            using (var conn = new OleDbConnection(Global.ConnectionString))
+            {
+                conn.Open();
+                var sql = "";
+                switch (colName)
+                {
+                    
+                        case "gonadWt":
+                        sql = $@"ALTER TABLE dbo_catch_maturity ADD COLUMN {colName} DOUBLE DEFAULT NULL";
+                        break;
+                }
+
+                OleDbCommand cmd = new OleDbCommand();
+                cmd.Connection = conn;
+                cmd.CommandText = sql;
+
+                try
+                {
+                    cmd.ExecuteNonQuery();
+                    success = true;
+
+                }
+                catch (OleDbException dbex)
+                {
+                    Logger.Log(dbex);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(ex);
+                }
+
+                cmd.Connection.Close();
+                conn.Close();
             }
             return success;
         }

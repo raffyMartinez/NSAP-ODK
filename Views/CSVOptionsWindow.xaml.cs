@@ -36,6 +36,7 @@ namespace NSAP_ODK.Views
             {
                 radioExtSelect.IsChecked = true;
             }
+            chkIncludeNumberFishers.IsChecked = GenerateCSV.IncludeNumberOfFishers;
             TxtDelimeter.Text = GenerateCSV.LocationDelimeter.ToString();
         }
 
@@ -46,7 +47,7 @@ namespace NSAP_ODK.Views
             switch (((Button)sender).Name)
             {
                 case "buttonOK":
-
+                    GenerateCSV.IncludeNumberOfFishers = (bool)chkIncludeNumberFishers.IsChecked;
                     GenerateCSV.LocationDelimeter = TxtDelimeter.Text[0];
                     if (radioExtSelect.IsChecked == true)
                     {
@@ -77,5 +78,7 @@ namespace NSAP_ODK.Views
         {
             TxtDelimeter.IsEnabled = ((RadioButton)sender).Name == "radioExtSelectFile";
         }
+
+
     }
 }

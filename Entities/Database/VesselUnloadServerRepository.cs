@@ -363,13 +363,24 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
 
         //this is the combined name from fish species, invert species or other name
+        //catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/species_name_selected
+        //[JsonProperty("catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/species_name_selected")]
+        //catch_comp_group/catch_composition_repeat/speciesname_group/species_name_selected
+
+
         [JsonProperty("catch_comp_group/catch_composition_repeat/speciesname_group/species_name_selected")]
         public string SpeciesNameSelected
         {
             get
             {
-                return _speciesNameSelected.Replace("0 <span style=\"color:blue\">(", "").Replace(")</span>", "");
-                //return _speciesNameSelected; 
+                if (_speciesNameSelected == null)
+                {
+                    return "";
+                }
+                else
+                {
+                    return _speciesNameSelected.Replace("0 <span style=\"color:blue\">(", "").Replace(")</span>", "");
+                }
             }
             set { _speciesNameSelected = value; }
         }
@@ -688,9 +699,11 @@ namespace NSAP_ODK.Entities.Database.FromJson
             LandingSite = vl.LandingSiteName;
             Gear = vl.GearName;
             Sector = vl.Sector;
+            NumberOfFishers = vl.NumberOfFishers;
             IsBoatUsed = vl.IsBoatUsed;
             Vessel = vl.FishingVesselName;
             SuccessOperation = vl.TripIsSuccess;
+            TripIsCompleted = vl.TripIsCompleted;
             CatchTotalWt = vl.CatchTotalWt;
             CatchSampleWt = vl.CatchSampleWt;
             BoxesTotal = vl.BoxesTotal;
@@ -721,12 +734,15 @@ namespace NSAP_ODK.Entities.Database.FromJson
         public string FMA { get; set; }
         public string FishingGround { get; set; }
         public string LandingSite { get; set; }
+
+        public int? NumberOfFishers { get; set; }
         public string Gear { get; set; }
         public string Sector { get; set; }
 
         public bool IsBoatUsed { get; set; }
         public string Vessel { get; set; }
         public bool SuccessOperation { get; set; }
+        public bool TripIsCompleted { get; set; }
         public double? CatchTotalWt { get; set; }
         public double? CatchSampleWt { get; set; }
 
@@ -758,6 +774,8 @@ namespace NSAP_ODK.Entities.Database.FromJson
         private bool? _isSaved;
         private string _includeTrackingYesNo;
         private string _tripIsSuccessYesNo;
+        private string _tripIsCompletedYesNo;
+        private bool _tripIsCompleted;
         private List<GridCoordGroupBingoRepeat> _gridCoordinates;
         private List<EffortsGroupEffortRepeat> _effortSpecs;
         private List<SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat> _gearSoakTimes;
@@ -978,7 +996,13 @@ namespace NSAP_ODK.Entities.Database.FromJson
         }
         [JsonProperty("vessel_sampling/fishing_ground")]
         public int RegionFishingGroundID { get; set; }
-        public FishingGround FishingGround { get { return RegionFishingGround.FishingGround; } }
+        public FishingGround FishingGround
+        {
+            get
+            {
+                return RegionFishingGround?.FishingGround;
+            }
+        }
 
         public NSAPRegionFMAFishingGround RegionFishingGround
         {
@@ -999,7 +1023,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
             {
                 if (LandingSiteID != null)
                 {
-                    var ls = RegionFishingGround.LandingSites.FirstOrDefault(t => t.RowID == (int)LandingSiteID)?.LandingSite;
+                    var ls = RegionFishingGround?.LandingSites.FirstOrDefault(t => t.RowID == (int)LandingSiteID)?.LandingSite;
                     if (ls != null)
                     {
                         return ls;
@@ -1026,7 +1050,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                 }
                 else
                 {
-                    return LandingSite.ToString();
+                    return LandingSite?.ToString();
                 }
             }
         }
@@ -1048,6 +1072,34 @@ namespace NSAP_ODK.Entities.Database.FromJson
             {
                 _tripIsSuccessYesNo = value;
                 TripIsSuccess = _tripIsSuccessYesNo == "yes";
+            }
+        }
+
+        [JsonProperty("vessel_catch/trip_isCompleted")]
+        public string TripIsCompletedYesNo
+        {
+            get { return _tripIsCompletedYesNo; }
+            set
+            {
+                _tripIsCompletedYesNo = value;
+                _tripIsCompleted = _tripIsCompletedYesNo == "yes" || _tripIsCompletedYesNo == "";
+
+            }
+
+        }
+        public bool TripIsCompleted
+        {
+            get
+            { 
+                if(_tripIsCompletedYesNo==null)
+                {
+                    _tripIsCompleted = true;
+                }
+                return _tripIsCompleted; 
+            }
+            set
+            { 
+                _tripIsCompleted = value; 
             }
         }
         public bool TripIsSuccess { get; set; }
@@ -1107,6 +1159,9 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
         [JsonProperty("fishing_vessel_group/fish_sector")]
         public string SectorCode { get; set; }
+
+        [JsonProperty("fishing_vessel_group/number_of_fishers")]
+        public int? NumberOfFishers { get; set; }
 
         public string Sector
         {
@@ -1283,7 +1338,14 @@ namespace NSAP_ODK.Entities.Database.FromJson
         public static void CreateLandingsFromJSON()
         {
             VesselLanding.SetRowIDs();
-            VesselLandings = JsonConvert.DeserializeObject<List<VesselLanding>>(JSON);
+            try
+            {
+                VesselLandings = JsonConvert.DeserializeObject<List<VesselLanding>>(JSON);
+            }
+            catch (Exception ex)
+            {
+                Utilities.Logger.Log(ex);
+            }
         }
         public static DateTime DownloadedLandingsEarliestLandingDate()
         {
@@ -1584,328 +1646,338 @@ namespace NSAP_ODK.Entities.Database.FromJson
                 UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadToSaveCount = landings.Count, Intent = UploadToDBIntent.StartOfUpload });
                 foreach (var landing in landings)
                 {
-                    var landingSiteSampling = NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(landing);
-                    if (landingSiteSampling == null)
+                    try
                     {
-                        landingSiteSampling = new LandingSiteSampling
-
+                        var landingSiteSampling = NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(landing);
+                        if (landingSiteSampling == null)
                         {
-                            PK = NSAPEntities.LandingSiteSamplingViewModel.NextRecordNumber,
-                            LandingSiteID = landing.LandingSite == null ? null : (int?)landing.LandingSite.LandingSiteID,
-                            FishingGroundID = landing.FishingGround.Code,
-                            IsSamplingDay = true,
-                            SamplingDate = landing.SamplingDate.Date,
-                            NSAPRegionID = landing.NSAPRegion.Code,
-                            LandingSiteText = landing.LandingSiteText == null ? "" : landing.LandingSiteText,
-                            FMAID = landing.NSAPRegionFMA.FMA.FMAID
-                        };
+                            landingSiteSampling = new LandingSiteSampling
 
-                        //if(landingSiteSampling.PK==40)
-                        //{
+                            {
+                                PK = NSAPEntities.LandingSiteSamplingViewModel.NextRecordNumber,
+                                LandingSiteID = landing.LandingSite == null ? null : (int?)landing.LandingSite.LandingSiteID,
+                                FishingGroundID = landing.FishingGround?.Code,
+                                IsSamplingDay = true,
+                                SamplingDate = landing.SamplingDate.Date,
+                                NSAPRegionID = landing.NSAPRegion.Code,
+                                LandingSiteText = landing.LandingSiteText == null ? "" : landing.LandingSiteText,
+                                FMAID = landing.NSAPRegionFMA.FMA.FMAID
+                            };
 
-                        //}
-                        NSAPEntities.LandingSiteSamplingViewModel.AddRecordToRepo(landingSiteSampling);
-                    }
+                            //if(landingSiteSampling.PK==40)
+                            //{
 
-                    GearUnload gu = NSAPEntities.GearUnloadViewModel.getGearUnload(landing);
-                    if (gu == null)
-                    {
-                        if (gu != null && gu.GearUsedText != null && gu.GearUsedText.Length > 0)
-                        {
-
+                            //}
+                            NSAPEntities.LandingSiteSamplingViewModel.AddRecordToRepo(landingSiteSampling);
                         }
-                        gu = new GearUnload
-                        {
-                            PK = NSAPEntities.GearUnloadViewModel.NextRecordNumber,
-                            LandingSiteSamplingID = landingSiteSampling.PK,
-                            //GearID = item.Vessel_sampling__gear_used != null ? item.Gear.Code : null,
-                            //GearID = landing.GearUsed != null ? landing.NSAPRegion.Gears.FirstOrDefault(t => t.RowID == (int)landing.GearUsed).Gear.Code : null,
-                            GearUsedText = landing.GearUsedText == null ? "" : landing.GearUsedText,
-                            Remarks = ""
-                        };
 
-                        if (landing.GearUsed == null)
+                        GearUnload gu = NSAPEntities.GearUnloadViewModel.getGearUnload(landing);
+                        if (gu == null)
                         {
-                            gu.GearID = null;
-                        }
-                        else
-                        {
-                            var gear = landing.NSAPRegion.Gears.FirstOrDefault(t => t.RowID == (int)landing.GearUsed);
-                            if (gear == null)
+                            if (gu != null && gu.GearUsedText != null && gu.GearUsedText.Length > 0)
+                            {
+
+                            }
+                            gu = new GearUnload
+                            {
+                                PK = NSAPEntities.GearUnloadViewModel.NextRecordNumber,
+                                LandingSiteSamplingID = landingSiteSampling.PK,
+                                //GearID = item.Vessel_sampling__gear_used != null ? item.Gear.Code : null,
+                                //GearID = landing.GearUsed != null ? landing.NSAPRegion.Gears.FirstOrDefault(t => t.RowID == (int)landing.GearUsed).Gear.Code : null,
+                                GearUsedText = landing.GearUsedText == null ? "" : landing.GearUsedText,
+                                Remarks = ""
+                            };
+
+                            if (landing.GearUsed == null)
                             {
                                 gu.GearID = null;
                             }
                             else
                             {
-                                gu.GearID = gear.GearCode;
-                            }
-                        }
-                        NSAPEntities.GearUnloadViewModel.AddRecordToRepo(gu);
-                    }
-
-                    var gpscode = "";
-                    if (landing.GPS2 != null)
-                    {
-                        gpscode = landing.GPS2;
-                    }
-                    else
-                    {
-                        gpscode = landing.GPSCode;
-                    }
-
-                    bool withCatchComp;
-                    if (landing.IncludeCatchComposition == null)
-                    {
-                        withCatchComp = false;
-                    }
-                    else
-                    {
-                        withCatchComp = landing.IncludeCatchComposition == "yes" ? true : false;
-                    }
-
-                    VesselUnload vu = new VesselUnload
-                    {
-                        PK = landing.PK,
-                        GearUnloadID = gu.PK,
-                        IsBoatUsed = landing.IsBoatUsed,
-                        VesselID = landing.IsBoatUsed == false ? null :
-                                    landing.BoatUsed == null ? null : landing.BoatUsed,
-                        VesselText = landing.BoatUsedText,
-                        SectorCode = landing.SectorCode,
-                        WeightOfCatch = landing.CatchTotalWt,
-                        WeightOfCatchSample = landing.CatchSampleWt,
-                        Boxes = landing.BoxesTotal,
-                        BoxesSampled = landing.BoxesSampled,
-                        RaisingFactor = landing.RaisingFactor,
-                        OperationIsSuccessful = landing.TripIsSuccess,
-                        OperationIsTracked = landing.IncludeTracking,
-                        DepartureFromLandingSite = landing.DateTimeDepartLandingSite,
-                        ArrivalAtLandingSite = landing.DateTimeArriveLandingSite,
-                        ODKRowID = landing._uuid,
-                        UserName = landing.user_name,
-                        DeviceID = landing.device_id,
-                        DateTimeSubmitted = landing._submission_time,
-                        FormVersion = landing.intronote,
-                        GPSCode = gpscode,
-                        SamplingDate = landing.SamplingDate,
-                        Notes = landing.Remarks,
-                        NSAPEnumeratorID = landing.NSAPEnumerator == null ? null : (int?)landing.NSAPEnumerator.ID,
-                        EnumeratorText = landing.EnumeratorText,
-                        DateAddedToDatabase = DateTime.Now,
-                        FromExcelDownload = false,
-                        TimeStart = landing.start,
-                        HasCatchComposition = withCatchComp
-                    };
-
-                    if (JSONFileCreationTime != null)
-                    {
-                        vu.DateAddedToDatabase = (DateTime)JSONFileCreationTime;
-                    }
-
-                    if (NSAPEntities.VesselUnloadViewModel.AddRecordToRepo(vu))
-                    {
-
-                        if (landing.GearEffortSpecs != null)
-                        {
-                            vu.CountEffortIndicators = landing.GearEffortSpecs.Count;
-                            if (!EffortsGroupEffortRepeat.RowIDSet)
-                            {
-                                EffortsGroupEffortRepeat.SetRowIDs();
-                            }
-                            foreach (var effort in landing.GearEffortSpecs
-                                .Where(t => t.Parent.PK == landing.PK))
-                            {
-                                VesselEffort ve = new VesselEffort
+                                var gear = landing.NSAPRegion.Gears.FirstOrDefault(t => t.RowID == (int)landing.GearUsed);
+                                if (gear == null)
                                 {
-                                    PK = (int)effort.PK,
-                                    VesselUnloadID = vu.PK,
-                                    EffortSpecID = effort.EffortType,
-                                    EffortValueNumeric = effort.EffortIntensity,
-                                    EffortValueText = effort.EffortDescription
-                                };
-                                NSAPEntities.VesselEffortViewModel.AddRecordToRepo(ve);
-
-
-
+                                    gu.GearID = null;
+                                }
+                                else
+                                {
+                                    gu.GearID = gear.GearCode;
+                                }
                             }
+                            NSAPEntities.GearUnloadViewModel.AddRecordToRepo(gu);
                         }
 
-                        if (landing.GearSoakTimes != null)
+                        var gpscode = "";
+                        if (landing.GPS2 != null)
                         {
-                            vu.CountGearSoak = landing.GearSoakTimes.Count;
-                            if (!SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat.RowIDSet)
-                            {
-                                SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat.SetRowIDs();
-                            }
-                            foreach (var soak in landing.GearSoakTimes
-                                .Where(t => t.Parent.PK == landing.PK))
-                            {
-                                GearSoak gs = new GearSoak
-                                {
-                                    PK = (int)soak.PK,
-                                    VesselUnloadID = vu.PK,
-                                    TimeAtSet = soak.SetTime,
-                                    TimeAtHaul = soak.HaulTime,
-                                    WaypointAtSet = soak.WaypointAtSet,
-                                    WaypointAtHaul = soak.WaypointAtHaul
-                                };
-                                NSAPEntities.GearSoakViewModel.AddRecordToRepo(gs);
-
-
-
-                            }
+                            gpscode = landing.GPS2;
+                        }
+                        else
+                        {
+                            gpscode = landing.GPSCode;
                         }
 
-                        if (landing.GridCoordinates != null)
+                        bool withCatchComp;
+                        if (landing.IncludeCatchComposition == null)
                         {
-                            vu.CountGrids = landing.GridCoordinates.Count;
-                            if (!GridCoordGroupBingoRepeat.RowIDSet)
-                            {
-                                GridCoordGroupBingoRepeat.SetRowIDs();
-                            }
-                            foreach (var gr in landing.GridCoordinates
-                                 .Where(t => t.Parent.PK == landing.PK))
-                            {
-                                FishingGroundGrid fgg = new FishingGroundGrid
-                                {
-                                    PK = (int)gr.PK,
-                                    VesselUnloadID = vu.PK,
-                                    UTMZoneText = gr.Parent.UTMZone,
-                                    Grid = gr.CompleteGridName
-                                };
-                                NSAPEntities.FishingGroundGridViewModel.AddRecordToRepo(fgg);
-
-
-                            }
+                            withCatchComp = false;
+                        }
+                        else
+                        {
+                            withCatchComp = landing.IncludeCatchComposition == "yes" ? true : false;
                         }
 
-                        if (landing.CatchComposition != null)
+                        VesselUnload vu = new VesselUnload
                         {
-                            vu.CountCatchCompositionItems = landing.CatchComposition.Count;
-                            if (!CatchCompGroupCatchCompositionRepeat.RowIDSet)
+                            PK = landing.PK,
+                            GearUnloadID = gu.PK,
+                            IsBoatUsed = landing.IsBoatUsed,
+                            VesselID = landing.IsBoatUsed == false ? null :
+                                        landing.BoatUsed == null ? null : landing.BoatUsed,
+                            VesselText = landing.BoatUsedText,
+                            NumberOfFishers = landing.NumberOfFishers,
+                            SectorCode = landing.SectorCode,
+                            WeightOfCatch = landing.CatchTotalWt,
+                            WeightOfCatchSample = landing.CatchSampleWt,
+                            Boxes = landing.BoxesTotal,
+                            BoxesSampled = landing.BoxesSampled,
+                            RaisingFactor = landing.RaisingFactor,
+                            OperationIsSuccessful = landing.TripIsSuccess,
+                            OperationIsTracked = landing.IncludeTracking,
+                            FishingTripIsCompleted = landing.TripIsCompleted,
+                            DepartureFromLandingSite = landing.DateTimeDepartLandingSite,
+                            ArrivalAtLandingSite = landing.DateTimeArriveLandingSite,
+                            ODKRowID = landing._uuid,
+                            UserName = landing.user_name,
+                            DeviceID = landing.device_id,
+                            DateTimeSubmitted = landing._submission_time,
+                            FormVersion = landing.intronote,
+                            GPSCode = gpscode,
+                            SamplingDate = landing.SamplingDate,
+                            Notes = landing.Remarks,
+                            NSAPEnumeratorID = landing.NSAPEnumerator == null ? null : (int?)landing.NSAPEnumerator.ID,
+                            EnumeratorText = landing.EnumeratorText,
+                            DateAddedToDatabase = DateTime.Now,
+                            FromExcelDownload = false,
+                            TimeStart = landing.start,
+                            HasCatchComposition = withCatchComp,
+                            XFormIdentifier = landing._xform_id_string
+                        };
+
+                        if (JSONFileCreationTime != null)
+                        {
+                            vu.DateAddedToDatabase = (DateTime)JSONFileCreationTime;
+                        }
+
+                        if (NSAPEntities.VesselUnloadViewModel.AddRecordToRepo(vu))
+                        {
+
+                            if (landing.GearEffortSpecs != null)
                             {
-                                CatchCompGroupCatchCompositionRepeat.SetRowIDs();
-                            }
-                            foreach (var catchComp in landing.CatchComposition
-                                .Where(t => t.Parent.PK == landing.PK))
-                            {
-                                VesselCatch vc = new VesselCatch
+                                vu.CountEffortIndicators = landing.GearEffortSpecs.Count;
+                                if (!EffortsGroupEffortRepeat.RowIDSet)
                                 {
-                                    PK = catchComp.PK,
-                                    VesselUnloadID = vu.PK,
-                                    SpeciesID = catchComp.SpeciesID,
-                                    Catch_kg = catchComp.SpeciesWt,
-                                    Sample_kg = catchComp.SpeciesSampleWt,
-                                    TaxaCode = catchComp.TaxaCode,
-                                    SpeciesText = catchComp.SpeciesNameOther
-                                };
-
-
-                                if (NSAPEntities.VesselCatchViewModel.AddRecordToRepo(vc))
+                                    EffortsGroupEffortRepeat.SetRowIDs();
+                                }
+                                foreach (var effort in landing.GearEffortSpecs
+                                    .Where(t => t.Parent.PK == landing.PK))
                                 {
-
-                                    if (catchComp.LenFreqRepeat != null)
+                                    VesselEffort ve = new VesselEffort
                                     {
-                                        vu.CountLenFreqRows += catchComp.LenFreqRepeat.Count;
-                                        if (!CatchCompGroupCatchCompositionRepeatLengthFreqRepeat.RowIDSet)
+                                        PK = (int)effort.PK,
+                                        VesselUnloadID = vu.PK,
+                                        EffortSpecID = effort.EffortType,
+                                        EffortValueNumeric = effort.EffortIntensity,
+                                        EffortValueText = effort.EffortDescription
+                                    };
+                                    NSAPEntities.VesselEffortViewModel.AddRecordToRepo(ve);
+
+
+
+                                }
+                            }
+
+                            if (landing.GearSoakTimes != null)
+                            {
+                                vu.CountGearSoak = landing.GearSoakTimes.Count;
+                                if (!SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat.RowIDSet)
+                                {
+                                    SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat.SetRowIDs();
+                                }
+                                foreach (var soak in landing.GearSoakTimes
+                                    .Where(t => t.Parent.PK == landing.PK))
+                                {
+                                    GearSoak gs = new GearSoak
+                                    {
+                                        PK = (int)soak.PK,
+                                        VesselUnloadID = vu.PK,
+                                        TimeAtSet = soak.SetTime,
+                                        TimeAtHaul = soak.HaulTime,
+                                        WaypointAtSet = soak.WaypointAtSet,
+                                        WaypointAtHaul = soak.WaypointAtHaul
+                                    };
+                                    NSAPEntities.GearSoakViewModel.AddRecordToRepo(gs);
+
+
+
+                                }
+                            }
+
+                            if (landing.GridCoordinates != null)
+                            {
+                                vu.CountGrids = landing.GridCoordinates.Count;
+                                if (!GridCoordGroupBingoRepeat.RowIDSet)
+                                {
+                                    GridCoordGroupBingoRepeat.SetRowIDs();
+                                }
+                                foreach (var gr in landing.GridCoordinates
+                                     .Where(t => t.Parent.PK == landing.PK))
+                                {
+                                    FishingGroundGrid fgg = new FishingGroundGrid
+                                    {
+                                        PK = (int)gr.PK,
+                                        VesselUnloadID = vu.PK,
+                                        UTMZoneText = gr.Parent.UTMZone,
+                                        Grid = gr.CompleteGridName
+                                    };
+                                    NSAPEntities.FishingGroundGridViewModel.AddRecordToRepo(fgg);
+
+
+                                }
+                            }
+
+                            if (landing.CatchComposition != null)
+                            {
+                                vu.CountCatchCompositionItems = landing.CatchComposition.Count;
+                                if (!CatchCompGroupCatchCompositionRepeat.RowIDSet)
+                                {
+                                    CatchCompGroupCatchCompositionRepeat.SetRowIDs();
+                                }
+                                foreach (var catchComp in landing.CatchComposition
+                                    .Where(t => t.Parent.PK == landing.PK))
+                                {
+                                    VesselCatch vc = new VesselCatch
+                                    {
+                                        PK = catchComp.PK,
+                                        VesselUnloadID = vu.PK,
+                                        SpeciesID = catchComp.SpeciesID,
+                                        Catch_kg = catchComp.SpeciesWt,
+                                        Sample_kg = catchComp.SpeciesSampleWt,
+                                        TaxaCode = catchComp.TaxaCode,
+                                        SpeciesText = catchComp.SpeciesNameOther
+                                    };
+
+
+                                    if (NSAPEntities.VesselCatchViewModel.AddRecordToRepo(vc))
+                                    {
+
+                                        if (catchComp.LenFreqRepeat != null)
                                         {
-                                            CatchCompGroupCatchCompositionRepeatLengthFreqRepeat.SetRowIDs();
-                                        }
-                                        foreach (var lf in catchComp.LenFreqRepeat
-                                            .Where(t => t.Parent.PK == catchComp.PK))
-                                        {
-                                            CatchLenFreq clf = new CatchLenFreq
+                                            vu.CountLenFreqRows += catchComp.LenFreqRepeat.Count;
+                                            if (!CatchCompGroupCatchCompositionRepeatLengthFreqRepeat.RowIDSet)
                                             {
-                                                PK = (int)lf.PK,
-                                                VesselCatchID = vc.PK,
-                                                LengthClass = lf.LengthClass,
-                                                Frequency = lf.Frequency
-                                            };
-                                            if (NSAPEntities.CatchLenFreqViewModel.AddRecordToRepo(clf))
+                                                CatchCompGroupCatchCompositionRepeatLengthFreqRepeat.SetRowIDs();
+                                            }
+                                            foreach (var lf in catchComp.LenFreqRepeat
+                                                .Where(t => t.Parent.PK == catchComp.PK))
                                             {
-                                                vu.CountLenFreqRows++;
+                                                CatchLenFreq clf = new CatchLenFreq
+                                                {
+                                                    PK = (int)lf.PK,
+                                                    VesselCatchID = vc.PK,
+                                                    LengthClass = lf.LengthClass,
+                                                    Frequency = lf.Frequency
+                                                };
+                                                if (NSAPEntities.CatchLenFreqViewModel.AddRecordToRepo(clf))
+                                                {
+                                                    vu.CountLenFreqRows++;
+                                                }
                                             }
                                         }
-                                    }
 
-                                    if (catchComp.LenWtRepeat != null)
-                                    {
-                                        vu.CountLenWtRows += catchComp.LenWtRepeat.Count;
-                                        if (!CatchCompGroupCatchCompositionRepeatLenWtRepeat.RowIDSet)
+                                        if (catchComp.LenWtRepeat != null)
                                         {
-                                            CatchCompGroupCatchCompositionRepeatLenWtRepeat.SetRowIDs();
-                                        }
-                                        foreach (var lw in catchComp.LenWtRepeat
-                                             .Where(t => t.Parent.PK == catchComp.PK))
-                                        {
-                                            CatchLengthWeight clw = new CatchLengthWeight
+                                            vu.CountLenWtRows += catchComp.LenWtRepeat.Count;
+                                            if (!CatchCompGroupCatchCompositionRepeatLenWtRepeat.RowIDSet)
                                             {
-                                                PK = (int)lw.PK,
-                                                VesselCatchID = vc.PK,
-                                                Length = lw.Length,
-                                                Weight = lw.Weight
-                                            };
-                                            NSAPEntities.CatchLengthWeightViewModel.AddRecordToRepo(clw);
-                                        }
-                                    }
-
-                                    if (catchComp.LengthListRepeat != null)
-                                    {
-                                        vu.CountLengthRows += catchComp.LengthListRepeat.Count;
-                                        if (!CatchCompGroupCatchCompositionRepeatLengthListRepeat.RowIDSet)
-                                        {
-                                            CatchCompGroupCatchCompositionRepeatLengthListRepeat.SetRowIDs();
-                                        }
-                                        foreach (var l in catchComp.LengthListRepeat
-                                             .Where(t => t.Parent.PK == catchComp.PK))
-                                        {
-                                            CatchLength cl = new CatchLength
-                                            {
-                                                PK = (int)l.PK,
-                                                VesselCatchID = vc.PK,
-                                                Length = l.Length
-
-                                            };
-                                            NSAPEntities.CatchLengthViewModel.AddRecordToRepo(cl);
-                                        }
-                                    }
-
-                                    if (catchComp.GMSRepeat != null)
-                                    {
-                                        vu.CountMaturityRows += catchComp.GMSRepeat.Count;
-                                        if (!CatchCompGroupCatchCompositionRepeatGmsRepeatGroup.RowIDSet)
-                                        {
-                                            CatchCompGroupCatchCompositionRepeatGmsRepeatGroup.SetRowIDs();
-                                        }
-                                        foreach (var m in catchComp.GMSRepeat
-                                             .Where(t => t.Parent.PK == catchComp.PK))
-                                        {
-                                            CatchMaturity cm = new CatchMaturity
-                                            {
-                                                PK = (int)m.PK,
-                                                VesselCatchID = vc.PK,
-                                                Length = m.Length,
-                                                Weight = m.Weight,
-                                                SexCode = m.SexCode,
-                                                MaturityCode = m.GMSCode,
-                                                WeightGutContent = m.StomachContentWt,
-                                                GutContentCode = m.GutContentCategoryCode,
-                                                GonadWeight = m.GonadWeight
-                                            };
-                                            if (cm.GonadWeight != null)
-                                            {
-
+                                                CatchCompGroupCatchCompositionRepeatLenWtRepeat.SetRowIDs();
                                             }
-                                            NSAPEntities.CatchMaturityViewModel.AddRecordToRepo(cm);
+                                            foreach (var lw in catchComp.LenWtRepeat
+                                                 .Where(t => t.Parent.PK == catchComp.PK))
+                                            {
+                                                CatchLengthWeight clw = new CatchLengthWeight
+                                                {
+                                                    PK = (int)lw.PK,
+                                                    VesselCatchID = vc.PK,
+                                                    Length = lw.Length,
+                                                    Weight = lw.Weight
+                                                };
+                                                NSAPEntities.CatchLengthWeightViewModel.AddRecordToRepo(clw);
+                                            }
+                                        }
+
+                                        if (catchComp.LengthListRepeat != null)
+                                        {
+                                            vu.CountLengthRows += catchComp.LengthListRepeat.Count;
+                                            if (!CatchCompGroupCatchCompositionRepeatLengthListRepeat.RowIDSet)
+                                            {
+                                                CatchCompGroupCatchCompositionRepeatLengthListRepeat.SetRowIDs();
+                                            }
+                                            foreach (var l in catchComp.LengthListRepeat
+                                                 .Where(t => t.Parent.PK == catchComp.PK))
+                                            {
+                                                CatchLength cl = new CatchLength
+                                                {
+                                                    PK = (int)l.PK,
+                                                    VesselCatchID = vc.PK,
+                                                    Length = l.Length
+
+                                                };
+                                                NSAPEntities.CatchLengthViewModel.AddRecordToRepo(cl);
+                                            }
+                                        }
+
+                                        if (catchComp.GMSRepeat != null)
+                                        {
+                                            vu.CountMaturityRows += catchComp.GMSRepeat.Count;
+                                            if (!CatchCompGroupCatchCompositionRepeatGmsRepeatGroup.RowIDSet)
+                                            {
+                                                CatchCompGroupCatchCompositionRepeatGmsRepeatGroup.SetRowIDs();
+                                            }
+                                            foreach (var m in catchComp.GMSRepeat
+                                                 .Where(t => t.Parent.PK == catchComp.PK))
+                                            {
+                                                CatchMaturity cm = new CatchMaturity
+                                                {
+                                                    PK = (int)m.PK,
+                                                    VesselCatchID = vc.PK,
+                                                    Length = m.Length,
+                                                    Weight = m.Weight,
+                                                    SexCode = m.SexCode,
+                                                    MaturityCode = m.GMSCode,
+                                                    WeightGutContent = m.StomachContentWt,
+                                                    GutContentCode = m.GutContentCategoryCode,
+                                                    GonadWeight = m.GonadWeight
+                                                };
+                                                if (cm.GonadWeight != null)
+                                                {
+
+                                                }
+                                                NSAPEntities.CatchMaturityViewModel.AddRecordToRepo(cm);
+                                            }
                                         }
                                     }
                                 }
                             }
+                            NSAPEntities.VesselUnloadViewModel.UpdateUnloadStats(vu);
+                            savedCount++;
+                            landing.SavedInLocalDatabase = true;
+                            UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadSavedCount = savedCount, Intent = UploadToDBIntent.Uploading });
                         }
-                        NSAPEntities.VesselUnloadViewModel.UpdateUnloadStats(vu);
-                        savedCount++;
-                        landing.SavedInLocalDatabase = true;
-                        UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadSavedCount = savedCount, Intent = UploadToDBIntent.Uploading });
+                    }
+                    catch(Exception ex)
+                    {
+                        Utilities.Logger.Log(ex);
                     }
                 }
             }

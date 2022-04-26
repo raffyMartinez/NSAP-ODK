@@ -14,6 +14,9 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using NSAP_ODK.Entities;
 using System.ComponentModel;
+using NSAP_ODK.Entities;
+using NSAP_ODK.Entities.Database;
+
 namespace NSAP_ODK.TreeViewModelControl
 {
     /// <summary>
@@ -25,6 +28,7 @@ namespace NSAP_ODK.TreeViewModelControl
         public event EventHandler<AllSamplingEntitiesEventHandler> TreeContextMenu;
         public TreeViewItemViewModel _selectedItem;
         private tv_NSAPViewModel _nsapViewModel;
+
         public TreeControl()
         {
             if (LicenseManager.UsageMode == LicenseUsageMode.Runtime)
@@ -60,6 +64,8 @@ namespace NSAP_ODK.TreeViewModelControl
             }
 
         }
+
+
         private void TreeSelectedItem_Changed(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             var tv = (TreeView)sender;

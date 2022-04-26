@@ -35,7 +35,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>icons-04.ico</ApplicationIcon>
+    <ApplicationIcon>icons fish-02.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="BouncyCastle.Crypto, Version=1.8.5.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
@@ -216,8 +216,13 @@
     <Compile Include="Entities\Database\GearUnloadViewModel.cs" />
     <Compile Include="Entities\Database\LandingWithMaturityData.cs" />
     <Compile Include="Entities\Database\LandingsWithMaturityDataViewModel.cs" />
-    <Compile Include="Entities\Database\ODKEntities\VesselLanding_6_3.cs" />
+    <Compile Include="Entities\Database\ODKEformVersion.cs" />
+    <Compile Include="Entities\Database\ODKEformVersionRepository.cs" />
+    <Compile Include="Entities\Database\ODKEformVersionViewModel.cs" />
     <Compile Include="Entities\Database\OrphanedFishingVessel.cs" />
+    <Compile Include="Entities\Database\SampledLandingSite.cs" />
+    <Compile Include="Entities\Database\SampledLandingSiteRepository.cs" />
+    <Compile Include="Entities\Database\SampledLandingSiteViewModel.cs" />
     <Compile Include="Entities\Database\SpeciesName_Weight.cs" />
     <Compile Include="Entities\Database\SpeciesTextToSpeciesConvert.cs" />
     <Compile Include="Entities\Database\TrackedLandingCentroid.cs" />
@@ -229,6 +234,8 @@
     <Compile Include="Entities\Database\UpdateDatabaseColumnEventArg.cs" />
     <Compile Include="Entities\Database\UpdateHasCatchComposition.cs" />
     <Compile Include="Entities\Database\UpdateHasCatchCompositionRepo.cs" />
+    <Compile Include="Entities\Database\UpdateXFormIdentifier.cs" />
+    <Compile Include="Entities\Database\UpdateXFormIdentifierRepo.cs" />
     <Compile Include="Entities\Database\VesselUnloadServerRepository.cs" />
     <Compile Include="Entities\Database\XLSForm.cs" />
     <Compile Include="Entities\Download summary.cs" />
@@ -292,6 +299,7 @@
     <Compile Include="Entities\SerializeGear.cs" />
     <Compile Include="Entities\Database\TrackedOperationSummaryEventArgs.cs" />
     <Compile Include="Entities\Database\TrackedOperationSummaryViewModel.cs" />
+    <Compile Include="Entities\VesselListingEventArgs.cs" />
     <Compile Include="ISO_Classes\Coordinate.cs" />
     <Compile Include="Entities\DateTimePickerEditor.cs" />
     <Compile Include="Entities\EffortSpecification.cs" />
@@ -443,6 +451,12 @@
     <Compile Include="Views\EntityPropertyEnableWindow.xaml.cs">
       <DependentUpon>EntityPropertyEnableWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\ExtractVesselFromRegionWindow.xaml.cs">
+      <DependentUpon>ExtractVesselFromRegionWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\FirstSamplingOfEnumeratorsWindow.xaml.cs">
+      <DependentUpon>FirstSamplingOfEnumeratorsWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\GearUnloadWindow.xaml.cs">
       <DependentUpon>GearUnloadWindow.xaml</DependentUpon>
     </Compile>
@@ -551,6 +565,14 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\EntityPropertyEnableWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ExtractVesselFromRegionWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\FirstSamplingOfEnumeratorsWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -686,6 +708,21 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="logo.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Entities\Database\ODKEntities\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="icons fish-02.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="icons fish\icons fish-01.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\icons_fish_01.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Views\icons fish-01.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

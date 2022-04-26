@@ -554,6 +554,9 @@ namespace NSAP_ODK.Views
                                             case "has catch composition":
                                                 field = "catch_comp_group/include_catchcomp";
                                                 break;
+                                            case "xform identifier":
+                                                field = "_xform_id_string";
+                                                break;
                                         }
 
                                         await ProcessDownloadForReviewEx(field);
@@ -661,7 +664,7 @@ namespace NSAP_ODK.Views
                                                             versionDate = versionDate1;
                                                             if (versionDate >= new DateTime(2021, 10, 1))
                                                             {
-                                                                VesselUnloadServerRepository.JSON = JsonNewToOldVersion(the_response);
+                                                                VesselUnloadServerRepository.JSON = VesselLandingFixDownload.JsonNewToOldVersion(the_response);
                                                             }
                                                             else
                                                             {
@@ -723,6 +726,7 @@ namespace NSAP_ODK.Views
                     }
                     ButtonDownload.IsEnabled = true;
                     break;
+
                 case "ButtonLogin":
                     if (TextBoxUserName.Text.Trim().Length == 0 || TextBoxPassword.Password.Trim().Length == 0)
                     {
@@ -805,6 +809,7 @@ namespace NSAP_ODK.Views
                                                 kf.xlsform_version = KoboForms.XLSFormVersion;
                                                 kf.xlsForm_idstring = KoboForms.XLSForm_idString;
                                                 kf.Version_ID = KoboForms.Version_ID;
+                                                //kf.eFormVersion = KoboForms.e
                                                 ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.GotXLSFormVersion, FormName = kf.title });
                                             }
                                         }
@@ -831,6 +836,7 @@ namespace NSAP_ODK.Views
                         }
                     }
                     break;
+
                 case "ButtonClose":
                     Close();
                     break;
@@ -844,16 +850,16 @@ namespace NSAP_ODK.Views
         {
             var api_call = $"https://kf.kobotoolbox.org/api/v2/assets/{_formSummary.KPI_id_uid}/data/?fields=[\"{field}\",\"_uuid\"]&format=json&sort={{\"_id\":1}}";
             var call = "";
-            int rowStart=0;
+            int rowStart = 0;
             double limit = 30000; //30,000 is download limit 
             NSAPEntities.VesselUnloadViewModel.DatabaseUpdatedEvent += VesselUnloadViewModel_ColumnUpdatedEvent;
-            if(int.TryParse(textRowStart.Text,out int v))
+            if (int.TryParse(textRowStart.Text, out int v))
             {
                 rowStart = v;
             }
 
 
-            if (_formSummary.NumberOfSubmissions > limit && (_formSummary.NumberOfSubmissions-rowStart) > limit)
+            if (_formSummary.NumberOfSubmissions > limit && (_formSummary.NumberOfSubmissions - rowStart) > limit)
             {
                 double rounds;
                 if (rowStart > 0)
@@ -868,14 +874,14 @@ namespace NSAP_ODK.Views
                 for (int x = 1; x <= (int)rounds + 1; x++)
                 {
                     call = api_call + $"&start={limit * (x - 1)}";
-                    _updateCount += await ProcessDownloadForReview(call,x);
+                    _updateCount += await ProcessDownloadForReview(call, x);
                 }
             }
             else
             {
                 _updateRounds = 1;
                 call = api_call + $"&start={rowStart}";
-                _updateCount = await ProcessDownloadForReview(call,1);
+                _updateCount = await ProcessDownloadForReview(call, 1);
             }
             NSAPEntities.VesselUnloadViewModel.DatabaseUpdatedEvent -= VesselUnloadViewModel_ColumnUpdatedEvent;
         }
@@ -885,7 +891,7 @@ namespace NSAP_ODK.Views
         private void VesselUnloadViewModel_ColumnUpdatedEvent(object sender, EventArgs e)
         {
             UpdateDatabaseColumnEventArg ev = (UpdateDatabaseColumnEventArg)e;
-           switch( ev.Intent)
+            switch (ev.Intent)
             {
                 case "start":
                     _rowsForUpdating = ev.RowsToUpdate;
@@ -906,9 +912,9 @@ namespace NSAP_ODK.Views
                         (
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
-                              labelProgress.Content =$"Round {_updateColumnRound} of {_updateRounds}: Updated row {ev.RunningCount} of {_rowsForUpdating}";
-                                                  //do what you need to do on UI Thread
-                                                  return null;
+                              labelProgress.Content = $"Round {_updateColumnRound} of {_updateRounds}: Updated row {ev.RunningCount} of {_rowsForUpdating}";
+                              //do what you need to do on UI Thread
+                              return null;
                           }
                          ), null);
 
@@ -916,7 +922,7 @@ namespace NSAP_ODK.Views
                         (
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
-                              ProgressBar.Value ++;
+                              ProgressBar.Value++;
                               //do what you need to do on UI Thread
                               return null;
                           }
@@ -958,9 +964,22 @@ namespace NSAP_ODK.Views
 
                             Encoding encoding = Encoding.GetEncoding("utf-8");
                             string the_response = encoding.GetString(bytes, 0, bytes.Length);
-                            UpdateHasCatchCompositionRepository.JSON = the_response;
-                            UpdateHasCatchCompositionRepository.CreateCatchCompUpdatesFromJSON();
-                            result = await UpdateHasCatchCompositionRepository.UpdateDatabase(round);
+                            var arr = apiCall.Split('?', ',')[1].Split('\"');
+                            string field_name = arr[1];
+                            switch(field_name)
+                            {
+                                case "_xform_id_string":
+                                    UpdateXFormIdentifierRepository.JSON = the_response;
+                                    UpdateXFormIdentifierRepository.CreateXFormIdentifierUpdatesFromJSON();
+                                    result = await UpdateXFormIdentifierRepository.UpdateDatabase(round);
+                                    break;
+                                case "catch_comp_group/include_catchcomp":
+                                    UpdateHasCatchCompositionRepository.JSON = the_response;
+                                    UpdateHasCatchCompositionRepository.CreateCatchCompUpdatesFromJSON();
+                                    result = await UpdateHasCatchCompositionRepository.UpdateDatabase(round);
+                                    break;
+                            }
+
                         }
                         catch (Exception ex)
                         {
@@ -985,24 +1004,7 @@ namespace NSAP_ODK.Views
 
         }
 
-        //search and replace paths in updated xform to match paths in original xform
-        // might replace with Regex.Replace() if warranted by performance concerns
-        // https://docs.microsoft.com/en-us/dotnet/api/system.text.regularexpressions.regex.replace?redirectedfrom=MSDN&view=net-6.0#overloads
-        private string JsonNewToOldVersion(string json)
-        {
 
-            string json1 = json.Replace(
-                "catch_comp_group/catch_composition_repeat/speciesname_group/",
-                "catch_comp_group/catch_composition_repeat/");
-
-            json1 = json1.Replace(
-                "catch_comp_group/catch_composition_repeat/length_list_repeat/length_list_group/",
-                "catch_comp_group/catch_composition_repeat/length_list_repeat/");
-
-            return json1.Replace(
-                "catch_comp_group/catch_composition_repeat/species_data_group/",
-                "catch_comp_group/catch_composition_repeat/speciesname_group/");
-        }
         private void ShowStatus(DownloadFromServerEventArg e)
         {
             switch (e.Intent)
@@ -1138,6 +1140,7 @@ namespace NSAP_ODK.Views
                         _formSummary = new FormSummary(_koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)));
                         _versionID = _formSummary.KoboForm.Version_ID;
                         _numberOfSubmissions = _formSummary.NumberOfSubmissions;
+                        //_xlsFormVersion = _formSummary.XLSForm_Version;
                         SetODKServerDownloadType(_formSummary);
                         SetDownloadOptionsVisibility();
 
@@ -1153,14 +1156,15 @@ namespace NSAP_ODK.Views
 
                         propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "XLSForm_IDString", DisplayName = "XLSForm ID", DisplayOrder = 5, Description = "ID from XLSForm", Category = "Server data" });
                         propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "XLSForm_Version", DisplayName = "XLSForm version", DisplayOrder = 6, Description = "Version from XLSForm", Category = "Server data" });
+                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "EFormVersion", DisplayName = "e-Form version", DisplayOrder = 7, Description = "Version of e-form", Category = "Server data" });
 
-                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DateCreated", DisplayName = "Date created", DisplayOrder = 7, Description = "Date created", Category = "Server data" });
-                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DateModified", DisplayName = "Date modified", DisplayOrder = 8, Description = "Date modified", Category = "Server data" });
-                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DateLastSubmission", DisplayName = "Date of last submission", DisplayOrder = 9, Description = "Date of last submission", Category = "Server data" });
-                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "NumberOfSubmissions", DisplayName = "Number of submissions", DisplayOrder = 10, Description = "Number of submissions", Category = "Server data" });
-                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "NumberOfUsers", DisplayName = "Number of users", DisplayOrder = 11, Description = "Number of users", Category = "Server data" });
-                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "NumberSavedToDatabase", DisplayName = "Number of submissions", DisplayOrder = 12, Description = "Number of submissions saved", Category = "Saved in database" });
-                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LastSaveDateInDatabase", DisplayName = "Date of last submission", DisplayOrder = 13, Description = "Date of last sumission", Category = "Saved in database" });
+                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DateCreated", DisplayName = "Date created", DisplayOrder = 8, Description = "Date created", Category = "Server data" });
+                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DateModified", DisplayName = "Date modified", DisplayOrder = 9, Description = "Date modified", Category = "Server data" });
+                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DateLastSubmission", DisplayName = "Date of last submission", DisplayOrder = 10, Description = "Date of last submission", Category = "Server data" });
+                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "NumberOfSubmissions", DisplayName = "Number of submissions", DisplayOrder = 11, Description = "Number of submissions", Category = "Server data" });
+                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "NumberOfUsers", DisplayName = "Number of users", DisplayOrder = 12, Description = "Number of users", Category = "Server data" });
+                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "NumberSavedToDatabase", DisplayName = "Number of submissions", DisplayOrder = 13, Description = "Number of submissions saved", Category = "Saved in database" });
+                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LastSaveDateInDatabase", DisplayName = "Date of last submission", DisplayOrder = 14, Description = "Date of last sumission", Category = "Saved in database" });
 
                         propertyGrid.Visibility = Visibility.Visible;
 
@@ -1200,8 +1204,9 @@ namespace NSAP_ODK.Views
                         break;
                     case "form_download":
 
-                        var koboform = _koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID));
                         _formID = ((TreeViewItem)treeViewItem.Parent).Header.ToString();
+                        var koboform = _koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID));
+                        
 
                         //_version = koboform.version;
                         //_xlsFormIdString = koboform.xlsForm_idstring;

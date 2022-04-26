@@ -19,6 +19,8 @@ namespace NSAP_ODK.Entities.Database
         {
             VesselUnloads = getVesselUnloads();
         }
+
+
         public int MaxRecordNumber()
         {
             int max_rec_no = 0;
@@ -364,6 +366,7 @@ namespace NSAP_ODK.Entities.Database
                             item.VesselID = string.IsNullOrEmpty(dr["boat_id"].ToString()) ? null : (int?)dr["boat_id"];
                             item.VesselText = dr["boat_text"].ToString();
                             item.SectorCode = dr["sector_code"].ToString();
+                            item.NumberOfFishers = string.IsNullOrEmpty(dr["number_of_fishers"].ToString()) ? null : (int?)dr["number_of_fishers"];
                             item.WeightOfCatch = string.IsNullOrEmpty(dr["catch_total"].ToString()) ? null : (double?)dr["catch_total"];
                             item.WeightOfCatchSample = string.IsNullOrEmpty(dr["catch_samp"].ToString()) ? null : (double?)dr["catch_samp"];
                             item.Boxes = string.IsNullOrEmpty(dr["boxes_total"].ToString()) ? null : (int?)dr["boxes_total"];
@@ -371,7 +374,7 @@ namespace NSAP_ODK.Entities.Database
                             item.RaisingFactor = dr["raising_factor"] == DBNull.Value ? null : (double?)dr["raising_factor"];
                             item.NSAPEnumeratorID = string.IsNullOrEmpty(dr["enumerator_id"].ToString()) ? null : (int?)dr["enumerator_id"];
                             item.EnumeratorText = dr["enumerator_text"].ToString();
-
+                            item.FishingTripIsCompleted = (bool)dr["trip_is_completed"];
                             item.OperationIsSuccessful = (bool)dr["success"];
                             item.OperationIsTracked = (bool)dr["tracked"];
                             item.ODKRowID = dr["row_id"].ToString();
@@ -425,7 +428,7 @@ namespace NSAP_ODK.Entities.Database
                             }
                         }
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
 
                     }
@@ -434,6 +437,76 @@ namespace NSAP_ODK.Entities.Database
             return thisList;
         }
 
+
+        public bool UpdateXFormIdentifierColumn(UpdateXFormIdentifierItem item)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+                {
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        if (item._xform_id_string == null)
+                        {
+                            cmd.Parameters.AddWithValue("@xformID", "");
+                        }
+                        else
+                        {
+                            cmd.Parameters.AddWithValue("@xformID", item._xform_id_string);
+                        }
+                        cmd.Parameters.AddWithValue("@rowID", item._uuid);
+                        cmd.CommandText = "UPDATE dbo_vessel_unload_1 set xform_identifier=@xformID WHERE row_id=@rowID";
+                        try
+                        {
+                            conn.Open();
+                            success = cmd.ExecuteNonQuery() > 0;
+                        }
+                        catch (MySqlException mx)
+                        {
+                            Logger.Log(mx);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        if (item._xform_id_string == null)
+                        {
+                            cmd.Parameters.AddWithValue("@xformID", "");
+                        }
+                        else
+                        {
+                            cmd.Parameters.AddWithValue("@xformID", item._xform_id_string);
+                        }
+                        cmd.Parameters.AddWithValue("@rowID", $"{{{item._uuid}}}");
+                        cmd.CommandText = "UPDATE dbo_vessel_unload_1 set XFormIdentifier=@xformID WHERE RowID=@rowID";
+                        try
+                        {
+                            conn.Open();
+                            success = cmd.ExecuteNonQuery() > 0;
+                        }
+                        catch (MySqlException mx)
+                        {
+                            Logger.Log(mx);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
         public bool UpdateHasCatchCompositionColumn(UpdateHasCatchCompositionResultItem item)
         {
             bool success = false;
@@ -600,6 +673,8 @@ namespace NSAP_ODK.Entities.Database
                                 item.VesselID = string.IsNullOrEmpty(dr["boat_id"].ToString()) ? null : (int?)dr["boat_id"];
                                 item.VesselText = dr["boat_text"].ToString();
                                 item.SectorCode = dr["sector_code"].ToString();
+                                //item.NumberOfFishers = (int)dr["NumberOfFishers"];
+                                item.NumberOfFishers=string.IsNullOrEmpty(dr["NumberOfFishers"].ToString()) ? null : (int?)dr["NumberOfFishers"];
                                 item.WeightOfCatch = string.IsNullOrEmpty(dr["catch_total"].ToString()) ? null : (double?)dr["catch_total"];
                                 item.WeightOfCatchSample = string.IsNullOrEmpty(dr["catch_samp"].ToString()) ? null : (double?)dr["catch_samp"];
                                 item.Boxes = string.IsNullOrEmpty(dr["boxes_total"].ToString()) ? null : (int?)dr["boxes_total"];
@@ -610,6 +685,7 @@ namespace NSAP_ODK.Entities.Database
 
                                 item.OperationIsSuccessful = (bool)dr["Success"];
                                 item.OperationIsTracked = (bool)dr["Tracked"];
+                                item.FishingTripIsCompleted = (bool)dr["trip_is_completed"];
                                 item.ODKRowID = dr["RowID"].ToString();
                                 item.DepartureFromLandingSite = string.IsNullOrEmpty(dr["DepartureLandingSite"].ToString()) ? null : (DateTime?)dr["DepartureLandingSite"];
                                 item.ArrivalAtLandingSite = string.IsNullOrEmpty(dr["ArrivalLandingSite"].ToString()) ? null : (DateTime?)dr["ArrivalLandingSite"];
@@ -647,10 +723,10 @@ namespace NSAP_ODK.Entities.Database
                         switch (ex.HResult)
                         {
                             case -2147217865:
-                                if(ex.Message.Contains("The Microsoft Jet database engine cannot find the input table or query"))
+                                if (ex.Message.Contains("The Microsoft Jet database engine cannot find the input table or query"))
                                 {
                                     var arr = ex.Message.Split('\'');
-                                    if(CreateTable(arr[1]))
+                                    if (CreateTable(arr[1]))
                                     {
                                         return thisList = getVesselUnloads();
                                     }
@@ -662,7 +738,8 @@ namespace NSAP_ODK.Entities.Database
                                     var arr = ex.Message.Split('\'');
                                     if (UpdateTableDefinition(arr[1]))
                                     {
-                                       return thisList = getVesselUnloads();
+                                        UpdateAllTripCompleted();
+                                        return thisList = getVesselUnloads();
                                     }
                                 }
                                 break;
@@ -676,6 +753,20 @@ namespace NSAP_ODK.Entities.Database
             return thisList;
         }
 
+        private int UpdateAllTripCompleted()
+        {
+            var resultCount = 0;
+            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            {
+                conn.Open();
+                using (OleDbCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "Update dbo_vessel_unload_1 SET trip_is_completed=true";
+                    resultCount = cmd.ExecuteNonQuery();
+                }
+            }
+            return resultCount;
+        }
         private bool UpdateTableDefinition(string colName)
         {
             bool success = false;
@@ -686,7 +777,12 @@ namespace NSAP_ODK.Entities.Database
                 switch (colName)
                 {
                     case "HasCatchComposition":
+                    case "trip_is_completed":
+
                         sql = $@"ALTER TABLE dbo_vessel_unload_1 ADD COLUMN {colName} YESNO";
+                        break;
+                    case "NumberOfFishers":
+                        sql = $@"ALTER TABLE dbo_vessel_unload_1 ADD COLUMN {colName} INTEGER DEFAULT NULL";
                         break;
                 }
 
@@ -820,6 +916,7 @@ namespace NSAP_ODK.Entities.Database
                                 update1.Parameters.Add("@unloadid", MySqlDbType.Int32).Value = item.PK;
                                 update1.Parameters.AddWithValue("@operation_success", item.OperationIsSuccessful);
                                 update1.Parameters.AddWithValue("@operation_tracked", item.OperationIsTracked);
+                                update1.Parameters.AddWithValue("@operation_completed", item.FishingTripIsCompleted);
 
                                 if (item.DepartureFromLandingSite == null)
                                 {
@@ -898,14 +995,23 @@ namespace NSAP_ODK.Entities.Database
                                 update1.Parameters.AddWithValue("@from_excel", item.FromExcelDownload);
                                 update1.Parameters.AddWithValue("@has_catch_composition", item.HasCatchComposition);
 
+                                if (item.NumberOfFishers == null)
+                                {
+                                    update1.Parameters.Add("@num_fisher", MySqlDbType.Int32).Value = DBNull.Value;
+                                }
+                                else
+                                {
+                                    update1.Parameters.Add("@num_fisher", MySqlDbType.Int32).Value = item.NumberOfFishers;
+                                }
+
                                 update1.CommandText = @"Insert into dbo_vessel_unload_1 
-                                                (v_unload_id, success, tracked, departure_landing_site, arrival_landing_site, 
+                                                (v_unload_id, success, tracked, trip_is_completed, departure_landing_site, arrival_landing_site, 
                                                 row_id, xform_identifier, xform_date, sampling_date,
                                                 user_name,device_id,datetime_submitted,form_version,
-                                                gps,notes,enumerator_id,enumerator_text,date_added,sector_code,from_excel_download,has_catch_composition)
-                                                Values (@unloadid,@operation_success,@operation_tracked,@departure_date,@arrival_date,
+                                                gps,notes,enumerator_id,enumerator_text,date_added,sector_code,from_excel_download,has_catch_composition,number_of_fishers)
+                                                Values (@unloadid,@operation_success,@operation_tracked,@operation_completed,@departure_date,@arrival_date,
                                                         @row_id,@xform_id,@xform_date,@sampling_date,@user_name,@device_id,@date_submitted,
-                                                        @form_version,@gps,@notes,@enumerator,@enumerator_text,@date_added,@sector_code,@from_excel,@has_catch_composition)";
+                                                        @form_version,@gps,@notes,@enumerator,@enumerator_text,@date_added,@sector_code,@from_excel,@has_catch_composition,@num_fisher)";
                                 try
                                 {
                                     success = update1.ExecuteNonQuery() > 0;
@@ -933,6 +1039,8 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
+
+        private bool _newFieldAdded = false;
         public bool Add(VesselUnload item)
         {
             bool success = false;
@@ -1041,22 +1149,28 @@ namespace NSAP_ODK.Entities.Database
 
                         try
                         {
-                            //string dateAdded = item.DateAddedToDatabase == null ? "null" : ((DateTime)item.DateAddedToDatabase).ToString("MMM-dd-yyy HH:mm");
-                            if (update.ExecuteNonQuery() > 0)
-                            {
 
+                            bool proceed = true;
+                            //string dateAdded = item.DateAddedToDatabase == null ? "null" : ((DateTime)item.DateAddedToDatabase).ToString("MMM-dd-yyy HH:mm");
+                            if (!_newFieldAdded )
+                            {
+                                proceed = update.ExecuteNonQuery() > 0;
+                            }
+                            if (proceed)
+                            {
                                 sql = @"Insert into dbo_vessel_unload_1 
-                                                (v_unload_id, Success, Tracked, DepartureLandingSite, ArrivalLandingSite, 
+                                                (v_unload_id, Success, Tracked, trip_is_completed, DepartureLandingSite, ArrivalLandingSite, 
                                                 RowID, XFormIdentifier, XFormDate, SamplingDate,
                                                 user_name,device_id,datetime_submitted,form_version,
-                                                GPS,Notes,EnumeratorID,EnumeratorText,DateAdded,sector_code,FromExcelDownload,HasCatchComposition)
-                                    Values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                                                GPS,Notes,EnumeratorID,EnumeratorText,DateAdded,sector_code,FromExcelDownload,HasCatchComposition,NumberOfFishers)
+                                    Values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
                                 using (OleDbCommand update1 = new OleDbCommand(sql, conn))
                                 {
                                     update1.Parameters.Add("@unloadid", OleDbType.Integer).Value = item.PK;
                                     update1.Parameters.Add("@operation_success", OleDbType.Boolean).Value = item.OperationIsSuccessful;
                                     update1.Parameters.Add("@operation_tracked", OleDbType.Boolean).Value = item.OperationIsTracked;
+                                    update1.Parameters.Add("@operation_completed", OleDbType.Boolean).Value = item.FishingTripIsCompleted;
 
                                     if (item.DepartureFromLandingSite == null)
                                     {
@@ -1134,16 +1248,29 @@ namespace NSAP_ODK.Entities.Database
 
                                     update1.Parameters.Add("@from_excel", OleDbType.Boolean).Value = item.FromExcelDownload;
                                     update1.Parameters.Add("@hasCatchComposition", OleDbType.Boolean).Value = item.HasCatchComposition;
+                                    if (item.NumberOfFishers == null)
+                                    {
+                                        update1.Parameters.Add("@num_fishers", OleDbType.Integer).Value = DBNull.Value;
+                                    }
+                                    else
+                                    {
+                                        update1.Parameters.Add("@num_fishers", OleDbType.Integer).Value = item.NumberOfFishers;
+                                    }
 
                                     try
                                     {
                                         success = update1.ExecuteNonQuery() > 0;
+                                        _newFieldAdded = false;
                                     }
                                     catch (OleDbException dbex)
                                     {
                                         if (dbex.ErrorCode == -2147217900)
                                         {
-                                            AddFieldToTable(dbex.Message);
+                                            if (AddFieldToTable(dbex.Message))
+                                            {
+                                                _newFieldAdded = true;
+                                                return Add(item);
+                                            }
                                         }
                                         else
                                         {
@@ -1156,6 +1283,7 @@ namespace NSAP_ODK.Entities.Database
                                         Logger.Log(ex);
                                     }
                                 }
+
                             }
                         }
                         catch (OleDbException odbex)
@@ -1190,12 +1318,24 @@ namespace NSAP_ODK.Entities.Database
             return success;
         }
 
-        private void AddFieldToTable(string errorMessage)
+        private bool AddFieldToTable(string errorMessage)
         {
+            bool success = false;
             int s1 = errorMessage.IndexOf("name: '");
             int s2 = errorMessage.IndexOf("'.  Make");
             string newField = errorMessage.Substring(s1 + 7, s2 - (s1 + 7));
-            int y;
+            switch (newField)
+            {
+                case "NumberOfFishers":
+                    success = UpdateTableDefinition(newField);
+                    break;
+                case "trip_is_completed":
+                    case "HasCatchComposition":
+                    success = UpdateTableDefinition(newField);
+                    break;
+
+            }
+            return success;
         }
 
         private bool UpdateMySQL(VesselUnload item)
@@ -1286,6 +1426,7 @@ namespace NSAP_ODK.Entities.Database
                             {
                                 cmd_1.Parameters.AddWithValue("@Operation_success", item.OperationIsSuccessful);
                                 cmd_1.Parameters.AddWithValue("@Operation_is_tracked", item.OperationIsTracked);
+                                cmd_1.Parameters.AddWithValue("@Operation_is_completed", item.FishingTripIsCompleted);
                                 if (item.DepartureFromLandingSite == null)
                                 {
                                     cmd_1.Parameters.Add("@Departure_date", MySqlDbType.DateTime).Value = DBNull.Value;
@@ -1353,12 +1494,21 @@ namespace NSAP_ODK.Entities.Database
                                 cmd_1.Parameters.Add("@Sector_code", MySqlDbType.VarChar).Value = item.SectorCode;
                                 cmd_1.Parameters.AddWithValue("@From_excel", item.FromExcelDownload);
                                 cmd_1.Parameters.AddWithValue("@has_catch_composition", item.HasCatchComposition);
+                                if (item.NumberOfFishers == null)
+                                {
+                                    cmd_1.Parameters.Add("@num_fisher", MySqlDbType.Int32).Value = DBNull.Value;
+                                }
+                                else
+                                {
+                                    cmd_1.Parameters.Add("@num_fisher", MySqlDbType.Int32).Value = item.NumberOfFishers;
+                                }
                                 cmd_1.Parameters.Add("@Vessel_unload_id", MySqlDbType.Int32).Value = item.PK;
 
 
                                 cmd_1.CommandText = $@"UPDATE dbo_vessel_unload_1 SET
                                         success = @Operation_success,
                                         tracked =  @Operation_is_tracked,
+                                        trip_is_completed = @Operation_is_completed,
                                         departure_landing_site = @Departure_date,
                                         arrival_landing_site = @Arrival_date, 
                                         row_id =  @ODK_row_id,
@@ -1376,7 +1526,8 @@ namespace NSAP_ODK.Entities.Database
                                         date_added = @Date_added,
                                         sector_code = @Sector_code,
                                         from_excel_download =  @From_excel,
-                                        has_catch_composition = @has_catch_composition
+                                        has_catch_composition = @has_catch_composition,
+                                        number_of_fishers = @num_fisher
                                         WHERE v_unload_id =@Vessel_unload_id";
 
                                 try
@@ -1498,6 +1649,7 @@ namespace NSAP_ODK.Entities.Database
                             {
                                 cmd_1.Parameters.Add("@Operation_success", OleDbType.Boolean).Value = item.OperationIsSuccessful;
                                 cmd_1.Parameters.Add("@Operation_is_tracked", OleDbType.Boolean).Value = item.OperationIsTracked;
+                                cmd_1.Parameters.Add("@Operation_is_completed", OleDbType.Boolean).Value = item.FishingTripIsCompleted;
                                 if (item.DepartureFromLandingSite == null)
                                 {
                                     cmd_1.Parameters.Add("@Departure_date", OleDbType.Date).Value = DBNull.Value;
@@ -1565,11 +1717,21 @@ namespace NSAP_ODK.Entities.Database
                                 cmd_1.Parameters.Add("@Sector_code", OleDbType.VarChar).Value = item.SectorCode;
                                 cmd_1.Parameters.Add("@From_excel", OleDbType.Boolean).Value = item.FromExcelDownload;
                                 cmd_1.Parameters.Add("@has_catch_composition", OleDbType.Boolean).Value = item.HasCatchComposition;
+                                if (item.NumberOfFishers == null)
+                                {
+                                    cmd_1.Parameters.Add("@num_fisher", OleDbType.Integer).Value = DBNull.Value;
+                                }
+                                else
+                                {
+                                    cmd_1.Parameters.Add("@num_fisher", OleDbType.Integer).Value = item.NumberOfFishers;
+                                }
+
                                 cmd_1.Parameters.Add("@Vessel_unload_id", OleDbType.Integer).Value = item.PK;
 
                                 cmd_1.CommandText = $@"UPDATE dbo_vessel_unload_1 SET
                                         Success = @Operation_success,
                                         Tracked =  @Operation_is_tracked,
+                                        trip_is_completed = @Operation_is_completed,
                                         DepartureLandingSite = @Departure_date,
                                         ArrivalLandingSite = @Arrival_date, 
                                         RowID =  @ODK_row_id,
@@ -1588,6 +1750,7 @@ namespace NSAP_ODK.Entities.Database
                                         sector_code = @Sector_code,
                                         FromExcelDownload =  @From_excel,
                                         HasCatchComposition = @has_catch_composition
+                                        NumberOfFishers = @num_fisher
                                         WHERE v_unload_id =@Vessel_unload_id";
 
 

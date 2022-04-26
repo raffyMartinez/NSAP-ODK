@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NSAP_ODK.Entities.Database
 {
-    class UpdateHasCatchComposition
+    public class UpdateHasCatchComposition
     {
         public string RowGUID { get; set; }
         public string HasCatchCompositionString { get; set; }

@@ -83,6 +83,8 @@ namespace NSAP_ODK.Entities
         public string xlsForm_idstring { get; set; }
         public string xlsform_version { get; set; }
 
+        public string eForm_version { get; set; }
+
         //public string version
         //{
         //    get
@@ -151,10 +153,11 @@ namespace NSAP_ODK.Entities
             FormID = form.formid;
             SubmittedToday = form.submission_count_for_today;
             XLSForm_Version = form.xlsform_version;
-            XLSForm_IDString = form.xlsForm_idstring;
+            XLSForm_IDString = form.id_string;
+            EFormVersion = form.eForm_version;
             KPI_id_uid = form.kpi_asset_uid;
             Owner = form.owner;
-            if (Title.Contains("Fisheries landing survey"))
+            if (Title.Contains("Fisheries landing survey") || Title.Contains("NSAP Fish Catch Monitoring e-Form"))
             {
                 KoboFormType = KoboFormType.FormTypeCatchAndEffort;
             }
@@ -181,6 +184,7 @@ namespace NSAP_ODK.Entities
         public string XLSForm_Version { get; internal set; }
         public string Owner { get; internal set; }
 
+        public string EFormVersion { get; internal set; }
         public int NumberSavedToDatabase
         {
             get
@@ -189,7 +193,14 @@ namespace NSAP_ODK.Entities
                 switch (KoboFormType)
                 {
                     case KoboFormType.FormTypeCatchAndEffort:
-                        v = NSAPEntities.VesselUnloadViewModel.Count;
+                        try
+                        {
+                            v = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.Count(t => t.XFormIdentifier == XLSForm_IDString);
+                        }
+                        catch
+                        {
+                            v = NSAPEntities.VesselUnloadViewModel.Count;
+                        }
                         break;
 
                     case KoboFormType.FormTypeVesselCountAndCatchEstimate:
@@ -210,7 +221,21 @@ namespace NSAP_ODK.Entities
                     case KoboFormType.FormTypeCatchAndEffort:
                         if (NSAPEntities.VesselUnloadViewModel.Count > 0)
                         {
-                            lastSaveDate = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.Max(t => t.DateTimeSubmitted).ToString("MMM-dd-yyyy HH:mm:ss");
+                            //put the form id(or project id guid) in the where clause
+                            try
+                            {
+                                lastSaveDate = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
+                                   .Where(t => t.XFormIdentifier == XLSForm_IDString)
+                                   .Max(t => t.DateTimeSubmitted).ToString("MMM-dd-yyyy HH:mm:ss");
+                            }
+                            catch
+                            {
+                                lastSaveDate = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
+                                    .Max(t => t.DateTimeSubmitted).ToString("MMM-dd-yyyy HH:mm:ss");
+                            }
+
+                            //lastSaveDate = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
+                            //    .Max(t => t.DateTimeSubmitted).ToString("MMM-dd-yyyy HH:mm:ss");
                         }
                         break;
 
@@ -322,6 +347,10 @@ namespace NSAP_ODK.Entities
                             XLSFormVersion = x.content.settings.version;
                             kf.xlsform_version = XLSFormVersion;
                             XLSForm_idString = x.content.settings.id_string;
+                            if(x.name=="NSAP Fish Catch Monitoring e-Form" || x.name=="Fisheries landing survey")
+                            {
+                                kf.eForm_version = x.content.survey.Where(t => t.name == "intronote").FirstOrDefault().@default.Replace("Version ","");
+                            }
 
                         }
                     }
@@ -371,6 +400,8 @@ namespace NSAP_ODK.Entities
         public static string Version_ID { get; internal set; }
         public static string XLSFormVersion { get; internal set; }
         public static string XLSForm_idString { get; internal set; }
+
+        public static string EForm_version { get; internal set; }
 
         public static Database.XLSForm MakeXLSForm(string json)
         {

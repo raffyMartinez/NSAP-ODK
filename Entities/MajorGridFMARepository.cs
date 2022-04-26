@@ -38,10 +38,6 @@ namespace NSAP_ODK.Entities
                         foreach (DataRow dr in dt.Rows)
                         {
                             int fmaNo = Convert.ToInt32(dr["fma"]);
-                            if(fmaNo>0)
-                            {
-                                //Debugger.Break();
-                            }
 
                             MajorGridFMA mgf = new MajorGridFMA
                             {

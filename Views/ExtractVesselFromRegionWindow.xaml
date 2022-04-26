@@ -1,0 +1,32 @@
+﻿<Window x:Class="NSAP_ODK.Views.ExtractVesselFromRegionWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NSAP_ODK.Views"
+        mc:Ignorable="d"
+        Title="Extract fishing vessels from region" Height="450" Width="300">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition/>
+            <RowDefinition Height="25"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="80"/>
+        </Grid.ColumnDefinitions>
+        <Label Grid.ColumnSpan="2" Content="Extract fishing vessel names by region" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="14" FontWeight="Bold"/>
+        <StackPanel Grid.Row="1" Margin="10" x:Name="stackPanelButtons"/>
+
+
+        <StackPanel Grid.Row="1" Grid.Column="1" Margin="5">
+            <Button Content="Extract" Margin="5" Height="20" x:Name="buttonExtract" IsDefault="True" Click="OnButtonClick"/>
+            <Button Content="Cancel" Margin="5" Height="20" x:Name="buttonCancel" IsCancel="True" Click="OnButtonClick"/>
+        </StackPanel>
+        <StatusBar Grid.Row="2" Grid.ColumnSpan="2">
+            <ProgressBar x:Name="progressBar" Width="150" Height="15" VerticalAlignment="Center" />
+            <Label x:Name="progressLabel" Content="this is a label" Height="25" VerticalAlignment="Center"/>
+        </StatusBar>
+    </Grid>
+</Window>

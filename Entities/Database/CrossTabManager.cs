@@ -213,6 +213,9 @@ namespace NSAP_ODK.Entities.Database
             dc = new DataColumn { ColumnName = "Fishing vessel" };
             _effortCrostabDataTable.Columns.Add(dc);
 
+            dc = new DataColumn { ColumnName = "# of fishers" ,DataType=typeof(int)};
+            _effortCrostabDataTable.Columns.Add(dc);
+
             dc = new DataColumn { ColumnName = "Fishing vessels landded", DataType = typeof(int) };
             _effortCrostabDataTable.Columns.Add(dc);
 
@@ -285,6 +288,15 @@ namespace NSAP_ODK.Entities.Database
 
                 row["Gear"] = ctcp.Gear;
                 row["Fishing vessel"] = ctcp.FBName;
+
+                if (ctcp.NumberOfFishers == null)
+                {
+                    row["# of fishers"] = DBNull.Value;
+                }
+                else
+                {
+                    row["# of fishers"] = ctcp.NumberOfFishers;
+                }
 
                 if (ctcp.FBL != null)
                 {
@@ -406,7 +418,10 @@ namespace NSAP_ODK.Entities.Database
             dc = new DataColumn { ColumnName = "Fishing vessel" };
             _effortSpeciesCrostabDataTable.Columns.Add(dc);
 
-            dc = new DataColumn { ColumnName = "Fishing vessels landded", DataType = typeof(int) };
+            dc = new DataColumn { ColumnName = "# of fishers", DataType=typeof(int) };
+            _effortSpeciesCrostabDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Fishing vessels landed", DataType = typeof(int) };
             _effortSpeciesCrostabDataTable.Columns.Add(dc);
 
             dc = new DataColumn { ColumnName = "Fishing vessels monitored", DataType = typeof(int) };
@@ -480,6 +495,15 @@ namespace NSAP_ODK.Entities.Database
 
                 row["Gear"] = ctcp.Gear;
                 row["Fishing vessel"] = ctcp.FBName;
+
+                if (ctcp.NumberOfFishers == null)
+                {
+                    row["# of fishers"] = DBNull.Value;
+                }
+                else
+                {
+                    row["# of fishers"] = ctcp.NumberOfFishers;
+                }
 
                 if (ctcp.FBL != null)
                 {

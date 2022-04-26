@@ -52,7 +52,7 @@ namespace NSAP_ODK.Entities.Database
         public DateTime MonthSampled { get { return new DateTime(_samplingDate.Year, _samplingDate.Month, 1); } }
 
         public int Year { get { return _samplingDate.Year; } }
-
+        public int? NumberOfFishers { get { return _vesselUnload.NumberOfFishers; } }
         public string Month { get { return _samplingDate.ToString("MMMM"); } }
         public DateTime SamplingDate { get { return _samplingDate; } }
 
@@ -163,7 +163,8 @@ namespace NSAP_ODK.Entities.Database
                     switch (_vesselCatch.Taxa.Code)
                     {
                         case "FIS":
-                            _family = _vesselCatch.FishSpecies.Family;
+                            _family = _vesselCatch.FishSpecies?.Family;
+                            //_family = _vesselCatch.FishSpecies.Family;
                             break;
                         default:
                             _family = _vesselCatch.NotFishSpecies.Taxa.Name;
@@ -190,7 +191,7 @@ namespace NSAP_ODK.Entities.Database
                     switch (_vesselCatch.Taxa.Code)
                     {
                         case "FIS":
-                            _sn = $"{_vesselCatch.FishSpecies.GenericName} {_vesselCatch.FishSpecies.SpecificName}";
+                            _sn = $"{_vesselCatch.FishSpecies?.GenericName} {_vesselCatch.FishSpecies?.SpecificName}";
                             break;
                         default:
                             _sn = $"{_vesselCatch.NotFishSpecies.Genus} {_vesselCatch.NotFishSpecies.Species}";

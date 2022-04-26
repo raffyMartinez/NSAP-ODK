@@ -91,15 +91,15 @@ namespace NSAP_ODK.Entities
                 using (var update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@gearName", MySqlDbType.VarChar).Value = g.GearName;
-                    update.Parameters.Add("@gearcode", MySqlDbType.VarChar).Value = g.Code;
+                    update.Parameters.Add("@gearcode", MySqlDbType.VarChar).Value = g.Code.ToUpper();
 
                     if (g.BaseGear == null)
                     {
-                        update.Parameters.Add("@genericcode", MySqlDbType.VarChar).Value = g.CodeOfBaseGear;
+                        update.Parameters.Add("@genericcode", MySqlDbType.VarChar).Value = g.CodeOfBaseGear.ToUpper();
                     }
                     else
                     {
-                        update.Parameters.Add("@genericcode", MySqlDbType.VarChar).Value = g.BaseGear.Code;
+                        update.Parameters.Add("@genericcode", MySqlDbType.VarChar).Value = g.BaseGear.Code.ToUpper();
                     }
                     update.Parameters.AddWithValue("@isgeneric", g.IsGenericGear);
                     update.CommandText = @"Insert into gears (gear_name,gear_code,generic_code,is_generic) 
@@ -147,14 +147,14 @@ namespace NSAP_ODK.Entities
                     using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
                         update.Parameters.Add("@gearName", OleDbType.VarChar).Value = g.GearName;
-                        update.Parameters.Add("@gearcode", OleDbType.VarChar).Value = g.Code;
+                        update.Parameters.Add("@gearcode", OleDbType.VarChar).Value = g.Code.ToUpper();
                         if (g.BaseGear == null)
                         {
-                            update.Parameters.Add("genericcode", OleDbType.VarChar).Value = g.CodeOfBaseGear;
+                            update.Parameters.Add("genericcode", OleDbType.VarChar).Value = g.CodeOfBaseGear.ToUpper();
                         }
                         else
                         {
-                            update.Parameters.Add("@genericcode", OleDbType.VarChar).Value = g.BaseGear.Code;
+                            update.Parameters.Add("@genericcode", OleDbType.VarChar).Value = g.BaseGear.Code.ToUpper();
                         }
                         update.Parameters.Add("@isgeneric", OleDbType.Boolean).Value = g.IsGenericGear;
                         try
@@ -182,9 +182,9 @@ namespace NSAP_ODK.Entities
                 using (var update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@gearname", MySqlDbType.VarChar).Value = g.GearName;
-                    update.Parameters.Add("@genericcode", MySqlDbType.VarChar).Value = g.BaseGear.Code;
+                    update.Parameters.Add("@genericcode", MySqlDbType.VarChar).Value = g.BaseGear.Code.ToUpper();
                     update.Parameters.AddWithValue("@isgeneric", g.IsGenericGear);
-                    update.Parameters.Add("@gearcode", MySqlDbType.VarChar).Value = g.Code;
+                    update.Parameters.Add("@gearcode", MySqlDbType.VarChar).Value = g.Code.ToUpper();
 
                     update.CommandText = @"UPDATE gears SET
                                            gear_name = @gearname,
@@ -224,9 +224,9 @@ namespace NSAP_ODK.Entities
                     using (OleDbCommand update = conn.CreateCommand())
                     {
                         update.Parameters.Add("@gearname", OleDbType.VarChar).Value = g.GearName;
-                        update.Parameters.Add("@genericcode", OleDbType.VarChar).Value = g.BaseGear.Code;
+                        update.Parameters.Add("@genericcode", OleDbType.VarChar).Value = g.BaseGear.Code.ToUpper();
                         update.Parameters.Add("@isgeneric", OleDbType.Boolean).Value = g.IsGenericGear;
-                        update.Parameters.Add("@gearcode", OleDbType.VarChar).Value = g.Code;
+                        update.Parameters.Add("@gearcode", OleDbType.VarChar).Value = g.Code.ToUpper();
 
                         update.CommandText = @"UPDATE gear SET
                                            GearName = @gearname,

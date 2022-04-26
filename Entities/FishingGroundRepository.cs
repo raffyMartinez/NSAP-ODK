@@ -93,7 +93,7 @@ namespace NSAP_ODK.Entities
                 {
                     conn.Open();
                     cmd.Parameters.Add("@fg_name", MySqlDbType.VarChar).Value = fg.Name;
-                    cmd.Parameters.Add("@fg_code", MySqlDbType.VarChar).Value = fg.Code;
+                    cmd.Parameters.Add("@fg_code", MySqlDbType.VarChar).Value = fg.Code.ToUpper();
                     cmd.CommandText= "Insert into fishing_grounds(fishing_ground_name,fishing_ground_code) Values (@fg_name, @fg_code)";
                     try
                     {
@@ -137,7 +137,7 @@ namespace NSAP_ODK.Entities
                     using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
                         update.Parameters.Add("@fg_name", OleDbType.VarChar).Value = fg.Name;
-                        update.Parameters.Add("@fg_code", OleDbType.VarChar).Value = fg.Code;
+                        update.Parameters.Add("@fg_code", OleDbType.VarChar).Value = fg.Code.ToUpper();
                         try
                         {
                             success = update.ExecuteNonQuery() > 0;
@@ -173,7 +173,7 @@ namespace NSAP_ODK.Entities
                 using (var update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@fgname", MySqlDbType.VarChar).Value = fg.Name;
-                    update.Parameters.Add("@fgcode", MySqlDbType.VarChar).Value = fg.Code;
+                    update.Parameters.Add("@fgcode", MySqlDbType.VarChar).Value = fg.Code.ToUpper();
                     update.CommandText = @"UPDATE fishing_grounds SET
                                            fishing_ground_name=@fgname
                                            WHERE fishing_ground_code=@fgcode";
@@ -210,7 +210,7 @@ namespace NSAP_ODK.Entities
                     using (OleDbCommand update = conn.CreateCommand())
                     {
                         update.Parameters.Add("@fgname", OleDbType.VarChar).Value = fg.Name;
-                        update.Parameters.Add("@fgcode", OleDbType.VarChar).Value = fg.Code;
+                        update.Parameters.Add("@fgcode", OleDbType.VarChar).Value = fg.Code.ToUpper();
                         update.CommandText = @"UPDATE fishingground SET
                                            FishingGroundName=@fgname
                                            WHERE FishingGroundCode=@fgcode";

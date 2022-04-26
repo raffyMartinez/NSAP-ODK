@@ -21,8 +21,8 @@
             <Button Content="Cancel" Height="30" Margin="10 5" x:Name="buttonCancel" Click="OnButtonClick" IsCancel="True"/>
         </StackPanel>
         <StackPanel Grid.Row="1" Margin="10" CanVerticallyScroll="True">
-            <RadioButton Content="Has catch composition" Checked="OnRadioButtonChecked" Tag="has catch composition"/>
-
+            <RadioButton Content="Has catch composition" Checked="OnRadioButtonChecked" Tag="has catch composition" Margin="2"/>
+            <RadioButton Content="XForm identifier" Checked="OnRadioButtonChecked" Tag="xform identifier" Margin="2"/>
 
         </StackPanel>
     </Grid>

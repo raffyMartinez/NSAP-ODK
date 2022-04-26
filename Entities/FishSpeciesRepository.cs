@@ -26,7 +26,7 @@ namespace NSAP_ODK.Entities
             {
                 using (var cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = "SELECT ph_fish.*, fb_species.genus & ' ' & fb_species.species AS old_name FROM ph_fish LEFT JOIN fb_species ON ph_fish.species_id = fb_species.spec_code";
+                    cmd.CommandText = "SELECT ph_fish.*, CONCAT(fb_species.genus, ' ', fb_species.species) AS old_name FROM ph_fish LEFT JOIN fb_species ON ph_fish.species_id = fb_species.spec_code";
                     conn.Open();
                     try
                     {

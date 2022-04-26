@@ -25,5 +25,28 @@ namespace NSAP_ODK.Utilities
             }
             return true;
         }
+
+        //search and replace paths in updated xform to match paths in original xform
+        // might replace with Regex.Replace() if warranted by performance concerns
+        // https://docs.microsoft.com/en-us/dotnet/api/system.text.regularexpressions.regex.replace?redirectedfrom=MSDN&view=net-6.0#overloads
+        public static string JsonNewToOldVersion(string json)
+        {
+
+            string json1 = json.Replace(
+                "catch_comp_group/catch_composition_repeat/speciesname_group/",
+                "catch_comp_group/catch_composition_repeat/");
+
+            json1 = json1.Replace(
+                "catch_comp_group/catch_composition_repeat/length_list_repeat/length_list_group/",
+                "catch_comp_group/catch_composition_repeat/length_list_repeat/");
+
+            json1 = json1.Replace(
+                "catch_comp_group/catch_composition_repeat/species_data_group/",
+                "catch_comp_group/catch_composition_repeat/speciesname_group/");
+
+            
+
+            return json1;
+        }
     }
 }

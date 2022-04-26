@@ -7,6 +7,7 @@ using System.ComponentModel;
 using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
 using Xceed.Wpf.Toolkit;
 using NSAP_ODK.Entities.ItemSources;
+using NSAP_ODK.Entities.Database;
 namespace NSAP_ODK.Entities
 {
     public class NSAPRegionEnumerator
@@ -35,6 +36,18 @@ namespace NSAP_ODK.Entities
 
         [ItemsSource(typeof(NSAPEnumeratorItemsSource))]
         public int EnumeratorID { get; set; }
+
+        public DateTime? DateFirstSampling { get; set; }
+
+        public VesselUnload FirstSampling { get; set; }
+
+        public string FirstSamplingDate
+        {
+            get
+            {
+                return ((DateTime)DateFirstSampling).ToString("MMM-dd-yyyy");
+            }
+        }
 
         public override string ToString()
         {

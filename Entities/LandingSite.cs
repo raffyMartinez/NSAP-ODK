@@ -23,11 +23,29 @@ namespace NSAP_ODK.Entities
         public string Barangay { get; set; }
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            var otherLS = obj as LandingSite;
+            if (otherLS == null)
+            {
+                return false;
+            }
+            else
+            {
+                return LandingSiteID == otherLS.LandingSiteID;
+            }
+        }
+
+        public override int GetHashCode()
+        {
+            return LandingSiteID.GetHashCode();
+        }
         public override string ToString()
         {
             if (Municipality != null)
             {
-                if (Barangay != null)
+                if (Barangay != null && Barangay.Length >= 1)
                 {
                     return $"{LandingSiteName}, Brgy. {Barangay}, {Municipality.ToString()}";
                 }

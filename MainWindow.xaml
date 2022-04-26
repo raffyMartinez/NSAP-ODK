@@ -45,7 +45,7 @@
             <RowDefinition Height="*" x:Name="rowODKData"/>
             <RowDefinition Height="*" x:Name="rowSpecies" />
             <RowDefinition Height="*" x:Name="rowOthers" />
-            <RowDefinition Height="*" x:Name="rowOpening" />
+            <RowDefinition Height="*" x:Name="rowSummary" />
             <RowDefinition Height="30" x:Name="rowStatus" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
@@ -66,11 +66,12 @@
 
         <!--first row for menu-->
         <Menu Grid.ColumnSpan="2" x:Name="menuBarMain">
-            <MenuItem Header="_File">
+            <MenuItem Header="_File" x:Name="menuFile">
                 <MenuItem Header="_Open database" x:Name="menuLocateDatabase" Click="OnMenuClicked" />
                 <MenuItem Header="_Save" x:Name="menuSave">
                     <MenuItem Header="_Gears" x:Name="menuSaveGear" Click="OnMenuClicked" />
                 </MenuItem>
+                <MenuItem Header="Se_ttings" x:Name="menuFileSettings1" Click="OnMenuClicked"/>
                 <MenuItem Header="_Exit" x:Name="menuExit" Click="OnMenuClicked" />
             </MenuItem>
 
@@ -96,7 +97,7 @@
                 <MenuItem Header="Database summary" x:Name="menuDatabaseSummary"  IsCheckable="True" Checked="OnMenuItemChecked"/>
             </MenuItem>
 
-            <MenuItem Header="NSAP Data">
+            <MenuItem Header="NSAP Data" x:Name="menuNSAPData">
                 <MenuItem Header="_Manage" x:Name="menuImport" Click="OnMenuClicked"/>
                 <Separator />
                 <MenuItem Header="Sampling calendar" x:Name="menuNSAPCalendar" Click="OnMenuClicked" />
@@ -104,10 +105,8 @@
                 <MenuItem Header="Export" x:Name="menuNSAPDataExport" >
                     <MenuItem Header="Export to Excel" x:Name="menuExportExcel" Click="OnMenuClicked"/>
                     <MenuItem Header="Export tracked landings summary to Excel" x:Name="menuExportExcelTracked" Click="OnMenuClicked"/>
+                    <MenuItem Header="Extract fishing vessel names by region" x:Name="menuExtractVesselNames" Click="OnMenuClicked"/>
                     <!--<MenuItem Header="Tracked landing summary sheet" x:Name="menuTrackedLandingSummay" Click="OnMenuClicked"/>-->
-                </MenuItem>
-                <MenuItem Header="Review data">
-                    <MenuItem Header="Update responses to 'Has catch composition'" Click="OnMenuClicked" x:Name="menuUpdateHasCatchComposition"/>
                 </MenuItem>
                 <Separator />
                 <MenuItem Header="Import GPX" x:Name="menuImportGPX" Click="OnMenuClicked"/>
@@ -115,6 +114,7 @@
                 <MenuItem Header="Backup MySQL Database" x:Name="menuBackupMySQL" Click="OnMenuClicked" Visibility="Collapsed"/>
                 <MenuItem Header="Setup MysQL tables" x:Name="menuSetupMySQLTables" Click="OnMenuClicked" Visibility="Collapsed"/>
                 <MenuItem Header="Update unload statistics" x:Name="menuUpdateUnloadStats" Click="OnMenuClicked" />
+                <MenuItem Header="Enumerators first sampling" x:Name="menuEnumeratorFirstSampling" Click="OnMenuClicked" />
             </MenuItem>
 
             <MenuItem Header="Generate CSV" x:Name="menuGenerateCSV">
@@ -133,6 +133,11 @@
                 <MenuItem Header="Generate" x:Name="menuGenerateAll" Click="OnMenuClicked" />
             </MenuItem>
 
+            <MenuItem Header="_File" x:Name="menuFile2" Visibility="Collapsed">
+                <MenuItem Header="Settings" x:Name="menuFileSettings" Click="OnMenuClicked"/>
+                <MenuItem Header="_Exit" x:Name="menuExit2" Click="OnMenuClicked" />
+            </MenuItem>
+                
             <MenuItem Header="_Help">
                 <MenuItem Header="About this software" x:Name="menuAbout" Click="OnMenuClicked" />
             </MenuItem>
@@ -256,7 +261,7 @@
             <DataGrid ItemsSource="{Binding}" AutoGenerateColumns="False" Margin="10" Visibility="Collapsed"
                       x:Name="dataGridEntities" IsReadOnly="True" LoadingRow="Grid_LoadingRow" 
                       MouseDoubleClick="OnGridDoubleClick" SelectionChanged="OnDataGridSelectionChanged" MouseRightButtonUp="OnMenuRightClick">
- 
+
             </DataGrid>
         </Grid>
 
@@ -277,6 +282,7 @@
                 <TreeViewItem Header="Overall" x:Name="summaryTreeNodeOverall"/>
                 <TreeViewItem Header="Regions" x:Name="summaryTreeNodeRegion"/>
                 <TreeViewItem Header="Enumerators" x:Name="summaryTreeNodeEnumerators"/>
+                <TreeViewItem Header="e-Form versions" x:Name="summaryTreeForrmVersions"/>
             </TreeView>
 
             <StackPanel Grid.Column="1" x:Name="panelSummaryLabel" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -284,9 +290,15 @@
                 <Label x:Name="labelSummary2" Content="this is a sublabel11" FontWeight="Normal" FontSize="12" Visibility="Collapsed" HorizontalContentAlignment="Center"/>
             </StackPanel>
 
-            <xctk:PropertyGrid x:Name="propertyGridSummary" Grid.Column="1" Grid.Row="1" Margin="20"  ShowSortOptions="False" ShowSearchBox="False" Visibility="Collapsed"
+            <StackPanel Grid.Column="1" Grid.Row="1" Margin="20">
+                <xctk:PropertyGrid x:Name="propertyGridSummary"   ShowSortOptions="False" ShowSearchBox="False" Visibility="Collapsed"
                         ShowTitle="False" MouseDoubleClick="OnPropertyGridDblClick"   SelectedPropertyItemChanged="OnPropertyChanged" IsReadOnly="True" GotFocus="OnPropertyGridFGotFocus"
                                MouseRightButtonUp="OnPropertyGridContextMenu" />
+
+                <StackPanel x:Name="panelVersionStats" Visibility="Collapsed" >
+                    <DataGrid x:Name="dataGridEFormVersionStats"  ItemsSource="{Binding}" IsReadOnly="True" LoadingRow="Grid_LoadingRow"/>
+                </StackPanel>
+            </StackPanel>
 
             <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Column="1" Grid.Row="2">
                 <StackPanel  x:Name="panelOpening">

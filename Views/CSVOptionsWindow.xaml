@@ -16,16 +16,18 @@
             <RowDefinition Height="40"/>
             <RowDefinition />
         </Grid.RowDefinitions>
-        <Label Content="Select type of csv to be generated" Margin="40,0,0,0" VerticalAlignment="Center"/>
-        <StackPanel Grid.Row="1">
+        <Label Content="Select type of csv to be generated" Margin="40 0 0 0" VerticalAlignment="Center"/>
+        <StackPanel Grid.Row="1" Margin=" 40 0 0 0">
             
-            <RadioButton Content="Generate CSV for external selects" Margin="40 40 0 0" x:Name="radioExtSelect" Checked="OnRadioChecked"/>
-            <RadioButton Content="Generate CSV for external select from file" Margin="40 20 0 0" x:Name="radioExtSelectFile" Checked="OnRadioChecked"/>
-            <WrapPanel>
-                <Label Content="Select delimeter for names of location" Margin="80 5 0 0" VerticalAlignment="Center"/>
-                <TextBox x:Name="TxtDelimeter" Margin="5 5 0 0" Width="20" IsEnabled="False"/>
+            <RadioButton Content="Generate CSV for external selects"  x:Name="radioExtSelect" Checked="OnRadioChecked" Margin="0 0 0 10"/>
+            <RadioButton Content="Generate CSV for external select from file"  x:Name="radioExtSelectFile" Checked="OnRadioChecked" Margin="0 0 0 10"/>
+            <CheckBox Content="Include number of fishers in effort CSV" x:Name="chkIncludeNumberFishers"  Margin="0 0 0 10"/>
+            <WrapPanel Margin="0 0 0 0">
+                <Label Content="Select delimeter for names of location"/>
+                <TextBox x:Name="TxtDelimeter"  Width="20" IsEnabled="False"/>
             </WrapPanel>
-            
+
+
         </StackPanel>
         <StackPanel Grid.Row="1" Grid.Column="1">
             <Button Content="OK" Height="30" Margin="10" Click="OnButtonClicked" x:Name="buttonOK"/>

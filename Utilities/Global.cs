@@ -82,6 +82,10 @@ namespace NSAP_ODK.Utilities
             {
                 Settings = Settings.Read(_DefaultSettingspath);
             }
+            else
+            {
+                Logger.Log("Settings file not read");
+            }
             //DoAppProceed();
         }
 
@@ -149,6 +153,8 @@ namespace NSAP_ODK.Utilities
             NSAPEntities.DBSummary = new DBSummary();
             NSAPEntities.DatabaseEnumeratorSummary = new DatabaseEnumeratorSummary();
             NSAPEntities.JSONFileViewModel = new JSONFileViewModel();
+            NSAPEntities.ODKEformVersionViewModel = new ODKEformVersionViewModel();
+
         }
 
         public static bool MySQLLogInCancelled { get; set; }
@@ -188,8 +194,9 @@ namespace NSAP_ODK.Utilities
         }
         public static void SetMDBPath(string path)
         {
-            string jsonFolder = Settings.JSONFolder;
+
             Settings = new Settings();
+            string jsonFolder = Settings.JSONFolder;
             Settings.MDBPath = path;
             Settings.JSONFolder = jsonFolder;
             SaveGlobalSettings();

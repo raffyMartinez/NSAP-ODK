@@ -103,7 +103,7 @@ namespace NSAP_ODK.Entities
             }
         }
 
-        public void FillGearEffortSpecifications()
+        public void FillGearEffortSpecifications(bool includeNumberFishers=false)
         {
             foreach (Gear gear in GearCollection)
             {

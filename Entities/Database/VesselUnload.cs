@@ -66,8 +66,10 @@ namespace NSAP_ODK.Entities.Database
                 Boxes = vesselUnload.Boxes;
                 BoxesSampled = vesselUnload.BoxesSampled;
                 OperationIsSuccessful = vesselUnload.OperationIsSuccessful;
+                FishingTripIsCompleted = vesselUnload.FishingTripIsCompleted;
                 RaisingFactor = vesselUnload.RaisingFactor;
                 HasCatchComposition = vesselUnload.HasCatchComposition;
+                NumberOfFishers = vesselUnload.NumberOfFishers;
 
 
                 //NSAPRegionEnumeratorID = vesselUnload.NSAPRegionEnumeratorID;
@@ -95,6 +97,8 @@ namespace NSAP_ODK.Entities.Database
         }
         [ReadOnly(true)]
         public NSAPRegion NSAPRegion { get; set; }
+
+        public bool FishingTripIsCompleted { get; set; }
         public string Region { get; set; }
 
         [ItemsSource(typeof(NSAPRegionItemsSource))]
@@ -108,6 +112,8 @@ namespace NSAP_ODK.Entities.Database
         public int FMAID { get; set; }
 
         public FishingGround FishingGround { get; set; }
+
+        public int? NumberOfFishers { get; set; }
 
         [ReadOnly(true)]
         public string FishingGroundName { get; set; }
@@ -367,6 +373,7 @@ namespace NSAP_ODK.Entities.Database
             Notes = vesselUnload.Notes;
 
             OperationIsTracked = vesselUnload.OperationIsTracked;
+            FishingTripIsCompleted = vesselUnload.FishingTripIsCompleted;
             DepartureFromLandingSite = vesselUnload.DepartureFromLandingSite == null ? "" : ((DateTime)vesselUnload.DepartureFromLandingSite).ToString("dd-MMM-yyyy HH:mm");
             ArrivalAtLandingSite = vesselUnload.ArrivalAtLandingSite == null ? "" : ((DateTime)vesselUnload.ArrivalAtLandingSite).ToString("dd-MMM-yyyy HH:mm");
             GPS = vesselUnload.GPS == null ? "" : vesselUnload.GPS.AssignedName;
@@ -380,6 +387,7 @@ namespace NSAP_ODK.Entities.Database
             DateAddedToDatabase = ((DateTime)vesselUnload.DateAddedToDatabase).ToString("dd-MMM-yyyy HH:mm");
 
             HasCatchComposition = vesselUnload.HasCatchComposition;
+            NumberOfFishers = vesselUnload.NumberOfFishers;
         }
         public string Region { get; private set; }
         public string FMA { get; private set; }
@@ -397,8 +405,11 @@ namespace NSAP_ODK.Entities.Database
 
         public bool OperationIsSuccessful { get; private set; }
 
+        public bool FishingTripIsCompleted { get; private set; } 
+
         public double? WeightOfCatch { get; private set; }
 
+        public int? NumberOfFishers { get; private set; }
         public double? WeightOfCatchSample { get; private set; }
         public int? Boxes { get; private set; }
 
@@ -448,6 +459,7 @@ namespace NSAP_ODK.Entities.Database
             BoxesSampled = vesselUnload.BoxesSampled;
             RaisingFactor = vesselUnload.RaisingFactor;
             OperationIsSuccessful = vesselUnload.OperationIsSuccessful;
+            FishingTripIsCompleted = vesselUnload.FishingTripIsCompleted;
             OperationIsTracked = vesselUnload.OperationIsTracked;
             DepartureFromLandingSite = vesselUnload.DepartureFromLandingSite;
             ArrivalAtLandingSite = vesselUnload.ArrivalAtLandingSite;
@@ -467,7 +479,7 @@ namespace NSAP_ODK.Entities.Database
         }
         public int ID { get; set; }
         public int ParentID { get; set; }
-
+        public bool FishingTripIsCompleted { get; set; }
         public string LandingSite { get; set; }
 
         public bool IsBoatUsed { get; set; }
@@ -513,7 +525,7 @@ namespace NSAP_ODK.Entities.Database
 
         public override string ToString()
         {
-            return $"[ID:{PK}] {VesselName}-{Parent.Parent.LandingSiteName}-{SamplingDate.ToString("MMM-dd-yyyy")}";
+            return $"[ID:{PK}] {VesselName}-{Parent.Parent.LandingSiteName}-{SamplingDate.ToString("MMM-dd-yyyy")}-Enumerator:{EnumeratorName}";
         }
         public bool HasCatchComposition { get; set; }
         public DateTime TimeStart { get; set; }
@@ -531,8 +543,8 @@ namespace NSAP_ODK.Entities.Database
         public int CountLenFreqRows { get; set; }
         public int CountLenWtRows { get; set; }
         public int CountMaturityRows { get; set; }
-
-
+        public int? NumberOfFishers { get; set; }
+        public bool FishingTripIsCompleted { get; set; }
         public bool HasBSCInCatchComposition()
         {
             if (ListVesselCatch == null)

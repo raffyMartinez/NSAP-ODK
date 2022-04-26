@@ -26,6 +26,8 @@ namespace NSAP_ODK.Entities.Database
         public string Region { get { return _vesselUnload.Parent.Parent.NSAPRegion.ShortName; } }
 
         public string Gear { get { return _vesselUnload.Parent.GearUsedName; } }
+
+        public int? NumberOfFishers { get { return _vesselUnload.NumberOfFishers; } }
         public int PK { get { return _vesselUnload.PK; } }
         public int CountGridLocations { get { return _vesselUnload.CountGrids; } }
         public int CountEffortIndicators { get { return _vesselUnload.CountEffortIndicators; } }

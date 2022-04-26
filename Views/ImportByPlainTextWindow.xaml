@@ -28,6 +28,9 @@
                 <CheckBox Content="Region name" Margin="10 5 0 0"/>
             </StackPanel>
         </Border>
+        <WrapPanel Grid.Row="3" Margin="5" VerticalAlignment="Center" x:Name="panelSector">
+            <CheckBox Content="Municipal fishing sector" x:Name="checkboxMunicipalSector"/>
+        </WrapPanel>
         <WrapPanel Grid.Row="3" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.ColumnSpan="2">
             <Button Content="Cancel" x:Name="buttonCancel" Click="onButtonClick" Height="30" Width="50" Margin="10 0"/>
             <Button Content="Ok" x:Name="buttonOk" Click="onButtonClick" Height="30" Width="50" Margin="10 0"/>

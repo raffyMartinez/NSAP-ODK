@@ -88,6 +88,7 @@ namespace NSAP_ODK.Views
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Latitude", Binding = new Binding("CrossTabCommon.CommonProperties.yCoordinate")  });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("CrossTabCommon.CommonProperties.Gear")  });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("CrossTabCommon.CommonProperties.FBName")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Number of fishers", Binding = new Binding("CrossTabCommon.CommonProperties.NumberOfFishers")  });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "FBL", Binding = new Binding("CrossTabCommon.CommonProperties.FBL")  });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "FBM", Binding = new Binding("CrossTabCommon.CommonProperties.FBM")  });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Total weight of catch", Binding = new Binding("CrossTabCommon.CommonProperties.TotalWeight")  });

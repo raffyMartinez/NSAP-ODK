@@ -31,6 +31,7 @@ namespace NSAP_ODK.Entities
             DateEnd = landingSite.DateEnd;
             RowID = landingSite.RowID;
             IsNew = false;
+            Barangay = landingSite.LandingSite.Barangay;
         }
 
         [ReadOnly(true)]
@@ -83,6 +84,8 @@ namespace NSAP_ODK.Entities
                 NSAPEntities.MunicipalityID = _municipality;
             }
         }
+
+        public string Barangay { get; set; }
 
     }
 }

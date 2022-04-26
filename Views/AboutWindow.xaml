@@ -13,7 +13,7 @@
             <RowDefinition Height="60"/>
         </Grid.RowDefinitions>
         <StackPanel VerticalAlignment="Center">
-            <Image Source="/NSAP-ODK;component/icons-04.ico" Height="100" Width="100" />
+            <Image Source="icons fish-01.png" Height="130" Width="130" />
             <Label Content="NSAP-ODK Database" FontSize="18" FontWeight="Bold" HorizontalContentAlignment="Center" Margin="0 0 0 20"/>
             <Label Content="Written by: Rafael Martinez" HorizontalAlignment="Center"/>
             <Label Content="raffy.martinez@gmail.com" HorizontalAlignment="Center" Margin="0 0 0 20"/>

@@ -31,7 +31,8 @@ namespace NSAP_ODK.Entities
             {
                 case "50N":
                     MajorGridNumberingStart = 1;
-                    MaxGridNumber = 315;
+                    //MaxGridNumber = 315;
+                    MaxGridNumber = 600;
                     MajorGridXOrigin = 300000;
                     MajorGridYOrigin = 400000;
                     MajorGridColumns = 15;

@@ -55,6 +55,7 @@ namespace NSAP_ODK.Entities
                     Logger.Log(ex);
 
                 }
+                //var s = listCells.Where(t => t.Grid25GridCell.GridNumber == 592).FirstOrDefault();
                 return listCells;
             }
         }

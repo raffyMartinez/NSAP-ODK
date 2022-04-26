@@ -78,6 +78,7 @@ namespace NSAP_ODK.Entities
         public static DBSummary DBSummary;
         public static DatabaseEnumeratorSummary DatabaseEnumeratorSummary;
         public static JSONFileViewModel JSONFileViewModel;
+        public static ODKEformVersionViewModel ODKEformVersionViewModel;
 
 
         static NSAPEntities()

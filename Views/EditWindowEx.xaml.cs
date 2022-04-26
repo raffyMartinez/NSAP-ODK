@@ -9,6 +9,9 @@ using System.Windows.Data;
 using System.Windows.Input;
 using Xceed.Wpf.Toolkit.PropertyGrid;
 
+
+
+
 namespace NSAP_ODK.Views
 {
     /// <summary>
@@ -31,6 +34,7 @@ namespace NSAP_ODK.Views
         private string _selectedProperty;
         private bool _oldIsForAllTypesFishing;
         private object _originalSource;
+        private bool _textDBIdentifierValid;
 
 
         public bool CloseCommandFromMainWindow { get; set; }
@@ -377,18 +381,21 @@ namespace NSAP_ODK.Views
                             DateEnd = nsffls.DateEnd,
                             Province = nsffls.Province,
                             Municipality = nsffls.Municipality,
-                            FMAFishingGround = nsffls.FMAFishingGround
+                            FMAFishingGround = nsffls.FMAFishingGround,
+                            Barangay = nsffls.Barangay
                         };
                     }
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Province", DisplayName = "Province", DisplayOrder = 1, Description = "Province where landing site is found" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Municipality", DisplayName = "Municipality", DisplayOrder = 2, Description = "Municipality where landing site is found" });
-                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LandingSiteID", DisplayName = "Landing site*", DisplayOrder = 3, Description = "Name of landing site.\r\nDouble click to directly add a new landing site to the fishing ground" });
-                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DateStart", DisplayName = "Date included in the list", DisplayOrder = 4, Description = "Date when landing site was included in the fishing ground" });
-                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DateEnd", DisplayName = "Date removed from the list", DisplayOrder = 5, Description = "Date when landing site was removed from the fishing ground" });
+                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LandingSiteID", DisplayName = "Landing site*", DisplayOrder = 4, Description = "Name of landing site.\r\nDouble click to directly add a new landing site to the fishing ground" });
+                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DateStart", DisplayName = "Date included in the list", DisplayOrder = 5, Description = "Date when landing site was included in the fishing ground" });
+                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DateEnd", DisplayName = "Date removed from the list", DisplayOrder = 6, Description = "Date when landing site was removed from the fishing ground" });
 
                     if (_isNew)
+                    {
                         PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "RowID", DisplayName = "Database identifier", DisplayOrder = 7, Description = "Identifier used in the database" });
-                    //FillProperties();
+                    }
+
                     PropertyGrid.SelectedObject = nsapRegionFMAFGLS;
                     break;
 
@@ -1892,7 +1899,6 @@ namespace NSAP_ODK.Views
                     if (nsrls != null)
                     {
                         new EditWindowEx(NSAPEntity.NSAPRegionFMAFishingGroundLandingSite, nsrls.RowID.ToString(), nsrls).ShowDialog();
-
                     }
                     break;
 
@@ -2238,6 +2244,25 @@ namespace NSAP_ODK.Views
             var currentProperty = (PropertyItem)e.OriginalSource;
             switch (currentProperty.PropertyName)
             {
+                case "Code":
+                    switch(NSAPEntity.ToString())
+                    {
+                        case "FishingGround":
+                            //if(currentProperty.DisplayName=="Database identifier")
+                            //{
+                            //    _textDBIdentifierValid = !NSAPEntities.FishingGroundViewModel.FishingGroundCodeExists(currentProperty.Value.ToString());
+                            //    if(!_textDBIdentifierValid)
+                            //    {
+                            //        MessageBox.Show("Fishing ground code already used",
+                            //            "NSAP-ODK Database",
+                            //            MessageBoxButton.OK,
+                            //            MessageBoxImage.Information
+                            //            );
+                            //    }
+                            //}
+                            break;
+                    }
+                    break;
                 case "DateEnd":
                     foreach (PropertyItem prp in this.PropertyGrid.Properties)
                     {

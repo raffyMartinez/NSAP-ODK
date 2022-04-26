@@ -113,6 +113,16 @@ namespace NSAP_ODK.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap icons_fish_01 {
+            get {
+                object obj = ResourceManager.GetObject("icons_fish_01", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap question {
             get {
                 object obj = ResourceManager.GetObject("question", resourceCulture);

@@ -187,7 +187,7 @@ namespace NSAP_ODK.Entities.Database
                 }
                 else if (SpeciesID != null && TaxaCode == "FIS")
                 {
-                    return FishSpecies.ToString();
+                    return FishSpecies?.ToString();
                 }
                 else
                 {

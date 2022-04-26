@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using NSAP_ODK.Entities;
 
 namespace NSAP_ODK.Views
 {
@@ -13,26 +14,59 @@ namespace NSAP_ODK.Views
     /// </summary>
     public partial class ImportByPlainTextWindow : Window
     {
+        private NSAPRegion _selectedRegion;
         public ImportByPlainTextWindow()
         {
             InitializeComponent();
             Loaded += OnWindowLoaded;
         }
 
+        private void FillRegionRadioButtons()
+        {
+            panelRegions.Children.Clear();
+            foreach (var region in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection.OrderBy(t => t.Sequence))
+            {
+                var radioButton = new RadioButton
+                {
+                    Content = region.ShortName,
+                    Tag = region,
+                    Margin = new Thickness(10, 5, 0, 0)
+                };
+                radioButton.Checked += OnRadioButton_Checked;
+                panelRegions.Children.Add(radioButton);
+            }
+        }
+
+        private void OnRadioButton_Checked(object sender, RoutedEventArgs e)
+        {
+            _selectedRegion = (NSAPRegion)((RadioButton)sender).Tag;
+        }
+
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
+            panelSector.Visibility = Visibility.Collapsed;
             switch (NSAPEntityType)
             {
                 case NSAPEntity.Enumerator:
                     Title = "Import enumerator names";
-
+                    FillRegionCheckBoxes();
                     break;
                 case NSAPEntity.FishingGear:
                     Title = "Import fishing gear names";
                     break;
+                case NSAPEntity.FishingVessel:
+                    Title = "Import fishing vessels";
+                    panelSector.Visibility = Visibility.Visible;
+                    FillRegionRadioButtons();
+                    break;
             }
             labelTitle.Content = Title;
 
+
+        }
+
+        private void FillRegionCheckBoxes()
+        {
             int counter = 0;
             foreach (var r in NSAPEntities.NSAPRegionViewModel.GetAllNSAPRegions())
             {
@@ -103,7 +137,7 @@ namespace NSAP_ODK.Views
                                     }
                                     else
                                     {
-                                        foreach(var msg in entityMessages)
+                                        foreach (var msg in entityMessages)
                                         {
                                             if (msg.MessageType == MessageType.Error)
                                             {

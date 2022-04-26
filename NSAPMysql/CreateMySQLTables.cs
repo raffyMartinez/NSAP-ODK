@@ -128,6 +128,7 @@ namespace NSAP_ODK.NSAPMysql
                                     `region` VARCHAR(6) NOT NULL,
                                     `date_start` DATE NOT NULL,
                                     `date_end` DATE NULL,
+                                    `date_first_upload` DATE NULL,
                                     PRIMARY KEY (`row_id`),
                                     INDEX `enumerator_id_nre_fk_idx` (`enumerator_id` ASC) VISIBLE,
                                     INDEX `region_nre_fk_idx` (`region` ASC) VISIBLE,
@@ -759,7 +760,7 @@ namespace NSAP_ODK.NSAPMysql
                                     `ground_id` VARCHAR(6) NOT NULL,
                                     `remarks` VARCHAR(80) NULL,
                                     `is_sample_day` TINYINT(1) NOT NULL,
-                                    `land_ctr_text` VARCHAR(40) NULL,
+                                    `land_ctr_text` VARCHAR(150) NULL,
                                     PRIMARY KEY (`unload_day_id`),
                                     INDEX `region_id_lss_fk_idx` (`region_id` ASC) VISIBLE,
                                     INDEX `fma_lss_fk_idx` (`fma` ASC) VISIBLE,
@@ -818,6 +819,7 @@ namespace NSAP_ODK.NSAPMysql
                                         `enumerator_text` VARCHAR(30) NULL,
                                         PRIMARY KEY (`unload_day_id`),
                                         INDEX `enumerator_id_lss_fk_idx` (`enumerator_id` ASC) VISIBLE,
+                                        UNIQUE INDEX `row_id_UNIQUE` (`row_id` ASC) VISIBLE,
                                         CONSTRAINT `enumerator_id_lss_fk`
                                           FOREIGN KEY (`enumerator_id`)
                                           REFERENCES `nsap_enumerators` (`enumerator_id`)
@@ -933,6 +935,7 @@ namespace NSAP_ODK.NSAPMysql
                                         `v_unload_id` INT NOT NULL,
                                         `success` TINYINT(1),
                                         `tracked` TINYINT(1),
+                                        `trip_is_completed` TINYINT(1),
                                         `departure_landing_site` DATETIME NULL,
                                         `arrival_landing_site` DATETIME NULL,
                                         `sector_code` VARCHAR(2) NULL,
@@ -949,9 +952,11 @@ namespace NSAP_ODK.NSAPMysql
                                         `enumerator_id` INT NULL,
                                         `enumerator_text` VARCHAR(40) NULL,
                                         `date_added` DATETIME NULL,
-                                        `from_excel_download` TINYINT(1) 0,
-                                        `has_catch_composition` TINYINT(1) NULL,
+                                        `from_excel_download` TINYINT(1),
+                                        `has_catch_composition` TINYINT(1),
+                                        `number_of_fishers` INT NULL,
                                         PRIMARY KEY (`v_unload_id`),
+                                        UNIQUE INDEX `row_id_UNIQUE` (`row_id` ASC) VISIBLE,
                                         INDEX `gps_vu1_fk_idx` (`gps` ASC) VISIBLE,
                                         INDEX `enumerator_id_vu1_fk_idx` (`enumerator_id` ASC) VISIBLE,
                                         CONSTRAINT `gps_vu1_fk` 

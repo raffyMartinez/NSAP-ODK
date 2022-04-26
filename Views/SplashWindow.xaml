@@ -17,7 +17,7 @@
 
         </Grid.RowDefinitions>
         <StackPanel VerticalAlignment="Center">
-            <Image Source="/NSAP-ODK;component/icons-04.ico" Height="100" Width="100"/>
+            <Image Source="icons fish-01.png" Height="130" Width="130"/>
             <Label Content="NSAP-ODK Fish Landings Database" HorizontalContentAlignment="Center" x:Name="LabelTitle" VerticalAlignment="Center" FontSize="20" FontWeight="Bold"/>
             <Label Content="Application version" HorizontalAlignment="Center" x:Name="labelVersion"/>
         </StackPanel>

@@ -36,7 +36,6 @@ namespace NSAP_ODK.Entities
             ds.Tables.Add(dt);
             return ds;
         }
-
         public FishingGroundViewModel()
         {
             FishingGrounds = new FishingGroundRepository();
@@ -60,7 +59,7 @@ namespace NSAP_ODK.Entities
         }
 
         public FishingGround CurrentEntity { get; set; }
-        public bool FishingGroundCodeExist(string code)
+        public bool FishingGroundCodeExists(string code)
         {
             foreach (FishingGround fg in FishingGroundCollection)
             {
@@ -165,7 +164,7 @@ namespace NSAP_ODK.Entities
                 entityMessages.Add(new EntityValidationMessage("Fishing ground code must made up of 1 to 5 characters"));
             }
 
-            if (FishingGroundCodeExist(fg.Code) && isNew)
+            if (FishingGroundCodeExists(fg.Code) && isNew)
             {
                 entityMessages.Add(new EntityValidationMessage("Fishing ground code is already in use"));
             }
@@ -183,7 +182,7 @@ namespace NSAP_ODK.Entities
 
             if (!isNew
                  && oldCode != fg.Code
-                && FishingGroundCodeExist(fg.Code))
+                && FishingGroundCodeExists(fg.Code))
                 entityMessages.Add(new EntityValidationMessage("Gear code already used"));
 
             return entityMessages.Count == 0;

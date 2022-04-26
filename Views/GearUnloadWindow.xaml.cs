@@ -230,6 +230,7 @@ namespace NSAP_ODK.Views
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("PK") });
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("UserName") });
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Vessel", Binding = new Binding("VesselName") });
+            GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Number of fishers", Binding = new Binding("NumberOfFishers") });
             GridVesselUnload.Columns.Add(new DataGridCheckBoxColumn { Header = "Fishing trip success", Binding = new Binding("OperationIsSuccessful") });
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Weight of catch", Binding = new Binding("WeightOfCatchText") });
             GridVesselUnload.Columns.Add(new DataGridCheckBoxColumn { Header = "Includes catch composition", Binding = new Binding("HasCatchComposition") });

@@ -71,8 +71,21 @@ namespace NSAP_ODK.Entities.Database
 
                 n++;
             }
-            return dws;
+
+            var sorted = dws.OrderBy(t => t.Enumerator).ToList();
+
+            Download_summary s = new Download_summary
+            {
+                Enumerator = "Grand total",
+                NumberLandings = downloadedItems.Count,
+                NumberLandingsWithCatchComposition = downloadedItems.Count(t => t.HasCatchComposition == true),
+                NumberOfTrackedLandings = downloadedItems.Count(t => t.OperationIsTracked == true)
+            };
+            sorted.Add(s);
+            return sorted;
         }
+
+
         private int UpdateUnloadStats()
         {
             int result = 0;
@@ -152,6 +165,26 @@ namespace NSAP_ODK.Entities.Database
         public Task<int> UpdateHasCatchCompositionColumnsAsync(List<UpdateHasCatchCompositionResultItem> updateItems, int round)
         {
             return Task.Run(() => UpdateHasCatchCompositionColumns(updateItems, round));
+        }
+
+        public Task<int> UpdateXFormIdentifierColumnAsync(List<UpdateXFormIdentifierItem> updateItems, int round)
+        {
+            return Task.Run(() => UpdateXFormIdentifierColumn(updateItems, round));
+        }
+        private int UpdateXFormIdentifierColumn(List<UpdateXFormIdentifierItem>updateItems, int round)
+        {
+            ManageUpdateEvent(intent: "start", round: round, rowsForUpdating: updateItems.Count);
+            int results = 0;
+            foreach(var item in updateItems)
+            {
+                if (VesselUnloads.UpdateXFormIdentifierColumn(item))
+                {
+                    results++;
+                    ManageUpdateEvent(intent: "row updated", runningCount: results);
+                }
+            }
+            ManageUpdateEvent(intent: "finished");
+            return results;
         }
         private int UpdateHasCatchCompositionColumns(List<UpdateHasCatchCompositionResultItem> updateItems, int round)
         {

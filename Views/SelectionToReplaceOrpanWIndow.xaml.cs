@@ -40,7 +40,7 @@ namespace NSAP_ODK.Views
             _timer.Interval = TimeSpan.FromMilliseconds(500);
         }
 
-        private void SearchReplacements(string toSearch)
+        private void SearchReplacements1(string toSearch)
         {
             //_isFish = false;
             int count = 0;
@@ -97,6 +97,64 @@ namespace NSAP_ODK.Views
                     txtNotFound.MouseRightButtonDown += OnRadioButtonRightMouseButtonDown;
                     panelButtons.Children.Add(txtNotFound);
                 }
+            }
+
+            //speciesHyperLink.Inlines.Clear();
+            //speciesHyperLink.Inlines.Add($"Search OBIS for {toSearch}");
+        }
+        private void SearchReplacements(string toSearch)
+        {
+            //_isFish = false;
+            int count = 0;
+            foreach (var sp in NSAPEntities.FishSpeciesViewModel.GetAllSpecies(toSearch))
+            {
+                var rb = new RadioButton { Content = sp.ToString(), Tag = sp };
+
+                rb.Foreground = Brushes.Black;
+                rb.Checked += OnButtonChecked;
+                rb.MouseRightButtonDown += OnRadioButtonRightMouseButtonDown;
+                _isFish = NSAPEntities.NotFishSpeciesViewModel.GetSpecies(rb.Content.ToString()) == null;
+                rb.Margin = new Thickness(10, 10, 0, 0);
+                panelButtons.Children.Add(rb);
+                count++;
+            }
+            foreach (NotFishSpecies nf in NSAPEntities.NotFishSpeciesViewModel.GetAllSpecies(toSearch))
+            {
+                var rb = new RadioButton { Content = nf.ToString(), Tag = nf };
+                rb.Foreground = Brushes.DarkOrange;
+                rb.Checked += OnButtonChecked;
+                rb.MouseRightButtonDown += OnRadioButtonRightMouseButtonDown;
+                rb.Margin = new Thickness(10, 10, 0, 0);
+                panelButtons.Children.Add(rb);
+                count++;
+
+            }
+            if (count == 1)
+            {
+                ((RadioButton)panelButtons.Children[0]).IsChecked = true;
+            }
+            else if (count == 0)
+            {
+                TextBlock txtNotFound = null;
+                if (textSearch.Text.Length > 0 && (_itemHit==null || _itemHit.Length==0))
+                {
+                    txtNotFound = new TextBlock { Text = $"{textSearch.Text} is not found in the database" };
+                }
+                else
+                {
+                    txtNotFound = new TextBlock
+                    {
+                        Text = $"The accepted name of {_itemHit} according to OBIS is {toSearch}. " +
+                                  "However, it is not listed as occuring in the Philippines.\r\n \r\n" +
+                                  "Be aware though that status of accepted species names is constantly changing.",
+
+                    };
+                }
+                txtNotFound.TextWrapping = TextWrapping.Wrap;
+                txtNotFound.Margin = new Thickness(20);
+                txtNotFound.MouseRightButtonDown += OnRadioButtonRightMouseButtonDown;
+                panelButtons.Children.Add(txtNotFound);
+
             }
 
             //speciesHyperLink.Inlines.Clear();
@@ -435,7 +493,7 @@ namespace NSAP_ODK.Views
                             {
                                 _itemHit = ItemToReplace;
                                 _itemInOBIS = _obiResponse.results[0].acceptedNameUsage;
-                                _isFish = _obiResponse.results[0].superclass == "Pisces";
+                                _isFish = _obiResponse.results[0].@class == "Actinopteri" || _obiResponse.results[0].@class=="Elasmobranchii";
                                 SearchReplacements(_itemInOBIS);
                             }
                             else

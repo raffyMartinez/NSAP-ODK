@@ -22,6 +22,7 @@ namespace NSAP_ODK.Entities
         public string scientificName { get; set; }
         public string scientificNameAuthorship { get; set; }
         public int taxonID { get; set; }
+        public int ncbi_id { get; set; }
         public string taxonRank { get; set; }
         public string taxonomicStatus { get; set; }
         public string acceptedNameUsage { get; set; }
@@ -33,21 +34,23 @@ namespace NSAP_ODK.Entities
         public string kingdom { get; set; }
         public string phylum { get; set; }
         public string subphylum { get; set; }
-        public string superclass { get; set; }
+        public string infraphylum { get; set; }
         public string @class { get; set; }
+        public string subclass { get; set; }
         public string order { get; set; }
-        public string suborder { get; set; }
         public string family { get; set; }
+        public string subfamily { get; set; }
         public string genus { get; set; }
         public string species { get; set; }
         public int kingdomid { get; set; }
         public int phylumid { get; set; }
         public int subphylumid { get; set; }
-        public int superclassid { get; set; }
+        public int infraphylumid { get; set; }
         public int classid { get; set; }
+        public int subclassid { get; set; }
         public int orderid { get; set; }
-        public int suborderid { get; set; }
         public int familyid { get; set; }
+        public int subfamilyid { get; set; }
         public int genusid { get; set; }
         public int speciesid { get; set; }
     }

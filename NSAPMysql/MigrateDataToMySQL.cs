@@ -794,6 +794,7 @@ namespace NSAP_ODK.NSAPMysql
 
                             item.OperationIsSuccessful = (bool)dr["Success"];
                             item.OperationIsTracked = (bool)dr["Tracked"];
+                            item.FishingTripIsCompleted = (bool)dr["trip_is_completed"];
                             item.ODKRowID = dr["RowID"].ToString();
                             item.DepartureFromLandingSite = string.IsNullOrEmpty(dr["DepartureLandingSite"].ToString()) ? null : (DateTime?)dr["DepartureLandingSite"];
                             item.ArrivalAtLandingSite = string.IsNullOrEmpty(dr["ArrivalLandingSite"].ToString()) ? null : (DateTime?)dr["ArrivalLandingSite"];

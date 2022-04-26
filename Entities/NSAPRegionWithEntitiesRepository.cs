@@ -1,10 +1,10 @@
-﻿using NSAP_ODK.Utilities;
+﻿using MySql.Data.MySqlClient;
+using NSAP_ODK.NSAPMysql;
+using NSAP_ODK.Utilities;
 using System;
 using System.Data;
 using System.Data.OleDb;
 using System.Linq;
-using MySql.Data.MySqlClient;
-using NSAP_ODK.NSAPMysql;
 
 namespace NSAP_ODK.Entities
 {
@@ -336,6 +336,16 @@ namespace NSAP_ODK.Entities
                                 nre.NSAPRegion = NSAPRegion;
                                 nre.Enumerator = NSAPEntities.NSAPEnumeratorViewModel.GetNSAPEnumerator(Convert.ToInt32(dr["EnumeratorID"]));
                                 nre.DateStart = (DateTime)dr["DateStart"];
+
+                                if (dr["DateFirstSampling"] == DBNull.Value)
+                                {
+                                    nre.DateFirstSampling = null;
+                                }
+                                else
+                                {
+                                    nre.DateFirstSampling = (DateTime)dr["DateFirstUpload"];
+                                }
+
                                 if (DateTime.TryParse(dr["DateEnd"].ToString(), out DateTime v))
                                 {
                                     nre.DateEnd = v;
@@ -344,12 +354,64 @@ namespace NSAP_ODK.Entities
                             }
                         }
                     }
+                    catch(OleDbException oex)
+                    {
+
+                    }
                     catch (Exception ex)
+                    {
+                        if (ex.HResult == -2147024809) //column does not exist
+                        {
+                            var arr = ex.Message.Split(' ');
+                            if (AddColumnToTable(arr[1], "NSAPRegionEnumerator"))
+                            {
+                                //UpdateEnumeratorFirstUploadDate();
+                                EnumeratorFirstSamplingDateRequired = true;
+                                GetEnumerators();
+                            }
+                        }
+                        else
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+        }
+
+        public static bool EnumeratorFirstSamplingDateRequired { get; set; } 
+
+
+        private bool AddColumnToTable(string colName, string tableName )
+        {
+            bool success = false;
+            string sql= "";
+            colName = colName.Trim('\'');
+            switch(colName)
+            {
+                case "DateFirstSampling":
+                     sql = $"ALTER TABLE {tableName} ADD COLUMN {colName} DATETIME DEFAULT NULL";
+                    break;
+            }
+            using (var conn = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = sql;
+                    try
+                    {
+                        conn.Open();
+                        cmd.ExecuteNonQuery();
+                        success = true;
+                    }
+                    catch(Exception ex)
                     {
                         Logger.Log(ex);
                     }
                 }
             }
+
+                return success;
         }
 
         private void GetGears()
@@ -552,7 +614,31 @@ namespace NSAP_ODK.Entities
             }
         }
 
-
+        public static int MaxRecordNumber_RegionFMA()
+        {
+            int max_rec_no = 0;
+            if (Global.Settings.UsemySQL)
+            {
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+                {
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = "SELECT Max(row_id) AS max_record_no FROM nsap_region_fma";
+                    }
+                }
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (OleDbCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = "SELECT Max(RowID) AS max_record_no FROM NSAPRegionFMA";
+                    }
+                }
+            }
+            return max_rec_no;
+        }
 
         public static int MaxRecordNumber_Enumerator()
         {
@@ -631,7 +717,7 @@ namespace NSAP_ODK.Entities
                 using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
                     conn.Open();
-                    const string sql = "SELECT Max(row_id) AS max_record_no FROM nsap_region_gear";
+                    const string sql = "SELECT Max(row_id) AS max_record_no FROM NSAPRegionGear";
                     using (OleDbCommand getMax = new OleDbCommand(sql, conn))
                     {
                         max_rec_no = (int)getMax.ExecuteScalar();
@@ -650,7 +736,7 @@ namespace NSAP_ODK.Entities
                     using (var cmd = conn.CreateCommand())
                     {
                         conn.Open();
-                        cmd.CommandText="SELECT Max(row_id) AS max_record_no FROM nsap_region_fma_fishing_grounds";
+                        cmd.CommandText = "SELECT Max(row_id) AS max_record_no FROM nsap_region_fma_fishing_grounds";
                         max_rec_no = (int)cmd.ExecuteScalar();
                     }
                 }
@@ -964,9 +1050,48 @@ namespace NSAP_ODK.Entities
         public bool AddNSAPRegionFMA(NSAPRegionFMA nf)
         {
             bool success = false;
+            if (!(nf?.RowID > 0))
+            {
+                nf.RowID = MaxRecordNumber_RegionFMA() + 1;
+            }
             if (Global.Settings.UsemySQL)
             {
                 success = AddNSAPRegionFMAToMySQL(nf);
+            }
+            else
+            {
+                using (var conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var update = conn.CreateCommand())
+                    {
+                        conn.Open();
+                        update.Parameters.AddWithValue("@nsap_region", nf.NSAPRegion.Code);
+                        update.Parameters.AddWithValue("@fma", nf.FMA.FMAID);
+                        update.Parameters.AddWithValue("@row_id", nf.RowID);
+                        update.CommandText = @"Insert into NSAPRegionFMA (NSAPRegion, FMA,RowID) Values (@nsap_region,@fma,@row_id)";
+                        try
+                        {
+                            success = update.ExecuteNonQuery() > 0;
+                        }
+                        catch (MySqlException msex)
+                        {
+                            switch (msex.ErrorCode)
+                            {
+                                case -2147467259:
+                                    //duplicated unique index error
+                                    break;
+                                default:
+                                    Logger.Log(msex);
+                                    break;
+                            }
+
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
             }
             return success;
         }
@@ -1282,7 +1407,7 @@ namespace NSAP_ODK.Entities
                                         Where RowID=@id";
                 }
             }
-                return success;
+            return success;
         }
         public bool EditLandingSite(NSAPRegionFMAFishingGroundLandingSite fmaFishingGroundLandingSite)
         {
@@ -1661,7 +1786,7 @@ namespace NSAP_ODK.Entities
             bool success = false;
             using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
             {
-                using(var update = conn.CreateCommand())
+                using (var update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@gear_code", MySqlDbType.VarChar).Value = regionGear.Gear.Code;
                     update.Parameters.Add("@start", MySqlDbType.DateTime).Value = regionGear.DateStart;
@@ -1685,17 +1810,17 @@ namespace NSAP_ODK.Entities
                         conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch(MySqlException msx)
+                    catch (MySqlException msx)
                     {
                         Logger.Log(msx);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Logger.Log(ex);
                     }
                 }
             }
-                return success;
+            return success;
         }
         public bool EditGear(NSAPRegionGear regionGear)
         {
@@ -1828,24 +1953,24 @@ namespace NSAP_ODK.Entities
             {
                 using (var cmd = conn.CreateCommand())
                 {
-                    cmd.Parameters.AddWithValue("@id",id);
+                    cmd.Parameters.AddWithValue("@id", id);
                     cmd.CommandText = "Delete from nsap_region_landing_site where row_id=@id;";
                     try
                     {
                         conn.Open();
                         success = cmd.ExecuteNonQuery() > 0;
                     }
-                    catch(MySqlException msx)
+                    catch (MySqlException msx)
                     {
                         Logger.Log(msx);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Logger.Log(ex);
                     }
                 }
             }
-                return success;
+            return success;
         }
         public bool DeleteLandingSite(int id)
         {

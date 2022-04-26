@@ -141,6 +141,21 @@ namespace NSAP_ODK.Entities.Database
         public string RowID { get; set; }
         public int? EnumeratorID { get; set; }
         public string EnumeratorText { get; set; }
+
+        public string EnumeratorName
+        {
+            get
+            {
+                if(EnumeratorID==null)
+                {
+                    return EnumeratorText;
+                }
+                else
+                {
+                    return NSAPEntities.NSAPEnumeratorViewModel.GetNSAPEnumerator((int)EnumeratorID).Name;
+                }
+            }
+        }
     }
 
 }

@@ -6,11 +6,13 @@ using System.Linq;
 using NSAP_ODK.Entities.Database;
 using System.Diagnostics;
 using NSAP_ODK.Utilities;
+using System.Threading.Tasks;
 
 namespace NSAP_ODK.Entities
 {
     public class NSAPRegionViewModel
     {
+        public event EventHandler VesselListEvent;
         private bool _editSuccess;
         public DBSummary TotalOfSummary { get; set; }
 
@@ -25,6 +27,43 @@ namespace NSAP_ODK.Entities
 
         public Dictionary<string, NSAPRegionWithEntitiesRepository> NSAPRegionsWithEntitiesRepositories { get; set; }
 
+
+        private void ManageVesselListingEvent(string intent, int? listCount = 0)
+        {
+            EventHandler h = VesselListEvent;
+            if (h != null)
+            {
+                var ev = new VesselListingEventArgs();
+                ev.Intent = intent;
+                switch (intent)
+                {
+                    case "start":
+                        //placeholder
+                        break;
+                    case "end":
+                        ev.ListCount = listCount;
+                        break;
+                }
+                h(null, ev);
+            }
+        }
+        public Task<List<string>> GetVesselNamesByRegionAsync(NSAPRegion region)
+        {
+            return Task.Run(() => GetVesselNamesByRegion(region));
+        }
+        public List<string> GetVesselNamesByRegion(NSAPRegion region)
+        {
+            ManageVesselListingEvent(intent: "start");
+            List<string> vesselNames = new List<string>();
+            foreach (var landing in NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.Where(t => t.Parent.Parent.NSAPRegion == region && t.VesselName.Length > 0))
+            {
+                vesselNames.Add($"{landing.VesselName}\t{landing.SectorCode}");
+            }
+
+            var listNames = vesselNames.Distinct().ToList();
+            ManageVesselListingEvent(intent: "end", listCount: listNames.Count());
+            return listNames;
+        }
         public List<FishingGround> GetFishingGrounds(NSAPRegion region)
         {
             List<FishingGround> listFG = new List<FishingGround>();
@@ -74,7 +113,7 @@ namespace NSAP_ODK.Entities
                           t.FMAID == fma.FMAID &&
                           t.FishingGroundID == fishingGround.Code &&
                           t.LandingSiteName == landingSite).GroupBy(t => t.MonthSampled)
-                          .OrderBy(t=>t.Key)
+                          .OrderBy(t => t.Key)
                           .ToList();
 
             foreach (var month in monthSamplings)
@@ -88,9 +127,9 @@ namespace NSAP_ODK.Entities
                         t.Parent.Parent.LandingSiteName == landingSite &&
                         t.MonthSampled == month.Key
                     ).ToList();
-                    
-                smmry.VesselUnloadCount = landings.Count;    
-                if(landings.Count>0)
+
+                smmry.VesselUnloadCount = landings.Count;
+                if (landings.Count > 0)
                 {
                     smmry.LastLandingFormattedDate = landings.OrderByDescending(t => t.SamplingDate).FirstOrDefault().SamplingDate.ToString("MMM-dd-yyyy");
                     smmry.FirstLandingFormattedDate = landings.OrderBy(t => t.SamplingDate).FirstOrDefault().SamplingDate.ToString("MMM-dd-yyyy");
@@ -107,7 +146,7 @@ namespace NSAP_ODK.Entities
                     smmry.GearUnloadCount = gearUnloads.Count;
                     smmry.CountCompleteGearUnload = gearUnloads.Count(t => t.Boats != null && t.Catch != null);
                 }
-                
+
                 RegionMonthSampledSummaryDictionary.Add(month.Key, smmry);
             }
         }
@@ -206,7 +245,7 @@ namespace NSAP_ODK.Entities
 
                     var lsSamplings = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection
                         .Where(t => t.NSAPRegionID == region.Code &&
-                                  t.LandingSite==null &&  
+                                  t.LandingSite == null &&
                                   t.LandingSiteText.Length > 0 &&
                                   t.FMAID == fma.FMAID &&
                                   t.FishingGroundID == fg.FishingGround.Code).GroupBy(t => t.LandingSiteText).ToList();
@@ -218,7 +257,7 @@ namespace NSAP_ODK.Entities
                             DBSummary smmry = new DBSummary();
                             var landings = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
                              .Where(t => t.Parent.Parent.LandingSiteText == lsSampling.Key &&
-                                    t.Parent.Parent.LandingSiteID==null).ToList();
+                                    t.Parent.Parent.LandingSiteID == null).ToList();
                             smmry.VesselUnloadCount = landings.Count;
                             smmry.FMA = fma.FMA;
                             smmry.FishingGround = fg.FishingGround;
@@ -370,6 +409,36 @@ namespace NSAP_ODK.Entities
             }
         }
 
+        //public List<VesselUnload> GetFirstSamplingDateOfEnumerators()
+        //{
+        //    HashSet<VesselUnload> thisList = new HashSet<VesselUnload>();
+        //    bool success = false;
+        //    foreach (var region in NSAPRegionCollection)
+        //    {
+        //        var unloads = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.Where(
+        //            t => t.Parent.Parent.NSAPRegionID == region.Code);
+
+        //        if (unloads.Count() > 0)
+        //            foreach (var nre in region.NSAPEnumerators.Where(t => t.DateFirstSampling == null))
+        //            {
+
+
+        //                {
+        //                    var enumerators_firstSampling = unloads
+        //                        .Where(t => t.NSAPEnumeratorID == nre.EnumeratorID)
+        //                        .OrderBy(t => t.SamplingDate).FirstOrDefault();
+
+        //                    if(enumerators_firstSampling!=null)
+        //                    {
+        //                        thisList.Add(enumerators_firstSampling);
+        //                    }
+        //                }
+        //            }
+        //    }
+
+        //    return thisList.ToList();
+        //}
+
         public void SetNSAPRegionsWithEntitiesRepositories()
         {
             NSAPRegionsWithEntitiesRepositories = new Dictionary<string, NSAPRegionWithEntitiesRepository>();
@@ -378,6 +447,37 @@ namespace NSAP_ODK.Entities
                 NSAPRegionWithEntitiesRepository nswer = new NSAPRegionWithEntitiesRepository(nsapRegion);
                 NSAPRegionsWithEntitiesRepositories.Add(nsapRegion.Code, nswer);
             }
+
+            //add additional fmas in nsap region 6
+            //var region6 = NSAPRegionCollection.FirstOrDefault(t => t.Code == "6");
+            //if (region6 != null)
+            //{
+            //    var regionEntitiesRepo_6 = NSAPRegionsWithEntitiesRepositories[region6.Code];
+            //    var fma = GetFMAInRegion(region6.Code, "FMA 6");
+            //    if (fma == null)
+            //    {
+            //        var fma6 = NSAPEntities.FMAViewModel.GetFMA(6);
+            //        NSAPRegionFMA region6FMA6 = new NSAPRegionFMA { NSAPRegion = region6, FMA = fma6 };
+            //        if (regionEntitiesRepo_6.AddNSAPRegionFMA(region6FMA6))
+            //        {
+
+            //        }
+            //    }
+
+            //    fma = GetFMAInRegion(region6.Code, "FMA 4");
+            //    if (fma == null)
+            //    {
+            //        var fma4 = NSAPEntities.FMAViewModel.GetFMA(4);
+            //        NSAPRegionFMA region6FMA4 = new NSAPRegionFMA { NSAPRegion = region6, FMA = fma4 };
+            //        if (regionEntitiesRepo_6.AddNSAPRegionFMA(region6FMA4))
+            //        {
+
+            //        }
+            //    }
+            //}
+
+
+
         }
         public NSAPRegionViewModel()
         {
@@ -393,18 +493,33 @@ namespace NSAP_ODK.Entities
             //}
         }
 
+        public FMA GetFMAInRegion(string regionCode, string fmaName)
+        {
+            FMA fma = null;
+            try
+            {
+                var region = NSAPRegionCollection.Where(t => t.Code == regionCode).FirstOrDefault();
+                //fma = region.FMAs.Select(t=>t.)
+            }
+            catch
+            {
+                //ignore
+            }
+
+            return fma;
+        }
         public FMA GetFMAInRegion(string regionCode, int regionFMA)
         {
             return NSAPRegionCollection.Where(t => t.Code == regionCode).FirstOrDefault().FMAs.Where(t => t.RowID == regionFMA).FirstOrDefault().FMA;
         }
 
-        public Dictionary<NSAPRegion,List<NSAPEnumerator>>GetEnumeratorsByRegionDictionary()
+        public Dictionary<NSAPRegion, List<NSAPEnumerator>> GetEnumeratorsByRegionDictionary()
         {
             Dictionary<NSAPRegion, List<NSAPEnumerator>> dict = new Dictionary<NSAPRegion, List<NSAPEnumerator>>();
-            foreach(var r in NSAPRegionCollection)
+            foreach (var r in NSAPRegionCollection)
             {
                 List<NSAPEnumerator> list = new List<NSAPEnumerator>();
-                foreach(var e in r.NSAPEnumerators)
+                foreach (var e in r.NSAPEnumerators)
                 {
                     list.Add(e.Enumerator);
                 }
@@ -413,14 +528,14 @@ namespace NSAP_ODK.Entities
             return dict;
         }
 
-        public List<NSAPEnumerator>GetEnumeratorsInRegion(NSAPRegion region)
+        public List<NSAPEnumerator> GetEnumeratorsInRegion(NSAPRegion region)
         {
             return GetEnumeratorsByRegionDictionary()[region];
         }
         public NSAPEnumerator GetEnumeratorInRegion(string regionCode, int nsapEnumerator)
         {
             var nsapregionEnumerator = NSAPRegionCollection.Where(t => t.Code == regionCode).FirstOrDefault().NSAPEnumerators.Where(t => t.RowID == nsapEnumerator).FirstOrDefault();
-            if(nsapregionEnumerator!=null)
+            if (nsapregionEnumerator != null)
             {
                 return nsapregionEnumerator.Enumerator;
             }
@@ -479,7 +594,7 @@ namespace NSAP_ODK.Entities
                     {
                         int newIndex = e.NewStartingIndex;
                         editedNSAPRegion = NSAPRegionCollection[newIndex];
-                        _editSuccess= NSAPRegions.Add(editedNSAPRegion);
+                        _editSuccess = NSAPRegions.Add(editedNSAPRegion);
                     }
                     break;
 
@@ -487,7 +602,7 @@ namespace NSAP_ODK.Entities
                     {
                         List<NSAPRegion> tempListOfRemovedItems = e.OldItems.OfType<NSAPRegion>().ToList();
                         editedNSAPRegion = tempListOfRemovedItems[0];
-                        _editSuccess= NSAPRegions.Delete(editedNSAPRegion.Code);
+                        _editSuccess = NSAPRegions.Delete(editedNSAPRegion.Code);
                     }
                     break;
 
@@ -495,7 +610,7 @@ namespace NSAP_ODK.Entities
                     {
                         List<NSAPRegion> tempList = e.NewItems.OfType<NSAPRegion>().ToList();
                         editedNSAPRegion = tempList[0];
-                        _editSuccess= NSAPRegions.Update(editedNSAPRegion);      // As the IDs are unique, only one row will be effected hence first index only
+                        _editSuccess = NSAPRegions.Update(editedNSAPRegion);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }

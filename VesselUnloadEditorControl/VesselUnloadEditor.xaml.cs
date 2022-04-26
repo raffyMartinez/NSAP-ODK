@@ -259,13 +259,15 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "FishingVessel", DisplayName = "Select name of vessel", DisplayOrder = 6, Description = "Select name of fishing vessel", Category = "Effort" });
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SectorCode", DisplayName = "Fisheries sector", DisplayOrder = 8, Description = "Select fisheris sector", Category = "Effort" });
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "OperationIsSuccessful", DisplayName = "This fishing operation is a success", DisplayOrder = 9, Description = "Is this fishing operation a success\r\nThe catch is not zero", Category = "Effort" });
-                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "WeightOfCatch", DisplayName = "Weight of catch", DisplayOrder = 10, Description = "Weight of catch", Category = "Effort" });
-                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "WeightOfCatchSample", DisplayName = "Weight of sample", DisplayOrder = 11, Description = "Weight of sample taken from catch", Category = "Effort" });
-                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Boxes", DisplayName = "Number of boxes", DisplayOrder = 12, Description = "Number of boxes", Category = "Effort" });
-                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "BoxesSampled", DisplayName = "Number of boxes sampled", DisplayOrder = 13, Description = "Number of boxes sampled", Category = "Effort" });
-                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "RaisingFactor", DisplayName = "Raising factor", DisplayOrder = 14, Description = "Raising factor", Category = "Effort" });
-                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "HasCatchComposition", DisplayName = "Catch composition is included", DisplayOrder = 15, Description = "Whether or not catch composition of the landing was included", Category = "Effort" });
-                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Notes", DisplayName = "Notes", DisplayOrder = 16, Description = "Notes", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "NumberOfFishers", DisplayName = "Number of fishers", DisplayOrder = 10, Description = "Is this fishing operation a success\r\nThe catch is not zero", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "FishingTripIsCompleted", DisplayName = "This fishing trip is completed", DisplayOrder = 11, Description = "Is this fishing trip completed\r\nThe trip was not cancelled", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "WeightOfCatch", DisplayName = "Weight of catch", DisplayOrder = 12, Description = "Weight of catch", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "WeightOfCatchSample", DisplayName = "Weight of sample", DisplayOrder = 13, Description = "Weight of sample taken from catch", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Boxes", DisplayName = "Number of boxes", DisplayOrder = 14, Description = "Number of boxes", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "BoxesSampled", DisplayName = "Number of boxes sampled", DisplayOrder = 15, Description = "Number of boxes sampled", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "RaisingFactor", DisplayName = "Raising factor", DisplayOrder = 16, Description = "Raising factor", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "HasCatchComposition", DisplayName = "Catch composition is included", DisplayOrder = 17, Description = "Whether or not catch composition of the landing was included", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Notes", DisplayName = "Notes", DisplayOrder = 18, Description = "Notes", Category = "Effort" });
 
 
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "OperationIsTracked", DisplayName = "This operation is tracked", DisplayOrder = 11, Description = "Is this fishing operation tracked", Category = "Tracking" });
@@ -311,12 +313,13 @@ namespace NSAP_ODK.VesselUnloadEditorControl
             propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "VesselText", DisplayName = "Name of vessel if not found in selection", DisplayOrder = 7, Description = "Type in the name of vessel", Category = "Effort" });
             propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SectorCode", DisplayName = "Fisheries sector", DisplayOrder = 8, Description = "Select fisheris sector", Category = "Effort" });
             propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "OperationIsSuccessful", DisplayName = "This fishing operation is a success", DisplayOrder = 9, Description = "Is this fishing operation a success\r\nThe catch is not zero", Category = "Effort" });
-            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "WeightOfCatch", DisplayName = "Weight of catch", DisplayOrder = 10, Description = "Weight of catch", Category = "Effort" });
-            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "WeightOfCatchSample", DisplayName = "Weight of sample", DisplayOrder = 11, Description = "Weight of sample taken from catch", Category = "Effort" });
-            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Boxes", DisplayName = "Number of boxes", DisplayOrder = 12, Description = "Number of boxes", Category = "Effort" });
-            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "BoxesSampled", DisplayName = "Number of boxes sampled", DisplayOrder = 13, Description = "Number of boxes sampled", Category = "Effort" });
-            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "RaisingFactor", DisplayName = "Raising factor", DisplayOrder = 14, Description = "Raising factor", Category = "Effort" });
-            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Notes", DisplayName = "Notes", DisplayOrder = 15, Description = "Notes", Category = "Effort" });
+            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "FishingTripIsCompleted", DisplayName = "This fishing trip is completed", DisplayOrder = 10, Description = "Is this fishing trip a completed\r\nThe trip was not cancelled", Category = "Effort" });
+            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "WeightOfCatch", DisplayName = "Weight of catch", DisplayOrder = 11, Description = "Weight of catch", Category = "Effort" });
+            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "WeightOfCatchSample", DisplayName = "Weight of sample", DisplayOrder = 12, Description = "Weight of sample taken from catch", Category = "Effort" });
+            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Boxes", DisplayName = "Number of boxes", DisplayOrder = 13, Description = "Number of boxes", Category = "Effort" });
+            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "BoxesSampled", DisplayName = "Number of boxes sampled", DisplayOrder = 14, Description = "Number of boxes sampled", Category = "Effort" });
+            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "RaisingFactor", DisplayName = "Raising factor", DisplayOrder = 15, Description = "Raising factor", Category = "Effort" });
+            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Notes", DisplayName = "Notes", DisplayOrder = 16, Description = "Notes", Category = "Effort" });
 
 
             propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "OperationIsTracked", DisplayName = "This operation is tracked", DisplayOrder = 11, Description = "Is this fishing operation tracked", Category = "Tracking" });

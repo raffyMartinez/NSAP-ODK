@@ -34,11 +34,13 @@ namespace NSAP_ODK.Entities
                 NSAPEntities.MajorGridFMAViewModel = new MajorGridFMAViewModel();
             }
             CSVType = CSVType.ExtSelectFromFile;
+            IncludeNumberOfFishers = false;
             LocationDelimeter = '»';
 
         }
 
         public static char LocationDelimeter { get; set; }
+        public static bool IncludeNumberOfFishers { get; set; }
 
         public static int FilesCount { get; private set; }
         public static LogType LogType { get; set; }
@@ -148,7 +150,7 @@ namespace NSAP_ODK.Entities
 
         private static async Task LogAsync(string s, string filePath)
         {
-            if (filePath!=null &&  filePath.Length > 0)
+            if (filePath != null && filePath.Length > 0)
             {
                 if (File.Exists(filePath))
                 {
@@ -161,7 +163,7 @@ namespace NSAP_ODK.Entities
                 }
             }
             else
-            { 
+            {
                 throw new ArgumentNullException("Error: filepath must be provided");
             }
         }
@@ -196,10 +198,10 @@ namespace NSAP_ODK.Entities
             if (CSVType == CSVType.ExtSelectFromFile)
             {
                 sb = new StringBuilder(header);
-                var source =  NSAPEntities.FishSpeciesViewModel.BuildSpeciesCSVSource().OrderBy(t=>t.SortName);
-                foreach(var item in source)
+                var source = NSAPEntities.FishSpeciesViewModel.BuildSpeciesCSVSource().OrderBy(t => t.SortName);
+                foreach (var item in source)
                 {
-                    maxSize = item.MaxLength== null ? -1 : (double)item.MaxLength;
+                    maxSize = item.MaxLength == null ? -1 : (double)item.MaxLength;
                     szType = item.LengthType == null ? string.Empty : item.LengthType.Code;
                     sb.AppendLine($"FIS,{item.SpeciesCode},\"{item.Name}\",{maxSize},{szType}");
                     counter++;
@@ -310,6 +312,13 @@ namespace NSAP_ODK.Entities
             int counter = 0;
             StringBuilder sb = new StringBuilder("rowid_key,inland_grid_key\r\n");
 
+            Grid25GridCell s = NSAPEntities.Grid25InlandLocationViewModel.Grid25InlandLocationCollection.FirstOrDefault(
+                t => t.Grid25GridCell.GridNumber == 592 &&
+                t.Grid25GridCell.Row == 3 &&
+                t.Grid25GridCell.Column == 'N' &&
+                t.Grid25GridCell.UTMZone.ZoneNumber == 51).Grid25GridCell;
+
+
             foreach (var inlandGrid in NSAPEntities.Grid25InlandLocationViewModel.Grid25InlandLocationCollection
             .Where(t => t.Grid25GridCell.UTMZone.ZoneNumber == 51))
             {
@@ -362,7 +371,8 @@ namespace NSAP_ODK.Entities
                         if (!list_mg_fma.Contains(mg_fma))
                         {
                             list_mg_fma.Add(mg_fma);
-                            sb.AppendLine($"{mgf.MajorGridNumber},{mg_fma}");
+                            sb.AppendLine($"{mgf.MajorGridNumber}{fma.FMAID},{mg_fma}");
+                            //sb.AppendLine($"{mgf.MajorGridNumber},{mg_fma}");
                             _majorGrid51N.Add(mgf.MajorGridNumber);
                             counter++;
                         }
@@ -456,7 +466,7 @@ namespace NSAP_ODK.Entities
                 }
 
             }
-            await LogAsync(sb.ToString(), $"{_folderSaveLocation}\\fma_select.csv"); 
+            await LogAsync(sb.ToString(), $"{_folderSaveLocation}\\fma_select.csv");
             FilesCount++;
 
 
@@ -532,25 +542,42 @@ namespace NSAP_ODK.Entities
                     counter++;
                 }
             }
-            await LogAsync(sb.ToString(), $"{_folderSaveLocation}\\enumerator_select.csv"); 
+            await LogAsync(sb.ToString(), $"{_folderSaveLocation}\\enumerator_select.csv");
             FilesCount++;
 
 
             //generate effort_spec section
             sb = new StringBuilder(header);
             NSAPEntities.GearViewModel.FillGearEffortSpecifications();
+            bool proceed = true;
             foreach (var item in NSAPEntities.GearViewModel.GearEffortSpecifications)
             {
-                sb.AppendLine($"effort_spec,{item.Value.EffortSpecification.ID},{item.Value.EffortSpecification.Name},{item.Value.Gear.Code}");
-                counter++;
+                if (item.Value.EffortSpecification.Name == "Number of fishers")
+                {
+                    proceed = IncludeNumberOfFishers;
+                }
+                if (proceed)
+                {
+                    sb.AppendLine($"effort_spec,{item.Value.EffortSpecification.ID},{item.Value.EffortSpecification.Name},{item.Value.Gear.Code}");
+                    counter++;
+                }
+                proceed = true;
             }
 
             //next we add lines for gear specs for "Others"
             foreach (var item in NSAPEntities.EffortSpecificationViewModel.EffortSpecCollection
                 .Where(t => t.IsForAllTypesFishing))
             {
-                sb.AppendLine($"effort_spec,{item.ID},{item.Name},_OT");
-                counter++;
+                if (item.Name == "Number of fishers")
+                {
+                    proceed = IncludeNumberOfFishers;
+                }
+                if (proceed)
+                {
+                    sb.AppendLine($"effort_spec,{item.ID},{item.Name},_OT");
+                    counter++;
+                }
+                proceed = true;
             }
             await LogAsync(sb.ToString(), $"{_folderSaveLocation}\\effort_spec_select.csv");
             FilesCount++;
@@ -683,27 +710,37 @@ namespace NSAP_ODK.Entities
             StringBuilder sb = new StringBuilder("ID_key,spec_key,value_type_key\r\n");
             foreach (var spec in NSAPEntities.EffortSpecificationViewModel.EffortSpecCollection)
             {
-                string valueType = "I";
-                switch (spec.ValueType)
+                bool proceed = true;
+                if (spec.Name == "Number of fishers")
                 {
-                    case ODKValueType.isBoolean:
-                        valueType = "B";
-                        break;
-                    case ODKValueType.isInteger:
-                        valueType = "I";
-                        break;
-                    case ODKValueType.isDecimal:
-                        valueType = "D";
-                        break;
-                    case ODKValueType.isText:
-                        valueType = "T";
-                        break;
-                    case ODKValueType.isUndefined:
-                        valueType = "U";
-                        break;
+                    proceed = IncludeNumberOfFishers;
                 }
-                sb.AppendLine($"{spec.ID},\"{spec.Name}\",{valueType}");
-                counter++;
+
+
+                if (proceed)
+                {
+                    string valueType = "I";
+                    switch (spec.ValueType)
+                    {
+                        case ODKValueType.isBoolean:
+                            valueType = "B";
+                            break;
+                        case ODKValueType.isInteger:
+                            valueType = "I";
+                            break;
+                        case ODKValueType.isDecimal:
+                            valueType = "D";
+                            break;
+                        case ODKValueType.isText:
+                            valueType = "T";
+                            break;
+                        case ODKValueType.isUndefined:
+                            valueType = "U";
+                            break;
+                    }
+                    sb.AppendLine($"{spec.ID},\"{spec.Name}\",{valueType}");
+                    counter++;
+                }
             }
             if (counter > 0)
             {

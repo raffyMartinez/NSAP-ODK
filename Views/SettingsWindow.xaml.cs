@@ -37,20 +37,24 @@ namespace NSAP_ODK.Views
 
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
+            if (Utilities.Global.Settings != null)
+            {
 
-            textBackenDB.Text = Utilities.Global.Settings.MDBPath;
-            textJsonFolder.Text = Utilities.Global.Settings.JSONFolder;
-            textmySQLBackupFolder.Text = Utilities.Global.Settings.MySQLBackupFolder;
-            chkUsemySQL.IsChecked = Utilities.Global.Settings.UsemySQL;
-            buttonLocateMySQlBackupFolder.IsEnabled = (bool)chkUsemySQL.IsChecked;
-            chkUsemySQL.Click += ChkUsemySQL_Click;
-            if (Utilities.Global.Settings.CutOFFUndersizedCW == null)
-            {
-                textCutoffWidth.Text = Utilities.Settings.DefaultCutoffUndesizedCW.ToString(); ;
-            }
-            else
-            {
-                textCutoffWidth.Text = ((int)Utilities.Global.Settings.CutOFFUndersizedCW).ToString();
+
+                textBackenDB.Text = Utilities.Global.Settings.MDBPath;
+                textJsonFolder.Text = Utilities.Global.Settings.JSONFolder;
+                textmySQLBackupFolder.Text = Utilities.Global.Settings.MySQLBackupFolder;
+                chkUsemySQL.IsChecked = Utilities.Global.Settings.UsemySQL;
+                buttonLocateMySQlBackupFolder.IsEnabled = (bool)chkUsemySQL.IsChecked;
+                chkUsemySQL.Click += ChkUsemySQL_Click;
+                if (Utilities.Global.Settings.CutOFFUndersizedCW == null)
+                {
+                    textCutoffWidth.Text = Utilities.Settings.DefaultCutoffUndesizedCW.ToString(); ;
+                }
+                else
+                {
+                    textCutoffWidth.Text = ((int)Utilities.Global.Settings.CutOFFUndersizedCW).ToString();
+                }
             }
 
         }
@@ -185,11 +189,17 @@ namespace NSAP_ODK.Views
                     break;
                 case "buttonLocateBackendDB":
                     Visibility = Visibility.Hidden;
+                    //double oldWidth = Width;
+                    //double oldHeight = Height;
+                    //Height = 1;
+                    //Width = 1;
                     if (((MainWindow)Owner).LocateBackendDB(out string backend))
                     {
                         textBackenDB.Text = backend;
                     }
                     Visibility = Visibility.Visible;
+                    //Height = oldHeight;
+                    //Width = oldWidth;
                     break;
                 case "buttonLocateJsonFolder":
                     fbd = new VistaFolderBrowserDialog();
@@ -218,13 +228,15 @@ namespace NSAP_ODK.Views
                         Utilities.Global.SaveGlobalSettings();
 
 
-                        Close();
                         if (_chkMySQlClicked)
                         {
                             MessageBox.Show("The application need to restart to switch to another database backend", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
                             ((MainWindow)Owner).CloseAppilication();
                         }
+                        ((MainWindow)Owner).SetMenuAndOtherToolbarButtonsVisibility(Visibility.Visible);
+                        ((MainWindow)Owner).Focus();
                     }
+                    Close();
                     break;
                 case "buttonCancel":
                     Close();
