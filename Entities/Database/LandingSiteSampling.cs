@@ -59,6 +59,8 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
         }
+
+        public GearUnloadViewModel GearUnloadViewModel { get; set; }
         public string LandingSiteText { get; set; }
         public int FMAID { get; set; }
 

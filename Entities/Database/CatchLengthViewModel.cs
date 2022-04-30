@@ -13,6 +13,12 @@ namespace NSAP_ODK.Entities.Database
         public ObservableCollection<CatchLength> CatchLengthCollection { get; set; }
         private CatchLengthRepository CatchLengths { get; set; }
 
+        public CatchLengthViewModel(VesselCatch vc)
+        {
+            CatchLengths = new CatchLengthRepository(vc);
+            CatchLengthCollection = new ObservableCollection<CatchLength>(CatchLengths.CatchLengths);
+            CatchLengthCollection.CollectionChanged += CatchLenFreqCollection_CollectionChanged;
+        }
         public CatchLengthViewModel()
         {
             CatchLengths = new CatchLengthRepository();

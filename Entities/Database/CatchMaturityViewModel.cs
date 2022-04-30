@@ -13,6 +13,12 @@ namespace NSAP_ODK.Entities.Database
         public ObservableCollection<CatchMaturity> CatchMaturityCollection { get; set; }
         private CatchMaturityRepository CatchMaturities { get; set; }
 
+        public CatchMaturityViewModel(VesselCatch vc)
+        {
+            CatchMaturities = new CatchMaturityRepository(vc);
+            CatchMaturityCollection = new ObservableCollection<CatchMaturity>(CatchMaturities.CatchMaturities);
+            CatchMaturityCollection.CollectionChanged += CatchMaturityCollection_CollectionChanged;
+        }
         public CatchMaturityViewModel()
         {
             CatchMaturities = new CatchMaturityRepository();

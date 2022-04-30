@@ -42,7 +42,7 @@ namespace NSAP_ODK.Entities.Database
             TaxaName = vc.Taxa.Name;
             Sample_kg = vc.Sample_kg;
             Catch_kg = vc.Catch_kg;
-            
+
 
             if ((vc.SpeciesText == null || vc.SpeciesText.Length == 0) && vc.SpeciesID != null)
             {
@@ -85,6 +85,11 @@ namespace NSAP_ODK.Entities.Database
     public class VesselCatch
     {
         private VesselUnload _parent;
+
+        public CatchLenFreqViewModel CatchLenFreqViewModel { get; set; }
+        public CatchLengthViewModel CatchLengthViewModel { get; set; }
+        public CatchLengthWeightViewModel CatchLengthWeightViewModel { get; set; }
+        public CatchMaturityViewModel CatchMaturityViewModel { get; set; }
         public int PK { get; set; }
         public int VesselUnloadID { get; set; }
 
@@ -157,18 +162,18 @@ namespace NSAP_ODK.Entities.Database
             get
             {
                 string rv = "";
-                if(SpeciesID!=null)
+                if (SpeciesID != null)
                 {
                     if ((int)SpeciesID < 500000)
                     {
-                        rv= FishSpeciesName((int)SpeciesID);
+                        rv = FishSpeciesName((int)SpeciesID);
                     }
                     else
                     {
                         rv = NotFishSpeciesName((int)SpeciesID);
                     }
                 }
-                else if(SpeciesText != null && SpeciesText.Length>0)
+                else if (SpeciesText != null && SpeciesText.Length > 0)
                 {
                     rv = SpeciesText;
                 }
@@ -201,8 +206,13 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                return NSAPEntities.CatchLenFreqViewModel.CatchLenFreqCollection
-                    .Where(t => t.Parent.PK == PK).ToList();
+                if(CatchLenFreqViewModel==null)
+                {
+                    CatchLengthViewModel = new CatchLengthViewModel(this);
+                }
+
+                return CatchLenFreqViewModel.CatchLenFreqCollection.ToList();
+                    //.Where(t => t.Parent.PK == PK).ToList();
 
             }
         }
@@ -211,8 +221,12 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                return NSAPEntities.CatchLengthWeightViewModel.CatchLengthWeightCollection
-                    .Where(t => t.Parent.PK == PK).ToList();
+                if(CatchLengthViewModel==null)
+                {
+                    CatchLengthViewModel = new CatchLengthViewModel(this);
+                }
+                return CatchLengthWeightViewModel.CatchLengthWeightCollection.ToList();
+                   //Where(t => t.Parent.PK == PK).ToList();
 
             }
         }
@@ -221,8 +235,13 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                return NSAPEntities.CatchLengthViewModel.CatchLengthCollection
-                    .Where(t => t.Parent.PK == PK).ToList();
+                if (CatchLengthViewModel == null)
+                {
+                    CatchLengthViewModel = new CatchLengthViewModel(this);
+                }
+
+                return CatchLengthViewModel.CatchLengthCollection.ToList();
+                    //.Where(t => t.Parent.PK == PK).ToList();
 
             }
         }
@@ -231,8 +250,13 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                return NSAPEntities.CatchMaturityViewModel.CatchMaturityCollection
-                    .Where(t => t.Parent.PK == PK).ToList();
+                if (CatchMaturityViewModel == null)
+                {
+                    CatchMaturityViewModel = new CatchMaturityViewModel(this);
+                }
+
+                return CatchMaturityViewModel.CatchMaturityCollection.ToList();
+                //.Where(t => t.Parent.PK == PK).ToList();
             }
         }
         public VesselUnload Parent

@@ -13,13 +13,106 @@ namespace NSAP_ODK.Entities.Database
         public ObservableCollection<LandingSiteSampling> LandingSiteSamplingCollection { get; set; }
         private LandingSiteSamplingRepository LandingSiteSamplings { get; set; }
 
-        public List<LandingSiteSampling> GetSampledLandings(string enumeratorText,string landingSiteName)
+        public List<LandingSiteSampling> GetSampledLandings(string enumeratorText, string landingSiteName)
         {
-            return LandingSiteSamplingCollection.Where(t => t.EnumeratorID == null && t.EnumeratorText == enumeratorText && t.LandingSiteName==landingSiteName).ToList();
+            return LandingSiteSamplingCollection.Where(t => t.EnumeratorID == null && t.EnumeratorText == enumeratorText && t.LandingSiteName == landingSiteName).ToList();
         }
         public List<LandingSiteSampling> GetSampledLandings(string enumeratorText)
         {
             return LandingSiteSamplingCollection.Where(t => t.EnumeratorID == null && t.EnumeratorText == enumeratorText).ToList();
+        }
+
+        public List<VesselUnload> GetVesselUnloads(List<GearUnload> gearUnloads)
+        {
+            var landings = new List<VesselUnload>();
+
+            foreach (var gu in gearUnloads)
+            {
+                if (gu.VesselUnloadViewModel == null)
+                {
+                    gu.VesselUnloadViewModel = new VesselUnloadViewModel(gu);
+                }
+                landings.AddRange(gu.VesselUnloadViewModel.VesselUnloadCollection.ToList());
+            }
+
+            return landings;
+        }
+        public List<GearUnload> GetGearUnloads(TreeViewModelControl.AllSamplingEntitiesEventHandler e)
+        {
+            return GetGearUnloads(e.NSAPRegion.Code, e.FMA.FMAID, e.FishingGround.Code, e.LandingSiteText, (DateTime)e.MonthSampled, e.LandingSite.LandingSiteID);
+        }
+        public List<GearUnload> GetGearUnloads(string regionCode, int fmaID, string fishingGroundCode, string landingSiteName, DateTime monthSampled, int? landingSiteID=null)
+        {
+            List<GearUnload> gearUnloads = new List<GearUnload>();
+            List<LandingSiteSampling> landingSiteSamplings=null;
+            if(landingSiteID!=null)
+            {
+                landingSiteSamplings = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection
+                    .Where(t => t.NSAPRegionID == regionCode &&
+                    t.FMAID == fmaID &&
+                    t.FishingGroundID == fishingGroundCode &&
+                    t.LandingSiteID == (int)landingSiteID &&
+                    t.MonthSampled == monthSampled).ToList();
+            }
+            else
+            {
+                landingSiteSamplings = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection
+                    .Where(t => t.NSAPRegionID == regionCode &&
+                    t.FMAID == fmaID &&
+                    t.FishingGroundID == fishingGroundCode &&
+                    t.LandingSiteName == landingSiteName &&
+                    t.MonthSampled == monthSampled).ToList();
+            }
+            foreach (var ls in landingSiteSamplings)
+            {
+                gearUnloads.AddRange(ls.GearUnloadViewModel.GearUnloadCollection.ToList());
+            }
+
+            return gearUnloads;
+        }
+        public List<GearUnload> GetGearUnloads(string regionCode, int fmaID, string fishingGroundCode, string landingSiteName, DateTime monthSampled)
+        {
+
+            var landingSiteSamplings = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection
+                .Where(t => t.NSAPRegionID == regionCode &&
+                t.FMAID == fmaID &&
+                t.FishingGroundID == fishingGroundCode &&
+                t.LandingSiteName == landingSiteName &&
+                t.MonthSampled == monthSampled).ToList();
+
+            var gearUnloads = new List<GearUnload>();
+            foreach (var ls in landingSiteSamplings)
+            {
+                gearUnloads.AddRange(ls.GearUnloadViewModel.GearUnloadCollection.ToList());
+            }
+
+            return gearUnloads;
+        }
+        public List<VesselUnload> GetVesselUnloads(int fmaID, string landingSiteName, DateTime monthSampled)
+        {
+            var landingSiteSamplings = LandingSiteSamplingCollection
+                    .Where(t => t.FMAID == fmaID &&
+                    t.LandingSiteName == landingSiteName &&
+                    t.MonthSampled == monthSampled).ToList();
+
+            var gus = new List<GearUnload>();
+            foreach (var ls in landingSiteSamplings)
+            {
+                gus.AddRange(ls.GearUnloadViewModel.GearUnloadCollection.ToList());
+            }
+
+            var landings = new List<VesselUnload>();
+
+            foreach (var gu in gus)
+            {
+                if (gu.VesselUnloadViewModel == null)
+                {
+                    gu.VesselUnloadViewModel = new VesselUnloadViewModel(gu);
+                }
+                landings.AddRange(gu.VesselUnloadViewModel.VesselUnloadCollection.ToList());
+            }
+
+            return landings;
         }
         public DateTime? LatestEformSubmissionDate
         {
@@ -77,7 +170,7 @@ namespace NSAP_ODK.Entities.Database
             //{
 
             samplings = LandingSiteSamplingCollection.Where(t => t.LandingSiteID != null &&
-                                                                 t.FMAID == ols.FMA.FMAID   && 
+                                                                 t.FMAID == ols.FMA.FMAID &&
                                                                  t.FishingGround.Code == ols.FishingGround.Code &&
                                                                  t.LandingSite.LandingSiteID == replacement.LandingSiteID &&
                                                                  t.SamplingDate.Date == samplingDate.Date).ToList();
@@ -109,6 +202,64 @@ namespace NSAP_ODK.Entities.Database
         public List<LandingSiteSampling> GetAllLandingSiteSamplings()
         {
             return LandingSiteSamplingCollection.ToList();
+        }
+
+        public List<VesselUnload> VesselUnloadsFromDummyGearUnload(GearUnload dummy)
+        {
+            List<LandingSiteSampling> lss = new List<LandingSiteSampling>();
+            if (dummy.Parent.LandingSite == null)
+            {
+                lss = LandingSiteSamplingCollection.Where(t => t.FishingGroundID == dummy.Parent.FishingGround.Code &&
+                                                         t.NSAPRegionID == dummy.Parent.NSAPRegion.Code &&
+                                                         t.LandingSiteText == dummy.Parent.LandingSiteText &&
+                                                         t.FMAID == dummy.Parent.FMA.FMAID &&
+                                                         t.SamplingDate==dummy.Parent.SamplingDate).ToList();
+            }
+            else
+            {
+                lss = LandingSiteSamplingCollection.Where(t => t.FishingGroundID == dummy.Parent.FishingGround.Code &&
+                                                             t.NSAPRegionID == dummy.Parent.NSAPRegion.Code &&
+                                                             t.LandingSiteID == dummy.Parent.LandingSite.LandingSiteID &&
+                                                             t.FMAID == dummy.Parent.FMA.FMAID &&
+                                                             t.SamplingDate==dummy.Parent.SamplingDate).ToList();
+            }
+
+            GearUnload gu = new GearUnload();
+            if (lss.Count == 1)
+            {
+                 foreach(var item in lss[0].GearUnloadViewModel.GearUnloadCollection)
+                {
+                    if (item.GearUsedName==dummy.GearUsedName)
+                    {
+                        gu = item;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                foreach(var ls in lss)
+                {
+                    foreach(var g in ls.GearUnloadViewModel.GearUnloadCollection)
+                    {
+                        if(g.GearUsedName==dummy.GearUsedName)
+                        {
+                            gu = g;
+                            break;
+                        }
+                        if(gu!=null)
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+            if(gu.VesselUnloadViewModel==null)
+            {
+                gu.VesselUnloadViewModel = new VesselUnloadViewModel(gu);
+            }
+            var vus = gu.VesselUnloadViewModel.VesselUnloadCollection.ToList();
+            return gu.VesselUnloadViewModel.VesselUnloadCollection.ToList();
         }
 
         public LandingSiteSamplingFlattened GetFlattenedItem(int id)
@@ -147,7 +298,7 @@ namespace NSAP_ODK.Entities.Database
                     .Where(t => t.FishingGroundID == landing.FishingGround.Code)
                     .Where(t => t.SamplingDate.Date == landing.SamplingDate.Date).FirstOrDefault();
             }
-            else if(landing.LandingSite==null)
+            else if (landing.LandingSite == null)
             {
                 return null;
             }

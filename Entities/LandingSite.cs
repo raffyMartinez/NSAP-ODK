@@ -39,7 +39,9 @@ namespace NSAP_ODK.Entities
 
         public override int GetHashCode()
         {
+
             return LandingSiteID.GetHashCode();
+
         }
         public override string ToString()
         {

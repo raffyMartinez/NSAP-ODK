@@ -173,6 +173,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Entities\Database\GearUnloadComparer.cs" />
+    <Compile Include="Entities\Database\SummaryItem.cs" />
+    <Compile Include="Entities\Database\SummaryItemViewModel.cs" />
+    <Compile Include="Entities\Database\SummaryManager.cs" />
     <Compile Include="Entities\Database\CatchLenFreq.cs" />
     <Compile Include="Entities\Database\CatchMaturityViewModel.cs" />
     <Compile Include="Entities\Database\CatchMaturityRepository.cs" />
@@ -225,6 +229,8 @@
     <Compile Include="Entities\Database\SampledLandingSiteViewModel.cs" />
     <Compile Include="Entities\Database\SpeciesName_Weight.cs" />
     <Compile Include="Entities\Database\SpeciesTextToSpeciesConvert.cs" />
+    <Compile Include="Entities\Database\SummaryItemRepository.cs" />
+    <Compile Include="Entities\Database\SummaryResults.cs" />
     <Compile Include="Entities\Database\TrackedLandingCentroid.cs" />
     <Compile Include="Entities\Database\TrackedLandingCentroidViewModel.cs" />
     <Compile Include="Entities\Database\TrackedOperationSummary.cs" />
@@ -239,6 +245,7 @@
     <Compile Include="Entities\Database\VesselUnloadServerRepository.cs" />
     <Compile Include="Entities\Database\XLSForm.cs" />
     <Compile Include="Entities\Download summary.cs" />
+    <Compile Include="Entities\EntityLoadedEventArg.cs" />
     <Compile Include="Entities\FishBaseSpecies.cs" />
     <Compile Include="Entities\FishSpeciesForCSV.cs" />
     <Compile Include="Entities\ItemSources\DeviceTypeItemsSource.cs" />
@@ -284,6 +291,7 @@
     <Compile Include="Entities\Database\LandingSiteSamplingRepository.cs" />
     <Compile Include="Entities\ItemSources\FMAInRegionItemsSource.cs" />
     <Compile Include="Entities\ItemSources\LandingSiteInFMAFishingGroundItemsSource.cs" />
+    <Compile Include="Entities\Database\VesselUnloadSummary.cs" />
     <Compile Include="Entities\KoboForms.cs" />
     <Compile Include="Entities\Koboform_files.cs" />
     <Compile Include="Entities\MDBTablesRowCount.cs" />

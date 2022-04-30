@@ -14,6 +14,10 @@ namespace NSAP_ODK.Entities.Database
     {
         public List<CatchMaturity> CatchMaturities { get; set; }
 
+        public CatchMaturityRepository(VesselCatch vc)
+        {
+            CatchMaturities = getCatchMaturites(vc);
+        }
         public CatchMaturityRepository()
         {
             CatchMaturities = getCatchMaturites();
@@ -28,7 +32,7 @@ namespace NSAP_ODK.Entities.Database
                     using (var cmd = conn.CreateCommand())
                     {
                         conn.Open();
-                        cmd.CommandText =  "SELECT Max(catch_maturity_id) AS max_id FROM dbo_catch_maturity";
+                        cmd.CommandText = "SELECT Max(catch_maturity_id) AS max_id FROM dbo_catch_maturity";
                         max_rec_no = (int)cmd.ExecuteScalar();
                     }
                 }
@@ -48,7 +52,7 @@ namespace NSAP_ODK.Entities.Database
             return max_rec_no;
         }
 
-        private List<CatchMaturity> getFromMySQL()
+        private List<CatchMaturity> getFromMySQL(VesselCatch vc = null)
         {
             List<CatchMaturity> thisList = new List<CatchMaturity>();
             using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
@@ -57,11 +61,17 @@ namespace NSAP_ODK.Entities.Database
                 {
                     conn.Open();
                     cmd.CommandText = "Select * from dbo_catch_maturity";
+                    if (vc != null)
+                    {
+                        cmd.Parameters.AddWithValue("@parentID", vc.PK);
+                        cmd.CommandText = "Select * from dbo_catch_maturity where catch_id=@parentID";
+                    }
 
                     MySqlDataReader dr = cmd.ExecuteReader();
                     while (dr.Read())
                     {
                         CatchMaturity item = new CatchMaturity();
+                        item.Parent = vc;
                         item.PK = (int)dr["catch_maturity_id"];
                         item.VesselCatchID = (int)dr["catch_id"];
                         item.GonadWeight = dr["gonad_Wt"] == DBNull.Value ? null : (double?)dr["gonad_wt"];
@@ -77,61 +87,67 @@ namespace NSAP_ODK.Entities.Database
             }
             return thisList;
         }
-        private List<CatchMaturity> getCatchMaturites()
+        private List<CatchMaturity> getCatchMaturites(VesselCatch vc = null)
         {
             List<CatchMaturity> thisList = new List<CatchMaturity>();
             if (Global.Settings.UsemySQL)
             {
-                thisList = getFromMySQL();
+                thisList = getFromMySQL(vc);
             }
             else
             {
                 var dt = new DataTable();
                 using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    try
+                    using (var cmd = conection.CreateCommand())
                     {
-                        conection.Open();
-                        string query = "Select * from dbo_catch_maturity";
-                        var adapter = new OleDbDataAdapter(query, conection);
-                        adapter.Fill(dt);
-                        if (dt.Rows.Count > 0)
+                        try
                         {
-                            thisList.Clear();
-                            foreach (DataRow dr in dt.Rows)
+                            conection.Open();
+                            cmd.CommandText = "Select * from dbo_catch_maturity";
+                            if(vc!=null)
                             {
-                                CatchMaturity item = new CatchMaturity();
-                                item.PK = (int)dr["catch_maturity_id"];
-                                item.VesselCatchID = (int)dr["catch_id"];
-                                item.GonadWeight = dr["gonadWt"] == DBNull.Value ? null : (double?)dr["gonadWt"];
-                                item.Length = dr["length"] == DBNull.Value ? null : (double?)dr["length"];
-                                item.Weight = dr["weight"] == DBNull.Value ? null : (double?)dr["weight"];
-                                item.SexCode = dr["sex"].ToString();
-                                item.MaturityCode = dr["maturity"].ToString();
-                                item.WeightGutContent = dr["gut_content_wt"] == DBNull.Value ? null : (double?)dr["gut_content_wt"];
-                                item.GutContentCode = dr["gut_content_code"].ToString();
-                                thisList.Add(item);
+                                cmd.Parameters.AddWithValue("@parentID", vc.PK);
+                                cmd.CommandText = "Select * from dbo_catch_maturity where catch_id=@parentID";
+                            }
+                            if (dt.Rows.Count > 0)
+                            {
+                                thisList.Clear();
+                                foreach (DataRow dr in dt.Rows)
+                                {
+                                    CatchMaturity item = new CatchMaturity();
+                                    item.Parent = vc;
+                                    item.PK = (int)dr["catch_maturity_id"];
+                                    item.VesselCatchID = (int)dr["catch_id"];
+                                    item.GonadWeight = dr["gonadWt"] == DBNull.Value ? null : (double?)dr["gonadWt"];
+                                    item.Length = dr["length"] == DBNull.Value ? null : (double?)dr["length"];
+                                    item.Weight = dr["weight"] == DBNull.Value ? null : (double?)dr["weight"];
+                                    item.SexCode = dr["sex"].ToString();
+                                    item.MaturityCode = dr["maturity"].ToString();
+                                    item.WeightGutContent = dr["gut_content_wt"] == DBNull.Value ? null : (double?)dr["gut_content_wt"];
+                                    item.GutContentCode = dr["gut_content_code"].ToString();
+                                    thisList.Add(item);
+                                }
                             }
                         }
-                    }
-                    catch (OleDbException dbex)
-                    {
-                        Logger.Log(dbex);
-                    }
-                    catch (Exception ex)
-                    {
-                        if (ex.HResult == -2147024809)
+                        catch (OleDbException dbex)
                         {
-                            conection.Close();
-                            UpdateTable();
+                            Logger.Log(dbex);
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            Logger.Log(ex);
+                            if (ex.HResult == -2147024809)
+                            {
+                                conection.Close();
+                                UpdateTable();
+                            }
+                            else
+                            {
+                                Logger.Log(ex);
+                            }
+
                         }
-
                     }
-
                 }
             }
             return thisList;
@@ -371,8 +387,8 @@ namespace NSAP_ODK.Entities.Database
                 var sql = "";
                 switch (colName)
                 {
-                    
-                        case "gonadWt":
+
+                    case "gonadWt":
                         sql = $@"ALTER TABLE dbo_catch_maturity ADD COLUMN {colName} DOUBLE DEFAULT NULL";
                         break;
                 }

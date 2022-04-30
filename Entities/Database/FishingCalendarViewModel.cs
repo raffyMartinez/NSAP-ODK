@@ -198,7 +198,8 @@ namespace NSAP_ODK.Entities.Database
             //}
             //return count;
             
-            return UnloadList.Where(t=>t.Parent.SamplingDate.Day==day && t.GearUsedName==gear).Sum(t=>t.ListVesselUnload.Count);
+            //return UnloadList.Where(t=>t.Parent.SamplingDate.Day==day && t.GearUsedName==gear).Sum(t=>t.ListVesselUnload.Count);
+            return UnloadList.Where(t=>t.Parent.SamplingDate.Day==day && t.GearUsedName==gear).Sum(t=>t.AttachedVesselUnloads.Count);
 
         }
         private void OnPropertyChanged(string propertyName)

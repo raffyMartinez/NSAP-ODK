@@ -34,7 +34,12 @@ namespace NSAP_ODK.Entities.Database
                     Province = "";
                     Municipality = "";
                 }
-                var grid = NSAPEntities.VesselUnloadViewModel.FirstGridLocation(_vesselUnload);
+                if(_vesselUnload.FishingGroundGridViewModel==null)
+                {
+                    _vesselUnload.FishingGroundGridViewModel = new FishingGroundGridViewModel(_vesselUnload);
+                }
+                //var grid = NSAPEntities.VesselUnloadViewModel.FirstGridLocation(_vesselUnload);
+                var grid = _vesselUnload.FishingGroundGridViewModel.FishingGroundGridCollection.FirstOrDefault();
                 if (grid != null)
                 {
                     FishingGroundGrid = grid.ToString();

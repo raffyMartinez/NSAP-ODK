@@ -14,11 +14,15 @@ namespace NSAP_ODK.Entities.Database
     {
         public List<CatchLenFreq> CatchLenFreqs { get; set; }
 
+        public CatchLenFreqRepository(VesselCatch vc)
+        {
+            CatchLenFreqs = getCatchLenFreqs(vc);
+        }
         public CatchLenFreqRepository()
         {
             CatchLenFreqs = getCatchLenFreqs();
         }
-        private List<CatchLenFreq> getFromMySQL()
+        private List<CatchLenFreq> getFromMySQL(VesselCatch vc = null)
         {
             List<CatchLenFreq> thisList = new List<CatchLenFreq>();
             using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
@@ -27,11 +31,17 @@ namespace NSAP_ODK.Entities.Database
                 {
                     conn.Open();
                     cmd.CommandText = "Select * from dbo_catch_len_freq";
+                    if (vc != null)
+                    {
+                        cmd.Parameters.AddWithValue("@parentID", vc.PK);
+                        cmd.CommandText = $"Select * from dbo_catch_len_freq where catch_id=@parentID";
+                    }
 
                     MySqlDataReader dr = cmd.ExecuteReader();
                     while (dr.Read())
                     {
                         CatchLenFreq item = new CatchLenFreq();
+                        item.Parent = vc;
                         item.PK = (int)dr["catch_lf_id"];
                         item.VesselCatchID = (int)dr["catch_id"];
                         item.LengthClass = (double)dr["length"];
@@ -42,44 +52,49 @@ namespace NSAP_ODK.Entities.Database
             }
             return thisList;
         }
-        private List<CatchLenFreq> getCatchLenFreqs()
+        private List<CatchLenFreq> getCatchLenFreqs(VesselCatch vc = null)
         {
             List<CatchLenFreq> thisList = new List<CatchLenFreq>();
             if (Global.Settings.UsemySQL)
             {
-                thisList = getFromMySQL();
+                thisList = getFromMySQL(vc);
             }
             else
             {
                 var dt = new DataTable();
                 using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    try
+                    using (var cmd = conection.CreateCommand())
                     {
-                        conection.Open();
-                        string query = $"Select * from dbo_catch_len_freq";
-                        var adapter = new OleDbDataAdapter(query, conection);
-                        adapter.Fill(dt);
-                        if (dt.Rows.Count > 0)
+                        try
                         {
+                            conection.Open();
+                            cmd.CommandText = $"Select * from dbo_catch_len_freq";
+
+                            if (vc != null)
+                            {
+                                cmd.Parameters.AddWithValue("@parentID", vc.PK);
+                                cmd.CommandText = $"Select * from dbo_catch_len_freq where catch_id=@parentID";
+                            }
                             thisList.Clear();
                             foreach (DataRow dr in dt.Rows)
                             {
                                 CatchLenFreq item = new CatchLenFreq();
+                                item.Parent = vc;
                                 item.PK = (int)dr["catch_len_freq_id"];
                                 item.VesselCatchID = (int)dr["catch_id"];
                                 item.LengthClass = (double)dr["len_class"];
                                 item.Frequency = (int)dr["freq"];
                                 thisList.Add(item);
                             }
+
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
-
-                    }
-
                 }
             }
             return thisList;

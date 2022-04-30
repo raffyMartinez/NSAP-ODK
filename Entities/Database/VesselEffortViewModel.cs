@@ -14,7 +14,12 @@ namespace NSAP_ODK.Entities.Database
         private VesselEffortRepository VesselEfforts { get; set; }
 
 
-        
+        public VesselEffortViewModel(VesselUnload vu)
+        {
+            VesselEfforts = new VesselEffortRepository(vu);
+            VesselEffortCollection = new ObservableCollection<VesselEffort>(VesselEfforts.VesselEfforts);
+            VesselEffortCollection.CollectionChanged += LandingSiteSamplingCollection_CollectionChanged;
+        }
         public VesselEffortViewModel()
         {
             VesselEfforts = new VesselEffortRepository();

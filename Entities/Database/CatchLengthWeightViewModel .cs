@@ -12,7 +12,12 @@ namespace NSAP_ODK.Entities.Database
         private bool _editSuccess;
         public ObservableCollection<CatchLengthWeight> CatchLengthWeightCollection { get; set; }
         private CatchLenWeightRepository CatchLengthWeights { get; set; }
-
+        public CatchLengthWeightViewModel(VesselCatch vc)
+        {
+            CatchLengthWeights = new CatchLenWeightRepository(vc);
+            CatchLengthWeightCollection = new ObservableCollection<CatchLengthWeight>(CatchLengthWeights.CatchLengthWeights);
+            CatchLengthWeightCollection.CollectionChanged += CatchLengthWeightCollection_CollectionChanged;
+        }
         public CatchLengthWeightViewModel()
         {
             CatchLengthWeights = new CatchLenWeightRepository();

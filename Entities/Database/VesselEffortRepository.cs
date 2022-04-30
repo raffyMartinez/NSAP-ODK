@@ -14,6 +14,10 @@ namespace NSAP_ODK.Entities.Database
     {
         public List<VesselEffort> VesselEfforts { get; set; }
 
+        public VesselEffortRepository(VesselUnload vu)
+        {
+            VesselEfforts = getVesselEfforts(vu);
+        }
         public VesselEffortRepository()
         {
             VesselEfforts = getVesselEfforts();
@@ -28,7 +32,7 @@ namespace NSAP_ODK.Entities.Database
                     using (var cmd = conn.CreateCommand())
                     {
                         conn.Open();
-                        cmd.CommandText =  "SELECT Max(effort_row_id) AS max_id FROM dbo_vessel_effort";
+                        cmd.CommandText = "SELECT Max(effort_row_id) AS max_id FROM dbo_vessel_effort";
                         max_rec_no = (int)cmd.ExecuteScalar();
                     }
                 }
@@ -47,7 +51,7 @@ namespace NSAP_ODK.Entities.Database
             }
             return max_rec_no;
         }
-        private List<VesselEffort> getFromMySQL()
+        private List<VesselEffort> getFromMySQL(VesselUnload vu = null)
         {
             List<VesselEffort> thisList = new List<VesselEffort>();
             using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
@@ -56,11 +60,17 @@ namespace NSAP_ODK.Entities.Database
                 {
                     conn.Open();
                     cmd.CommandText = "Select * from dbo_vessel_effort";
+                    if (vu != null)
+                    {
+                        cmd.Parameters.AddWithValue("@parentID", vu.PK);
+                        cmd.CommandText = "Select * from dbo_vessel_effort where v_unload_id=@parentID";
+                    }
 
                     MySqlDataReader dr = cmd.ExecuteReader();
                     while (dr.Read())
                     {
                         VesselEffort item = new VesselEffort();
+                        item.Parent = vu;
                         item.PK = (int)dr["effort_row_id"];
                         item.VesselUnloadID = (int)dr["v_unload_id"];
                         item.EffortSpecID = (int)dr["effort_spec_id"];
@@ -72,32 +82,36 @@ namespace NSAP_ODK.Entities.Database
             }
             return thisList;
         }
-        private List<VesselEffort> getVesselEfforts()
+        private List<VesselEffort> getVesselEfforts(VesselUnload vu = null)
         {
             List<VesselEffort> thisList = new List<VesselEffort>();
             if (Global.Settings.UsemySQL)
             {
-                thisList = getFromMySQL();
+                thisList = getFromMySQL(vu);
             }
             else
             {
-                var dt = new DataTable();
                 using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    try
+                    using (var cmd = conection.CreateCommand())
                     {
-                        conection.Open();
-                        string query = "Select * from dbo_vessel_effort";
-
-
-                        var adapter = new OleDbDataAdapter(query, conection);
-                        adapter.Fill(dt);
-                        if (dt.Rows.Count > 0)
+                        try
                         {
+                            conection.Open();
+                            cmd.CommandText = "Select * from dbo_vessel_effort";
+
+                            if (vu != null)
+                            {
+                                cmd.Parameters.AddWithValue("@parentID", vu.PK);
+                                cmd.CommandText = "Select * from dbo_vessel_effort where v_unload_id=@parentID";
+                            }
+
+                            OleDbDataReader dr = cmd.ExecuteReader();
                             thisList.Clear();
-                            foreach (DataRow dr in dt.Rows)
+                            while (dr.Read())
                             {
                                 VesselEffort item = new VesselEffort();
+                                item.Parent = vu;
                                 item.PK = (int)dr["effort_row_id"];
                                 item.VesselUnloadID = (int)dr["v_unload_id"];
                                 item.EffortSpecID = (int)dr["effort_spec_id"];
@@ -105,12 +119,13 @@ namespace NSAP_ODK.Entities.Database
                                 item.EffortValueText = dr["effort_value_text"].ToString();
                                 thisList.Add(item);
                             }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
 
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+
+                        }
                     }
                 }
 

@@ -33,7 +33,7 @@ namespace NSAP_ODK.TreeViewModelControl
 
         public string Name
         {
-            get 
+            get
             {
                 return _landingSiteText;
             }
@@ -46,24 +46,38 @@ namespace NSAP_ODK.TreeViewModelControl
 
         protected override void LoadChildren()
         {
-            string lsName = _landingSite == null ? _landingSiteText : _landingSite.LandingSiteName;
+            //string lsName = _landingSite == null ? _landingSiteText : _landingSite.LandingSiteName;
             List<DateTime> listMonthYear = new List<DateTime>();
-            foreach (var item in NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection
-                .Where(t => t.NSAPRegionID == _region.Code)
-                .Where(t => t.FMAID == _fma.FMAID)
-                .Where(t => t.FishingGroundID == _fishingGround.Code)
-                .Where(ls => ls.LandingSiteName == lsName ))
+            //foreach (var item in NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection
+            //    .Where(t => t.NSAPRegionID == _region.Code)
+            //    .Where(t => t.FMAID == _fma.FMAID)
+            //    .Where(t => t.FishingGroundID == _fishingGround.Code)
+            //    .Where(ls => ls.LandingSiteName == lsName ))
+            //{
+            //    var monthYear = item.SamplingDate.ToString("MMM-yyyy");
+            //    if (!listMonthYear.Contains(DateTime.Parse( monthYear)))
+            //    {
+            //        listMonthYear.Add(DateTime.Parse( monthYear));
+            //    }
+            //}
+
+            NSAPEntities.SummaryItemViewModel.TreeViewData = new AllSamplingEntitiesEventHandler
             {
-                var monthYear = item.SamplingDate.ToString("MMM-yyyy");
-                if (!listMonthYear.Contains(DateTime.Parse( monthYear)))
-                {
-                    listMonthYear.Add(DateTime.Parse( monthYear));
-                }
+                LandingSite = _landingSite,
+                FishingGround = _fishingGround,
+                FMA = _fma,
+                NSAPRegion = _region,
+                LandingSiteText = _landingSiteText,
+                TreeViewEntity = this.GetType().Name
+            };
+
+
+            foreach (var item in NSAPEntities.SummaryItemViewModel.SummaryResults)
+            {
+                listMonthYear.Add(item.DBSummary.SampledMonth);
             }
 
-
-
-            foreach (var my in listMonthYear.OrderBy(t=>t))
+            foreach (var my in listMonthYear.OrderBy(t => t))
             {
                 base.Children.Add(new tv_MonthViewModel(my.ToString("MMM-yyyy"), this));
             }

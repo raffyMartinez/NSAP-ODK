@@ -14,6 +14,10 @@ namespace NSAP_ODK.Entities.Database
     {
         public List<CatchLength> CatchLengths { get; set; }
 
+        public CatchLengthRepository(VesselCatch vc)
+        {
+            CatchLengths = getCatchLengths(vc);
+        }
         public CatchLengthRepository()
         {
             CatchLengths = getCatchLengths();
@@ -48,7 +52,7 @@ namespace NSAP_ODK.Entities.Database
             }
             return max_rec_no;
         }
-        private List<CatchLength> getFromMySQL()
+        private List<CatchLength> getFromMySQL(VesselCatch vc = null)
         {
             List<CatchLength> thisList = new List<CatchLength>();
             using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
@@ -57,11 +61,17 @@ namespace NSAP_ODK.Entities.Database
                 {
                     conn.Open();
                     cmd.CommandText = "Select * from dbo_catch_length";
+                    if (vc != null)
+                    {
+                        cmd.Parameters.AddWithValue("parentID", vc.PK);
+                        cmd.CommandText = "Select * from dbo_catch_length where catch_id=@parentID";
+                    }
 
                     MySqlDataReader dr = cmd.ExecuteReader();
                     while (dr.Read())
                     {
                         CatchLength item = new CatchLength();
+                        item.Parent = vc;
                         item.PK = (int)dr["catch_len_id"];
                         item.VesselCatchID = (int)dr["catch_id"];
                         item.Length = (double)dr["length"];
@@ -71,43 +81,48 @@ namespace NSAP_ODK.Entities.Database
             }
             return thisList;
         }
-        private List<CatchLength> getCatchLengths()
+        private List<CatchLength> getCatchLengths(VesselCatch vc = null)
         {
             List<CatchLength> thisList = new List<CatchLength>();
             if (Global.Settings.UsemySQL)
             {
-                thisList = getFromMySQL();
+                thisList = getFromMySQL(vc);
             }
             else
             {
                 var dt = new DataTable();
                 using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    try
+                    using (var cmd = conection.CreateCommand())
                     {
-                        conection.Open();
-                        string query = "Select * from dbo_catch_len";
-                        var adapter = new OleDbDataAdapter(query, conection);
-                        adapter.Fill(dt);
-                        if (dt.Rows.Count > 0)
+                        try
                         {
+                            conection.Open();
+                            cmd.CommandText = "Select * from dbo_catch_len";
+
+                            if (vc != null)
+                            {
+                                cmd.Parameters.AddWithValue("parentID", vc.PK);
+                                cmd.CommandText = "Select * from dbo_catch_len where catch_id=@parentID";
+                            }
                             thisList.Clear();
                             foreach (DataRow dr in dt.Rows)
                             {
                                 CatchLength item = new CatchLength();
+                                item.Parent = vc;
                                 item.PK = (int)dr["catch_len_id"];
                                 item.VesselCatchID = (int)dr["catch_id"];
                                 item.Length = (double)dr["length"];
                                 thisList.Add(item);
                             }
+
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
-
-                    }
-
                 }
             }
             return thisList;
@@ -122,24 +137,24 @@ namespace NSAP_ODK.Entities.Database
                     update.Parameters.Add("@id", MySqlDbType.Int32).Value = item.PK;
                     update.Parameters.Add("@catch_id", MySqlDbType.Int32).Value = item.Parent.PK;
                     update.Parameters.Add("@length", MySqlDbType.Double).Value = item.Length;
-                    update.CommandText=@"Insert into dbo_catch_length(catch_len_id, catch_id, length) 
+                    update.CommandText = @"Insert into dbo_catch_length(catch_len_id, catch_id, length) 
                                          Values (@id,@catch_id,@length)";
                     try
                     {
                         conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch(MySqlException msex)
+                    catch (MySqlException msex)
                     {
                         Logger.Log(msex);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Logger.Log(ex);
                     }
                 }
             }
-                return success;
+            return success;
         }
         public bool Add(CatchLength item)
         {
@@ -288,7 +303,7 @@ namespace NSAP_ODK.Entities.Database
                 using (var update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@id", MySqlDbType.Int32).Value = id;
-                    update.CommandText = "Delete * from dbo_catch_len where catch_len_id=@id"; 
+                    update.CommandText = "Delete * from dbo_catch_len where catch_len_id=@id";
                     try
                     {
                         conn.Open();
@@ -323,7 +338,7 @@ namespace NSAP_ODK.Entities.Database
                     using (OleDbCommand update = conn.CreateCommand())
                     {
                         update.Parameters.Add("@id", OleDbType.Integer).Value = id;
-                        update.CommandText = "Delete * from dbo_catch_len where catch_len_id=@id"; 
+                        update.CommandText = "Delete * from dbo_catch_len where catch_len_id=@id";
                         try
                         {
                             success = update.ExecuteNonQuery() > 0;

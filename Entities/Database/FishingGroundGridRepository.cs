@@ -14,6 +14,10 @@ namespace NSAP_ODK.Entities.Database
     {
         public List<FishingGroundGrid> FishingGroundGrids { get; set; }
 
+        public FishingGroundGridRepository(VesselUnload vu)
+        {
+            FishingGroundGrids = getFishingGroundGrids(vu);
+        }
         public FishingGroundGridRepository()
         {
             FishingGroundGrids = getFishingGroundGrids();
@@ -28,7 +32,7 @@ namespace NSAP_ODK.Entities.Database
                     using (var cmd = conn.CreateCommand())
                     {
                         conn.Open();
-                        cmd.CommandText ="SELECT Max(fg_grid_id) AS max_id FROM dbo_fg_grid";
+                        cmd.CommandText = "SELECT Max(fg_grid_id) AS max_id FROM dbo_fg_grid";
                         max_rec_no = (int)cmd.ExecuteScalar();
                     }
                 }
@@ -47,7 +51,7 @@ namespace NSAP_ODK.Entities.Database
             }
             return max_rec_no;
         }
-        private List<FishingGroundGrid> getFromMySQL()
+        private List<FishingGroundGrid> getFromMySQL(VesselUnload vu = null)
         {
             List<FishingGroundGrid> thisList = new List<FishingGroundGrid>();
             using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
@@ -56,11 +60,17 @@ namespace NSAP_ODK.Entities.Database
                 {
                     conn.Open();
                     cmd.CommandText = $"Select * from dbo_fg_grid";
+                    if (vu != null)
+                    {
+                        cmd.Parameters.AddWithValue("@parentID", vu.PK);
+                        cmd.CommandText = "Select * from dbo_fg_grid where v_unload_id=@parentID";
+                    }
 
                     MySqlDataReader dr = cmd.ExecuteReader();
                     while (dr.Read())
                     {
                         FishingGroundGrid item = new FishingGroundGrid();
+                        item.Parent = vu;
                         item.PK = (int)dr["fg_grid_id"];
                         item.VesselUnloadID = (int)dr["v_unload_id"];
                         item.UTMZoneText = dr["utm_zone"].ToString();
@@ -71,30 +81,37 @@ namespace NSAP_ODK.Entities.Database
             }
             return thisList;
         }
-        private List<FishingGroundGrid> getFishingGroundGrids()
+        private List<FishingGroundGrid> getFishingGroundGrids(VesselUnload vu = null)
         {
             List<FishingGroundGrid> thisList = new List<FishingGroundGrid>();
             if (Global.Settings.UsemySQL)
             {
-                thisList = getFromMySQL();
+                thisList = getFromMySQL(vu);
             }
             else
             {
-                var dt = new DataTable();
+                
                 using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    try
+                    using (var cmd = conection.CreateCommand())
                     {
-                        conection.Open();
-                        string query = "Select * from dbo_fg_grid";
-                        var adapter = new OleDbDataAdapter(query, conection);
-                        adapter.Fill(dt);
-                        if (dt.Rows.Count > 0)
+                        try
                         {
+                            conection.Open();
+                            cmd.CommandText = "Select * from dbo_fg_grid";
+                            if (vu != null)
+                            {
+                                cmd.Parameters.AddWithValue("@parentID", vu.PK);
+                                cmd.CommandText = "Select * from dbo_fg_grid where v_unload_id=@parentID";
+                            }
+
+
                             thisList.Clear();
-                            foreach (DataRow dr in dt.Rows)
+                            OleDbDataReader dr = cmd.ExecuteReader();
+                            while (dr.Read())
                             {
                                 FishingGroundGrid item = new FishingGroundGrid();
+                                item.Parent = vu;
                                 item.PK = (int)dr["fg_grid_id"];
                                 item.VesselUnloadID = (int)dr["v_unload_id"];
                                 item.UTMZoneText = dr["utm_zone"].ToString();
@@ -102,13 +119,12 @@ namespace NSAP_ODK.Entities.Database
                                 thisList.Add(item);
                             }
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
 
+                        }
                     }
-
                 }
             }
             return thisList;

@@ -81,8 +81,8 @@ namespace NSAP_ODK.Views
                         {
                             //labelMessage.Content = $"NSAP-ODK Database ready with {MySQLConnect.TableCount} tables";
                             labelMessage.Content = "NSAP-ODK Database ready ";
-                            TablesStats.GetStats();
-                            buttonStats.IsEnabled = true;
+                            //TablesStats.GetStats();
+                            //buttonStats.IsEnabled = true;
                         }
                     }
 

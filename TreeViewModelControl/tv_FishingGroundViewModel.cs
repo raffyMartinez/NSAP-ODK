@@ -47,20 +47,30 @@ namespace NSAP_ODK.TreeViewModelControl
         {
             _sampledLandingSiteViewModel = new SampledLandingSiteViewModel(_fishingGround, _fma, _region);
             HashSet<LandingSite> hsLS = new HashSet<LandingSite>();
+            LandingSite lst = null;
             foreach (var item in _sampledLandingSiteViewModel.SampledLandingSiteCollection.OrderBy(t => t.LandingSiteName))
             {
-                LandingSite ls = new LandingSite(item.LandingSiteID, item.LandingSiteName, item.Municipality)
+                //if (item.Municipality == null)
+                //{
+                //    lst = new LandingSite
+                //    {
+                //        LandingSiteName = item.LandingSiteText
+                //    };
+                //}
+
+                lst = new LandingSite(item.LandingSiteID, item.LandingSiteName, item.Municipality)
                 {
                     Barangay = item.Barangay,
                     Longitude = 1,
                     Latitude = 1
 
                 };
-                hsLS.Add(ls);
+
+                hsLS.Add(lst);
             }
             foreach (var ls in hsLS)
             {
-                base.Children.Add(new tv_LandingSiteViewModel(null, this, ls.ToString()));
+                base.Children.Add(new tv_LandingSiteViewModel(ls, this, ls.ToString()));
             }
         }
 

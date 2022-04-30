@@ -15,6 +15,10 @@ namespace NSAP_ODK.Entities.Database
     {
         public List<GearUnload> GearUnloads { get; set; }
 
+        public GearUnloadRepository(LandingSiteSampling ls)
+        {
+            GearUnloads = getGearUnloads(ls);
+        }
         public GearUnloadRepository()
         {
             GearUnloads = getGearUnloads();
@@ -49,7 +53,7 @@ namespace NSAP_ODK.Entities.Database
             return max_rec_no;
         }
 
-        private List<GearUnload> getFromMySQL()
+        private List<GearUnload> getFromMySQL(LandingSiteSampling ls = null)
         {
             List<GearUnload> thisList = new List<GearUnload>();
             using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
@@ -58,11 +62,16 @@ namespace NSAP_ODK.Entities.Database
                 {
                     conn.Open();
                     cmd.CommandText = "Select * from dbo_gear_unload";
-
+                    if (ls != null)
+                    {
+                        cmd.Parameters.AddWithValue("@parentID", ls.PK);
+                        cmd.CommandText = $"Select * from dbo_gear_unload where unload_day_id=@parentID";
+                    }
                     MySqlDataReader dr = cmd.ExecuteReader();
                     while (dr.Read())
                     {
                         GearUnload item = new GearUnload();
+                        item.Parent = ls;
                         item.PK = (int)dr["unload_gr_id"];
                         item.LandingSiteSamplingID = (int)dr["unload_day_id"];
                         item.GearID = dr["gr_id"].ToString();
@@ -76,32 +85,93 @@ namespace NSAP_ODK.Entities.Database
             }
             return thisList;
         }
-        private List<GearUnload> getGearUnloads()
+
+        
+
+        public static int GearUnloadCount(bool countCompleted=false)
+        {
+            int count = 0;
+            if (Global.Settings.UsemySQL)
+            {
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+                {
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = "Select count(*) from dbo_gear_unload";
+                        if (countCompleted)
+                        {
+                            cmd.CommandText = "Select count(*) from dbo_gear_unload where boats Is Not null And catch Is Not Null";
+                        }
+                        try
+                        {
+                            conn.Open();
+                            count = (int)(long)cmd.ExecuteScalar();
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                using (var conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = "Select count(*) from dbo_gear_unload";
+                        if(countCompleted)
+                        {
+                            cmd.CommandText="Select count(*) from dbo_gear_unload where boats Is Not null And catch Is Not Null";
+                        }
+                        try
+                        {
+                            conn.Open();
+                            count = (int)cmd.ExecuteScalar();
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+
+            }
+            return count;
+        }
+
+        private List<GearUnload> getGearUnloads(LandingSiteSampling ls = null)
         {
             List<GearUnload> thisList = new List<GearUnload>();
             if (Global.Settings.UsemySQL)
             {
-                thisList = getFromMySQL();
+                thisList = getFromMySQL(ls);
             }
             else
             {
-                var dt = new DataTable();
                 using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    try
+                    using (var cmd = conection.CreateCommand())
                     {
-                        conection.Open();
-                        string query = $"Select * from dbo_gear_unload";
-
-
-                        var adapter = new OleDbDataAdapter(query, conection);
-                        adapter.Fill(dt);
-                        if (dt.Rows.Count > 0)
+                        try
                         {
+                            conection.Open();
+                            cmd.CommandText = $"Select * from dbo_gear_unload";
+
+                            if (ls != null)
+                            {
+                                cmd.Parameters.AddWithValue("@parentID", ls.PK);
+                                cmd.CommandText = $"Select * from dbo_gear_unload where unload_day_id=@parentID";
+                            }
+
+
+                            OleDbDataReader dr = cmd.ExecuteReader();
                             thisList.Clear();
-                            foreach (DataRow dr in dt.Rows)
+                            while (dr.Read())
                             {
                                 GearUnload item = new GearUnload();
+                                item.Parent = ls;
                                 item.PK = (int)dr["unload_gr_id"];
                                 item.LandingSiteSamplingID = (int)dr["unload_day_id"];
                                 item.GearID = dr["gr_id"].ToString();
@@ -109,14 +179,16 @@ namespace NSAP_ODK.Entities.Database
                                 item.Catch = string.IsNullOrEmpty(dr["catch"].ToString()) ? null : (double?)dr["catch"];
                                 item.GearUsedText = dr["gr_text"].ToString();
                                 item.Remarks = dr["remarks"].ToString();
+                                //item.VesselUnloadViewModel = new VesselUnloadViewModel(item);
                                 thisList.Add(item);
+
                             }
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
 
+                        }
                     }
                 }
 

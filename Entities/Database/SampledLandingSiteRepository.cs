@@ -136,6 +136,15 @@ namespace NSAP_ODK.Entities.Database
                                     };
                                     thisList.Add(sls);
                                 }
+                                else
+                                {
+                                    SampledLandingSite sl = new SampledLandingSite
+                                    {
+                                        FishingGround = fg,
+                                        LandingSiteText = dr["land_ctr_text"].ToString(),
+                                    };
+                                    thisList.Add(sl);
+                                }
 
                             }
                         }

@@ -523,10 +523,25 @@ namespace NSAP_ODK.Entities.Database
         private FishingVessel _fishingVessel;
         private NSAPEnumerator _nsapEnumerator;
 
+        public VesselCatchViewModel VesselCatchViewModel { get; set; }
+        public FishingGroundGridViewModel FishingGroundGridViewModel { get; set; }
+
+        public GearSoakViewModel GearSoakViewModel { get; set; }
+
+        public VesselEffortViewModel VesselEffortViewModel { get; set; }
         public override string ToString()
         {
-            return $"[ID:{PK}] {VesselName}-{Parent.Parent.LandingSiteName}-{SamplingDate.ToString("MMM-dd-yyyy")}-Enumerator:{EnumeratorName}";
+            if (Parent.Parent == null)
+            {
+                return $"[ID:{PK}] {VesselName}-{SamplingDate.ToString("MMM-dd-yyyy")}-Enumerator:{EnumeratorName}";
+            }
+            else
+            {
+                return $"[ID:{PK}] {VesselName}-{Parent.Parent.LandingSiteName}-{SamplingDate.ToString("MMM-dd-yyyy")}-Enumerator:{EnumeratorName}";
+            }
         }
+
+        public string DateSampling { get { return SamplingDate.ToString("MMM-dd-yyyy"); } }
         public bool HasCatchComposition { get; set; }
         public DateTime TimeStart { get; set; }
         public int PK { get; set; }
@@ -664,8 +679,12 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                return NSAPEntities.VesselEffortViewModel.VesselEffortCollection
-                    .Where(t => t.Parent != null && t.Parent.PK == PK).ToList();
+                if(VesselEffortViewModel==null)
+                {
+                    VesselEffortViewModel = new VesselEffortViewModel(this);
+                }
+                return VesselEffortViewModel.VesselEffortCollection.ToList();
+                    //.Where(t => t.Parent != null && t.Parent.PK == PK).ToList();
             }
         }
 
@@ -690,25 +709,72 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                return NSAPEntities.GearSoakViewModel.GearSoakCollection
-                    .Where(t => t.Parent != null && t.Parent.PK == PK).ToList();
+                if(GearSoakViewModel==null)
+                {
+                    GearSoakViewModel = new GearSoakViewModel(this);
+                }
+                return GearSoakViewModel.GearSoakCollection.ToList();
+                    //.Where(t => t.Parent != null && t.Parent.PK == PK).ToList();
             }
         }
         public List<FishingGroundGrid> ListFishingGroundGrid
         {
             get
             {
-
-                return NSAPEntities.FishingGroundGridViewModel.FishingGroundGridCollection
-                    .Where(t => t.Parent != null && t.Parent.PK == PK).ToList();
+                if(FishingGroundGridViewModel==null)
+                {
+                    FishingGroundGridViewModel = new FishingGroundGridViewModel(this);
+                }
+                return FishingGroundGridViewModel.FishingGroundGridCollection.ToList();
+                    //.Where(t => t.Parent != null && t.Parent.PK == PK).ToList();
             }
+        }
+        public void SetSubModels()
+        {
+            if(VesselCatchViewModel==null)
+            {
+                VesselCatchViewModel = new VesselCatchViewModel(this);
+            }
+            if(FishingGroundGridViewModel==null)
+            {
+                FishingGroundGridViewModel = new FishingGroundGridViewModel(this);
+            }
+            if(GearSoakViewModel==null)
+            {
+                GearSoakViewModel = new GearSoakViewModel(this);
+            }
+            if(VesselEffortViewModel==null)
+            {
+                VesselEffortViewModel = new VesselEffortViewModel(this);
+            }
+        }
+        public void GetCounts()
+        {
+            foreach (VesselCatch vc in VesselCatchViewModel.VesselCatchCollection)
+            {
+                CountLenFreqRows += vc.CatchLenFreqViewModel.CatchLenFreqCollection.Count;
+                CountLengthRows += vc.CatchLengthViewModel.CatchLengthCollection.Count;
+                CountLenWtRows += vc.CatchLengthWeightViewModel.CatchLengthWeightCollection.Count;
+                CountMaturityRows += vc.CatchMaturityViewModel.CatchMaturityCollection.Count;
+            }
+            CountGrids = FishingGroundGridViewModel.FishingGroundGridCollection.Count;
+            CountGearSoak = GearSoakViewModel.GearSoakCollection.Count;
+            CountCatchCompositionItems = VesselCatchViewModel.VesselCatchCollection.Count;
+            CountEffortIndicators = VesselEffortViewModel.VesselEffortCollection.Count;
         }
         public List<VesselCatch> ListVesselCatch
         {
             get
             {
-                return NSAPEntities.VesselCatchViewModel.VesselCatchCollection
-                    .Where(t => t.Parent != null && t.Parent.PK == PK).ToList();
+                if(VesselCatchViewModel==null)
+                {
+                    VesselCatchViewModel = new VesselCatchViewModel(this);
+
+                }
+                SetSubModels();
+                GetCounts();
+                return VesselCatchViewModel.VesselCatchCollection.ToList();
+                    
             }
         }
         public bool OperationIsSuccessful { get; set; }
@@ -737,7 +803,9 @@ namespace NSAP_ODK.Entities.Database
             {
                 if (_parent == null)
                 {
-                    _parent = NSAPEntities.GearUnloadViewModel.getGearUnload(GearUnloadID);
+                    //_parent = NSAPEntities.GearUnloadViewModel.getGearUnload(GearUnloadID);
+                    _parent = GearUnloadViewModel.GearUnloadFromID(GearUnloadID);
+                    //_parent = new GearUnload();
                 }
                 return _parent;
             }

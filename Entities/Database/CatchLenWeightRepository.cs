@@ -14,6 +14,10 @@ namespace NSAP_ODK.Entities.Database
     {
         public List<CatchLengthWeight> CatchLengthWeights { get; set; }
 
+        public CatchLenWeightRepository(VesselCatch vc)
+        {
+            CatchLengthWeights = getCatchLengthWeights(vc);
+        }
         public CatchLenWeightRepository()
         {
             CatchLengthWeights = getCatchLengthWeights();
@@ -48,7 +52,7 @@ namespace NSAP_ODK.Entities.Database
             return max_rec_no;
         }
 
-        private List<CatchLengthWeight> getFromMySQL()
+        private List<CatchLengthWeight> getFromMySQL(VesselCatch vc = null)
         {
             List<CatchLengthWeight> thisList = new List<CatchLengthWeight>();
             using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
@@ -57,11 +61,17 @@ namespace NSAP_ODK.Entities.Database
                 {
                     conn.Open();
                     cmd.CommandText = "Select * from dbo_catch_len_wt";
+                    if (vc != null)
+                    {
+                        cmd.Parameters.AddWithValue("@parent_id", vc.PK);
+                        cmd.CommandText = "Select * from dbo_catch_len_wt where catch_id=@parent_id";
+                    }
 
                     MySqlDataReader dr = cmd.ExecuteReader();
                     while (dr.Read())
                     {
                         CatchLengthWeight item = new CatchLengthWeight();
+                        item.Parent = vc;
                         item.PK = (int)dr["catch_lw_id"];
                         item.VesselCatchID = (int)dr["catch_id"];
                         item.Length = (double)dr["length"];
@@ -72,30 +82,36 @@ namespace NSAP_ODK.Entities.Database
             }
             return thisList;
         }
-        private List<CatchLengthWeight> getCatchLengthWeights()
+        private List<CatchLengthWeight> getCatchLengthWeights(VesselCatch vc = null)
         {
             List<CatchLengthWeight> thisList = new List<CatchLengthWeight>();
             if (Global.Settings.UsemySQL)
             {
-                thisList = getFromMySQL();
+                thisList = getFromMySQL(vc);
             }
             else
             {
                 var dt = new DataTable();
                 using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    try
+                    using (var cmd = conection.CreateCommand())
                     {
-                        conection.Open();
-                        string query = "Select * from dbo_catch_len_wt";
-                        var adapter = new OleDbDataAdapter(query, conection);
-                        adapter.Fill(dt);
-                        if (dt.Rows.Count > 0)
+                        try
                         {
+                            conection.Open();
+                            cmd.CommandText = "Select * from dbo_catch_len_wt";
+
+                            if (vc != null)
+                            {
+                                cmd.Parameters.AddWithValue("@parent_id", vc.PK);
+                                cmd.CommandText = "Select * from dbo_catch_len_wt where catch_id=@parent_id";
+                            }
+
                             thisList.Clear();
                             foreach (DataRow dr in dt.Rows)
                             {
                                 CatchLengthWeight item = new CatchLengthWeight();
+                                item.Parent = vc;
                                 item.PK = (int)dr["catch_len_wt_id"];
                                 item.VesselCatchID = (int)dr["catch_id"];
                                 item.Length = (double)dr["length"];
@@ -103,10 +119,10 @@ namespace NSAP_ODK.Entities.Database
                                 thisList.Add(item);
                             }
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
                     }
                 }
             }

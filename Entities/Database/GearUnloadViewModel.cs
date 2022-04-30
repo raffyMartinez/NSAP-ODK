@@ -14,6 +14,31 @@ namespace NSAP_ODK.Entities.Database
         public ObservableCollection<GearUnload> GearUnloadCollection { get; set; }
         private GearUnloadRepository GearUnloads { get; set; }
 
+        public GearUnloadViewModel(LandingSiteSampling parent)
+        {
+            GearUnloads = new GearUnloadRepository(parent);
+            GearUnloadCollection = new ObservableCollection<GearUnload>(GearUnloads.GearUnloads);
+            GearUnloadCollection.CollectionChanged += GearUnloadCollection_CollectionChanged;
+        }
+
+        public static GearUnload GearUnloadFromID(int unloadID)
+        {
+            foreach(LandingSiteSampling lss in NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection)
+            {
+                foreach(GearUnload gu in lss.GearUnloadViewModel.GearUnloadCollection)
+                {
+                    if(gu.PK==unloadID)
+                    {
+                        return gu;
+                    }
+                }
+            }
+            return null;
+        }
+        public static int GearUnloadCount(bool isCompleted=false)
+        {
+            return GearUnloadRepository.GearUnloadCount(isCompleted);
+        }
         public GearUnloadViewModel()
         {
             GearUnloads = new GearUnloadRepository();

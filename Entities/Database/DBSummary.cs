@@ -43,22 +43,28 @@ namespace NSAP_ODK.Entities.Database
             FishingGearCount = NSAPEntities.GearViewModel.Count;
             LandingSiteCount = NSAPEntities.LandingSiteViewModel.Count;
             GearSpecificationCount = NSAPEntities.EffortSpecificationViewModel.Count;
-            VesselUnloadCount = NSAPEntities.VesselUnloadViewModel.Count;
-            GearUnloadCount = NSAPEntities.GearUnloadViewModel.Count;
+            VesselUnloadCount = VesselUnloadViewModel.CountVesselUnload();
+            GearUnloadCount = GearUnloadViewModel.GearUnloadCount();
             EnumeratorCount = NSAPEntities.NSAPEnumeratorViewModel.Count;
             FishingVesselCount = NSAPEntities.FishingVesselViewModel.Count;
             GPSCount = NSAPEntities.GPSViewModel.Count;
-            TrackedOperationsCount = NSAPEntities.VesselUnloadViewModel.TrackedUnloadCount;
+            TrackedOperationsCount = VesselUnloadViewModel.CountVesselUnload(isTracked:true);
             if (VesselUnloadCount > 0)
             {
-                FirstSampledLandingDate = NSAPEntities.VesselUnloadViewModel.DateOfFirstSampledLanding;
-                LastSampledLandingDate = NSAPEntities.VesselUnloadViewModel.DateOfLastSampledLanding;
-                CountCompleteGearUnload = NSAPEntities.GearUnloadViewModel.CountCompletedGearUnload;
-                DateLastDownload = NSAPEntities.VesselUnloadViewModel.DateLatestDownload;
+                VesselUnloadSummary vs = VesselUnloadViewModel.GetSummary();
+                //FirstSampledLandingDate = NSAPEntities.VesselUnloadViewModel.DateOfFirstSampledLanding;
+                FirstSampledLandingDate = vs.FirstSamplingDate;
+                //LastSampledLandingDate = NSAPEntities.VesselUnloadViewModel.DateOfLastSampledLanding;
+                LastSampledLandingDate = vs.LastSamplingDate;
+                //CountCompleteGearUnload = NSAPEntities.GearUnloadViewModel.CountCompletedGearUnload;
+                CountCompleteGearUnload = GearUnloadViewModel.GearUnloadCount(isCompleted:true);
+                //DateLastDownload = NSAPEntities.VesselUnloadViewModel.DateLatestDownload;
+                DateLastDownload = vs.LatestDownloadDate;
                 SavedJSONFolder = Global.Settings.JSONFolder;
                 SavedFishingEffortJSONCount = NSAPEntities.JSONFileViewModel.CountSavedEffortJsonFile();
                 SavedVesselCountsJSONCount = NSAPEntities.JSONFileViewModel.CountSavedVesselCountsJsonFile();
-                CountLandingsWithCatchComposition = NSAPEntities.VesselUnloadViewModel.CountLandingWithCatchComposition();
+                //CountLandingsWithCatchComposition = NSAPEntities.VesselUnloadViewModel.CountLandingWithCatchComposition();
+                CountLandingsWithCatchComposition = vs.CountUnloadsWithCatchComposition;
             }
         }
         public DBSummary()
@@ -70,6 +76,16 @@ namespace NSAP_ODK.Entities.Database
         public int CountLandingsWithCatchComposition { get; set; }
         public bool IsTotal { get; set; }
         public FMA FMA { get; set; }
+
+        public NSAPRegion NSAPRegion
+        {
+            get
+            {
+                return NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(NSAPRegionCode);
+            }
+        }
+
+        public string NSAPRegionCode { get; set; }
         [ReadOnly(true)]
         public string DBPath { get; set; }
 
@@ -144,6 +160,7 @@ namespace NSAP_ODK.Entities.Database
 
         public string MonthSampled { get; set; }
 
+        public DateTime SampledMonth { get; set; }
         public string SavedJSONFolder { get; set; }
 
         public int SavedFishingEffortJSONCount { get; set; }

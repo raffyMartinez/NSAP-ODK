@@ -13,6 +13,12 @@ namespace NSAP_ODK.Entities.Database
         public ObservableCollection<CatchLenFreq> CatchLenFreqCollection { get; set; }
         private CatchLenFreqRepository CatchLenFreqs { get; set; }
 
+        public CatchLenFreqViewModel(VesselCatch vc)
+        {
+            CatchLenFreqs = new CatchLenFreqRepository(vc);
+            CatchLenFreqCollection = new ObservableCollection<CatchLenFreq>(CatchLenFreqs.CatchLenFreqs);
+            CatchLenFreqCollection.CollectionChanged += CatchLenFreqCollection_CollectionChanged;
+        }
         public CatchLenFreqViewModel()
         {
             CatchLenFreqs = new CatchLenFreqRepository();

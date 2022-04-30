@@ -18,6 +18,7 @@ namespace NSAP_ODK.Entities.Database
         private static DataTable _effortSpeciesCrostabDataTable;
         private static DataTable _effortCrostabDataTable;
         private static List<GearUnload> _gearUnloads;
+        private static List<LandingSiteSampling> _landingSiteSamplings;
         private static TreeViewModelControl.AllSamplingEntitiesEventHandler _sev;
         public static Dictionary<int, CrossTabCommonProperties> UnloadCrossTabCommonPropertyDictionary { get; set; } = new Dictionary<int, CrossTabCommonProperties>();
 
@@ -39,8 +40,7 @@ namespace NSAP_ODK.Entities.Database
 
             string topic = _sev.ContextMenuTopic;
 
-
-
+            _landingSiteSamplings = new List<LandingSiteSampling>();
             _gearUnloads = new List<GearUnload>();
 
             CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { Context = "FilteringCatchData" });
@@ -48,22 +48,50 @@ namespace NSAP_ODK.Entities.Database
             switch (topic)
             {
                 case "contextMenuCrosstabLandingSite":
-                    _gearUnloads = NSAPEntities.GearUnloadViewModel.GearUnloadCollection
-                     .Where(t => t.ListVesselUnload.Count > 0 &&
-                                t.Parent.NSAPRegion.Code == _sev.NSAPRegion.Code &&
-                               t.Parent.FMA.FMAID == _sev.FMA.FMAID &&
-                               t.Parent.FishingGround.Code == _sev.FishingGround.Code &&
-                               t.Parent.LandingSiteName == _sev.LandingSiteText).ToList();
+                    //_gearUnloads = NSAPEntities.GearUnloadViewModel.GearUnloadCollection
+                    // .Where(t => t.ListVesselUnload.Count > 0 &&
+                    //            t.Parent.NSAPRegion.Code == _sev.NSAPRegion.Code &&
+                    //           t.Parent.FMA.FMAID == _sev.FMA.FMAID &&
+                    //           t.Parent.FishingGround.Code == _sev.FishingGround.Code &&
+                    //           t.Parent.LandingSiteName == _sev.LandingSiteText).ToList();
+                    _landingSiteSamplings = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection
+                        .Where(t => t.NSAPRegion.Code == _sev.NSAPRegion.Code &&
+                               t.FMA.FMAID == _sev.FMA.FMAID &&
+                               t.FishingGround.Code == _sev.FishingGround.Code &&
+                               t.LandingSiteName == _sev.LandingSiteText).ToList();
+
+                    foreach (var ls in _landingSiteSamplings)
+                    {
+                        _gearUnloads.AddRange(ls.GearUnloadViewModel.GearUnloadCollection.Where(r => r.ListVesselUnload.Count > 0).ToList());
+                    }
+
                     break;
                 case "contextMenuCrosstabMonth":
-                    _gearUnloads = NSAPEntities.GearUnloadViewModel.GearUnloadCollection
-                     .Where(t => t.ListVesselUnload.Count > 0 &&
-                                t.Parent.NSAPRegion.Code == _sev.NSAPRegion.Code &&
-                               t.Parent.FMA.FMAID == _sev.FMA.FMAID &&
-                               t.Parent.FishingGround.Code == _sev.FishingGround.Code &&
-                               t.Parent.LandingSiteName == _sev.LandingSiteText &&
-                               t.Parent.SamplingDate.Date >= (DateTime)_sev.MonthSampled &&
-                               t.Parent.SamplingDate.Date < ((DateTime)_sev.MonthSampled).AddMonths(1)).ToList();
+                    _landingSiteSamplings = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection
+                        .Where(t => t.NSAPRegion.Code == _sev.NSAPRegion.Code &&
+                               t.FMA.FMAID == _sev.FMA.FMAID &&
+                               t.FishingGround.Code == _sev.FishingGround.Code &&
+                               t.LandingSiteName == _sev.LandingSiteText &&
+                               t.SamplingDate.Date >= (DateTime)_sev.MonthSampled &&
+                               t.SamplingDate.Date < ((DateTime)_sev.MonthSampled).AddMonths(1)).ToList();
+
+                    foreach (var ls in _landingSiteSamplings)
+                    {
+                        if(ls.GearUnloadViewModel==null)
+                        {
+                            ls.GearUnloadViewModel = new GearUnloadViewModel(ls);
+                        }
+                        _gearUnloads.AddRange(ls.GearUnloadViewModel.GearUnloadCollection.Where(r => r.ListVesselUnload.Count > 0).ToList());
+                    }
+
+                    //_gearUnloads = NSAPEntities.GearUnloadViewModel.GearUnloadCollection
+                    // .Where(t => t.ListVesselUnload.Count > 0 &&
+                    //            t.Parent.NSAPRegion.Code == _sev.NSAPRegion.Code &&
+                    //           t.Parent.FMA.FMAID == _sev.FMA.FMAID &&
+                    //           t.Parent.FishingGround.Code == _sev.FishingGround.Code &&
+                    //           t.Parent.LandingSiteName == _sev.LandingSiteText &&
+                    //           t.Parent.SamplingDate.Date >= (DateTime)_sev.MonthSampled &&
+                    //           t.Parent.SamplingDate.Date < ((DateTime)_sev.MonthSampled).AddMonths(1)).ToList();
                     break;
                 case "contextMenuCrosstabGear":
                     _gearUnloads = NSAPEntities.GearUnloadViewModel.GearUnloadCollection
@@ -143,7 +171,7 @@ namespace NSAP_ODK.Entities.Database
                 CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { RowsToPrepare = unloads.Count, RowsPrepared = counter, Context = "AddingRows" });
             }
 
-             CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { IsDone = true, Context = "PreparingDisplayRows" });
+            CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { IsDone = true, Context = "PreparingDisplayRows" });
             BuildEffortCrossTabDataTable();
             BuildEffortSpeciesCrossTabDataTable();
 
@@ -213,7 +241,7 @@ namespace NSAP_ODK.Entities.Database
             dc = new DataColumn { ColumnName = "Fishing vessel" };
             _effortCrostabDataTable.Columns.Add(dc);
 
-            dc = new DataColumn { ColumnName = "# of fishers" ,DataType=typeof(int)};
+            dc = new DataColumn { ColumnName = "# of fishers", DataType = typeof(int) };
             _effortCrostabDataTable.Columns.Add(dc);
 
             dc = new DataColumn { ColumnName = "Fishing vessels landded", DataType = typeof(int) };
@@ -342,11 +370,11 @@ namespace NSAP_ODK.Entities.Database
                             }
                         }
                     }
-                    catch(System.FormatException)
+                    catch (System.FormatException)
                     {
                         row[ve.EffortSpecification.Name] = DBNull.Value;
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Utilities.Logger.Log(ex);
                     }
@@ -418,7 +446,7 @@ namespace NSAP_ODK.Entities.Database
             dc = new DataColumn { ColumnName = "Fishing vessel" };
             _effortSpeciesCrostabDataTable.Columns.Add(dc);
 
-            dc = new DataColumn { ColumnName = "# of fishers", DataType=typeof(int) };
+            dc = new DataColumn { ColumnName = "# of fishers", DataType = typeof(int) };
             _effortSpeciesCrostabDataTable.Columns.Add(dc);
 
             dc = new DataColumn { ColumnName = "Fishing vessels landed", DataType = typeof(int) };
@@ -507,7 +535,7 @@ namespace NSAP_ODK.Entities.Database
 
                 if (ctcp.FBL != null)
                 {
-                    row["Fishing vessels landded"] = ctcp.FBL;
+                    row["Fishing vessels landed"] = ctcp.FBL;
                 }
 
                 if (ctcp.FBM != null)
@@ -545,11 +573,11 @@ namespace NSAP_ODK.Entities.Database
                             }
                         }
                     }
-                    catch(FormatException)
+                    catch (FormatException)
                     {
                         row[ve.EffortSpecification.Name] = DBNull.Value;
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Utilities.Logger.Log(ex);
                     }
@@ -673,7 +701,7 @@ namespace NSAP_ODK.Entities.Database
                             {
                                 row[prop.Name] = prop.GetValue(item) ?? DBNull.Value;
                             }
-                            catch 
+                            catch
                             {
                                 row[prop.Name] = DBNull.Value;
                             }

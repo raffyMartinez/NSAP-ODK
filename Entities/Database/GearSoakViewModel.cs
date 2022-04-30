@@ -14,6 +14,12 @@ namespace NSAP_ODK.Entities.Database
         public ObservableCollection<GearSoak> GearSoakCollection { get; set; }
         private GearSoakRepository GearSoaks { get; set; }
 
+        public GearSoakViewModel(VesselUnload vu)
+        {
+            GearSoaks = new GearSoakRepository(vu);
+            GearSoakCollection = new ObservableCollection<GearSoak>(GearSoaks.GearSoaks);
+            GearSoakCollection.CollectionChanged += GearSoaks_CollectionChanged;
+        }
         public GearSoakViewModel()
         {
             GearSoaks = new GearSoakRepository();

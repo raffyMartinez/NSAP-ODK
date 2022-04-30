@@ -10,7 +10,7 @@ namespace NSAP_ODK.Entities.Database
     {
         public NSAPRegion NSAPRegion { get; set; }
         public FMA FMA { get; set; }
-        public FishingGround FishingGround{get;set;}
+        public FishingGround FishingGround { get; set; }
         public string LandingSiteName { get; set; }
 
         public string LandingSiteText { get; set; }
@@ -18,6 +18,5 @@ namespace NSAP_ODK.Entities.Database
         public Municipality Municipality { get; set; }
         public Province Province { get; set; }
         public int LandingSiteID { get; set; }
-
     }
 }

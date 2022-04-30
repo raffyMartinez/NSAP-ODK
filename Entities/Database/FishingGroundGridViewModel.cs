@@ -13,6 +13,12 @@ namespace NSAP_ODK.Entities.Database
         public ObservableCollection<FishingGroundGrid> FishingGroundGridCollection { get; set; }
         private FishingGroundGridRepository FishingGroundGrids { get; set; }
 
+        public FishingGroundGridViewModel(VesselUnload parent)
+        {
+            FishingGroundGrids = new FishingGroundGridRepository(parent);
+            FishingGroundGridCollection = new ObservableCollection<FishingGroundGrid>(FishingGroundGrids.FishingGroundGrids);
+            FishingGroundGridCollection.CollectionChanged += FishingGroundGridCollection_CollectionChanged;
+        }
         public FishingGroundGridViewModel()
         {
             FishingGroundGrids = new FishingGroundGridRepository();

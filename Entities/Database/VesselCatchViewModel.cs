@@ -31,7 +31,7 @@ namespace NSAP_ODK.Entities.Database
             var catchesWithMaturity = VesselCatchCollection
                 .Where(t => t.ListCatchMaturity.Count > 0 &&
                     t.Parent.Parent.Parent.FishingGround.Code == fg.Code &&
-                    t.Parent.Parent.Parent.NSAPRegionID==rg.Code)
+                    t.Parent.Parent.Parent.NSAPRegionID == rg.Code)
                 .OrderBy(t => t.Parent.PK)
                 .ToList();
 
@@ -71,12 +71,12 @@ namespace NSAP_ODK.Entities.Database
                         Sector = c.Parent.Sector,
                     };
 
-                    if(c.Parent.ListFishingGroundGrid.Count>0)
+                    if (c.Parent.ListFishingGroundGrid.Count > 0)
                     {
                         vumf.FishingGroundGird = c.Parent.ListFishingGroundGrid[0].ToString();
                         vumf.Longitude = c.Parent.ListFishingGroundGrid[0].GridCell.Coordinate.Longitude;
                         vumf.Latitude = c.Parent.ListFishingGroundGrid[0].GridCell.Coordinate.Latitude;
-                        
+
                     }
 
                     list.Add(vumf);
@@ -88,6 +88,16 @@ namespace NSAP_ODK.Entities.Database
             }
 
             return list;
+        }
+
+        public VesselCatchViewModel(VesselUnload vu)
+        {
+            if (vu != null)
+            {
+                VesselCatches = new VesselCatchRepository(vu);
+                VesselCatchCollection = new ObservableCollection<VesselCatch>(VesselCatches.VesselCatches);
+                VesselCatchCollection.CollectionChanged += VesselCatches_CollectionChanged;
+            }
         }
         public VesselCatchViewModel()
         {

@@ -15,11 +15,131 @@ namespace NSAP_ODK.Entities.Database
         private string _dateFormat = "MMM-dd-yyyy HH:mm";
         public List<VesselUnload> VesselUnloads { get; set; }
 
+
+        public VesselUnloadRepository(GearUnload gu)
+        {
+            VesselUnloads = getVesselUnloads(gu);
+        }
         public VesselUnloadRepository()
         {
             VesselUnloads = getVesselUnloads();
         }
 
+        public static int VesselUnloadCount(bool isTracked=false)
+        {
+            int count = 0;
+            if (Global.Settings.UsemySQL)
+            {
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+                {
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = "Select count(*) from dbo_vessel_unload";
+                        if (isTracked)
+                        {
+                            cmd.CommandText = "Select count(*) from dbo_vessel_unload_1 where tracked=1";
+                        }
+
+                        try
+                        {
+                            conn.Open();
+                            count = (int)(long)cmd.ExecuteScalar() ;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                using (var conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = "Select count(*) from dbo_vessel_unload";
+                        if(isTracked)
+                        {
+                            cmd.CommandText = "Select count(*) from dbo_vessel_unload_1 where Tracked=-1";
+                        }
+                        try
+                        {
+                            conn.Open();
+                            count = (int)cmd.ExecuteScalar();
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+
+            }
+            return count;
+        }
+
+        public static VesselUnloadSummary GetSummary()
+        {
+            VesselUnloadSummary vs = new VesselUnloadSummary();
+            if(Global.Settings.UsemySQL)
+            {
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+                {
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"SELECT 
+                                                Min(sampling_date) AS FirstSD, 
+                                                Max(sampling_date) AS LastSD, 
+                                                Max(date_added) AS LatestDL
+                                            FROM dbo_vessel_unload_1";
+                        conn.Open();
+                        var dr = cmd.ExecuteReader();
+                        while (dr.Read())
+                        {
+                            vs.FirstSamplingDate = (DateTime)dr["FirstSD"];
+                            vs.LastSamplingDate = (DateTime)dr["LastSD"];
+                            vs.LatestDownloadDate = (DateTime)dr["LatestDL"];
+                        }
+                        dr.Close();
+                        cmd.CommandText = @"SELECT Count(*) AS Expr1
+                                            FROM dbo_vessel_unload_1
+                                            WHERE has_catch_composition=1";
+                        vs.CountUnloadsWithCatchComposition = (int)(long)cmd.ExecuteScalar();
+
+                    }
+                }
+            }
+            else
+            {
+                using (var conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"SELECT 
+                                                Min(SamplingDate) AS FirstSD, 
+                                                Max(SamplingDate) AS LastSD, 
+                                                Max(DateAdded) AS LatestDL
+                                            FROM dbo_vessel_unload_1";
+                        conn.Open();
+                        var dr = cmd.ExecuteReader();
+                        while(dr.Read())
+                        {
+                            vs.FirstSamplingDate = (DateTime)dr["FirstSD"];
+                            vs.LastSamplingDate= (DateTime)dr["LastSD"];
+                            vs.LatestDownloadDate= (DateTime)dr["LatestDL"];
+                        }
+                        dr.Close();
+                        cmd.CommandText = @"SELECT Count(*) AS Expr1
+                                            FROM dbo_vessel_unload_1
+                                            WHERE HasCatchComposition=-1";
+                        vs.CountUnloadsWithCatchComposition = (int)cmd.ExecuteScalar();
+
+                    }
+                }
+            }
+            return vs;
+        }
 
         public int MaxRecordNumber()
         {
@@ -340,7 +460,7 @@ namespace NSAP_ODK.Entities.Database
 
             return success;
         }
-        private List<VesselUnload> getFromMySQL()
+        private List<VesselUnload> getFromMySQL(GearUnload gu = null)
         {
             List<VesselUnload> thisList = new List<VesselUnload>();
             using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
@@ -353,6 +473,19 @@ namespace NSAP_ODK.Entities.Database
                     cmd.CommandText = @"SELECT dvu.*, dvu1.*, dvu2.* FROM nsap_odk.dbo_vessel_unload As dvu 
                                         INNER JOIN nsap_odk.dbo_vessel_unload_1 As dvu1 ON dvu.v_unload_id = dvu1.v_unload_id 
                                         LEFT JOIN nsap_odk.dbo_vessel_unload_stats as dvu2 on dvu.v_unload_id=dvu2.v_unload_id";
+                    if (gu != null)
+                    {
+                        cmd.Parameters.AddWithValue("@parentID", gu.PK);
+                        cmd.CommandText = @"SELECT t1.*, t2.*, t3.*
+                                    FROM(
+                                        dbo_vessel_unload AS t1 
+                                        INNER JOIN 
+                                            dbo_vessel_unload_1 AS t2 ON t1.v_unload_id = t2.v_unload_id)
+                                        LEFT JOIN 
+                                            dbo_vessel_unload_stats AS t3 ON t1.v_unload_id = t3.v_unload_id
+                                    WHERE
+                                        t1.unload_gr_id = @parentID";
+                    }
 
                     try
                     {
@@ -360,6 +493,7 @@ namespace NSAP_ODK.Entities.Database
                         while (dr.Read())
                         {
                             VesselUnload item = new VesselUnload();
+                            item.Parent = gu;
                             item.PK = (int)dr["v_unload_id"];
                             item.GearUnloadID = (int)dr["unload_gr_id"];
                             item.IsBoatUsed = (bool)dr["is_boat_used"];
@@ -639,34 +773,49 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
-        private List<VesselUnload> getVesselUnloads()
+        private List<VesselUnload> getVesselUnloads(GearUnload gu = null)
         {
             List<VesselUnload> thisList = new List<VesselUnload>();
             if (Global.Settings.UsemySQL)
             {
-                thisList = getFromMySQL();
+                thisList = getFromMySQL(gu);
             }
             else
             {
                 var dt = new DataTable();
                 using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    try
+                    using (var cmd = conection.CreateCommand())
                     {
-                        conection.Open();
-                        string query = @"SELECT t1.*, t2.*, t3.* FROM (dbo_vessel_unload as t1
-                        INNER JOIN dbo_vessel_unload_1 as t2 ON t1.v_unload_id = t2.v_unload_id)
-                        LEFT JOIN dbo_vessel_unload_stats as t3 ON t1.v_unload_id = t3.v_unload_id";
-
-
-                        var adapter = new OleDbDataAdapter(query, conection);
-                        adapter.Fill(dt);
-                        if (dt.Rows.Count > 0)
+                        try
                         {
+                            conection.Open();
+                            cmd.CommandText = @"SELECT t1.*, t2.*, t3.* FROM (dbo_vessel_unload as t1
+                                INNER JOIN dbo_vessel_unload_1 as t2 ON t1.v_unload_id = t2.v_unload_id)
+                                LEFT JOIN dbo_vessel_unload_stats as t3 ON t1.v_unload_id = t3.v_unload_id";
+
+                            if (gu != null)
+                            {
+                                cmd.Parameters.AddWithValue("@parentID", gu.PK);
+                                cmd.CommandText = @"SELECT t1.*, t2.*, t3.*
+                                    FROM(
+                                        dbo_vessel_unload AS t1 
+                                        INNER JOIN 
+                                            dbo_vessel_unload_1 AS t2 ON t1.v_unload_id = t2.v_unload_id)
+                                        LEFT JOIN 
+                                            dbo_vessel_unload_stats AS t3 ON t1.v_unload_id = t3.v_unload_id
+                                    WHERE
+                                        t1.unload_gr_id = @parentID";
+                            }
+
                             thisList.Clear();
-                            foreach (DataRow dr in dt.Rows)
+                            OleDbDataReader dr = cmd.ExecuteReader();
+
+
+                            while (dr.Read())
                             {
                                 VesselUnload item = new VesselUnload();
+                                item.Parent = gu;
                                 item.PK = (int)dr["t1.v_unload_id"];
                                 item.GearUnloadID = (int)dr["unload_gr_id"];
                                 item.IsBoatUsed = (bool)dr["is_boat_used"];
@@ -674,7 +823,7 @@ namespace NSAP_ODK.Entities.Database
                                 item.VesselText = dr["boat_text"].ToString();
                                 item.SectorCode = dr["sector_code"].ToString();
                                 //item.NumberOfFishers = (int)dr["NumberOfFishers"];
-                                item.NumberOfFishers=string.IsNullOrEmpty(dr["NumberOfFishers"].ToString()) ? null : (int?)dr["NumberOfFishers"];
+                                item.NumberOfFishers = string.IsNullOrEmpty(dr["NumberOfFishers"].ToString()) ? null : (int?)dr["NumberOfFishers"];
                                 item.WeightOfCatch = string.IsNullOrEmpty(dr["catch_total"].ToString()) ? null : (double?)dr["catch_total"];
                                 item.WeightOfCatchSample = string.IsNullOrEmpty(dr["catch_samp"].ToString()) ? null : (double?)dr["catch_samp"];
                                 item.Boxes = string.IsNullOrEmpty(dr["boxes_total"].ToString()) ? null : (int?)dr["boxes_total"];
@@ -702,6 +851,8 @@ namespace NSAP_ODK.Entities.Database
                                 item.FromExcelDownload = (bool)dr["FromExcelDownload"];
                                 item.HasCatchComposition = (bool)dr["HasCatchComposition"];
 
+
+
                                 if (dr["count_catch_composition"] != DBNull.Value)
                                 {
                                     item.CountCatchCompositionItems = (int)dr["count_catch_composition"];
@@ -714,37 +865,42 @@ namespace NSAP_ODK.Entities.Database
                                     item.CountMaturityRows = (int)dr["count_maturity"];
                                 }
 
+                                //item.VesselCatchViewModel = new VesselCatchViewModel(null);
+                                //item.FishingGroundGridViewModel = new FishingGroundGridViewModel(item);
+                                //item.GearSoakViewModel = new GearSoakViewModel(item);
+                                //item.VesselEffortViewModel = new VesselEffortViewModel(item);
                                 thisList.Add(item);
                             }
+
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        switch (ex.HResult)
+                        catch (Exception ex)
                         {
-                            case -2147217865:
-                                if (ex.Message.Contains("The Microsoft Jet database engine cannot find the input table or query"))
-                                {
-                                    var arr = ex.Message.Split('\'');
-                                    if (CreateTable(arr[1]))
+                            switch (ex.HResult)
+                            {
+                                case -2147217865:
+                                    if (ex.Message.Contains("The Microsoft Jet database engine cannot find the input table or query"))
                                     {
-                                        return thisList = getVesselUnloads();
+                                        var arr = ex.Message.Split('\'');
+                                        if (CreateTable(arr[1]))
+                                        {
+                                            return thisList = getVesselUnloads();
+                                        }
                                     }
-                                }
-                                break;
-                            case -2147024809:
-                                if (ex.Message.Contains("does not belong to table"))
-                                {
-                                    var arr = ex.Message.Split('\'');
-                                    if (UpdateTableDefinition(arr[1]))
+                                    break;
+                                case -2147024809:
+                                    if (ex.Message.Contains("does not belong to table"))
                                     {
-                                        UpdateAllTripCompleted();
-                                        return thisList = getVesselUnloads();
+                                        var arr = ex.Message.Split('\'');
+                                        if (UpdateTableDefinition(arr[1]))
+                                        {
+                                            UpdateAllTripCompleted();
+                                            return thisList = getVesselUnloads();
+                                        }
                                     }
-                                }
-                                break;
+                                    break;
+                            }
+                            Logger.Log(ex);
                         }
-                        Logger.Log(ex);
 
                     }
                 }
@@ -1152,7 +1308,7 @@ namespace NSAP_ODK.Entities.Database
 
                             bool proceed = true;
                             //string dateAdded = item.DateAddedToDatabase == null ? "null" : ((DateTime)item.DateAddedToDatabase).ToString("MMM-dd-yyy HH:mm");
-                            if (!_newFieldAdded )
+                            if (!_newFieldAdded)
                             {
                                 proceed = update.ExecuteNonQuery() > 0;
                             }
@@ -1330,7 +1486,7 @@ namespace NSAP_ODK.Entities.Database
                     success = UpdateTableDefinition(newField);
                     break;
                 case "trip_is_completed":
-                    case "HasCatchComposition":
+                case "HasCatchComposition":
                     success = UpdateTableDefinition(newField);
                     break;
 

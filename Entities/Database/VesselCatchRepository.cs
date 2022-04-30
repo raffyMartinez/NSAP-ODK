@@ -14,6 +14,10 @@ namespace NSAP_ODK.Entities.Database
     {
         public List<VesselCatch> VesselCatches { get; set; }
 
+        public VesselCatchRepository(VesselUnload vu)
+        {
+            VesselCatches = getVesselCatches(vu);
+        }
         public VesselCatchRepository()
         {
             VesselCatches = getVesselCatches();
@@ -28,7 +32,7 @@ namespace NSAP_ODK.Entities.Database
                     using (var cmd = conn.CreateCommand())
                     {
                         conn.Open();
-                        cmd.CommandText =  "SELECT Max(catch_id) AS max_id FROM dbo_vessel_catch";
+                        cmd.CommandText = "SELECT Max(catch_id) AS max_id FROM dbo_vessel_catch";
                         max_rec_no = (int)cmd.ExecuteScalar();
                     }
                 }
@@ -47,7 +51,7 @@ namespace NSAP_ODK.Entities.Database
             }
             return max_rec_no;
         }
-        private List<VesselCatch> getFromMySQL()
+        private List<VesselCatch> getFromMySQL(VesselUnload vu = null)
         {
             List<VesselCatch> thisList = new List<VesselCatch>();
             using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
@@ -56,11 +60,17 @@ namespace NSAP_ODK.Entities.Database
                 {
                     conn.Open();
                     cmd.CommandText = "Select * from dbo_vessel_catch";
+                    if (vu != null)
+                    {
+                        cmd.Parameters.AddWithValue("@parentID", vu.PK);
+                        cmd.CommandText = "Select * from dbo_vessel_catch where v_unload_id=@parentID";
+                    }
 
                     MySqlDataReader dr = cmd.ExecuteReader();
                     while (dr.Read())
                     {
                         VesselCatch item = new VesselCatch();
+                        item.Parent = vu;
                         item.PK = (int)dr["catch_id"];
                         item.VesselUnloadID = (int)dr["v_unload_id"];
                         item.SpeciesID = string.IsNullOrEmpty(dr["species_id"].ToString()) ? null : (int?)dr["species_id"];
@@ -68,38 +78,46 @@ namespace NSAP_ODK.Entities.Database
                         item.Sample_kg = string.IsNullOrEmpty(dr["samp_kg"].ToString()) ? null : (double?)dr["samp_kg"];
                         item.TaxaCode = dr["taxa"].ToString();
                         item.SpeciesText = dr["species_text"].ToString();
+                        item.CatchLenFreqViewModel = new CatchLenFreqViewModel(item);
+                        item.CatchLengthViewModel = new CatchLengthViewModel(item);
+                        item.CatchLengthWeightViewModel = new CatchLengthWeightViewModel(item);
+                        item.CatchMaturityViewModel = new CatchMaturityViewModel(item);
                         thisList.Add(item);
                     }
                 }
             }
             return thisList;
         }
-        private List<VesselCatch> getVesselCatches()
+        private List<VesselCatch> getVesselCatches(VesselUnload vu = null)
         {
             List<VesselCatch> thisList = new List<VesselCatch>();
             if (Global.Settings.UsemySQL)
             {
-                thisList = getFromMySQL();
+                thisList = getFromMySQL(vu);
             }
             else
             {
-                var dt = new DataTable();
                 using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    try
+                    using (var cmd = conection.CreateCommand())
                     {
-                        conection.Open();
-                        string query = "Select * from dbo_vessel_catch";
-
-
-                        var adapter = new OleDbDataAdapter(query, conection);
-                        adapter.Fill(dt);
-                        if (dt.Rows.Count > 0)
+                        try
                         {
+                            conection.Open();
+                            cmd.CommandText = "Select * from dbo_vessel_catch";
+
+                            if (vu != null)
+                            {
+                                cmd.Parameters.AddWithValue("@parentID", vu.PK);
+                                cmd.CommandText = "Select * from dbo_vessel_catch where v_unload_id=@parentID";
+                            }
+
                             thisList.Clear();
-                            foreach (DataRow dr in dt.Rows)
+                            OleDbDataReader dr = cmd.ExecuteReader();
+                            while (dr.Read())
                             {
                                 VesselCatch item = new VesselCatch();
+                                item.Parent = vu;
                                 item.PK = (int)dr["catch_id"];
                                 item.VesselUnloadID = (int)dr["v_unload_id"];
                                 item.SpeciesID = string.IsNullOrEmpty(dr["species_id"].ToString()) ? null : (int?)dr["species_id"];
@@ -107,14 +125,19 @@ namespace NSAP_ODK.Entities.Database
                                 item.Sample_kg = string.IsNullOrEmpty(dr["samp_kg"].ToString()) ? null : (double?)dr["samp_kg"];
                                 item.TaxaCode = dr["taxa"].ToString();
                                 item.SpeciesText = dr["species_text"].ToString();
+                                item.CatchLenFreqViewModel = new CatchLenFreqViewModel(item);
+                                item.CatchLengthViewModel = new CatchLengthViewModel(item);
+                                item.CatchLengthWeightViewModel = new CatchLengthWeightViewModel(item);
+                                item.CatchMaturityViewModel = new CatchMaturityViewModel(item);
                                 thisList.Add(item);
                             }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
 
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+
+                        }
                     }
 
                 }
@@ -129,9 +152,9 @@ namespace NSAP_ODK.Entities.Database
                 using (var update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@pk", MySqlDbType.Int32).Value = item.PK;
-                    
+
                     update.Parameters.Add("@parent_id", MySqlDbType.Int32).Value = item.VesselUnloadID;
-                    
+
                     if (item.SpeciesID == null)
                     {
                         update.Parameters.Add("@species_id", MySqlDbType.Int32).Value = DBNull.Value;
@@ -160,7 +183,7 @@ namespace NSAP_ODK.Entities.Database
                     }
 
                     update.Parameters.Add("@taxa", MySqlDbType.VarChar).Value = item.TaxaCode;
-                    
+
                     if (item.SpeciesText == null)
                     {
                         update.Parameters.Add("@species_text", MySqlDbType.VarChar).Value = DBNull.Value;
@@ -177,11 +200,11 @@ namespace NSAP_ODK.Entities.Database
                         conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch(MySqlException msex)
+                    catch (MySqlException msex)
                     {
                         Logger.Log(msex);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Logger.Log(ex);
                     }

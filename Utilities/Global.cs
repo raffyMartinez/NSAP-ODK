@@ -14,6 +14,9 @@ namespace NSAP_ODK.Utilities
 {
     public static class Global
     {
+
+        public static event EventHandler<EntityLoadedEventArg> EntityLoading;
+        public static event EventHandler<EntityLoadedEventArg> EntityLoaded;
         public static event EventHandler RequestLogIn = delegate { };
 
         public const string UserSettingsFilename = "settings.xml";
@@ -67,7 +70,7 @@ namespace NSAP_ODK.Utilities
 
         public static string CreateConnectionStringForGrid25()
         {
-            ConnectionStringGrid25=  "Provider=Microsoft.JET.OLEDB.4.0;data source=" + Grid25MDBPath;
+            ConnectionStringGrid25 = "Provider=Microsoft.JET.OLEDB.4.0;data source=" + Grid25MDBPath;
             return ConnectionStringGrid25;
         }
         static Global()
@@ -120,40 +123,99 @@ namespace NSAP_ODK.Utilities
 
         public static void LoadEntities()
         {
+            EntityLoaded?.Invoke(null, new EntityLoadedEventArg { IsStarting = true, EntityCount = 18 });
+
+            EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "GPS" } );
             NSAPEntities.GPSViewModel = new GPSViewModel();
+            EntityLoaded?.Invoke(null, new EntityLoadedEventArg { Count = NSAPEntities.GPSViewModel.Count });
 
+            EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "FMA" } );
             NSAPEntities.FMAViewModel = new FMAViewModel();
+            EntityLoaded?.Invoke(null, new EntityLoadedEventArg { Count = NSAPEntities.FMAViewModel.Count });
+
+            EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "Engine" } );
             NSAPEntities.EngineViewModel = new EngineViewModel();
+            EntityLoaded?.Invoke(null, new EntityLoadedEventArg {  Count = NSAPEntities.EngineViewModel.Count });
+
+            EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "Fishing vessel" } );
             NSAPEntities.FishingVesselViewModel = new FishingVesselViewModel();
+            EntityLoaded?.Invoke(null, new EntityLoadedEventArg {  Count = NSAPEntities.FishingVesselViewModel.Count });
+
+            EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "Fishing ground" } );
             NSAPEntities.FishingGroundViewModel = new FishingGroundViewModel();
+            EntityLoaded?.Invoke(null, new EntityLoadedEventArg {  Count = NSAPEntities.FishingGroundViewModel.Count });
+
+            EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "Effort specificattion" } );
             NSAPEntities.EffortSpecificationViewModel = new EffortSpecificationViewModel();
+            EntityLoaded?.Invoke(null, new EntityLoadedEventArg {  Count = NSAPEntities.EffortSpecificationViewModel.Count });
+
+            EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "Gear" } );
             NSAPEntities.GearViewModel = new GearViewModel();
+            EntityLoaded?.Invoke(null, new EntityLoadedEventArg {  Count = NSAPEntities.GearViewModel.Count });
+
+            EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "NSAP enumerator" } );
             NSAPEntities.NSAPEnumeratorViewModel = new NSAPEnumeratorViewModel();
+            EntityLoaded?.Invoke(null, new EntityLoadedEventArg {  Count = NSAPEntities.NSAPEnumeratorViewModel.Count });
+
+            EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "NSAP region" } );
             NSAPEntities.NSAPRegionViewModel = new NSAPRegionViewModel();
+            EntityLoaded?.Invoke(null, new EntityLoadedEventArg {  Count = NSAPEntities.NSAPRegionViewModel.Count });
+
+            EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "Province" } );
             NSAPEntities.ProvinceViewModel = new ProvinceViewModel();
+            EntityLoaded?.Invoke(null, new EntityLoadedEventArg {  Count = NSAPEntities.ProvinceViewModel.Count });
+
+            EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "Landing site" } );
             NSAPEntities.LandingSiteViewModel = new LandingSiteViewModel();
+            EntityLoaded?.Invoke(null, new EntityLoadedEventArg {  Count = NSAPEntities.LandingSiteViewModel.Count });
 
-            NSAPEntities.NSAPRegionViewModel.SetNSAPRegionsWithEntitiesRepositories();
+            EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "NSAP region entities" } );
+            var c = NSAPEntities.NSAPRegionViewModel.SetNSAPRegionsWithEntitiesRepositories();
+            EntityLoaded?.Invoke(null, new EntityLoadedEventArg {  Count = c });
 
+            EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "Size type" } );
             NSAPEntities.SizeTypeViewModel = new SizeTypeViewModel();
+            EntityLoaded?.Invoke(null, new EntityLoadedEventArg {  Count = NSAPEntities.SizeTypeViewModel.Count });
+
+            EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "Taxa" } );
             NSAPEntities.TaxaViewModel = new TaxaViewModel();
+            EntityLoaded?.Invoke(null, new EntityLoadedEventArg {  Count = NSAPEntities.TaxaViewModel.Count });
+
+            EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "Fish species" } );
             NSAPEntities.FishSpeciesViewModel = new FishSpeciesViewModel();
+            EntityLoaded?.Invoke(null, new EntityLoadedEventArg {  Count = NSAPEntities.FishSpeciesViewModel.Count });
+
+            EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "Not fish species" } );
             NSAPEntities.NotFishSpeciesViewModel = new NotFishSpeciesViewModel();
+            EntityLoaded?.Invoke(null, new EntityLoadedEventArg {  Count = NSAPEntities.NotFishSpeciesViewModel.Count });
+
+            EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "Landing site sampling" } );
             NSAPEntities.LandingSiteSamplingViewModel = new LandingSiteSamplingViewModel();
-            NSAPEntities.GearUnloadViewModel = new GearUnloadViewModel();
-            NSAPEntities.VesselUnloadViewModel = new VesselUnloadViewModel();
-            NSAPEntities.VesselEffortViewModel = new VesselEffortViewModel();
-            NSAPEntities.VesselCatchViewModel = new VesselCatchViewModel();
-            NSAPEntities.GearSoakViewModel = new GearSoakViewModel();
-            NSAPEntities.FishingGroundGridViewModel = new FishingGroundGridViewModel();
-            NSAPEntities.CatchLenFreqViewModel = new CatchLenFreqViewModel();
-            NSAPEntities.CatchLengthWeightViewModel = new CatchLengthWeightViewModel();
-            NSAPEntities.CatchLengthViewModel = new CatchLengthViewModel();
-            NSAPEntities.CatchMaturityViewModel = new CatchMaturityViewModel();
+            EntityLoaded?.Invoke(null, new EntityLoadedEventArg {  Count = NSAPEntities.LandingSiteSamplingViewModel.Count });
+
+
+            EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "Summary item" });
+            NSAPEntities.SummaryItemViewModel = new SummaryItemViewModel();
+            EntityLoaded?.Invoke(null, new EntityLoadedEventArg { Count = NSAPEntities.SummaryItemViewModel.Count });
+
+
+
+            //NSAPEntities.GearUnloadViewModel = new GearUnloadViewModel();
+            //NSAPEntities.VesselUnloadViewModel = new VesselUnloadViewModel();
+            //NSAPEntities.VesselEffortViewModel = new VesselEffortViewModel();
+            //NSAPEntities.VesselCatchViewModel = new VesselCatchViewModel();
+            //NSAPEntities.GearSoakViewModel = new GearSoakViewModel();
+            //NSAPEntities.FishingGroundGridViewModel = new FishingGroundGridViewModel();
+            //NSAPEntities.CatchLenFreqViewModel = new CatchLenFreqViewModel();
+            //NSAPEntities.CatchLengthWeightViewModel = new CatchLengthWeightViewModel();
+            //NSAPEntities.CatchLengthViewModel = new CatchLengthViewModel();
+            //NSAPEntities.CatchMaturityViewModel = new CatchMaturityViewModel();
             NSAPEntities.DBSummary = new DBSummary();
             NSAPEntities.DatabaseEnumeratorSummary = new DatabaseEnumeratorSummary();
             NSAPEntities.JSONFileViewModel = new JSONFileViewModel();
             NSAPEntities.ODKEformVersionViewModel = new ODKEformVersionViewModel();
+
+            EntityLoaded?.Invoke(null, new EntityLoadedEventArg { IsEnding = true });
 
         }
 

@@ -31,7 +31,7 @@ namespace NSAP_ODK.Entities.Database
                     using (var cmd = conn.CreateCommand())
                     {
                         conn.Open();
-                        cmd.CommandText =  "SELECT Max(unload_day_id) AS max_id FROM dbo_lc_fg_sample_day";
+                        cmd.CommandText = "SELECT Max(unload_day_id) AS max_id FROM dbo_lc_fg_sample_day";
                         max_rec_no = (int)cmd.ExecuteScalar();
                     }
                 }
@@ -85,7 +85,7 @@ namespace NSAP_ODK.Entities.Database
                         item.LandingSiteID = dr["land_ctr_id"] == DBNull.Value ? null : (int?)dr["land_ctr_id"];
                         item.FishingGroundID = dr["ground_id"].ToString();
                         item.Remarks = dr["remarks"].ToString();
-                        item.IsSamplingDay = Convert.ToBoolean( dr["is_sample_day"]);
+                        item.IsSamplingDay = Convert.ToBoolean(dr["is_sample_day"]);
                         item.LandingSiteText = dr["land_ctr_text"].ToString();
                         item.FMAID = (int)dr["fma"];
                         item.DateSubmitted = dr["datetime_submitted"] == DBNull.Value ? null : (DateTime?)dr["datetime_submitted"];
@@ -98,6 +98,7 @@ namespace NSAP_ODK.Entities.Database
                         item.RowID = dr["row_id"].ToString();
                         item.EnumeratorID = dr["enumerator_id"] == DBNull.Value ? null : (int?)int.Parse(dr["enumerator_id"].ToString());
                         item.EnumeratorText = dr["enumerator_text"].ToString();
+                        item.GearUnloadViewModel = new GearUnloadViewModel(item);
                         thisList.Add(item);
                     }
                 }
@@ -116,10 +117,12 @@ namespace NSAP_ODK.Entities.Database
                 var dt = new DataTable();
                 using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    try
+                    using (var cmd = conection.CreateCommand())
                     {
-                        conection.Open();
-                        string query = @"SELECT dbo_LC_FG_sample_day.*, 
+                        try
+                        {
+                            conection.Open();
+                            cmd.CommandText = @"SELECT dbo_LC_FG_sample_day.*, 
                                         dbo_LC_FG_sample_day_1.datetime_submitted, 
                                         dbo_LC_FG_sample_day_1.user_name, 
                                         dbo_LC_FG_sample_day_1.device_id, 
@@ -135,12 +138,11 @@ namespace NSAP_ODK.Entities.Database
                                             ON dbo_LC_FG_sample_day.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id";
 
 
-                        var adapter = new OleDbDataAdapter(query, conection);
-                        adapter.Fill(dt);
-                        if (dt.Rows.Count > 0)
-                        {
+
+
                             thisList.Clear();
-                            foreach (DataRow dr in dt.Rows)
+                            OleDbDataReader dr = cmd.ExecuteReader();
+                            while (dr.Read())
                             {
                                 LandingSiteSampling item = new LandingSiteSampling();
                                 item.PK = (int)dr["unload_day_id"];
@@ -163,18 +165,17 @@ namespace NSAP_ODK.Entities.Database
                                 item.RowID = dr["RowID"].ToString();
                                 item.EnumeratorID = dr["EnumeratorID"] == DBNull.Value ? null : (int?)int.Parse(dr["EnumeratorID"].ToString());
                                 item.EnumeratorText = dr["EnumeratorText"].ToString();
+                                item.GearUnloadViewModel = new GearUnloadViewModel(item);
                                 thisList.Add(item);
                             }
+
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
-
-                    }
-
                 }
-
             }
             return thisList;
         }
@@ -290,7 +291,7 @@ namespace NSAP_ODK.Entities.Database
                                     update1.Parameters.Add("@form_version", MySqlDbType.VarChar).Value = item.FormVersion;
                                 }
 
-                                if (item.RowID == null || item.RowID.Length==0)
+                                if (item.RowID == null || item.RowID.Length == 0)
                                 {
                                     update1.Parameters.Add("@row_id", MySqlDbType.Guid).Value = DBNull.Value;
                                 }
@@ -600,7 +601,7 @@ namespace NSAP_ODK.Entities.Database
                     {
                         conn.Open();
                         success = update.ExecuteNonQuery() > 0;
-                        if( success  && (item.XFormIdentifier != null && item.XFormIdentifier.Length > 0) || (item.Remarks != null && item.Remarks.Contains("orphaned")))
+                        if (success && (item.XFormIdentifier != null && item.XFormIdentifier.Length > 0) || (item.Remarks != null && item.Remarks.Contains("orphaned")))
                         {
 
                             using (var update1 = conn.CreateCommand())
@@ -873,7 +874,7 @@ namespace NSAP_ODK.Entities.Database
                     try
                     {
                         conn.Open();
-                        if(update.ExecuteNonQuery() > 0)
+                        if (update.ExecuteNonQuery() > 0)
                         {
                             using (var update1 = conn.CreateCommand())
                             {

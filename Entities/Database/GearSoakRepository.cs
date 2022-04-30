@@ -14,6 +14,10 @@ namespace NSAP_ODK.Entities.Database
     {
         public List<GearSoak> GearSoaks { get; set; }
 
+        public GearSoakRepository(VesselUnload vu)
+        {
+            GearSoaks = getGearSoaks(vu);
+        }
         public GearSoakRepository()
         {
             GearSoaks = getGearSoaks();
@@ -47,7 +51,7 @@ namespace NSAP_ODK.Entities.Database
             }
             return max_rec_no;
         }
-        private List<GearSoak> getFromMySQL()
+        private List<GearSoak> getFromMySQL(VesselUnload vu = null)
         {
             List<GearSoak> thisList = new List<GearSoak>();
             using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
@@ -56,11 +60,17 @@ namespace NSAP_ODK.Entities.Database
                 {
                     conn.Open();
                     cmd.CommandText = "Select * from dbo_gear_soak";
+                    if (vu != null)
+                    {
+                        cmd.Parameters.AddWithValue("@parentID", vu.PK);
+                        cmd.CommandText = "Select * from dbo_gear_soak where v_unload_id=@parentID";
+                    }
 
                     MySqlDataReader dr = cmd.ExecuteReader();
                     while (dr.Read())
                     {
                         GearSoak item = new GearSoak();
+                        item.Parent = vu;
                         item.PK = (int)dr["gear_soak_id"];
                         item.VesselUnloadID = (int)dr["v_unload_id"];
                         item.TimeAtSet = (DateTime)dr["time_set"];
@@ -73,30 +83,36 @@ namespace NSAP_ODK.Entities.Database
             }
             return thisList;
         }
-        private List<GearSoak> getGearSoaks()
+        private List<GearSoak> getGearSoaks(VesselUnload vu = null)
         {
             List<GearSoak> thisList = new List<GearSoak>();
             if (Global.Settings.UsemySQL)
             {
-                thisList = getFromMySQL();
+                thisList = getFromMySQL(vu);
             }
             else
             {
                 var dt = new DataTable();
                 using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    try
+                    using (var cmd = conection.CreateCommand())
                     {
-                        conection.Open();
-                        string query = "Select * from dbo_gear_soak";
-                        var adapter = new OleDbDataAdapter(query, conection);
-                        adapter.Fill(dt);
-                        if (dt.Rows.Count > 0)
+                        try
                         {
+                            conection.Open();
+                            cmd.CommandText = "Select * from dbo_gear_soak";
+                            if (vu != null)
+                            {
+                                cmd.Parameters.AddWithValue("@parentID", vu.PK);
+                                cmd.CommandText = "Select * from dbo_gear_soak where v_unload_id=@parentID";
+                            }
+
                             thisList.Clear();
-                            foreach (DataRow dr in dt.Rows)
+                            OleDbDataReader dr = cmd.ExecuteReader();
+                            while (dr.Read())
                             {
                                 GearSoak item = new GearSoak();
+                                item.Parent = vu;
                                 item.PK = (int)dr["gear_soak_id"];
                                 item.VesselUnloadID = (int)dr["v_unload_id"];
                                 item.TimeAtSet = (DateTime)dr["time_set"];
@@ -106,13 +122,13 @@ namespace NSAP_ODK.Entities.Database
                                 thisList.Add(item);
                             }
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
 
-                    }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
 
+                        }
+                    }
                 }
             }
             return thisList;
@@ -138,11 +154,11 @@ namespace NSAP_ODK.Entities.Database
                         conn.Open();
                         success = update.ExecuteNonQuery() > 0;
                     }
-                    catch(MySqlException msex)
+                    catch (MySqlException msex)
                     {
                         Logger.Log(msex);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Logger.Log(ex);
                     }

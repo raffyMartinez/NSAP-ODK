@@ -62,7 +62,7 @@ namespace NSAP_ODK.Entities.Database
                         EarliestSamplingDate = gl.OrderBy(t => t.SamplingDate).FirstOrDefault().SamplingDate,
                         LatestSamplingDate = gl.OrderByDescending(t => t.SamplingDate).FirstOrDefault().SamplingDate,
                         DownloadDate = downloadDate,
-                        NumberOfTrackedLandings = gl.Count(t=>t.OperationIsTracked==true),
+                        NumberOfTrackedLandings = gl.Count(t => t.OperationIsTracked == true),
                     };
                     dws.Add(ds);
                 }
@@ -85,6 +85,14 @@ namespace NSAP_ODK.Entities.Database
             return sorted;
         }
 
+        public static VesselUnloadSummary GetSummary()
+        {
+            return VesselUnloadRepository.GetSummary();
+        }
+        public static int CountVesselUnload(bool isTracked = false)
+        {
+            return VesselUnloadRepository.VesselUnloadCount(isTracked);
+        }
 
         private int UpdateUnloadStats()
         {
@@ -171,11 +179,11 @@ namespace NSAP_ODK.Entities.Database
         {
             return Task.Run(() => UpdateXFormIdentifierColumn(updateItems, round));
         }
-        private int UpdateXFormIdentifierColumn(List<UpdateXFormIdentifierItem>updateItems, int round)
+        private int UpdateXFormIdentifierColumn(List<UpdateXFormIdentifierItem> updateItems, int round)
         {
             ManageUpdateEvent(intent: "start", round: round, rowsForUpdating: updateItems.Count);
             int results = 0;
-            foreach(var item in updateItems)
+            foreach (var item in updateItems)
             {
                 if (VesselUnloads.UpdateXFormIdentifierColumn(item))
                 {
@@ -301,6 +309,48 @@ namespace NSAP_ODK.Entities.Database
             {
                 return VesselUnloadCollection.Where(t => t.NSAPEnumeratorID != null).GroupBy(t => t.NSAPEnumeratorID).ToList().Count;
             }
+        }
+
+        public static List<VesselUnload> GetVesselUnloads(List<GearUnload> items)
+        {
+            List<VesselUnload> vessel_unloads = new List<VesselUnload>();
+            foreach (GearUnload item in items)
+            {
+                item.VesselUnloadViewModel = new VesselUnloadViewModel(item, updatesubViewModels:true);
+                vessel_unloads.AddRange(item.VesselUnloadViewModel.VesselUnloadCollection.ToList());
+            }
+            return vessel_unloads;
+        }
+        public VesselUnloadViewModel(GearUnload parent, bool updatesubViewModels = false)
+        {
+            VesselUnloads = new VesselUnloadRepository(parent);
+            VesselUnloadCollection = new ObservableCollection<VesselUnload>(VesselUnloads.VesselUnloads);
+            if (updatesubViewModels)
+            {
+                foreach (VesselUnload vu in VesselUnloadCollection)
+                {
+                    if (vu.FishingGroundGridViewModel == null)
+                    {
+                        vu.FishingGroundGridViewModel = new FishingGroundGridViewModel(vu);
+                    }
+
+                    if (vu.VesselCatchViewModel == null)
+                    {
+                        vu.VesselCatchViewModel = new VesselCatchViewModel(vu);
+                    }
+
+                    if (vu.VesselEffortViewModel == null)
+                    {
+                        vu.VesselEffortViewModel = new VesselEffortViewModel(vu);
+                    }
+
+                    if (vu.GearSoakViewModel == null)
+                    {
+                        vu.GearSoakViewModel = new GearSoakViewModel(vu);
+                    }
+                }
+            }
+            VesselUnloadCollection.CollectionChanged += VesselUnloadCollection_CollectionChanged;
         }
         public VesselUnloadViewModel()
         {

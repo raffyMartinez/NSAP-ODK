@@ -43,19 +43,25 @@ namespace NSAP_ODK.Entities.Database
         private Gear _gear;
         private LandingSiteSampling _parent;
 
+        public List<VesselUnload> AttachedVesselUnloads { get; set; }
         public string Remarks { get; set; }
         public int PK{ get; set; }
         public int LandingSiteSamplingID { get; set; }
         public string GearID { get; set; }
         public int? Boats { get; set; }
         public double? Catch { get; set; }
-
+        public VesselUnloadViewModel VesselUnloadViewModel { get; set; }
         public List<VesselUnload> ListVesselUnload
         {
             get
             {
-                return NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
-                    .Where(t => t.Parent.PK == PK).ToList();
+                if(VesselUnloadViewModel==null )
+                {
+                    VesselUnloadViewModel = new VesselUnloadViewModel(this);
+                }
+                return VesselUnloadViewModel.VesselUnloadCollection.ToList();
+                //return NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
+                //    .Where(t => t.Parent.PK == PK).ToList();
             }
         }
 
