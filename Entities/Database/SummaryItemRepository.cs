@@ -425,7 +425,7 @@ namespace NSAP_ODK.Entities.Database
                                     SamplingDayID = (int)dr["unload_day_id"],
                                     GearUnloadID = (int)dr["unload_gr_id"],
                                     VesselUnloadID = (int)dr["v_unload_id"],
-                                    RegionID = dr["region_id"].ToString(),
+                                    RegionID = dr["reg_code"].ToString(),
                                     RegionSequence = (int)dr["reg_seq"],
                                     FMAId = (int)dr["fma_id"],
                                     FishingGroundID = dr["fishing_ground_code"].ToString(),

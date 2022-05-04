@@ -45,10 +45,11 @@ namespace NSAP_ODK.TreeViewModelControl
         }
         protected override void LoadChildren()
         {
-            _sampledLandingSiteViewModel = new SampledLandingSiteViewModel(_fishingGround, _fma, _region);
+            //_sampledLandingSiteViewModel = new SampledLandingSiteViewModel(_fishingGround, _fma, _region);
             HashSet<LandingSite> hsLS = new HashSet<LandingSite>();
-            LandingSite lst = null;
-            foreach (var item in _sampledLandingSiteViewModel.SampledLandingSiteCollection.OrderBy(t => t.LandingSiteName))
+            LandingSite lst;
+            foreach(var item in NSAPEntities.SummaryItemViewModel.GetSampledLandingSites(_fishingGround,_fma,_region))
+            //foreach (var item in _sampledLandingSiteViewModel.SampledLandingSiteCollection.OrderBy(t => t.LandingSiteName))
             {
                 //if (item.Municipality == null)
                 //{
@@ -68,9 +69,20 @@ namespace NSAP_ODK.TreeViewModelControl
 
                 hsLS.Add(lst);
             }
-            foreach (var ls in hsLS)
+            foreach (var ls in hsLS.ToList().OrderBy(t=>t.Municipality.Province.ProvinceName).ThenBy(t=>t.Municipality.MunicipalityName).ThenBy(t=>t.LandingSiteName))
             {
-                base.Children.Add(new tv_LandingSiteViewModel(ls, this, ls.ToString()));
+                //base.Children.Add(new tv_LandingSiteViewModel(ls, this, ls.ToString()));
+                string ls_location; ;
+                if(string.IsNullOrEmpty(ls.Barangay))
+                {
+                    ls_location = $"{ls.LandingSiteName}, {ls.Municipality.MunicipalityName}, {ls.Municipality.Province.ProvinceName}";
+                }
+                else
+                {
+                    ls_location = $"{ls.LandingSiteName}, {ls.Barangay}, {ls.Municipality.MunicipalityName}, {ls.Municipality.Province.ProvinceName}";
+                }
+           
+                base.Children.Add(new tv_LandingSiteViewModel(ls, this, ls_location));
             }
         }
 
