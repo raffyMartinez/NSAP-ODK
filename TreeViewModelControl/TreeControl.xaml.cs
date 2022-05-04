@@ -153,6 +153,7 @@ namespace NSAP_ODK.TreeViewModelControl
 
                 case "contextMenuCrosstabMonth":
                 case "contextMenuGearUnloadMonth":
+                    args.LandingSite=((tv_MonthViewModel)_selectedItem)._landingSite;
                     args.LandingSiteText = ((tv_MonthViewModel)_selectedItem)._landingSiteName;
                     args.FishingGround = ((tv_MonthViewModel)_selectedItem)._fishingGround;
                     args.FMA = ((tv_MonthViewModel)_selectedItem)._fma;

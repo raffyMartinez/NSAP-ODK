@@ -64,12 +64,6 @@ namespace NSAP_ODK.Entities.Database
             switch (topic)
             {
                 case "contextMenuCrosstabLandingSite":
-                    //_gearUnloads = NSAPEntities.GearUnloadViewModel.GearUnloadCollection
-                    // .Where(t => t.ListVesselUnload.Count > 0 &&
-                    //            t.Parent.NSAPRegion.Code == _sev.NSAPRegion.Code &&
-                    //           t.Parent.FMA.FMAID == _sev.FMA.FMAID &&
-                    //           t.Parent.FishingGround.Code == _sev.FishingGround.Code &&
-                    //           t.Parent.LandingSiteName == _sev.LandingSiteText).ToList();
                     _landingSiteSamplings = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection
                         .Where(t => t.NSAPRegion.Code == _sev.NSAPRegion.Code &&
                                t.FMA.FMAID == _sev.FMA.FMAID &&
@@ -87,7 +81,7 @@ namespace NSAP_ODK.Entities.Database
                         .Where(t => t.NSAPRegion.Code == _sev.NSAPRegion.Code &&
                                t.FMA.FMAID == _sev.FMA.FMAID &&
                                t.FishingGround.Code == _sev.FishingGround.Code &&
-                               t.LandingSiteName == _sev.LandingSiteText &&
+                               t.LandingSiteID == _sev.LandingSite.LandingSiteID &&
                                t.SamplingDate.Date >= (DateTime)_sev.MonthSampled &&
                                t.SamplingDate.Date < ((DateTime)_sev.MonthSampled).AddMonths(1)).ToList();
 
@@ -99,15 +93,6 @@ namespace NSAP_ODK.Entities.Database
                         }
                         _gearUnloads.AddRange(ls.GearUnloadViewModel.GearUnloadCollection.Where(r => r.ListVesselUnload.Count > 0).ToList());
                     }
-
-                    //_gearUnloads = NSAPEntities.GearUnloadViewModel.GearUnloadCollection
-                    // .Where(t => t.ListVesselUnload.Count > 0 &&
-                    //            t.Parent.NSAPRegion.Code == _sev.NSAPRegion.Code &&
-                    //           t.Parent.FMA.FMAID == _sev.FMA.FMAID &&
-                    //           t.Parent.FishingGround.Code == _sev.FishingGround.Code &&
-                    //           t.Parent.LandingSiteName == _sev.LandingSiteText &&
-                    //           t.Parent.SamplingDate.Date >= (DateTime)_sev.MonthSampled &&
-                    //           t.Parent.SamplingDate.Date < ((DateTime)_sev.MonthSampled).AddMonths(1)).ToList();
                     break;
                 case "contextMenuCrosstabGear":
                     _gearUnloads = NSAPEntities.GearUnloadViewModel.GearUnloadCollection
