@@ -41,11 +41,11 @@ namespace NSAP_ODK.Entities.Database
         {
             return GetGearUnloads(e.NSAPRegion.Code, e.FMA.FMAID, e.FishingGround.Code, e.LandingSiteText, (DateTime)e.MonthSampled, e.LandingSite.LandingSiteID);
         }
-        public List<GearUnload> GetGearUnloads(string regionCode, int fmaID, string fishingGroundCode, string landingSiteName, DateTime monthSampled, int? landingSiteID=null)
+        public List<GearUnload> GetGearUnloads(string regionCode, int fmaID, string fishingGroundCode, string landingSiteName, DateTime monthSampled, int? landingSiteID = null)
         {
             List<GearUnload> gearUnloads = new List<GearUnload>();
-            List<LandingSiteSampling> landingSiteSamplings=null;
-            if(landingSiteID!=null)
+            List<LandingSiteSampling> landingSiteSamplings = null;
+            if (landingSiteID != null)
             {
                 landingSiteSamplings = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection
                     .Where(t => t.NSAPRegionID == regionCode &&
@@ -70,6 +70,43 @@ namespace NSAP_ODK.Entities.Database
 
             return gearUnloads;
         }
+
+        public VesselUnload GetVesselUnload(SummaryItem si)
+        {
+            List<LandingSiteSampling> lss = LandingSiteSamplingCollection.Where(t => t.SamplingDate.Date == si.SamplingDate.Date).ToList();
+            foreach (LandingSiteSampling ls in lss)
+            {
+                List<GearUnload> gus = ls.GearUnloadViewModel.GearUnloadCollection.Where(t=>t.GearUsedName==si.GearUsedName) .ToList();
+                foreach (GearUnload gu in gus)
+                {
+                    if(gu.VesselUnloadViewModel==null)
+                    {
+                        gu.VesselUnloadViewModel = new VesselUnloadViewModel(gu);
+                    }
+                    VesselUnload vu = gu.VesselUnloadViewModel.VesselUnloadCollection.ToList().FirstOrDefault(t => t.PK == si.VesselUnloadID);
+                    
+                    if (vu != null)
+                    {
+                        vu.SetSubModels();
+                        return vu;
+                    }
+                }
+            }
+            return null;
+        }
+        //public List<GearUnload> GetGearUnloads(DateTime date_downloaded)
+        //{
+        //    List<GearUnload> gus = new List<GearUnload>();
+        //    var gu_keys = NSAPEntities.SummaryItemViewModel.GearUnloadPKs(date_downloaded).OrderByDescending(t => t);
+        //    foreach (var lss in LandingSiteSamplingCollection
+        //        .Where(t => t.SamplingDate.Date <= date_downloaded.Date)
+        //        .OrderByDescending(t => t.SamplingDate)
+        //        .ToList())
+        //    {
+        //        gus.AddRange(lss.GearUnloadViewModel.GearUnloadCollection.ToList());
+        //    }
+        //    return gus;
+        //}
         public List<GearUnload> GetGearUnloads(string regionCode, int fmaID, string fishingGroundCode, string landingSiteName, DateTime monthSampled)
         {
 
@@ -88,32 +125,32 @@ namespace NSAP_ODK.Entities.Database
 
             return gearUnloads;
         }
-        public List<VesselUnload> GetVesselUnloads(int fmaID, string landingSiteName, DateTime monthSampled)
-        {
-            var landingSiteSamplings = LandingSiteSamplingCollection
-                    .Where(t => t.FMAID == fmaID &&
-                    t.LandingSiteName == landingSiteName &&
-                    t.MonthSampled == monthSampled).ToList();
+        //public List<VesselUnload> GetVesselUnloads(int fmaID, string landingSiteName, DateTime monthSampled)
+        //{
+        //    var landingSiteSamplings = LandingSiteSamplingCollection
+        //            .Where(t => t.FMAID == fmaID &&
+        //            t.LandingSiteName == landingSiteName &&
+        //            t.MonthSampled == monthSampled).ToList();
 
-            var gus = new List<GearUnload>();
-            foreach (var ls in landingSiteSamplings)
-            {
-                gus.AddRange(ls.GearUnloadViewModel.GearUnloadCollection.ToList());
-            }
+        //    var gus = new List<GearUnload>();
+        //    foreach (var ls in landingSiteSamplings)
+        //    {
+        //        gus.AddRange(ls.GearUnloadViewModel.GearUnloadCollection.ToList());
+        //    }
 
-            var landings = new List<VesselUnload>();
+        //    var landings = new List<VesselUnload>();
 
-            foreach (var gu in gus)
-            {
-                if (gu.VesselUnloadViewModel == null)
-                {
-                    gu.VesselUnloadViewModel = new VesselUnloadViewModel(gu);
-                }
-                landings.AddRange(gu.VesselUnloadViewModel.VesselUnloadCollection.ToList());
-            }
+        //    foreach (var gu in gus)
+        //    {
+        //        if (gu.VesselUnloadViewModel == null)
+        //        {
+        //            gu.VesselUnloadViewModel = new VesselUnloadViewModel(gu);
+        //        }
+        //        landings.AddRange(gu.VesselUnloadViewModel.VesselUnloadCollection.ToList());
+        //    }
 
-            return landings;
-        }
+        //    return landings;
+        //}
         public DateTime? LatestEformSubmissionDate
         {
             get
@@ -199,68 +236,68 @@ namespace NSAP_ODK.Entities.Database
             LandingSiteSamplingCollection.CollectionChanged += LandingSiteSamplingCollection_CollectionChanged;
         }
 
-        public List<LandingSiteSampling> GetAllLandingSiteSamplings()
-        {
-            return LandingSiteSamplingCollection.ToList();
-        }
+        //public List<LandingSiteSampling> GetAllLandingSiteSamplings()
+        //{
+        //    return LandingSiteSamplingCollection.ToList();
+        //}
 
-        public List<VesselUnload> VesselUnloadsFromDummyGearUnload(GearUnload dummy)
-        {
-            List<LandingSiteSampling> lss = new List<LandingSiteSampling>();
-            if (dummy.Parent.LandingSite == null)
-            {
-                lss = LandingSiteSamplingCollection.Where(t => t.FishingGroundID == dummy.Parent.FishingGround.Code &&
-                                                         t.NSAPRegionID == dummy.Parent.NSAPRegion.Code &&
-                                                         t.LandingSiteText == dummy.Parent.LandingSiteText &&
-                                                         t.FMAID == dummy.Parent.FMA.FMAID &&
-                                                         t.SamplingDate==dummy.Parent.SamplingDate).ToList();
-            }
-            else
-            {
-                lss = LandingSiteSamplingCollection.Where(t => t.FishingGroundID == dummy.Parent.FishingGround.Code &&
-                                                             t.NSAPRegionID == dummy.Parent.NSAPRegion.Code &&
-                                                             t.LandingSiteID == dummy.Parent.LandingSite.LandingSiteID &&
-                                                             t.FMAID == dummy.Parent.FMA.FMAID &&
-                                                             t.SamplingDate==dummy.Parent.SamplingDate).ToList();
-            }
+        //public List<VesselUnload> VesselUnloadsFromDummyGearUnload(GearUnload dummy)
+        //{
+        //    List<LandingSiteSampling> lss = new List<LandingSiteSampling>();
+        //    if (dummy.Parent.LandingSite == null)
+        //    {
+        //        lss = LandingSiteSamplingCollection.Where(t => t.FishingGroundID == dummy.Parent.FishingGround.Code &&
+        //                                                 t.NSAPRegionID == dummy.Parent.NSAPRegion.Code &&
+        //                                                 t.LandingSiteText == dummy.Parent.LandingSiteText &&
+        //                                                 t.FMAID == dummy.Parent.FMA.FMAID &&
+        //                                                 t.SamplingDate == dummy.Parent.SamplingDate).ToList();
+        //    }
+        //    else
+        //    {
+        //        lss = LandingSiteSamplingCollection.Where(t => t.FishingGroundID == dummy.Parent.FishingGround.Code &&
+        //                                                     t.NSAPRegionID == dummy.Parent.NSAPRegion.Code &&
+        //                                                     t.LandingSiteID == dummy.Parent.LandingSite.LandingSiteID &&
+        //                                                     t.FMAID == dummy.Parent.FMA.FMAID &&
+        //                                                     t.SamplingDate == dummy.Parent.SamplingDate).ToList();
+        //    }
 
-            GearUnload gu = new GearUnload();
-            if (lss.Count == 1)
-            {
-                 foreach(var item in lss[0].GearUnloadViewModel.GearUnloadCollection)
-                {
-                    if (item.GearUsedName==dummy.GearUsedName)
-                    {
-                        gu = item;
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                foreach(var ls in lss)
-                {
-                    foreach(var g in ls.GearUnloadViewModel.GearUnloadCollection)
-                    {
-                        if(g.GearUsedName==dummy.GearUsedName)
-                        {
-                            gu = g;
-                            break;
-                        }
-                        if(gu!=null)
-                        {
-                            break;
-                        }
-                    }
-                }
-            }
-            if(gu.VesselUnloadViewModel==null)
-            {
-                gu.VesselUnloadViewModel = new VesselUnloadViewModel(gu);
-            }
-            var vus = gu.VesselUnloadViewModel.VesselUnloadCollection.ToList();
-            return gu.VesselUnloadViewModel.VesselUnloadCollection.ToList();
-        }
+        //    GearUnload gu = new GearUnload();
+        //    if (lss.Count == 1)
+        //    {
+        //        foreach (var item in lss[0].GearUnloadViewModel.GearUnloadCollection)
+        //        {
+        //            if (item.GearUsedName == dummy.GearUsedName)
+        //            {
+        //                gu = item;
+        //                break;
+        //            }
+        //        }
+        //    }
+        //    else
+        //    {
+        //        foreach (var ls in lss)
+        //        {
+        //            foreach (var g in ls.GearUnloadViewModel.GearUnloadCollection)
+        //            {
+        //                if (g.GearUsedName == dummy.GearUsedName)
+        //                {
+        //                    gu = g;
+        //                    break;
+        //                }
+        //                if (gu != null)
+        //                {
+        //                    break;
+        //                }
+        //            }
+        //        }
+        //    }
+        //    if (gu.VesselUnloadViewModel == null)
+        //    {
+        //        gu.VesselUnloadViewModel = new VesselUnloadViewModel(gu);
+        //    }
+        //    var vus = gu.VesselUnloadViewModel.VesselUnloadCollection.ToList();
+        //    return gu.VesselUnloadViewModel.VesselUnloadCollection.ToList();
+        //}
 
         public LandingSiteSamplingFlattened GetFlattenedItem(int id)
         {
@@ -281,13 +318,13 @@ namespace NSAP_ODK.Entities.Database
             }
             return thisList;
         }
-        public List<LandingSiteSampling> getLandingSiteSamplings(LandingSite ls, FishingGround fg, DateTime samplingDate)
-        {
-            return LandingSiteSamplingCollection
-                .Where(t => t.LandingSiteID == ls.LandingSiteID)
-                .Where(t => t.FishingGroundID == fg.Code)
-                .Where(t => t.SamplingDate == samplingDate).ToList();
-        }
+        //public List<LandingSiteSampling> getLandingSiteSamplings(LandingSite ls, FishingGround fg, DateTime samplingDate)
+        //{
+        //    return LandingSiteSamplingCollection
+        //        .Where(t => t.LandingSiteID == ls.LandingSiteID)
+        //        .Where(t => t.FishingGroundID == fg.Code)
+        //        .Where(t => t.SamplingDate == samplingDate).ToList();
+        //}
 
         public LandingSiteSampling getLandingSiteSampling(FromJson.VesselLanding landing)
         {

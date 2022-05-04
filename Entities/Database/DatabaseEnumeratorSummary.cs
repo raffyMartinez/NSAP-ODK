@@ -17,7 +17,7 @@ namespace NSAP_ODK.Entities.Database
         {
             _dictEnumeratorsByRegion = NSAPEntities.NSAPRegionViewModel.GetEnumeratorsByRegionDictionary();
             TotalInDatabase = NSAPEntities.NSAPEnumeratorViewModel.Count;
-            CountWithVesselLandingRecords = NSAPEntities.VesselUnloadViewModel.CountEnumeratorsWithUnloadRecord;
+            CountWithVesselLandingRecords = NSAPEntities.SummaryItemViewModel.GetEnumertorUnloadCount();
         }
 
         [ReadOnly(true)]

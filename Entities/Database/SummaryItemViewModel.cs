@@ -44,6 +44,49 @@ namespace NSAP_ODK.Entities.Database
 
         }
 
+        public List<GearUnload> GetGearUnloads(DateTime date_download)
+        {
+            List<GearUnload> gus = new List<GearUnload>();
+
+            var lss_items = SummaryItemCollection.Where(t => t.DateAdded.Date == date_download.Date).OrderBy(t => t.SamplingDayID).GroupBy(t => t.SamplingDayID);
+
+
+            //var lss = lss_items.First().First();
+            foreach (var lss_group in lss_items)
+            {
+                var lss = lss_group.First();
+                LandingSite lst = lss.LandingSiteID == null ? null : NSAPEntities.LandingSiteViewModel.GetLandingSite((int)lss.LandingSiteID);
+
+                LandingSiteSampling ls = new LandingSiteSampling
+                {
+                    NSAPRegion = NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(lss.RegionID),
+                    FMA = NSAPEntities.FMAViewModel.GetFMA(lss.FMAId),
+                    LandingSiteID = lss.LandingSiteID,
+                    LandingSite = lst,
+                    LandingSiteText = lss.LandingSiteText,
+                    FishingGround = NSAPEntities.FishingGroundViewModel.GetFishingGround(lss.FishingGroundID),
+                    PK = lss.SamplingDayID,
+                    SamplingDate = date_download
+                };
+
+                foreach (var gu_group in lss_group.GroupBy(t => t.GearUnloadID))
+                {
+                    GearUnload gu = new GearUnload
+                    {
+                        GearID = gu_group.First().GearCode,
+                        PK = gu_group.First().GearUnloadID,
+                        Parent = ls,
+                        Boats = gu_group.First().GearUnloadBoats,
+                        Catch = gu_group.First().GearUnloadCatch,
+                        Gear = NSAPEntities.GearViewModel.GetGear(gu_group.First().GearCode),
+                        GearUsedText = gu_group.First().GearText
+                    };
+                    gus.Add(gu);
+                }
+            }
+
+            return gus;
+        }
         public List<GearUnload> GetGearUnloads(string gearUsedName, int offsetDays)
         {
             string lsName = _treeViewData.LandingSiteText;
@@ -63,11 +106,201 @@ namespace NSAP_ODK.Entities.Database
             HashSet<GearUnload> gear_unloads = new HashSet<GearUnload>(new GearUnloadComparer());
             foreach (var item in summaryItems)
             {
-                
+
                 gear_unloads.Add(item.GearUnload);
             }
 
             return gear_unloads.ToList();
+        }
+
+        public List<SummaryResults> GetRegionOverallSummary()
+        {
+            List<SummaryResults> ls = new List<SummaryResults>();
+            var regionGroups = SummaryItemCollection.OrderBy(t => t.RegionSequence).GroupBy(t => t.RegionID);
+            int seq = 0;
+            foreach (var reg in regionGroups)
+            {
+                SummaryItem i = reg.OrderByDescending(t => t.SamplingDate).First();
+                var gus = reg.GroupBy(t => t.GearUnloadID);
+                DBSummary summ = new DBSummary
+                {
+
+                    NSAPRegionCode = i.RegionID,
+                    GearUnloadCount = reg.GroupBy(t => t.GearUnloadID).Count(),
+                    CountCompleteGearUnload = reg.Where(t => t.GearUnloadBoats != null && t.GearUnloadCatch != null).GroupBy(t => t.GearUnloadID).Count(),
+                    VesselUnloadCount = reg.Count(),
+                    CountLandingsWithCatchComposition = reg.Count(t => t.HasCatchComposition == true),
+                    TrackedOperationsCount = reg.Count(t => t.IsTracked == true),
+                    FirstSampledLandingDate = reg.Min(t => t.SamplingDate),
+                    LastSampledLandingDate = reg.Max(t => t.SamplingDate),
+                    FirstLandingFormattedDate = reg.Min(t => t.SamplingDate).ToString("MMM-dd-yyyy HH:mm"),
+                    LastLandingFormattedDate = reg.Max(t => t.SamplingDate).ToString("MMM-dd-yyyy HH:mm"),
+                    DateLastDownload = reg.Max(t => t.DateAdded),
+                    LatestDownloadFormattedDate = reg.Max(t => t.DateAdded).ToString("MMM-dd-yyyy HH:mm"),
+                    LatestEformVersion = i.FormVersion,
+                    FMACount = reg.GroupBy(t => t.FMAId).Count(),
+                    FishingGroundCount = reg.GroupBy(t => t.FishingGroundID).Count(),
+                    LandingSiteCount = reg.GroupBy(t => t.LandingSiteNameText).Count(),
+                    FishingGearCount = reg.GroupBy(t => t.GearUsedName).Count(),
+                    EnumeratorCount = reg.GroupBy(t => t.EnumeratorNameToUse).Count(),
+                    FishingVesselCount = reg.GroupBy(t => t.VesselNameToUse).Count()
+                };
+
+                ls.Add(new SummaryResults
+                {
+                    Sequence = summ.NSAPRegion.Sequence,
+                    DBSummary = summ,
+                    SummaryLevelType = SummaryLevelType.RegionOverall
+                });
+            }
+
+            if (ls.Count < NSAPEntities.NSAPRegionViewModel.Count)
+            {
+                foreach (NSAPRegion r in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection)
+                {
+                    if (ls.FirstOrDefault(t => t.DBSummary.NSAPRegionCode == r.Code) == null)
+                    {
+                        int fg_count = 0;
+                        int ls_count = 0;
+
+
+                        foreach (NSAPRegionFMA rf in r.FMAs)
+                        {
+
+                            fg_count += rf.FishingGroundCount;
+                            foreach (NSAPRegionFMAFishingGround fg in rf.FishingGrounds)
+                            {
+                                ls_count += fg.LandingSiteCount;
+                            }
+                        }
+
+                        ls.Add(new SummaryResults
+                        {
+
+                            Sequence = r.Sequence,
+                            DBSummary = new DBSummary
+                            {
+                                NSAPRegionCode = r.Code,
+                                FMACount = r.FMAs.Count,
+                                FishingGroundCount = fg_count,
+                                LandingSiteCount = ls_count,
+                                FishingGearCount = r.Gears.Count,
+                                EnumeratorCount = r.NSAPEnumerators.Count
+                            },
+                            SummaryLevelType = SummaryLevelType.RegionOverall
+                        });
+                    }
+                }
+            }
+            return ls;
+        }
+
+        public List<SummaryResults> GetEnumeratorSummary(NSAPRegion reg)
+        {
+            List<SummaryResults> resuts = new List<SummaryResults>();
+            int seq = 0;
+            foreach (var enuData in SummaryItemCollection.Where(t => t.RegionID == reg.Code)
+                    .OrderBy(t => t.SamplingDate)
+                    .GroupBy(t => t.EnumeratorNameToUse))
+            {
+                foreach (var ls in enuData.GroupBy(t => t.LandingSiteNameText))
+                {
+                    DBSummary summ = new DBSummary
+                    {
+                        EnumeratorName = enuData.First().EnumeratorNameToUse,
+                        LandingSiteName = ls.Key,
+                        GearName = ls.First().GearUsedName,
+                        VesselUnloadCount = ls.Count(),
+                        FirstLandingFormattedDate = ls.Min(t=>t.SamplingDate).ToString("MMM-dd-yyyy HH:mm"),
+                        LastLandingFormattedDate= ls.Max(t=>t.SamplingDate).ToString("MMM-dd-yyyy HH:mm"),
+                        LatestDownloadFormattedDate = ls.Max(t => t.DateAdded).ToString("MMM-dd-yyyy HH:mm"),
+                        LatestEformVersion = ls.Last().FormVersion
+                    };
+                    SummaryResults sr = new SummaryResults
+                    {
+                        Sequence = ++seq,
+                        DBSummary = summ,
+                        SummaryLevelType = SummaryLevelType.FishingGround
+                    };
+
+                    resuts.Add(sr);
+                }
+            }
+            return resuts;
+        }
+        public List<SummaryResults> GetRegionFishingGroundSummary(NSAPRegion region, FishingGround fishingGround)
+        {
+            List<SummaryResults> resuts = new List<SummaryResults>();
+            int seq = 0;
+            foreach (var fgData in SummaryItemCollection.Where(t => t.RegionID == region.Code && t.FishingGroundID == fishingGround.Code)
+                .OrderBy(t => t.SamplingDate)
+                .GroupBy(t => t.LandingSiteNameText))
+            {
+                DBSummary summ = new DBSummary
+                {
+                    LandingSiteName = fgData.First().LandingSiteNameText,
+                    GearUnloadCount = fgData.GroupBy(t => t.GearUnloadID).Count(),
+                    CountCompleteGearUnload = fgData.Where(t => t.GearUnloadBoats != null && t.GearUnloadCatch != null).Count(),
+                    VesselUnloadCount = fgData.Count(),
+                    CountLandingsWithCatchComposition = fgData.Count(t => t.HasCatchComposition == true),
+                    TrackedOperationsCount = fgData.Count(t => t.IsTracked == true),
+                    FirstLandingFormattedDate = fgData.Min(t => t.SamplingDate).ToString("MMM-dd-yyyy HH:mm"),
+                    LastLandingFormattedDate = fgData.Max(t => t.SamplingDate).ToString("MMM-dd-yyyy HH:mm"),
+                    LatestDownloadFormattedDate = fgData.Max(t => t.DateAdded).ToString("MMM-dd-yyyy HH:mm"),
+                    LatestEformVersion = fgData.Last().FormVersion
+                };
+                SummaryResults sr = new SummaryResults
+                {
+                    Sequence = ++seq,
+                    DBSummary = summ,
+                    SummaryLevelType = SummaryLevelType.FishingGround
+                };
+
+                resuts.Add(sr);
+            }
+            return resuts.OrderBy(t => t.DBSummary.LandingSiteName).ToList();
+        }
+        public List<SummaryResults> GetRegionSummary(NSAPRegion region)
+        {
+            List<SummaryResults> resuts = new List<SummaryResults>();
+            int seq = 0;
+            foreach (var fgData in SummaryItemCollection.Where(t => t.RegionID == region.Code)
+                .OrderBy(t => t.SamplingDate)
+                .GroupBy(t => t.FishingGroundID))
+            {
+                SummaryItem fg = fgData.First();
+                DBSummary summ = new DBSummary
+                {
+                    FishingGround = NSAPEntities.FishingGroundViewModel.GetFishingGround(fgData.Key),
+                    FMA = fg.FMA,
+                    GearUnloadCount = fgData.GroupBy(t => t.GearUnloadID).Count(),
+                    CountCompleteGearUnload = fgData.Where(t => t.GearUnloadCatch != null && t.GearUnloadBoats != null).Count(),
+                    VesselUnloadCount = fgData.Count(),
+                    CountLandingsWithCatchComposition = fgData.Count(t => t.HasCatchComposition == true),
+                    TrackedOperationsCount = fgData.Count(t => t.IsTracked == true),
+                    FirstLandingFormattedDate = fgData.Min(t => t.SamplingDate).ToString("MMM-dd-yyyy HH:mm"),
+                    LastLandingFormattedDate = fgData.Max(t => t.SamplingDate).ToString("MMM-dd-yyyy HH:mm"),
+                    LatestDownloadFormattedDate = fgData.Max(t => t.DateAdded).ToString("MMM-dd-yyyy HH:mm"),
+                    LatestEformVersion = fgData.Last().FormVersion
+                };
+                resuts.Add(
+
+                    new SummaryResults
+                    {
+                        Sequence = ++seq,
+                        DBSummary = summ,
+                        SummaryLevelType = SummaryLevelType.Region
+                    }
+                );
+
+
+
+            }
+            return resuts;
+        }
+        public int GetEnumertorUnloadCount()
+        {
+            return SummaryItemCollection.GroupBy(t => t.EnumeratorID).Count();
         }
         public GearUnload GetGearUnload(string gearUsedName, int offsetDays)
         {
@@ -305,6 +538,71 @@ namespace NSAP_ODK.Entities.Database
                         //    break;
                 }
             }
+        }
+
+        public List<int> GearUnloadPKs(DateTime date_downloaded)
+        {
+            List<int> keys = new List<int>();
+            foreach (var item in SummaryItemCollection.Where(t => t.DateAdded.Date == date_downloaded.Date).GroupBy(t => t.GearUnloadID))
+            {
+                keys.Add(item.Key);
+            }
+            return keys;
+        }
+        public List<SummaryItem> GetUnloadStatisticsByDate(DateTime date_download)
+        {
+            return SummaryItemCollection
+                .Where(t => t.DateAdded.Date == date_download)
+                .OrderBy(t => t.EnumeratorNameToUse)
+                .ThenBy(t => t.GearUsedName)
+                .ToList();
+        }
+        public int CountLandingsWithCatchComposition()
+        {
+            return SummaryItemCollection.Count(t => t.HasCatchComposition == true);
+        }
+        public List<SummaryItem> GetDownloadDetailsByDate(DateTime date_download, bool isTracked = false)
+        {
+            return SummaryItemCollection
+                .Where(t => t.DateAdded.Date == date_download && t.IsTracked == isTracked)
+                .OrderBy(t => t.EnumeratorNameToUse)
+                .ThenBy(t => t.GearUsedName)
+                .ToList();
+        }
+        public List<SummaryResults> GetDownloadSummaryByDate(DateTime date_download)
+        {
+            var v = from e_d in SummaryItemCollection.Where(t => t.DateAdded.Date == date_download).OrderBy(t => t.SamplingDate)
+                    group e_d by new
+                    {
+                        e_d.EnumeratorNameToUse,
+                        e_d.GearUsedName,
+                    } into e_d2
+                    select new DBSummary()
+                    {
+                        EnumeratorName = e_d2.First().EnumeratorNameToUse,
+                        GearName = e_d2.First().GearUsedName,
+                        FirstLandingFormattedDate = e_d2.Min(t => t.SamplingDate).ToString("MMM-dd-yyyy HH:mm"),
+                        LastLandingFormattedDate = e_d2.Max(t => t.SamplingDate).ToString("MMM-dd-yyyy HH:mm"),
+                        LatestDownloadFormattedDate = date_download.ToString("MMM-dd-yyyy"),
+                        VesselUnloadCount = e_d2.Count(),
+                        CountLandingsWithCatchComposition = e_d2.Count(t => t.HasCatchComposition == true),
+                        TrackedOperationsCount = e_d2.Count(t => t.IsTracked == true),
+                        LatestEformVersion = e_d2.Last().FormVersion
+                    };
+
+            List<SummaryResults> se = new List<SummaryResults>();
+            int count = 0;
+            foreach (var item in v)
+            {
+                SummaryResults sr = new SummaryResults
+                {
+                    Sequence = ++count,
+                    DBSummary = item,
+                    SummaryLevelType = SummaryLevelType.SummaryOfDownloadDate
+                };
+                se.Add(sr);
+            }
+            return se;
         }
         public void ResetResults()
         {

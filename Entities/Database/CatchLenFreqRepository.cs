@@ -77,7 +77,8 @@ namespace NSAP_ODK.Entities.Database
                                 cmd.CommandText = $"Select * from dbo_catch_len_freq where catch_id=@parentID";
                             }
                             thisList.Clear();
-                            foreach (DataRow dr in dt.Rows)
+                            OleDbDataReader dr = cmd.ExecuteReader();
+                            while (dr.Read())
                             {
                                 CatchLenFreq item = new CatchLenFreq();
                                 item.Parent = vc;

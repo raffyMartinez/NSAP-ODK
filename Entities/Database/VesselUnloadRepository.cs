@@ -318,6 +318,148 @@ namespace NSAP_ODK.Entities.Database
             return null;
         }
 
+        public static bool UpdateUnloadStats(VesselUnload vu)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+                {
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@efforts", vu.CountEffortIndicators);
+                        cmd.Parameters.AddWithValue("@grids", vu.CountGrids);
+                        cmd.Parameters.AddWithValue("@soaks", vu.CountGearSoak);
+                        cmd.Parameters.AddWithValue("@catch", vu.CountCatchCompositionItems);
+
+                        cmd.Parameters.AddWithValue("@lns", vu.CountLengthRows);
+                        cmd.Parameters.AddWithValue("@lfs", vu.CountLenFreqRows);
+                        cmd.Parameters.AddWithValue("@lws", vu.CountLenWtRows);
+                        cmd.Parameters.AddWithValue("@ms", vu.CountMaturityRows);
+                        cmd.Parameters.AddWithValue("@id", vu.PK);
+
+                        cmd.CommandText = @"INSERT INTO dbo_vessel_unload_stats (count_effort,count_grid,count_soak,count_catch_composition,count_lengths,count_lenfreq,count_lenwt,count_maturity,v_unload_id) 
+                                          values
+                                          (@efforts,@grids,@soaks,@catch,@lns,@lfs,@lws,@ms,@id)";
+                        try
+                        {
+                            conn.Open();
+                            success = cmd.ExecuteNonQuery() > 0;
+                        }
+                        catch (MySqlException mx)
+                        {
+                            if (mx.Message.Contains("Duplicate entry"))
+                            {
+
+                            }
+                            else
+                            {
+                                Logger.Log(mx);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@efforts", vu.CountEffortIndicators);
+                        cmd.Parameters.AddWithValue("@grids", vu.CountGrids);
+                        cmd.Parameters.AddWithValue("@soaks", vu.CountGearSoak);
+                        cmd.Parameters.AddWithValue("@catch", vu.CountCatchCompositionItems);
+
+                        cmd.Parameters.AddWithValue("@lns", vu.CountLengthRows);
+                        cmd.Parameters.AddWithValue("@lfs", vu.CountLenFreqRows);
+                        cmd.Parameters.AddWithValue("@lws", vu.CountLenWtRows);
+                        cmd.Parameters.AddWithValue("@ms", vu.CountMaturityRows);
+                        cmd.Parameters.AddWithValue("@id", vu.PK);
+
+                        cmd.CommandText = @"INSERT INTO dbo_vessel_unload_stats (count_effort,count_grid,count_soak,count_catch_composition,count_lengths,count_lenfreq,count_lenwt,count_maturity,v_unload_id) 
+                                          values
+                                          (@efforts,@grids,@soaks,@catch,@lns,@lfs,@lws,@ms,@id)";
+                        try
+                        {
+                            conn.Open();
+                            success = cmd.ExecuteNonQuery() > 0;
+                        }
+                        catch (MySqlException mx)
+                        {
+                            Logger.Log(mx);
+                        }
+                        catch (Exception ex)
+                        {
+                            if (ex.Message.Contains("Could not find output table"))
+                            {
+                                var arr = ex.Message.Split('\'');
+                                if (CreateTable1(arr[1]))
+                                {
+                                    return UpdateUnloadStats(vu);
+                                }
+
+                            }
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
+
+        public static bool CreateTable1(string tableName)
+        {
+            bool success = false;
+            using (var conn = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    switch (tableName)
+                    {
+                        case "dbo_vessel_unload_stats":
+                            cmd.CommandText = @"CREATE TABLE dbo_vessel_unload_stats (
+                                                v_unload_id INTEGER,
+                                                count_effort INTEGER,
+                                                count_grid INTEGER,
+                                                count_soak INTEGER,
+                                                count_catch_composition INTEGER,
+                                                count_lengths INTEGER,
+                                                count_lenfreq INTEGER,
+                                                count_lenwt INTEGER,
+                                                count_maturity INTEGER,
+                                                CONSTRAINT PrimaryKey PRIMARY KEY (v_unload_id),
+                                                CONSTRAINT FK_unload_stats
+                                                    FOREIGN KEY (v_unload_id) REFERENCES
+                                                    dbo_vessel_unload (v_unload_id)
+                                                )";
+                            break;
+                    }
+
+                    try
+                    {
+                        conn.Open();
+                        cmd.ExecuteNonQuery();
+                        success = true;
+
+                    }
+                    catch (OleDbException odx)
+                    {
+                        Logger.Log(odx);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+
+            return success;
+        }
         public bool AddUnloadStats(VesselUnload vu)
         {
             bool success = false;

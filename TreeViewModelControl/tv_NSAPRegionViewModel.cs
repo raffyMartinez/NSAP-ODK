@@ -22,7 +22,7 @@ namespace NSAP_ODK.TreeViewModelControl
 
         protected override void LoadChildren()
         {
-            foreach (var fma in NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(_region.Code).FMAs)
+            foreach (var fma in NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(_region.Code).FMAs.OrderBy(t=>t.FMAID))
             {
                 base.Children.Add(new tv_FMAViewModel(fma.FMA,this));
             }

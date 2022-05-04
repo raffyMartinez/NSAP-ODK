@@ -106,7 +106,8 @@ namespace NSAP_ODK.Entities.Database
                                 cmd.CommandText = "Select * from dbo_catch_len where catch_id=@parentID";
                             }
                             thisList.Clear();
-                            foreach (DataRow dr in dt.Rows)
+                            OleDbDataReader dr = cmd.ExecuteReader();
+                            while (dr.Read())
                             {
                                 CatchLength item = new CatchLength();
                                 item.Parent = vc;

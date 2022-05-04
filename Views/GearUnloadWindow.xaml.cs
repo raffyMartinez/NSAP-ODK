@@ -193,7 +193,6 @@ namespace NSAP_ODK.Views
                     {
                         case "Unload entities summary":
                             ShowUnloadSummaryGrid();
-
                             break;
                         case "Vessel unload":
                             ShowVesselUnloadGrid();
@@ -326,40 +325,14 @@ namespace NSAP_ODK.Views
             labelUnloadSummary.Content = "Summary of vessel unloads of selected sampling day";
             dataGridUnloadSummary.Columns.Clear();
             dataGridUnloadSummary.AutoGenerateColumns = false;
-            //List<UnloadChildrenSummary> list = new List<UnloadChildrenSummary>();
-            //switch (_listSource)
+            //foreach(VesselUnload vu in _vesselUnloads)
             //{
-            //    case GearUnloadWindowListSource.ListSourceGearUnload:
-            //        foreach (var unload in _vesselUnloads)
-            //        {
-            //            list.Add(new UnloadChildrenSummary(unload));
-            //        }
-            //        //foreach (var unload in NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(_gearUnload, true))
-            //        //{
-            //        //    list.Add(new UnloadChildrenSummary(unload));
-            //        //}
-            //        break;
-            //    case GearUnloadWindowListSource.listSourceVesselUnload:
-            //        foreach (var unload in _vesselUnloads)
-            //        {
-            //            list.Add(new UnloadChildrenSummary(unload));
-            //        }
-            //        break;
+            //    vu.SetSubModels();
             //}
-            foreach(VesselUnload vu in _vesselUnloads)
-            {
-                vu.SetSubModels();
-            }
 
-            //dataGridUnloadSummary.DataContext = list;
             dataGridUnloadSummary.DataContext = _vesselUnloads;
             dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
             dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Date sampled", Binding = new Binding("DateSampling") });
-            //dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Region", Binding = new Binding("Region") });
-            //dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("FMA") });
-            //dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("FishingGround") });
-            //dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSite") });
-            //dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("Gear") });
             dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("NSAPEnumerator") });
             dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Fishing grid count", Binding = new Binding("CountGrids") });
             dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Soak time count", Binding = new Binding("CountGearSoak") });

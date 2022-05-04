@@ -14,6 +14,10 @@ namespace NSAP_ODK.Entities.Database
         {
             _vesselUnload = unload;
         }
+        public UnloadChildrenSummary(SummaryItem item)
+        {
+            _vesselUnload = new VesselUnload { PK = item.VesselUnloadID,OperationIsTracked = item.IsTracked};
+        }
 
         public VesselUnload VesselUnload { get { return _vesselUnload; } }
         public string DateSampling { get { return _vesselUnload.SamplingDate.ToString("MMM-dd-yyyy HH:mm"); } }

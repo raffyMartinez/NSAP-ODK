@@ -14,15 +14,20 @@ namespace NSAP_ODK.Entities.Database
     }
    public static class DownloadToDatabaseHistory
     {
-        public static Dictionary<DateTime, List<VesselUnload>> DownloadToDatabaseHistoryDictionary 
+        //public static Dictionary<DateTime, List<VesselUnload>> DownloadToDatabaseHistoryDictionary 
+        public static Dictionary<DateTime, List<SummaryItem>> DownloadToDatabaseHistoryDictionary 
         {
             get 
             {
-                
-                return NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
-                    .OrderByDescending(t=>t.DateAddedToDatabase)
-                    .GroupBy(t => ((DateTime)t.DateAddedToDatabase).Date)
+                return NSAPEntities.SummaryItemViewModel.SummaryItemCollection
+                    .OrderByDescending(t => t.DateAdded)
+                    .GroupBy(t => t.DateAdded.Date)
                     .ToDictionary(t => t.Key, t => t.ToList());
+
+                //return NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
+                //    .OrderByDescending(t=>t.DateAddedToDatabase)
+                //    .GroupBy(t => ((DateTime)t.DateAddedToDatabase).Date)
+                //    .ToDictionary(t => t.Key, t => t.ToList());
             }
             
         }

@@ -27,7 +27,7 @@ namespace NSAP_ODK.TreeViewModelControl
             foreach (var fma in _region.FMAs
                 .Where(t=>t.FMAID==_fma.FMAID))
             {
-                foreach (var fishingGround in fma.FishingGrounds)
+                foreach (var fishingGround in fma.FishingGrounds.OrderBy(t=>t.FishingGround.Name))
                 {
                     base.Children.Add(new tv_FishingGroundViewModel(fishingGround.FishingGround, this));
                 }

@@ -108,7 +108,8 @@ namespace NSAP_ODK.Entities.Database
                             }
 
                             thisList.Clear();
-                            foreach (DataRow dr in dt.Rows)
+                            OleDbDataReader dr = cmd.ExecuteReader();
+                            while (dr.Read())
                             {
                                 CatchLengthWeight item = new CatchLengthWeight();
                                 item.Parent = vc;

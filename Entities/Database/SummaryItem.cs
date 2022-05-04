@@ -8,13 +8,44 @@ namespace NSAP_ODK.Entities.Database
 {
     public class SummaryItem
     {
+        public string SamplingDateFormatted
+        {
+            get
+            {
+                return SamplingDate.ToString("MMM-dd-yyyy HH:mm");
+            }
+        }
+        public string GPSNameToUse
+        {
+            get
+            {
+                if(GPS==null)
+                {
+                    return GPSCode;
+                }
+                else
+                {
+                    return GPS.AssignedName;
+                }
+            }
+        }
+        public GPS GPS
+        {
+            get
+            {
+                return NSAPEntities.GPSViewModel.GetGPS(GPSCode);
+            }
+        }
+        public string GPSCode { get; set; }
+        public int? NumberOfFishers { get; set; }
         public override string ToString()
         {
-            string ls = LandingSiteName == null ? LandingSiteText : LandingSite.ToString();
+            string ls = LandingSiteName.Length == 0 ? LandingSiteText : LandingSite.ToString();
             string gr = Gear != null ? Gear.GearName : GearText;
             return $"{ID}-{Region.ShortName}-{FMA.Name}-{FishingGround.Name}-{ls}-{gr}-{SamplingDate.ToString("MMM-dd-yyyy")}";
         }
 
+        public string FormVersion { get; set; }
         public DateTime MonthSampled
         {
             get
@@ -22,11 +53,30 @@ namespace NSAP_ODK.Entities.Database
                 return new DateTime(SamplingDate.Year, SamplingDate.Month, 1);
             }
         }
+
+        public string VesselName { get; set; }
+        public string VesselText { get; set; }
+        public int? VesselID { get; set; }
+
+        public string VesselNameToUse
+        {
+            get
+            {
+                if(VesselID==null)
+                {
+                    return VesselText;
+                }
+                else
+                {
+                    return VesselName;
+                }
+            }
+        }
         public string LandingSiteNameText
         {
             get
             {
-                if(LandingSiteID==null)
+                if (LandingSiteID == null)
                 {
                     return LandingSiteText;
                 }
@@ -60,6 +110,9 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
         }
+
+        public int RegionSequence { get; set; }
+        public string RegionShortName { get; set; }
         public NSAPRegion Region
         {
             get
@@ -112,6 +165,7 @@ namespace NSAP_ODK.Entities.Database
         public int GearUnloadID { get; set; }
         public int VesselUnloadID { get; set; }
         public string RegionID { get; set; }
+
         public int FMAId { get; set; }
         public string FishingGroundID { get; set; }
 
@@ -133,7 +187,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if(GearCode.Length==0)
+                if (GearCode.Length == 0)
                 {
                     return GearText;
                 }
@@ -148,16 +202,60 @@ namespace NSAP_ODK.Entities.Database
         public int? EnumeratorID { get; set; }
         public string EnumeratorName { get; set; }
 
+        public string EnumeratorNameToUse
+        {
+            get
+            {
+                if (EnumeratorID == null)
+                {
+                    return EnumeratorText;
+                }
+                else
+                {
+                    return EnumeratorName;
+                }
+            }
+        }
+
         public string EnumeratorText { get; set; }
         public DateTime SamplingDate { get; set; }
         public DateTime DateAdded { get; set; }
         public bool IsSuccess { get; set; }
         public bool IsTracked { get; set; }
         public string SectorCode { get; set; }
+
+        public string Sector
+        {
+            get
+            {
+                string code = "";
+                switch(SectorCode.ToLower())
+                {
+                    case "m":
+                        code = "Municipal";
+                        break;
+                    case "c":
+                        code = "Commercial";
+                        break;
+                }
+                return code;
+            }
+        }
         public bool HasCatchComposition { get; set; }
 
         public bool IsTripCompleted { get; set; }
 
-        public int CatchCompositionRows { get; set; }
+        public int? CatchCompositionRows { get; set; }
+        public int? FishingGridRows { get; set; }
+        public int? GearSoakRows { get; set; }
+        public int? VesselEffortRows { get; set; }
+
+        public int? LenFreqRows { get; set; }
+        public int? LenWtRows { get; set; }
+
+        public int? LengthRows { get; set; }
+
+        public int? CatchMaturityRows { get; set; }
+
     }
 }

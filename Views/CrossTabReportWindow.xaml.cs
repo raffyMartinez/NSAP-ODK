@@ -186,7 +186,14 @@ namespace NSAP_ODK.Views
                 }
                 else
                 {
-                    exportResult = $"Was not successfull in exporting to excel\r\n{ExportExcel.ErrorMessage}";
+                    if (CrossTabManager.ErrorMessage.Length > 0)
+                    {
+                        exportResult = $"Was not successfull in exporting to excel\r\n{CrossTabManager.ErrorMessage}";
+                    }
+                    else
+                    {
+                        exportResult = $"Was not successfull in exporting to excel\r\n{ExportExcel.ErrorMessage}";
+                    }
                 }
 
                 MessageBox.Show(exportResult, "Export", MessageBoxButton.OK, MessageBoxImage.Information);

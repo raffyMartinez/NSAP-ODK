@@ -20,6 +20,7 @@ namespace NSAP_ODK.Entities.Database
         private static List<GearUnload> _gearUnloads;
         private static List<LandingSiteSampling> _landingSiteSamplings;
         private static TreeViewModelControl.AllSamplingEntitiesEventHandler _sev;
+        private static DataSet _crossTabDataSet;
         public static Dictionary<int, CrossTabCommonProperties> UnloadCrossTabCommonPropertyDictionary { get; set; } = new Dictionary<int, CrossTabCommonProperties>();
 
         public static event EventHandler<CrossTabReportEventArg> CrossTabEvent;
@@ -28,6 +29,21 @@ namespace NSAP_ODK.Entities.Database
         {
             return Task.Run(() => GearByMonthYear(sev));
         }
+
+        //public static void Reset()
+        //{
+        //    _crossTabEfforts = new List<CrossTabEffort>();
+        //    _crossTabEffortsAll = new List<CrossTabEffortAll>();
+        //    _crossTabLenFreqs = new List<CrossTabLenFreq>();
+        //    _crossTabMaturities = new List<CrossTabMaturity>();
+        //    _crossTabLengths = new List<CrossTabLength>();
+        //    _effortSpeciesCrostabDataTable = new DataTable();
+        //    _effortCrostabDataTable = new DataTable();
+        //    _gearUnloads = new List<GearUnload>();
+        //    _landingSiteSamplings = new List<LandingSiteSampling>();
+        //    _crossTabDataSet = new DataSet();
+
+        //}
         private static int GearByMonthYear(TreeViewModelControl.AllSamplingEntitiesEventHandler sev)
         {
             int counter = 0;
@@ -77,7 +93,7 @@ namespace NSAP_ODK.Entities.Database
 
                     foreach (var ls in _landingSiteSamplings)
                     {
-                        if(ls.GearUnloadViewModel==null)
+                        if (ls.GearUnloadViewModel == null)
                         {
                             ls.GearUnloadViewModel = new GearUnloadViewModel(ls);
                         }
@@ -597,19 +613,32 @@ namespace NSAP_ODK.Entities.Database
 
         public static DataTable CrossTabAllEfforts { get { return _effortCrostabDataTable; } }
 
+        public static string ErrorMessage { get; private set; }
         public static DataSet CrossTabDataSet
         {
             get
             {
-                DataSet ds = new DataSet();
-                _effortSpeciesCrostabDataTable.TableName = "Effort";
-                _effortCrostabDataTable.TableName = "Effort (all)";
-                ds.Tables.Add(_effortCrostabDataTable);
-                ds.Tables.Add(_effortSpeciesCrostabDataTable);
-                ds.Tables.Add(ListToDataTable(CrossTabLengths, "Length"));
-                ds.Tables.Add(ListToDataTable(CrossTabMaturities, "Maturity"));
-                ds.Tables.Add(ListToDataTable(CrossTabLenFreqs, "Len-Freq"));
-                return ds;
+                ErrorMessage = "";
+                _crossTabDataSet = new DataSet();
+                //_effortSpeciesCrostabDataTable = new DataTable();
+                //_effortCrostabDataTable = new DataTable();
+                try
+                {
+                    _effortSpeciesCrostabDataTable.TableName = "Effort";
+                    _effortCrostabDataTable.TableName = "Effort (all)";
+
+                    _crossTabDataSet.Tables.Add(_effortCrostabDataTable);
+                    _crossTabDataSet.Tables.Add(_effortSpeciesCrostabDataTable);
+                    _crossTabDataSet.Tables.Add(ListToDataTable(CrossTabLengths, "Length"));
+                    _crossTabDataSet.Tables.Add(ListToDataTable(CrossTabMaturities, "Maturity"));
+                    _crossTabDataSet.Tables.Add(ListToDataTable(CrossTabLenFreqs, "Len-Freq"));
+                }
+                catch (Exception ex)
+                {
+                    ErrorMessage = ex.Message;
+                    Utilities.Logger.Log(ex);
+                }
+                return _crossTabDataSet;
             }
         }
 
@@ -650,6 +679,14 @@ namespace NSAP_ODK.Entities.Database
                                     }
                                 }
                             }
+                            //else if(pt.Name=="SN")
+                            //{
+                            //    table.Columns.Add(pt.Name, Nullable.GetUnderlyingType(pt.PropertyType) ?? pt.PropertyType);
+                            //}
+                            else
+                            {
+                                table.Columns.Add(pt.Name, Nullable.GetUnderlyingType(pt.PropertyType) ?? pt.PropertyType);
+                            }
                         }
                     }
                     else
@@ -662,8 +699,22 @@ namespace NSAP_ODK.Entities.Database
                     DataRow row = table.NewRow();
                     foreach (PropertyDescriptor prop in properties)
                     {
+
                         if (prop.Name == "CrossTabCommon")
                         {
+                            CrossTabCommon ctc = null;
+                            switch (prop.ComponentType.Name)
+                            {
+                                case "CrossTabLength":
+                                    ctc = (item as CrossTabLength).CrossTabCommon;
+                                    break;
+                                case "CrossTabLenFreq":
+                                    ctc = (item as CrossTabLenFreq).CrossTabCommon;
+                                    break;
+                                case "CrossTabMaturity":
+                                    ctc = (item as CrossTabMaturity).CrossTabCommon;
+                                    break;
+                            }
                             foreach (PropertyDescriptor ptd in prop.GetChildProperties())
                             {
                                 if (ptd.Name == "CommonProperties")
@@ -672,19 +723,19 @@ namespace NSAP_ODK.Entities.Database
                                     {
                                         if (ptdd.Name != "VesselUnload")
                                         {
-                                            CrossTabCommon ctc = null;
-                                            switch (prop.ComponentType.Name)
-                                            {
-                                                case "CrossTabLength":
-                                                    ctc = (item as CrossTabLength).CrossTabCommon;
-                                                    break;
-                                                case "CrossTabLenFreq":
-                                                    ctc = (item as CrossTabLenFreq).CrossTabCommon;
-                                                    break;
-                                                case "CrossTabMaturity":
-                                                    ctc = (item as CrossTabMaturity).CrossTabCommon;
-                                                    break;
-                                            }
+
+                                            //switch (prop.ComponentType.Name)
+                                            //{
+                                            //    case "CrossTabLength":
+                                            //        ctc = (item as CrossTabLength).CrossTabCommon;
+                                            //        break;
+                                            //    case "CrossTabLenFreq":
+                                            //        ctc = (item as CrossTabLenFreq).CrossTabCommon;
+                                            //        break;
+                                            //    case "CrossTabMaturity":
+                                            //        ctc = (item as CrossTabMaturity).CrossTabCommon;
+                                            //        break;
+                                            //}
 
 
                                             row[ptdd.Name] = ptdd.GetValue(ctc.CommonProperties) ?? DBNull.Value;
@@ -692,23 +743,116 @@ namespace NSAP_ODK.Entities.Database
                                         }
                                     }
                                 }
+                                else
+                                {
+                                    switch (ptd.Name)
+                                    {
+                                        case "Family":
+                                            row[ptd.Name] = ctc.Family;
+                                            break;
+                                        case "SN":
+                                            row[ptd.Name] = ctc.SN;
+                                            break;
+                                        case "SpeciesWeight":
+                                            row[ptd.Name] = ctc.SpeciesWeight;
+                                            break;
+                                    }
+
+
+                                    //row[ptd.Name] = ptd.GetValue(ctc.CommonProperties) ?? DBNull.Value;
+                                }
+                                //else
+                                //{
+                                //    row[ptd.Name] = ptd.GetValue(item) ?? DBNull.Value;
+                                //}
                             }
 
                         }
                         else
                         {
-                            try
+                            switch (prop.ComponentType.Name)
                             {
-                                row[prop.Name] = prop.GetValue(item) ?? DBNull.Value;
+                                case "CrossTabLength":
+                                    if (prop.Name == "Length")
+                                    {
+                                        row[prop.Name] = (item as CrossTabLength).Length;
+                                    }
+                                    break;
+                                case "CrossTabLenFreq":
+                                    switch (prop.Name)
+                                    {
+                                        case "Length":
+                                            row[prop.Name] = (item as CrossTabLenFreq).Length;
+                                            break;
+                                        case "Frequency":
+
+                                            row[prop.Name] = (item as CrossTabLenFreq).Freq;
+                                            break;
+                                    }
+                                    break;
+                                case "CrossTabMaturity":
+                                    switch (prop.Name)
+                                    {
+                                        case "Length":
+                                            double? len = (item as CrossTabMaturity).Length;
+                                            if (len == null)
+                                            {
+                                                row[prop.Name] = DBNull.Value;
+                                            }
+                                            else
+                                            {
+                                                row[prop.Name] = len;
+                                            }
+                                            break;
+                                        case "Weight":
+                                            double? wt = (item as CrossTabMaturity).Weight;
+                                            if (wt == null)
+                                            {
+                                                row[prop.Name] = DBNull.Value;
+                                            }
+                                            else
+                                            {
+                                                row[prop.Name] = wt;
+                                            }
+                                            break;
+                                        case "Sex":
+                                            row[prop.Name] = (item as CrossTabMaturity)?.Sex;
+                                            break;
+                                        case "MaturityStage":
+                                            row[prop.Name] = (item as CrossTabMaturity)?.MaturityStage;
+                                            break;
+                                        case "GutContent":
+                                            row[prop.Name] = (item as CrossTabMaturity)?.GutContent;
+                                            break;
+                                        case "GonadWeight":
+                                            double? gwt = (item as CrossTabMaturity).GonadWeight;
+                                            if (gwt == null)
+                                            {
+                                                row[prop.Name] = DBNull.Value;
+                                            }
+                                            else
+                                            {
+                                                row[prop.Name] = gwt;
+                                            }
+                                            break;
+                                    }
+                                    break;
                             }
-                            catch
-                            {
-                                row[prop.Name] = DBNull.Value;
-                            }
+
+
+                            //try
+                            //{
+                            //    row[prop.Name] = prop.GetValue(item) ?? DBNull.Value;
+                            //}
+                            //catch
+                            //{
+                            //    row[prop.Name] = DBNull.Value;
+                            //}
                         }
                     }
                     table.Rows.Add(row);
                 }
+
             }
             return table;
         }

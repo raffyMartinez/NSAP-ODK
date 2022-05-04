@@ -86,9 +86,9 @@ namespace NSAP_ODK.Entities.Database
             return thisList;
         }
 
-        
 
-        public static int GearUnloadCount(bool countCompleted=false)
+
+        public static int GearUnloadCount(bool countCompleted = false)
         {
             int count = 0;
             if (Global.Settings.UsemySQL)
@@ -121,9 +121,9 @@ namespace NSAP_ODK.Entities.Database
                     using (var cmd = conn.CreateCommand())
                     {
                         cmd.CommandText = "Select count(*) from dbo_gear_unload";
-                        if(countCompleted)
+                        if (countCompleted)
                         {
-                            cmd.CommandText="Select count(*) from dbo_gear_unload where boats Is Not null And catch Is Not Null";
+                            cmd.CommandText = "Select count(*) from dbo_gear_unload where boats Is Not null And catch Is Not Null";
                         }
                         try
                         {

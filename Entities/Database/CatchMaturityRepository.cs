@@ -105,30 +105,30 @@ namespace NSAP_ODK.Entities.Database
                         {
                             conection.Open();
                             cmd.CommandText = "Select * from dbo_catch_maturity";
-                            if(vc!=null)
+                            if (vc != null)
                             {
                                 cmd.Parameters.AddWithValue("@parentID", vc.PK);
                                 cmd.CommandText = "Select * from dbo_catch_maturity where catch_id=@parentID";
                             }
-                            if (dt.Rows.Count > 0)
+
+                            thisList.Clear();
+                            OleDbDataReader dr = cmd.ExecuteReader();
+                            while (dr.Read())
                             {
-                                thisList.Clear();
-                                foreach (DataRow dr in dt.Rows)
-                                {
-                                    CatchMaturity item = new CatchMaturity();
-                                    item.Parent = vc;
-                                    item.PK = (int)dr["catch_maturity_id"];
-                                    item.VesselCatchID = (int)dr["catch_id"];
-                                    item.GonadWeight = dr["gonadWt"] == DBNull.Value ? null : (double?)dr["gonadWt"];
-                                    item.Length = dr["length"] == DBNull.Value ? null : (double?)dr["length"];
-                                    item.Weight = dr["weight"] == DBNull.Value ? null : (double?)dr["weight"];
-                                    item.SexCode = dr["sex"].ToString();
-                                    item.MaturityCode = dr["maturity"].ToString();
-                                    item.WeightGutContent = dr["gut_content_wt"] == DBNull.Value ? null : (double?)dr["gut_content_wt"];
-                                    item.GutContentCode = dr["gut_content_code"].ToString();
-                                    thisList.Add(item);
-                                }
+                                CatchMaturity item = new CatchMaturity();
+                                item.Parent = vc;
+                                item.PK = (int)dr["catch_maturity_id"];
+                                item.VesselCatchID = (int)dr["catch_id"];
+                                item.GonadWeight = dr["gonadWt"] == DBNull.Value ? null : (double?)dr["gonadWt"];
+                                item.Length = dr["length"] == DBNull.Value ? null : (double?)dr["length"];
+                                item.Weight = dr["weight"] == DBNull.Value ? null : (double?)dr["weight"];
+                                item.SexCode = dr["sex"].ToString();
+                                item.MaturityCode = dr["maturity"].ToString();
+                                item.WeightGutContent = dr["gut_content_wt"] == DBNull.Value ? null : (double?)dr["gut_content_wt"];
+                                item.GutContentCode = dr["gut_content_code"].ToString();
+                                thisList.Add(item);
                             }
+
                         }
                         catch (OleDbException dbex)
                         {

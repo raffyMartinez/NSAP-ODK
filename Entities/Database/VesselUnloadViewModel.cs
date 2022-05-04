@@ -37,7 +37,55 @@ namespace NSAP_ODK.Entities.Database
         {
             return Task.Run(() => UpdateUnloadStats());
         }
-        public List<Download_summary> GetDownlodaSummary(List<VesselUnload> downloadedItems, DateTime downloadDate)
+
+        public List<Download_summary> GetDownlodaSummary(List<SummaryItem> downloadedItems, DateTime downloadDate)
+        {
+            List<Download_summary> dws = new List<Download_summary>();
+            var enumerators = downloadedItems.GroupBy(t => t.EnumeratorName).OrderBy(t => t.Key);
+            int n = 0;
+
+
+            foreach (var en in enumerators)
+            {
+
+                var enDownloads = en.ToList();
+
+                var gears = enDownloads.ToList().GroupBy(t => t.GearUsedName).OrderBy(t => t.Key);
+                foreach (var g in gears)
+                {
+                    var gl = g.ToList();
+                    Download_summary ds = new Download_summary
+                    {
+                        Enumerator = enDownloads[0].EnumeratorName,
+                        Gear = gl[0].GearUsedName,
+                        NumberLandings = gl.Count,
+                        NumberLandingsWithCatchComposition = gl.Count(t => t.HasCatchComposition == true),
+                        EarliestSamplingDate = gl.OrderBy(t => t.SamplingDate).FirstOrDefault().SamplingDate,
+                        LatestSamplingDate = gl.OrderByDescending(t => t.SamplingDate).FirstOrDefault().SamplingDate,
+                        DownloadDate = downloadDate,
+                        NumberOfTrackedLandings = gl.Count(t => t.IsTracked == true),
+                    };
+                    dws.Add(ds);
+                }
+
+
+
+                n++;
+            }
+
+            var sorted = dws.OrderBy(t => t.Enumerator).ToList();
+
+            Download_summary s = new Download_summary
+            {
+                Enumerator = "Grand total",
+                NumberLandings = downloadedItems.Count,
+                NumberLandingsWithCatchComposition = downloadedItems.Count(t => t.HasCatchComposition == true),
+                NumberOfTrackedLandings = downloadedItems.Count(t => t.IsTracked == true)
+            };
+            sorted.Add(s);
+            return sorted;
+        }
+        public List<Download_summary> GetDownlodaSummary1(List<VesselUnload> downloadedItems, DateTime downloadDate)
         {
             List<Download_summary> dws = new List<Download_summary>();
             var enumerators = downloadedItems.GroupBy(t => t.EnumeratorName).OrderBy(t => t.Key);

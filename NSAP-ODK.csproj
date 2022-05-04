@@ -240,6 +240,7 @@
     <Compile Include="Entities\Database\UpdateDatabaseColumnEventArg.cs" />
     <Compile Include="Entities\Database\UpdateHasCatchComposition.cs" />
     <Compile Include="Entities\Database\UpdateHasCatchCompositionRepo.cs" />
+    <Compile Include="Entities\Database\UpdateUnloadStatistics.cs" />
     <Compile Include="Entities\Database\UpdateXFormIdentifier.cs" />
     <Compile Include="Entities\Database\UpdateXFormIdentifierRepo.cs" />
     <Compile Include="Entities\Database\VesselUnloadServerRepository.cs" />

@@ -16,13 +16,15 @@ namespace NSAP_ODK.Entities.Database
         AllRegions,
         FMA,
         Region,
+        RegionOverall,
         FishingGround,
         LandingSite,
         Enumerator,
         EnumeratedMonth,
         EnumeratorRegion,
         Enumerators,
-        SummaryOfEnumerators
+        SummaryOfEnumerators,
+        SummaryOfDownloadDate
 
     }
 
@@ -71,7 +73,7 @@ namespace NSAP_ODK.Entities.Database
         {
 
         }
-
+        public string EnumeratorName { get; set; }
         [ReadOnly(true)]
         public int CountLandingsWithCatchComposition { get; set; }
         public bool IsTotal { get; set; }
@@ -92,6 +94,8 @@ namespace NSAP_ODK.Entities.Database
         [ReadOnly(true)]
         public int FMACount { get; set; }
 
+
+        public string DateDownloadFormatted { get; set; }
         [ReadOnly(true)]
         public int NSAPRegionCount { get; set; }
 
@@ -126,6 +130,8 @@ namespace NSAP_ODK.Entities.Database
 
         [ReadOnly(true)]
         public int FishingVesselCount { get; set; }
+
+        public string LatestEformVersion { get; set; }
 
         [ReadOnly(true)]
         public int GPSCount { get; set; }
