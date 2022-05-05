@@ -649,10 +649,14 @@ namespace NSAP_ODK
                             break;
                         default:
                             NSAPEnumerator en = (NSAPEnumerator)node.Tag;
-                            foreach (var month in NSAPEntities.VesselUnloadViewModel.MonthsSampledByEnumerator(en))
+                            foreach (var month in NSAPEntities.SummaryItemViewModel.GetMonthsSampledByEnumerator(en))
                             {
                                 node.Items.Add(new TreeViewItem { Header = month.ToString("MMM-yyyy"), Tag = month });
                             }
+                            //foreach (var month in NSAPEntities.VesselUnloadViewModel.MonthsSampledByEnumerator(en))
+                            //{
+                            //    node.Items.Add(new TreeViewItem { Header = month.ToString("MMM-yyyy"), Tag = month });
+                            //}
                             break;
                     }
                 }
@@ -2929,7 +2933,9 @@ namespace NSAP_ODK
             string landingSite = null,
             bool inSummaryView = true,
             TreeViewModelControl.AllSamplingEntitiesEventHandler treeviewData = null,
-            string enumeratorName = null)
+            string enumeratorName = null,
+            NSAPEnumerator en = null,
+            DateTime? monthEnumerated = null)
         {
             targetGrid.AutoGenerateColumns = false;
             targetGrid.Columns.Clear();
@@ -3047,9 +3053,21 @@ namespace NSAP_ODK
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Latest e-Form version", Binding = new Binding("DBSummary.LatestEformVersion") });
                     break;
                 case SummaryLevelType.Enumerator:
-                    targetGrid.DataContext = NSAPEntities.SummaryItemViewModel.GetEnumeratorSummary(region, enumeratorName).OrderBy(t=>t.DBSummary.LandingSiteName);
+                    targetGrid.DataContext = NSAPEntities.SummaryItemViewModel.GetEnumeratorSummary(region, enumeratorName).OrderBy(t => t.DBSummary.LandingSiteName);
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("DBSummary.LandingSiteName") });
-                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("DBSummary.GearName")});
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("DBSummary.GearName") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Number of landings sampled", Binding = new Binding("DBSummary.VesselUnloadCount"), CellStyle = AlignRightStyle });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Catch composition included", Binding = new Binding("DBSummary.CountLandingsWithCatchComposition"), CellStyle = AlignRightStyle });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Tracked operations", Binding = new Binding("DBSummary.TrackedOperationsCount"), CellStyle = AlignRightStyle });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "First sampling", Binding = new Binding("DBSummary.FirstLandingFormattedDate") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Last sampling", Binding = new Binding("DBSummary.LastLandingFormattedDate") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Last upload date", Binding = new Binding("DBSummary.LatestDownloadFormattedDate") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Latest e-Form version", Binding = new Binding("DBSummary.LatestEformVersion") });
+                    break;
+                case SummaryLevelType.EnumeratedMonth:
+                    targetGrid.DataContext = NSAPEntities.SummaryItemViewModel.GetEnumeratorSummaryByMonth(en, (DateTime)monthEnumerated);
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("DBSummary.LandingSiteName") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("DBSummary.GearName") });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Number of landings sampled", Binding = new Binding("DBSummary.VesselUnloadCount"), CellStyle = AlignRightStyle });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Catch composition included", Binding = new Binding("DBSummary.CountLandingsWithCatchComposition"), CellStyle = AlignRightStyle });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Tracked operations", Binding = new Binding("DBSummary.TrackedOperationsCount"), CellStyle = AlignRightStyle });
@@ -3279,7 +3297,15 @@ namespace NSAP_ODK
                     break;
             }
         }
-        public void ShowSummaryAtLevel(SummaryLevelType summaryType, NSAPRegion region = null, FMA fma = null, FishingGround fg = null, string enumeratorName = null)
+        public void ShowSummaryAtLevel(
+            SummaryLevelType summaryType,
+            NSAPRegion region = null,
+            FMA fma = null,
+            FishingGround fg = null,
+            string enumeratorName = null,
+            NSAPEnumerator en = null,
+            DateTime? monthEnumerated = null
+            )
         {
 
             string labelContent = "";
@@ -3307,7 +3333,11 @@ namespace NSAP_ODK
                     break;
                 case SummaryLevelType.Enumerator:
                     labelContent = $"Summary for enumerator: {enumeratorName}";
-                    SetUpSummaryGrid(summaryType, dataGridSummary, region: region,enumeratorName:enumeratorName);
+                    SetUpSummaryGrid(summaryType, dataGridSummary, region: region, enumeratorName: enumeratorName);
+                    break;
+                case SummaryLevelType.EnumeratedMonth:
+                    labelContent = $"Summary for enumerator: {en.Name} at {(DateTime)monthEnumerated:MMMM, yyyy}";
+                    SetUpSummaryGrid(summaryType, dataGridSummary, en: en, monthEnumerated: monthEnumerated);
                     break;
             }
             labelSummary.Content = labelContent;
@@ -3374,12 +3404,13 @@ namespace NSAP_ODK
                             }
                             else
                             {
-                                ShowSummaryAtLevel(SummaryLevelType.Enumerator, region: (NSAPRegion)((TreeViewItem)tvItem.Parent).Tag,enumeratorName:header);
+                                ShowSummaryAtLevel(SummaryLevelType.Enumerator, region: (NSAPRegion)((TreeViewItem)tvItem.Parent).Tag, enumeratorName: header);
                             }
                             _summaryLevelType = SummaryLevelType.Enumerator;
                             break;
                         case "DateTime":
-                            ShowEnumeratorSummary((NSAPEnumerator)((TreeViewItem)tvItem.Parent).Tag, (DateTime)tvItem.Tag);
+                            ShowSummaryAtLevel(SummaryLevelType.EnumeratedMonth, en:(NSAPEnumerator)((TreeViewItem)tvItem.Parent).Tag,monthEnumerated: (DateTime)tvItem.Tag);
+                            //ShowEnumeratorSummary((NSAPEnumerator)((TreeViewItem)tvItem.Parent).Tag, (DateTime)tvItem.Tag);
                             _summaryLevelType = SummaryLevelType.EnumeratedMonth;
                             break;
                     }
