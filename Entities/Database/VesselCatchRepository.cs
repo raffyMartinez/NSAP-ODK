@@ -18,9 +18,12 @@ namespace NSAP_ODK.Entities.Database
         {
             VesselCatches = getVesselCatches(vu);
         }
-        public VesselCatchRepository()
+        public VesselCatchRepository(bool isNew=false   )
         {
-            VesselCatches = getVesselCatches();
+            if (!isNew)
+            {
+                VesselCatches = getVesselCatches();
+            }
         }
         public int MaxRecordNumber()
         {
@@ -435,7 +438,7 @@ namespace NSAP_ODK.Entities.Database
             return success;
         }
 
-        public bool ClearTable()
+        public static bool ClearTable()
         {
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))

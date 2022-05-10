@@ -18,9 +18,12 @@ namespace NSAP_ODK.Entities.Database
         {
             FishingGroundGrids = getFishingGroundGrids(vu);
         }
-        public FishingGroundGridRepository()
+        public FishingGroundGridRepository(bool isNew=false)
         {
-            FishingGroundGrids = getFishingGroundGrids();
+            if (!isNew)
+            {
+                FishingGroundGrids = getFishingGroundGrids();
+            }
         }
         public int MaxRecordNumber()
         {
@@ -273,7 +276,7 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
-        public bool ClearTable()
+        public static bool ClearTable()
         {
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))

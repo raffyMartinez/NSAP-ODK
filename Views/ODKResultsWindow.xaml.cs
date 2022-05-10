@@ -12,6 +12,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Threading;
+using Ookii.Dialogs.Wpf;
+using System.Linq;
+using System.Xml.Serialization;
 
 namespace NSAP_ODK.Views
 {
@@ -36,6 +39,7 @@ namespace NSAP_ODK.Views
         private bool _uploadToDBSuccess;
         private JSONFile _jsonFile;
         private DateTime? _jsonFileUseCreationDateForHistory;
+        private List<FileInfo> _jsonfiles;
         public string JSON { get; set; }
         public string FormID { get; set; }
 
@@ -152,6 +156,9 @@ namespace NSAP_ODK.Views
             menuSaveJson.IsEnabled = true;
 
             menuView.Visibility = Visibility.Collapsed;
+
+            ResetView();
+            rowGrid.Height = new GridLength(1, GridUnitType.Star);
         }
 
         private void SetMenuViewVisibility()
@@ -194,7 +201,7 @@ namespace NSAP_ODK.Views
 
                 if (menuViewLandingSiteSampling.IsChecked)
                 {
-                    ShowResultFromAPI("landingSiteSampling");
+                    ShowResultFromAPI("landingSiteSampling", dataGridExcel);
                 }
                 else
                 {
@@ -216,7 +223,14 @@ namespace NSAP_ODK.Views
 
             if (menuViewEffort.IsChecked)
             {
-                ShowResultFromAPI("effort");
+                if (_jsonfiles != null && _jsonfiles.Count > 0)
+                {
+                    ShowResultFromAPI("effort", gridJSONContent);
+                }
+                else
+                {
+                    ShowResultFromAPI("effort", dataGridExcel);
+                }
             }
             else
             {
@@ -295,10 +309,124 @@ namespace NSAP_ODK.Views
             return success;
         }
 
+        private void ResetView()
+        {
+            rowJsonFiles.Height = new GridLength(0);
+            rowGrid.Height = new GridLength(0);
+            //rowGrid.Height = new GridLength(1, GridUnitType.Star);
+        }
+
+        private void AddFilesToDateNode(TreeViewItem dateNode, DownloadedJsonMetadata djmd, string dateDownloaded)
+        {
+            int counter = 0;
+            foreach (FileInfo f in _jsonfiles.OrderBy(t => t.Name))
+            {
+                if (f.Extension == ".json" && f.Name.Contains(djmd.FileName.Replace("_info.xml", "")))
+                {
+                    TreeViewItem fileNode = new TreeViewItem { Header = $"{dateDownloaded} {++counter}", Tag = f };
+                    dateNode.Items.Add(fileNode);
+                }
+            }
+        }
+        private void AddMetadataToTreeView(DownloadedJsonMetadata djmd, TreeViewItem root)
+        {
+            string dateDownloaded = djmd.DateDownloaded.ToString("MMM-dd-yyyy HH:mm");
+            TreeViewItem formNameNode = new TreeViewItem { Header = djmd.FormName };
+            TreeViewItem formOwnerNode = new TreeViewItem { Header = djmd.DBOwner };
+            TreeViewItem dateDownloadNode = new TreeViewItem { Header = dateDownloaded };
+            if (root.Items.Count == 0)
+            {
+                root.Items.Add(formNameNode);
+                formNameNode.Items.Add(formOwnerNode);
+                formOwnerNode.Items.Add(dateDownloadNode);
+                AddFilesToDateNode(dateDownloadNode, djmd, dateDownloaded);
+                dateDownloadNode.IsExpanded = true;
+            }
+            else
+            {
+                bool found = true;
+                foreach (TreeViewItem tvi in root.Items)
+                {
+                    if (tvi.Header.ToString() == djmd.FormName)
+                    {
+                        found = true;
+                        formNameNode = tvi;
+                    }
+                    if (!found)
+                    {
+                        root.Items.Add(formNameNode);
+                    }
+
+                    found = false;
+                    foreach (TreeViewItem tvi1 in formNameNode.Items)
+                    {
+                        if (tvi1.Header.ToString() == djmd.DBOwner)
+                        {
+                            formOwnerNode = tvi1;
+                            found = true;
+                        }
+                    }
+                    if (!found)
+                    {
+                        formNameNode.Items.Add(formOwnerNode);
+                    }
+
+                    found = false;
+                    foreach (TreeViewItem tvi2 in formOwnerNode.Items)
+                    {
+                        if (tvi2.Header.ToString() == dateDownloaded)
+                        {
+                            found = true;
+                            dateDownloadNode = tvi2;
+                        }
+                    }
+                    if (!found)
+                    {
+                        formOwnerNode.Items.Add(dateDownloadNode);
+                        AddFilesToDateNode(dateDownloadNode, djmd, dateDownloaded);
+                    }
+                }
+            }
+        }
         private async void OnMenuClick(object sender, RoutedEventArgs e)
         {
             switch (((MenuItem)sender).Name)
             {
+                case "menuUploadJson":
+                    VistaFolderBrowserDialog vfbd = new VistaFolderBrowserDialog();
+                    vfbd.Description = "Locate folder containing downloaded JSON files";
+                    vfbd.UseDescriptionForTitle = true;
+                    vfbd.ShowNewFolderButton = true;
+                    vfbd.SelectedPath = System.AppDomain.CurrentDomain.BaseDirectory;
+                    if ((bool)vfbd.ShowDialog() && vfbd.SelectedPath.Length > 0)
+                    {
+                        _jsonfiles = Directory.GetFiles(vfbd.SelectedPath).Select(s => new FileInfo(s)).ToList();
+                        if (_jsonfiles.Any())
+                        {
+                            TreeViewItem root = new TreeViewItem { Header = "Downloaded e-form data" };
+                            treeViewJSONNavigator.Items.Add(root);
+                            foreach (var f in _jsonfiles.OrderByDescending(t => t.CreationTime))
+                            {
+                                if (f.Extension == ".xml")
+                                {
+                                    using (FileStream fs = new FileStream(f.FullName, FileMode.Open)) //double check that...
+                                    {
+                                        XmlSerializer _xSer = new XmlSerializer(typeof(DownloadedJsonMetadata));
+
+                                        DownloadedJsonMetadata djmd = (DownloadedJsonMetadata)_xSer.Deserialize(fs);
+                                        djmd.FileName = f.Name;
+
+                                        AddMetadataToTreeView(djmd, root);
+                                    }
+
+                                }
+                            }
+                        }
+                    }
+
+                    ResetView();
+                    rowJsonFiles.Height = new GridLength(1, GridUnitType.Star);
+                    break;
                 case "menuDeletePastDate":
                     DeleteUnloadPastDateWindow dpw = new DeleteUnloadPastDateWindow();
                     dpw.ShowDialog();
@@ -417,8 +545,11 @@ namespace NSAP_ODK.Views
                     break;
 
                 case "menuClearTables":
-                    if (ImportExcel.ClearNSAPDatabaseTables())
+                    if (NSAPEntities.ClearNSAPDatabaseTables())
                     {
+                        NSAPEntities.LandingSiteSamplingViewModel.Clear();
+                        NSAPEntities.SummaryItemViewModel.Clear();
+                        ParentWindow.ShowDBSummary();
                         MessageBox.Show("All repo cleared");
                     }
                     break;
@@ -443,6 +574,7 @@ namespace NSAP_ODK.Views
                                     _uploadToDBSuccess = true;
                                     if (JSON != null && await SaveJSONTextTask(verbose: false))
                                     {
+
                                         MessageBox.Show("Finished uploading to database\r\n" +
                                             $"and saving JSON file to {Global.Settings.JSONFolder}",
                                             "NSAP-ODK Database",
@@ -633,18 +765,18 @@ namespace NSAP_ODK.Views
             }
         }
 
-        private void ShowResultFromAPI(string result)
+        private void ShowResultFromAPI(string result, DataGrid target_grid)
         {
             DataGridTextColumn col;
-            dataGridExcel.ItemsSource = null;
-            dataGridExcel.Columns.Clear();
-            dataGridExcel.IsReadOnly = true;
-            dataGridExcel.AutoGenerateColumns = false;
+            target_grid.ItemsSource = null;
+            target_grid.Columns.Clear();
+            target_grid.IsReadOnly = true;
+            target_grid.AutoGenerateColumns = false;
             switch (result)
             {
                 case "landingSiteSampling":
-                    dataGridExcel.ItemsSource = LandingSiteBoatLandingsFromServerRepository.LandingSiteBoatLandings;
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "RowUUID", Binding = new Binding("_uuid"), Visibility = Visibility.Hidden });
+                    target_grid.ItemsSource = LandingSiteBoatLandingsFromServerRepository.LandingSiteBoatLandings;
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "RowUUID", Binding = new Binding("_uuid"), Visibility = Visibility.Hidden });
 
                     col = new DataGridTextColumn()
                     {
@@ -653,12 +785,12 @@ namespace NSAP_ODK.Views
                         CellStyle = AlignRightStyle
                     };
                     col.Binding.StringFormat = "MMM-dd-yyyy HH:mm";
-                    dataGridExcel.Columns.Add(col);
+                    target_grid.Columns.Add(col);
 
-                    dataGridExcel.Columns.Add(new DataGridCheckBoxColumn { Header = "Saved to database", Binding = new Binding("SavedInLocalDatabase") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Device ID", Binding = new Binding("device_id") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("user_name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Form version", Binding = new Binding("intronote") });
+                    target_grid.Columns.Add(new DataGridCheckBoxColumn { Header = "Saved to database", Binding = new Binding("SavedInLocalDatabase") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Device ID", Binding = new Binding("device_id") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("user_name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Form version", Binding = new Binding("intronote") });
 
                     col = new DataGridTextColumn()
                     {
@@ -667,22 +799,22 @@ namespace NSAP_ODK.Views
                         CellStyle = AlignRightStyle
                     };
                     col.Binding.StringFormat = "MMM-dd-yyyy";
-                    dataGridExcel.Columns.Add(col);
+                    target_grid.Columns.Add(col);
 
-                    dataGridExcel.Columns.Add(new DataGridCheckBoxColumn { Header = "Sampling day", Binding = new Binding("SamplingConducted") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "NSAP Region", Binding = new Binding("NSAPRegionName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("NSAPEnumeratorName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("FMA") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("FishingGround") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSiteName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Notes", Binding = new Binding("Notes") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
+                    target_grid.Columns.Add(new DataGridCheckBoxColumn { Header = "Sampling day", Binding = new Binding("SamplingConducted") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "NSAP Region", Binding = new Binding("NSAPRegionName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("NSAPEnumeratorName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("FMA") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("FishingGround") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSiteName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Notes", Binding = new Binding("Notes") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
 
                     break;
 
                 case "landingSiteCounts":
-                    dataGridExcel.ItemsSource = LandingSiteBoatLandingsFromServerRepository.GetLandings();
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("Parent.user_name") });
+                    target_grid.ItemsSource = LandingSiteBoatLandingsFromServerRepository.GetLandings();
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("Parent.user_name") });
 
                     col = new DataGridTextColumn()
                     {
@@ -691,27 +823,27 @@ namespace NSAP_ODK.Views
                         CellStyle = AlignRightStyle
                     };
                     col.Binding.StringFormat = "MMM-dd-yyyy";
-                    dataGridExcel.Columns.Add(col);
+                    target_grid.Columns.Add(col);
 
-                    dataGridExcel.Columns.Add(new DataGridCheckBoxColumn { Header = "Sampling day", Binding = new Binding("Parent.SamplingConducted") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "NSAP Region", Binding = new Binding("Parent.NSAPRegionName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("Parent.NSAPEnumeratorName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("Parent.FMA") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("Parent.FishingGround") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("Parent.LandingSiteName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("GearName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Vessels landed", Binding = new Binding("Count"), CellStyle = AlignRightStyle });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Total catch weight", Binding = new Binding("TotalCatchWt"), CellStyle = AlignRightStyle });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Notes", Binding = new Binding("Note") });
-                    dataGridExcel.Columns.Add(new DataGridCheckBoxColumn { Header = "Saved to database", Binding = new Binding("SavedInLocalDatabase") });
-                    //dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSiteName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Parent", Binding = new Binding("Parent.PK"), CellStyle = AlignRightStyle });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK"), CellStyle = AlignRightStyle });
+                    target_grid.Columns.Add(new DataGridCheckBoxColumn { Header = "Sampling day", Binding = new Binding("Parent.SamplingConducted") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "NSAP Region", Binding = new Binding("Parent.NSAPRegionName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("Parent.NSAPEnumeratorName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("Parent.FMA") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("Parent.FishingGround") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("Parent.LandingSiteName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("GearName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Vessels landed", Binding = new Binding("Count"), CellStyle = AlignRightStyle });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Total catch weight", Binding = new Binding("TotalCatchWt"), CellStyle = AlignRightStyle });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Notes", Binding = new Binding("Note") });
+                    target_grid.Columns.Add(new DataGridCheckBoxColumn { Header = "Saved to database", Binding = new Binding("SavedInLocalDatabase") });
+                    //target_grid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSiteName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Parent", Binding = new Binding("Parent.PK"), CellStyle = AlignRightStyle });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK"), CellStyle = AlignRightStyle });
                     break;
 
                 case "effort":
-                    dataGridExcel.ItemsSource = VesselUnloadServerRepository.VesselLandings;
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "RowUUID", Binding = new Binding("_uuid"), Visibility = Visibility.Hidden });
+                    target_grid.ItemsSource = VesselUnloadServerRepository.VesselLandings;
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "RowUUID", Binding = new Binding("_uuid"), Visibility = Visibility.Hidden });
 
                     col = new DataGridTextColumn()
                     {
@@ -720,12 +852,12 @@ namespace NSAP_ODK.Views
                         CellStyle = AlignRightStyle
                     };
                     col.Binding.StringFormat = "MMM-dd-yyyy HH:mm";
-                    dataGridExcel.Columns.Add(col);
+                    target_grid.Columns.Add(col);
 
-                    dataGridExcel.Columns.Add(new DataGridCheckBoxColumn { Header = "Saved to database", Binding = new Binding("SavedInLocalDatabase") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Device ID", Binding = new Binding("device_id") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("user_name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Form version", Binding = new Binding("intronote") });
+                    target_grid.Columns.Add(new DataGridCheckBoxColumn { Header = "Saved to database", Binding = new Binding("SavedInLocalDatabase") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Device ID", Binding = new Binding("device_id") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("user_name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Form version", Binding = new Binding("intronote") });
 
                     col = new DataGridTextColumn()
                     {
@@ -735,28 +867,28 @@ namespace NSAP_ODK.Views
                     };
 
                     col.Binding.StringFormat = "MMM-dd-yyyy HH:mm";
-                    dataGridExcel.Columns.Add(col);
+                    target_grid.Columns.Add(col);
 
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "NSAP Region", Binding = new Binding("NSAPRegion.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("EnumeratorName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("NSAPRegionFMA.FMA.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("FishingGround.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSiteName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing gear", Binding = new Binding("GearName") });
-                    dataGridExcel.Columns.Add(new DataGridCheckBoxColumn { Header = "Fishing boat is used", Binding = new Binding("IsBoatUsed") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("FishingVesselName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Sector") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Number of fishers", Binding = new Binding("NumberOfFishers"), CellStyle = AlignRightStyle });
-                    dataGridExcel.Columns.Add(new DataGridCheckBoxColumn { Header = "Successful trip", Binding = new Binding("TripIsSuccess") });
-                    dataGridExcel.Columns.Add(new DataGridCheckBoxColumn { Header = "Trip is completed", Binding = new Binding("TripIsCompleted") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Weight of catch", Binding = new Binding("CatchTotalWt"), CellStyle = AlignRightStyle });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Weight of sample", Binding = new Binding("CatchSampleWt"), CellStyle = AlignRightStyle });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Number of boxes", Binding = new Binding("BoxesTotal"), CellStyle = AlignRightStyle });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Number of boxes sampled", Binding = new Binding("BoxesSampled"), CellStyle = AlignRightStyle });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Raising factor", Binding = new Binding("RaisingFactor"), CellStyle = AlignRightStyle });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Includes catch composition", Binding = new Binding("IncludeCatchComposition") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "NSAP Region", Binding = new Binding("NSAPRegion.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("EnumeratorName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("NSAPRegionFMA.FMA.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("FishingGround.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSiteName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Fishing gear", Binding = new Binding("GearName") });
+                    target_grid.Columns.Add(new DataGridCheckBoxColumn { Header = "Fishing boat is used", Binding = new Binding("IsBoatUsed") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("FishingVesselName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Sector") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Number of fishers", Binding = new Binding("NumberOfFishers"), CellStyle = AlignRightStyle });
+                    target_grid.Columns.Add(new DataGridCheckBoxColumn { Header = "Successful trip", Binding = new Binding("TripIsSuccess") });
+                    target_grid.Columns.Add(new DataGridCheckBoxColumn { Header = "Trip is completed", Binding = new Binding("TripIsCompleted") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Weight of catch", Binding = new Binding("CatchTotalWt"), CellStyle = AlignRightStyle });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Weight of sample", Binding = new Binding("CatchSampleWt"), CellStyle = AlignRightStyle });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Number of boxes", Binding = new Binding("BoxesTotal"), CellStyle = AlignRightStyle });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Number of boxes sampled", Binding = new Binding("BoxesSampled"), CellStyle = AlignRightStyle });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Raising factor", Binding = new Binding("RaisingFactor"), CellStyle = AlignRightStyle });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Includes catch composition", Binding = new Binding("IncludeCatchComposition") });
 
-                    dataGridExcel.Columns.Add(new DataGridCheckBoxColumn { Header = "Vessel tracking", Binding = new Binding("IncludeTracking") });
+                    target_grid.Columns.Add(new DataGridCheckBoxColumn { Header = "Vessel tracking", Binding = new Binding("IncludeTracking") });
 
                     col = new DataGridTextColumn()
                     {
@@ -766,7 +898,7 @@ namespace NSAP_ODK.Views
                         CellStyle = AlignRightStyle
                     };
                     col.Binding.StringFormat = "MMM-dd-yyyy HH:mm";
-                    dataGridExcel.Columns.Add(col);
+                    target_grid.Columns.Add(col);
 
                     col = new DataGridTextColumn()
                     {
@@ -775,15 +907,15 @@ namespace NSAP_ODK.Views
                         CellStyle = AlignRightStyle
                     };
                     col.Binding.StringFormat = "MMM-dd-yyyy HH:mm";
-                    dataGridExcel.Columns.Add(col);
+                    target_grid.Columns.Add(col);
 
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "GPS", Binding = new Binding("GPS.AssignedName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Remarks", Binding = new Binding("Remarks") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "GPS", Binding = new Binding("GPS.AssignedName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Remarks", Binding = new Binding("Remarks") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
                     break;
 
                 case "grid":
-                    dataGridExcel.ItemsSource = VesselUnloadServerRepository.GetGridBingoCoordinates();
+                    target_grid.ItemsSource = VesselUnloadServerRepository.GetGridBingoCoordinates();
 
                     col = new DataGridTextColumn()
                     {
@@ -792,26 +924,26 @@ namespace NSAP_ODK.Views
                         CellStyle = AlignRightStyle
                     };
                     col.Binding.StringFormat = "MMM-dd-yyyy HH:mm";
-                    dataGridExcel.Columns.Add(col);
+                    target_grid.Columns.Add(col);
 
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("Parent.user_name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "NSAP region", Binding = new Binding("Parent.NSAPRegion.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("Parent.NSAPRegionFMA.FMA.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("Parent.FishingGround.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("Parent.LandingSiteName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("Parent.FishingVesselName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Parent.Sector") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing gear", Binding = new Binding("Parent.GearName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "UTM zone", Binding = new Binding("Parent.UTMZone") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Bingo coordinate", Binding = new Binding("CompleteGridName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Coordinates", Binding = new Binding("Grid25Cell.Coordinate") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "UTM Coordinates", Binding = new Binding("Grid25Cell.UTMCoordinate") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Parent ID", Binding = new Binding("Parent.PK") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("Parent.user_name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "NSAP region", Binding = new Binding("Parent.NSAPRegion.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("Parent.NSAPRegionFMA.FMA.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("Parent.FishingGround.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("Parent.LandingSiteName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("Parent.FishingVesselName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Parent.Sector") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Fishing gear", Binding = new Binding("Parent.GearName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "UTM zone", Binding = new Binding("Parent.UTMZone") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Bingo coordinate", Binding = new Binding("CompleteGridName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Coordinates", Binding = new Binding("Grid25Cell.Coordinate") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "UTM Coordinates", Binding = new Binding("Grid25Cell.UTMCoordinate") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Parent ID", Binding = new Binding("Parent.PK") });
                     break;
 
                 case "soakTime":
-                    dataGridExcel.ItemsSource = VesselUnloadServerRepository.GetGearSoakTimes();
+                    target_grid.ItemsSource = VesselUnloadServerRepository.GetGearSoakTimes();
 
                     col = new DataGridTextColumn()
                     {
@@ -820,16 +952,16 @@ namespace NSAP_ODK.Views
                         CellStyle = AlignRightStyle
                     };
                     col.Binding.StringFormat = "MMM-dd-yyyy HH:mm";
-                    dataGridExcel.Columns.Add(col);
+                    target_grid.Columns.Add(col);
 
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("Parent.user_name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "NSAP region", Binding = new Binding("Parent.NSAPRegion.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("Parent.NSAPRegionFMA.FMA.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("Parent.FishingGround.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("Parent.LandingSiteName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("Parent.FishingVesselName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Parent.Sector") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing gear", Binding = new Binding("Parent.GearName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("Parent.user_name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "NSAP region", Binding = new Binding("Parent.NSAPRegion.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("Parent.NSAPRegionFMA.FMA.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("Parent.FishingGround.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("Parent.LandingSiteName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("Parent.FishingVesselName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Parent.Sector") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Fishing gear", Binding = new Binding("Parent.GearName") });
 
                     col = new DataGridTextColumn()
                     {
@@ -838,7 +970,7 @@ namespace NSAP_ODK.Views
                         CellStyle = AlignRightStyle
                     };
                     col.Binding.StringFormat = "MMM-dd-yyyy HH:mm";
-                    dataGridExcel.Columns.Add(col);
+                    target_grid.Columns.Add(col);
 
                     col = new DataGridTextColumn()
                     {
@@ -846,12 +978,12 @@ namespace NSAP_ODK.Views
                         Header = "Date and time of gear haul"
                     };
                     col.Binding.StringFormat = "MMM-dd-yyyy HH:mm";
-                    dataGridExcel.Columns.Add(col);
+                    target_grid.Columns.Add(col);
 
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Waypoint at set", Binding = new Binding("WaypointAtSet") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Waypoint at haul", Binding = new Binding("WaypointAtHaul") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Parent ID", Binding = new Binding("Parent.PK") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Waypoint at set", Binding = new Binding("WaypointAtSet") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Waypoint at haul", Binding = new Binding("WaypointAtHaul") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Parent ID", Binding = new Binding("Parent.PK") });
 
                     break;
 
@@ -859,11 +991,11 @@ namespace NSAP_ODK.Views
                 case "duplicatedEffort":
                     if (result == "effortSpecs")
                     {
-                        dataGridExcel.ItemsSource = VesselUnloadServerRepository.GetGearEfforts();
+                        target_grid.ItemsSource = VesselUnloadServerRepository.GetGearEfforts();
                     }
                     else
                     {
-                        dataGridExcel.ItemsSource = VesselUnloadServerRepository.DuplicatedEffortSpec;
+                        target_grid.ItemsSource = VesselUnloadServerRepository.DuplicatedEffortSpec;
                     }
 
                     col = new DataGridTextColumn()
@@ -872,20 +1004,20 @@ namespace NSAP_ODK.Views
                         Header = "Date and time sampled"
                     };
                     col.Binding.StringFormat = "MMM-dd-yyyy HH:mm";
-                    dataGridExcel.Columns.Add(col);
+                    target_grid.Columns.Add(col);
 
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("Parent.user_name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "NSAP region", Binding = new Binding("Parent.NSAPRegion.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("Parent.NSAPRegionFMA.FMA.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("Parent.FishingGround.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("Parent.LandingSiteName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("Parent.FishingVesselName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Parent.Sector") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing gear", Binding = new Binding("Parent.GearName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Effort specification", Binding = new Binding("EffortSpecName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Value", Binding = new Binding("SelectedEffortMeasure") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Parent ID", Binding = new Binding("Parent.PK") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("Parent.user_name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "NSAP region", Binding = new Binding("Parent.NSAPRegion.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("Parent.NSAPRegionFMA.FMA.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("Parent.FishingGround.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("Parent.LandingSiteName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("Parent.FishingVesselName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Parent.Sector") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Fishing gear", Binding = new Binding("Parent.GearName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Effort specification", Binding = new Binding("EffortSpecName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Value", Binding = new Binding("SelectedEffortMeasure") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Parent ID", Binding = new Binding("Parent.PK") });
 
                     break;
 
@@ -893,11 +1025,11 @@ namespace NSAP_ODK.Views
                 case "duplicatedCatchComp":
                     if (result == "catchComposition")
                     {
-                        dataGridExcel.ItemsSource = VesselUnloadServerRepository.GetCatchCompositions();
+                        target_grid.ItemsSource = VesselUnloadServerRepository.GetCatchCompositions();
                     }
                     else
                     {
-                        dataGridExcel.ItemsSource = VesselUnloadServerRepository.DuplicatedCatchComposition;
+                        target_grid.ItemsSource = VesselUnloadServerRepository.DuplicatedCatchComposition;
                     }
 
                     col = new DataGridTextColumn()
@@ -906,111 +1038,111 @@ namespace NSAP_ODK.Views
                         Header = "Date and time sampled"
                     };
                     col.Binding.StringFormat = "MMM-dd-yyyy HH:mm";
-                    dataGridExcel.Columns.Add(col);
+                    target_grid.Columns.Add(col);
 
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("Parent.user_name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "NSAP region", Binding = new Binding("Parent.NSAPRegion.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("Parent.NSAPRegionFMA.FMA.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("Parent.FishingGround.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("Parent.LandingSiteName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("Parent.FishingVesselName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Parent.Sector") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing gear", Binding = new Binding("Parent.GearName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("Parent.user_name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "NSAP region", Binding = new Binding("Parent.NSAPRegion.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("Parent.NSAPRegionFMA.FMA.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("Parent.FishingGround.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("Parent.LandingSiteName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("Parent.FishingVesselName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Parent.Sector") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Fishing gear", Binding = new Binding("Parent.GearName") });
 
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Taxa", Binding = new Binding("Taxa.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Name of catch", Binding = new Binding("SpeciesNameSelected") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("SpeciesWt"), CellStyle = AlignRightStyle });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Sample weight", Binding = new Binding("SpeciesSampleWt"), CellStyle = AlignRightStyle });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Parent ID", Binding = new Binding("Parent.PK") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Taxa", Binding = new Binding("Taxa.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Name of catch", Binding = new Binding("SpeciesNameSelected") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("SpeciesWt"), CellStyle = AlignRightStyle });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Sample weight", Binding = new Binding("SpeciesSampleWt"), CellStyle = AlignRightStyle });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Parent ID", Binding = new Binding("Parent.PK") });
                     break;
 
                 case "lengths":
-                    dataGridExcel.ItemsSource = VesselUnloadServerRepository.GetLengthList();
+                    target_grid.ItemsSource = VesselUnloadServerRepository.GetLengthList();
 
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("Parent.Parent.user_name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "NSAP region", Binding = new Binding("Parent.Parent.NSAPRegion.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("Parent.Parent.NSAPRegionFMA.FMA.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("Parent.Parent.FishingGround.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("Parent.Parent.LandingSiteName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("Parent.Parent.FishingVesselName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Parent.Parent.Sector") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing gear", Binding = new Binding("Parent.Parent.GearName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Taxa", Binding = new Binding("Parent.Taxa.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Name of catch", Binding = new Binding("Parent.SpeciesNameSelected") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Length", Binding = new Binding("Length"), CellStyle = AlignRightStyle });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Parent ID", Binding = new Binding("Parent.PK") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("Parent.Parent.user_name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "NSAP region", Binding = new Binding("Parent.Parent.NSAPRegion.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("Parent.Parent.NSAPRegionFMA.FMA.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("Parent.Parent.FishingGround.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("Parent.Parent.LandingSiteName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("Parent.Parent.FishingVesselName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Parent.Parent.Sector") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Fishing gear", Binding = new Binding("Parent.Parent.GearName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Taxa", Binding = new Binding("Parent.Taxa.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Name of catch", Binding = new Binding("Parent.SpeciesNameSelected") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Length", Binding = new Binding("Length"), CellStyle = AlignRightStyle });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Parent ID", Binding = new Binding("Parent.PK") });
                     break;
 
                 case "lengthWeight":
-                    dataGridExcel.ItemsSource = VesselUnloadServerRepository.GetLenWtList();
+                    target_grid.ItemsSource = VesselUnloadServerRepository.GetLenWtList();
 
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("Parent.Parent.user_name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "NSAP region", Binding = new Binding("Parent.Parent.NSAPRegion.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("Parent.Parent.NSAPRegionFMA.FMA.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("Parent.Parent.FishingGround.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("Parent.Parent.LandingSiteName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("Parent.Parent.FishingVesselName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Parent.Parent.Sector") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing gear", Binding = new Binding("Parent.Parent.GearName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Taxa", Binding = new Binding("Parent.Taxa.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Name of catch", Binding = new Binding("Parent.SpeciesNameSelected") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Length", Binding = new Binding("Length"), CellStyle = AlignRightStyle });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("Weight"), CellStyle = AlignRightStyle });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Parent ID", Binding = new Binding("Parent.PK") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("Parent.Parent.user_name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "NSAP region", Binding = new Binding("Parent.Parent.NSAPRegion.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("Parent.Parent.NSAPRegionFMA.FMA.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("Parent.Parent.FishingGround.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("Parent.Parent.LandingSiteName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("Parent.Parent.FishingVesselName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Parent.Parent.Sector") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Fishing gear", Binding = new Binding("Parent.Parent.GearName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Taxa", Binding = new Binding("Parent.Taxa.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Name of catch", Binding = new Binding("Parent.SpeciesNameSelected") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Length", Binding = new Binding("Length"), CellStyle = AlignRightStyle });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("Weight"), CellStyle = AlignRightStyle });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Parent ID", Binding = new Binding("Parent.PK") });
                     break;
 
                 case "lengthFreq":
                 case "duplicatedLenFreq":
                     if (result == "lengthFreq")
                     {
-                        dataGridExcel.ItemsSource = VesselUnloadServerRepository.GetLenFreqList();
+                        target_grid.ItemsSource = VesselUnloadServerRepository.GetLenFreqList();
                     }
                     else
                     {
-                        dataGridExcel.ItemsSource = VesselUnloadServerRepository.DuplicatedLenFreq;
+                        target_grid.ItemsSource = VesselUnloadServerRepository.DuplicatedLenFreq;
                     }
 
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("Parent.Parent.user_name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "NSAP region", Binding = new Binding("Parent.Parent.NSAPRegion.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("Parent.Parent.NSAPRegionFMA.FMA.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("Parent.Parent.FishingGround.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("Parent.Parent.LandingSiteName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("Parent.Parent.FishingVesselName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Parent.Parent.Sector") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing gear", Binding = new Binding("Parent.Parent.GearName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Taxa", Binding = new Binding("Parent.Taxa.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Name of catch", Binding = new Binding("Parent.SpeciesNameSelected") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Length class", Binding = new Binding("LengthClass"), CellStyle = AlignRightStyle });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Frequency", Binding = new Binding("Frequency"), CellStyle = AlignRightStyle });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Parent ID", Binding = new Binding("Parent.PK") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("Parent.Parent.user_name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "NSAP region", Binding = new Binding("Parent.Parent.NSAPRegion.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("Parent.Parent.NSAPRegionFMA.FMA.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("Parent.Parent.FishingGround.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("Parent.Parent.LandingSiteName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("Parent.Parent.FishingVesselName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Parent.Parent.Sector") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Fishing gear", Binding = new Binding("Parent.Parent.GearName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Taxa", Binding = new Binding("Parent.Taxa.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Name of catch", Binding = new Binding("Parent.SpeciesNameSelected") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Length class", Binding = new Binding("LengthClass"), CellStyle = AlignRightStyle });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Frequency", Binding = new Binding("Frequency"), CellStyle = AlignRightStyle });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Parent ID", Binding = new Binding("Parent.PK") });
                     break;
 
                 case "gms":
-                    dataGridExcel.ItemsSource = VesselUnloadServerRepository.GetGMSList();
+                    target_grid.ItemsSource = VesselUnloadServerRepository.GetGMSList();
 
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("Parent.Parent.user_name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "NSAP region", Binding = new Binding("Parent.Parent.NSAPRegion.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("Parent.Parent.NSAPRegionFMA.FMA.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("Parent.Parent.FishingGround.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("Parent.Parent.LandingSiteName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("Parent.Parent.FishingVesselName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Parent.Parent.Sector") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Fishing gear", Binding = new Binding("Parent.Parent.GearName") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Taxa", Binding = new Binding("Parent.Taxa.Name") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Name of catch", Binding = new Binding("Parent.SpeciesNameSelected") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Length", Binding = new Binding("Length"), CellStyle = AlignRightStyle });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("Weight"), CellStyle = AlignRightStyle });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Sex", Binding = new Binding("Sex") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Gonad maturity", Binding = new Binding("GMS") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Gonad weight", Binding = new Binding("GonadWeight"), CellStyle = AlignRightStyle });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Stomach content weight", Binding = new Binding("StomachContentWt"), CellStyle = AlignRightStyle });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Stomach content category", Binding = new Binding("GutContentCategory") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
-                    dataGridExcel.Columns.Add(new DataGridTextColumn { Header = "Parent ID", Binding = new Binding("Parent.PK") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("Parent.Parent.user_name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "NSAP region", Binding = new Binding("Parent.Parent.NSAPRegion.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("Parent.Parent.NSAPRegionFMA.FMA.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("Parent.Parent.FishingGround.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("Parent.Parent.LandingSiteName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("Parent.Parent.FishingVesselName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Parent.Parent.Sector") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Fishing gear", Binding = new Binding("Parent.Parent.GearName") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Taxa", Binding = new Binding("Parent.Taxa.Name") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Name of catch", Binding = new Binding("Parent.SpeciesNameSelected") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Length", Binding = new Binding("Length"), CellStyle = AlignRightStyle });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("Weight"), CellStyle = AlignRightStyle });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Sex", Binding = new Binding("Sex") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Gonad maturity", Binding = new Binding("GMS") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Gonad weight", Binding = new Binding("GonadWeight"), CellStyle = AlignRightStyle });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Stomach content weight", Binding = new Binding("StomachContentWt"), CellStyle = AlignRightStyle });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Stomach content category", Binding = new Binding("GutContentCategory") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
+                    target_grid.Columns.Add(new DataGridTextColumn { Header = "Parent ID", Binding = new Binding("Parent.PK") });
                     break;
             }
         }
@@ -1293,12 +1425,20 @@ namespace NSAP_ODK.Views
             menuUpload.IsEnabled = menuTag == "effort" || menuTag == "landingSiteSampling";
             if (_isJSONData)
             {
-                ShowResultFromAPI(menuTag);
+                if (_jsonfiles != null && _jsonfiles.Count > 0)
+                {
+                    ShowResultFromAPI(menuTag, gridJSONContent);
+                }
+                else
+                {
+                    ShowResultFromAPI(menuTag, dataGridExcel);
+                }
             }
             else
             {
                 ShowResultFromExcel(menuTag);
             }
+
             labelDuplicated.Content = string.Empty;
             switch (menuTag)
             {
@@ -1355,6 +1495,30 @@ namespace NSAP_ODK.Views
         private void OnDataGridLoadingRow(object sender, DataGridRowEventArgs e)
         {
             e.Row.Header = (e.Row.GetIndex() + 1).ToString();
+        }
+
+        private void OnTreeviewItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            gridJSONContent.Visibility = Visibility.Collapsed;
+            //menuView.Visibility = Visibility.Collapsed;
+            _isJSONData = false;
+            if (((TreeViewItem)e.NewValue).Tag?.GetType().Name == "FileInfo")
+            {
+                FileInfo f = (FileInfo)((TreeViewItem)e.NewValue).Tag;
+                JSON = File.ReadAllText(f.FullName);
+                VesselUnloadServerRepository.JSON = JSON;
+                VesselUnloadServerRepository.CreateLandingsFromJSON();
+                //ShowResultFromAPI("effort", gridJSONContent);
+                //if (gridJSONContent.Items.Count > 0)
+                //{
+                //menuView.Visibility = Visibility.Visible;
+                //_isJSONData = true;
+                VesselUnloadServerRepository.ResetLists();
+                SetMenus();
+                gridJSONContent.Visibility = Visibility.Visible;
+
+                //}
+            }
         }
     }
 }

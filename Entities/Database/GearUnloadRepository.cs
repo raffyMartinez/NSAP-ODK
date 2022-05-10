@@ -46,7 +46,22 @@ namespace NSAP_ODK.Entities.Database
                     const string sql = "SELECT Max(unload_gr_id) AS max_id FROM dbo_gear_unload";
                     using (OleDbCommand getMax = new OleDbCommand(sql, conn))
                     {
-                        max_rec_no = (int)getMax.ExecuteScalar();
+                        try
+                        {
+                            var r = getMax.ExecuteScalar();
+                            if (r != DBNull.Value)
+                            {
+                                max_rec_no = (int)r;
+                            }
+                        }
+                        catch(OleDbException olx)
+                        {
+                            Logger.Log(olx);
+                        }
+                        catch(Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
                     }
                 }
             }
@@ -531,7 +546,7 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
-        public bool ClearTable()
+        public static bool ClearTable()
         {
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))

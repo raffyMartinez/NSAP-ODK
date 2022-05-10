@@ -172,7 +172,7 @@ namespace NSAP_ODK.Entities.Database
                             //_family = _vesselCatch.FishSpecies.Family;
                             break;
                         default:
-                            _family = _vesselCatch.NotFishSpecies.Taxa.Name;
+                            _family = _vesselCatch.Taxa.Name;
                             break;
                     }
                 }
@@ -193,14 +193,21 @@ namespace NSAP_ODK.Entities.Database
                 }
                 else
                 {
-                    switch (_vesselCatch.Taxa.Code)
+                    if (_vesselCatch.FishSpecies != null || _vesselCatch.NotFishSpecies != null)
                     {
-                        case "FIS":
-                            _sn = $"{_vesselCatch.FishSpecies?.GenericName} {_vesselCatch.FishSpecies?.SpecificName}";
-                            break;
-                        default:
-                            _sn = $"{_vesselCatch.NotFishSpecies.Genus} {_vesselCatch.NotFishSpecies.Species}";
-                            break;
+                        switch (_vesselCatch.Taxa.Code)
+                        {
+                            case "FIS":
+                                _sn = $"{_vesselCatch.FishSpecies?.GenericName} {_vesselCatch.FishSpecies?.SpecificName}";
+                                break;
+                            default:
+                                _sn = $"{_vesselCatch.NotFishSpecies.Genus} {_vesselCatch.NotFishSpecies.Species}";
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        _sn = "UNKNOWN SPECIES";
                     }
                 }
                 return _sn;

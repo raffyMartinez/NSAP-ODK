@@ -20,12 +20,15 @@ namespace NSAP_ODK.Entities.Database
         {
             VesselUnloads = getVesselUnloads(gu);
         }
-        public VesselUnloadRepository()
+        public VesselUnloadRepository(bool isNew=false)
         {
-            VesselUnloads = getVesselUnloads();
+            if (!isNew)
+            {
+                VesselUnloads = getVesselUnloads();
+            }
         }
 
-        public static int VesselUnloadCount(bool isTracked=false)
+        public static int VesselUnloadCount(bool isTracked = false)
         {
             int count = 0;
             if (Global.Settings.UsemySQL)
@@ -43,7 +46,7 @@ namespace NSAP_ODK.Entities.Database
                         try
                         {
                             conn.Open();
-                            count = (int)(long)cmd.ExecuteScalar() ;
+                            count = (int)(long)cmd.ExecuteScalar();
                         }
                         catch (Exception ex)
                         {
@@ -59,7 +62,7 @@ namespace NSAP_ODK.Entities.Database
                     using (var cmd = conn.CreateCommand())
                     {
                         cmd.CommandText = "Select count(*) from dbo_vessel_unload";
-                        if(isTracked)
+                        if (isTracked)
                         {
                             cmd.CommandText = "Select count(*) from dbo_vessel_unload_1 where Tracked=-1";
                         }
@@ -79,67 +82,67 @@ namespace NSAP_ODK.Entities.Database
             return count;
         }
 
-        public static VesselUnloadSummary GetSummary()
-        {
-            VesselUnloadSummary vs = new VesselUnloadSummary();
-            if(Global.Settings.UsemySQL)
-            {
-                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
-                {
-                    using (var cmd = conn.CreateCommand())
-                    {
-                        cmd.CommandText = @"SELECT 
-                                                Min(sampling_date) AS FirstSD, 
-                                                Max(sampling_date) AS LastSD, 
-                                                Max(date_added) AS LatestDL
-                                            FROM dbo_vessel_unload_1";
-                        conn.Open();
-                        var dr = cmd.ExecuteReader();
-                        while (dr.Read())
-                        {
-                            vs.FirstSamplingDate = (DateTime)dr["FirstSD"];
-                            vs.LastSamplingDate = (DateTime)dr["LastSD"];
-                            vs.LatestDownloadDate = (DateTime)dr["LatestDL"];
-                        }
-                        dr.Close();
-                        cmd.CommandText = @"SELECT Count(*) AS Expr1
-                                            FROM dbo_vessel_unload_1
-                                            WHERE has_catch_composition=1";
-                        vs.CountUnloadsWithCatchComposition = (int)(long)cmd.ExecuteScalar();
+        //public static VesselUnloadSummary GetSummary()
+        //{
+        //    VesselUnloadSummary vs = new VesselUnloadSummary();
+        //    if (Global.Settings.UsemySQL)
+        //    {
+        //        using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+        //        {
+        //            using (var cmd = conn.CreateCommand())
+        //            {
+        //                cmd.CommandText = @"SELECT 
+        //                                        Min(sampling_date) AS FirstSD, 
+        //                                        Max(sampling_date) AS LastSD, 
+        //                                        Max(date_added) AS LatestDL
+        //                                    FROM dbo_vessel_unload_1";
+        //                conn.Open();
+        //                var dr = cmd.ExecuteReader();
+        //                while (dr.Read())
+        //                {
+        //                    vs.FirstSamplingDate = (DateTime)dr["FirstSD"];
+        //                    vs.LastSamplingDate = (DateTime)dr["LastSD"];
+        //                    vs.LatestDownloadDate = (DateTime)dr["LatestDL"];
+        //                }
+        //                dr.Close();
+        //                cmd.CommandText = @"SELECT Count(*) AS Expr1
+        //                                    FROM dbo_vessel_unload_1
+        //                                    WHERE has_catch_composition=1";
+        //                vs.CountUnloadsWithCatchComposition = (int)(long)cmd.ExecuteScalar();
 
-                    }
-                }
-            }
-            else
-            {
-                using (var conn = new OleDbConnection(Global.ConnectionString))
-                {
-                    using (var cmd = conn.CreateCommand())
-                    {
-                        cmd.CommandText = @"SELECT 
-                                                Min(SamplingDate) AS FirstSD, 
-                                                Max(SamplingDate) AS LastSD, 
-                                                Max(DateAdded) AS LatestDL
-                                            FROM dbo_vessel_unload_1";
-                        conn.Open();
-                        var dr = cmd.ExecuteReader();
-                        while(dr.Read())
-                        {
-                            vs.FirstSamplingDate = (DateTime)dr["FirstSD"];
-                            vs.LastSamplingDate= (DateTime)dr["LastSD"];
-                            vs.LatestDownloadDate= (DateTime)dr["LatestDL"];
-                        }
-                        dr.Close();
-                        cmd.CommandText = @"SELECT Count(*) AS Expr1
-                                            FROM dbo_vessel_unload_1
-                                            WHERE HasCatchComposition=-1";
-                        vs.CountUnloadsWithCatchComposition = (int)cmd.ExecuteScalar();
+        //            }
+        //        }
+        //    }
+        //    else
+        //    {
+        //        using (var conn = new OleDbConnection(Global.ConnectionString))
+        //        {
+        //            using (var cmd = conn.CreateCommand())
+        //            {
+        //                cmd.CommandText = @"SELECT 
+        //                                        Min(SamplingDate) AS FirstSD, 
+        //                                        Max(SamplingDate) AS LastSD, 
+        //                                        Max(DateAdded) AS LatestDL
+        //                                    FROM dbo_vessel_unload_1";
+        //                conn.Open();
+        //                var dr = cmd.ExecuteReader();
+        //                while (dr.Read())
+        //                {
+        //                    vs.FirstSamplingDate = (DateTime)dr["FirstSD"];
+        //                    vs.LastSamplingDate = (DateTime)dr["LastSD"];
+        //                    vs.LatestDownloadDate = (DateTime)dr["LatestDL"];
+        //                }
+        //                dr.Close();
+        //                cmd.CommandText = @"SELECT Count(*) AS Expr1
+        //                                    FROM dbo_vessel_unload_1
+        //                                    WHERE HasCatchComposition=-1";
+        //                vs.CountUnloadsWithCatchComposition = (int)cmd.ExecuteScalar();
 
-                    }
-                }
-            }
-            return vs;
-        }
+        //            }
+        //        }
+        //    }
+        //    return vs;
+        //}
 
         public int MaxRecordNumber()
         {
@@ -2085,7 +2088,81 @@ namespace NSAP_ODK.Entities.Database
             return success;
         }
 
-        public bool ClearTable()
+        public static bool ClearTable()
+        {
+            bool success = false;
+            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            {
+                conn.Open();
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = $"Delete * from dbo_vessel_unload_1";
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        success = true;
+                    }
+                    catch (OleDbException olx)
+                    {
+                        Logger.Log(olx);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+
+                if (success)
+                {
+                    success = false;
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = $"Delete * from dbo_vessel_unload_stats";
+                        try
+                        {
+                            cmd.ExecuteNonQuery();
+                            success = true;
+                        }
+                        catch (OleDbException olx)
+                        {
+                            Logger.Log(olx);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+
+
+                if (success)
+                {
+                    success = false;
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = $"Delete * from dbo_vessel_unload";
+                        try
+                        {
+
+                            cmd.ExecuteNonQuery();
+                            success = true;
+                        }
+                        catch (OleDbException olx)
+                        {
+                            Logger.Log(olx);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+
+            }
+
+            return success;
+        }
+        public static bool ClearTable1()
         {
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
@@ -2097,7 +2174,7 @@ namespace NSAP_ODK.Entities.Database
                     try
                     {
                         update.ExecuteNonQuery();
-                        sql = $"Delete * from dbo_vessel_unload";
+                        sql = $"Delete * from dbo_vessel_unload_stats";
                         using (OleDbCommand update1 = new OleDbCommand(sql, conn))
                         {
                             try
@@ -2105,8 +2182,9 @@ namespace NSAP_ODK.Entities.Database
                                 update1.ExecuteNonQuery();
                                 success = true;
                             }
-                            catch (OleDbException)
+                            catch (OleDbException olx)
                             {
+                                Logger.Log(olx);
                                 success = false;
                             }
                             catch (Exception ex)

@@ -1,0 +1,34 @@
+﻿<Window x:Class="NSAP_ODK.Views.DownloadFromServerOptionsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NSAP_ODK.Views"
+        mc:Ignorable="d"
+        Title="Options for downloading from the server" Height="255.915" Width="454.362">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition/>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="40"/>
+        </Grid.RowDefinitions>
+        <Label Content="Options for downloading from the server" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
+        <Label Content="No of items for downloading:" x:Name="labelNumberOfItemsToDownload" Grid.Row="1"/>
+        <StackPanel Grid.Row="2" Margin="10" VerticalAlignment="Center">
+            <RadioButton Content="Download all" Margin="0 3" x:Name="rbDownloadAll" Checked="OnRBChecked"/>
+            <RadioButton Content="Download by batch" Margin="0 3" x:Name="rbDownloadByBatch" Checked="OnRBChecked"/>
+            <WrapPanel Margin="10 0 0 0" x:Name="panelOptions" Visibility="Collapsed">
+                <Label Content="Number to download per batch:"/>
+                <TextBox Width="100" Height="20" Margin="5 0 0 0" x:Name="txtNumberToDownload"/>
+            </WrapPanel>
+        </StackPanel>
+        <CheckBox Content="Save downloaded data as JSON file only, do not upload"  Grid.Row="3" VerticalAlignment="Center" Margin="10 0" x:Name="chkSaveToJSONFile"/>
+        <WrapPanel Grid.Row="4" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10 0">
+            
+            <Button Content="Cancel" x:Name="buttonCancel" Click="OnButtonClick" Width="50" Margin="3 0" IsCancel="True"/>
+            <Button Content="Ok" x:Name="buttonOk" Click="OnButtonClick" Width="50" Margin=" 3 0" IsDefault="True"/>
+        </WrapPanel>
+    </Grid>
+</Window>

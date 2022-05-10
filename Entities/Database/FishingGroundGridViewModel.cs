@@ -19,10 +19,17 @@ namespace NSAP_ODK.Entities.Database
             FishingGroundGridCollection = new ObservableCollection<FishingGroundGrid>(FishingGroundGrids.FishingGroundGrids);
             FishingGroundGridCollection.CollectionChanged += FishingGroundGridCollection_CollectionChanged;
         }
-        public FishingGroundGridViewModel()
+        public FishingGroundGridViewModel(bool isNew=false)
         {
-            FishingGroundGrids = new FishingGroundGridRepository();
-            FishingGroundGridCollection = new ObservableCollection<FishingGroundGrid>(FishingGroundGrids.FishingGroundGrids);
+            FishingGroundGrids = new FishingGroundGridRepository(isNew);
+            if (isNew)
+            {
+                FishingGroundGridCollection = new ObservableCollection<FishingGroundGrid>();
+            }
+            else
+            {
+                FishingGroundGridCollection = new ObservableCollection<FishingGroundGrid>(FishingGroundGrids.FishingGroundGrids);
+            }
             FishingGroundGridCollection.CollectionChanged += FishingGroundGridCollection_CollectionChanged;
         }
 
@@ -54,7 +61,7 @@ namespace NSAP_ODK.Entities.Database
         public bool ClearRepository()
         {
             FishingGroundGridCollection.Clear();
-            return FishingGroundGrids.ClearTable();
+            return FishingGroundGridRepository.ClearTable();
         }
 
         public FishingGroundGrid getFishingGroundGrid(int pk)

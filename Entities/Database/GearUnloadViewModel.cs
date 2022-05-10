@@ -340,7 +340,7 @@ namespace NSAP_ODK.Entities.Database
         public bool ClearRepository()
         {
             GearUnloadCollection.Clear();
-            return GearUnloads.ClearTable();
+            return GearUnloadRepository.ClearTable();
         }
 
 
@@ -456,14 +456,9 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if (GearUnloadCollection.Count == 0)
-                {
-                    return 1;
-                }
-                else
-                {
+
                     return GearUnloads.MaxRecordNumber() + 1;
-                }
+                
             }
         }
 

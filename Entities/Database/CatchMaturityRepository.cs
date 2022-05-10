@@ -18,9 +18,12 @@ namespace NSAP_ODK.Entities.Database
         {
             CatchMaturities = getCatchMaturites(vc);
         }
-        public CatchMaturityRepository()
+        public CatchMaturityRepository(bool isNew=false)
         {
-            CatchMaturities = getCatchMaturites();
+            if (!isNew)
+            {
+                CatchMaturities = getCatchMaturites();
+            }
         }
         public int MaxRecordNumber()
         {
@@ -615,7 +618,7 @@ namespace NSAP_ODK.Entities.Database
 
             return success;
         }
-        public bool ClearTable()
+        public static bool ClearTable()
         {
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))

@@ -50,27 +50,7 @@ namespace NSAP_ODK.Utilities
 
         public static List<ExcelGMS> ExcelGMSes { get; private set; }
 
-        public static bool ClearNSAPDatabaseTables()
-        {
-            bool success = false;
-            NSAPEntities.JSONFileViewModel.ClearRepository();
-            NSAPEntities.CatchMaturityViewModel.ClearRepository();
-            NSAPEntities.CatchLengthViewModel.ClearRepository();
-            NSAPEntities.CatchLengthWeightViewModel.ClearRepository();
-            NSAPEntities.CatchLenFreqViewModel.ClearRepository();
-            NSAPEntities.FishingGroundGridViewModel.ClearRepository();
-            NSAPEntities.GearSoakViewModel.ClearRepository();
-            NSAPEntities.VesselCatchViewModel.ClearRepository();
-            NSAPEntities.VesselEffortViewModel.ClearRepository();
-            NSAPEntities.VesselUnloadViewModel.ClearRepository();
-            NSAPEntities.GearUnloadViewModel.ClearRepository();
-            NSAPEntities.CatchLengthViewModel.ClearRepository();
-            if (NSAPEntities.LandingSiteSamplingViewModel.ClearRepository())
-            {
-                success = true;
-            }
-            return success;
-        }
+
 
         public static Task<bool> UploadToDatabaseAsync()
         {

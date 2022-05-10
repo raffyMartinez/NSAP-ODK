@@ -18,9 +18,12 @@ namespace NSAP_ODK.Entities.Database
         {
             CatchLengths = getCatchLengths(vc);
         }
-        public CatchLengthRepository()
+        public CatchLengthRepository(bool isNew=false)
         {
-            CatchLengths = getCatchLengths();
+            if (!isNew)
+            {
+                CatchLengths = getCatchLengths();
+            }
         }
 
         public int MaxRecordNumber()
@@ -269,7 +272,7 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
-        public bool ClearTable()
+        public static bool ClearTable()
         {
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))

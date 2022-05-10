@@ -18,10 +18,17 @@ namespace NSAP_ODK.Entities.Database
             CatchLengthWeightCollection = new ObservableCollection<CatchLengthWeight>(CatchLengthWeights.CatchLengthWeights);
             CatchLengthWeightCollection.CollectionChanged += CatchLengthWeightCollection_CollectionChanged;
         }
-        public CatchLengthWeightViewModel()
+        public CatchLengthWeightViewModel(bool isNew=false)
         {
-            CatchLengthWeights = new CatchLenWeightRepository();
-            CatchLengthWeightCollection = new ObservableCollection<CatchLengthWeight>(CatchLengthWeights.CatchLengthWeights);
+            CatchLengthWeights = new CatchLenWeightRepository(isNew);
+            if (isNew)
+            {
+                CatchLengthWeightCollection = new ObservableCollection<CatchLengthWeight>();
+            }
+            else
+            {
+                CatchLengthWeightCollection = new ObservableCollection<CatchLengthWeight>(CatchLengthWeights.CatchLengthWeights);
+            }
             CatchLengthWeightCollection.CollectionChanged += CatchLengthWeightCollection_CollectionChanged;
         }
 
@@ -53,7 +60,7 @@ namespace NSAP_ODK.Entities.Database
         public bool ClearRepository()
         {
             CatchLengthWeightCollection.Clear();
-            return CatchLengthWeights.ClearTable();
+            return CatchLenWeightRepository.ClearTable();
         }
 
         public CatchLengthWeight getCatchLenghtWeight(int pk)

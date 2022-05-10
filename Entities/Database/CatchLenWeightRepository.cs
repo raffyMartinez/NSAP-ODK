@@ -18,9 +18,12 @@ namespace NSAP_ODK.Entities.Database
         {
             CatchLengthWeights = getCatchLengthWeights(vc);
         }
-        public CatchLenWeightRepository()
+        public CatchLenWeightRepository(bool isNew=false)
         {
-            CatchLengthWeights = getCatchLengthWeights();
+            if (!isNew)
+            {
+                CatchLengthWeights = getCatchLengthWeights();
+            }
         }
         public int MaxRecordNumber()
         {
@@ -277,7 +280,7 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
-        public bool ClearTable()
+        public static bool ClearTable()
         {
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))

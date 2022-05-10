@@ -10,7 +10,8 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
-            <RowDefinition/>
+            <RowDefinition x:Name="rowGrid" Height="0"/>
+            <RowDefinition x:Name="rowJsonFiles" />
             <RowDefinition Height="30"/>
         </Grid.RowDefinitions>
         <Menu VerticalAlignment="Center">
@@ -18,6 +19,7 @@
                 <MenuItem Header="Download from server" x:Name="menuDownloadFromServer" Click="OnMenuClick"/>
                 <MenuItem Header="_Upload media" x:Name="menuUploadMedia" Click="OnMenuClick" />
                 <MenuItem Header="Import ODK excel" x:Name="menuImport" Click="OnMenuClick"/>
+                <MenuItem Header="Upload downloaded JSON files" x:Name="menuUploadJson" Click="OnMenuClick"/>
                 <MenuItem Header="Use vessel unload json file" x:Name="menuVesselUnloadJSON" Click="OnMenuClick" Visibility="Collapsed"/>
                 <MenuItem Header="Use vessel counts json file" x:Name="menuVesselCountJSON" Click="OnMenuClick" Visibility="Collapsed"/>
                 <MenuItem Header="Delete data past date" x:Name="menuDeletePastDate" Click="OnMenuClick" Visibility="Collapsed"/>
@@ -66,7 +68,22 @@
                 </Style>
             </DataGrid.CellStyle>
         </DataGrid>
-        <StatusBar x:Name="statusBar" Grid.Row="2">
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30"/>
+                <RowDefinition Height="30"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Label x:Name="labelJSONMain" Grid.ColumnSpan="2" Content="Label that contains the file name of the json data set"/>
+            <TreeView Grid.Row="2" x:Name="treeViewJSONNavigator" SelectedItemChanged="OnTreeviewItemChanged"/>
+            <Label x:Name="labelJSONFile" Grid.Row="1" Grid.Column="1" Content="Label for the current json file"/>
+            <DataGrid Grid.Row="2" Grid.Column="2" x:Name="gridJSONContent" LoadingRow="OnDataGridLoadingRow" AutoGenerateColumns="False" IsReadOnly="True"/>
+        </Grid>
+        <StatusBar x:Name="statusBar" Grid.Row="3">
             <ProgressBar Width="200" Height="18" x:Name="progressBar"/>
             <Label x:Name="labelProgress" Margin="10 0 0 0" Height="25" Content="This is a progress bar label"/>
             <Label x:Name="labelDuplicated" Margin="10 0 0 0" Height="25" Content="This is a progress bar label"/>

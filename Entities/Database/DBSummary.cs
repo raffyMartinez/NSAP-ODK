@@ -45,7 +45,7 @@ namespace NSAP_ODK.Entities.Database
             FishingGearCount = NSAPEntities.GearViewModel.Count;
             LandingSiteCount = NSAPEntities.LandingSiteViewModel.Count;
             GearSpecificationCount = NSAPEntities.EffortSpecificationViewModel.Count;
-            VesselUnloadCount = VesselUnloadViewModel.CountVesselUnload();
+            VesselUnloadCount = NSAPEntities.SummaryItemViewModel.Count;
             GearUnloadCount = GearUnloadViewModel.GearUnloadCount();
             EnumeratorCount = NSAPEntities.NSAPEnumeratorViewModel.Count;
             FishingVesselCount = NSAPEntities.FishingVesselViewModel.Count;
@@ -53,7 +53,8 @@ namespace NSAP_ODK.Entities.Database
             TrackedOperationsCount = VesselUnloadViewModel.CountVesselUnload(isTracked:true);
             if (VesselUnloadCount > 0)
             {
-                VesselUnloadSummary vs = VesselUnloadViewModel.GetSummary();
+                //VesselUnloadSummary vs = VesselUnloadViewModel.GetSummary();
+                VesselUnloadSummary vs = NSAPEntities.SummaryItemViewModel.GetVesselUnloadSummary();
                 //FirstSampledLandingDate = NSAPEntities.VesselUnloadViewModel.DateOfFirstSampledLanding;
                 FirstSampledLandingDate = vs.FirstSamplingDate;
                 //LastSampledLandingDate = NSAPEntities.VesselUnloadViewModel.DateOfLastSampledLanding;

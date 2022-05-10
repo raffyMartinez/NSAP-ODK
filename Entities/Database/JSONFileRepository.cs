@@ -71,7 +71,7 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-        public bool ClearTable()
+        public static bool ClearTable()
         {
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))

@@ -19,10 +19,17 @@ namespace NSAP_ODK.Entities.Database
             CatchLenFreqCollection = new ObservableCollection<CatchLenFreq>(CatchLenFreqs.CatchLenFreqs);
             CatchLenFreqCollection.CollectionChanged += CatchLenFreqCollection_CollectionChanged;
         }
-        public CatchLenFreqViewModel()
+        public CatchLenFreqViewModel(bool isNew=false)
         {
-            CatchLenFreqs = new CatchLenFreqRepository();
-            CatchLenFreqCollection = new ObservableCollection<CatchLenFreq>(CatchLenFreqs.CatchLenFreqs);
+            CatchLenFreqs = new CatchLenFreqRepository(isNew);
+            if (isNew)
+            {
+                CatchLenFreqCollection = new ObservableCollection<CatchLenFreq>();
+            }
+            else
+            {
+                CatchLenFreqCollection = new ObservableCollection<CatchLenFreq>(CatchLenFreqs.CatchLenFreqs);
+            }
             CatchLenFreqCollection.CollectionChanged += CatchLenFreqCollection_CollectionChanged;
         }
 
@@ -54,7 +61,7 @@ namespace NSAP_ODK.Entities.Database
         public bool ClearRepository()
         {
             CatchLenFreqCollection.Clear();
-            return CatchLenFreqs.ClearTable();
+            return CatchLenFreqRepository.ClearTable();
         }
 
         public CatchLenFreq getCatchLenFreq(int pk)

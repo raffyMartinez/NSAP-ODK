@@ -16,7 +16,9 @@ namespace NSAP_ODK.Entities.Database
         ConvertDataToEntities,
         FinishedDownload,
         FinishedDownloadAndSavedJSONFile,
-        StoppedDueToError
+        StoppedDueToError,
+        SavingToJSONTextFile
+
     }
     public class DownloadFromServerEventArg:EventArgs
     {
@@ -24,5 +26,7 @@ namespace NSAP_ODK.Entities.Database
         public string JSONString { get; set; }
 
         public string FormName { get; set; }
+
+        public string FileName { get; set; }
     }
 }

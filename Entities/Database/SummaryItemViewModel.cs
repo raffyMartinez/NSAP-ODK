@@ -44,6 +44,60 @@ namespace NSAP_ODK.Entities.Database
 
         }
 
+        
+        public VesselUnload LastVesselUnload()
+        {
+            int lastPK = SummaryItemCollection.Max(i => i.VesselUnloadID);
+            SummaryItem item = SummaryItemCollection.FirstOrDefault(t => t.VesselUnloadID == lastPK);
+            VesselUnload lastVU = null;
+            foreach (var lss in NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection.Where(t => t.SamplingDate.Date == item.SamplingDate.Date))
+            {
+                foreach (var gu in lss.GearUnloadViewModel.GearUnloadCollection)
+                {
+                    if (gu.VesselUnloadViewModel == null)
+                    {
+                        gu.VesselUnloadViewModel = new VesselUnloadViewModel(gu, updatesubViewModels: true);
+                        lastVU = gu.VesselUnloadViewModel.VesselUnloadCollection.FirstOrDefault(t => t.PK == lastPK);
+                        if (lastVU != null) break;
+                    }
+                    
+                }
+                if (lastVU != null) break;
+            }
+            return lastVU;
+        }
+        public int GetNextRecordNumber()
+        {
+            return SummaryItemCollection.Max(t => t.VesselUnloadID) + 1;
+        }
+        public int CountRecordsByFormID(string xlsFormIDString)
+        {
+            int ct = SummaryItemCollection.Count(t => t.XFormIdentifier == xlsFormIDString);
+            if (ct == 0)
+            {
+                ct = SummaryItemCollection.Count;
+            }
+            return ct;
+        }
+        public DateTime LastSavedDateInDatabase(string xlsFormIDString)
+        {
+            DateTime? lastDate;
+
+            try
+            {
+                lastDate = SummaryItemCollection
+                   .Where(t => t.XFormIdentifier == xlsFormIDString)
+                   .Max(t => t.DateAdded);
+            }
+            catch
+            {
+                lastDate = SummaryItemCollection
+                   .Max(t => t.DateAdded);
+            }
+
+            return (DateTime)lastDate;
+
+        }
         public List<GearUnload> GetGearUnloads(DateTime date_download)
         {
             List<GearUnload> gus = new List<GearUnload>();
@@ -91,11 +145,11 @@ namespace NSAP_ODK.Entities.Database
         {
             List<SummaryResults> results = new List<SummaryResults>();
             int seq = 0;
-            foreach (var em_group in SummaryItemCollection.Where(t => t.EnumeratorID == en.ID && t.MonthSampled==monthSampled)
+            foreach (var em_group in SummaryItemCollection.Where(t => t.EnumeratorID == en.ID && t.MonthSampled == monthSampled)
                         .OrderBy(t => t.SamplingDate)
                         .GroupBy(t => t.LandingSiteNameText))
             {
-                foreach(var gr_group in em_group.GroupBy(t=>t.GearUsedName))
+                foreach (var gr_group in em_group.GroupBy(t => t.GearUsedName))
                 {
                     var gr = gr_group.First();
                     DBSummary summ = new DBSummary
@@ -103,22 +157,23 @@ namespace NSAP_ODK.Entities.Database
                         LandingSiteName = gr.LandingSiteName,
                         GearName = gr.GearUsedName,
                         VesselUnloadCount = gr_group.Count(),
-                        CountLandingsWithCatchComposition=gr_group.Count(t=>t.HasCatchComposition==true),
-                        TrackedOperationsCount=gr_group.Count(t=>t.IsTracked==true),
-                        FirstLandingFormattedDate=gr_group.Min(t=>t.SamplingDate).ToString("MMM-dd-yyyy HH:mm"),
-                        LastLandingFormattedDate=gr_group.Max(t=>t.SamplingDate).ToString("MMM-dd-yyyy HH:mm"),
-                        LatestDownloadFormattedDate=gr_group.Max(t=>t.DateAdded).ToString("MMM-dd-yyyy HH:mm"),
+                        CountLandingsWithCatchComposition = gr_group.Count(t => t.HasCatchComposition == true),
+                        TrackedOperationsCount = gr_group.Count(t => t.IsTracked == true),
+                        FirstLandingFormattedDate = gr_group.Min(t => t.SamplingDate).ToString("MMM-dd-yyyy HH:mm"),
+                        LastLandingFormattedDate = gr_group.Max(t => t.SamplingDate).ToString("MMM-dd-yyyy HH:mm"),
+                        LatestDownloadFormattedDate = gr_group.Max(t => t.DateAdded).ToString("MMM-dd-yyyy HH:mm"),
                         LatestEformVersion = gr_group.Last().FormVersion
                     };
                     results.Add(
-                        new SummaryResults { 
-                            Sequence=++seq,
+                        new SummaryResults
+                        {
+                            Sequence = ++seq,
                             DBSummary = summ,
-                            SummaryLevelType=SummaryLevelType.EnumeratedMonth
+                            SummaryLevelType = SummaryLevelType.EnumeratedMonth
                         });
                 }
             }
-                return results;
+            return results;
         }
         public List<DateTime> GetMonthsSampledByEnumerator(NSAPEnumerator en)
         {
@@ -470,11 +525,34 @@ namespace NSAP_ODK.Entities.Database
             gu.VesselUnloadViewModel = new VesselUnloadViewModel(gu);
             return gu;
         }
+
+        public LastPrimaryKeys LastPrimaryKeys { get; set; }
         public SummaryItemViewModel()
         {
             SummaryItems = new SummaryItemRepository();
             SummaryItemCollection = new ObservableCollection<SummaryItem>(SummaryItems.SummaryItems);
             SummaryItemCollection.CollectionChanged += SummaryItemCollection_CollectionChanged;
+            LastPrimaryKeys = SummaryItems.GetLastPrimaryKeys();
+        }
+
+
+        public VesselUnloadSummary GetVesselUnloadSummary()
+        {
+            VesselUnloadSummary vs = new VesselUnloadSummary();
+
+            if (SummaryItemCollection.Count > 0)
+            {
+                vs.FirstSamplingDate = SummaryItemCollection.Min(t => t.SamplingDate);
+                vs.LastSamplingDate = SummaryItemCollection.Max(t => t.SamplingDate);
+                vs.LatestDownloadDate = SummaryItemCollection.Max(t => t.DateAdded);
+                vs.CountUnloadsWithCatchComposition = SummaryItemCollection.Count(t => t.HasCatchComposition == true);
+
+                return vs;
+            }
+            else
+            {
+                return null;
+            }
         }
         private List<IGrouping<string, SummaryItem>> _fishing_ground_summaryItems;
         private List<IGrouping<string, SummaryItem>> _fma_summaryItems;
@@ -760,6 +838,62 @@ namespace NSAP_ODK.Entities.Database
             SummaryResults = new List<SummaryResults>();
         }
         public List<SummaryResults> SummaryResults { get; private set; }
+
+        public void Clear()
+        {
+            SummaryItemCollection.Clear();
+        }
+        public bool AddRecordToRepo(VesselUnload vu)
+        {
+            SummaryItem si = new SummaryItem
+            {
+                ID=SummaryItemCollection.Count+1,
+                
+                SamplingDayID = vu.Parent.Parent.PK,
+                LandingSiteID = vu.Parent.Parent.LandingSiteID,
+                LandingSiteText = vu.Parent.Parent.LandingSiteText,
+                FMAId = vu.Parent.Parent.FMAID,
+                RegionSequence = vu.Parent.Parent.NSAPRegion.Sequence,
+                RegionID = vu.Parent.Parent.NSAPRegionID,
+                FishingGroundID = vu.Parent.Parent.FishingGroundID,
+
+                GearUnloadID = vu.Parent.PK,
+                GearUnloadBoats = vu.Parent.Boats,
+                GearUnloadCatch = vu.Parent.Catch,
+                GearCode = vu.Parent.GearID,
+                GearText = vu.Parent.GearUsedText,
+
+                VesselUnloadID=vu.PK,    
+                XFormIdentifier = vu.XFormIdentifier,
+                ODKRowID = vu.ODKRowID,
+                GPSCode = vu.GPSCode,
+                NumberOfFishers = vu.NumberOfFishers,
+                FormVersion = vu.FormVersion,
+                VesselName = vu.VesselName,
+                VesselID=vu.VesselID,
+                VesselText=vu.VesselText,
+                HasCatchComposition = vu.HasCatchComposition,
+                IsTracked = vu.OperationIsTracked,
+                IsTripCompleted = vu.FishingTripIsCompleted,
+                EnumeratorID=vu.NSAPEnumeratorID,
+                EnumeratorText=vu.EnumeratorText,
+                SamplingDate = vu.SamplingDate,
+                IsSuccess = vu.OperationIsSuccessful,
+                SectorCode= vu.SectorCode,
+                DateAdded = (DateTime)vu.DateAddedToDatabase,
+                FishingGridRows=vu.CountGrids,
+                GearSoakRows = vu.CountGearSoak,
+                VesselEffortRows = vu.CountEffortIndicators,
+                CatchCompositionRows=vu.CountCatchCompositionItems,
+                LenFreqRows = vu.CountLenFreqRows,
+                LengthRows = vu.CountLengthRows,
+                LenWtRows = vu.CountLenWtRows,
+                CatchMaturityRows = vu.CountMaturityRows
+            };
+
+            SummaryItemCollection.Add(si);
+            return _editSuccess;
+        }
         public bool AddRecordToRepo(SummaryItem item)
         {
             if (item == null)

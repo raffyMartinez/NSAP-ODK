@@ -22,6 +22,8 @@ namespace NSAP_ODK.Entities.Database
             return LandingSiteSamplingCollection.Where(t => t.EnumeratorID == null && t.EnumeratorText == enumeratorText).ToList();
         }
 
+
+
         public List<VesselUnload> GetVesselUnloads(List<GearUnload> gearUnloads)
         {
             var landings = new List<VesselUnload>();
@@ -303,10 +305,15 @@ namespace NSAP_ODK.Entities.Database
         {
             return new LandingSiteSamplingFlattened(LandingSiteSamplingCollection.Where(t => t.PK == id).FirstOrDefault());
         }
+
+        public void Clear()
+        {
+            LandingSiteSamplingCollection.Clear();
+        }
         public bool ClearRepository()
         {
             LandingSiteSamplingCollection.Clear();
-            return LandingSiteSamplings.ClearTable();
+            return LandingSiteSamplingRepository.ClearTable();
         }
 
         public List<LandingSiteSamplingFlattened> GetAllFlattenedItems()
@@ -331,9 +338,11 @@ namespace NSAP_ODK.Entities.Database
             if (landing.LandingSiteText != null && landing.LandingSiteText.Length > 0)
             {
                 return LandingSiteSamplingCollection
-                    .Where(t => t.LandingSiteText == landing.LandingSiteText)
-                    .Where(t => t.FishingGroundID == landing.FishingGround.Code)
-                    .Where(t => t.SamplingDate.Date == landing.SamplingDate.Date).FirstOrDefault();
+                    .Where(t => t.NSAPRegionID==landing.NSAPRegionCode &&
+                    t.FMAID==landing.fma_number &&
+                    t.LandingSiteName == landing.LandingSiteName &&
+                    t.FishingGroundID == landing.FishingGround.Code && 
+                    t.SamplingDate.Date == landing.SamplingDate.Date).FirstOrDefault();
             }
             else if (landing.LandingSite == null)
             {
@@ -342,9 +351,10 @@ namespace NSAP_ODK.Entities.Database
             else
             {
                 return LandingSiteSamplingCollection
-                    .Where(t => t.LandingSiteID == landing.LandingSite.LandingSiteID)
-                    .Where(t => t.FishingGroundID == landing.FishingGround.Code)
-                    .Where(t => t.SamplingDate.Date == landing.SamplingDate.Date).FirstOrDefault();
+                    .Where(t => t.NSAPRegionID==landing.NSAPRegionCode &&
+                    t.FishingGroundID == landing.FishingGround.Code &&
+                    t.LandingSiteID == landing.LandingSite.LandingSiteID &&
+                    t.SamplingDate.Date == landing.SamplingDate.Date).FirstOrDefault();
             }
         }
 

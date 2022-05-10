@@ -8,6 +8,8 @@ namespace NSAP_ODK.Entities.Database
 {
     public class SummaryItem
     {
+        public string XFormIdentifier { get; set; }
+        public string ODKRowID { get; set; }
         public string SamplingDateFormatted
         {
             get
@@ -40,7 +42,7 @@ namespace NSAP_ODK.Entities.Database
         public int? NumberOfFishers { get; set; }
         public override string ToString()
         {
-            string ls = LandingSiteName.Length == 0 ? LandingSiteText : LandingSite.ToString();
+            string ls = LandingSite==null ? LandingSiteText : LandingSite.ToString();
             string gr = Gear != null ? Gear.GearName : GearText;
             return $"{ID}-{Region.ShortName}-{FMA.Name}-{FishingGround.Name}-{ls}-{gr}-{SamplingDate.ToString("MMM-dd-yyyy")}";
         }

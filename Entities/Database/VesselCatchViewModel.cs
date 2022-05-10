@@ -99,10 +99,17 @@ namespace NSAP_ODK.Entities.Database
                 VesselCatchCollection.CollectionChanged += VesselCatches_CollectionChanged;
             }
         }
-        public VesselCatchViewModel()
+        public VesselCatchViewModel(bool isNew=false)
         {
-            VesselCatches = new VesselCatchRepository();
-            VesselCatchCollection = new ObservableCollection<VesselCatch>(VesselCatches.VesselCatches);
+            VesselCatches = new VesselCatchRepository(isNew);
+            if (isNew)
+            {
+                VesselCatchCollection = new ObservableCollection<VesselCatch>();
+            }
+            else
+            {
+                VesselCatchCollection = new ObservableCollection<VesselCatch>(VesselCatches.VesselCatches);
+            }
             VesselCatchCollection.CollectionChanged += VesselCatches_CollectionChanged;
         }
 
@@ -479,7 +486,7 @@ namespace NSAP_ODK.Entities.Database
         public bool ClearRepository()
         {
             VesselCatchCollection.Clear();
-            return VesselCatches.ClearTable();
+            return VesselCatchRepository.ClearTable();
         }
         public List<VesselCatch> GetAllVesselCatches()
         {

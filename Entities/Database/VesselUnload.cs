@@ -750,12 +750,15 @@ namespace NSAP_ODK.Entities.Database
         }
         public void GetCounts()
         {
-            foreach (VesselCatch vc in VesselCatchViewModel.VesselCatchCollection)
+            if (VesselCatchViewModel != null)
             {
-                CountLenFreqRows += vc.CatchLenFreqViewModel.CatchLenFreqCollection.Count;
-                CountLengthRows += vc.CatchLengthViewModel.CatchLengthCollection.Count;
-                CountLenWtRows += vc.CatchLengthWeightViewModel.CatchLengthWeightCollection.Count;
-                CountMaturityRows += vc.CatchMaturityViewModel.CatchMaturityCollection.Count;
+                foreach (VesselCatch vc in VesselCatchViewModel.VesselCatchCollection)
+                {
+                    CountLenFreqRows += vc.CatchLenFreqViewModel.CatchLenFreqCollection.Count;
+                    CountLengthRows += vc.CatchLengthViewModel.CatchLengthCollection.Count;
+                    CountLenWtRows += vc.CatchLengthWeightViewModel.CatchLengthWeightCollection.Count;
+                    CountMaturityRows += vc.CatchMaturityViewModel.CatchMaturityCollection.Count;
+                }
             }
             CountGrids = FishingGroundGridViewModel.FishingGroundGridCollection.Count;
             CountGearSoak = GearSoakViewModel.GearSoakCollection.Count;

@@ -40,6 +40,7 @@ namespace NSAP_ODK.Entities
         SpeciesName
     }
 
+
     public static class NSAPEntities
     {
         public static GPSViewModel GPSViewModel;
@@ -89,7 +90,26 @@ namespace NSAP_ODK.Entities
 
 
         }
-
+        public static bool ClearNSAPDatabaseTables()
+        {
+            bool success = false;
+            JSONFileRepository.ClearTable();
+            CatchMaturityRepository.ClearTable();
+            CatchLengthRepository.ClearTable();
+            CatchLenWeightRepository.ClearTable();
+            CatchLenFreqRepository.ClearTable();
+            VesselCatchRepository.ClearTable();
+            FishingGroundGridRepository.ClearTable();
+            GearSoakRepository.ClearTable();
+            VesselEffortRepository.ClearTable();
+            VesselUnloadRepository.ClearTable();
+            GearUnloadRepository.ClearTable();
+            if (LandingSiteSamplingRepository.ClearTable())
+            {
+                success = true;
+            }
+            return success;
+        }
         public static NSAPRegion NSAPRegion { get; set; }
 
         public static NSAPRegionFMA NSAPRegionFMA { get; set; }

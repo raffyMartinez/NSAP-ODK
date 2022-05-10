@@ -19,10 +19,17 @@ namespace NSAP_ODK.Entities.Database
             CatchMaturityCollection = new ObservableCollection<CatchMaturity>(CatchMaturities.CatchMaturities);
             CatchMaturityCollection.CollectionChanged += CatchMaturityCollection_CollectionChanged;
         }
-        public CatchMaturityViewModel()
+        public CatchMaturityViewModel(bool isNew=false)
         {
-            CatchMaturities = new CatchMaturityRepository();
-            CatchMaturityCollection = new ObservableCollection<CatchMaturity>(CatchMaturities.CatchMaturities);
+            CatchMaturities = new CatchMaturityRepository(isNew);
+            if (isNew)
+            {
+                CatchMaturityCollection = new ObservableCollection<CatchMaturity>();
+            }
+            else
+            {
+                CatchMaturityCollection = new ObservableCollection<CatchMaturity>(CatchMaturities.CatchMaturities);
+            }
             CatchMaturityCollection.CollectionChanged += CatchMaturityCollection_CollectionChanged;
         }
 
@@ -51,7 +58,7 @@ namespace NSAP_ODK.Entities.Database
         public bool ClearRepository()
         {
             CatchMaturityCollection.Clear();
-            return CatchMaturities.ClearTable();
+            return CatchMaturityRepository.ClearTable();
         }
 
         public CatchMaturity getCatchMaturity(int pk)

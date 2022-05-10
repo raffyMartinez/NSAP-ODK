@@ -173,7 +173,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Entities\Database\DownloadedJsonMetadata.cs" />
     <Compile Include="Entities\Database\GearUnloadComparer.cs" />
+    <Compile Include="Entities\Database\LastPrimaryKeys.cs" />
     <Compile Include="Entities\Database\SummaryItem.cs" />
     <Compile Include="Entities\Database\SummaryItemViewModel.cs" />
     <Compile Include="Entities\Database\SummaryManager.cs" />
@@ -445,6 +447,9 @@
     <Compile Include="Views\DeleteUnloadPastDateWindow.xaml.cs">
       <DependentUpon>DeleteUnloadPastDateWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\DownloadFromServerOptionsWindow.xaml.cs">
+      <DependentUpon>DownloadFromServerOptionsWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\DownloadFromServerWindow.xaml.cs">
       <DependentUpon>DownloadFromServerWindow.xaml</DependentUpon>
     </Compile>
@@ -554,6 +559,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\DeleteUnloadPastDateWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\DownloadFromServerOptionsWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -19,7 +19,7 @@ namespace NSAP_ODK.Entities.Database
         public bool ClearRepository()
         {
             JSONFileCollection.Clear();
-            return JSONFiles.ClearTable();
+            return JSONFileRepository.ClearTable();
         }
         public JSONFileViewModel()
         {

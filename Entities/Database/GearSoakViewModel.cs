@@ -20,10 +20,17 @@ namespace NSAP_ODK.Entities.Database
             GearSoakCollection = new ObservableCollection<GearSoak>(GearSoaks.GearSoaks);
             GearSoakCollection.CollectionChanged += GearSoaks_CollectionChanged;
         }
-        public GearSoakViewModel()
+        public GearSoakViewModel(bool isNew = false)
         {
-            GearSoaks = new GearSoakRepository();
-            GearSoakCollection = new ObservableCollection<GearSoak>(GearSoaks.GearSoaks);
+            GearSoaks = new GearSoakRepository(isNew);
+            if (isNew)
+            {
+                GearSoakCollection = new ObservableCollection<GearSoak>();
+            }
+            else
+            {
+                GearSoakCollection = new ObservableCollection<GearSoak>(GearSoaks.GearSoaks);
+            }
             GearSoakCollection.CollectionChanged += GearSoaks_CollectionChanged;
         }
 
@@ -55,7 +62,7 @@ namespace NSAP_ODK.Entities.Database
         public bool ClearRepository()
         {
             GearSoakCollection.Clear();
-            return GearSoaks.ClearTable();
+            return GearSoakRepository.ClearTable();
         }
 
         public GearSoak getGearSoak(int pk)

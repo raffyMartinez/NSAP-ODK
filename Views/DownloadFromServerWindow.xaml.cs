@@ -25,6 +25,8 @@ using System.Net;
 using Microsoft.Win32;
 using System.Net.Http.Headers;
 using System.Windows.Threading;
+using Ookii.Dialogs.Wpf;
+using System.Xml.Serialization;
 
 namespace NSAP_ODK.Views
 {
@@ -40,6 +42,7 @@ namespace NSAP_ODK.Views
     /// 
     public partial class DownloadFromServerWindow : Window
     {
+        private int? _numberToDownloadPerBatch;
         private List<KoboForm> _koboForms;
         private string _user;
         private string _password;
@@ -62,6 +65,7 @@ namespace NSAP_ODK.Views
         private string _xlsFormVersion;
         private bool _replaceCSVFilesSuccess;
         private int _numberOfSubmissions;
+        private bool _hasDownloadOptions = false;
         public DownloadFromServerWindow(ODKResultsWindow parentWindow)
         {
             InitializeComponent();
@@ -361,6 +365,23 @@ namespace NSAP_ODK.Views
             }
             return result;
         }
+
+        public bool SaveDownloadAsJSON { get; set; }
+        public bool DownloadOptionDownloadAll { get; set; }
+        public int? NumberToDownloadPerBatch
+        {
+            get { return _numberToDownloadPerBatch; }
+            set
+            {
+                _numberToDownloadPerBatch = value;
+                ButtonDownload.Width = 100;
+                if (_numberToDownloadPerBatch != null)
+                {
+                    ButtonDownload.Width = 300;
+                    ButtonDownload.Content = $"Batch download ({(int)_numberToDownloadPerBatch})";
+                }
+            }
+        }
         public RadioButton ButtonSelectedColumn { get; set; }
         private async void OnButtonClick(object sender, RoutedEventArgs e)
         {
@@ -460,181 +481,45 @@ namespace NSAP_ODK.Views
                     }
                     break;
                 case "ButtonDownload":
-
-                    if (!Directory.Exists(Global.Settings.JSONFolder) || Global.Settings.JSONFolder.Length == 0)
+                    bool proceed = true;
+                    if (((bool)rbAll.IsChecked || (bool)rbNotDownloaded.IsChecked) && !_hasDownloadOptions)
                     {
-                        MessageBox.Show("Please specify folder to save downloaded data from the server",
-                            "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
-
-                        SettingsWindow sw = new SettingsWindow();
-                        sw.ShowDialog();
+                        DownloadFromServerOptionsWindow dsow = new DownloadFromServerOptionsWindow();
+                        dsow.Owner = this;
+                        dsow.CountItemsToDownload = _formSummary.NumberOfSubmissions - _formSummary.NumberSavedToDatabase;
+                        proceed = (bool)dsow.ShowDialog();
+                        _hasDownloadOptions = proceed;
                         return;
                     }
 
-                    _downloadType = "data";
-                    ButtonDownload.IsEnabled = false;
-                    switch (_downloadOption)
+
+
+                    if (proceed && !SaveDownloadAsJSON)
                     {
-                        case "excel":
-                            ProgressBar.Value = 0;
-                            ProgressBar.Maximum = 5;
-                            if (_parentWindow.ODKServerDownload == ODKServerDownload.ServerDownloadVesselUnload)
-                            {
-                                using (var httpClient = new HttpClient())
-                                {
-                                    api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}.xls";
-                                    using (var request = new HttpRequestMessage(new HttpMethod("GET"), api_call))
-                                    {
-                                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ContactingServer });
-                                        var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_user}:{_password}"));
-                                        request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
-                                        try
-                                        {
-                                            var response = await httpClient.SendAsync(request);
-                                            string fileName = response.Content.Headers.ContentDisposition.FileName;
-                                            ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData });
-                                            var bytes = await response.Content.ReadAsByteArrayAsync();
+                        _hasDownloadOptions = false;
 
+                        if (!Directory.Exists(Global.Settings.JSONFolder) || Global.Settings.JSONFolder.Length == 0)
+                        {
+                            MessageBox.Show("Please specify folder to save downloaded data from the server",
+                                "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
 
-                                            if (fileName.Length > 0 && bytes.Length > 0)
-                                            {
-                                                VistaFolderBrowserDialog fbd = new VistaFolderBrowserDialog();
-                                                fbd.RootFolder = Environment.SpecialFolder.MyDocuments;
-                                                fbd.UseDescriptionForTitle = true;
-                                                fbd.Description = "Locate folder for saving downloaded Excel file";
+                            SettingsWindow sw = new SettingsWindow();
+                            sw.ShowDialog();
+                            return;
+                        }
 
-                                                if ((bool)fbd.ShowDialog() && fbd.SelectedPath.Length > 0)
-                                                {
-                                                    string downnloadedFile = $"{fbd.SelectedPath}/{fileName}";
-                                                    File.WriteAllBytes(downnloadedFile, bytes);
-                                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ConvertDataToExcel });
-                                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ConvertDataToEntities });
-                                                    _parentWindow.ExcelFileDownloaded = downnloadedFile;
-                                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
-                                                    Close();
-
-                                                }
-                                            }
-                                            else if (fileName.Length == 0)
-                                            {
-                                                MessageBox.Show("Something went wrong\r\nYou may want to try again");
-                                            }
-                                        }
-                                        catch (HttpRequestException)
-                                        {
-                                            MessageBox.Show("Request time out\r\nYou may try again");
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            Logger.Log(ex);
-                                            ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.StoppedDueToError });
-                                        }
-                                    }
-
-                                }
-
-                            }
-                            else if (_parentWindow.ODKServerDownload == ODKServerDownload.ServerDownloadLandings)
-                            {
-                                MessageBox.Show("Excel download not yet implemented");
-                            }
-                            break;
-                        case "json":
-                            ProgressBar.Value = 0;
-                            ProgressBar.Maximum = 5;
-                            if (!string.IsNullOrEmpty(_jsonOption))
-                            {
-                                if (_jsonOption == "download_all_for_review")
-                                {
-                                    if (ButtonSelectedColumn != null)
-                                    {
-                                        string field = "";
-                                        switch (ButtonSelectedColumn.Tag.ToString())
-                                        {
-                                            case "has catch composition":
-                                                field = "catch_comp_group/include_catchcomp";
-                                                break;
-                                            case "xform identifier":
-                                                field = "_xform_id_string";
-                                                break;
-                                        }
-
-                                        await ProcessDownloadForReviewEx(field);
-                                    }
-
-                                    MessageBox.Show($"Finished updating database {_updateCount} rows in column {ButtonSelectedColumn.Tag.ToString()}",
-                                        "NSAP-ODK Database",
-                                        MessageBoxButton.OK,
-                                        MessageBoxImage.Information
-                                        );
-                                }
-                                else
+                        _downloadType = "data";
+                        ButtonDownload.IsEnabled = false;
+                        switch (_downloadOption)
+                        {
+                            case "excel":
+                                ProgressBar.Value = 0;
+                                ProgressBar.Maximum = 5;
+                                if (_parentWindow.ODKServerDownload == ODKServerDownload.ServerDownloadVesselUnload)
                                 {
                                     using (var httpClient = new HttpClient())
                                     {
-                                        switch (_jsonOption)
-                                        {
-                                            case "all":
-                                                api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json";
-                                                break;
-                                            case "all_not_downloaded":
-                                                string lastSubmissionDate = ((DateTime)_lastSubmittedDate).ToString("yyyy-MM-ddThh:mm:ss");
-                                                api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gt\":\"{lastSubmissionDate}\"}}}}";
-                                                break;
-                                            case "specify_date_range":
-                                                string start_date = ((DateTime)dateStart.Value).ToString("yyyy-MM-dd");
-                                                string end_date = ((DateTime)dateEnd.Value).ToString("yyyy-MM-dd");
-                                                api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gt\":\"{start_date}\",\"$lt\":\"{end_date}\"}}}}";
-                                                break;
-                                            case "specify_range_records":
-                                                string start_date1 = ((DateTime)dateStart2.Value).ToString("yyyy-MM-dd");
-                                                api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gt\":\"{start_date1}\"}}}}&limit={TextBoxLimit.Text}";
-                                                break;
-                                        }
-
-                                        if ((bool)CheckFilterUser.IsChecked || (bool)CheckLimitoTracked.IsChecked)
-                                        {
-                                            string first_part = "";
-                                            string last_part = "";
-                                            string user = "";
-                                            string toInsert = "";
-
-                                            if (ComboUser.SelectedItem != null)
-                                            {
-                                                user = ((ComboBoxItem)ComboUser.SelectedItem).Content.ToString();
-                                            }
-
-                                            if ((bool)CheckFilterUser.IsChecked && user.Length == 0)
-                                            {
-                                                MessageBox.Show("Please select a user name");
-                                                return;
-                                            }
-
-                                            if (user.Length > 0)
-                                            {
-                                                toInsert = $"\"user_name\":\"{user}\",";
-                                            }
-
-                                            if ((bool)CheckLimitoTracked.IsChecked)
-                                            {
-                                                toInsert += "\"soak_time_group/include_tracking\":\"yes\",";
-                                            }
-
-
-                                            if (api_call.Contains("query"))
-                                            {
-                                                int index = api_call.IndexOf("query={") + "query={".Length;
-                                                first_part = api_call.Substring(0, index);
-                                                last_part = api_call.Substring(index, api_call.Length - index);
-
-                                                api_call = first_part + toInsert + last_part;
-                                            }
-                                            else
-                                            {
-                                                api_call += $"&query={{{toInsert.Trim(',')}}}";
-                                            }
-                                        }
-
+                                        api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}.xls";
                                         using (var request = new HttpRequestMessage(new HttpMethod("GET"), api_call))
                                         {
                                             ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ContactingServer });
@@ -642,67 +527,35 @@ namespace NSAP_ODK.Views
                                             request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
                                             try
                                             {
-                                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData });
-
                                                 var response = await httpClient.SendAsync(request);
+                                                string fileName = response.Content.Headers.ContentDisposition.FileName;
+                                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData });
                                                 var bytes = await response.Content.ReadAsByteArrayAsync();
-                                                Encoding encoding = Encoding.GetEncoding("utf-8");
-                                                string the_response = encoding.GetString(bytes, 0, bytes.Length);
-                                                ((ODKResultsWindow)Owner).JSON = the_response;
-                                                ((ODKResultsWindow)Owner).FormID = _formID;
-                                                ((ODKResultsWindow)Owner).Description = _description;
-                                                ((ODKResultsWindow)Owner).Count = _count;
 
 
-                                                DateTime? versionDate = null;
-
-                                                switch (_parentWindow.ODKServerDownload)
+                                                if (fileName.Length > 0 && bytes.Length > 0)
                                                 {
-                                                    case ODKServerDownload.ServerDownloadVesselUnload:
-                                                        if (DateTime.TryParse(_xlsFormVersion, out DateTime versionDate1))
-                                                        {
-                                                            versionDate = versionDate1;
-                                                            if (versionDate >= new DateTime(2021, 10, 1))
-                                                            {
-                                                                VesselUnloadServerRepository.JSON = VesselLandingFixDownload.JsonNewToOldVersion(the_response);
-                                                            }
-                                                            else
-                                                            {
-                                                                throw new Exception("catch and effort version is not handled");
-                                                            }
-                                                        }
-                                                        else
-                                                        {
-                                                            VesselUnloadServerRepository.JSON = the_response;
-                                                        }
-                                                        VesselUnloadServerRepository.ResetLists();
-                                                        VesselUnloadServerRepository.CreateLandingsFromJSON();
-                                                        VesselUnloadServerRepository.FillDuplicatedLists();
+                                                    VistaFolderBrowserDialog fbd = new VistaFolderBrowserDialog();
+                                                    fbd.RootFolder = Environment.SpecialFolder.MyDocuments;
+                                                    fbd.UseDescriptionForTitle = true;
+                                                    fbd.Description = "Locate folder for saving downloaded Excel file";
 
+                                                    if ((bool)fbd.ShowDialog() && fbd.SelectedPath.Length > 0)
+                                                    {
+                                                        string downnloadedFile = $"{fbd.SelectedPath}/{fileName}";
+                                                        File.WriteAllBytes(downnloadedFile, bytes);
+                                                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ConvertDataToExcel });
+                                                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ConvertDataToEntities });
+                                                        _parentWindow.ExcelFileDownloaded = downnloadedFile;
+                                                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
+                                                        Close();
 
-                                                        break;
-                                                    case ODKServerDownload.ServerDownloadLandings:
-                                                        LandingSiteBoatLandingsFromServerRepository.JSON = the_response;
-                                                        LandingSiteBoatLandingsFromServerRepository.CreateLandingSiteBoatLandingsFromJson();
-                                                        break;
+                                                    }
                                                 }
-
-
-                                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.GotJSONString, JSONString = the_response });
-                                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ConvertDataToEntities });
-
-                                                switch (_parentWindow.ODKServerDownload)
+                                                else if (fileName.Length == 0)
                                                 {
-                                                    case ODKServerDownload.ServerDownloadVesselUnload:
-                                                        _parentWindow.MainSheets = VesselUnloadServerRepository.VesselLandings;
-                                                        break;
-                                                    case ODKServerDownload.ServerDownloadLandings:
-                                                        _parentWindow.MainSheetsLanding = LandingSiteBoatLandingsFromServerRepository.LandingSiteBoatLandings;
-                                                        break;
+                                                    MessageBox.Show("Something went wrong\r\nYou may want to try again");
                                                 }
-                                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
-                                                Close();
-
                                             }
                                             catch (HttpRequestException)
                                             {
@@ -716,13 +569,216 @@ namespace NSAP_ODK.Views
                                         }
 
                                     }
+
                                 }
-                            }
-                            else
-                            {
-                                MessageBox.Show("Please select a download option for JSON");
-                            }
-                            break;
+                                else if (_parentWindow.ODKServerDownload == ODKServerDownload.ServerDownloadLandings)
+                                {
+                                    MessageBox.Show("Excel download not yet implemented");
+                                }
+                                break;
+                            case "json":
+                                ProgressBar.Value = 0;
+                                ProgressBar.Maximum = 5;
+                                if (!string.IsNullOrEmpty(_jsonOption))
+                                {
+                                    if (_jsonOption == "download_all_for_review")
+                                    {
+                                        if (ButtonSelectedColumn != null)
+                                        {
+                                            string field = "";
+                                            switch (ButtonSelectedColumn.Tag.ToString())
+                                            {
+                                                case "has catch composition":
+                                                    field = "catch_comp_group/include_catchcomp";
+                                                    break;
+                                                case "xform identifier":
+                                                    field = "_xform_id_string";
+                                                    break;
+                                            }
+
+                                            await ProcessDownloadForReviewEx(field);
+                                        }
+
+                                        MessageBox.Show($"Finished updating database {_updateCount} rows in column {ButtonSelectedColumn.Tag.ToString()}",
+                                            "NSAP-ODK Database",
+                                            MessageBoxButton.OK,
+                                            MessageBoxImage.Information
+                                            );
+                                    }
+                                    else
+                                    {
+                                        using (var httpClient = new HttpClient())
+                                        {
+                                            switch (_jsonOption)
+                                            {
+                                                case "all":
+                                                    if (_numberToDownloadPerBatch != null)
+                                                    {
+                                                        DateTime dt = DateTime.Parse(_formSummary.DateCreated).Date;
+                                                        api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gt\":\"{dt}\"}}}}&limit={(int)_numberToDownloadPerBatch}";
+                                                    }
+                                                    else
+                                                    {
+                                                        api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json";
+                                                    }
+                                                    break;
+                                                case "all_not_downloaded":
+                                                    string lastSubmissionDate = ((DateTime)_lastSubmittedDate).ToString("yyyy-MM-ddThh:mm:ss");
+                                                    api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gt\":\"{lastSubmissionDate}\"}}}}";
+                                                    break;
+                                                case "specify_date_range":
+                                                    string start_date = ((DateTime)dateStart.Value).ToString("yyyy-MM-dd");
+                                                    string end_date = ((DateTime)dateEnd.Value).ToString("yyyy-MM-dd");
+                                                    api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gt\":\"{start_date}\",\"$lt\":\"{end_date}\"}}}}";
+                                                    break;
+                                                case "specify_range_records":
+                                                    string start_date1 = ((DateTime)dateStart2.Value).ToString("yyyy-MM-dd");
+                                                    api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gt\":\"{start_date1}\"}}}}&limit={TextBoxLimit.Text}";
+                                                    break;
+                                            }
+
+                                            if ((bool)CheckFilterUser.IsChecked || (bool)CheckLimitoTracked.IsChecked)
+                                            {
+                                                string first_part = "";
+                                                string last_part = "";
+                                                string user = "";
+                                                string toInsert = "";
+
+                                                if (ComboUser.SelectedItem != null)
+                                                {
+                                                    user = ((ComboBoxItem)ComboUser.SelectedItem).Content.ToString();
+                                                }
+
+                                                if ((bool)CheckFilterUser.IsChecked && user.Length == 0)
+                                                {
+                                                    MessageBox.Show("Please select a user name");
+                                                    return;
+                                                }
+
+                                                if (user.Length > 0)
+                                                {
+                                                    toInsert = $"\"user_name\":\"{user}\",";
+                                                }
+
+                                                if ((bool)CheckLimitoTracked.IsChecked)
+                                                {
+                                                    toInsert += "\"soak_time_group/include_tracking\":\"yes\",";
+                                                }
+
+
+                                                if (api_call.Contains("query"))
+                                                {
+                                                    int index = api_call.IndexOf("query={") + "query={".Length;
+                                                    first_part = api_call.Substring(0, index);
+                                                    last_part = api_call.Substring(index, api_call.Length - index);
+
+                                                    api_call = first_part + toInsert + last_part;
+                                                }
+                                                else
+                                                {
+                                                    api_call += $"&query={{{toInsert.Trim(',')}}}";
+                                                }
+                                            }
+
+                                            using (var request = new HttpRequestMessage(new HttpMethod("GET"), api_call))
+                                            {
+                                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ContactingServer });
+                                                var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_user}:{_password}"));
+                                                request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
+                                                try
+                                                {
+                                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData });
+
+                                                    var response = await httpClient.SendAsync(request);
+                                                    var bytes = await response.Content.ReadAsByteArrayAsync();
+                                                    Encoding encoding = Encoding.GetEncoding("utf-8");
+                                                    string the_response = encoding.GetString(bytes, 0, bytes.Length);
+                                                    //((ODKResultsWindow)Owner).JSON = the_response;
+                                                    ((ODKResultsWindow)Owner).FormID = _formID;
+                                                    ((ODKResultsWindow)Owner).Description = _description;
+                                                    ((ODKResultsWindow)Owner).Count = _count;
+
+
+                                                    DateTime? versionDate = null;
+
+                                                    switch (_parentWindow.ODKServerDownload)
+                                                    {
+                                                        case ODKServerDownload.ServerDownloadVesselUnload:
+                                                            string json;
+                                                            if (DateTime.TryParse(_xlsFormVersion, out DateTime versionDate1))
+                                                            {
+                                                                versionDate = versionDate1;
+                                                                if (versionDate >= new DateTime(2021, 10, 1))
+                                                                {
+                                                                    json = VesselLandingFixDownload.JsonNewToOldVersion(the_response);
+                                                                    //VesselUnloadServerRepository.JSON = VesselLandingFixDownload.JsonNewToOldVersion(the_response);
+                                                                }
+                                                                else
+                                                                {
+                                                                    throw new Exception("catch and effort version is not handled");
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                json = the_response;
+                                                                //VesselUnloadServerRepository.JSON = the_response;
+                                                            }
+                                                            ((ODKResultsWindow)Owner).JSON = json;
+                                                            VesselUnloadServerRepository.JSON = json;
+                                                            VesselUnloadServerRepository.ResetLists();
+                                                            VesselUnloadServerRepository.CreateLandingsFromJSON();
+                                                            VesselUnloadServerRepository.FillDuplicatedLists();
+
+
+                                                            break;
+                                                        case ODKServerDownload.ServerDownloadLandings:
+                                                            ((ODKResultsWindow)Owner).JSON = the_response;
+                                                            LandingSiteBoatLandingsFromServerRepository.JSON = the_response;
+                                                            LandingSiteBoatLandingsFromServerRepository.CreateLandingSiteBoatLandingsFromJson();
+                                                            break;
+                                                    }
+
+
+                                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.GotJSONString, JSONString = the_response });
+                                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ConvertDataToEntities });
+
+                                                    switch (_parentWindow.ODKServerDownload)
+                                                    {
+                                                        case ODKServerDownload.ServerDownloadVesselUnload:
+                                                            _parentWindow.MainSheets = VesselUnloadServerRepository.VesselLandings;
+                                                            break;
+                                                        case ODKServerDownload.ServerDownloadLandings:
+                                                            _parentWindow.MainSheetsLanding = LandingSiteBoatLandingsFromServerRepository.LandingSiteBoatLandings;
+                                                            break;
+                                                    }
+                                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
+                                                    Close();
+
+                                                }
+                                                catch (HttpRequestException)
+                                                {
+                                                    MessageBox.Show("Request time out\r\nYou may try again");
+                                                }
+                                                catch (Exception ex)
+                                                {
+                                                    Logger.Log(ex);
+                                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.StoppedDueToError });
+                                                }
+                                            }
+
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    MessageBox.Show("Please select a download option for JSON");
+                                }
+                                break;
+                        }
+                    }
+                    else if (SaveDownloadAsJSON)
+                    {
+                        DownloadToJSONByBatch();
                     }
                     ButtonDownload.IsEnabled = true;
                     break;
@@ -841,6 +897,177 @@ namespace NSAP_ODK.Views
                     Close();
                     break;
 
+            }
+        }
+
+        private async Task ProcessAPICall(string api_call, string filename = null)
+        {
+            using (var httpClient = new HttpClient())
+            {
+                using (var request = new HttpRequestMessage(new HttpMethod("GET"), api_call))
+                {
+                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ContactingServer });
+                    var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_user}:{_password}"));
+                    request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
+                    try
+                    {
+                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData });
+
+                        var response = await httpClient.SendAsync(request);
+                        var bytes = await response.Content.ReadAsByteArrayAsync();
+                        Encoding encoding = Encoding.GetEncoding("utf-8");
+                        string the_response = encoding.GetString(bytes, 0, bytes.Length);
+                        //((ODKResultsWindow)Owner).JSON = the_response;
+                        ((ODKResultsWindow)Owner).FormID = _formID;
+                        ((ODKResultsWindow)Owner).Description = _description;
+                        ((ODKResultsWindow)Owner).Count = _count;
+
+
+                        DateTime? versionDate = null;
+
+                        switch (_parentWindow.ODKServerDownload)
+                        {
+                            case ODKServerDownload.ServerDownloadVesselUnload:
+                                string json;
+                                if (DateTime.TryParse(_xlsFormVersion, out DateTime versionDate1))
+                                {
+                                    versionDate = versionDate1;
+                                    if (versionDate >= new DateTime(2021, 10, 1))
+                                    {
+                                        json = VesselLandingFixDownload.JsonNewToOldVersion(the_response);
+                                        //VesselUnloadServerRepository.JSON = VesselLandingFixDownload.JsonNewToOldVersion(the_response);
+                                    }
+                                    else
+                                    {
+                                        throw new Exception("catch and effort version is not handled");
+                                    }
+                                }
+                                else
+                                {
+                                    json = the_response;
+                                    //VesselUnloadServerRepository.JSON = the_response;
+                                }
+
+                                if (string.IsNullOrEmpty(filename))
+                                {
+                                    ((ODKResultsWindow)Owner).JSON = json;
+                                    VesselUnloadServerRepository.JSON = json;
+                                    VesselUnloadServerRepository.ResetLists();
+                                    VesselUnloadServerRepository.CreateLandingsFromJSON();
+                                    VesselUnloadServerRepository.FillDuplicatedLists();
+                                }
+                                else
+                                {
+                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.SavingToJSONTextFile, FileName = filename });
+                                    File.WriteAllText(filename, json);
+                                }
+
+
+                                break;
+                            case ODKServerDownload.ServerDownloadLandings:
+                                ((ODKResultsWindow)Owner).JSON = the_response;
+                                LandingSiteBoatLandingsFromServerRepository.JSON = the_response;
+                                LandingSiteBoatLandingsFromServerRepository.CreateLandingSiteBoatLandingsFromJson();
+                                break;
+                        }
+
+                        if (string.IsNullOrEmpty(filename))
+                        {
+                            ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.GotJSONString, JSONString = the_response });
+                            ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ConvertDataToEntities });
+
+
+                            switch (_parentWindow.ODKServerDownload)
+                            {
+                                case ODKServerDownload.ServerDownloadVesselUnload:
+                                    _parentWindow.MainSheets = VesselUnloadServerRepository.VesselLandings;
+                                    break;
+                                case ODKServerDownload.ServerDownloadLandings:
+                                    _parentWindow.MainSheetsLanding = LandingSiteBoatLandingsFromServerRepository.LandingSiteBoatLandings;
+                                    break;
+                            }
+                            ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
+                            Close();
+                        }
+                        else
+                        {
+                            ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
+                        }
+
+
+
+                    }
+                    catch (HttpRequestException)
+                    {
+                        MessageBox.Show("Request time out\r\nYou may try again");
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.StoppedDueToError });
+                    }
+                }
+            }
+        }
+
+
+        private async void DownloadToJSONByBatch()
+        {
+            string folderToSave;
+            VistaFolderBrowserDialog vfbd = new VistaFolderBrowserDialog();
+            vfbd.Description = "Select folder for saving downloaded JSON files";
+            vfbd.UseDescriptionForTitle = true;
+            vfbd.ShowNewFolderButton = true;
+            vfbd.SelectedPath = System.AppDomain.CurrentDomain.BaseDirectory;
+
+            if ((bool)vfbd.ShowDialog() && vfbd.SelectedPath.Length > 0)
+            {
+                folderToSave = vfbd.SelectedPath;
+
+                int downloadSize = _formSummary.NumberOfSubmissions - _formSummary.NumberSavedToDatabase;
+                if (!DownloadOptionDownloadAll)
+                {
+                    downloadSize = _formSummary.NumberOfSubmissions;
+                }
+
+                int loops = 1;
+                if (NumberToDownloadPerBatch < downloadSize)
+                {
+                    loops = downloadSize / (int)NumberToDownloadPerBatch;
+                    if (loops * (int)NumberToDownloadPerBatch < downloadSize) loops++;
+                }
+
+                DateTime createdOn = DateTime.Now;
+
+                string fileName = $@"{folderToSave}\{_formSummary.Owner}_{_formSummary.Title}_{createdOn:dd-MMM-yyyy_HH_mm}";
+                using (FileStream fs = new FileStream($@"{fileName}_info.xml", FileMode.Create))
+                {
+                    XmlSerializer xSer = new XmlSerializer(typeof(DownloadedJsonMetadata));
+                    xSer.Serialize(
+                        fs, 
+                        new DownloadedJsonMetadata {
+                        BatchSize = (int)NumberToDownloadPerBatch,
+                        DownloadSize = downloadSize,
+                        NumberOfFiles = loops,
+                        DBOwner = _formSummary.Owner,
+                        FormName = _formSummary.Title,
+                        DateDownloaded = createdOn }
+                    );
+                }   
+
+
+                for (int loop = 0; loop < loops; loop++)
+                {
+                    string api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&sort={{\"_id\":1}}&start={((int)NumberToDownloadPerBatch * loop) + 1}&limit={NumberToDownloadPerBatch}";
+                    if(_jsonOption=="all_not_downloaded")
+                    {
+                        api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&sort={{\"_id\":1}}&start={_formSummary.NumberSavedToDatabase+(loop * (int)NumberToDownloadPerBatch)+1}&limit={NumberToDownloadPerBatch}";
+                    }
+                    await ProcessAPICall(api_call, $@"{fileName}_{loop + 1}.json");
+                }
+
+                MessageBox.Show("Downloading JSON done!", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                Close();
             }
         }
 
@@ -966,7 +1193,7 @@ namespace NSAP_ODK.Views
                             string the_response = encoding.GetString(bytes, 0, bytes.Length);
                             var arr = apiCall.Split('?', ',')[1].Split('\"');
                             string field_name = arr[1];
-                            switch(field_name)
+                            switch (field_name)
                             {
                                 case "_xform_id_string":
                                     UpdateXFormIdentifierRepository.JSON = the_response;
@@ -1020,6 +1247,10 @@ namespace NSAP_ODK.Views
                 case DownloadFromServerIntent.DownloadingData:
                     ProgressBar.Value += 1;
                     labelProgress.Content = "Downloading data";
+                    break;
+                case DownloadFromServerIntent.SavingToJSONTextFile:
+                    ProgressBar.Value += 1;
+                    labelProgress.Content = $"Saved to {e.FileName}";
                     break;
                 case DownloadFromServerIntent.ConvertDataToExcel:
                     ProgressBar.Value += 1;
@@ -1206,7 +1437,7 @@ namespace NSAP_ODK.Views
 
                         _formID = ((TreeViewItem)treeViewItem.Parent).Header.ToString();
                         var koboform = _koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID));
-                        
+
 
                         //_version = koboform.version;
                         //_xlsFormIdString = koboform.xlsForm_idstring;

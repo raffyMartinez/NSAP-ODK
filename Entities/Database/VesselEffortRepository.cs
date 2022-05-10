@@ -18,9 +18,12 @@ namespace NSAP_ODK.Entities.Database
         {
             VesselEfforts = getVesselEfforts(vu);
         }
-        public VesselEffortRepository()
+        public VesselEffortRepository(bool isNew=false)
         {
-            VesselEfforts = getVesselEfforts();
+            if (!isNew)
+            {
+                VesselEfforts = getVesselEfforts();
+            }
         }
         public int MaxRecordNumber()
         {
@@ -349,7 +352,7 @@ namespace NSAP_ODK.Entities.Database
             return success;
         }
 
-        public bool ClearTable()
+        public static bool ClearTable()
         {
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))

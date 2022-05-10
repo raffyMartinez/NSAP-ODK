@@ -133,10 +133,10 @@ namespace NSAP_ODK.Entities.Database
             return sorted;
         }
 
-        public static VesselUnloadSummary GetSummary()
-        {
-            return VesselUnloadRepository.GetSummary();
-        }
+        //public static VesselUnloadSummary GetSummary()
+        //{
+        //    return VesselUnloadRepository.GetSummary();
+        //}
         public static int CountVesselUnload(bool isTracked = false)
         {
             return VesselUnloadRepository.VesselUnloadCount(isTracked);
@@ -364,7 +364,7 @@ namespace NSAP_ODK.Entities.Database
             List<VesselUnload> vessel_unloads = new List<VesselUnload>();
             foreach (GearUnload item in items)
             {
-                item.VesselUnloadViewModel = new VesselUnloadViewModel(item, updatesubViewModels:true);
+                item.VesselUnloadViewModel = new VesselUnloadViewModel(item, updatesubViewModels: true);
                 vessel_unloads.AddRange(item.VesselUnloadViewModel.VesselUnloadCollection.ToList());
             }
             return vessel_unloads;
@@ -400,10 +400,17 @@ namespace NSAP_ODK.Entities.Database
             }
             VesselUnloadCollection.CollectionChanged += VesselUnloadCollection_CollectionChanged;
         }
-        public VesselUnloadViewModel()
+        public VesselUnloadViewModel(bool isNew = false)
         {
-            VesselUnloads = new VesselUnloadRepository();
-            VesselUnloadCollection = new ObservableCollection<VesselUnload>(VesselUnloads.VesselUnloads);
+            VesselUnloads = new VesselUnloadRepository(isNew);
+            if (isNew)
+            {
+                VesselUnloadCollection = new ObservableCollection<VesselUnload>();
+            }
+            else
+            {
+                VesselUnloadCollection = new ObservableCollection<VesselUnload>(VesselUnloads.VesselUnloads);
+            }
             VesselUnloadCollection.CollectionChanged += VesselUnloadCollection_CollectionChanged;
         }
 
@@ -543,7 +550,7 @@ namespace NSAP_ODK.Entities.Database
         public bool ClearRepository()
         {
             VesselUnloadCollection.Clear();
-            return VesselUnloads.ClearTable();
+            return VesselUnloadRepository.ClearTable();
         }
 
         public DateTime DateOfFirstSampledLanding

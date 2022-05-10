@@ -20,16 +20,23 @@ namespace NSAP_ODK.Entities.Database
             VesselEffortCollection = new ObservableCollection<VesselEffort>(VesselEfforts.VesselEfforts);
             VesselEffortCollection.CollectionChanged += LandingSiteSamplingCollection_CollectionChanged;
         }
-        public VesselEffortViewModel()
+        public VesselEffortViewModel(bool isNew=false)
         {
-            VesselEfforts = new VesselEffortRepository();
-            VesselEffortCollection = new ObservableCollection<VesselEffort>(VesselEfforts.VesselEfforts);
+            VesselEfforts = new VesselEffortRepository(isNew);
+            if (isNew)
+            {
+                VesselEffortCollection = new ObservableCollection<VesselEffort>();
+            }
+            else
+            {
+                VesselEffortCollection = new ObservableCollection<VesselEffort>(VesselEfforts.VesselEfforts);
+            }
             VesselEffortCollection.CollectionChanged += LandingSiteSamplingCollection_CollectionChanged;
         }
         public bool ClearRepository()
         {
             VesselEffortCollection.Clear();
-            return VesselEfforts.ClearTable();
+            return VesselEffortRepository.ClearTable();
         }
 
         public List<VesselEffortFlattened> GetAllFlattenedItems(bool tracked=false)

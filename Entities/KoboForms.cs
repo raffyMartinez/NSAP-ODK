@@ -195,7 +195,8 @@ namespace NSAP_ODK.Entities
                     case KoboFormType.FormTypeCatchAndEffort:
                         try
                         {
-                            v = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.Count(t => t.XFormIdentifier == XLSForm_IDString);
+                            //v = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.Count(t => t.XFormIdentifier == XLSForm_IDString);
+                            v = NSAPEntities.SummaryItemViewModel.CountRecordsByFormID(XLSForm_IDString);
                         }
                         catch
                         {
@@ -219,23 +220,27 @@ namespace NSAP_ODK.Entities
                 switch (KoboFormType)
                 {
                     case KoboFormType.FormTypeCatchAndEffort:
-                        if (NSAPEntities.VesselUnloadViewModel.Count > 0)
-                        {
-                            //put the form id(or project id guid) in the where clause
-                            try
-                            {
-                                lastSaveDate = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
-                                   .Where(t => t.XFormIdentifier == XLSForm_IDString)
-                                   .Max(t => t.DateTimeSubmitted).ToString("MMM-dd-yyyy HH:mm:ss");
-                            }
-                            catch
-                            {
-                                lastSaveDate = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
-                                    .Max(t => t.DateTimeSubmitted).ToString("MMM-dd-yyyy HH:mm:ss");
-                            }
+                        //if (NSAPEntities.VesselUnloadViewModel.Count > 0)
+                        //{
+                        //    //put the form id(or project id guid) in the where clause
+                        //    try
+                        //    {
+                        //        lastSaveDate = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
+                        //           .Where(t => t.XFormIdentifier == XLSForm_IDString)
+                        //           .Max(t => t.DateTimeSubmitted).ToString("MMM-dd-yyyy HH:mm:ss");
+                        //    }
+                        //    catch
+                        //    {
+                        //        lastSaveDate = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
+                        //            .Max(t => t.DateTimeSubmitted).ToString("MMM-dd-yyyy HH:mm:ss");
+                        //    }
 
-                            //lastSaveDate = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
-                            //    .Max(t => t.DateTimeSubmitted).ToString("MMM-dd-yyyy HH:mm:ss");
+                        //    //lastSaveDate = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
+                        //    //    .Max(t => t.DateTimeSubmitted).ToString("MMM-dd-yyyy HH:mm:ss");
+                        //}
+                        if(NSAPEntities.SummaryItemViewModel.Count>0)
+                        {
+                            lastSaveDate = NSAPEntities.SummaryItemViewModel.LastSavedDateInDatabase(XLSForm_IDString).ToString("MMM-dd-yyyy HH:mm");
                         }
                         break;
 

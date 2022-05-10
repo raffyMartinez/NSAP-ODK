@@ -19,10 +19,17 @@ namespace NSAP_ODK.Entities.Database
             CatchLengthCollection = new ObservableCollection<CatchLength>(CatchLengths.CatchLengths);
             CatchLengthCollection.CollectionChanged += CatchLenFreqCollection_CollectionChanged;
         }
-        public CatchLengthViewModel()
+        public CatchLengthViewModel(bool isNew=false)
         {
-            CatchLengths = new CatchLengthRepository();
-            CatchLengthCollection = new ObservableCollection<CatchLength>(CatchLengths.CatchLengths);
+            CatchLengths = new CatchLengthRepository(isNew);
+            if (isNew)
+            {
+                CatchLengthCollection = new ObservableCollection<CatchLength>();
+            }
+            else
+            {
+                CatchLengthCollection = new ObservableCollection<CatchLength>(CatchLengths.CatchLengths);
+            }
             CatchLengthCollection.CollectionChanged += CatchLenFreqCollection_CollectionChanged;
         }
 
@@ -54,7 +61,7 @@ namespace NSAP_ODK.Entities.Database
         public bool ClearRepository()
         {
             CatchLengthCollection.Clear();
-            return CatchLengths.ClearTable();
+            return CatchLengthRepository.ClearTable();
         }
 
         public CatchLength getCatchLength(int pk)
