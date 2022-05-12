@@ -134,6 +134,7 @@
     <Reference Include="System.Security" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -174,6 +175,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Entities\Database\DownloadedJsonMetadata.cs" />
+    <Compile Include="Entities\Database\FileInfoJSONMetadata.cs" />
     <Compile Include="Entities\Database\GearUnloadComparer.cs" />
     <Compile Include="Entities\Database\LastPrimaryKeys.cs" />
     <Compile Include="Entities\Database\SummaryItem.cs" />
@@ -427,6 +429,7 @@
     <Compile Include="Utilities\ObjectShredder.cs" />
     <Compile Include="Utilities\SerializeWindowState.cs" />
     <Compile Include="NSAPMysql\MySQLConnect.cs" />
+    <Compile Include="Utilities\TimedMessageBox.cs" />
     <Compile Include="Utilities\VesselLandingFixDownload.cs" />
     <Compile Include="VesselUnloadEditorControl\UnloadEditorEventArgs.cs" />
     <Compile Include="VesselUnloadEditorControl\VesselUnloadEditor.xaml.cs">

@@ -1597,8 +1597,15 @@ namespace NSAP_ODK.Entities.Database
                                         case "You cannot add or change a record because a related record is required in table 'fishingVessel'.":
                                             break;
                                         default:
-                                            Logger.Log(odbex);
-                                            success = false;
+                                            if (odbex.Message.Contains("create duplicate values in the index, primary key, or relationship"))
+                                            {
+
+                                            }
+                                            else
+                                            {
+                                                Logger.Log(odbex);
+                                                success = false;
+                                            }
                                             break;
                                     }
                                     break;

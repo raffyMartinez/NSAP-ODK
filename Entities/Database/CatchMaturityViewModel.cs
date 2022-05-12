@@ -7,8 +7,26 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 namespace NSAP_ODK.Entities.Database
 {
-    public class CatchMaturityViewModel
+    public class CatchMaturityViewModel:IDisposable
     {
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // free managed resources
+                CatchMaturityCollection.Clear();
+                CatchMaturityCollection = null;
+                CatchMaturities = null;
+
+            }
+            // free native resources if there are any.
+        }
         private bool _editSuccess;
         public ObservableCollection<CatchMaturity> CatchMaturityCollection { get; set; }
         private CatchMaturityRepository CatchMaturities { get; set; }

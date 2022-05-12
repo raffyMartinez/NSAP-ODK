@@ -7,12 +7,29 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 namespace NSAP_ODK.Entities.Database
 {
-    public class FishingGroundGridViewModel
+    public class FishingGroundGridViewModel:IDisposable
     {
         public bool _editSuccess;
         public ObservableCollection<FishingGroundGrid> FishingGroundGridCollection { get; set; }
         private FishingGroundGridRepository FishingGroundGrids { get; set; }
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // free managed resources
+                FishingGroundGridCollection.Clear();
+                FishingGroundGridCollection = null;
+                FishingGroundGrids = null;
+
+            }
+            // free native resources if there are any.
+        }
         public FishingGroundGridViewModel(VesselUnload parent)
         {
             FishingGroundGrids = new FishingGroundGridRepository(parent);

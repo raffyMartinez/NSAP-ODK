@@ -61,6 +61,10 @@ namespace NSAP_ODK.Views
                             MessageBox.Show(msg, "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
                         }
                     }
+                    else
+                    {
+                        DialogResult = true;
+                    }
                     //DialogResult = true;
                     break;
             }

@@ -84,6 +84,7 @@ namespace NSAP_ODK.Entities.Database
     }
     public class VesselCatch
     {
+
         private VesselUnload _parent;
 
         public CatchLenFreqViewModel CatchLenFreqViewModel { get; set; }

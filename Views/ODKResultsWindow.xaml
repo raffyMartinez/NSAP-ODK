@@ -78,8 +78,8 @@
                 <RowDefinition Height="30"/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
-            <Label x:Name="labelJSONMain" Grid.ColumnSpan="2" Content="Label that contains the file name of the json data set"/>
-            <TreeView Grid.Row="2" x:Name="treeViewJSONNavigator" SelectedItemChanged="OnTreeviewItemChanged"/>
+            <Label x:Name="labelJSONMain" Grid.ColumnSpan="2" Content="Upload JSON of sampled fish landings to local database"/>
+            <TreeView Grid.Row="2" x:Name="treeViewJSONNavigator" SelectedItemChanged="OnTreeviewItemChanged" MouseRightButtonDown="OnTreeMouseRightButtonDown"/>
             <Label x:Name="labelJSONFile" Grid.Row="1" Grid.Column="1" Content="Label for the current json file"/>
             <DataGrid Grid.Row="2" Grid.Column="2" x:Name="gridJSONContent" LoadingRow="OnDataGridLoadingRow" AutoGenerateColumns="False" IsReadOnly="True"/>
         </Grid>

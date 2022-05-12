@@ -623,17 +623,17 @@ namespace NSAP_ODK.Views
                                                     }
                                                     break;
                                                 case "all_not_downloaded":
-                                                    string lastSubmissionDate = ((DateTime)_lastSubmittedDate).ToString("yyyy-MM-ddThh:mm:ss");
-                                                    api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gt\":\"{lastSubmissionDate}\"}}}}";
+                                                    string lastSubmissionDate = (((DateTime)_lastSubmittedDate)).Date.ToString("yyyy-MM-ddTHH:mm:ss");
+                                                    api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gte\":\"{lastSubmissionDate}\"}}}}";
                                                     break;
                                                 case "specify_date_range":
                                                     string start_date = ((DateTime)dateStart.Value).ToString("yyyy-MM-dd");
                                                     string end_date = ((DateTime)dateEnd.Value).ToString("yyyy-MM-dd");
-                                                    api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gt\":\"{start_date}\",\"$lt\":\"{end_date}\"}}}}";
+                                                    api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gte\":\"{start_date}\",\"$lte\":\"{end_date}\"}}}}";
                                                     break;
                                                 case "specify_range_records":
                                                     string start_date1 = ((DateTime)dateStart2.Value).ToString("yyyy-MM-dd");
-                                                    api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gt\":\"{start_date1}\"}}}}&limit={TextBoxLimit.Text}";
+                                                    api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gte\":\"{start_date1}\"}}}}&limit={TextBoxLimit.Text}";
                                                     break;
                                             }
 
@@ -1025,7 +1025,7 @@ namespace NSAP_ODK.Views
                 folderToSave = vfbd.SelectedPath;
 
                 int downloadSize = _formSummary.NumberOfSubmissions - _formSummary.NumberSavedToDatabase;
-                if (!DownloadOptionDownloadAll)
+                if (!DownloadOptionDownloadAll && _jsonOption=="all")
                 {
                     downloadSize = _formSummary.NumberOfSubmissions;
                 }
@@ -1046,12 +1046,13 @@ namespace NSAP_ODK.Views
                     xSer.Serialize(
                         fs, 
                         new DownloadedJsonMetadata {
-                        BatchSize = (int)NumberToDownloadPerBatch,
+                        BatchSize = NumberToDownloadPerBatch,
                         DownloadSize = downloadSize,
                         NumberOfFiles = loops,
                         DBOwner = _formSummary.Owner,
                         FormName = _formSummary.Title,
-                        DateDownloaded = createdOn }
+                        DateDownloaded = createdOn,
+                        DownloadType = _jsonOption }
                     );
                 }   
 

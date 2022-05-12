@@ -10,7 +10,8 @@ namespace NSAP_ODK.Entities.Database
     {
         StartOfUpload,
         Uploading,
-        EndOfUpload
+        EndOfUpload,
+        Cancelled
 
     }
     public class UploadToDbEventArg:EventArgs

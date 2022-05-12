@@ -7,13 +7,31 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 namespace NSAP_ODK.Entities.Database
 {
-    public class GearSoakViewModel
+    public class GearSoakViewModel:IDisposable
     {
 
         private bool _editSuccess;
         public ObservableCollection<GearSoak> GearSoakCollection { get; set; }
         private GearSoakRepository GearSoaks { get; set; }
 
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // free managed resources
+                GearSoakCollection.Clear();
+                GearSoakCollection = null;
+                GearSoaks = null;
+
+            }
+            // free native resources if there are any.
+        }
         public GearSoakViewModel(VesselUnload vu)
         {
             GearSoaks = new GearSoakRepository(vu);

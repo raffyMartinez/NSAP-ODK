@@ -7,11 +7,30 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 namespace NSAP_ODK.Entities.Database
 {
-    public class CatchLengthWeightViewModel
+    public class CatchLengthWeightViewModel:IDisposable
     {
         private bool _editSuccess;
         public ObservableCollection<CatchLengthWeight> CatchLengthWeightCollection { get; set; }
         private CatchLenWeightRepository CatchLengthWeights { get; set; }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // free managed resources
+                CatchLengthWeightCollection.Clear();
+                CatchLengthWeightCollection = null;
+                CatchLengthWeights = null;
+
+            }
+            // free native resources if there are any.
+        }
         public CatchLengthWeightViewModel(VesselCatch vc)
         {
             CatchLengthWeights = new CatchLenWeightRepository(vc);

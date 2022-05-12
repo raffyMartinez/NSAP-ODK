@@ -102,7 +102,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if (GearCode.Length > 0)
+                if (GearCode==null || GearCode.Length > 0)
                 {
                     return NSAPEntities.GearViewModel.GetGear(GearCode);
                 }
@@ -189,7 +189,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if (GearCode.Length == 0)
+                if (GearCode==null || GearCode.Length == 0)
                 {
                     return GearText;
                 }

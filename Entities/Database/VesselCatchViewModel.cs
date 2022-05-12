@@ -7,12 +7,31 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 namespace NSAP_ODK.Entities.Database
 {
-    public class VesselCatchViewModel
+    public class VesselCatchViewModel:IDisposable
     {
         public bool EditSuccess { get; set; }
         public ObservableCollection<VesselCatch> VesselCatchCollection { get; set; }
         private VesselCatchRepository VesselCatches { get; set; }
 
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // free managed resources
+                VesselCatchCollection.Clear();
+                VesselCatchCollection = null;
+                VesselCatches = null;
+
+            }
+            // free native resources if there are any.
+        }
         public List<VesselCatchEdited> GetVesselCatchEditedList(VesselUnload unload)
         {
             List<VesselCatchEdited> vces = new List<VesselCatchEdited>();

@@ -37,6 +37,9 @@ namespace NSAP_ODK.Entities.Database
         private NSAPRegion _nsapRegion;
         private FMA _fma;
         private FishingGround _fishingGround;
+
+
+
         public int PK { get; set; }
         public string NSAPRegionID { get; set; }
         public DateTime SamplingDate { get; set; }

@@ -526,13 +526,17 @@ namespace NSAP_ODK.Entities.Database
             return gu;
         }
 
+        public void RefreshLastPrimaryLeys()
+        {
+            LastPrimaryKeys = SummaryItems.GetLastPrimaryKeys();
+        }
         public LastPrimaryKeys LastPrimaryKeys { get; set; }
         public SummaryItemViewModel()
         {
             SummaryItems = new SummaryItemRepository();
             SummaryItemCollection = new ObservableCollection<SummaryItem>(SummaryItems.SummaryItems);
             SummaryItemCollection.CollectionChanged += SummaryItemCollection_CollectionChanged;
-            LastPrimaryKeys = SummaryItems.GetLastPrimaryKeys();
+            RefreshLastPrimaryLeys();
         }
 
 

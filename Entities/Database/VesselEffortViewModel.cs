@@ -7,13 +7,31 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 namespace NSAP_ODK.Entities.Database
 {
-    public class VesselEffortViewModel
+    public class VesselEffortViewModel:IDisposable
     {
         public bool EditSucceeded { get; set; }
         public ObservableCollection<VesselEffort> VesselEffortCollection { get; set; }
         private VesselEffortRepository VesselEfforts { get; set; }
 
 
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // free managed resources
+                VesselEffortCollection.Clear();
+                VesselEffortCollection = null;
+                VesselEfforts = null;
+
+            }
+            // free native resources if there are any.
+        }
         public VesselEffortViewModel(VesselUnload vu)
         {
             VesselEfforts = new VesselEffortRepository(vu);
