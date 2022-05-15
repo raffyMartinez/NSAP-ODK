@@ -45,23 +45,30 @@ namespace NSAP_ODK.Entities.Database
 
         public List<VesselUnload> AttachedVesselUnloads { get; set; }
         public string Remarks { get; set; }
-        public int PK{ get; set; }
+        public int PK { get; set; }
         public int LandingSiteSamplingID { get; set; }
         public string GearID { get; set; }
         public int? Boats { get; set; }
         public double? Catch { get; set; }
         public VesselUnloadViewModel VesselUnloadViewModel { get; set; }
+
+        public int NumberOfSampledLandings
+        {
+            get
+            {
+                return ListVesselUnload.Count;
+            }
+        }
         public List<VesselUnload> ListVesselUnload
         {
             get
             {
-                if(VesselUnloadViewModel==null )
+                if (VesselUnloadViewModel == null)
                 {
                     VesselUnloadViewModel = new VesselUnloadViewModel(this);
                 }
                 return VesselUnloadViewModel.VesselUnloadCollection.ToList();
-                //return NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
-                //    .Where(t => t.Parent.PK == PK).ToList();
+
             }
         }
 
@@ -71,7 +78,7 @@ namespace NSAP_ODK.Entities.Database
             set { _gear = value; }
             get
             {
-                if(_gear==null)
+                if (_gear == null)
                 {
                     _gear = NSAPEntities.GearViewModel.GetGear(GearID);
                 }
@@ -84,7 +91,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if(string.IsNullOrEmpty(GearID))
+                if (string.IsNullOrEmpty(GearID))
                 {
                     return GearUsedText;
                 }
@@ -99,7 +106,7 @@ namespace NSAP_ODK.Entities.Database
             set { _parent = value; }
             get
             {
-                if(_parent==null)
+                if (_parent == null)
                 {
                     _parent = NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(LandingSiteSamplingID);
                 }

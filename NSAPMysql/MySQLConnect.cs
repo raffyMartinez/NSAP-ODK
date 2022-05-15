@@ -135,6 +135,56 @@ namespace NSAP_ODK.NSAPMysql
             return success && LastError.Length == 0;
         }
 
+        public static bool DeleteDataFromTables()
+        {
+            int counter = 0;
+            if (DeleteTableData("dbo_catch_len_freq")) counter++;
+            if (DeleteTableData("dbo_catch_len_wt")) counter++;
+            if (DeleteTableData("dbo_catch_length")) counter++;
+            if (DeleteTableData("dbo_catch_maturity")) counter++;
+            if (DeleteTableData("dbo_vessel_catch")) counter++;
+            if (DeleteTableData("dbo_fg_grid")) counter++;
+            if (DeleteTableData("dbo_gear_soak")) counter++;
+            if (DeleteTableData("dbo_vessel_effort")) counter++;
+
+            if (DeleteTableData("dbo_vessel_unload_stats")) counter++;
+            if (DeleteTableData("dbo_vessel_unload_1")) counter++;
+            if (DeleteTableData("dbo_vessel_unload")) counter++;
+            if (DeleteTableData("dbo_gear_unload")) counter++;
+            if (DeleteTableData("dbo_lc_fg_sample_day_1")) counter++;
+            if (DeleteTableData("dbo_lc_fg_sample_day")) counter++;
+
+            return counter == 14;
+        }
+
+        private static bool DeleteTableData(string tableName)
+        {
+            bool success = false;
+            using (var con = new MySqlConnection(ConnectionString()))
+            {
+                con.Open();
+                using (var cmd = con.CreateCommand())
+                {
+
+                    cmd.CommandText = $"DELETE FROM {tableName}";
+
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        success = true;
+                    }
+                    catch (MySqlException msex)
+                    {
+
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
         public static int SchemaTableCount(string schemaName = "nsap_odk")
         {
             int count = 0;
@@ -153,11 +203,11 @@ namespace NSAP_ODK.NSAPMysql
                             TableCount = r;
                         }
                     }
-                    catch(MySqlException mx)
+                    catch (MySqlException mx)
                     {
                         Logger.Log(mx);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Logger.Log(ex);
                     }

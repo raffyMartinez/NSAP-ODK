@@ -212,6 +212,30 @@ namespace NSAP_ODK.Entities
             }
         }
 
+        public string LastSubmittedDateInDatabase
+        {
+            get
+            {
+                string lastSaveDate = "";
+                switch(KoboFormType)
+                {
+                    case KoboFormType.FormTypeCatchAndEffort:
+                        if (NSAPEntities.SummaryItemViewModel.Count > 0)
+                        {
+                            DateTime? ld = NSAPEntities.SummaryItemViewModel.LastSubmittedDateInDatabase((XLSForm_IDString));
+                            if (ld != null)
+                            {
+                                lastSaveDate = ((DateTime)ld).ToString("MMM-dd-yyyy HH:mm");
+                            }
+                        }
+                        break;
+                    case KoboFormType.FormTypeVesselCountAndCatchEstimate:
+                        break;
+                }
+
+                return lastSaveDate;
+            }
+        }
         public string LastSaveDateInDatabase
         {
             get
@@ -240,7 +264,11 @@ namespace NSAP_ODK.Entities
                         //}
                         if(NSAPEntities.SummaryItemViewModel.Count>0)
                         {
-                            lastSaveDate = NSAPEntities.SummaryItemViewModel.LastSavedDateInDatabase(XLSForm_IDString).ToString("MMM-dd-yyyy HH:mm");
+                            DateTime? ld = NSAPEntities.SummaryItemViewModel.LastSavedDateInDatabase((XLSForm_IDString));
+                            if(ld!=null)
+                            {
+                                lastSaveDate = ((DateTime)ld).ToString("MMM-dd-yyyy HH:mm");
+                            }
                         }
                         break;
 

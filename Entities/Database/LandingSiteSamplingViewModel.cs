@@ -177,8 +177,11 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-
         public List<OrphanedLandingSite> OrphanedLandingSites()
+        {
+            return NSAPEntities.SummaryItemViewModel.GetOrphanedLandingSites();    
+        }
+        public List<OrphanedLandingSite> OrphanedLandingSitesi()
         {
             var items = LandingSiteSamplingCollection
                 .Where(t => t.LandingSiteID == null)
@@ -205,9 +208,6 @@ namespace NSAP_ODK.Entities.Database
         {
             List<LandingSiteSampling> samplings = new List<LandingSiteSampling>();
 
-            //if (LandingSiteSamplingCollection.FirstOrDefault(t => t.LandingSiteID == replacement.LandingSiteID) != null)
-            //{
-
             samplings = LandingSiteSamplingCollection.Where(t => t.LandingSiteID != null &&
                                                                  t.FMAID == ols.FMA.FMAID &&
                                                                  t.FishingGround.Code == ols.FishingGround.Code &&
@@ -215,21 +215,12 @@ namespace NSAP_ODK.Entities.Database
                                                                  t.SamplingDate.Date == samplingDate.Date).ToList();
             if (samplings.Count > 0)
             {
-                //return samplings.FirstOrDefault();
                 return samplings[0];
             }
             else
             {
                 return null;
             }
-            //}
-            //else
-            //{
-            //    return null;
-            //}
-
-
-
         }
         public LandingSiteSamplingViewModel()
         {
@@ -335,7 +326,11 @@ namespace NSAP_ODK.Entities.Database
 
         public LandingSiteSampling getLandingSiteSampling(FromJson.VesselLanding landing)
         {
-            if (landing.LandingSiteText != null && landing.LandingSiteText.Length > 0)
+            if(landing.FishingGround==null)
+            {
+                return null;
+            }
+            else if (landing.LandingSiteText != null && landing.LandingSiteText.Length > 0)
             {
                 return LandingSiteSamplingCollection
                     .Where(t => t.NSAPRegionID==landing.NSAPRegionCode &&

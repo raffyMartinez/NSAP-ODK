@@ -23,11 +23,11 @@ namespace NSAP_ODK.Entities.Database
 
         public static GearUnload GearUnloadFromID(int unloadID)
         {
-            foreach(LandingSiteSampling lss in NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection)
+            foreach (LandingSiteSampling lss in NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection)
             {
-                foreach(GearUnload gu in lss.GearUnloadViewModel.GearUnloadCollection)
+                foreach (GearUnload gu in lss.GearUnloadViewModel.GearUnloadCollection)
                 {
-                    if(gu.PK==unloadID)
+                    if (gu.PK == unloadID)
                     {
                         return gu;
                     }
@@ -35,7 +35,7 @@ namespace NSAP_ODK.Entities.Database
             }
             return null;
         }
-        public static int GearUnloadCount(bool isCompleted=false)
+        public static int GearUnloadCount(bool isCompleted = false)
         {
             return GearUnloadRepository.GearUnloadCount(isCompleted);
         }
@@ -54,7 +54,7 @@ namespace NSAP_ODK.Entities.Database
             //    .GroupBy(t => t.GearUsedText).ToList();
 
             var items = GearUnloadCollection
-                .Where(t => (t.GearID==null ||  t.GearID.Length == 0) && t.GearUsedText != null && t.GearUsedText.Length > 0)
+                .Where(t => (t.GearID == null || t.GearID.Length == 0) && t.GearUsedText != null && t.GearUsedText.Length > 0)
                 .OrderBy(t => t.GearUsedText)
                 .GroupBy(t => t.GearUsedText).ToList();
 
@@ -65,7 +65,7 @@ namespace NSAP_ODK.Entities.Database
                 var orphan = new OrphanedFishingGear
                 {
                     Name = item.Key,
-                    GearUnloads = GearUnloadCollection.Where(t => t.GearUsedText== item.Key).ToList()
+                    GearUnloads = GearUnloadCollection.Where(t => t.GearUsedText == item.Key).ToList()
                 };
                 list.Add(orphan);
             }
@@ -74,10 +74,10 @@ namespace NSAP_ODK.Entities.Database
 
         }
 
-        public List<GearUnload>GearUnloadsWithNoBoatCountAndChildVesselUnoad()
+        public List<GearUnload> GearUnloadsWithNoBoatCountAndChildVesselUnoad()
         {
             List<GearUnload> list = new List<GearUnload>();
-            foreach(var gu in GearUnloadCollection.Where(t=>t.Boats==null && t.Catch==null))
+            foreach (var gu in GearUnloadCollection.Where(t => t.Boats == null && t.Catch == null))
             {
                 if (NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(gu) == null)
                 {
@@ -133,6 +133,11 @@ namespace NSAP_ODK.Entities.Database
         public List<GearUnload> GetGearUnloads(LandingSiteSampling parentSampling)
         {
             return GearUnloadCollection.Where(t => t.Parent.PK == parentSampling.PK).ToList();
+        }
+
+        public List<GearUnload> GetGearUnloads()
+        {
+            return GearUnloadCollection.ToList();
         }
 
 
@@ -344,9 +349,18 @@ namespace NSAP_ODK.Entities.Database
         }
 
 
-        public GearUnload getGearUnload(int pk)
+        public GearUnload getGearUnload(int pk, bool loadVesselViewModel = false)
         {
-            return GearUnloadCollection.FirstOrDefault(n => n.PK == pk);
+            var gu = GearUnloadCollection.FirstOrDefault(n => n.PK == pk);
+            if (loadVesselViewModel)
+            {
+                if(gu.VesselUnloadViewModel==null)
+                {
+                    gu.VesselUnloadViewModel = new VesselUnloadViewModel(gu);
+                }
+            }
+            return gu;
+
         }
 
         public GearUnload getGearUnload(ExcelMainSheet ex)
@@ -457,8 +471,8 @@ namespace NSAP_ODK.Entities.Database
             get
             {
 
-                    return GearUnloads.MaxRecordNumber() + 1;
-                
+                return GearUnloads.MaxRecordNumber() + 1;
+
             }
         }
 

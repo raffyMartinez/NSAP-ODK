@@ -816,6 +816,7 @@ namespace NSAP_ODK
                     dataGridEntities.Columns.Add(new DataGridTextColumn { Header = "Barangay", Binding = new Binding("Barangay") });
                     dataGridEntities.Columns.Add(new DataGridTextColumn { Header = "Longitude", Binding = new Binding("Longitude") });
                     dataGridEntities.Columns.Add(new DataGridTextColumn { Header = "Latitude", Binding = new Binding("Latitude") });
+                    dataGridEntities.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("WhereUsed") });
                     break;
 
                 case NSAPEntity.NSAPRegion:
@@ -925,7 +926,8 @@ namespace NSAP_ODK
                     break;
 
                 case NSAPEntity.LandingSite:
-                    dataGridEntities.ItemsSource = NSAPEntities.LandingSiteViewModel.LandingSiteCollection.OrderBy(t => t.Municipality.Province.ProvinceName).ThenBy(t => t.Municipality.MunicipalityName).ThenBy(t => t.LandingSiteName);
+
+                    dataGridEntities.ItemsSource = NSAPEntities.LandingSiteViewModel.GetAllLandingSitesShowUsed().OrderBy(t => t.Municipality.Province.ProvinceName).ThenBy(t => t.Municipality.MunicipalityName).ThenBy(t => t.LandingSiteName);
                     break;
 
                 case NSAPEntity.NSAPRegion:
@@ -2853,7 +2855,9 @@ namespace NSAP_ODK
                         col.IsReadOnly = true;
                         GridNSAPData.Columns.Add(col);
 
+
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("GearUsedName"), IsReadOnly = true });
+                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "# of sampled landings", Binding = new Binding("NumberOfSampledLandings"), IsReadOnly = true });
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Boats", Binding = new Binding("Boats"), IsReadOnly = false });
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Catch", Binding = new Binding("Catch"), IsReadOnly = false });
 

@@ -900,7 +900,7 @@ namespace NSAP_ODK.Views
             }
         }
 
-        private async Task ProcessAPICall(string api_call, string filename = null)
+        private async Task ProcessAPICall(string api_call, int? currentLoop = null, int? loops = null, string filename = null)
         {
             using (var httpClient = new HttpClient())
             {
@@ -911,7 +911,7 @@ namespace NSAP_ODK.Views
                     request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
                     try
                     {
-                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData });
+                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData, Loop = currentLoop, Loops = loops });
 
                         var response = await httpClient.SendAsync(request);
                         var bytes = await response.Content.ReadAsByteArrayAsync();
@@ -1025,7 +1025,7 @@ namespace NSAP_ODK.Views
                 folderToSave = vfbd.SelectedPath;
 
                 int downloadSize = _formSummary.NumberOfSubmissions - _formSummary.NumberSavedToDatabase;
-                if (!DownloadOptionDownloadAll && _jsonOption=="all")
+                if (!DownloadOptionDownloadAll && _jsonOption == "all")
                 {
                     downloadSize = _formSummary.NumberOfSubmissions;
                 }
@@ -1044,27 +1044,29 @@ namespace NSAP_ODK.Views
                 {
                     XmlSerializer xSer = new XmlSerializer(typeof(DownloadedJsonMetadata));
                     xSer.Serialize(
-                        fs, 
-                        new DownloadedJsonMetadata {
-                        BatchSize = NumberToDownloadPerBatch,
-                        DownloadSize = downloadSize,
-                        NumberOfFiles = loops,
-                        DBOwner = _formSummary.Owner,
-                        FormName = _formSummary.Title,
-                        DateDownloaded = createdOn,
-                        DownloadType = _jsonOption }
+                        fs,
+                        new DownloadedJsonMetadata
+                        {
+                            BatchSize = NumberToDownloadPerBatch,
+                            DownloadSize = downloadSize,
+                            NumberOfFiles = loops,
+                            DBOwner = _formSummary.Owner,
+                            FormName = _formSummary.Title,
+                            DateDownloaded = createdOn,
+                            DownloadType = _jsonOption
+                        }
                     );
-                }   
+                }
 
 
                 for (int loop = 0; loop < loops; loop++)
                 {
                     string api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&sort={{\"_id\":1}}&start={((int)NumberToDownloadPerBatch * loop) + 1}&limit={NumberToDownloadPerBatch}";
-                    if(_jsonOption=="all_not_downloaded")
+                    if (_jsonOption == "all_not_downloaded")
                     {
-                        api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&sort={{\"_id\":1}}&start={_formSummary.NumberSavedToDatabase+(loop * (int)NumberToDownloadPerBatch)+1}&limit={NumberToDownloadPerBatch}";
+                        api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&sort={{\"_id\":1}}&start={_formSummary.NumberSavedToDatabase + (loop * (int)NumberToDownloadPerBatch) + 1}&limit={NumberToDownloadPerBatch}";
                     }
-                    await ProcessAPICall(api_call, $@"{fileName}_{loop + 1}.json");
+                    await ProcessAPICall(api_call, loop, loops, $@"{fileName}_{loop + 1}.json" );
                 }
 
                 MessageBox.Show("Downloading JSON done!", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -1248,6 +1250,11 @@ namespace NSAP_ODK.Views
                 case DownloadFromServerIntent.DownloadingData:
                     ProgressBar.Value += 1;
                     labelProgress.Content = "Downloading data";
+
+                    if(e.Loops!=null)
+                    {
+                        labelProgress.Content = $"Downloading data {e.Loop+1} of {e.Loops}";
+                    }
                     break;
                 case DownloadFromServerIntent.SavingToJSONTextFile:
                     ProgressBar.Value += 1;
@@ -1328,7 +1335,7 @@ namespace NSAP_ODK.Views
                 }
             }
 
-            if (_formSummary.LastSaveDateInDatabase.Length > 0 && DateTime.TryParse(_formSummary.LastSaveDateInDatabase, out DateTime v))
+            if (_formSummary.LastSubmittedDateInDatabase.Length > 0 && DateTime.TryParse(_formSummary.LastSubmittedDateInDatabase, out DateTime v))
             {
                 _lastSubmittedDate = v;
                 rbNotDownloaded.IsChecked = true;
@@ -1369,6 +1376,7 @@ namespace NSAP_ODK.Views
                 {
                     case "form_id":
                         _formID = treeViewItem.Header.ToString();
+
                         _formSummary = new FormSummary(_koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)));
                         _versionID = _formSummary.KoboForm.Version_ID;
                         _numberOfSubmissions = _formSummary.NumberOfSubmissions;
@@ -1396,7 +1404,8 @@ namespace NSAP_ODK.Views
                         propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "NumberOfSubmissions", DisplayName = "Number of submissions", DisplayOrder = 11, Description = "Number of submissions", Category = "Server data" });
                         propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "NumberOfUsers", DisplayName = "Number of users", DisplayOrder = 12, Description = "Number of users", Category = "Server data" });
                         propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "NumberSavedToDatabase", DisplayName = "Number of submissions", DisplayOrder = 13, Description = "Number of submissions saved", Category = "Saved in database" });
-                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LastSaveDateInDatabase", DisplayName = "Date of last submission", DisplayOrder = 14, Description = "Date of last sumission", Category = "Saved in database" });
+                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LastSaveDateInDatabase", DisplayName = "Date of last download from server", DisplayOrder = 14, Description = "Date of last download from server", Category = "Saved in database" });
+                        propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LastSubmittedDateInDatabase", DisplayName = "Date of last submission", DisplayOrder = 15, Description = "Date of last sumission", Category = "Saved in database" });
 
                         propertyGrid.Visibility = Visibility.Visible;
 

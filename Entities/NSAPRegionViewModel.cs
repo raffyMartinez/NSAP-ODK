@@ -603,6 +603,11 @@ namespace NSAP_ODK.Entities
         public NSAPRegion GetNSAPRegion(string code)
         {
             CurrentEntity = NSAPRegionCollection.FirstOrDefault(n => n.Code == code);
+            var nrwe = NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(CurrentEntity);
+            CurrentEntity.FMAs = nrwe.NSAPRegion.FMAs;
+            CurrentEntity.FishingVessels = nrwe.NSAPRegion.FishingVessels;
+            CurrentEntity.Gears = nrwe.NSAPRegion.Gears;
+            CurrentEntity.NSAPEnumerators = nrwe.NSAPRegion.NSAPEnumerators;
             return CurrentEntity;
         }
 

@@ -1318,6 +1318,7 @@ namespace NSAP_ODK.Views
                         case NSAPEntity.NSAPRegion:
                             var r = (NSAPRegionEdit)PropertyGrid.SelectedObject;
                             NSAPRegion nr = new NSAPRegion { Code = r.NSAPRegion.Code, Name = r.Name, ShortName = r.ShortName,Sequence=r.NSAPRegion.Sequence };
+                            //nr.NSAPEnumerators=r.NSAPRegion.NSAPEnumerators
                             success = NSAPEntities.NSAPRegionViewModel.UpdateRecordInRepo(nr);
                             break;
                         case NSAPEntity.NSAPRegionFMA:

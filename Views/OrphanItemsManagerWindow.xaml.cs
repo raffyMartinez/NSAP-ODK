@@ -35,11 +35,13 @@ namespace NSAP_ODK.Views
         private NotFishSpecies _replacementNotFishSpecies;
         private bool _isMultiline;
         private FishingVessel _fishingVessel;
+        private bool _closingDeleteDone;
         public OrphanItemsManagerWindow()
         {
             InitializeComponent();
             Loaded += OnWindowLoaded;
             Closing += OnWindowClosing;
+            dataGrid.LoadingRow += Grid_LoadingRow;
         }
 
         public void ReplaceChecked()
@@ -200,8 +202,38 @@ namespace NSAP_ODK.Views
 
         private void OnWindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            this.SavePlacement();
-            Closing -= OnWindowClosing;
+            if (!_closingDeleteDone && _countReplaced > 0 && NSAPEntity == NSAPEntity.LandingSite && dataGrid.Items.Count > 0)
+            {
+                if (MessageBox.Show("Remaining orphaned landing sites can be safely deleted from the database\r\n\r\n" +
+                                   "Select Yes to safely delete items", "NSAP-ODK Database",
+                                   MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.Yes)
+                {
+                    foreach (OrphanedLandingSite item in dataGrid.Items)
+                    {
+                        foreach (var sampling in item.LandingSiteSamplings)
+                        {
+                            if (sampling.GearUnloadViewModel.GetGearUnloads(sampling).Count == 0)
+                            {
+                                if (NSAPEntities.LandingSiteSamplingViewModel.DeleteRecordFromRepo(sampling))
+                                {
+
+                                }
+                            }
+                        }
+                    }
+
+                    RefreshItemsSource();
+                    e.Cancel = true;
+                    _closingDeleteDone = true;
+                }
+            }
+            if (!e.Cancel)
+            {
+
+                this.SavePlacement();
+                Closing -= OnWindowClosing;
+            }
+
         }
         protected override void OnSourceInitialized(EventArgs e)
         {
@@ -388,21 +420,25 @@ namespace NSAP_ODK.Views
                             {
                                 unload.NSAPEnumerator = ReplacementEnumerator;
                                 unload.NSAPEnumeratorID = ReplacementEnumerator.ID;
-                                if (NSAPEntities.VesselUnloadViewModel.UpdateRecordInRepo(unload))
+                                if (unload.ContainerViewModel.UpdateRecordInRepo(unload) && NSAPEntities.SummaryItemViewModel.UpdateRecordInRepo(unload))
                                 {
+
                                     _countReplaced++;
                                     ShowProgressWhileReplacing(_countReplaced, $"Updated enumerator {_countReplaced} of {_countForReplacement}");
 
                                 }
                             }
 
-                            foreach (var vesselCounting in orpahn.LandingSiteSamplings)
+                            if (orpahn.LandingSiteSamplings != null)
                             {
-                                vesselCounting.EnumeratorID = ReplacementEnumerator.ID;
-                                if (NSAPEntities.LandingSiteSamplingViewModel.UpdateRecordInRepo(vesselCounting))
+                                foreach (var vesselCounting in orpahn.LandingSiteSamplings)
                                 {
-                                    _countReplaced++;
-                                    ShowProgressWhileReplacing(_countReplaced, $"Updated enumerator {_countReplaced} of {_countForReplacement}");
+                                    vesselCounting.EnumeratorID = ReplacementEnumerator.ID;
+                                    if (NSAPEntities.LandingSiteSamplingViewModel.UpdateRecordInRepo(vesselCounting))
+                                    {
+                                        _countReplaced++;
+                                        ShowProgressWhileReplacing(_countReplaced, $"Updated enumerator {_countReplaced} of {_countForReplacement}");
+                                    }
                                 }
                             }
                         }
@@ -421,26 +457,27 @@ namespace NSAP_ODK.Views
                             foreach (var samplingWithOrphanedLandingSite in selectedOrphanedLandingSite.LandingSiteSamplings)
                             {
                                 counter++;
+
                                 //search for duplictes that will happen if we update landing site
                                 //duplication will happen in landing site, fishing ground and sampling date
-                                var sampling = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(selectedOrphanedLandingSite, ReplacementLandingSite, samplingWithOrphanedLandingSite.SamplingDate);
-                                if (sampling != null)
+                                var landingSiteSampling = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(selectedOrphanedLandingSite, ReplacementLandingSite, samplingWithOrphanedLandingSite.SamplingDate);
+
+                                if (landingSiteSampling != null)
                                 {
                                     //if(sampling.UserName!=null && sampling.UserName.Length==0)
                                     //{
-                                    sampling.UserName = samplingWithOrphanedLandingSite.UserName;
-                                    sampling.DeviceID = samplingWithOrphanedLandingSite.DeviceID;
-                                    sampling.DateSubmitted = samplingWithOrphanedLandingSite.DateSubmitted;
-                                    sampling.XFormIdentifier = samplingWithOrphanedLandingSite.XFormIdentifier;
-                                    sampling.DateAdded = samplingWithOrphanedLandingSite.DateAdded;
-                                    sampling.FormVersion = samplingWithOrphanedLandingSite.FormVersion;
-                                    sampling.FromExcelDownload = samplingWithOrphanedLandingSite.FromExcelDownload;
-                                    sampling.RowID = samplingWithOrphanedLandingSite.RowID;
-                                    sampling.EnumeratorText = samplingWithOrphanedLandingSite.EnumeratorText;
-                                    sampling.EnumeratorID = samplingWithOrphanedLandingSite.EnumeratorID;
-                                    if (NSAPEntities.LandingSiteSamplingViewModel.UpdateRecordInRepo(sampling))
+                                    landingSiteSampling.UserName = samplingWithOrphanedLandingSite.UserName;
+                                    landingSiteSampling.DeviceID = samplingWithOrphanedLandingSite.DeviceID;
+                                    landingSiteSampling.DateSubmitted = samplingWithOrphanedLandingSite.DateSubmitted;
+                                    landingSiteSampling.XFormIdentifier = samplingWithOrphanedLandingSite.XFormIdentifier;
+                                    landingSiteSampling.DateAdded = samplingWithOrphanedLandingSite.DateAdded;
+                                    landingSiteSampling.FormVersion = samplingWithOrphanedLandingSite.FormVersion;
+                                    landingSiteSampling.FromExcelDownload = samplingWithOrphanedLandingSite.FromExcelDownload;
+                                    landingSiteSampling.RowID = samplingWithOrphanedLandingSite.RowID;
+                                    landingSiteSampling.EnumeratorText = samplingWithOrphanedLandingSite.EnumeratorText;
+                                    landingSiteSampling.EnumeratorID = samplingWithOrphanedLandingSite.EnumeratorID;
+                                    if (NSAPEntities.LandingSiteSamplingViewModel.UpdateRecordInRepo(landingSiteSampling))
                                     {
-
                                         samplingWithOrphanedLandingSite.UserName = "";
                                         samplingWithOrphanedLandingSite.DeviceID = "";
                                         samplingWithOrphanedLandingSite.DateSubmitted = null;
@@ -460,13 +497,14 @@ namespace NSAP_ODK.Views
 
                                     //}
 
-                                    foreach (GearUnload gu in NSAPEntities.GearUnloadViewModel.GetGearUnloads(samplingWithOrphanedLandingSite))
+                                    foreach (GearUnload gu in samplingWithOrphanedLandingSite.GearUnloadViewModel.GetGearUnloads())
                                     {
-                                        gu.Parent = sampling;
-                                        gu.LandingSiteSamplingID = gu.Parent.PK;
-                                        if (NSAPEntities.GearUnloadViewModel.UpdateRecordInRepo(gu))
+                                        gu.Parent = landingSiteSampling;
+                                        gu.LandingSiteSamplingID = landingSiteSampling.PK;
+                                        if (samplingWithOrphanedLandingSite.GearUnloadViewModel.UpdateRecordInRepo(gu))
                                         {
-                                            var otherGearUnload = NSAPEntities.GearUnloadViewModel.getOtherGearUnload(gearUnload: gu);
+                                            NSAPEntities.SummaryItemViewModel.UpdateRecordsInRepo(gu);
+                                            var otherGearUnload = samplingWithOrphanedLandingSite.GearUnloadViewModel.getOtherGearUnload(gearUnload: gu);
                                             if (otherGearUnload != null)
                                             {
                                                 otherGearUnload.Boats = gu.Boats;
@@ -495,6 +533,8 @@ namespace NSAP_ODK.Views
                                         ShowProgressWhileReplacing(_countReplaced, $"Updated landing site {_countReplaced} of {_countForReplacement}");
                                     }
                                 }
+
+                                NSAPEntities.SummaryItemViewModel.UpdateRecordsInRepo(selectedOrphanedLandingSite.LandingSiteName, ReplacementLandingSite.LandingSiteID);
                             }
 
                         }
@@ -517,7 +557,7 @@ namespace NSAP_ODK.Views
                 case NSAPEntity.NonFishSpecies:
                     break;
                 case NSAPEntity.LandingSite:
-                    dataGrid.DataContext = NSAPEntities.LandingSiteSamplingViewModel.OrphanedLandingSites();
+                    dataGrid.DataContext = NSAPEntities.LandingSiteSamplingViewModel.OrphanedLandingSites().OrderBy(t => t.LandingSiteName.Trim()).ToList();
 
                     break;
                 case NSAPEntity.Enumerator:
@@ -550,29 +590,7 @@ namespace NSAP_ODK.Views
                     //dataGrid.Items.Refresh();
                     RefreshItemsSource();
 
-                    if (dataGrid.Items.Count > 0 && NSAPEntity == NSAPEntity.LandingSite)
-                    {
-                        if (MessageBox.Show("Remaining orphaned landing sites can be safely deleted from the database\r\n\r\n" +
-                                           "Select Yes to safely delete items", "NSAP-ODK Database",
-                                           MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.Yes)
-                        {
-                            foreach (OrphanedLandingSite item in dataGrid.Items)
-                            {
-                                foreach (var sampling in item.LandingSiteSamplings)
-                                {
-                                    if (NSAPEntities.GearUnloadViewModel.GetGearUnloads(sampling).Count == 0)
-                                    {
-                                        if (NSAPEntities.LandingSiteSamplingViewModel.DeleteRecordFromRepo(sampling))
-                                        {
 
-                                        }
-                                    }
-                                }
-                            }
-
-                            RefreshItemsSource();
-                        }
-                    }
 
                     _timer.Interval = TimeSpan.FromSeconds(3);
                     _timer.Start();
@@ -659,12 +677,17 @@ namespace NSAP_ODK.Views
                                         }
                                     }
                                     _countForReplacement += ((OrphanedEnumerator)item).SampledLandings.Count;
-                                    _countForReplacement += ((OrphanedEnumerator)item).LandingSiteSamplings.Count;
+                                    if (((OrphanedEnumerator)item).LandingSiteSamplings != null)
+                                    {
+                                        _countForReplacement += ((OrphanedEnumerator)item).LandingSiteSamplings.Count;
+                                    }
 
                                 }
                                 break;
 
                         }
+
+
 
 
                     }

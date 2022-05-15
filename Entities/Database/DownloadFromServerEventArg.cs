@@ -28,5 +28,9 @@ namespace NSAP_ODK.Entities.Database
         public string FormName { get; set; }
 
         public string FileName { get; set; }
+
+        public int? Loop { get; set; }
+
+        public int? Loops { get; set; }
     }
 }

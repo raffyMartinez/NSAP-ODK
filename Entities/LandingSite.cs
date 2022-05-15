@@ -24,6 +24,9 @@ namespace NSAP_ODK.Entities
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
 
+        public bool IsUsed { get; set; }
+
+        public string WhereUsed { get; set; }
         public override bool Equals(object obj)
         {
             var otherLS = obj as LandingSite;

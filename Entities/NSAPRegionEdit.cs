@@ -18,13 +18,14 @@ namespace NSAP_ODK.Entities
 
         public void Refresh()
         {
-            NSAPRegion = _nsapRegion;
-            Name = _nsapRegion.Name;
-            ShortName = _nsapRegion.ShortName;
-            FMAs = _nsapRegion.FMAs.Count;
-            Gears = _nsapRegion.Gears.Count;
-            Vessels = _nsapRegion.FishingVessels.Count;
-            Enumerators = _nsapRegion.NSAPEnumerators.Count;
+            
+            NSAPRegion= NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(_nsapRegion).NSAPRegion;
+            Name = NSAPRegion.Name;
+            ShortName = NSAPRegion.ShortName;
+            FMAs = NSAPRegion.FMAs.Count;
+            Gears = NSAPRegion.Gears.Count;
+            Vessels = NSAPRegion.FishingVessels.Count;
+            Enumerators = NSAPRegion.NSAPEnumerators.Count;
             ID = NSAPRegion.Code;
         }
 

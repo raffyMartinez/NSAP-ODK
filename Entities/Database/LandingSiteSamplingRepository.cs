@@ -21,7 +21,12 @@ namespace NSAP_ODK.Entities.Database
         {
             LandingSiteSamplings = getLandingSiteSamplings();
         }
+
         public int MaxRecordNumber()
+        {
+            return NSAPEntities.SummaryItemViewModel.GetLandingSiteSamplingMaxRecordNumber();
+        }
+        public int MaxRecordNumber_1()
         {
             int max_rec_no = 0;
             if (Global.Settings.UsemySQL)
@@ -350,7 +355,7 @@ namespace NSAP_ODK.Entities.Database
                     }
                     catch (MySqlException msex)
                     {
-                        Logger.Log(msex.InnerException.Message);
+                        Logger.Log(msex.Message);
                     }
                     catch (Exception ex)
                     {
@@ -637,7 +642,7 @@ namespace NSAP_ODK.Entities.Database
                                     update.Parameters.Add("@enum_id", MySqlDbType.VarChar).Value = item.EnumeratorID;
                                 }
                                 update.Parameters.Add("@enum_text", MySqlDbType.VarChar).Value = item.EnumeratorText;
-                                update.Parameters.Add("@pk", MySqlDbType.Int32).Value = item.PK;
+                                update.Parameters.Add("@pk1", MySqlDbType.Int32).Value = item.PK;
 
                                 update.CommandText = @"Update dbo_lc_fg_sample_day_1 set
                                                     datetime_submitted = @submitted,
@@ -650,7 +655,7 @@ namespace NSAP_ODK.Entities.Database
                                                     row_id = @row_id,
                                                     enumerator_id = @enum_id,
                                                     enumerator_text = @enum_text
-                                                 WHERE unload_day_id = @pk";
+                                                 WHERE unload_day_id = @pk1";
 
                                 success = false;
 

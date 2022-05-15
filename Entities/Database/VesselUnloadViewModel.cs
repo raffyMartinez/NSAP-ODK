@@ -570,7 +570,9 @@ namespace NSAP_ODK.Entities.Database
 
         public VesselUnload getVesselUnload(int pk)
         {
-            return VesselUnloadCollection.FirstOrDefault(n => n.PK == pk);
+            var vu = VesselUnloadCollection.FirstOrDefault(n => n.PK == pk);
+            vu.ContainerViewModel = this;
+            return vu;
         }
 
 

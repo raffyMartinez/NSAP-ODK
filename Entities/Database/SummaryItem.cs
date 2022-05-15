@@ -17,6 +17,8 @@ namespace NSAP_ODK.Entities.Database
                 return SamplingDate.ToString("MMM-dd-yyyy HH:mm");
             }
         }
+
+        public DateTime DateSubmitted { get; set; }
         public string GPSNameToUse
         {
             get

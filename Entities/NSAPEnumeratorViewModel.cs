@@ -102,7 +102,7 @@ namespace NSAP_ODK.Entities
                     {
                         NSAPEntities.NSAPEnumeratorViewModel.FirstSamplingOfEnumerators = NSAPEntities.NSAPEnumeratorViewModel
                                                                                                 .GetFirstSamplingOfEnumerators()
-                                                                                                .Where(t=>t.NSAPRegion.Code==region.Code)
+                                                                                                .Where(t => t.NSAPRegion.Code == region.Code)
                                                                                                 .ToList();
                     }
 
@@ -125,7 +125,7 @@ namespace NSAP_ODK.Entities
                                 DateOfFirstSampling = NSAPEntities.NSAPEnumeratorViewModel.FirstSamplingOfEnumerators
                                                       .FirstOrDefault(t => t.NSAPRegion.Code == region.Code && t.Enumerator.Name == en.Key)
                                                       ?.DateFirstSampling
-                        };
+                            };
                             summaries.Add(es);
                         }
                     }
@@ -140,7 +140,7 @@ namespace NSAP_ODK.Entities
                     };
                     summaries.Add(ens);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Utilities.Logger.Log(ex);
                 }
@@ -164,7 +164,7 @@ namespace NSAP_ODK.Entities
                             .OrderByDescending(t => t.DateAddedToDatabase)
                             .ToList();
 
-                        var unloads_latest = ve.Where(t => t.Parent.GearUsedName == ve[0].Parent.GearUsedName).OrderByDescending(t=>t.SamplingDate).ToList();
+                        var unloads_latest = ve.Where(t => t.Parent.GearUsedName == ve[0].Parent.GearUsedName).OrderByDescending(t => t.SamplingDate).ToList();
 
                         EnumeratorSummary es = new EnumeratorSummary
                         {
@@ -177,12 +177,12 @@ namespace NSAP_ODK.Entities
                             NumberOfLandingsWithCatchComposition = unloads_latest.Count(t => t.HasCatchComposition == true),
                             DateOfLatestSampling = ve[0].SamplingDate,
                             UploadDate = (DateTime)ve[0].DateAddedToDatabase,
-                            LatestEformVersion = unloads_latest[0].FormVersion.Replace("Version ",""),
+                            LatestEformVersion = unloads_latest[0].FormVersion.Replace("Version ", ""),
                             RegionName = region.ShortName
                         };
                         summaries.Add(es);
 
-                        
+
                     }
                 }
                 summaries = summaries.OrderBy(t => t.UploadDate).ToList();
@@ -218,7 +218,7 @@ namespace NSAP_ODK.Entities
                     var unloads_row = unloads.Where(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key).ToList();
                     EnumeratorSummary es = new EnumeratorSummary
                     {
-                        
+
                         LandingSite = ls.Key,
                         Gear = g.Key,
                         //NumberOfLandingsSampled = unloads.Count(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key),
@@ -232,8 +232,8 @@ namespace NSAP_ODK.Entities
                         //    Where(t => t.HasCatchComposition == true &&
                         //    t.Parent.Parent.LandingSiteName == ls.Key &&
                         //    t.Parent.GearUsedName == g.Key).ToList().Count,
-                        NumberOfLandingsWithCatchComposition = unloads_row.Count(t=>t.HasCatchComposition==true),
-                        NumberOfTrackedLandings = unloads_row.Count(t=>t.OperationIsTracked==true),
+                        NumberOfLandingsWithCatchComposition = unloads_row.Count(t => t.HasCatchComposition == true),
+                        NumberOfTrackedLandings = unloads_row.Count(t => t.OperationIsTracked == true),
                         DateOfFirstSampling = unloads.Where(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key).OrderBy(t => t.SamplingDate).FirstOrDefault().SamplingDate,
                         DateOfLatestSampling = unloads.Where(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key).OrderByDescending(t => t.SamplingDate).FirstOrDefault().SamplingDate,
                         UploadDate = unloads.Where(t => t.Parent.GearUsedName == g.Key && t.Parent.Parent.LandingSiteName == ls.Key).OrderByDescending(t => t.DateTimeSubmitted).FirstOrDefault().DateTimeSubmitted,
@@ -246,10 +246,10 @@ namespace NSAP_ODK.Entities
 
             EnumeratorSummary ens = new EnumeratorSummary
             {
-                LandingSite="Grand total",
+                LandingSite = "Grand total",
                 NumberOfLandingsSampled = unloads.Count,
-                NumberOfLandingsWithCatchComposition=unloads.Count(t=>t.HasCatchComposition==true),
-                NumberOfTrackedLandings = unloads.Count(t=>t.OperationIsTracked==true)
+                NumberOfLandingsWithCatchComposition = unloads.Count(t => t.HasCatchComposition == true),
+                NumberOfTrackedLandings = unloads.Count(t => t.OperationIsTracked == true)
             };
             summaries.Add(ens);
 
@@ -331,6 +331,10 @@ namespace NSAP_ODK.Entities
 
         public List<OrphanedEnumerator> OrphanedEnumerators()
         {
+            return NSAPEntities.SummaryItemViewModel.GetOrphanedEnumerators();
+        }
+        public List<OrphanedEnumerator> OrphanedEnumerators1()
+        {
             var itemsVesselSamplings = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
                 .Where(t => t.NSAPEnumeratorID == null && t.EnumeratorText != null && t.EnumeratorText.Length > 0)
                 .GroupBy(t => new { LandingsSiteName = t.Parent.Parent.LandingSiteName, EnumeratorName = t.EnumeratorName })
@@ -389,7 +393,7 @@ namespace NSAP_ODK.Entities
 
         }
 
-        public List<OrphanedEnumerator> OrphanedEnumerators1()
+        public List<OrphanedEnumerator> OrphanedEnumerators11()
         {
             var itemsVesselSamplings = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
                 .Where(t => t.NSAPEnumeratorID == null && t.EnumeratorText != null && t.EnumeratorText.Length > 0)

@@ -16,6 +16,50 @@ namespace NSAP_ODK.Entities
 
         //public event EventHandler<EntityChangedEventArgs> EntityChanged;
 
+
+        private string WhereLandingSiteIsUsed(List<NSAPRegionFMAFishingGroundLandingSite>listUsedLS, LandingSite ls)
+        {
+            string whereUsed = "";
+            foreach(NSAPRegionFMAFishingGroundLandingSite usedLS in listUsedLS.Where(t=>t.LandingSite.LandingSiteID==ls.LandingSiteID))
+            {
+                whereUsed += $"{usedLS.NSAPRegionFMAFishingGround.FishingGround}, ";
+            }
+            return whereUsed.Trim(new char[] { ' ', ',' });
+        }
+        public List<LandingSite> GetAllLandingSitesShowUsed()
+        {
+            List<LandingSite> allLandingSitesShowUsed = new List<LandingSite>();
+            var listUsedLS = GetUsedLandingSites();
+            foreach (LandingSite ls in LandingSiteCollection)
+            {
+                ls.IsUsed = listUsedLS.Where(t => t.LandingSite.LandingSiteID == ls.LandingSiteID).Count() > 0;
+                ls.WhereUsed = WhereLandingSiteIsUsed(listUsedLS, ls);
+                allLandingSitesShowUsed.Add(ls);
+            }
+            return allLandingSitesShowUsed;
+        }
+        public List<NSAPRegionFMAFishingGroundLandingSite> GetUsedLandingSites()
+        {
+
+
+            List<NSAPRegionFMAFishingGroundLandingSite> usedLandingSites = new List<NSAPRegionFMAFishingGroundLandingSite>();
+            foreach (NSAPRegion nr in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection)
+            {
+                foreach (NSAPRegionFMA nrf in nr.FMAs)
+                {
+                    foreach (NSAPRegionFMAFishingGround nrfg in nrf.FishingGrounds)
+                    {
+                        foreach (NSAPRegionFMAFishingGroundLandingSite nrfgls in nrfg.LandingSites)
+                        {
+                            usedLandingSites.Add(nrfgls);
+                        }
+                    }
+                }
+            }
+            return usedLandingSites;
+
+
+        }
         public DataSet Dataset()
         {
             DataSet ds = new DataSet();

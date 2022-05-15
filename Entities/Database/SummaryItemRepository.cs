@@ -70,6 +70,7 @@ namespace NSAP_ODK.Entities.Database
                                                  vu1.form_version,
                                                  vu1.row_id,   
                                                  vu1.xform_identifier,
+                                                 vu1.datetime_submitted,
                                                  en.enumerator_id,
                                                  vu1.enumerator_text,
                                                  en.enumerator_name,
@@ -242,6 +243,7 @@ namespace NSAP_ODK.Entities.Database
                                 LengthRows = count_len,
                                 LenWtRows = count_len_wt,
                                 VesselEffortRows = count_efforts,
+                                DateSubmitted=(DateTime)dr["datetime_submitted"]
                             };
                             items.Add(si);
                         }
@@ -497,6 +499,7 @@ namespace NSAP_ODK.Entities.Database
                                                  vu1.form_version,
                                                  vu1.RowID,   
                                                  vu1.XFormIdentifier AS xform_identifier, 
+                                                 vu1.datetime_submitted,
                                                  en.EnumeratorID AS enumerator_id,
                                                  vu1.EnumeratorText AS enumerator_text,
                                                  en.EnumeratorName AS enumerator_name,
@@ -667,6 +670,7 @@ namespace NSAP_ODK.Entities.Database
                                     LengthRows = count_len,
                                     LenWtRows = count_len_wt,
                                     VesselEffortRows = count_efforts,
+                                    DateSubmitted=(DateTime)dr["datetime_submitted"]
 
                                 };
                                 items.Add(si);

@@ -91,7 +91,7 @@ namespace NSAP_ODK.Views
         private void OnWindowClosed(object sender, EventArgs e)
         {
             _instance = null;
-            if (_uploadToDBSuccess)
+            if (_uploadToDBSuccess || _savedCount > 0)
             {
                 ((MainWindow)Owner).RefreshSummary();
             }
@@ -323,6 +323,7 @@ namespace NSAP_ODK.Views
             //rowGrid.Height = new GridLength(1, GridUnitType.Star);
         }
 
+        private TreeViewItem _firstJSONFileNode;
         private void AddFilesToDateNode(TreeViewItem dateNode, DownloadedJsonMetadata djmd, string dateDownloaded)
         {
             int counter = 0;
@@ -343,22 +344,37 @@ namespace NSAP_ODK.Views
                 }
             }
         }
+
+        private HashSet<string> _rootChildrenHeadersHashSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private void AddMetadataToTreeView(DownloadedJsonMetadata djmd, TreeViewItem root)
         {
+
+
             string dateDownloaded = djmd.DateDownloaded.ToString("MMM-dd-yyyy HH:mm");
             TreeViewItem formNameNode = new TreeViewItem { Header = djmd.FormName };
             TreeViewItem formOwnerNode = new TreeViewItem { Header = djmd.DBOwner };
-            TreeViewItem dateDownloadNode = new TreeViewItem { Header = dateDownloaded };
+            TreeViewItem dateDownloadNode = new TreeViewItem { Header = dateDownloaded, Tag = "date_download" };
+
             if (root.Items.Count == 0)
+            {
+                _rootChildrenHeadersHashSet.Add(formNameNode.Header.ToString());
+                root.Items.Add(formNameNode);
+                formNameNode.Items.Add(formOwnerNode);
+                formOwnerNode.Items.Add(dateDownloadNode);
+                AddFilesToDateNode(dateDownloadNode, djmd, dateDownloaded);
+                formNameNode.ExpandSubtree();
+                _firstJSONFileNode = dateDownloadNode.Items[0] as TreeViewItem;
+            }
+            else if (_rootChildrenHeadersHashSet.Add(formNameNode.Header.ToString()))
             {
                 root.Items.Add(formNameNode);
                 formNameNode.Items.Add(formOwnerNode);
                 formOwnerNode.Items.Add(dateDownloadNode);
                 AddFilesToDateNode(dateDownloadNode, djmd, dateDownloaded);
-                dateDownloadNode.IsExpanded = true;
             }
             else
             {
+
                 bool found = true;
                 foreach (TreeViewItem tvi in root.Items)
                 {
@@ -371,38 +387,40 @@ namespace NSAP_ODK.Views
                     {
                         root.Items.Add(formNameNode);
                     }
+                }
 
-                    found = false;
-                    foreach (TreeViewItem tvi1 in formNameNode.Items)
+                found = false;
+                foreach (TreeViewItem tvi1 in formNameNode.Items)
+                {
+                    if (tvi1.Header.ToString() == djmd.DBOwner)
                     {
-                        if (tvi1.Header.ToString() == djmd.DBOwner)
-                        {
-                            formOwnerNode = tvi1;
-                            found = true;
-                        }
-                    }
-                    if (!found)
-                    {
-                        formNameNode.Items.Add(formOwnerNode);
-                    }
-
-                    found = false;
-                    foreach (TreeViewItem tvi2 in formOwnerNode.Items)
-                    {
-                        if (tvi2.Header.ToString() == dateDownloaded)
-                        {
-                            found = true;
-                            dateDownloadNode = tvi2;
-                        }
-                    }
-                    if (!found)
-                    {
-                        dateDownloadNode.Tag = "date_download";
-                        formOwnerNode.Items.Add(dateDownloadNode);
-                        AddFilesToDateNode(dateDownloadNode, djmd, dateDownloaded);
-
+                        formOwnerNode = tvi1;
+                        found = true;
                     }
                 }
+                if (!found)
+                {
+                    formNameNode.Items.Add(formOwnerNode);
+                }
+
+                found = false;
+                foreach (TreeViewItem tvi2 in formOwnerNode.Items)
+                {
+                    if (tvi2.Header.ToString() == dateDownloaded)
+                    {
+                        found = true;
+                        dateDownloadNode = tvi2;
+                    }
+                }
+                if (!found)
+                {
+                    dateDownloadNode.Tag = "date_download";
+                    formOwnerNode.Items.Add(dateDownloadNode);
+                    AddFilesToDateNode(dateDownloadNode, djmd, dateDownloaded);
+
+                }
+
+
             }
         }
         private async void OnMenuClick(object sender, RoutedEventArgs e)
@@ -429,6 +447,7 @@ namespace NSAP_ODK.Views
                     }
                     break;
                 case "menuUploadJson":
+                    _rootChildrenHeadersHashSet.Clear();
                     VistaFolderBrowserDialog vfbd = new VistaFolderBrowserDialog();
                     vfbd.Description = "Locate folder containing downloaded JSON files";
                     vfbd.UseDescriptionForTitle = true;
@@ -439,8 +458,10 @@ namespace NSAP_ODK.Views
                         _jsonfiles = Directory.GetFiles(vfbd.SelectedPath).Select(s => new FileInfo(s)).ToList();
                         if (_jsonfiles.Any())
                         {
+
                             TreeViewItem root = new TreeViewItem { Header = "Downloaded e-form data" };
                             treeViewJSONNavigator.Items.Add(root);
+                            int counter = 0;
                             foreach (var f in _jsonfiles.OrderByDescending(t => t.CreationTime))
                             {
                                 if (f.Extension == ".xml")
@@ -449,10 +470,18 @@ namespace NSAP_ODK.Views
                                     {
                                         XmlSerializer _xSer = new XmlSerializer(typeof(DownloadedJsonMetadata));
 
-                                        DownloadedJsonMetadata djmd = (DownloadedJsonMetadata)_xSer.Deserialize(fs);
-                                        djmd.FileName = f.Name;
+                                        try
+                                        {
+                                            DownloadedJsonMetadata djmd = (DownloadedJsonMetadata)_xSer.Deserialize(fs);
+                                            djmd.FileName = f.Name;
 
-                                        AddMetadataToTreeView(djmd, root);
+                                            AddMetadataToTreeView(djmd, root);
+                                            counter++;
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Logger.Log(ex);
+                                        }
                                     }
 
                                 }
@@ -462,6 +491,14 @@ namespace NSAP_ODK.Views
                     if (_countJSONFiles > 0)
                     {
                         _targetGrid = gridJSONContent;
+                        //ProcessJsonFileForDisplay((FileInfoJSONMetadata)_firstJSONFileNode.Tag);
+                        //treeViewJSONNavigator.Focus();
+                    }
+                    else
+                    {
+                        treeViewJSONNavigator.DataContext = null;
+                        treeViewJSONNavigator.Items.Clear();
+                        MessageBox.Show("No JSON files from Kobotoolbox server was found", "NSAP-ODK Database");
                     }
                     ResetView();
                     rowJsonFiles.Height = new GridLength(1, GridUnitType.Star);
@@ -584,10 +621,21 @@ namespace NSAP_ODK.Views
                     break;
 
                 case "menuClearTables":
-                    if (NSAPEntities.ClearNSAPDatabaseTables())
+                    bool proceed = false;
+                    if (Global.Settings.UsemySQL)
                     {
+                        proceed = NSAPMysql.MySQLConnect.DeleteDataFromTables();
+                    }
+                    else if (NSAPEntities.ClearNSAPDatabaseTables())
+                    {
+                        proceed = true;
                         NSAPEntities.LandingSiteSamplingViewModel.Clear();
                         NSAPEntities.SummaryItemViewModel.Clear();
+                    }
+
+
+                    if (proceed)
+                    {
                         ParentWindow.ShowDBSummary();
                         MessageBox.Show("All repo cleared");
                     }
@@ -609,14 +657,13 @@ namespace NSAP_ODK.Views
             }
         }
 
-        private CancellationTokenSource CancellationTokenSource = new CancellationTokenSource();
         private async Task Upload()
         {
             _uploadToDBSuccess = false;
             bool success = false;
             labelProgress.Content = "";
 
-            if (ODKServerDownload == ODKServerDownload.ServerDownloadVesselUnload)
+            if (ODKServerDownload == ODKServerDownload.ServerDownloadVesselUnload && !VesselUnloadServerRepository.CancelUpload)
             {
                 if (_isJSONData)
                 {
@@ -641,7 +688,7 @@ namespace NSAP_ODK.Views
                                                      "NSAP-ODK Database",
                                                      5000,
                                                      System.Windows.Forms.MessageBoxButtons.OK);
-                                                     
+
                                 //MessageBox.Show("Finished uploading to database\r\n" +
                                 //    $"from source having {sourceCount} records with {savedCount} saved\r\n" +
                                 //    $"and saving JSON file to {Global.Settings.JSONFolder}",
@@ -784,6 +831,8 @@ namespace NSAP_ODK.Views
                               return null;
                           }
                          ), null);
+
+                    _savedCount = e.VesselUnloadTotalSavedCount;
                     break;
                 case UploadToDBIntent.EndOfUpload:
                     progressBar.Dispatcher.BeginInvoke
@@ -1584,14 +1633,14 @@ namespace NSAP_ODK.Views
 
         private void OnWindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if(VesselUnloadServerRepository.UploadInProgress)
+            if (VesselUnloadServerRepository.UploadInProgress)
             {
-                if(MessageBox.Show(
+                if (MessageBox.Show(
                     "Uploading is in progress\n\rDo you want to stop the operation",
                     "NSAP-ODK Database",
                     MessageBoxButton.YesNo,
                     MessageBoxImage.Question
-                    )==MessageBoxResult.Yes)
+                    ) == MessageBoxResult.Yes)
                 {
                     VesselUnloadServerRepository.CancelUpload = true;
                 }

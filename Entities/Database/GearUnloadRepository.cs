@@ -23,7 +23,12 @@ namespace NSAP_ODK.Entities.Database
         {
             GearUnloads = getGearUnloads();
         }
+
         public int MaxRecordNumber()
+        {
+            return NSAPEntities.SummaryItemViewModel.GetGearUnloadMaxRecordNumber();
+        }
+        public int MaxRecordNumber1()
         {
             int max_rec_no = 0;
             if (Global.Settings.UsemySQL)
