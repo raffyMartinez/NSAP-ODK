@@ -250,6 +250,7 @@
     <Compile Include="Entities\Database\VesselUnloadServerRepository.cs" />
     <Compile Include="Entities\Database\XLSForm.cs" />
     <Compile Include="Entities\Download summary.cs" />
+    <Compile Include="Entities\EntityContext.cs" />
     <Compile Include="Entities\EntityLoadedEventArg.cs" />
     <Compile Include="Entities\FishBaseSpecies.cs" />
     <Compile Include="Entities\FishSpeciesForCSV.cs" />

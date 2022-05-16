@@ -19,7 +19,7 @@ namespace NSAP_ODK.Entities.Database
         {
             int counter = 0;
             foreach (SummaryItem si in SummaryItemCollection
-                        .Where(t => t.GearUnloadID == gu.PK))
+                        .Where(t => t.GearCode.Length == 0 && t.GearText == gu.GearUsedText))
             {
                 si.SamplingDayID = gu.Parent.PK;
                 si.GearCode = gu.GearID;
@@ -34,8 +34,8 @@ namespace NSAP_ODK.Entities.Database
         public bool UpdateRecordsInRepo(string landingSiteText, int landingSiteID)
         {
             int count = 0;
-            foreach(SummaryItem si in SummaryItemCollection
-                .Where(t=>t.LandingSiteText==landingSiteText && t.LandingSiteID==null)
+            foreach (SummaryItem si in SummaryItemCollection
+                .Where(t => t.LandingSiteText == landingSiteText && t.LandingSiteID == null)
                 )
             {
                 si.LandingSiteID = landingSiteID;
@@ -43,6 +43,44 @@ namespace NSAP_ODK.Entities.Database
             }
             return count > 0;
         }
+
+        public List<OrphanedFishingGear> OrphanedFishingGears()
+        {
+            //var items = GearUnloadCollection
+            //    .Where(t => t.GearID!=null && t.GearID.Length == 0 && t.GearUsedText!=null && t.GearUsedText.Length>0)
+            //    .OrderBy(t => t.GearUsedText)
+            //    .GroupBy(t => t.GearUsedText).ToList();
+
+            var items = SummaryItemCollection
+                .Where(t => (t.GearCode == null || t.GearCode.Length == 0) && t.GearText != null && t.GearText.Length > 0)
+                .OrderBy(t => t.GearText)
+                .GroupBy(t => t.GearText).ToList();
+
+            var list = new List<OrphanedFishingGear>();
+            foreach (var item in items)
+            {
+
+                //var landingSiteSampling = NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(item.First().SamplingDayID);
+                //if(landingSiteSampling.GearUnloadViewModel==null)
+                //{
+                //    landingSiteSampling.GearUnloadViewModel = new GearUnloadViewModel(landingSiteSampling);
+                //}
+                //var lss= item.GroupBy(t => t.SamplingDayID);
+                var orphan = new OrphanedFishingGear
+                {
+                    Name = item.Key,
+                    //GearUnloads = GearUnloadCollection.Where(t => t.GearUsedText == item.Key).ToList()
+                    //GearUnloads = NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(item.First().SamplingDayID).GearUnloadViewModel.GearUnloadCollection.ToList()
+                    GearUnloads = GetGearUnloads(item.Key)
+                };
+                list.Add(orphan);
+            }
+
+            return list;
+
+        }
+
+        
         public bool UpdateRecordsInRepo(LandingSiteSampling lss)
         {
             int counter = 0;
@@ -679,6 +717,19 @@ namespace NSAP_ODK.Entities.Database
         public int GetEnumertorUnloadCount()
         {
             return SummaryItemCollection.GroupBy(t => t.EnumeratorID).Count();
+        }
+        public List<GearUnload> GetGearUnloads(string gearUsedText)
+        {
+            List<GearUnload> gearUnloads = new List<GearUnload>();
+            foreach (var si in SummaryItemCollection.Where(t => t.GearText == gearUsedText && t.GearCode.Length==0).GroupBy(t=>t.SamplingDayID))
+            {
+                var lss = NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(si.Key);
+                foreach(GearUnload gu in lss.GearUnloadViewModel.getGearUnloads(gearUsedText))
+                {
+                    gearUnloads.Add(gu);
+                }
+            }
+            return gearUnloads;
         }
         public GearUnload GetGearUnload(string gearUsedName, int offsetDays)
         {

@@ -97,6 +97,9 @@ namespace NSAP_ODK.Views
                     txtNotFound.MouseRightButtonDown += OnRadioButtonRightMouseButtonDown;
                     panelButtons.Children.Add(txtNotFound);
                 }
+
+
+
             }
 
             //speciesHyperLink.Inlines.Clear();
@@ -136,7 +139,7 @@ namespace NSAP_ODK.Views
             else if (count == 0)
             {
                 TextBlock txtNotFound = null;
-                if (textSearch.Text.Length > 0 && (_itemHit==null || _itemHit.Length==0))
+                if (textSearch.Text.Length > 0 && (_itemHit == null || _itemHit.Length == 0))
                 {
                     txtNotFound = new TextBlock { Text = $"{textSearch.Text} is not found in the database" };
                 }
@@ -345,27 +348,94 @@ namespace NSAP_ODK.Views
                     title = "Get replacement enumerator";
                     break;
                 case Entities.NSAPEntity.FishingGear:
-                    foreach (var regionGear in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection
-                        .Where(t => t.Code == GearUnload.Parent.NSAPRegionID)
-                        .FirstOrDefault().Gears
-                        .OrderBy(t => t.Gear.GearName))
+                    foreach(var g in GearUnload.Parent.NSAPRegion.Gears.OrderBy(t=>t.Gear.GearName))
                     {
-                        var rb = new RadioButton { Content = regionGear.Gear.GearName, Tag = regionGear.Gear };
+                        var rb = new RadioButton { Content = g.Gear.GearName, Tag = g.Gear };
                         rb.Checked += OnButtonChecked;
                         rb.Margin = new Thickness(10, 10, 0, 0);
                         panelButtons.Children.Add(rb);
-
                     }
+
+                    //foreach (var regionGear in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection
+                    //    .Where(t => t.Code == GearUnload.Parent.NSAPRegionID)
+                    //    .FirstOrDefault().Gears
+                    //    .OrderBy(t => t.Gear.GearName))
+                    //{
+                    //    var rb = new RadioButton { Content = regionGear.Gear.GearName, Tag = regionGear.Gear };
+                    //    rb.Checked += OnButtonChecked;
+                    //    rb.Margin = new Thickness(10, 10, 0, 0);
+                    //    panelButtons.Children.Add(rb);
+
+                    //}
                     title = "Get replacement fishing gear";
                     break;
             }
 
+
+
+            string buttonContent = "";
+            if (NSAPEntity == NSAPEntity.LandingSite)
+            {
+                buttonContent = "Landing site not in list";
+            }
+            else if (NSAPEntity == NSAPEntity.FishingGear)
+            {
+                buttonContent = "Fishing gear not in list";
+            }
+            else if (NSAPEntity == NSAPEntity.Enumerator)
+            {
+                buttonContent = "Enumerator not in list";
+            }
+
+            if (buttonContent.Length > 0)
+            {
+                Button btn = new Button
+                {
+                    Content = buttonContent,
+                    Height = 28,
+                    Width = 150,
+                    Name = "buttonNotInList",
+                    Margin = new Thickness(3, 10, 3, 3),
+                    HorizontalAlignment = HorizontalAlignment.Center
+                };
+                btn.Click += onButtonClick;
+                panelButtons.Children.Add(btn);
+            }
+
             Title = title;
         }
+
+        private void RefreshList()
+        {
+            panelButtons.Children.Clear();
+            FillSelection();
+            ((MainWindow)Owner.Owner).RefreshEntityGrid();
+        }
+        public void NewFishingGearInSelection(Gear g)
+        {
+            RefreshList();
+        }
+        public void NewEnumeratorInSelection(NSAPEnumerator ns)
+        {
+            RefreshList();
+        }
+        public void NewLandingSiteInSelection(LandingSite ls)
+        {
+            RefreshList();
+        }
+        public EntityContext EntityContext { get; set; }
         private void onButtonClick(object sender, RoutedEventArgs e)
         {
             switch (((Button)sender).Name)
             {
+                case "buttonNotInList":
+                    //Visibility = Visibility.Collapsed;
+                    IsEnabled = false;
+                    EditWindowEx ewx = new EditWindowEx(NSAPEntity);
+                    ewx.EntityContext = EntityContext;
+                    ewx.Owner = this;
+                    ewx.ShowDialog();
+                    break;
                 case "buttonViewList":
                     string fishList = ItemsToReplace[0];
                     for (int x = 1; x < ItemsToReplace.Count; x++)
@@ -443,6 +513,12 @@ namespace NSAP_ODK.Views
             }
         }
 
+        private void On_EditWindowsEx_EntityUpdated(object sender, EntityContext e)
+        {
+            panelButtons.Children.Clear();
+            FillSelection();
+        }
+
         private void OnButtonChecked(object sender, RoutedEventArgs e)
         {
             _selectedButton = (RadioButton)sender;
@@ -493,7 +569,7 @@ namespace NSAP_ODK.Views
                             {
                                 _itemHit = ItemToReplace;
                                 _itemInOBIS = _obiResponse.results[0].acceptedNameUsage;
-                                _isFish = _obiResponse.results[0].@class == "Actinopteri" || _obiResponse.results[0].@class=="Elasmobranchii";
+                                _isFish = _obiResponse.results[0].@class == "Actinopteri" || _obiResponse.results[0].@class == "Elasmobranchii";
                                 SearchReplacements(_itemInOBIS);
                             }
                             else

@@ -35,6 +35,9 @@ namespace NSAP_ODK.Views
         private bool _oldIsForAllTypesFishing;
         private object _originalSource;
         private bool _textDBIdentifierValid;
+        private EntityContext _entityContext;
+
+
 
 
         public bool CloseCommandFromMainWindow { get; set; }
@@ -364,7 +367,7 @@ namespace NSAP_ODK.Views
             {
 
                 case NSAPEntity.NSAPRegionFMAFishingGroundLandingSite:
-                    
+
                     NSAPRegionFMAFishingGroundLandingSiteEdit nsapRegionFMAFGLS = new NSAPRegionFMAFishingGroundLandingSiteEdit();
                     var landingSite = (NSAPRegionFMAFishingGroundLandingSite)_nsapObject;
                     Title = "Landing site in fishing ground";
@@ -407,7 +410,7 @@ namespace NSAP_ODK.Views
                     if (!_isNew)
                     {
                         LabelTop.Content = "Details of effort specification for current fishing gear";
-                       
+
                         gearEffortSpec = new GearEffortSpecification
                         {
                             RowID = fgs.RowID,
@@ -1189,13 +1192,13 @@ namespace NSAP_ODK.Views
                                 {
                                     if (_isNew)
                                     {
-                                       success =  municipality.Province.Municipalities.AddRecordToRepo(municipality);
+                                        success = municipality.Province.Municipalities.AddRecordToRepo(municipality);
                                     }
                                     else
                                     {
-                                        success =  municipality.Province.Municipalities.UpdateRecordInRepo(municipality);
+                                        success = municipality.Province.Municipalities.UpdateRecordInRepo(municipality);
                                     }
-                                                                    }
+                                }
                             }
                             break;
 
@@ -1208,7 +1211,7 @@ namespace NSAP_ODK.Views
                                 NSAPRegion = prv.NSAPRegion
                             };
 
-                            if(province.ProvinceName!=null && province.ProvinceID>0 && province.NSAPRegion.Code.Length>0)
+                            if (province.ProvinceName != null && province.ProvinceID > 0 && province.NSAPRegion.Code.Length > 0)
                             {
                                 validationResult = NSAPEntities.ProvinceViewModel.ValidateProvince(province, _isNew, _oldName);
                                 if (validationResult.ErrorMessage.Length > 0)
@@ -1221,11 +1224,11 @@ namespace NSAP_ODK.Views
                                 {
                                     if (_isNew)
                                     {
-                                        success =  NSAPEntities.ProvinceViewModel.AddRecordToRepo (province);
+                                        success = NSAPEntities.ProvinceViewModel.AddRecordToRepo(province);
                                     }
                                     else
                                     {
-                                        success =  NSAPEntities.ProvinceViewModel.UpdateRecordInRepo (province);
+                                        success = NSAPEntities.ProvinceViewModel.UpdateRecordInRepo(province);
                                     }
 
                                 }
@@ -1306,18 +1309,18 @@ namespace NSAP_ODK.Views
                             {
                                 if (_isNew)
                                 {
-                                   success =  NSAPEntities.FishSpeciesViewModel.AddRecordToRepo(fishSpecies);
+                                    success = NSAPEntities.FishSpeciesViewModel.AddRecordToRepo(fishSpecies);
                                 }
                                 else
                                 {
-                                   success= NSAPEntities.FishSpeciesViewModel.UpdateRecordInRepo(fishSpecies);
+                                    success = NSAPEntities.FishSpeciesViewModel.UpdateRecordInRepo(fishSpecies);
                                 }
                             }
                             break;
 
                         case NSAPEntity.NSAPRegion:
                             var r = (NSAPRegionEdit)PropertyGrid.SelectedObject;
-                            NSAPRegion nr = new NSAPRegion { Code = r.NSAPRegion.Code, Name = r.Name, ShortName = r.ShortName,Sequence=r.NSAPRegion.Sequence };
+                            NSAPRegion nr = new NSAPRegion { Code = r.NSAPRegion.Code, Name = r.Name, ShortName = r.ShortName, Sequence = r.NSAPRegion.Sequence };
                             //nr.NSAPEnumerators=r.NSAPRegion.NSAPEnumerators
                             success = NSAPEntities.NSAPRegionViewModel.UpdateRecordInRepo(nr);
                             break;
@@ -1354,6 +1357,11 @@ namespace NSAP_ODK.Views
                                     {
                                         success = rvm.EditEnumerator(regionEnumerator);
                                     }
+                                }
+
+                                if (success && Owner.Owner != null && Owner.Owner.GetType().Name == "SelectionToReplaceOrpanWIndow")
+                                {
+                                    ((SelectionToReplaceOrpanWIndow)Owner.Owner).NewEnumeratorInSelection(regionEnumerator.Enumerator);
                                 }
                             }
                             break;
@@ -1410,13 +1418,16 @@ namespace NSAP_ODK.Views
                                 {
                                     if (_isNew)
                                     {
-                                        //nsapRegionFMAFishingGroundLandingSite.RowID = NSAPEntities.GetMaxItemSetID() + 1;
-                                        nsapRegionFMAFishingGroundLandingSite.RowID = NSAPRegionWithEntitiesRepository.MaxRecordNumber_LandingSite()+1;
+                                        nsapRegionFMAFishingGroundLandingSite.RowID = NSAPRegionWithEntitiesRepository.MaxRecordNumber_LandingSite() + 1;
                                         success = rvm.AddFMAFishingGroundLandingSite(nsapRegionFMAFishingGroundLandingSite);
                                     }
                                     else
                                     {
                                         success = rvm.EditLandingSite(nsapRegionFMAFishingGroundLandingSite);
+                                    }
+                                    if (success && Owner.Owner != null && Owner.Owner.GetType().Name == "SelectionToReplaceOrpanWIndow")
+                                    {
+                                        ((SelectionToReplaceOrpanWIndow)Owner.Owner).NewLandingSiteInSelection(nsapRegionFMAFishingGroundLandingSite.LandingSite);
                                     }
                                 }
                             }
@@ -1444,7 +1455,7 @@ namespace NSAP_ODK.Views
                                     if (_isNew)
                                     {
                                         //fmaFishngGround.RowID = NSAPEntities.GetMaxItemSetID() + 1;
-                                        fmaFishngGround.RowID= NSAPRegionWithEntitiesRepository.MaxRecordNumber_FishingGround()+1;
+                                        fmaFishngGround.RowID = NSAPRegionWithEntitiesRepository.MaxRecordNumber_FishingGround() + 1;
                                         success = rvm.AddFMAFishingGround(fmaFishngGround);
                                     }
                                     else
@@ -1518,12 +1529,17 @@ namespace NSAP_ODK.Views
                                     if (_isNew)
                                     {
                                         //regionGear.RowID = NSAPEntities.GetMaxItemSetID() + 1;
-                                        regionGear.RowID = NSAPRegionWithEntitiesRepository.MaxRecordNumber_Gear()+1;
+                                        regionGear.RowID = NSAPRegionWithEntitiesRepository.MaxRecordNumber_Gear() + 1;
                                         success = rvm.AddGear(regionGear);
                                     }
                                     else
                                     {
                                         success = rvm.EditGear(regionGear);
+                                    }
+
+                                    if (success && Owner.Owner != null && Owner.Owner.GetType().Name == "SelectionToReplaceOrpanWIndow")
+                                    {
+                                        ((SelectionToReplaceOrpanWIndow)Owner.Owner).NewFishingGearInSelection(regionGear.Gear);
                                     }
                                 }
                             }
@@ -1590,7 +1606,7 @@ namespace NSAP_ODK.Views
                                 if (_isNew)
                                 {
                                     fishingVessel.ID = NSAPEntities.FishingVesselViewModel.NextRecordNumber;
-                                   success =  NSAPEntities.FishingVesselViewModel.AddRecordToRepo(fishingVessel);
+                                    success = NSAPEntities.FishingVesselViewModel.AddRecordToRepo(fishingVessel);
                                 }
                                 else
                                 {
@@ -1661,11 +1677,11 @@ namespace NSAP_ODK.Views
                             {
                                 if (_isNew)
                                 {
-                                   success= NSAPEntities.FishingGroundViewModel.AddRecordToRepo(fg);
+                                    success = NSAPEntities.FishingGroundViewModel.AddRecordToRepo(fg);
                                 }
                                 else
                                 {
-                                   success= NSAPEntities.FishingGroundViewModel.UpdateRecordInRepo(fg);
+                                    success = NSAPEntities.FishingGroundViewModel.UpdateRecordInRepo(fg);
                                 }
                             }
                             break;
@@ -1681,25 +1697,25 @@ namespace NSAP_ODK.Views
                                 IsGenericGear = g.IsGenericGear
                             };
                             validationResult = NSAPEntities.GearViewModel.ValidateEntity(gear, _isNew, _oldName, _oldIdentifier);
-                            if(validationResult.ErrorMessage.Length>0)
+                            if (validationResult.ErrorMessage.Length > 0)
                             {
                                 cancel = true;
                                 MessageBox.Show(validationResult.ErrorMessage, "Validation error", MessageBoxButton.OK, MessageBoxImage.Error);
                             }
-                            else if(validationResult.WarningMessage.Length>0)
+                            else if (validationResult.WarningMessage.Length > 0)
                             {
 
                             }
 
-                            if(!cancel)
+                            if (!cancel)
                             {
-                                if(_isNew)
+                                if (_isNew)
                                 {
-                                   success= NSAPEntities.GearViewModel.AddRecordToRepo(gear);
+                                    success = NSAPEntities.GearViewModel.AddRecordToRepo(gear);
                                 }
                                 else
                                 {
-                                    success=NSAPEntities.GearViewModel.UpdateRecordInRepo(gear);
+                                    success = NSAPEntities.GearViewModel.UpdateRecordInRepo(gear);
                                 }
 
                             }
@@ -1851,20 +1867,23 @@ namespace NSAP_ODK.Views
                             break;
                     }
 
-                    if (ewx != null && (bool)ewx.ShowDialog())
+                    if (ewx != null)
                     {
-
-
-                        sfDataGrid.Items.Refresh();
-                        switch (_nsapEntity)
+                        ewx.Owner = this;
+                        //ewx.EntityContext = EntityContext;
+                        if ((bool)ewx.ShowDialog())
                         {
-                            case NSAPEntity.NSAPRegion:
-                                ((NSAPRegionEdit)PropertyGrid.SelectedObject).Refresh();
-                                break;
-                        }
+                            sfDataGrid.Items.Refresh();
+                            switch (_nsapEntity)
+                            {
+                                case NSAPEntity.NSAPRegion:
+                                    ((NSAPRegionEdit)PropertyGrid.SelectedObject).Refresh();
+                                    break;
+                            }
 
-                        PropertyGrid.Update();
-                        SetUpSubFormSource();
+                            PropertyGrid.Update();
+                            SetUpSubFormSource();
+                        }
 
                     }
 
@@ -2106,7 +2125,7 @@ namespace NSAP_ODK.Views
             {
                 case "MunicipalityCount":
                     Province prv = (Province)PropertyGrid.SelectedObject;
-                    if  (prv.ProvinceName?.Length > 0 && prv.Municipalities!=null)
+                    if (prv.ProvinceName?.Length > 0 && prv.Municipalities != null)
                     {
                         sfDataGrid.ItemsSource = prv.Municipalities.MunicipalityCollection.OrderBy(t => t.MunicipalityName);
                     }
@@ -2114,7 +2133,7 @@ namespace NSAP_ODK.Views
 
                 case "EffortSpecifiers":
                     Gear gear = NSAPEntities.GearViewModel.GetGear(_entityID);
-                    if(gear.GearEffortSpecificationViewModel.Count==0)
+                    if (gear.GearEffortSpecificationViewModel.Count == 0)
                     {
                         sfDataGrid.ItemsSource = gear.BaseGear.GearEffortSpecificationViewModel.GearEffortSpecificationCollection.OrderBy(t => t.EffortSpecification.Name);
                         LabelBottom.Content = $"List of effort specifiers (from base gear) for {NSAPEntities.GearViewModel.CurrentEntity}";
@@ -2153,6 +2172,33 @@ namespace NSAP_ODK.Views
                     nsr = NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(_entityID);
                     sfDataGrid.ItemsSource = nsr.NSAPEnumerators.OrderBy(t => t.Enumerator.Name);
                     break;
+            }
+        }
+
+        public EntityContext EntityContext
+        {
+            get { return _entityContext; }
+            set
+            {
+                _entityContext = value;
+                _nsapEntity = _entityContext.NSAPEntity;
+                _isNew = false;
+                switch (_nsapEntity)
+                {
+                    case NSAPEntity.NSAPRegionFMAFishingGround:
+
+                        _nsapObject = NSAPEntities.NSAPRegionViewModel.GetRegionFMAFishingGround(
+                            _entityContext.Region.Code,
+                            _entityContext.FMA.FMAID,
+                            _entityContext.FishingGround.Code);
+
+                        break;
+
+                    case NSAPEntity.NSAPRegion:
+                        _nsapObject = NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(_entityContext.Region.Code);
+                        _entityID = _entityContext.Region.Code;
+                        break;
+                }
             }
         }
 
@@ -2246,7 +2292,7 @@ namespace NSAP_ODK.Views
             switch (currentProperty.PropertyName)
             {
                 case "Code":
-                    switch(NSAPEntity.ToString())
+                    switch (NSAPEntity.ToString())
                     {
                         case "FishingGround":
                             //if(currentProperty.DisplayName=="Database identifier")
@@ -2269,8 +2315,8 @@ namespace NSAP_ODK.Views
                     {
                         if (prp.PropertyName == "DateEnd")
                         {
-                            
-                            if (_nsapObject!=null && ((NSAPRegionEnumerator)_nsapObject).DateEnd != null)
+
+                            if (_nsapObject != null && ((NSAPRegionEnumerator)_nsapObject).DateEnd != null)
                             {
                                 if (((DateTimePickerEditor)prp.Editor).Text.Length == 0)
                                 {
@@ -2280,7 +2326,7 @@ namespace NSAP_ODK.Views
                             break;
                         }
 
-                    } 
+                    }
                     break;
                 case "IsGeneric":
                     cbo.Tag = "FishingGears";
@@ -2292,9 +2338,9 @@ namespace NSAP_ODK.Views
                             prp.Editor = cbo;
                             if (!(bool)currentProperty.Value)
                             {
-                                foreach(var baseGear in NSAPEntities.GearViewModel.GearCollection
-                                    .Where(t=>t.IsGenericGear==true)
-                                    .OrderBy(t=>t.GearName))
+                                foreach (var baseGear in NSAPEntities.GearViewModel.GearCollection
+                                    .Where(t => t.IsGenericGear == true)
+                                    .OrderBy(t => t.GearName))
                                 {
                                     cbo.Items.Add(new KeyValuePair<string, string>(baseGear.Code, baseGear.GearName));
                                 }
@@ -2392,9 +2438,14 @@ namespace NSAP_ODK.Views
 
         private void OnWindowClosed(object sender, EventArgs e)
         {
-            if(Owner!=null && Owner.GetType().Name=="MainWindow")
+            //if (Owner != null && Owner.GetType().Name == "MainWindow")
+            //{
+            //    ((MainWindow)Owner).Focus();
+            //}
+            if (Owner != null)
             {
-                ((MainWindow)Owner).Focus();
+                Owner.IsEnabled = true;
+                Owner.Focus();
             }
         }
     }

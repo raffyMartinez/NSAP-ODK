@@ -396,14 +396,18 @@ namespace NSAP_ODK.Views
                         ShowProgressWhileSearching();
                         if (gear.ForReplacement)
                         {
-                            foreach (var unload in gear.GearUnloads)
+                            foreach (var unload in NSAPEntities.SummaryItemViewModel.GetGearUnloads(gear.Name))
                             {
-                                unload.GearID = ReplacementGear.Code;
-                                unload.Gear = ReplacementGear;
-                                if (NSAPEntities.GearUnloadViewModel.UpdateRecordInRepo(unload))
+                                if (unload.GearID.Length == 0)
                                 {
-                                    _countReplaced++;
-                                    ShowProgressWhileReplacing(_countReplaced, $"Updated fishing gear {_countReplaced} of {_countForReplacement}");
+                                    unload.GearID = ReplacementGear.Code;
+                                    unload.Gear = ReplacementGear;
+                                    if (unload.Parent.GearUnloadViewModel.UpdateRecordInRepo(unload))
+                                    {
+                                        _countReplaced++;
+                                        ShowProgressWhileReplacing(_countReplaced, $"Updated fishing gear {_countReplaced} of {_countForReplacement}");
+                                        NSAPEntities.SummaryItemViewModel.UpdateRecordsInRepo(unload);
+                                    }
                                 }
 
                             }
@@ -546,6 +550,7 @@ namespace NSAP_ODK.Views
             return _countReplaced;
         }
 
+
         private void RefreshItemsSource()
         {
             switch (NSAPEntity)
@@ -557,15 +562,16 @@ namespace NSAP_ODK.Views
                 case NSAPEntity.NonFishSpecies:
                     break;
                 case NSAPEntity.LandingSite:
-                    dataGrid.DataContext = NSAPEntities.LandingSiteSamplingViewModel.OrphanedLandingSites().OrderBy(t => t.LandingSiteName.Trim()).ToList();
-
+                    //dataGrid.DataContext = NSAPEntities.LandingSiteSamplingViewModel.OrphanedLandingSites().OrderBy(t => t.LandingSiteName.Trim()).ToList();
+                    dataGrid.DataContext = NSAPEntities.SummaryItemViewModel.GetOrphanedLandingSites().OrderBy(t => t.LandingSiteName.Trim()).ToList();
                     break;
                 case NSAPEntity.Enumerator:
                     //dataGrid.DataContext = NSAPEntities.NSAPEnumeratorViewModel.OrphanedEnumerators().OrderBy(t=>t.Name);
                     dataGrid.DataContext = NSAPEntities.NSAPEnumeratorViewModel.OrphanedEnumerators();
                     break;
                 case NSAPEntity.FishingGear:
-                    dataGrid.DataContext = NSAPEntities.GearUnloadViewModel.OrphanedFishingGears();
+                    //dataGrid.DataContext = NSAPEntities.GearUnloadViewModel.OrphanedFishingGears();
+                    dataGrid.DataContext = NSAPEntities.SummaryItemViewModel.OrphanedFishingGears();
                     break;
                 case NSAPEntity.FishingVessel:
                     dataGrid.DataContext = NSAPEntities.FishingVesselViewModel.OrphanedFishingVesseks();
@@ -606,7 +612,7 @@ namespace NSAP_ODK.Views
                     replacementWindow.Owner = this;
                     replacementWindow.NSAPEntity = NSAPEntity;
 
-
+                    EntityContext entityContext = new EntityContext();
 
                     foreach (var item in dataGrid.Items)
                     {
@@ -651,6 +657,10 @@ namespace NSAP_ODK.Views
                                     }
                                     _countForReplacement += ((OrphanedLandingSite)item).LandingSiteSamplings.Count;
 
+                                    entityContext.Region = ((OrphanedLandingSite)item).Region;
+                                    entityContext.FMA = ((OrphanedLandingSite)item).FMA;
+                                    entityContext.FishingGround = ((OrphanedLandingSite)item).FishingGround;
+                                    entityContext.NSAPEntity = NSAPEntity.NSAPRegionFMAFishingGround;
                                 }
                                 break;
                             case NSAPEntity.FishingGear:
@@ -663,6 +673,11 @@ namespace NSAP_ODK.Views
                                         replacementWindow.GearUnload = ((OrphanedFishingGear)item).GearUnloads[0];
                                     }
                                     _countForReplacement += ((OrphanedFishingGear)item).GearUnloads.Count;
+
+                                    entityContext.Region = ((OrphanedFishingGear)item).Region;
+                                    entityContext.FMA = ((OrphanedFishingGear)item).FMA;
+                                    entityContext.FishingGround = ((OrphanedFishingGear)item).FishingGround;
+                                    entityContext.NSAPEntity = NSAPEntity.NSAPRegion;
                                 }
                                 break;
                             case NSAPEntity.Enumerator:
@@ -682,6 +697,11 @@ namespace NSAP_ODK.Views
                                         _countForReplacement += ((OrphanedEnumerator)item).LandingSiteSamplings.Count;
                                     }
 
+                                    entityContext.Region = ((OrphanedEnumerator)item).Region;
+                                    entityContext.FMA = ((OrphanedEnumerator)item).FMA;
+                                    entityContext.FishingGround = ((OrphanedEnumerator)item).FishingGround;
+                                    entityContext.NSAPEntity = NSAPEntity.NSAPRegion;
+
                                 }
                                 break;
 
@@ -691,6 +711,7 @@ namespace NSAP_ODK.Views
 
 
                     }
+
 
                     if (procced)
                     {
@@ -715,6 +736,8 @@ namespace NSAP_ODK.Views
                         }
 
                         progressBar.Maximum = _countForReplacement;
+
+                        replacementWindow.EntityContext = entityContext;
                         replacementWindow.FillSelection();
                         if (!(bool)replacementWindow.ShowDialog())
                         {

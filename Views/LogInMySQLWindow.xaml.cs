@@ -49,7 +49,7 @@ namespace NSAP_ODK.Views
             switch (((Button)sender).Name)
             {
                 case "buttonStats":
-
+                    
                     MySQLDataStatisticsWindow msdw = new MySQLDataStatisticsWindow();
                     msdw.ShowDialog();
                     DialogResult = true;
@@ -82,7 +82,7 @@ namespace NSAP_ODK.Views
                             //labelMessage.Content = $"NSAP-ODK Database ready with {MySQLConnect.TableCount} tables";
                             labelMessage.Content = "NSAP-ODK Database ready ";
                             //TablesStats.GetStats();
-                            //buttonStats.IsEnabled = true;
+                            buttonStats.IsEnabled = true;
                         }
                     }
 

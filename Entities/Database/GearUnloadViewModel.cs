@@ -348,13 +348,16 @@ namespace NSAP_ODK.Entities.Database
             return GearUnloadRepository.ClearTable();
         }
 
-
+        public List<GearUnload> getGearUnloads(string gearText)
+        {
+            return GearUnloadCollection.Where(t => t.GearUsedText == gearText).ToList();
+        }
         public GearUnload getGearUnload(int pk, bool loadVesselViewModel = false)
         {
             var gu = GearUnloadCollection.FirstOrDefault(n => n.PK == pk);
             if (loadVesselViewModel)
             {
-                if(gu.VesselUnloadViewModel==null)
+                if (gu.VesselUnloadViewModel == null)
                 {
                     gu.VesselUnloadViewModel = new VesselUnloadViewModel(gu);
                 }
