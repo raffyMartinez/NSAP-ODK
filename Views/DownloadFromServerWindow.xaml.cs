@@ -188,6 +188,8 @@ namespace NSAP_ODK.Views
                                                 if (response.IsSuccessStatusCode)
                                                 {
                                                     replacedCount++;
+                                                    ProgressBar.Value = replacedCount;
+                                                    labelProgress.Content = $"{f.Name} was successfully uploaded to the server";
                                                 }
                                                 else
                                                 {

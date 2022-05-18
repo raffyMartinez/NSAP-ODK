@@ -226,7 +226,7 @@
                     <ColumnDefinition Width="130"/>
                 </Grid.ColumnDefinitions>
 
-                <DataGrid Margin="5" x:Name="GridNSAPData"  SelectionUnit="Cell" LoadingRow="Grid_LoadingRow" Visibility="Collapsed"
+                <DataGrid Margin="5" x:Name="GridNSAPData"  SelectionUnit="FullRow" LoadingRow="Grid_LoadingRow" Visibility="Collapsed"
                       ItemsSource="{Binding}" MouseDoubleClick="OnGridDoubleClick" IsReadOnly="True" 
                       SelectedCellsChanged="OnSelectedCellsChanged" SelectionMode="Single" CellEditEnding="OnCellEditEnding"
                       AutoGeneratingColumn="OnGeneratingColumn" MouseRightButtonUp="OnMenuRightClick">

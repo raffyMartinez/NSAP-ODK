@@ -2280,16 +2280,6 @@ namespace NSAP_ODK
                 case "GridNSAPData":
                     if (_currentDisplayMode == DataDisplayMode.ODKData)
                     {
-                        //if (_gearUnload != null && _gearUnloadWindow == null)
-                        //{
-                        //    _gearUnloadWindow = new GearUnloadWindow(_gearUnload, _treeItemData, this);
-                        //    _gearUnloadWindow.Owner = this;
-                        //    _gearUnloadWindow.Show();
-                        //}
-                        //else
-                        //{
-
-                        //}
 
                         if (_gearUnloads != null && _gearUnloadWindow == null)
                         {
@@ -2303,9 +2293,6 @@ namespace NSAP_ODK
                         }
 
                     }
-                    //else if (Keyboard.IsKeyDown(Key.LeftShift) &&
-                    //    _currentDisplayMode == DataDisplayMode.DownloadHistory &&
-                    //    (VesselUnload)GridNSAPData.SelectedItem != null)
                     else if (_currentDisplayMode == DataDisplayMode.DownloadHistory)
                     {
                         VesselUnload unload = null;
@@ -2345,25 +2332,6 @@ namespace NSAP_ODK
                         }
 
                     }
-                    //else if (_currentDisplayMode == DataDisplayMode.DownloadHistory)
-                    //{
-                    //    if ((VesselUnload)GridNSAPData.SelectedItem != null)
-                    //    {
-                    //        var unload = (VesselUnload)GridNSAPData.SelectedItem;
-                    //        if (_vesselUnloadWindow == null)
-                    //        {
-
-                    //            NSAPEntities.NSAPRegion = unload.Parent.Parent.NSAPRegion;
-                    //            _vesselUnloadWindow = new VesselUnloadWIndow(unload, this);
-                    //            _vesselUnloadWindow.Owner = this;
-                    //            _vesselUnloadWindow.Show();
-                    //        }
-                    //        else
-                    //        {
-                    //            _vesselUnloadWindow.VesselUnload = unload;
-                    //        }
-                    //    }
-                    //}
 
                     break;
                 case "dataGridSpecies":
@@ -2479,19 +2447,6 @@ namespace NSAP_ODK
             _vesselUnloadWindow = null;
         }
 
-        private void MakeCalendar1(TreeViewModelControl.AllSamplingEntitiesEventHandler e)
-        {
-            var listGearUnload = NSAPEntities.LandingSiteSamplingViewModel.GetGearUnloads(e);
-
-            if (listGearUnload.Count > 0)
-            {
-                _fishingCalendarViewModel = new FishingCalendarViewModel(listGearUnload.OrderBy(t => t.GearUsedName).ToList());
-                //_fishingCalendarViewModel = new FishingCalendarViewModel(listGearUnload.OrderBy(t => t.Gear.GearName).ToList());
-                GridNSAPData.Columns.Clear();
-                GridNSAPData.AutoGenerateColumns = true;
-                GridNSAPData.DataContext = _fishingCalendarViewModel.DataTable;
-            }
-        }
         private void MakeCalendar(TreeViewModelControl.AllSamplingEntitiesEventHandler e)
         {
             //NSAPEntities.SummaryItemViewModel.ResetResults();
@@ -2507,39 +2462,14 @@ namespace NSAP_ODK
                 GridNSAPData.DataContext = _fishingCalendarViewModel.DataTable;
             }
         }
-        private void MakeCalendar2(TreeViewModelControl.AllSamplingEntitiesEventHandler e)
+
+        private void OnTreeViewItemSelected(object sender, TreeViewModelControl.AllSamplingEntitiesEventHandler e)
         {
-            _treeItemData = e;
-
-            var landingSiteSampling = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection
-                .Where(t => t.NSAPRegionID == e.NSAPRegion.Code)
-                .Where(t => t.FMAID == e.FMA.FMAID)
-                .Where(t => t.FishingGroundID == e.FishingGround.Code)
-                .Where(t => t.LandingSiteName == e.LandingSiteText)
-                .Where(t => t.SamplingDate.Year == ((DateTime)e.MonthSampled).Year)
-                .Where(t => t.SamplingDate.Month == ((DateTime)e.MonthSampled).Month).ToList();
-
-            var listGearUnload = new List<GearUnload>();
-            foreach (var item in landingSiteSampling)
-            {
-                listGearUnload.AddRange(item.GearUnloadViewModel.GearUnloadCollection.ToList());
-            }
-
-            if (listGearUnload.Count > 0)
-            {
-                _fishingCalendarViewModel = new FishingCalendarViewModel(listGearUnload.OrderBy(t => t.GearUsedName).ToList());
-                //_fishingCalendarViewModel = new FishingCalendarViewModel(listGearUnload.OrderBy(t => t.Gear.GearName).ToList());
-                GridNSAPData.Columns.Clear();
-                GridNSAPData.AutoGenerateColumns = true;
-                GridNSAPData.DataContext = _fishingCalendarViewModel.DataTable;
-            }
-        }
-
-        private async void OnTreeViewItemSelected(object sender, TreeViewModelControl.AllSamplingEntitiesEventHandler e)
-        {
+            gridCalendarHeader.Visibility = Visibility.Visible;
             NSAPEntities.SummaryItemViewModel.ResetResults();
             NSAPEntities.SummaryItemViewModel.TreeViewData = e;
             string labelContent = "";
+            GridNSAPData.SelectionUnit = DataGridSelectionUnit.FullRow;
             switch (e.TreeViewEntity)
             {
                 case "tv_NSAPRegionViewModel":
@@ -2559,7 +2489,8 @@ namespace NSAP_ODK
                     SetUpSummaryGrid(SummaryLevelType.LandingSite, GridNSAPData, treeviewData: e);
                     break;
                 case "tv_MonthViewModel":
-                    gridCalendarHeader.Visibility = Visibility.Visible;
+                    GridNSAPData.SelectionUnit = DataGridSelectionUnit.Cell;
+                    
                     MonthLabel.Content = $"Fisheries landing sampling calendar for {((DateTime)e.MonthSampled).ToString("MMMM-yyyy")}";
                     MonthSubLabel.Content = $"{e.LandingSiteText}, {e.FishingGround}, {e.FMA}, {e.NSAPRegion}";
                     GridNSAPData.Visibility = Visibility.Visible;
@@ -2584,6 +2515,7 @@ namespace NSAP_ODK
                 MonthSubLabel.Visibility = Visibility.Visible;
                 _acceptDataGridCellClick = true;
             }
+            labelRowCount.Content = $"Rows: {GridNSAPData.Items.Count}";
         }
         //private async void OnTreeViewItemSelected1(object sender, TreeViewModelControl.AllSamplingEntitiesEventHandler e)
         //{
@@ -2894,7 +2826,6 @@ namespace NSAP_ODK
                             GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetDownloadDetailsByDateAsync(dt, isTracked: true);
                             //GridNSAPData.DataContext = _vesselDownloadHistory[dt].Where(t => t.IsTracked == true);
                         }
-                        //labelRowCount.Content = $"Rows: {GridNSAPData.Items.Count}";
                         GridNSAPData.AutoGenerateColumns = false;
                         GridNSAPData.Columns.Clear();
                         GridNSAPData.SetValue(Grid.ColumnSpanProperty, 2);
@@ -3049,7 +2980,6 @@ namespace NSAP_ODK
         {
             targetGrid.AutoGenerateColumns = false;
             targetGrid.Columns.Clear();
-            targetGrid.SelectionUnit = DataGridSelectionUnit.FullRow;
             targetGrid.DataContext = null;
 
             if (treeviewData != null)

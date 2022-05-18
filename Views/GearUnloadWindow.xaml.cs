@@ -69,7 +69,7 @@ namespace NSAP_ODK.Views
 
         }
 
-        public GearUnloadWindow(List<GearUnload>gearUnloads, TreeViewModelControl.AllSamplingEntitiesEventHandler treeItemData, MainWindow parent)
+        public GearUnloadWindow(List<GearUnload> gearUnloads, TreeViewModelControl.AllSamplingEntitiesEventHandler treeItemData, MainWindow parent)
         {
             InitializeComponent();
             _gearUnloads = gearUnloads;
@@ -288,15 +288,6 @@ namespace NSAP_ODK.Views
             switch (_listSource)
             {
                 case GearUnloadWindowListSource.ListSourceGearUnload:
-                    //LabelTitle.Content = $"Gear unload for {_gearUnload.GearUsedName} at {_treeItemData.LandingSiteText}, {_treeItemData.FishingGround}";
-                    //GridVesselUnload.DataContext = NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(_gearUnload, true);
-
-                    //GridVesselUnload.DataContext = _gearUnload.VesselUnloadViewModel.VesselUnloadCollection;
-                    //if (_gearUnload.VesselUnloadViewModel == null)
-                    //{
-                    //    _gearUnload.VesselUnloadViewModel = new VesselUnloadViewModel(_gearUnload);
-                    //}
-                    //GridVesselUnload.DataContext = NSAPEntities.LandingSiteSamplingViewModel.VesselUnloadsFromDummyGearUnload(_gearUnload);
                     _vesselUnloads = VesselUnloadViewModel.GetVesselUnloads(_gearUnloads);
                     GridVesselUnload.DataContext = _vesselUnloads;
                     break;
@@ -327,10 +318,6 @@ namespace NSAP_ODK.Views
             labelUnloadSummary.Content = "Summary of vessel unloads of selected sampling day";
             dataGridUnloadSummary.Columns.Clear();
             dataGridUnloadSummary.AutoGenerateColumns = false;
-            //foreach(VesselUnload vu in _vesselUnloads)
-            //{
-            //    vu.SetSubModels();
-            //}
 
             dataGridUnloadSummary.DataContext = _vesselUnloads;
             dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
