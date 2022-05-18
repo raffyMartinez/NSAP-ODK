@@ -482,11 +482,16 @@ namespace NSAP_ODK.Views
                     break;
                 case "ButtonDownload":
                     bool proceed = true;
-                    if (((bool)rbAll.IsChecked || (bool)rbNotDownloaded.IsChecked) && !_hasDownloadOptions)
+
+                    int sizeToDownload = _formSummary.NumberOfSubmissions - _formSummary.NumberSavedToDatabase;
+
+                    if (sizeToDownload >= Utilities.Settings.DefaultDownloadSizeForBatchMode &&
+                            ((bool)rbAll.IsChecked || (bool)rbNotDownloaded.IsChecked) &&
+                            !_hasDownloadOptions)
                     {
                         DownloadFromServerOptionsWindow dsow = new DownloadFromServerOptionsWindow();
                         dsow.Owner = this;
-                        dsow.CountItemsToDownload = _formSummary.NumberOfSubmissions - _formSummary.NumberSavedToDatabase;
+                        dsow.CountItemsToDownload = sizeToDownload;
                         proceed = (bool)dsow.ShowDialog();
                         _hasDownloadOptions = proceed;
                         return;
@@ -779,6 +784,7 @@ namespace NSAP_ODK.Views
                     else if (SaveDownloadAsJSON)
                     {
                         DownloadToJSONByBatch();
+                        _hasDownloadOptions = false;
                     }
                     ButtonDownload.IsEnabled = true;
                     break;
@@ -1005,6 +1011,7 @@ namespace NSAP_ODK.Views
                     {
                         Logger.Log(ex);
                         ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.StoppedDueToError });
+                        _downloadBatchCancel = true;
                     }
                 }
             }
@@ -1066,14 +1073,27 @@ namespace NSAP_ODK.Views
                     {
                         api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&sort={{\"_id\":1}}&start={_formSummary.NumberSavedToDatabase + (loop * (int)NumberToDownloadPerBatch) + 1}&limit={NumberToDownloadPerBatch}";
                     }
-                    await ProcessAPICall(api_call, loop, loops, $@"{fileName}_{loop + 1}.json" );
+                    if (!_downloadBatchCancel)
+                    {
+                        await ProcessAPICall(api_call, loop, loops, $@"{fileName}_{loop + 1}.json");
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
 
-                MessageBox.Show("Downloading JSON done!", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                string msg = "Downloading JSON done!";
+                if (_downloadBatchCancel)
+                {
+                    msg = "Batch downloading was cancelled because of downloading error";
+                }
+
+                MessageBox.Show(msg, "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
                 Close();
             }
         }
-
+        private bool _downloadBatchCancel = false;
         private int _updateCount;
         private int _updateRounds;
         private async Task ProcessDownloadForReviewEx(string field)
@@ -1251,9 +1271,9 @@ namespace NSAP_ODK.Views
                     ProgressBar.Value += 1;
                     labelProgress.Content = "Downloading data";
 
-                    if(e.Loops!=null)
+                    if (e.Loops != null)
                     {
-                        labelProgress.Content = $"Downloading data {e.Loop+1} of {e.Loops}";
+                        labelProgress.Content = $"Downloading data {e.Loop + 1} of {e.Loops}";
                     }
                     break;
                 case DownloadFromServerIntent.SavingToJSONTextFile:
@@ -1289,7 +1309,10 @@ namespace NSAP_ODK.Views
                     break;
                 case DownloadFromServerIntent.StoppedDueToError:
                     labelProgress.Content = "Stopped due to error";
-                    MessageBox.Show("Downloading is stopped due to error", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                    if (NumberToDownloadPerBatch == null)
+                    {
+                        MessageBox.Show("Downloading is stopped due to error", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                    }
                     break;
             }
         }

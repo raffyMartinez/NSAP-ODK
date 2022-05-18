@@ -2057,7 +2057,7 @@ namespace NSAP_ODK.Entities.Database
                                         DateAdded = @Date_added,
                                         sector_code = @Sector_code,
                                         FromExcelDownload =  @From_excel,
-                                        HasCatchComposition = @has_catch_composition
+                                        HasCatchComposition = @has_catch_composition,
                                         NumberOfFishers = @num_fisher
                                         WHERE v_unload_id =@Vessel_unload_id";
 

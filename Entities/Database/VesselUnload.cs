@@ -544,6 +544,8 @@ namespace NSAP_ODK.Entities.Database
         }
 
         public string DateSampling { get { return SamplingDate.ToString("MMM-dd-yyyy"); } }
+
+        public string DateTimeSampling { get { return SamplingDate.ToString("MMM-dd-yyyy HH:mm"); } }
         public bool HasCatchComposition { get; set; }
         public DateTime TimeStart { get; set; }
         public int PK { get; set; }
@@ -562,6 +564,14 @@ namespace NSAP_ODK.Entities.Database
         public int CountMaturityRows { get; set; }
         public int? NumberOfFishers { get; set; }
         public bool FishingTripIsCompleted { get; set; }
+
+        public string GearUsed
+        {
+            get
+            {
+                return Parent.GearUsedName;
+            }
+        }
         public bool HasBSCInCatchComposition()
         {
             if (ListVesselCatch == null)

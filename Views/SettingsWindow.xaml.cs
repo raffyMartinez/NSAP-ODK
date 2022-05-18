@@ -49,11 +49,20 @@ namespace NSAP_ODK.Views
                 chkUsemySQL.Click += ChkUsemySQL_Click;
                 if (Utilities.Global.Settings.CutOFFUndersizedCW == null)
                 {
-                    textCutoffWidth.Text = Utilities.Settings.DefaultCutoffUndesizedCW.ToString(); ;
+                    textCutoffWidth.Text = Utilities.Settings.DefaultCutoffUndesizedCW.ToString();
                 }
                 else
                 {
                     textCutoffWidth.Text = ((int)Utilities.Global.Settings.CutOFFUndersizedCW).ToString();
+                }
+
+                if(Utilities.Global.Settings.DownloadSizeForBatchMode==null)
+                {
+                    textDownloadSizeForBatchMode.Text = Utilities.Settings.DefaultDownloadSizeForBatchMode.ToString();
+                }
+                else
+                {
+                    textCutoffWidth.Text = ((int)Utilities.Global.Settings.DownloadSizeForBatchMode).ToString();
                 }
             }
 

@@ -717,7 +717,7 @@ namespace NSAP_ODK.Entities
                 using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
                     conn.Open();
-                    const string sql = "SELECT Max(row_id) AS max_record_no FROM NSAPRegionGear";
+                    const string sql = "SELECT Max(RowID) AS max_record_no FROM NSAPRegionGear";
                     using (OleDbCommand getMax = new OleDbCommand(sql, conn))
                     {
                         max_rec_no = (int)getMax.ExecuteScalar();

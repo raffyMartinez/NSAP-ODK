@@ -52,7 +52,7 @@
             <TabItem Header="Vessel unload">
                 <Grid>
                     <DataGrid  x:Name="GridVesselUnload" IsReadOnly="True" ItemsSource="{Binding}" LoadingRow="Grid_LoadingRow"
-                  AutoGenerateColumns="False" MouseDoubleClick="OnGridDoubleClick" SelectionChanged="OnGridSelectionChanged" SelectionUnit="FullRow"/>
+                  AutoGenerateColumns="False" MouseDoubleClick="OnGridDoubleClick" SelectionChanged="OnGridSelectionChanged" SelectionUnit="FullRow" FrozenColumnCount="1"/>
                     <!--Loaded="OnWindowLoaded" Margin="5"/>-->
                 </Grid>
             </TabItem>

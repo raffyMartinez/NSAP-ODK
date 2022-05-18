@@ -163,7 +163,6 @@ namespace NSAP_ODK.Views
 
             ResetView();
             rowGrid.Height = new GridLength(1, GridUnitType.Star);
-            _targetGrid = dataGridExcel;
         }
 
         private void SetMenuViewVisibility()
@@ -320,6 +319,7 @@ namespace NSAP_ODK.Views
             rowJsonFiles.Height = new GridLength(0);
             rowGrid.Height = new GridLength(0);
             labelJSONFile.Content = "";
+            _targetGrid = dataGridExcel;
             //rowGrid.Height = new GridLength(1, GridUnitType.Star);
         }
 
@@ -488,6 +488,7 @@ namespace NSAP_ODK.Views
                             }
                         }
                     }
+                    ResetView();
                     if (_countJSONFiles > 0)
                     {
                         _targetGrid = gridJSONContent;
@@ -500,7 +501,6 @@ namespace NSAP_ODK.Views
                         treeViewJSONNavigator.Items.Clear();
                         MessageBox.Show("No JSON files from Kobotoolbox server was found", "NSAP-ODK Database");
                     }
-                    ResetView();
                     rowJsonFiles.Height = new GridLength(1, GridUnitType.Star);
                     break;
                 case "menuDeletePastDate":
@@ -614,6 +614,9 @@ namespace NSAP_ODK.Views
                     break;
 
                 case "menuDownloadFromServer":
+                    ResetView();
+                    
+                    rowGrid.Height = new GridLength(1,GridUnitType.Star);
                     serverForm = new DownloadFromServerWindow(this);
                     VesselUnloadServerRepository.ResetLists();
                     serverForm.Owner = this;

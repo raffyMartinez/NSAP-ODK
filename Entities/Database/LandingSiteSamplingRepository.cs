@@ -720,7 +720,7 @@ namespace NSAP_ODK.Entities.Database
 
                         update.CommandText = @"Update dbo_LC_FG_sample_day set
                                         region_id=@region_id,
-                                        sdate = @sdate',
+                                        sdate = @sdate,
                                         land_ctr_id = @land_ctr_id,
                                         ground_id = @ground_id,
                                         remarks = @remarks,

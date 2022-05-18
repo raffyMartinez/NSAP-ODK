@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NSAP_ODK.Views"
         mc:Ignorable="d"
-        Title="Settings window" Height="279.685" Width="776" WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+        Title="Settings window" Height="324.685" Width="776" WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="40"/>
@@ -31,7 +31,11 @@
             <WrapPanel Margin="10 2">
                 <Label Content="Cut-off CW for undersized crabs" Width="180" HorizontalContentAlignment="Right"/>
                 <TextBox x:Name="textCutoffWidth" Width="60" Margin="10 0" HorizontalContentAlignment="Right"/>
+            </WrapPanel>
 
+            <WrapPanel Margin="10 2">
+                <Label Content="Enable batch mode if DL > than" Width="180" HorizontalContentAlignment="Right"/>
+                <TextBox x:Name="textDownloadSizeForBatchMode" Width="60" Margin="10 0" HorizontalContentAlignment="Right"/>
             </WrapPanel>
 
             <StackPanel>
@@ -44,7 +48,7 @@
                     <Label Content="Folder for MySQL backup" Width="180" HorizontalContentAlignment="Right"/>
                     <TextBox x:Name="textmySQLBackupFolder" Width="400" Margin="10 0" IsReadOnly="True"/>
                     <Button x:Name="buttonLocateMySQlBackupFolder" Content="Locate" Click="OnButtonClick" Width="50" Height="25" />
-                </WrapPanel>                
+                </WrapPanel>
             </StackPanel>
         </StackPanel>
 

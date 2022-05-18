@@ -52,6 +52,7 @@ namespace NSAP_ODK.Entities.Database
         public double? Catch { get; set; }
         public VesselUnloadViewModel VesselUnloadViewModel { get; set; }
 
+        public int NumberOfSampledLandingsEx { get; set; }
         public int NumberOfSampledLandings
         {
             get
