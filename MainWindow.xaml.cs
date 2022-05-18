@@ -202,7 +202,7 @@ namespace NSAP_ODK
                     dataGridEFormVersionStats.ItemsSource = NSAPEntities.ODKEformVersionViewModel.ODKEformVersionCollection.ToList();
                     break;
                 case "Enumerators":
-
+                    ShowStatusRow(isVisible: false);
                     NSAPEntities.DatabaseEnumeratorSummary.Refresh();
                     //propertyGridSummary.Properties.Clear();
                     labelSummary.Content = "Summary of enumerators";
@@ -283,7 +283,10 @@ namespace NSAP_ODK
                     mainStatusLabel.Content = "Application database not found";
                 }
                 SetMenuAndOtherToolbarButtonsVisibility(Visibility.Visible);
-                NSAPEntities.SummaryItemViewModel.BuildingSummaryTable += SummaryItemViewModel_BuildingSummaryTable;
+                if (NSAPEntities.SummaryItemViewModel != null)
+                {
+                    NSAPEntities.SummaryItemViewModel.BuildingSummaryTable += SummaryItemViewModel_BuildingSummaryTable;
+                }
             }
 
             if (Global.Settings != null && Global.Settings.UsemySQL)
@@ -357,8 +360,6 @@ namespace NSAP_ODK
                          ), null);
                     break;
                 case BuildSummaryReportStatus.StatusBuildEnd:
-                    _timer.Interval = TimeSpan.FromSeconds(3);
-                    _timer.Start();
                     mainStatusBar.Dispatcher.BeginInvoke
                         (
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
@@ -2205,6 +2206,7 @@ namespace NSAP_ODK
             switch (((DataGrid)sender).Name)
             {
                 case "dataGridSummary":
+
                     if (dataGridSummary.SelectedItem != null)
                     {
                         switch (_summaryLevelType)
@@ -2230,17 +2232,14 @@ namespace NSAP_ODK
                                 summaryRegion = ((TreeViewItem)((TreeViewItem)treeViewSummary.SelectedItem).Parent).Header.ToString();
                                 cellinfo = dataGridSummary.SelectedCells[0];
                                 summaryLandingSite = ((TextBlock)cellinfo.Column.GetCellContent(cellinfo.Item)).Text;
-                                //unloads = NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(summaryRegion, summaryFishingGround, summaryLandingSite);
                                 unloads = NSAPEntities.SummaryItemViewModel.GetVesselUnloads(summaryRegion, summaryFishingGround, summaryLandingSite);
-                                //selected item is a landing site
+                                formTitle = $"All vessel unload of {summaryFishingGround}, {summaryRegion} ";
                                 break;
                             case SummaryLevelType.EnumeratorRegion:
-                                //var es = (EnumeratorSummary)dataGridSummary.SelectedItem;
-                                //unloads = es.VesselUnloads;
                                 summaryRegion = ((TreeViewItem)treeViewSummary.SelectedItem).Header.ToString();
                                 unloads = NSAPEntities.SummaryItemViewModel.GetVesselUnloads(
-                                    (SummaryResults)dataGridSummary.SelectedItem, 
-                                    summaryRegion, 
+                                    (SummaryResults)dataGridSummary.SelectedItem,
+                                    summaryRegion,
                                     _summaryLevelType);
                                 break;
                             case SummaryLevelType.Enumerator:
@@ -2250,20 +2249,14 @@ namespace NSAP_ODK
                                     (SummaryResults)dataGridSummary.SelectedItem,
                                     summaryRegion,
                                     _summaryLevelType);
-
-
-                                //es = (EnumeratorSummary)dataGridSummary.SelectedItem;
-                                //unloads = es.VesselUnloads;
-                                //selected item is a month
                                 break;
                             case SummaryLevelType.EnumeratedMonth:
                                 summaryRegion = ((TreeViewItem)((TreeViewItem)((TreeViewItem)treeViewSummary.SelectedItem).Parent).Parent).Header.ToString();
                                 unloads = NSAPEntities.SummaryItemViewModel.GetVesselUnloads(
                                     (SummaryResults)dataGridSummary.SelectedItem,
                                     summaryRegion,
-                                    _summaryLevelType,((TreeViewItem)treeViewSummary.SelectedItem).Header.ToString());
-                                //es = (EnumeratorSummary)dataGridSummary.SelectedItem;
-                                //unloads = es.VesselUnloads;
+                                    _summaryLevelType,
+                                    ((TreeViewItem)treeViewSummary.SelectedItem).Header.ToString());
                                 break;
                         }
 
@@ -2835,8 +2828,9 @@ namespace NSAP_ODK
             }
         }
 
-        private void OnHistoryTreeItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        private async void OnHistoryTreeItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
+            ShowStatusRow();
             gridCalendarHeader.Visibility = Visibility.Visible;
             GridNSAPData.SelectionUnit = DataGridSelectionUnit.FullRow;
             GridNSAPData.IsReadOnly = true;
@@ -2852,7 +2846,7 @@ namespace NSAP_ODK
                 {
                     case "downloadDate":
                         dt = DateTime.Parse(tvItem.Header.ToString()).Date;
-                        GridNSAPData.DataContext = NSAPEntities.SummaryItemViewModel.GetDownloadSummaryByDate(dt);
+                        GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetDownloadSummaryByDateAsync(dt);
                         GridNSAPData.Columns.Clear();
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("DBSummary.EnumeratorName") });
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("DBSummary.GearName") });
@@ -2891,13 +2885,13 @@ namespace NSAP_ODK
                         if (tvItem.Tag.ToString() == "effort")
                         {
                             dt = DateTime.Parse(((TreeViewItem)tvItem.Parent).Header.ToString()).Date;
-                            GridNSAPData.DataContext = NSAPEntities.SummaryItemViewModel.GetDownloadDetailsByDate(dt);
+                            GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetDownloadDetailsByDateAsync(dt);
                             //RefreshDownloadedItemsGrid(dt);
                         }
                         else if (tvItem.Tag.ToString() == "tracked")
                         {
                             dt = DateTime.Parse(((TreeViewItem)tvItem.Parent).Header.ToString()).Date;
-                            GridNSAPData.DataContext = NSAPEntities.SummaryItemViewModel.GetDownloadDetailsByDate(dt, isTracked: true);
+                            GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetDownloadDetailsByDateAsync(dt, isTracked: true);
                             //GridNSAPData.DataContext = _vesselDownloadHistory[dt].Where(t => t.IsTracked == true);
                         }
                         //labelRowCount.Content = $"Rows: {GridNSAPData.Items.Count}";
@@ -2940,7 +2934,7 @@ namespace NSAP_ODK
                         break;
                     case "gearUnload":
                         dt = DateTime.Parse(((TreeViewItem)tvItem.Parent).Header.ToString()).Date;
-                        GridNSAPData.DataContext = NSAPEntities.SummaryItemViewModel.GetGearUnloads(dt);
+                        GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetGearUnloadsAsync(dt);
                         GridNSAPData.Columns.Clear();
                         GridNSAPData.AutoGenerateColumns = false;
                         GridNSAPData.SelectionUnit = DataGridSelectionUnit.Cell;
@@ -2973,7 +2967,7 @@ namespace NSAP_ODK
                         break;
                     case "unloadSummary":
                         dt = DateTime.Parse(((TreeViewItem)tvItem.Parent).Header.ToString()).Date;
-                        GridNSAPData.DataContext = NSAPEntities.SummaryItemViewModel.GetUnloadStatisticsByDate(dt);
+                        GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetUnloadStatisticsByDateAsync(dt);
                         GridNSAPData.Columns.Clear();
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("VesselUnloadID") });
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Date sampled", Binding = new Binding("SamplingDateFormatted") });
@@ -3056,7 +3050,7 @@ namespace NSAP_ODK
             targetGrid.AutoGenerateColumns = false;
             targetGrid.Columns.Clear();
             targetGrid.SelectionUnit = DataGridSelectionUnit.FullRow;
-
+            targetGrid.DataContext = null;
 
             if (treeviewData != null)
             {
@@ -3066,7 +3060,7 @@ namespace NSAP_ODK
             switch (summaryType)
             {
                 case SummaryLevelType.AllRegions:
-                    targetGrid.DataContext = NSAPEntities.SummaryItemViewModel.GetRegionOverallSummary().OrderBy(t => t.DBSummary.NSAPRegion.Sequence);
+                    targetGrid.DataContext = await NSAPEntities.SummaryItemViewModel.GetRegionOverallSummaryAsync();
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Region", Binding = new Binding("DBSummary.NSAPRegion") });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of gear unload", Binding = new Binding("DBSummary.GearUnloadCount"), CellStyle = AlignRightStyle });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of complete gear unload", Binding = new Binding("DBSummary.CountCompleteGearUnload"), CellStyle = AlignRightStyle });
@@ -3090,7 +3084,7 @@ namespace NSAP_ODK
                     }
                     else
                     {
-                        targetGrid.DataContext = NSAPEntities.SummaryItemViewModel.GetRegionSummary(region);
+                        targetGrid.DataContext = await NSAPEntities.SummaryItemViewModel.GetRegionSummaryAsync(region);
                     }
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("DBSummary.FMA") });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of gear unload", Binding = new Binding("DBSummary.GearUnloadCount"), CellStyle = AlignRightStyle });
@@ -3121,7 +3115,7 @@ namespace NSAP_ODK
                     }
                     else
                     {
-                        targetGrid.DataContext = NSAPEntities.SummaryItemViewModel.GetRegionFishingGroundSummary(region, fg);
+                        targetGrid.DataContext = await NSAPEntities.SummaryItemViewModel.GetRegionFishingGroundSummaryAsync(region, fg);
                     }
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("DBSummary.LandingSiteName") });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of gear unload", Binding = new Binding("DBSummary.GearUnloadCount"), CellStyle = AlignRightStyle });
@@ -3158,10 +3152,11 @@ namespace NSAP_ODK
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Last sampling", Binding = new Binding("DBSummary.LastLandingFormattedDate") });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Last upload date", Binding = new Binding("DBSummary.LatestDownloadFormattedDate") });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Latest e-Form version", Binding = new Binding("DBSummary.LatestEformVersion") });
+
                     break;
                 case SummaryLevelType.SummaryOfEnumerators:
                     targetGrid.DataContext = null;
-                    targetGrid.DataContext = NSAPEntities.SummaryItemViewModel.GetEnumeratorSummary(region).OrderBy(t => t.DBSummary.EnumeratorName);
+                    targetGrid.DataContext = await NSAPEntities.SummaryItemViewModel.GetEnumeratorSummaryAsync(region);
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("DBSummary.EnumeratorName") });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Number of landings sampled", Binding = new Binding("DBSummary.VesselUnloadCount"), CellStyle = AlignRightStyle });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Catch composition included", Binding = new Binding("DBSummary.CountLandingsWithCatchComposition"), CellStyle = AlignRightStyle });
@@ -3172,7 +3167,7 @@ namespace NSAP_ODK
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Latest e-Form version", Binding = new Binding("DBSummary.LatestEformVersion") });
                     break;
                 case SummaryLevelType.Enumerator:
-                    targetGrid.DataContext = NSAPEntities.SummaryItemViewModel.GetEnumeratorSummary(region, enumeratorName).OrderBy(t => t.DBSummary.LandingSiteName);
+                    targetGrid.DataContext = await NSAPEntities.SummaryItemViewModel.GetEnumeratorSummaryAsync(region, enumeratorName);
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("DBSummary.LandingSiteName") });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("DBSummary.GearName") });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Number of landings sampled", Binding = new Binding("DBSummary.VesselUnloadCount"), CellStyle = AlignRightStyle });
@@ -3184,7 +3179,7 @@ namespace NSAP_ODK
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Latest e-Form version", Binding = new Binding("DBSummary.LatestEformVersion") });
                     break;
                 case SummaryLevelType.EnumeratedMonth:
-                    targetGrid.DataContext = NSAPEntities.SummaryItemViewModel.GetEnumeratorSummaryByMonth(en, (DateTime)monthEnumerated);
+                    targetGrid.DataContext = await NSAPEntities.SummaryItemViewModel.GetEnumeratorSummaryByMonthAsync(en, (DateTime)monthEnumerated);
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("DBSummary.LandingSiteName") });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("DBSummary.GearName") });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Number of landings sampled", Binding = new Binding("DBSummary.VesselUnloadCount"), CellStyle = AlignRightStyle });
@@ -3249,6 +3244,7 @@ namespace NSAP_ODK
 
         private void ProcessSummaryTreeSelection(TreeViewItem tvItem)
         {
+            ShowStatusRow();
             labelSummary2.Visibility = Visibility.Collapsed;
             rowSummaryDataGrid.Height = new GridLength(1, GridUnitType.Star);
             rowOverallSummary.Height = new GridLength(0);
@@ -3256,6 +3252,7 @@ namespace NSAP_ODK
             switch (header)
             {
                 case "Overall":
+                    ShowStatusRow(isVisible: false);
                     ShowSummary(header);
                     rowSummaryDataGrid.Height = new GridLength(0);
                     rowOverallSummary.Height = new GridLength(1, GridUnitType.Star);
@@ -3272,6 +3269,7 @@ namespace NSAP_ODK
                     _summaryLevelType = SummaryLevelType.Enumerators;
                     break;
                 case "e-Form versions":
+                    ShowStatusRow(isVisible: false);
                     ShowSummary(header);
                     rowSummaryDataGrid.Height = new GridLength(0);
                     rowOverallSummary.Height = new GridLength(1, GridUnitType.Star);
@@ -3292,7 +3290,6 @@ namespace NSAP_ODK
                                     _summaryLevelType = SummaryLevelType.Region;
                                     break;
                             }
-
                             break;
                         case "FishingGround":
                             ShowSummaryAtLevel(summaryType: SummaryLevelType.FishingGround, region: (NSAPRegion)((TreeViewItem)tvItem.Parent).Tag, fg: (FishingGround)tvItem.Tag);
@@ -3377,7 +3374,6 @@ namespace NSAP_ODK
         private void OnSummaryTreeItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             labelSummary.Content = "To be implemented";
-
             treeViewSummary.Visibility = Visibility.Visible;
             panelSummaryLabel.Visibility = Visibility.Visible;
 
@@ -3419,6 +3415,7 @@ namespace NSAP_ODK
         }
         private async void OnToolbarButtonClick(object sender, RoutedEventArgs e)
         {
+            ShowStatusRow();
             menuDatabaseSummary.IsChecked = false;
             switch (((Button)sender).Name)
             {
