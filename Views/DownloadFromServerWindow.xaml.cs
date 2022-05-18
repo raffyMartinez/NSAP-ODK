@@ -146,6 +146,7 @@ namespace NSAP_ODK.Views
             string baseURL = $"https://kf.kobotoolbox.org/api/v2/assets/{assetID}";
             if (GetCSVSaveLocationFromSaveAsDialog())
             {
+                ProgressBar.IsIndeterminate = true;
                 ProgressBar.Value = 0;
                 ProgressBar.Maximum = _metadataFilesForReplacement.Count;
                 HttpRequestMessage request;
@@ -159,6 +160,7 @@ namespace NSAP_ODK.Views
                         //_metadataFilesForReplacement is a list of files that are for replacement
                         foreach (Metadata metadata in _metadataFilesForReplacement)
                         {
+
                             var f = files.Where(t => t.Extension == ".csv" && t.Name == metadata.data_value).FirstOrDefault();
                             if (f != null)
                             {
@@ -187,7 +189,12 @@ namespace NSAP_ODK.Views
                                                 response = await httpClient.SendAsync(request);
                                                 if (response.IsSuccessStatusCode)
                                                 {
+                                                    if (replacedCount == 0)
+                                                    {
+                                                        ProgressBar.IsIndeterminate = false;
+                                                    }
                                                     replacedCount++;
+
                                                     ProgressBar.Value = replacedCount;
                                                     labelProgress.Content = $"{f.Name} was successfully uploaded to the server";
                                                 }

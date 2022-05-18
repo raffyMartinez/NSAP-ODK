@@ -393,6 +393,25 @@ namespace NSAP_ODK.Entities.Database
             ProcessBuildEvent(status: BuildSummaryReportStatus.StatusBuildEnd, totalRowsFetched: results.Count);
             return results;
         }
+
+        public List<VesselUnload> GetVesselUnloads(SummaryResults sr)
+        {
+            DBSummary dbs = sr.DBSummary;
+            DateTime fs = DateTime.Parse(dbs.FirstLandingFormattedDate);
+            DateTime ls = DateTime.Parse(dbs.LastLandingFormattedDate);
+
+            List<VesselUnload> unloads = new List<VesselUnload>();
+
+            foreach(SummaryItem si in SummaryItemCollection.Where(t => t.EnumeratorNameToUse == dbs.EnumeratorName &&
+                                        t.GearUsedName == dbs.GearName &&
+                                        t.SamplingDate >= fs &&
+                                        t.SamplingDate <= ls))
+            {
+                unloads.Add(GetVesselUnload(si));
+            }
+
+            return unloads;
+        }
         public VesselUnload GetVesselUnload(SummaryItem si)
         {
             return NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(si.SamplingDayID)

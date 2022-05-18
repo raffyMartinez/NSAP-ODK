@@ -2262,17 +2262,18 @@ namespace NSAP_ODK
 
                         if (unloads?.Count > 0)
                         {
-                            GearUnloadWindow guw = GearUnloadWindow.GetInstance(unloads);
-                            guw.Owner = this;
-                            if (guw.Visibility == Visibility.Visible)
-                            {
-                                guw.BringIntoView();
-                            }
-                            else
-                            {
-                                guw.Show();
-                            }
-                            guw.Title = formTitle;
+                            ShowVesselUnloadsInWindow(unloads, formTitle);
+                            //GearUnloadWindow guw = GearUnloadWindow.GetInstance(unloads);
+                            //guw.Owner = this;
+                            //if (guw.Visibility == Visibility.Visible)
+                            //{
+                            //    guw.BringIntoView();
+                            //}
+                            //else
+                            //{
+                            //    guw.Show();
+                            //}
+                            //guw.Title = formTitle;
                         }
                     }
 
@@ -2302,16 +2303,17 @@ namespace NSAP_ODK
                             {
                                 case "unloadSummary":
 
-                                    unload = ((UnloadChildrenSummary)GridNSAPData.SelectedItem).VesselUnload;
+                                    unload = NSAPEntities.SummaryItemViewModel.GetVesselUnload((SummaryItem)GridNSAPData.SelectedItem);
 
                                     break;
                                 case "downloadDate":
+                                    ShowVesselUnloadsInWindow(
+                                        unloads: NSAPEntities.SummaryItemViewModel.GetVesselUnloads((SummaryResults)GridNSAPData.SelectedItem),
+                                        formTitle:"Vessel unloads from download history");
                                     return;
-                                //var ds = (Download_summary)GridNSAPData.SelectedItem;
-                                //break;
                                 case "tracked":
                                 case "effort":
-                                    unload = (VesselUnload)GridNSAPData.SelectedItem;
+                                    unload = NSAPEntities.SummaryItemViewModel.GetVesselUnload((SummaryItem)GridNSAPData.SelectedItem);
                                     break;
                                 default:
                                     return;
@@ -2442,6 +2444,23 @@ namespace NSAP_ODK
 
         }
 
+        private void ShowVesselUnloadsInWindow(List<VesselUnload> unloads, string formTitle = null)
+        {
+            GearUnloadWindow guw = GearUnloadWindow.GetInstance(unloads);
+            guw.Owner = this;
+            if (guw.Visibility == Visibility.Visible)
+            {
+                guw.BringIntoView();
+            }
+            else
+            {
+                guw.Show();
+            }
+            if (formTitle != null)
+            {
+                guw.Title = formTitle;
+            }
+        }
         public void VesselWindowClosed()
         {
             _vesselUnloadWindow = null;
@@ -2490,7 +2509,7 @@ namespace NSAP_ODK
                     break;
                 case "tv_MonthViewModel":
                     GridNSAPData.SelectionUnit = DataGridSelectionUnit.Cell;
-                    
+
                     MonthLabel.Content = $"Fisheries landing sampling calendar for {((DateTime)e.MonthSampled).ToString("MMMM-yyyy")}";
                     MonthSubLabel.Content = $"{e.LandingSiteText}, {e.FishingGround}, {e.FMA}, {e.NSAPRegion}";
                     GridNSAPData.Visibility = Visibility.Visible;
