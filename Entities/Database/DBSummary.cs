@@ -88,6 +88,7 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
+        public NSAPEnumerator NSAPEnumerator { get; set; }
         public string NSAPRegionCode { get; set; }
         [ReadOnly(true)]
         public string DBPath { get; set; }

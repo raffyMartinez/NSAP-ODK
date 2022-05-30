@@ -282,7 +282,9 @@
                 <TreeViewItem Header="Overall" x:Name="summaryTreeNodeOverall"/>
                 <TreeViewItem Header="Regions" x:Name="summaryTreeNodeRegion"/>
                 <TreeViewItem Header="Enumerators" x:Name="summaryTreeNodeEnumerators"/>
-                <TreeViewItem Header="e-Form versions" x:Name="summaryTreeForrmVersions"/>
+                <TreeViewItem Header="e-Form versions" x:Name="summaryTreeForrmVersions">
+                    <TreeViewItem Header="Enumerators and form versions" x:Name="summaryTreeNodeEnumeratorForms"/>
+                </TreeViewItem>
             </TreeView>
 
             <StackPanel Grid.Column="1" x:Name="panelSummaryLabel" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -290,21 +292,23 @@
                 <Label x:Name="labelSummary2" Content="this is a sublabel11" FontWeight="Normal" FontSize="12" Visibility="Collapsed" HorizontalContentAlignment="Center"/>
             </StackPanel>
 
-            <StackPanel Grid.Column="1" Grid.Row="1" Margin="20">
-                <xctk:PropertyGrid x:Name="propertyGridSummary"   ShowSortOptions="False" ShowSearchBox="False" Visibility="Collapsed"
+            <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Column="1" Grid.Row="1" PreviewMouseWheel="OnMouseWheel">
+                <StackPanel  Margin="20">
+                    <xctk:PropertyGrid x:Name="propertyGridSummary"   ShowSortOptions="False" ShowSearchBox="False" Visibility="Collapsed"
                         ShowTitle="False" MouseDoubleClick="OnPropertyGridDblClick"   SelectedPropertyItemChanged="OnPropertyChanged" IsReadOnly="True" GotFocus="OnPropertyGridFGotFocus"
                                MouseRightButtonUp="OnPropertyGridContextMenu" />
 
-                <StackPanel x:Name="panelVersionStats" Visibility="Collapsed" >
-                    <DataGrid x:Name="dataGridEFormVersionStats"  ItemsSource="{Binding}" IsReadOnly="True" LoadingRow="Grid_LoadingRow"/>
+                    <StackPanel x:Name="panelVersionStats" Visibility="Collapsed" >
+                        <DataGrid x:Name="dataGridEFormVersionStats"  ItemsSource="{Binding}" IsReadOnly="True" LoadingRow="Grid_LoadingRow"/>
+                    </StackPanel>
                 </StackPanel>
-            </StackPanel>
+            </ScrollViewer>
 
-            <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Column="1" Grid.Row="2">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Column="1" Grid.Row="2" PreviewMouseWheel="OnMouseWheel">
                 <StackPanel  x:Name="panelOpening">
                     <CheckBox x:Name="checkLandingSiteWithLandings" Margin="20 0 0 0" Visibility="Collapsed" Content="Only show landing sites with catch monitoring" Checked="OnCheckBoxChecked" Unchecked="OnCheckBoxChecked"/>
-                    <DataGrid x:Name="dataGridSummary" Visibility="Collapsed" ItemsSource="{Binding}" IsReadOnly="True" Margin="20" LoadingRow="Grid_LoadingRow" RowHeaderWidth="30" SelectionChanged="OnDataGridSelectionChanged" MouseDoubleClick="OnGridDoubleClick"  MouseRightButtonUp="OnMenuRightClick">
-                    </DataGrid>
+                    <DataGrid x:Name="dataGridSummary" Visibility="Collapsed" ItemsSource="{Binding}" IsReadOnly="True" Margin="20" LoadingRow="Grid_LoadingRow" RowHeaderWidth="30" SelectionChanged="OnDataGridSelectionChanged" MouseDoubleClick="OnGridDoubleClick"  MouseRightButtonUp="OnMenuRightClick"/>
+
                 </StackPanel>
             </ScrollViewer>
         </Grid>

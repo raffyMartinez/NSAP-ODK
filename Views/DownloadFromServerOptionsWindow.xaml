@@ -5,13 +5,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NSAP_ODK.Views"
         mc:Ignorable="d"
-        Title="Options for downloading from the server" Height="255.915" Width="454.362">
+        Title="Options for downloading from the server" Height="304.915" Width="454.362">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
             <RowDefinition Height="30"/>
             <RowDefinition/>
-            <RowDefinition Height="30"/>
+            <RowDefinition Height="80"/>
             <RowDefinition Height="40"/>
         </Grid.RowDefinitions>
         <Label Content="Options for downloading from the server" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
@@ -24,9 +24,15 @@
                 <TextBox Width="100" Height="20" Margin="5 0 0 0" x:Name="txtNumberToDownload"/>
             </WrapPanel>
         </StackPanel>
-        <CheckBox Content="Save downloaded data as JSON file only, do not upload"  Grid.Row="3" VerticalAlignment="Center" Margin="10 0" x:Name="chkSaveToJSONFile"/>
+        <StackPanel Grid.Row="3" VerticalAlignment="Center" Margin="10 0">
+            <CheckBox Content="Save downloaded data as JSON file only, do not upload"   VerticalAlignment="Center"  x:Name="chkSaveToJSONFile"/>
+            <WrapPanel Margin="0 5">
+                <Label Content="Notes"/>
+                <TextBox x:Name="txtNotes" Width="350" Height="50"/>
+            </WrapPanel>
+        </StackPanel>
         <WrapPanel Grid.Row="4" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10 0">
-            
+
             <Button Content="Cancel" x:Name="buttonCancel" Click="OnButtonClick" Width="50" Margin="3 0" IsCancel="True"/>
             <Button Content="Ok" x:Name="buttonOk" Click="OnButtonClick" Width="50" Margin=" 3 0" IsDefault="True"/>
         </WrapPanel>

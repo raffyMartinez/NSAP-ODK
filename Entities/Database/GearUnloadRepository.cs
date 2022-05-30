@@ -59,11 +59,11 @@ namespace NSAP_ODK.Entities.Database
                                 max_rec_no = (int)r;
                             }
                         }
-                        catch(OleDbException olx)
+                        catch (OleDbException olx)
                         {
                             Logger.Log(olx);
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             Logger.Log(ex);
                         }
@@ -368,8 +368,17 @@ namespace NSAP_ODK.Entities.Database
                         }
                         catch (OleDbException odbex)
                         {
-                            success = false;
-                            Logger.Log(odbex);
+                            switch (odbex.ErrorCode)
+                            {
+                                case -2147467259:
+                                    //duplicate index or unique keys error
+                                    break;
+                                default:
+                                    success = false;
+                                    Logger.Log(odbex);
+                                    break;
+                            }
+
                         }
                         catch (Exception ex)
                         {

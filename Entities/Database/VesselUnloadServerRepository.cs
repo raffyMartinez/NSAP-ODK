@@ -1774,14 +1774,16 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                     FMAID = landing.NSAPRegionFMA.FMA.FMAID
                                 };
                                 proceed = NSAPEntities.LandingSiteSamplingViewModel.AddRecordToRepo(landingSiteSampling);
-                                if (proceed)
-                                {
-                                    landingSiteSampling.GearUnloadViewModel = new GearUnloadViewModel(landingSiteSampling);
-                                }
+
                             }
                             else
                             {
                                 proceed = true;
+                            }
+
+                            if (proceed && landingSiteSampling.GearUnloadViewModel==null)
+                            {
+                                landingSiteSampling.GearUnloadViewModel = new GearUnloadViewModel(landingSiteSampling);
                             }
 
                             GearUnload gear_unload = null;
@@ -1807,18 +1809,16 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                         Remarks = ""
                                     };
                                     proceed = landingSiteSampling.GearUnloadViewModel.AddRecordToRepo(gear_unload);
-                                    if (proceed)
-                                    {
-                                        gear_unload.VesselUnloadViewModel = new VesselUnloadViewModel(isNew: true);
-                                    }
+
                                 }
                                 else
                                 {
-                                    if (gear_unload.VesselUnloadViewModel == null)
-                                    {
-                                        gear_unload.VesselUnloadViewModel = new VesselUnloadViewModel(gear_unload);
-                                    }
                                     proceed = true;
+                                }
+
+                                if (proceed && gear_unload.VesselUnloadViewModel==null)
+                                {
+                                    gear_unload.VesselUnloadViewModel = new VesselUnloadViewModel(isNew: true);
                                 }
                             }
                             if (proceed)

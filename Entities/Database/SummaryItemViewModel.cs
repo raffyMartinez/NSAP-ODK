@@ -358,7 +358,7 @@ namespace NSAP_ODK.Entities.Database
         }
         public List<SummaryResults> GetEnumeratorSummaryByMonth(NSAPEnumerator en, DateTime monthSampled)
         {
-            ProcessBuildEvent(status:BuildSummaryReportStatus.StatusBuildStart,isIndeterminate:true);
+            ProcessBuildEvent(status: BuildSummaryReportStatus.StatusBuildStart, isIndeterminate: true);
             List<SummaryResults> results = new List<SummaryResults>();
             int seq = 0;
             foreach (var em_group in SummaryItemCollection.Where(t => t.EnumeratorID == en.ID && t.MonthSampled == monthSampled)
@@ -371,7 +371,7 @@ namespace NSAP_ODK.Entities.Database
                     DBSummary summ = new DBSummary
                     {
                         EnumeratorName = en.Name,
-                        LandingSiteName = gr.LandingSiteName,
+                        LandingSiteName = gr.LandingSiteNameText,
                         GearName = gr.GearUsedName,
                         VesselUnloadCount = gr_group.Count(),
                         CountLandingsWithCatchComposition = gr_group.Count(t => t.HasCatchComposition == true),
@@ -402,10 +402,10 @@ namespace NSAP_ODK.Entities.Database
 
             List<VesselUnload> unloads = new List<VesselUnload>();
 
-            foreach(SummaryItem si in SummaryItemCollection.Where(t => t.EnumeratorNameToUse == dbs.EnumeratorName &&
-                                        t.GearUsedName == dbs.GearName &&
-                                        t.SamplingDate >= fs &&
-                                        t.SamplingDate <= ls))
+            foreach (SummaryItem si in SummaryItemCollection.Where(t => t.EnumeratorNameToUse == dbs.EnumeratorName &&
+                                         t.GearUsedName == dbs.GearName &&
+                                         t.SamplingDate >= fs &&
+                                         t.SamplingDate <= ls))
             {
                 unloads.Add(GetVesselUnload(si));
             }
@@ -461,7 +461,7 @@ namespace NSAP_ODK.Entities.Database
         }
         public List<SummaryResults> GetRegionOverallSummary()
         {
-            ProcessBuildEvent(status:BuildSummaryReportStatus.StatusBuildStart,isIndeterminate:true);
+            ProcessBuildEvent(status: BuildSummaryReportStatus.StatusBuildStart, isIndeterminate: true);
             List<SummaryResults> ls = new List<SummaryResults>();
             var regionGroups = SummaryItemCollection.OrderBy(t => t.RegionSequence).GroupBy(t => t.RegionID);
             int seq = 0;
@@ -539,7 +539,7 @@ namespace NSAP_ODK.Entities.Database
                     }
                 }
             }
-            ProcessBuildEvent(status:BuildSummaryReportStatus.StatusBuildEnd,totalRowsFetched:ls.Count);
+            ProcessBuildEvent(status: BuildSummaryReportStatus.StatusBuildEnd, totalRowsFetched: ls.Count);
             return ls.OrderBy(t => t.DBSummary.NSAPRegion.Sequence).ToList();
         }
 
@@ -708,7 +708,7 @@ namespace NSAP_ODK.Entities.Database
 
         public Task<List<SummaryResults>> GetRegionFishingGroundSummaryAsync(NSAPRegion region, FishingGround fishingGround)
         {
-            return Task.Run(() => GetRegionFishingGroundSummary(region,fishingGround));
+            return Task.Run(() => GetRegionFishingGroundSummary(region, fishingGround));
         }
         public List<SummaryResults> GetRegionFishingGroundSummary(NSAPRegion region, FishingGround fishingGround)
         {
@@ -786,7 +786,7 @@ namespace NSAP_ODK.Entities.Database
 
             }
 
-            ProcessBuildEvent(status: BuildSummaryReportStatus.StatusBuildEnd, totalRowsFetched:resuts.Count);
+            ProcessBuildEvent(status: BuildSummaryReportStatus.StatusBuildEnd, totalRowsFetched: resuts.Count);
             return resuts;
         }
         public int GetEnumertorUnloadCount()
@@ -864,25 +864,23 @@ namespace NSAP_ODK.Entities.Database
                         enum_unloads = SummaryItemCollection.Where(
                             t => t.EnumeratorNameToUse == sr.DBSummary.EnumeratorName &&
                             t.Region.ShortName == region &&
+                            t.LandingSiteNameText == sr.DBSummary.LandingSiteName &&
                             t.GearUsedName == sr.DBSummary.GearName
                             ).ToList();
                     }
                     break;
                 case SummaryLevelType.EnumeratedMonth:
-                    DateTime start = DateTime.Parse(sampledMonth);
-                    DateTime end = start.AddMonths(1);
+                    DateTime start = DateTime.Parse(sr.DBSummary.FirstLandingFormattedDate);
+                    DateTime end = DateTime.Parse(sr.DBSummary.LastLandingFormattedDate);
 
-                    enum_unloads = SummaryItemCollection.Where(
-                        t => t.EnumeratorNameToUse == sr.DBSummary.EnumeratorName &&
-                        t.Region.ShortName == region &&
-                        t.GearUsedName == sr.DBSummary.GearName).ToList();
 
                     enum_unloads = SummaryItemCollection.Where(
                         t => t.EnumeratorNameToUse == sr.DBSummary.EnumeratorName &&
                         t.Region.ShortName == region &&
                         t.GearUsedName == sr.DBSummary.GearName &&
                         t.SamplingDate >= start &&
-                        t.SamplingDate < end
+                        t.SamplingDate <= end &&
+                        t.LandingSiteNameText == sr.DBSummary.LandingSiteName
                         ).ToList();
                     break;
             }
@@ -897,6 +895,26 @@ namespace NSAP_ODK.Entities.Database
             }
             ProcessBuildEvent(status: BuildSummaryReportStatus.StatusBuildEnd, totalRowsFetched: unloads.Count);
             return unloads;
+        }
+
+        public List<EnumeratorFormVersion> EnumeratorsAndLatestFormVersion()
+        {
+            List<EnumeratorFormVersion> en_fvs = new List<EnumeratorFormVersion>();
+            foreach (var en_fv in SummaryItemCollection.OrderBy(t => t.EnumeratorNameToUse).ThenBy(t => t.SamplingDate).GroupBy(t => t.EnumeratorNameToUse))
+            {
+                var en = en_fv.First();
+                if (en.EnumeratorID != null)
+                {
+                    en_fvs.Add(new EnumeratorFormVersion
+                    {
+                        NSAPEnumerator = NSAPEntities.NSAPEnumeratorViewModel.GetNSAPEnumerator((int)en.EnumeratorID),
+                        FormVersion = en_fv.Last().FormVersion,
+                        LastSamplingDate = en_fv.Last().SamplingDate
+                    });
+                }
+
+            }
+            return en_fvs;
         }
         public List<VesselUnload> GetVesselUnloads(string summaryRegion, string summaryFMA)
         {

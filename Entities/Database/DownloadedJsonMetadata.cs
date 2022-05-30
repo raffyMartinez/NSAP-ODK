@@ -15,7 +15,9 @@ namespace NSAP_ODK.Entities.Database
         public string FormName { get; set; }
         public DateTime DateDownloaded { get; set; }
         public string FileName { get; set; }
-
+        public string FormVersion { get; set; }
         public string DownloadType { get; set; }
+
+        public string Notes { get; set; }
     }
 }

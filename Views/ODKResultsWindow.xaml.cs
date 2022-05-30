@@ -355,6 +355,10 @@ namespace NSAP_ODK.Views
             TreeViewItem formOwnerNode = new TreeViewItem { Header = djmd.DBOwner };
             TreeViewItem dateDownloadNode = new TreeViewItem { Header = dateDownloaded, Tag = "date_download" };
 
+            //formNameNode.Tag = djmd;
+            //formOwnerNode.Tag = djmd;
+            dateDownloadNode.Tag = djmd;
+
             if (root.Items.Count == 0)
             {
                 _rootChildrenHeadersHashSet.Add(formNameNode.Header.ToString());
@@ -414,7 +418,7 @@ namespace NSAP_ODK.Views
                 }
                 if (!found)
                 {
-                    dateDownloadNode.Tag = "date_download";
+                    dateDownloadNode.Tag = djmd;
                     formOwnerNode.Items.Add(dateDownloadNode);
                     AddFilesToDateNode(dateDownloadNode, djmd, dateDownloaded);
 
@@ -615,8 +619,8 @@ namespace NSAP_ODK.Views
 
                 case "menuDownloadFromServer":
                     ResetView();
-                    
-                    rowGrid.Height = new GridLength(1,GridUnitType.Star);
+
+                    rowGrid.Height = new GridLength(1, GridUnitType.Star);
                     serverForm = new DownloadFromServerWindow(this);
                     VesselUnloadServerRepository.ResetLists();
                     serverForm.Owner = this;
@@ -1656,6 +1660,7 @@ namespace NSAP_ODK.Views
 
         private void ProcessJsonFileForDisplay(FileInfoJSONMetadata fm)
         {
+            rowJSONGrid.Height = new GridLength(1, GridUnitType.Star);
             JSON = File.ReadAllText(fm.JSONFile.FullName);
             VesselUnloadServerRepository.JSON = JSON;
             VesselUnloadServerRepository.CreateLandingsFromJSON();
@@ -1678,27 +1683,51 @@ namespace NSAP_ODK.Views
 
         private void OnTreeviewItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
+            //gridJSONContent.Visibility = Visibility.Collapsed;
+            //propertyGridMetadata.Visibility = Visibility.Collapsed;
+            rowJSONGrid.Height = new GridLength(0);
+            rowJSONMetadata.Height = new GridLength(0);
+
             labelJSONFile.Content = "";
             gridJSONContent.Visibility = Visibility.Collapsed;
             //menuView.Visibility = Visibility.Collapsed;
             _isJSONData = false;
             _jsonDateDownloadnode = null;
-            if (((TreeViewItem)e.NewValue).Tag?.ToString() == "date_download")
+
+
+            switch (((TreeViewItem)treeViewJSONNavigator.SelectedItem).Tag?.ToString())
+            {
+                case "NSAP_ODK.Entities.Database.FileInfoJSONMetadata":
+                    ProcessJsonFileForDisplay((FileInfoJSONMetadata)((TreeViewItem)e.NewValue).Tag);
+                    break;
+                case "NSAP_ODK.Entities.Database.DownloadedJsonMetadata":
+                    ShowJSONMetadata((DownloadedJsonMetadata)((TreeViewItem)treeViewJSONNavigator.SelectedItem).Tag);
+                    break;
+
+            }
+
+            if (DateTime.TryParse(((TreeViewItem)treeViewJSONNavigator.SelectedItem).Header.ToString(), out DateTime v))
             {
                 _jsonDateDownloadnode = treeViewJSONNavigator.SelectedItem as TreeViewItem;
             }
-            else if (((TreeViewItem)e.NewValue).Tag?.GetType().Name == "FileInfoJSONMetadata")
-            {
-                ProcessJsonFileForDisplay((FileInfoJSONMetadata)((TreeViewItem)e.NewValue).Tag);
-            }
+
         }
 
+        private void ShowJSONMetadata(DownloadedJsonMetadata djmd)
+        {
+            labelJSONFile.Content = $"Metadata for selected downloaded JSON files downloaded on {djmd.DateDownloaded:MMM-dd-yyyy HH:mm}";
+            rowJSONMetadata.Height = new GridLength(1, GridUnitType.Star);
+            //propertyGridMetadata.Visibility = Visibility.Visible;
+            propertyGridMetadata.SelectedObject = djmd;
+            propertyGridMetadata.AutoGenerateProperties = true;
+        }
         private void OnTreeMouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             ContextMenu cm = new ContextMenu();
             MenuItem m = null;
             string tag = ((TreeViewItem)treeViewJSONNavigator.SelectedItem).Tag.ToString();
-            if (tag == "date_download")
+            //if (tag == "date_download")
+            if (DateTime.TryParse(((TreeViewItem)treeViewJSONNavigator.SelectedItem).Header.ToString(), out DateTime v))
             {
                 m = new MenuItem { Header = "Upload all", Name = "menuUploadAllJsonFiles" };
                 m.Click += OnMenuClick;
@@ -1714,6 +1743,15 @@ namespace NSAP_ODK.Views
             {
                 cm.IsOpen = true;
             }
+        }
+
+        private void OnMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
+        {
+
+            ScrollViewer scv = (ScrollViewer)sender;
+            scv.ScrollToVerticalOffset(scv.VerticalOffset - e.Delta);
+            e.Handled = true;
+
         }
     }
 }

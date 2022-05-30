@@ -9,6 +9,7 @@ namespace NSAP_ODK
     /// </summary>
     public partial class App : Application
     {
+        
         public App()
         {
             //NSAPEntities.GPSViewModel = new GPSViewModel();

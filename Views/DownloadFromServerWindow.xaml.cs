@@ -374,7 +374,7 @@ namespace NSAP_ODK.Views
             }
             return result;
         }
-
+        public string DownloadAsJSONNotes { get; set; }
         public bool SaveDownloadAsJSON { get; set; }
         public bool DownloadOptionDownloadAll { get; set; }
         public int? NumberToDownloadPerBatch
@@ -1069,7 +1069,8 @@ namespace NSAP_ODK.Views
                             DBOwner = _formSummary.Owner,
                             FormName = _formSummary.Title,
                             DateDownloaded = createdOn,
-                            DownloadType = _jsonOption
+                            DownloadType = _jsonOption,
+                            FormVersion = _formSummary.EFormVersion
                         }
                     );
                 }

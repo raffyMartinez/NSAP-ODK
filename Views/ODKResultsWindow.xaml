@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:local="clr-namespace:NSAP_ODK.Views"
         Closing="OnWindowClosing"
         mc:Ignorable="d" Loaded="OnWindowLoaded"
@@ -41,8 +42,8 @@
                 <MenuItem Header="Length-Weight" x:Name="menuViewLengthWeights"  IsCheckable="True" Checked="OnMenuItemChecked" Tag="lengthWeight"/>
                 <MenuItem Header="Length frequency" x:Name="menuViewLengthFreq"  IsCheckable="True" Checked="OnMenuItemChecked" Tag="lengthFreq"/>
                 <MenuItem Header="Length, weight, sex and GMS" x:Name="menuViewGMS"  IsCheckable="True" Checked="OnMenuItemChecked" Tag="gms"/>
-                
-                
+
+
                 <MenuItem Header="Landing site sampling" x:Name="menuViewLandingSiteSampling"  IsCheckable="True" Checked="OnMenuItemChecked" Tag="landingSiteSampling"/>
                 <MenuItem Header="Vessel counts" x:Name="menuViewLandingSiteVesselCount"  IsCheckable="True" Checked="OnMenuItemChecked" Tag="landingSiteCounts"/>
                 <Separator/>
@@ -81,12 +82,21 @@
             <Label x:Name="labelJSONMain" Grid.ColumnSpan="2" Content="Upload JSON of sampled fish landings to local database"/>
             <TreeView Grid.Row="2" x:Name="treeViewJSONNavigator" SelectedItemChanged="OnTreeviewItemChanged" MouseRightButtonDown="OnTreeMouseRightButtonDown"  />
             <Label x:Name="labelJSONFile" Grid.Row="1" Grid.Column="1" Content="Label for the current json file"/>
-            <DataGrid Grid.Row="2" Grid.Column="2" x:Name="gridJSONContent" LoadingRow="OnDataGridLoadingRow" AutoGenerateColumns="False" IsReadOnly="True"/>
+
+            <Grid Grid.Column="2" Grid.Row="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition x:Name="rowJSONGrid" Height="0"/>
+                    <RowDefinition x:Name="rowJSONMetadata" Height="0"/>
+                </Grid.RowDefinitions>
+                <DataGrid  x:Name="gridJSONContent" LoadingRow="OnDataGridLoadingRow" AutoGenerateColumns="False" IsReadOnly="True" />
+                <xctk:PropertyGrid Grid.Row="1" x:Name="propertyGridMetadata" ShowSearchBox="False" ShowSortOptions="False" ShowSummary="False" ShowTitle="False" IsReadOnly="True" UpdateTextBoxSourceOnEnterKey="False" />
+            </Grid >
+
         </Grid>
         <StatusBar x:Name="statusBar" Grid.Row="3">
             <ProgressBar Width="200" Height="18" x:Name="progressBar"/>
             <Label x:Name="labelProgress" Margin="10 0 0 0" Height="25" Content="This is a progress bar label"/>
             <Label x:Name="labelDuplicated" Margin="10 0 0 0" Height="25" Content="This is a progress bar label"/>
-        </StatusBar> 
+        </StatusBar>
     </Grid>
 </Window>

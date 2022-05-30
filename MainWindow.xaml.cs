@@ -180,6 +180,26 @@ namespace NSAP_ODK
                     propertyGridSummary.Visibility = Visibility.Visible;
 
                     break;
+                case "Enumerators and form versions":
+                    labelSummary.Content = "Enumerators and latest eForm versions";
+                    panelVersionStats.Visibility = Visibility.Visible;
+                    dataGridEFormVersionStats.AutoGenerateColumns = false;
+                    dataGridEFormVersionStats.Columns.Clear();
+                    dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("NSAPEnumerator") });
+                    dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "Form version", Binding = new Binding("FormVersion"), CellStyle = AlignRightStyle });
+
+                    DataGridTextColumn col = new DataGridTextColumn()
+                    {
+                        Binding = new Binding("LastSamplingDate"),
+                        Header = "Date of last sampling",
+                        CellStyle = AlignRightStyle
+                    };
+                    col.Binding.StringFormat = "MMM-dd-yyyy";
+                    dataGridEFormVersionStats.Columns.Add(col);
+
+
+                    dataGridEFormVersionStats.DataContext = NSAPEntities.SummaryItemViewModel.EnumeratorsAndLatestFormVersion();
+                    break;
                 case "e-Form versions":
                     labelSummary.Content = "eForm versions, number of submitted landings and date of first submission";
                     panelVersionStats.Visibility = Visibility.Visible;
@@ -189,7 +209,7 @@ namespace NSAP_ODK
                     dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "Number submitted", Binding = new Binding("Count"), CellStyle = AlignRightStyle });
 
 
-                    DataGridTextColumn col = new DataGridTextColumn()
+                    col = new DataGridTextColumn()
                     {
                         Binding = new Binding("FirstSubmission"),
                         Header = "Date first submitted",
@@ -199,7 +219,7 @@ namespace NSAP_ODK
                     dataGridEFormVersionStats.Columns.Add(col);
 
                     NSAPEntities.ODKEformVersionViewModel.Refresh();
-                    dataGridEFormVersionStats.ItemsSource = NSAPEntities.ODKEformVersionViewModel.ODKEformVersionCollection.ToList();
+                    dataGridEFormVersionStats.DataContext = NSAPEntities.ODKEformVersionViewModel.ODKEformVersionCollection.ToList();
                     break;
                 case "Enumerators":
                     ShowStatusRow(isVisible: false);
@@ -2309,7 +2329,7 @@ namespace NSAP_ODK
                                 case "downloadDate":
                                     ShowVesselUnloadsInWindow(
                                         unloads: NSAPEntities.SummaryItemViewModel.GetVesselUnloads((SummaryResults)GridNSAPData.SelectedItem),
-                                        formTitle:"Vessel unloads from download history");
+                                        formTitle: "Vessel unloads from download history");
                                     return;
                                 case "tracked":
                                 case "effort":
@@ -3128,6 +3148,7 @@ namespace NSAP_ODK
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Latest e-Form version", Binding = new Binding("DBSummary.LatestEformVersion") });
                     break;
                 case SummaryLevelType.EnumeratedMonth:
+
                     targetGrid.DataContext = await NSAPEntities.SummaryItemViewModel.GetEnumeratorSummaryByMonthAsync(en, (DateTime)monthEnumerated);
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("DBSummary.LandingSiteName") });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("DBSummary.GearName") });
@@ -3183,7 +3204,12 @@ namespace NSAP_ODK
                     break;
                 case SummaryLevelType.EnumeratedMonth:
                     labelContent = $"Summary for enumerator: {en.Name} at {(DateTime)monthEnumerated:MMMM, yyyy}";
-                    SetUpSummaryGrid(summaryType, dataGridSummary, en: en, monthEnumerated: monthEnumerated);
+                    SetUpSummaryGrid(
+                        summaryType,
+                        dataGridSummary,
+                        en: en,
+                        enumeratorName: enumeratorName,
+                        monthEnumerated: monthEnumerated);
                     break;
             }
             labelSummary.Content = labelContent;
@@ -3218,11 +3244,11 @@ namespace NSAP_ODK
                     _summaryLevelType = SummaryLevelType.Enumerators;
                     break;
                 case "e-Form versions":
+                case "Enumerators and form versions":
                     ShowStatusRow(isVisible: false);
                     ShowSummary(header);
                     rowSummaryDataGrid.Height = new GridLength(0);
                     rowOverallSummary.Height = new GridLength(1, GridUnitType.Star);
-
                     break;
                 default:
                     switch (tvItem.Tag.GetType().Name)
@@ -3257,7 +3283,11 @@ namespace NSAP_ODK
                             _summaryLevelType = SummaryLevelType.Enumerator;
                             break;
                         case "DateTime":
-                            ShowSummaryAtLevel(SummaryLevelType.EnumeratedMonth, en: (NSAPEnumerator)((TreeViewItem)tvItem.Parent).Tag, monthEnumerated: (DateTime)tvItem.Tag);
+                            ShowSummaryAtLevel(
+                                SummaryLevelType.EnumeratedMonth,
+                                en: (NSAPEnumerator)((TreeViewItem)tvItem.Parent).Tag,
+                                enumeratorName: ((TreeViewItem)tvItem.Parent).Header.ToString(),
+                                monthEnumerated: (DateTime)tvItem.Tag);
                             //ShowEnumeratorSummary((NSAPEnumerator)((TreeViewItem)tvItem.Parent).Tag, (DateTime)tvItem.Tag);
                             _summaryLevelType = SummaryLevelType.EnumeratedMonth;
                             break;
@@ -3462,6 +3492,11 @@ namespace NSAP_ODK
             cm.IsOpen = true;
         }
 
-
+        private void OnMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            ScrollViewer scv = (ScrollViewer)sender;
+            scv.ScrollToVerticalOffset(scv.VerticalOffset - e.Delta);
+            e.Handled = true;
+        }
     }
 }

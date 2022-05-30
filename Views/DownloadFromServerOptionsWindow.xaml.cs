@@ -29,8 +29,22 @@ namespace NSAP_ODK.Views
         private void DownloadFromServerOptionsWindow_Loaded(object sender, RoutedEventArgs e)
         {
             labelNumberOfItemsToDownload.Content += CountItemsToDownload.ToString();
+            chkSaveToJSONFile.IsChecked = false;
+            chkSaveToJSONFile.IsEnabled = false;
+            if (Utilities.Global.Settings.DownloadSizeForBatchMode == null)
+            {
+                txtNumberToDownload.Text = Utilities.Settings.DefaultDownloadSizeForBatchMode.ToString();
+            }
+            else
+            {
+                txtNumberToDownload.Text = ((int)Utilities.Global.Settings.DownloadSizeForBatchMode).ToString();
+            }
         }
 
+        private bool FormValidated()
+        {
+            return (bool)rbDownloadAll.IsChecked || (bool)rbDownloadByBatch.IsChecked;
+        }
         public int CountItemsToDownload { get; set; }
         private void OnButtonClick(object sender, RoutedEventArgs e)
         {
@@ -40,30 +54,41 @@ namespace NSAP_ODK.Views
                     DialogResult = false;
                     break;
                 case "buttonOk":
-
-                    ((DownloadFromServerWindow)Owner).SaveDownloadAsJSON = (bool)chkSaveToJSONFile.IsChecked;
-                    ((DownloadFromServerWindow)Owner).DownloadOptionDownloadAll = (bool)rbDownloadAll.IsChecked;
-                    if ((bool)rbDownloadByBatch.IsChecked)
+                    if (FormValidated())
                     {
-                        string msg = "Pls provide number of items to download per batch\r\n(Must be a positive, whole number)";
-                        if (int.TryParse(txtNumberToDownload.Text, out int v))
+                        ((DownloadFromServerWindow)Owner).SaveDownloadAsJSON = (bool)chkSaveToJSONFile.IsChecked;
+                        ((DownloadFromServerWindow)Owner).DownloadOptionDownloadAll = (bool)rbDownloadAll.IsChecked;
+                        ((DownloadFromServerWindow)Owner).DownloadAsJSONNotes = txtNotes.Text;
+                        if ((bool)rbDownloadByBatch.IsChecked)
                         {
-                            if (v > 0)
+                            string msg = "Pls provide number of items to download per batch\r\n(Must be a positive, whole number)";
+                            if (int.TryParse(txtNumberToDownload.Text, out int v))
                             {
-                                ((DownloadFromServerWindow)Owner).NumberToDownloadPerBatch = int.Parse(txtNumberToDownload.Text);
-                                DialogResult = true;
-                                msg = "";
+                                if (v > 0)
+                                {
+                                    ((DownloadFromServerWindow)Owner).NumberToDownloadPerBatch = int.Parse(txtNumberToDownload.Text);
+                                    DialogResult = true;
+                                    msg = "";
+                                }
+                            }
+
+                            if (msg.Length > 0)
+                            {
+                                MessageBox.Show(msg, "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
                             }
                         }
-
-                        if (msg.Length > 0)
+                        else
                         {
-                            MessageBox.Show(msg, "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                            DialogResult = true;
                         }
                     }
                     else
                     {
-                        DialogResult = true;
+                        MessageBox.Show(
+                            "Please select a download option", 
+                            "NSAP-ODK Database", 
+                            MessageBoxButton.OK, 
+                            MessageBoxImage.Information);
                     }
                     //DialogResult = true;
                     break;
@@ -76,7 +101,10 @@ namespace NSAP_ODK.Views
             if (((RadioButton)sender).Name == "rbDownloadByBatch")
             {
                 panelOptions.Visibility = Visibility.Visible;
+
             }
+            chkSaveToJSONFile.IsChecked = (bool)rbDownloadByBatch.IsChecked;
+            chkSaveToJSONFile.IsEnabled = (bool)rbDownloadByBatch.IsChecked;
 
         }
     }

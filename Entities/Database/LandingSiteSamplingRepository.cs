@@ -553,8 +553,16 @@ namespace NSAP_ODK.Entities.Database
                         }
                         catch (OleDbException odbex)
                         {
-                            Logger.Log(odbex);
-                            success = false;
+                            switch(odbex.ErrorCode)
+                            {
+                                case -2147467259:
+                                    break;
+                                default:
+                                    Logger.Log(odbex);
+                                    success = false;
+                                    break;
+                            }
+                            
                         }
                         catch (Exception ex)
                         {
