@@ -725,7 +725,7 @@ namespace NSAP_ODK.Entities.Database
                 {
                     GearSoakViewModel = new GearSoakViewModel(this);
                 }
-                return GearSoakViewModel.GearSoakCollection.ToList();
+                return GearSoakViewModel.GearSoakCollection?.ToList();
                     //.Where(t => t.Parent != null && t.Parent.PK == PK).ToList();
             }
         }

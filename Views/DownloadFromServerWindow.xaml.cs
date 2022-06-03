@@ -66,6 +66,7 @@ namespace NSAP_ODK.Views
         private bool _replaceCSVFilesSuccess;
         private int _numberOfSubmissions;
         private bool _hasDownloadOptions = false;
+        private static HttpClient _httpClient = new HttpClient();
         public DownloadFromServerWindow(ODKResultsWindow parentWindow)
         {
             InitializeComponent();
@@ -85,7 +86,7 @@ namespace NSAP_ODK.Views
             treeForms.Items.Clear();
             if (_koboForms.Count > 0)
             {
-
+                NSAPEntities.KoboServerViewModel.KoboForms = _koboForms;
                 foreach (var form in _koboForms)
                 {
                     int item = treeForms.Items.Add(new TreeViewItem { Header = form.formid, Tag = "form_id" });
@@ -155,97 +156,97 @@ namespace NSAP_ODK.Views
                 var files = Directory.GetFiles(_csvSaveToFolder).Select(s => new FileInfo(s));
                 if (files.Any())
                 {
-                    using (var httpClient = new HttpClient())
+                    //using (var httpClient = new HttpClient())
+                    //{
+                    //_metadataFilesForReplacement is a list of files that are for replacement
+                    foreach (Metadata metadata in _metadataFilesForReplacement)
                     {
-                        //_metadataFilesForReplacement is a list of files that are for replacement
-                        foreach (Metadata metadata in _metadataFilesForReplacement)
+
+                        var f = files.Where(t => t.Extension == ".csv" && t.Name == metadata.data_value).FirstOrDefault();
+                        if (f != null)
                         {
-
-                            var f = files.Where(t => t.Extension == ".csv" && t.Name == metadata.data_value).FirstOrDefault();
-                            if (f != null)
+                            string delete_call = $"{baseURL}/files/{_formSummary.KoboForm.koboform_files.GetFileUID(metadata.data_value)}/";
+                            using (request = new HttpRequestMessage(new HttpMethod("DELETE"), delete_call))
                             {
-                                string delete_call = $"{baseURL}/files/{_formSummary.KoboForm.koboform_files.GetFileUID(metadata.data_value)}/";
-                                using (request = new HttpRequestMessage(new HttpMethod("DELETE"), delete_call))
+                                base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_user}:{_password}"));
+                                request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
+                                response = await _httpClient.SendAsync(request);
+                                try
                                 {
-                                    base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_user}:{_password}"));
-                                    request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
-                                    response = await httpClient.SendAsync(request);
-                                    try
+                                    if (response.IsSuccessStatusCode)
                                     {
-                                        if (response.IsSuccessStatusCode)
+                                        using (request = new HttpRequestMessage(new HttpMethod("POST"), $"{baseURL}/files.json"))
                                         {
-                                            using (request = new HttpRequestMessage(new HttpMethod("POST"), $"{baseURL}/files.json"))
+                                            request.Headers.TryAddWithoutValidation("Authorization", $"Token {_token}");
+
+                                            var multipartContent = new MultipartFormDataContent();
+                                            multipartContent.Add(new ByteArrayContent(File.ReadAllBytes(f.FullName)), "content", $"{f.Name}");
+                                            multipartContent.Add(new StringContent("form_media"), "file_type");
+                                            multipartContent.Add(new StringContent("default"), "description");
+                                            multipartContent.Add(new StringContent($"{{\"filename\": \"{f.Name}\"}}"), "metadata");
+
+                                            request.Content = multipartContent;
+
+                                            response = await _httpClient.SendAsync(request);
+                                            if (response.IsSuccessStatusCode)
                                             {
-                                                request.Headers.TryAddWithoutValidation("Authorization", $"Token {_token}");
-
-                                                var multipartContent = new MultipartFormDataContent();
-                                                multipartContent.Add(new ByteArrayContent(File.ReadAllBytes(f.FullName)), "content", $"{f.Name}");
-                                                multipartContent.Add(new StringContent("form_media"), "file_type");
-                                                multipartContent.Add(new StringContent("default"), "description");
-                                                multipartContent.Add(new StringContent($"{{\"filename\": \"{f.Name}\"}}"), "metadata");
-
-                                                request.Content = multipartContent;
-
-                                                response = await httpClient.SendAsync(request);
-                                                if (response.IsSuccessStatusCode)
+                                                if (replacedCount == 0)
                                                 {
-                                                    if (replacedCount == 0)
-                                                    {
-                                                        ProgressBar.IsIndeterminate = false;
-                                                    }
-                                                    replacedCount++;
-
-                                                    ProgressBar.Value = replacedCount;
-                                                    labelProgress.Content = $"{f.Name} was successfully uploaded to the server";
+                                                    ProgressBar.IsIndeterminate = false;
                                                 }
-                                                else
-                                                {
+                                                replacedCount++;
 
-                                                }
+                                                ProgressBar.Value = replacedCount;
+                                                labelProgress.Content = $"{f.Name} was successfully uploaded to the server";
+                                            }
+                                            else
+                                            {
+
                                             }
                                         }
-                                        else
-                                        {
-
-                                        }
                                     }
-                                    catch (Exception ex)
+                                    else
                                     {
-                                        Logger.Log(ex);
+
                                     }
                                 }
-                            }
-                        }
-
-
-                        _replaceCSVFilesSuccess = replacedCount == _metadataFilesForReplacement.Count;
-
-                        //redeploy form
-                        if (_replaceCSVFilesSuccess)
-                        {
-                            using (var patchrequest = new HttpRequestMessage(new HttpMethod("PATCH"), $"{baseURL}/deployment/?format=json"))
-                            {
-                                patchrequest.Headers.TryAddWithoutValidation("Authorization", $"Token {_token}");
-
-                                var contentList = new List<string>();
-                                contentList.Add("active=true");
-                                contentList.Add($"version_id={_versionID}");
-                                patchrequest.Content = new StringContent(string.Join("&", contentList));
-                                patchrequest.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/x-www-form-urlencoded");
-
-                                response = await httpClient.SendAsync(patchrequest);
-                                if (response.IsSuccessStatusCode)
+                                catch (Exception ex)
                                 {
-
-                                }
-                                else
-                                {
-
+                                    Logger.Log(ex);
                                 }
                             }
                         }
-
                     }
+
+
+                    _replaceCSVFilesSuccess = replacedCount == _metadataFilesForReplacement.Count;
+
+                    //redeploy form
+                    if (_replaceCSVFilesSuccess)
+                    {
+                        using (var patchrequest = new HttpRequestMessage(new HttpMethod("PATCH"), $"{baseURL}/deployment/?format=json"))
+                        {
+                            patchrequest.Headers.TryAddWithoutValidation("Authorization", $"Token {_token}");
+
+                            var contentList = new List<string>();
+                            contentList.Add("active=true");
+                            contentList.Add($"version_id={_versionID}");
+                            patchrequest.Content = new StringContent(string.Join("&", contentList));
+                            patchrequest.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/x-www-form-urlencoded");
+
+                            response = await _httpClient.SendAsync(patchrequest);
+                            if (response.IsSuccessStatusCode)
+                            {
+
+                            }
+                            else
+                            {
+
+                            }
+                        }
+                    }
+
+                    //}
                 }
             }
             else
@@ -276,40 +277,40 @@ namespace NSAP_ODK.Views
                         if (f != null)
                         {
                             string api_call = $"{baseURL}{metadata.id}";
-                            using (var httpClient = new HttpClient())
+                            //using (var httpClient = new HttpClient())
+                            //{
+                            using (var request = new HttpRequestMessage(new HttpMethod("DELETE"), api_call))
                             {
-                                using (var request = new HttpRequestMessage(new HttpMethod("DELETE"), api_call))
+                                var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_user}:{_password}"));
+                                //request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
+                                request.Headers.TryAddWithoutValidation("Authorization", $"Token {_token}");
+                                try
                                 {
-                                    var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_user}:{_password}"));
-                                    //request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
-                                    request.Headers.TryAddWithoutValidation("Authorization", $"Token {_token}");
-                                    try
+                                    var response = await _httpClient.SendAsync(request);
+                                    if (response.IsSuccessStatusCode)
                                     {
-                                        var response = await httpClient.SendAsync(request);
+                                        response = await UploadMediaToServer(f);
                                         if (response.IsSuccessStatusCode)
                                         {
-                                            response = await UploadMediaToServer(f);
-                                            if (response.IsSuccessStatusCode)
-                                            {
-                                                replacedCount++;
-                                                ProgressBar.Value = replacedCount;
-                                                labelProgress.Content = $"Updated {replacedCount} of {_metadataFilesForReplacement.Count} files";
-                                            }
-                                        }
-                                        else
-                                        {
-
+                                            replacedCount++;
+                                            ProgressBar.Value = replacedCount;
+                                            labelProgress.Content = $"Updated {replacedCount} of {_metadataFilesForReplacement.Count} files";
                                         }
                                     }
-                                    catch (Exception ex)
+                                    else
                                     {
 
                                     }
                                 }
+                                catch (Exception ex)
+                                {
 
-                                //break;
+                                }
                             }
+
+                            //break;
                         }
+                        //}
 
 
 
@@ -329,24 +330,24 @@ namespace NSAP_ODK.Views
         {
             HttpResponseMessage result = null;
             string baseURL = "https://kc.kobotoolbox.org/api/v1/metadata.json";
-            using (var httpClient = new HttpClient())
+            //using (var httpClient = new HttpClient())
+            //{
+            using (var request = new HttpRequestMessage(new HttpMethod("POST"), baseURL))
             {
-                using (var request = new HttpRequestMessage(new HttpMethod("POST"), baseURL))
-                {
-                    var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_user}:{_password}"));
-                    request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
+                var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_user}:{_password}"));
+                request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
 
-                    var multipartContent = new MultipartFormDataContent();
-                    multipartContent.Add(new StringContent(_formID), "xform");
-                    multipartContent.Add(new StringContent(file.Name), "data_value");
-                    multipartContent.Add(new StringContent("media"), "data_type");
-                    multipartContent.Add(new ByteArrayContent(File.ReadAllBytes(file.FullName)), "data_file", file.Name);
-                    multipartContent.Add(new StringContent("text/csv"), "data_file_type");
-                    request.Content = multipartContent;
+                var multipartContent = new MultipartFormDataContent();
+                multipartContent.Add(new StringContent(_formID), "xform");
+                multipartContent.Add(new StringContent(file.Name), "data_value");
+                multipartContent.Add(new StringContent("media"), "data_type");
+                multipartContent.Add(new ByteArrayContent(File.ReadAllBytes(file.FullName)), "data_file", file.Name);
+                multipartContent.Add(new StringContent("text/csv"), "data_file_type");
+                request.Content = multipartContent;
 
-                    result = await httpClient.SendAsync(request);
-                }
+                result = await _httpClient.SendAsync(request);
             }
+            //}
             return result;
         }
 
@@ -354,24 +355,24 @@ namespace NSAP_ODK.Views
         {
             HttpResponseMessage result = null;
             string baseURL = "https://kc.kobotoolbox.org/api/v1/metadata.json";
-            using (var httpClient = new HttpClient())
+            //using (var httpClient = new HttpClient())
+            //{
+            using (var request = new HttpRequestMessage(new HttpMethod("POST"), baseURL))
             {
-                using (var request = new HttpRequestMessage(new HttpMethod("POST"), baseURL))
-                {
-                    var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_user}:{_password}"));
-                    request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
+                var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_user}:{_password}"));
+                request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
 
-                    var multipartContent = new MultipartFormDataContent();
-                    multipartContent.Add(new StringContent(_formID), "xform");
-                    multipartContent.Add(new StringContent(file.Name), "data_value");
-                    multipartContent.Add(new StringContent("media"), "data_type");
-                    multipartContent.Add(new ByteArrayContent(File.ReadAllBytes(file.FullName)), "data_file", file.Name);
-                    multipartContent.Add(new StringContent("text/csv"), "data_file_type");
-                    request.Content = multipartContent;
+                var multipartContent = new MultipartFormDataContent();
+                multipartContent.Add(new StringContent(_formID), "xform");
+                multipartContent.Add(new StringContent(file.Name), "data_value");
+                multipartContent.Add(new StringContent("media"), "data_type");
+                multipartContent.Add(new ByteArrayContent(File.ReadAllBytes(file.FullName)), "data_file", file.Name);
+                multipartContent.Add(new StringContent("text/csv"), "data_file_type");
+                request.Content = multipartContent;
 
-                    result = await httpClient.SendAsync(request);
-                }
+                result = await _httpClient.SendAsync(request);
             }
+            //}
             return result;
         }
         public string DownloadAsJSONNotes { get; set; }
@@ -531,58 +532,58 @@ namespace NSAP_ODK.Views
                                 ProgressBar.Maximum = 5;
                                 if (_parentWindow.ODKServerDownload == ODKServerDownload.ServerDownloadVesselUnload)
                                 {
-                                    using (var httpClient = new HttpClient())
+                                    //using (var httpClient = new HttpClient())
+                                    //{
+                                    api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}.xls";
+                                    using (var request = new HttpRequestMessage(new HttpMethod("GET"), api_call))
                                     {
-                                        api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}.xls";
-                                        using (var request = new HttpRequestMessage(new HttpMethod("GET"), api_call))
+                                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ContactingServer });
+                                        var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_user}:{_password}"));
+                                        request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
+                                        try
                                         {
-                                            ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ContactingServer });
-                                            var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_user}:{_password}"));
-                                            request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
-                                            try
+                                            var response = await _httpClient.SendAsync(request);
+                                            string fileName = response.Content.Headers.ContentDisposition.FileName;
+                                            ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData });
+                                            var bytes = await response.Content.ReadAsByteArrayAsync();
+
+
+                                            if (fileName.Length > 0 && bytes.Length > 0)
                                             {
-                                                var response = await httpClient.SendAsync(request);
-                                                string fileName = response.Content.Headers.ContentDisposition.FileName;
-                                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData });
-                                                var bytes = await response.Content.ReadAsByteArrayAsync();
+                                                VistaFolderBrowserDialog fbd = new VistaFolderBrowserDialog();
+                                                fbd.RootFolder = Environment.SpecialFolder.MyDocuments;
+                                                fbd.UseDescriptionForTitle = true;
+                                                fbd.Description = "Locate folder for saving downloaded Excel file";
 
-
-                                                if (fileName.Length > 0 && bytes.Length > 0)
+                                                if ((bool)fbd.ShowDialog() && fbd.SelectedPath.Length > 0)
                                                 {
-                                                    VistaFolderBrowserDialog fbd = new VistaFolderBrowserDialog();
-                                                    fbd.RootFolder = Environment.SpecialFolder.MyDocuments;
-                                                    fbd.UseDescriptionForTitle = true;
-                                                    fbd.Description = "Locate folder for saving downloaded Excel file";
+                                                    string downnloadedFile = $"{fbd.SelectedPath}/{fileName}";
+                                                    File.WriteAllBytes(downnloadedFile, bytes);
+                                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ConvertDataToExcel });
+                                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ConvertDataToEntities });
+                                                    _parentWindow.ExcelFileDownloaded = downnloadedFile;
+                                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
+                                                    Close();
 
-                                                    if ((bool)fbd.ShowDialog() && fbd.SelectedPath.Length > 0)
-                                                    {
-                                                        string downnloadedFile = $"{fbd.SelectedPath}/{fileName}";
-                                                        File.WriteAllBytes(downnloadedFile, bytes);
-                                                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ConvertDataToExcel });
-                                                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ConvertDataToEntities });
-                                                        _parentWindow.ExcelFileDownloaded = downnloadedFile;
-                                                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
-                                                        Close();
-
-                                                    }
-                                                }
-                                                else if (fileName.Length == 0)
-                                                {
-                                                    MessageBox.Show("Something went wrong\r\nYou may want to try again");
                                                 }
                                             }
-                                            catch (HttpRequestException)
+                                            else if (fileName.Length == 0)
                                             {
-                                                MessageBox.Show("Request time out\r\nYou may try again");
-                                            }
-                                            catch (Exception ex)
-                                            {
-                                                Logger.Log(ex);
-                                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.StoppedDueToError });
+                                                MessageBox.Show("Something went wrong\r\nYou may want to try again");
                                             }
                                         }
-
+                                        catch (HttpRequestException)
+                                        {
+                                            MessageBox.Show("Request time out\r\nYou may try again");
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Logger.Log(ex);
+                                            ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.StoppedDueToError });
+                                        }
                                     }
+
+                                    //}
 
                                 }
                                 else if (_parentWindow.ODKServerDownload == ODKServerDownload.ServerDownloadLandings)
@@ -621,166 +622,166 @@ namespace NSAP_ODK.Views
                                     }
                                     else
                                     {
-                                        using (var httpClient = new HttpClient())
+                                        //using (var httpClient = new HttpClient())
+                                        //{
+                                        switch (_jsonOption)
                                         {
-                                            switch (_jsonOption)
-                                            {
-                                                case "all":
-                                                    if (_numberToDownloadPerBatch != null)
-                                                    {
-                                                        DateTime dt = DateTime.Parse(_formSummary.DateCreated).Date;
-                                                        api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gt\":\"{dt}\"}}}}&limit={(int)_numberToDownloadPerBatch}";
-                                                    }
-                                                    else
-                                                    {
-                                                        api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json";
-                                                    }
-                                                    break;
-                                                case "all_not_downloaded":
-                                                    string lastSubmissionDate = (((DateTime)_lastSubmittedDate)).Date.ToString("yyyy-MM-ddTHH:mm:ss");
-                                                    api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gte\":\"{lastSubmissionDate}\"}}}}";
-                                                    break;
-                                                case "specify_date_range":
-                                                    string start_date = ((DateTime)dateStart.Value).ToString("yyyy-MM-dd");
-                                                    string end_date = ((DateTime)dateEnd.Value).ToString("yyyy-MM-dd");
-                                                    api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gte\":\"{start_date}\",\"$lte\":\"{end_date}\"}}}}";
-                                                    break;
-                                                case "specify_range_records":
-                                                    string start_date1 = ((DateTime)dateStart2.Value).ToString("yyyy-MM-dd");
-                                                    api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gte\":\"{start_date1}\"}}}}&limit={TextBoxLimit.Text}";
-                                                    break;
-                                            }
-
-                                            if ((bool)CheckFilterUser.IsChecked || (bool)CheckLimitoTracked.IsChecked)
-                                            {
-                                                string first_part = "";
-                                                string last_part = "";
-                                                string user = "";
-                                                string toInsert = "";
-
-                                                if (ComboUser.SelectedItem != null)
+                                            case "all":
+                                                if (_numberToDownloadPerBatch != null)
                                                 {
-                                                    user = ((ComboBoxItem)ComboUser.SelectedItem).Content.ToString();
-                                                }
-
-                                                if ((bool)CheckFilterUser.IsChecked && user.Length == 0)
-                                                {
-                                                    MessageBox.Show("Please select a user name");
-                                                    return;
-                                                }
-
-                                                if (user.Length > 0)
-                                                {
-                                                    toInsert = $"\"user_name\":\"{user}\",";
-                                                }
-
-                                                if ((bool)CheckLimitoTracked.IsChecked)
-                                                {
-                                                    toInsert += "\"soak_time_group/include_tracking\":\"yes\",";
-                                                }
-
-
-                                                if (api_call.Contains("query"))
-                                                {
-                                                    int index = api_call.IndexOf("query={") + "query={".Length;
-                                                    first_part = api_call.Substring(0, index);
-                                                    last_part = api_call.Substring(index, api_call.Length - index);
-
-                                                    api_call = first_part + toInsert + last_part;
+                                                    DateTime dt = DateTime.Parse(_formSummary.DateCreated).Date;
+                                                    api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gt\":\"{dt}\"}}}}&limit={(int)_numberToDownloadPerBatch}";
                                                 }
                                                 else
                                                 {
-                                                    api_call += $"&query={{{toInsert.Trim(',')}}}";
+                                                    api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json";
                                                 }
+                                                break;
+                                            case "all_not_downloaded":
+                                                string lastSubmissionDate = (((DateTime)_lastSubmittedDate)).Date.ToString("yyyy-MM-ddTHH:mm:ss");
+                                                api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gte\":\"{lastSubmissionDate}\"}}}}";
+                                                break;
+                                            case "specify_date_range":
+                                                string start_date = ((DateTime)dateStart.Value).ToString("yyyy-MM-dd");
+                                                string end_date = ((DateTime)dateEnd.Value).ToString("yyyy-MM-dd");
+                                                api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gte\":\"{start_date}\",\"$lte\":\"{end_date}\"}}}}";
+                                                break;
+                                            case "specify_range_records":
+                                                string start_date1 = ((DateTime)dateStart2.Value).ToString("yyyy-MM-dd");
+                                                api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gte\":\"{start_date1}\"}}}}&limit={TextBoxLimit.Text}";
+                                                break;
+                                        }
+
+                                        if ((bool)CheckFilterUser.IsChecked || (bool)CheckLimitoTracked.IsChecked)
+                                        {
+                                            string first_part = "";
+                                            string last_part = "";
+                                            string user = "";
+                                            string toInsert = "";
+
+                                            if (ComboUser.SelectedItem != null)
+                                            {
+                                                user = ((ComboBoxItem)ComboUser.SelectedItem).Content.ToString();
                                             }
 
-                                            using (var request = new HttpRequestMessage(new HttpMethod("GET"), api_call))
+                                            if ((bool)CheckFilterUser.IsChecked && user.Length == 0)
                                             {
-                                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ContactingServer });
-                                                var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_user}:{_password}"));
-                                                request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
-                                                try
+                                                MessageBox.Show("Please select a user name");
+                                                return;
+                                            }
+
+                                            if (user.Length > 0)
+                                            {
+                                                toInsert = $"\"user_name\":\"{user}\",";
+                                            }
+
+                                            if ((bool)CheckLimitoTracked.IsChecked)
+                                            {
+                                                toInsert += "\"soak_time_group/include_tracking\":\"yes\",";
+                                            }
+
+
+                                            if (api_call.Contains("query"))
+                                            {
+                                                int index = api_call.IndexOf("query={") + "query={".Length;
+                                                first_part = api_call.Substring(0, index);
+                                                last_part = api_call.Substring(index, api_call.Length - index);
+
+                                                api_call = first_part + toInsert + last_part;
+                                            }
+                                            else
+                                            {
+                                                api_call += $"&query={{{toInsert.Trim(',')}}}";
+                                            }
+                                        }
+
+                                        using (var request = new HttpRequestMessage(new HttpMethod("GET"), api_call))
+                                        {
+                                            ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ContactingServer });
+                                            var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_user}:{_password}"));
+                                            request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
+                                            try
+                                            {
+                                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData });
+
+                                                var response = await _httpClient.SendAsync(request);
+                                                var bytes = await response.Content.ReadAsByteArrayAsync();
+                                                Encoding encoding = Encoding.GetEncoding("utf-8");
+                                                string the_response = encoding.GetString(bytes, 0, bytes.Length);
+                                                //((ODKResultsWindow)Owner).JSON = the_response;
+                                                ((ODKResultsWindow)Owner).FormID = _formID;
+                                                ((ODKResultsWindow)Owner).Description = _description;
+                                                ((ODKResultsWindow)Owner).Count = _count;
+
+
+                                                DateTime? versionDate = null;
+
+                                                switch (_parentWindow.ODKServerDownload)
                                                 {
-                                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData });
-
-                                                    var response = await httpClient.SendAsync(request);
-                                                    var bytes = await response.Content.ReadAsByteArrayAsync();
-                                                    Encoding encoding = Encoding.GetEncoding("utf-8");
-                                                    string the_response = encoding.GetString(bytes, 0, bytes.Length);
-                                                    //((ODKResultsWindow)Owner).JSON = the_response;
-                                                    ((ODKResultsWindow)Owner).FormID = _formID;
-                                                    ((ODKResultsWindow)Owner).Description = _description;
-                                                    ((ODKResultsWindow)Owner).Count = _count;
-
-
-                                                    DateTime? versionDate = null;
-
-                                                    switch (_parentWindow.ODKServerDownload)
-                                                    {
-                                                        case ODKServerDownload.ServerDownloadVesselUnload:
-                                                            string json;
-                                                            if (DateTime.TryParse(_xlsFormVersion, out DateTime versionDate1))
+                                                    case ODKServerDownload.ServerDownloadVesselUnload:
+                                                        string json;
+                                                        if (DateTime.TryParse(_xlsFormVersion, out DateTime versionDate1))
+                                                        {
+                                                            versionDate = versionDate1;
+                                                            if (versionDate >= new DateTime(2021, 10, 1))
                                                             {
-                                                                versionDate = versionDate1;
-                                                                if (versionDate >= new DateTime(2021, 10, 1))
-                                                                {
-                                                                    json = VesselLandingFixDownload.JsonNewToOldVersion(the_response);
-                                                                    //VesselUnloadServerRepository.JSON = VesselLandingFixDownload.JsonNewToOldVersion(the_response);
-                                                                }
-                                                                else
-                                                                {
-                                                                    throw new Exception("catch and effort version is not handled");
-                                                                }
+                                                                json = VesselLandingFixDownload.JsonNewToOldVersion(the_response);
+                                                                //VesselUnloadServerRepository.JSON = VesselLandingFixDownload.JsonNewToOldVersion(the_response);
                                                             }
                                                             else
                                                             {
-                                                                json = the_response;
-                                                                //VesselUnloadServerRepository.JSON = the_response;
+                                                                throw new Exception("catch and effort version is not handled");
                                                             }
-                                                            ((ODKResultsWindow)Owner).JSON = json;
-                                                            VesselUnloadServerRepository.JSON = json;
-                                                            VesselUnloadServerRepository.ResetLists();
-                                                            VesselUnloadServerRepository.CreateLandingsFromJSON();
-                                                            VesselUnloadServerRepository.FillDuplicatedLists();
+                                                        }
+                                                        else
+                                                        {
+                                                            json = the_response;
+                                                            //VesselUnloadServerRepository.JSON = the_response;
+                                                        }
+                                                        ((ODKResultsWindow)Owner).JSON = json;
+                                                        VesselUnloadServerRepository.JSON = json;
+                                                        VesselUnloadServerRepository.ResetLists();
+                                                        VesselUnloadServerRepository.CreateLandingsFromJSON();
+                                                        VesselUnloadServerRepository.FillDuplicatedLists();
 
 
-                                                            break;
-                                                        case ODKServerDownload.ServerDownloadLandings:
-                                                            ((ODKResultsWindow)Owner).JSON = the_response;
-                                                            LandingSiteBoatLandingsFromServerRepository.JSON = the_response;
-                                                            LandingSiteBoatLandingsFromServerRepository.CreateLandingSiteBoatLandingsFromJson();
-                                                            break;
-                                                    }
-
-
-                                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.GotJSONString, JSONString = the_response });
-                                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ConvertDataToEntities });
-
-                                                    switch (_parentWindow.ODKServerDownload)
-                                                    {
-                                                        case ODKServerDownload.ServerDownloadVesselUnload:
-                                                            _parentWindow.MainSheets = VesselUnloadServerRepository.VesselLandings;
-                                                            break;
-                                                        case ODKServerDownload.ServerDownloadLandings:
-                                                            _parentWindow.MainSheetsLanding = LandingSiteBoatLandingsFromServerRepository.LandingSiteBoatLandings;
-                                                            break;
-                                                    }
-                                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
-                                                    Close();
-
+                                                        break;
+                                                    case ODKServerDownload.ServerDownloadLandings:
+                                                        ((ODKResultsWindow)Owner).JSON = the_response;
+                                                        LandingSiteBoatLandingsFromServerRepository.JSON = the_response;
+                                                        LandingSiteBoatLandingsFromServerRepository.CreateLandingSiteBoatLandingsFromJson();
+                                                        break;
                                                 }
-                                                catch (HttpRequestException)
+
+
+                                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.GotJSONString, JSONString = the_response });
+                                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ConvertDataToEntities });
+
+                                                switch (_parentWindow.ODKServerDownload)
                                                 {
-                                                    MessageBox.Show("Request time out\r\nYou may try again");
+                                                    case ODKServerDownload.ServerDownloadVesselUnload:
+                                                        _parentWindow.MainSheets = VesselUnloadServerRepository.VesselLandings;
+                                                        break;
+                                                    case ODKServerDownload.ServerDownloadLandings:
+                                                        _parentWindow.MainSheetsLanding = LandingSiteBoatLandingsFromServerRepository.LandingSiteBoatLandings;
+                                                        break;
                                                 }
-                                                catch (Exception ex)
-                                                {
-                                                    Logger.Log(ex);
-                                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.StoppedDueToError });
-                                                }
+                                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
+                                                Close();
+
                                             }
-
+                                            catch (HttpRequestException)
+                                            {
+                                                MessageBox.Show("Request time out\r\nYou may try again");
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                Logger.Log(ex);
+                                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.StoppedDueToError });
+                                            }
                                         }
+
+                                        //}
                                     }
                                 }
                                 else
@@ -811,100 +812,100 @@ namespace NSAP_ODK.Views
                         ProgressBar.Value = 0;
                         ProgressBar.Maximum = 4;
                         ButtonLogin.IsEnabled = false;
-                        using (var httpClient = new HttpClient())
+                        //using (var httpClient = new HttpClient())
+                        //{
+                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ContactingServer });
+
+                        var token_call = "https://kf.kobotoolbox.org/token/?format=json";
+                        using (var token_request = new HttpRequestMessage(new HttpMethod("GET"), token_call))
                         {
-                            ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ContactingServer });
-
-                            var token_call = "https://kf.kobotoolbox.org/token/?format=json";
-                            using (var token_request = new HttpRequestMessage(new HttpMethod("GET"), token_call))
+                            user_name = TextBoxUserName.Text;
+                            password = TextBoxPassword.Password;
+                            var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{user_name}:{password}"));
+                            token_request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
+                            try
                             {
-                                user_name = TextBoxUserName.Text;
-                                password = TextBoxPassword.Password;
-                                var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{user_name}:{password}"));
-                                token_request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
-                                try
-                                {
-                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData });
-                                    var response = await httpClient.SendAsync(token_request);
-                                    var bytes = await response.Content.ReadAsByteArrayAsync();
-                                    Encoding encoding = Encoding.GetEncoding("utf-8");
-                                    string the_response = encoding.GetString(bytes, 0, bytes.Length);
-                                    var arr = the_response.Trim('}').Split(':');
-                                    _token = arr[1].Trim('"');
-                                }
-                                catch (HttpRequestException)
-                                {
-                                    MessageBox.Show("Request time out\r\nYou may try again", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
-                                }
-                                catch (Exception ex)
-                                {
-                                    Logger.Log(ex);
-                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.StoppedDueToError });
-                                }
+                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData });
+                                var response = await _httpClient.SendAsync(token_request);
+                                var bytes = await response.Content.ReadAsByteArrayAsync();
+                                Encoding encoding = Encoding.GetEncoding("utf-8");
+                                string the_response = encoding.GetString(bytes, 0, bytes.Length);
+                                var arr = the_response.Trim('}').Split(':');
+                                _token = arr[1].Trim('"');
                             }
-
-
-                            api_call = "https://kc.kobotoolbox.org/api/v1/forms?format=json";
-                            using (var request = new HttpRequestMessage(new HttpMethod("GET"), api_call))
+                            catch (HttpRequestException)
                             {
-                                var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{user_name}:{password}"));
-                                request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
-                                try
-                                {
-                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData });
-                                    var response = await httpClient.SendAsync(request);
-                                    var bytes = await response.Content.ReadAsByteArrayAsync();
-                                    Encoding encoding = Encoding.GetEncoding("utf-8");
-                                    string the_response = encoding.GetString(bytes, 0, bytes.Length);
-                                    if (the_response.Contains("Invalid username/password"))
-                                    {
-                                        MessageBox.Show("Invalid username or password\r\nTry again",
-                                            "NSAP ODK Database",
-                                            MessageBoxButton.OK,
-                                            MessageBoxImage.Information);
-                                    }
-                                    else
-                                    {
-                                        _user = TextBoxUserName.Text;
-                                        _password = TextBoxPassword.Password;
-                                        TextBoxUserName.Text = "";
-                                        TextBoxPassword.Clear();
-                                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.GotJSONString, JSONString = the_response });
-                                        _koboForms = KoboForms.MakeFormObjects(the_response);
-
-                                        foreach (KoboForm kf in _koboForms)
-                                        {
-                                            KoboForms.ResetVersion_and_ID();
-                                            if (await KoboForms.GetVersionFromXLSForm(kf, user_name, password))
-                                            {
-                                                kf.xlsform_version = KoboForms.XLSFormVersion;
-                                                kf.xlsForm_idstring = KoboForms.XLSForm_idString;
-                                                kf.Version_ID = KoboForms.Version_ID;
-                                                //kf.eFormVersion = KoboForms.e
-                                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.GotXLSFormVersion, FormName = kf.title });
-                                            }
-                                        }
-
-                                        AddFormIDToTree();
-                                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
-
-
-                                        _timer.Interval = TimeSpan.FromSeconds(3);
-                                        _timer.Start();
-                                    }
-                                }
-                                catch (HttpRequestException)
-                                {
-                                    MessageBox.Show("Request time out\r\nYou may try again");
-                                }
-                                catch (Exception ex)
-                                {
-                                    Logger.Log(ex);
-                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.StoppedDueToError });
-                                }
+                                MessageBox.Show("Request time out\r\nYou may try again", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
                             }
-                            ButtonLogin.IsEnabled = true;
+                            catch (Exception ex)
+                            {
+                                Logger.Log(ex);
+                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.StoppedDueToError });
+                            }
                         }
+
+
+                        api_call = "https://kc.kobotoolbox.org/api/v1/forms?format=json";
+                        using (var request = new HttpRequestMessage(new HttpMethod("GET"), api_call))
+                        {
+                            var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{user_name}:{password}"));
+                            request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
+                            try
+                            {
+                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData });
+                                var response = await _httpClient.SendAsync(request);
+                                var bytes = await response.Content.ReadAsByteArrayAsync();
+                                Encoding encoding = Encoding.GetEncoding("utf-8");
+                                string the_response = encoding.GetString(bytes, 0, bytes.Length);
+                                if (the_response.Contains("Invalid username/password"))
+                                {
+                                    MessageBox.Show("Invalid username or password\r\nTry again",
+                                        "NSAP ODK Database",
+                                        MessageBoxButton.OK,
+                                        MessageBoxImage.Information);
+                                }
+                                else
+                                {
+                                    _user = TextBoxUserName.Text;
+                                    _password = TextBoxPassword.Password;
+                                    TextBoxUserName.Text = "";
+                                    TextBoxPassword.Clear();
+                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.GotJSONString, JSONString = the_response });
+                                    _koboForms = KoboForms.MakeFormObjects(the_response);
+
+                                    foreach (KoboForm kf in _koboForms)
+                                    {
+                                        KoboForms.ResetVersion_and_ID();
+                                        if (await KoboForms.GetVersionFromXLSForm(kf, user_name, password, _httpClient))
+                                        {
+                                            kf.xlsform_version = KoboForms.XLSFormVersion;
+                                            kf.xlsForm_idstring = KoboForms.XLSForm_idString;
+                                            kf.Version_ID = KoboForms.Version_ID;
+                                            //kf.eFormVersion = KoboForms.e
+                                            ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.GotXLSFormVersion, FormName = kf.title });
+                                        }
+                                    }
+
+                                    AddFormIDToTree();
+                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
+
+
+                                    _timer.Interval = TimeSpan.FromSeconds(3);
+                                    _timer.Start();
+                                }
+                            }
+                            catch (HttpRequestException)
+                            {
+                                MessageBox.Show("Request time out\r\nYou may try again");
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Log(ex);
+                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.StoppedDueToError });
+                            }
+                        }
+                        ButtonLogin.IsEnabled = true;
+                        //}
                     }
                     break;
 
@@ -917,113 +918,114 @@ namespace NSAP_ODK.Views
 
         private async Task ProcessAPICall(string api_call, int? currentLoop = null, int? loops = null, string filename = null)
         {
-            using (var httpClient = new HttpClient())
+            //using (var httpClient = new HttpClient())
+            //{
+            using (var request = new HttpRequestMessage(new HttpMethod("GET"), api_call))
             {
-                using (var request = new HttpRequestMessage(new HttpMethod("GET"), api_call))
+                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ContactingServer });
+                var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_user}:{_password}"));
+                request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
+                try
                 {
-                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ContactingServer });
-                    var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_user}:{_password}"));
-                    request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
-                    try
+                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData, Loop = currentLoop, Loops = loops });
+
+                    var response = await _httpClient.SendAsync(request);
+
+                    var bytes = await response.Content.ReadAsByteArrayAsync();
+                    Encoding encoding = Encoding.GetEncoding("utf-8");
+                    string the_response = encoding.GetString(bytes, 0, bytes.Length);
+                    //((ODKResultsWindow)Owner).JSON = the_response;
+                    ((ODKResultsWindow)Owner).FormID = _formID;
+                    ((ODKResultsWindow)Owner).Description = _description;
+                    ((ODKResultsWindow)Owner).Count = _count;
+
+
+                    DateTime? versionDate = null;
+
+                    switch (_parentWindow.ODKServerDownload)
                     {
-                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData, Loop = currentLoop, Loops = loops });
+                        case ODKServerDownload.ServerDownloadVesselUnload:
+                            string json;
+                            if (DateTime.TryParse(_xlsFormVersion, out DateTime versionDate1))
+                            {
+                                versionDate = versionDate1;
+                                if (versionDate >= new DateTime(2021, 10, 1))
+                                {
+                                    json = VesselLandingFixDownload.JsonNewToOldVersion(the_response);
+                                    //VesselUnloadServerRepository.JSON = VesselLandingFixDownload.JsonNewToOldVersion(the_response);
+                                }
+                                else
+                                {
+                                    throw new Exception("catch and effort version is not handled");
+                                }
+                            }
+                            else
+                            {
+                                json = the_response;
+                                //VesselUnloadServerRepository.JSON = the_response;
+                            }
 
-                        var response = await httpClient.SendAsync(request);
-                        var bytes = await response.Content.ReadAsByteArrayAsync();
-                        Encoding encoding = Encoding.GetEncoding("utf-8");
-                        string the_response = encoding.GetString(bytes, 0, bytes.Length);
-                        //((ODKResultsWindow)Owner).JSON = the_response;
-                        ((ODKResultsWindow)Owner).FormID = _formID;
-                        ((ODKResultsWindow)Owner).Description = _description;
-                        ((ODKResultsWindow)Owner).Count = _count;
+                            if (string.IsNullOrEmpty(filename))
+                            {
+                                ((ODKResultsWindow)Owner).JSON = json;
+                                VesselUnloadServerRepository.JSON = json;
+                                VesselUnloadServerRepository.ResetLists();
+                                VesselUnloadServerRepository.CreateLandingsFromJSON();
+                                VesselUnloadServerRepository.FillDuplicatedLists();
+                            }
+                            else
+                            {
+                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.SavingToJSONTextFile, FileName = filename });
+                                File.WriteAllText(filename, json);
+                            }
 
 
-                        DateTime? versionDate = null;
+                            break;
+                        case ODKServerDownload.ServerDownloadLandings:
+                            ((ODKResultsWindow)Owner).JSON = the_response;
+                            LandingSiteBoatLandingsFromServerRepository.JSON = the_response;
+                            LandingSiteBoatLandingsFromServerRepository.CreateLandingSiteBoatLandingsFromJson();
+                            break;
+                    }
+
+                    if (string.IsNullOrEmpty(filename))
+                    {
+                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.GotJSONString, JSONString = the_response });
+                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ConvertDataToEntities });
+
 
                         switch (_parentWindow.ODKServerDownload)
                         {
                             case ODKServerDownload.ServerDownloadVesselUnload:
-                                string json;
-                                if (DateTime.TryParse(_xlsFormVersion, out DateTime versionDate1))
-                                {
-                                    versionDate = versionDate1;
-                                    if (versionDate >= new DateTime(2021, 10, 1))
-                                    {
-                                        json = VesselLandingFixDownload.JsonNewToOldVersion(the_response);
-                                        //VesselUnloadServerRepository.JSON = VesselLandingFixDownload.JsonNewToOldVersion(the_response);
-                                    }
-                                    else
-                                    {
-                                        throw new Exception("catch and effort version is not handled");
-                                    }
-                                }
-                                else
-                                {
-                                    json = the_response;
-                                    //VesselUnloadServerRepository.JSON = the_response;
-                                }
-
-                                if (string.IsNullOrEmpty(filename))
-                                {
-                                    ((ODKResultsWindow)Owner).JSON = json;
-                                    VesselUnloadServerRepository.JSON = json;
-                                    VesselUnloadServerRepository.ResetLists();
-                                    VesselUnloadServerRepository.CreateLandingsFromJSON();
-                                    VesselUnloadServerRepository.FillDuplicatedLists();
-                                }
-                                else
-                                {
-                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.SavingToJSONTextFile, FileName = filename });
-                                    File.WriteAllText(filename, json);
-                                }
-
-
+                                _parentWindow.MainSheets = VesselUnloadServerRepository.VesselLandings;
                                 break;
                             case ODKServerDownload.ServerDownloadLandings:
-                                ((ODKResultsWindow)Owner).JSON = the_response;
-                                LandingSiteBoatLandingsFromServerRepository.JSON = the_response;
-                                LandingSiteBoatLandingsFromServerRepository.CreateLandingSiteBoatLandingsFromJson();
+                                _parentWindow.MainSheetsLanding = LandingSiteBoatLandingsFromServerRepository.LandingSiteBoatLandings;
                                 break;
                         }
-
-                        if (string.IsNullOrEmpty(filename))
-                        {
-                            ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.GotJSONString, JSONString = the_response });
-                            ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ConvertDataToEntities });
-
-
-                            switch (_parentWindow.ODKServerDownload)
-                            {
-                                case ODKServerDownload.ServerDownloadVesselUnload:
-                                    _parentWindow.MainSheets = VesselUnloadServerRepository.VesselLandings;
-                                    break;
-                                case ODKServerDownload.ServerDownloadLandings:
-                                    _parentWindow.MainSheetsLanding = LandingSiteBoatLandingsFromServerRepository.LandingSiteBoatLandings;
-                                    break;
-                            }
-                            ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
-                            Close();
-                        }
-                        else
-                        {
-                            ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
-                        }
-
-
-
+                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
+                        Close();
                     }
-                    catch (HttpRequestException)
+                    else
                     {
-                        MessageBox.Show("Request time out\r\nYou may try again");
+                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
                     }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
-                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.StoppedDueToError });
-                        _downloadBatchCancel = true;
-                    }
+
+
+
+                }
+                catch (HttpRequestException)
+                {
+                    MessageBox.Show("Request time out\r\nYou may try again");
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(ex);
+                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.StoppedDueToError });
+                    _downloadBatchCancel = true;
                 }
             }
+            //}
         }
 
 
@@ -1206,57 +1208,57 @@ namespace NSAP_ODK.Views
         private async Task<int> ProcessDownloadForReview(string apiCall, int round)
         {
             var result = 0;
-            using (var httpClient = new HttpClient())
+            //using (var httpClient = new HttpClient())
+            //{
+            using (var request = new HttpRequestMessage(new HttpMethod("GET"), apiCall))
             {
-                using (var request = new HttpRequestMessage(new HttpMethod("GET"), apiCall))
+                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ContactingServer });
+                var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_user}:{_password}"));
+                request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
+                try
                 {
-                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ContactingServer });
-                    var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_user}:{_password}"));
-                    request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
+                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData });
+
+                    var response = await _httpClient.SendAsync(request);
                     try
                     {
-                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData });
+                        var bytes = await response.Content.ReadAsByteArrayAsync();
 
-                        var response = await httpClient.SendAsync(request);
-                        try
+                        Encoding encoding = Encoding.GetEncoding("utf-8");
+                        string the_response = encoding.GetString(bytes, 0, bytes.Length);
+                        var arr = apiCall.Split('?', ',')[1].Split('\"');
+                        string field_name = arr[1];
+                        switch (field_name)
                         {
-                            var bytes = await response.Content.ReadAsByteArrayAsync();
-
-                            Encoding encoding = Encoding.GetEncoding("utf-8");
-                            string the_response = encoding.GetString(bytes, 0, bytes.Length);
-                            var arr = apiCall.Split('?', ',')[1].Split('\"');
-                            string field_name = arr[1];
-                            switch (field_name)
-                            {
-                                case "_xform_id_string":
-                                    UpdateXFormIdentifierRepository.JSON = the_response;
-                                    UpdateXFormIdentifierRepository.CreateXFormIdentifierUpdatesFromJSON();
-                                    result = await UpdateXFormIdentifierRepository.UpdateDatabase(round);
-                                    break;
-                                case "catch_comp_group/include_catchcomp":
-                                    UpdateHasCatchCompositionRepository.JSON = the_response;
-                                    UpdateHasCatchCompositionRepository.CreateCatchCompUpdatesFromJSON();
-                                    result = await UpdateHasCatchCompositionRepository.UpdateDatabase(round);
-                                    break;
-                            }
-
+                            case "_xform_id_string":
+                                UpdateXFormIdentifierRepository.JSON = the_response;
+                                UpdateXFormIdentifierRepository.CreateXFormIdentifierUpdatesFromJSON();
+                                result = await UpdateXFormIdentifierRepository.UpdateDatabase(round);
+                                break;
+                            case "catch_comp_group/include_catchcomp":
+                                UpdateHasCatchCompositionRepository.JSON = the_response;
+                                UpdateHasCatchCompositionRepository.CreateCatchCompUpdatesFromJSON();
+                                result = await UpdateHasCatchCompositionRepository.UpdateDatabase(round);
+                                break;
                         }
-                        catch (Exception ex)
-                        {
-                            Logger.Log(ex);
-                        }
-                    }
-                    catch (HttpRequestException)
-                    {
-                        MessageBox.Show("Request time out\r\nYou may try again");
+
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
-                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.StoppedDueToError });
                     }
                 }
+                catch (HttpRequestException)
+                {
+                    MessageBox.Show("Request time out\r\nYou may try again");
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(ex);
+                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.StoppedDueToError });
+                }
             }
+            //}
             return result;
         }
         private void RedeplyForm()
@@ -1329,22 +1331,22 @@ namespace NSAP_ODK.Views
 
         private async void UploadToMedia()
         {
-            using (var httpClient = new HttpClient())
+            //using (var httpClient = new HttpClient())
+            //{
+            using (var request = new HttpRequestMessage(new HttpMethod("POST"), "http://https//<kc_url>/api/v1/metadata.json"))
             {
-                using (var request = new HttpRequestMessage(new HttpMethod("POST"), "http://https//<kc_url>/api/v1/metadata.json"))
-                {
-                    request.Headers.TryAddWithoutValidation("Authorization", "Token <token>");
+                request.Headers.TryAddWithoutValidation("Authorization", "Token <token>");
 
-                    var multipartContent = new MultipartFormDataContent();
-                    multipartContent.Add(new StringContent(File.ReadAllText("xform_id>")), "xform");
-                    multipartContent.Add(new StringContent(File.ReadAllText("filename>")), "data_value");
-                    multipartContent.Add(new StringContent("media"), "data_type");
-                    multipartContent.Add(new ByteArrayContent(File.ReadAllBytes("<path/to/file>")), "data_file", System.IO.Path.GetFileName("<path/to/file>"));
-                    request.Content = multipartContent;
+                var multipartContent = new MultipartFormDataContent();
+                multipartContent.Add(new StringContent(File.ReadAllText("xform_id>")), "xform");
+                multipartContent.Add(new StringContent(File.ReadAllText("filename>")), "data_value");
+                multipartContent.Add(new StringContent("media"), "data_type");
+                multipartContent.Add(new ByteArrayContent(File.ReadAllBytes("<path/to/file>")), "data_file", System.IO.Path.GetFileName("<path/to/file>"));
+                request.Content = multipartContent;
 
-                    var response = await httpClient.SendAsync(request);
-                }
+                var response = await _httpClient.SendAsync(request);
             }
+            //}
         }
 
         private void SetDownloadOptionsVisibility()
@@ -1534,6 +1536,7 @@ namespace NSAP_ODK.Views
 
         private void OnFormClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            _httpClient.Dispose();
             this.SavePlacement();
         }
 

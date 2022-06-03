@@ -102,6 +102,8 @@ namespace NSAP_ODK
             }
 
             CrossTabManager.CrossTabEvent -= OnCrossTabEvent;
+            NSAPEntities.SummaryItemViewModel.BuildingSummaryTable -= SummaryItemViewModel_BuildingSummaryTable;
+            NSAPEntities.SummaryItemViewModel.BuildingOrphanedEntity -= SummaryItemViewModel_BuildingOrphanedEntity;
         }
 
 
@@ -253,6 +255,53 @@ namespace NSAP_ODK
 
                     propertyGridSummary.Visibility = Visibility.Visible;
                     break;
+                case "Databases":
+                    panelVersionStats.Visibility = Visibility.Visible;
+                    labelSummary.Content = "Summary of online databases (Kobotoolbox)";
+                    dataGridEFormVersionStats.AutoGenerateColumns = false;
+                    dataGridEFormVersionStats.Columns.Clear();
+
+                    dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("ServerNumericID") });
+                    dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "Name", Binding = new Binding("FormName") });
+                    dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "ID2", Binding = new Binding("ServerID") });
+                    dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "e-Form version", Binding = new Binding("eFormVersion") });
+
+                    col = new DataGridTextColumn()
+                    {
+                        Binding = new Binding("DateCreated"),
+                        Header = "Date created",
+                        CellStyle = AlignRightStyle
+                    };
+                    col.Binding.StringFormat = "MMM-dd-yyyy HH:mm";
+                    dataGridEFormVersionStats.Columns.Add(col);
+
+                    col = new DataGridTextColumn()
+                    {
+                        Binding = new Binding("DateModified"),
+                        Header = "Date modified",
+                        CellStyle = AlignRightStyle
+                    };
+                    col.Binding.StringFormat = "MMM-dd-yyyy HH:mm";
+                    dataGridEFormVersionStats.Columns.Add(col);
+
+                    col = new DataGridTextColumn()
+                    {
+                        Binding = new Binding("DateLastAccessed"),
+                        Header = "Date last accessed",
+                        CellStyle = AlignRightStyle
+                    };
+                    col.Binding.StringFormat = "MMM-dd-yyyy HH:mm";
+                    dataGridEFormVersionStats.Columns.Add(col);
+
+                    dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "# submissions", Binding = new Binding("SubmissionCount"), CellStyle = AlignRightStyle });
+                    dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "# saved", Binding = new Binding("SavedInDBCount"), CellStyle = AlignRightStyle });
+                    dataGridEFormVersionStats.Columns.Add(new DataGridCheckBoxColumn { Header = "Fish landing form", Binding = new Binding("IsFishLandingSurveyForm") });
+                    dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "Last uploaded JSON file", Binding = new Binding("LastUploadedJSON") });
+                    dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "Last created JSON file", Binding = new Binding("LastCreatedJSON") });
+
+                    NSAPEntities.KoboServerViewModel.RefreshSavedCount();
+                    dataGridEFormVersionStats.DataContext = NSAPEntities.KoboServerViewModel.KoboserverCollection.ToList();
+                    break;
             }
 
 
@@ -306,6 +355,7 @@ namespace NSAP_ODK
                 if (NSAPEntities.SummaryItemViewModel != null)
                 {
                     NSAPEntities.SummaryItemViewModel.BuildingSummaryTable += SummaryItemViewModel_BuildingSummaryTable;
+                    NSAPEntities.SummaryItemViewModel.BuildingOrphanedEntity += SummaryItemViewModel_BuildingOrphanedEntity;
                 }
             }
 
@@ -327,7 +377,109 @@ namespace NSAP_ODK
 
 
         }
+        private void SummaryItemViewModel_BuildingOrphanedEntity(object sender, BuildOrphanedEntityEventArg e)
+        {
+            switch (e.BuildOrphanedEntityStatus)
+            {
+                case BuildOrphanedEntityStatus.StatusBuildStart:
+                    mainStatusBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
 
+                              mainStatusBar.IsIndeterminate = e.IsIndeterminate;
+                              if (!mainStatusBar.IsIndeterminate)
+                              {
+                                  mainStatusBar.Maximum = e.TotalCount;
+                              }
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+                    mainStatusLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusLabel.Content = "Building orphaned items. Please wait...";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case BuildOrphanedEntityStatus.StatusBuildFirstRecordFound:
+                    mainStatusBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              //mainStatusBar.IsIndeterminate = false;
+                              mainStatusBar.Maximum = e.TotalCount;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+                    mainStatusLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusLabel.Content = "First orphaned item found";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case BuildOrphanedEntityStatus.StatusBuildFetchedRow:
+                    mainStatusBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusBar.IsIndeterminate = false;
+                              mainStatusBar.Value = e.CurrentCount;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+                    mainStatusLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusLabel.Content = $"Found orphaned item {e.CurrentCount} of {mainStatusBar.Maximum}";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case BuildOrphanedEntityStatus.StatusBuildEnd:
+                    mainStatusBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusBar.Value = 0;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+                    mainStatusLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusLabel.Content = $"Finished getting {e.TotalCountFetched} orphaned items.";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+
+                    _timer.Dispatcher.BeginInvoke
+                        (
+                        DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                        {
+                            _timer.Interval = TimeSpan.FromSeconds(3);
+                            _timer.Start();
+                            return null;
+                        }
+                        ), null);
+                    break;
+            }
+        }
         private void SummaryItemViewModel_BuildingSummaryTable(object sender, BuildSummaryReportEventArg e)
         {
             switch (e.BuildSummaryReportStatus)
@@ -399,6 +551,16 @@ namespace NSAP_ODK
                               return null;
                           }
                          ), null);
+
+                    _timer.Dispatcher.BeginInvoke
+                        (
+                        DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                        {
+                            _timer.Interval = TimeSpan.FromSeconds(3);
+                            _timer.Start();
+                            return null;
+                        }
+                        ), null);
                     break;
             }
         }
@@ -609,7 +771,7 @@ namespace NSAP_ODK
         {
 
             rowTopLabel.Height = new GridLength(30, GridUnitType.Pixel);
-            ShowStatusRow();
+            ShowStatusRow(isVisible:false);
             PanelButtons.Visibility = Visibility.Visible;
         }
         private void ResetDisplay()
@@ -1382,7 +1544,7 @@ namespace NSAP_ODK
         }
 
 
-        private void OnButtonClick(object sender, RoutedEventArgs e)
+        private async void OnButtonClick(object sender, RoutedEventArgs e)
         {
             switch (((Button)sender).Name)
             {
@@ -1392,10 +1554,12 @@ namespace NSAP_ODK
                     ExportSelectedEntityData();
                     break;
                 case "buttonOrphan":
+                    ShowStatusRow();
                     if (_nsapEntity == NSAPEntity.FishSpecies || _nsapEntity == NSAPEntity.NonFishSpecies)
                     {
                         _nsapEntity = NSAPEntity.SpeciesName;
                     }
+                    await NSAPEntities.SummaryItemViewModel.SetOrphanedEntityAsync(_nsapEntity);
                     var oiw = new OrphanItemsManagerWindow();
                     oiw.Owner = this;
                     oiw.NSAPEntity = _nsapEntity;
@@ -1431,6 +1595,9 @@ namespace NSAP_ODK
 
             }
         }
+
+
+
         public void ShowDBSummary()
         {
             menuDatabaseSummary.IsChecked = true;
@@ -3245,6 +3412,12 @@ namespace NSAP_ODK
                     break;
                 case "e-Form versions":
                 case "Enumerators and form versions":
+                    ShowStatusRow(isVisible: false);
+                    ShowSummary(header);
+                    rowSummaryDataGrid.Height = new GridLength(0);
+                    rowOverallSummary.Height = new GridLength(1, GridUnitType.Star);
+                    break;
+                case "Databases":
                     ShowStatusRow(isVisible: false);
                     ShowSummary(header);
                     rowSummaryDataGrid.Height = new GridLength(0);

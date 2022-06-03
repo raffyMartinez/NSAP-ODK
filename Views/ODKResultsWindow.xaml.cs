@@ -44,6 +44,10 @@ namespace NSAP_ODK.Views
         private List<FileInfo> _jsonfiles;
         private int _countJSONFiles;
         DataGrid _targetGrid;
+        private int _updateXFormIDCount;
+        private TreeViewItem _firstJSONFileNode;
+        private int? _jsonFileForUploadCount = null;
+        private string _historyJSONFileForUploading = "";
         public string JSON { get; set; }
         public string FormID { get; set; }
 
@@ -163,6 +167,11 @@ namespace NSAP_ODK.Views
 
             ResetView();
             rowGrid.Height = new GridLength(1, GridUnitType.Star);
+
+            if (NSAPEntities.KoboServerViewModel.Count() == 0)
+            {
+                menuReUploadJsonHistory.Visibility = Visibility.Collapsed;
+            }
         }
 
         private void SetMenuViewVisibility()
@@ -296,12 +305,21 @@ namespace NSAP_ODK.Views
             _jsonFile.Count = VesselUnloadServerRepository.DownloadedLandingsCount();
             _jsonFile.DateAdded = DateTime.Now;
             _jsonFile.FileName = $@"{Global.Settings.JSONFolder}\{NSAPEntities.JSONFileViewModel.CreateFileName(_jsonFile)}";
+
             if (NSAPEntities.JSONFileViewModel.Count() == 0 || NSAPEntities.JSONFileViewModel.getJSONFIle(_jsonFile.MD5) == null)
             {
                 success = await NSAPEntities.JSONFileViewModel.Save(_jsonFile);
-                if (success && verbose)
+                if (success)
                 {
-                    MessageBox.Show("JSON file saved successfully", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                    NSAPEntities.KoboServerViewModel.ResetJSONFields(resetLastUploaded: false);
+                    var ks = NSAPEntities.KoboServerViewModel.GetKoboServer(int.Parse(_jsonFile.FormID));
+                    ks.LastCreatedJSON = new FileInfo(_jsonFile.FileName).Name;
+                    NSAPEntities.KoboServerViewModel.ServerWithCreatedJSON = ks;
+
+                    if (verbose)
+                    {
+                        MessageBox.Show("JSON file saved successfully", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
                 }
             }
             else
@@ -323,7 +341,7 @@ namespace NSAP_ODK.Views
             //rowGrid.Height = new GridLength(1, GridUnitType.Star);
         }
 
-        private TreeViewItem _firstJSONFileNode;
+
         private void AddFilesToDateNode(TreeViewItem dateNode, DownloadedJsonMetadata djmd, string dateDownloaded)
         {
             int counter = 0;
@@ -343,8 +361,9 @@ namespace NSAP_ODK.Views
                     _countJSONFiles++;
                 }
             }
-        }
 
+        }
+        public UpdateJSONHistoryMode UpdateJSONHistoryMode { get; set; }
         private HashSet<string> _rootChildrenHeadersHashSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private void AddMetadataToTreeView(DownloadedJsonMetadata djmd, TreeViewItem root)
         {
@@ -427,45 +446,221 @@ namespace NSAP_ODK.Views
 
             }
         }
+        private async Task ProcessHistoryJsonNode(TreeViewItem historyJSONNode)
+        {
+            var jm = (FileInfoJSONMetadata)historyJSONNode.Tag;
+            historyJSONNode.IsSelected = true;
+            await Upload();
+            NSAPEntities.KoboServerViewModel.ResetJSONFields();
+            jm.Koboserver.LastUploadedJSON = jm.JSONFile.Name;
+            NSAPEntities.KoboServerViewModel.ServerWithUploadedJSON = jm.Koboserver;
+            //NSAPEntities.KoboServerViewModel.UpdateRecordInRepo(jm.Koboserver);
+        }
+        private async Task ProcessJSONHistoryNodes(TreeViewItem root)
+        {
+            bool lastJSONUploadFound = false;
+            string lastUploadedJSON = NSAPEntities.KoboServerViewModel.GetLastUploadedJSON();
+            foreach (TreeViewItem jsonNode in root.Items)
+            {
+                if (!VesselUnloadServerRepository.CancelUpload)
+                {
+                    var jm = (FileInfoJSONMetadata)jsonNode.Tag;
+                    if (string.IsNullOrEmpty(lastUploadedJSON))
+                    {
+                        await ProcessHistoryJsonNode(jsonNode);
+                    }
+                    else
+                    {
+                        if (jm.JSONFile.Name == lastUploadedJSON || lastJSONUploadFound)
+                        {
+                            await ProcessHistoryJsonNode(jsonNode);
+                            lastJSONUploadFound = true;
+                        }
+                    }
+                }
+                else
+                {
+                    VesselUnloadServerRepository.CancelUpload = false;
+                    break;
+                }
+            }
+        }
+        private async Task ProcessJSONSNodes(bool updateXFormID = false)
+        {
+            _jsonDateDownloadnode.IsExpanded = true;
+            VesselUnloadServerRepository.CancelUpload = false;
+            foreach (TreeViewItem tvi in _jsonDateDownloadnode.Items)
+            {
+                tvi.IsSelected = true;
+                //ProcessJsonFileForDisplay((FileInfoJSONMetadata)tvi.Tag);
+                if (!VesselUnloadServerRepository.CancelUpload)
+                {
+                    if (updateXFormID)
+                    {
+                        await UpdateXFormIDs();
+                    }
+                    else
+                    {
+                        await Upload();
+                    }
+                }
+                else
+                {
+                    break;
+                }
+            }
+            VesselUnloadServerRepository.UpdateInProgress = false;
+            VesselUnloadServerRepository.UploadInProgress = false;
+        }
+
+        private string GetJSONFolder(bool savedHistory = true)
+        {
+            string description = "Locate folder containing saved JSON history files";
+            if (!savedHistory)
+            {
+                description = "Locate folder containing downloaded JSON files";
+            }
+            VistaFolderBrowserDialog vfbd = new VistaFolderBrowserDialog();
+            vfbd.Description = description;
+            vfbd.UseDescriptionForTitle = true;
+            vfbd.ShowNewFolderButton = true;
+            vfbd.SelectedPath = AppDomain.CurrentDomain.BaseDirectory;
+            if ((bool)vfbd.ShowDialog() && vfbd.SelectedPath.Length > 0)
+            {
+                return vfbd.SelectedPath;
+            }
+            return "";
+        }
+
+
+
         private async void OnMenuClick(object sender, RoutedEventArgs e)
         {
+            string jsonFolder = "";
             switch (((MenuItem)sender).Name)
             {
-
-
-                case "menuUploadAllJsonFiles":
-                    _jsonDateDownloadnode.IsExpanded = true;
-                    VesselUnloadServerRepository.CancelUpload = false;
-                    foreach (TreeViewItem tvi in _jsonDateDownloadnode.Items)
+                case "menuUploadAllJsonHistoryFiles":
+                    UploadJSONHistoryOptionsWindow ujhw = new UploadJSONHistoryOptionsWindow();
+                    ujhw.Owner = this;
+                    if ((bool)ujhw.ShowDialog())
                     {
-                        tvi.IsSelected = true;
-                        //ProcessJsonFileForDisplay((FileInfoJSONMetadata)tvi.Tag);
-                        if (!VesselUnloadServerRepository.CancelUpload)
+                        VesselUnloadServerRepository.CancelUpload = false;
+                        if (UpdateJSONHistoryMode == UpdateJSONHistoryMode.UpdateAll)
                         {
-                            await Upload();
+                            ClearTables(verboseMode: false);
                         }
-                        else
+                        try
                         {
-                            break;
+                            await ProcessJSONHistoryNodes((TreeViewItem)treeViewJSONNavigator.SelectedItem);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
                         }
                     }
                     break;
+                case "menuReUploadJsonHistory":
+
+                    int counter = 0;
+                    jsonFolder = GetJSONFolder(savedHistory: true);
+                    if (jsonFolder.Length > 0)
+                    {
+                        _jsonfiles = Directory.GetFiles(jsonFolder).Select(s => new FileInfo(s)).ToList();
+                        if (_jsonfiles.Any())
+                        {
+                            TreeViewItem root = new TreeViewItem { Header = "Upload history JSON files" };
+                            treeViewJSONNavigator.Items.Add(root);
+                            foreach (var f in _jsonfiles.OrderBy(t => t.CreationTime))
+                            {
+                                if (f.Extension == ".json")
+                                {
+                                    var parts = f.Name.Split(new char[] { ' ' });
+                                    if (int.TryParse(parts[0], out int v) &&
+                                        DateTime.TryParse(parts[1], out DateTime d1) &&
+                                        DateTime.TryParse(parts[1], out DateTime d3))
+                                    {
+                                        var ks = NSAPEntities.KoboServerViewModel.GetKoboServer(int.Parse(parts[0]));
+                                        if (ks != null && ks.IsFishLandingSurveyForm)
+                                        {
+                                            counter++;
+                                            FileInfoJSONMetadata fm = new FileInfoJSONMetadata
+                                            {
+                                                JSONFile = new FileInfo(f.FullName),
+                                                ItemNumber = counter,
+                                                Koboserver = ks
+                                            };
+                                            //TreeViewItem fileNode = new TreeViewItem { Header = f.Name, Tag = f.FullName };
+                                            TreeViewItem fileNode = new TreeViewItem { Header = f.Name, Tag = fm };
+                                            root.Items.Add(fileNode);
+                                        }
+                                    }
+                                }
+                            }
+                            root.IsExpanded = true;
+                        }
+                    }
+                    ResetView();
+                    if (counter > 0)
+                    {
+                        _targetGrid = gridJSONContent;
+                        //ProcessJsonFileForDisplay((FileInfoJSONMetadata)_firstJSONFileNode.Tag);
+                        //treeViewJSONNavigator.Focus();
+                        _jsonFileForUploadCount = counter;
+                    }
+                    else
+                    {
+                        treeViewJSONNavigator.DataContext = null;
+                        treeViewJSONNavigator.Items.Clear();
+                        MessageBox.Show("No JSON files from Kobotoolbox server was found", "NSAP-ODK Database");
+                    }
+                    rowJsonFiles.Height = new GridLength(1, GridUnitType.Star);
+
+
+                    break;
+                case "menuReuploadAll":
+                    ujhw = new UploadJSONHistoryOptionsWindow();
+                    ujhw.Owner = this;
+                    if ((bool)ujhw.ShowDialog())
+                    {
+                        if (UpdateJSONHistoryMode == UpdateJSONHistoryMode.UpdateAll)
+                        {
+                            ClearTables(verboseMode: false);
+                        }
+                        await ProcessJSONSNodes();
+                    }
+                    //    if (MessageBox.Show(
+                    //        "Do you want to re-upload the JSON files and replace all the fish landing sampling records in the database\r\n\r\n" +
+                    //        "This process will take a long time but will ensure that your data is clean and complete.\r\n" +
+                    //        "It is a good idea to backup or make a copy of the database before proceeding.",
+
+                    //        "NSAP-ODK Database",
+
+                    //        MessageBoxButton.YesNo,
+                    //        MessageBoxImage.Information) == MessageBoxResult.Yes)
+                    //{
+                    //    ClearTables(verboseMode: false);
+                    //    await ProcessJSONSNodes();
+                    //}
+                    break;
+                case "menuUpdateXformIdentifier":
+                    await ProcessJSONSNodes(updateXFormID: true);
+                    break;
+
+                case "menuUploadAllJsonFiles":
+                    await ProcessJSONSNodes();
+                    break;
                 case "menuUploadJson":
                     _rootChildrenHeadersHashSet.Clear();
-                    VistaFolderBrowserDialog vfbd = new VistaFolderBrowserDialog();
-                    vfbd.Description = "Locate folder containing downloaded JSON files";
-                    vfbd.UseDescriptionForTitle = true;
-                    vfbd.ShowNewFolderButton = true;
-                    vfbd.SelectedPath = System.AppDomain.CurrentDomain.BaseDirectory;
-                    if ((bool)vfbd.ShowDialog() && vfbd.SelectedPath.Length > 0)
+                    jsonFolder = GetJSONFolder(savedHistory: false);
+                    if (jsonFolder.Length > 0)
                     {
-                        _jsonfiles = Directory.GetFiles(vfbd.SelectedPath).Select(s => new FileInfo(s)).ToList();
+                        _jsonfiles = Directory.GetFiles(jsonFolder).Select(s => new FileInfo(s)).ToList();
                         if (_jsonfiles.Any())
                         {
 
                             TreeViewItem root = new TreeViewItem { Header = "Downloaded e-form data" };
                             treeViewJSONNavigator.Items.Add(root);
-                            int counter = 0;
+                            counter = 0;
                             foreach (var f in _jsonfiles.OrderByDescending(t => t.CreationTime))
                             {
                                 if (f.Extension == ".xml")
@@ -628,24 +823,7 @@ namespace NSAP_ODK.Views
                     break;
 
                 case "menuClearTables":
-                    bool proceed = false;
-                    if (Global.Settings.UsemySQL)
-                    {
-                        proceed = NSAPMysql.MySQLConnect.DeleteDataFromTables();
-                    }
-                    else if (NSAPEntities.ClearNSAPDatabaseTables())
-                    {
-                        proceed = true;
-                        NSAPEntities.LandingSiteSamplingViewModel.Clear();
-                        NSAPEntities.SummaryItemViewModel.Clear();
-                    }
-
-
-                    if (proceed)
-                    {
-                        ParentWindow.ShowDBSummary();
-                        MessageBox.Show("All repo cleared");
-                    }
+                    ClearTables();
                     break;
 
                 case "menuUpload":
@@ -664,6 +842,48 @@ namespace NSAP_ODK.Views
             }
         }
 
+        private bool ClearTables(bool verboseMode = true)
+        {
+            bool proceed = false;
+            if (Global.Settings.UsemySQL)
+            {
+                proceed = NSAPMysql.MySQLConnect.DeleteDataFromTables();
+            }
+            else if (NSAPEntities.ClearNSAPDatabaseTables())
+            {
+                proceed = true;
+                NSAPEntities.LandingSiteSamplingViewModel.Clear();
+                NSAPEntities.SummaryItemViewModel.Clear();
+            }
+
+
+            if (proceed)
+            {
+                ParentWindow.ShowDBSummary();
+                if (verboseMode)
+                {
+                    MessageBox.Show("All repo cleared");
+                }
+            }
+            return proceed;
+        }
+        private async Task UpdateXFormIDs()
+        {
+            if (!VesselUnloadServerRepository.CancelUpload)
+            {
+                int updateCount = await VesselUnloadServerRepository.UpdateXFormIDsAsync();
+                _updateXFormIDCount += updateCount;
+                if (updateCount > 0)
+                {
+                    TimedMessageBox.Show(
+                        "Finished updating XFormIdentifier to database\r\n" +
+                        $"from source having {VesselUnloadServerRepository.VesselLandings.Count} records with {updateCount} saved\r\n",
+                        "NSAP-ODK Database",
+                        5000,
+                        System.Windows.Forms.MessageBoxButtons.OK);
+                }
+            }
+        }
         private async Task Upload()
         {
             _uploadToDBSuccess = false;
@@ -819,6 +1039,52 @@ namespace NSAP_ODK.Views
         {
             switch (e.Intent)
             {
+                case UploadToDBIntent.UnloadFound:
+                    progressBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              progressBar.Value = e.VesselUnloadFoundCount;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+                    labelProgress.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              labelProgress.Content = "Please wait...";
+
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case UploadToDBIntent.SearchingUpdates:
+                    progressBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              progressBar.IsIndeterminate = true;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+                    labelProgress.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              labelProgress.Content = "Please wait...";
+
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
                 case UploadToDBIntent.Cancelled:
                     progressBar.Dispatcher.BeginInvoke
                         (
@@ -842,6 +1108,7 @@ namespace NSAP_ODK.Views
                     _savedCount = e.VesselUnloadTotalSavedCount;
                     break;
                 case UploadToDBIntent.EndOfUpload:
+                case UploadToDBIntent.EndOfUpdate:
                     progressBar.Dispatcher.BeginInvoke
                         (
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
@@ -856,7 +1123,14 @@ namespace NSAP_ODK.Views
                         (
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
-                              labelProgress.Content = $"Finished uploading {e.VesselUnloadTotalSavedCount} submissions";
+                              if (e.Intent == UploadToDBIntent.EndOfUpload)
+                              {
+                                  labelProgress.Content = $"Finished uploading {e.VesselUnloadTotalSavedCount} submissions";
+                              }
+                              else
+                              {
+                                  labelProgress.Content = $"Finished updating {e.VesselUnloadUpdatedCount} submissions";
+                              }
                               //do what you need to do on UI Thread
                               return null;
                           }
@@ -866,23 +1140,42 @@ namespace NSAP_ODK.Views
                     break;
 
                 case UploadToDBIntent.StartOfUpload:
+                case UploadToDBIntent.StartOfUpdate:
                     progressBar.Dispatcher.BeginInvoke
                         (
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
-                              progressBar.Maximum = e.VesselUnloadToSaveCount;
+                              if (e.Intent == UploadToDBIntent.StartOfUpload)
+                              {
+                                  progressBar.Maximum = e.VesselUnloadToSaveCount;
+                              }
+                              else
+                              {
+                                  progressBar.Maximum = e.VesselUnloadToUpdateCount;
+                              }
                               //do what you need to do on UI Thread
                               return null;
                           }), null);
-
                     break;
-
-                case UploadToDBIntent.Uploading:
+                case UploadToDBIntent.UpdateFound:
                     progressBar.Dispatcher.BeginInvoke
                         (
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                             {
-                                progressBar.Value = e.VesselUnloadSavedCount;
+                                progressBar.IsIndeterminate = false;
+                                //do what you need to do on UI Thread
+                                return null;
+                            }
+                         ), null);
+                    break;
+                case UploadToDBIntent.Updating:
+                    progressBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                            {
+
+                                progressBar.Value = e.VesselUnloadFoundCount;
+
                                 //do what you need to do on UI Thread
                                 return null;
                             }
@@ -892,13 +1185,42 @@ namespace NSAP_ODK.Views
                         (
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
-                              labelProgress.Content = $"Uploading {(int)progressBar.Value} of {(int)progressBar.Maximum} submissions";
+
+                              labelProgress.Content = $"Updating {(int)progressBar.Value} of {(int)progressBar.Maximum} submissions";
+
                               //do what you need to do on UI Thread
                               return null;
                           }
                          ), null);
 
                     break;
+                case UploadToDBIntent.Uploading:
+                    progressBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                            {
+
+                                progressBar.Value = e.VesselUnloadSavedCount;
+
+                                //do what you need to do on UI Thread
+                                return null;
+                            }
+                         ), null);
+
+                    labelProgress.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              labelProgress.Content = $"Uploading {(int)progressBar.Value} of {(int)progressBar.Maximum} submissions";
+
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+
+                    break;
+
             }
         }
 
@@ -1640,10 +1962,15 @@ namespace NSAP_ODK.Views
 
         private void OnWindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (VesselUnloadServerRepository.UploadInProgress)
+            if (VesselUnloadServerRepository.UploadInProgress || VesselUnloadServerRepository.UpdateInProgress)
             {
+                string mode = "Updating";
+                if (VesselUnloadServerRepository.UpdateInProgress)
+                {
+                    mode = "Uploading";
+                }
                 if (MessageBox.Show(
-                    "Uploading is in progress\n\rDo you want to stop the operation",
+                    $"{mode} is in progress\n\rDo you want to stop the operation",
                     "NSAP-ODK Database",
                     MessageBoxButton.YesNo,
                     MessageBoxImage.Question
@@ -1651,10 +1978,18 @@ namespace NSAP_ODK.Views
                 {
                     VesselUnloadServerRepository.CancelUpload = true;
                 }
+                else
+                {
+                    e.Cancel = true;
+                }
             }
-            this.SavePlacement();
-            ImportExcel.UploadSubmissionToDB -= OnUploadSubmissionToDB;
-            VesselUnloadServerRepository.UploadSubmissionToDB -= OnUploadSubmissionToDB;
+
+            if (!e.Cancel)
+            {
+                this.SavePlacement();
+                ImportExcel.UploadSubmissionToDB -= OnUploadSubmissionToDB;
+                VesselUnloadServerRepository.UploadSubmissionToDB -= OnUploadSubmissionToDB;
+            }
             //KoboAPI.UploadSubmissionToDB -= OnUploadSubmissionToDB;
         }
 
@@ -1664,6 +1999,7 @@ namespace NSAP_ODK.Views
             JSON = File.ReadAllText(fm.JSONFile.FullName);
             VesselUnloadServerRepository.JSON = JSON;
             VesselUnloadServerRepository.CreateLandingsFromJSON();
+            _historyJSONFileForUploading = fm.JSONFile.Name;
             //ShowResultFromAPI("effort", gridJSONContent);
             //if (gridJSONContent.Items.Count > 0)
             //{
@@ -1672,8 +2008,24 @@ namespace NSAP_ODK.Views
             VesselUnloadServerRepository.ResetLists();
             SetMenus();
             gridJSONContent.Visibility = Visibility.Visible;
-            DownloadedJsonMetadata djmd = fm.DownloadedJsonMetadata;
-            labelJSONFile.Content = $"JSON file from {djmd.DBOwner} {djmd.FormName} {djmd.DateDownloaded} # {fm.ItemNumber}";
+
+            if (fm.DownloadedJsonMetadata != null)
+            {
+                DownloadedJsonMetadata djmd = fm.DownloadedJsonMetadata;
+
+                if (_jsonFileForUploadCount != null)
+                {
+                    labelJSONFile.Content = $"JSON file from {djmd.DBOwner} {djmd.FormName} {djmd.DateDownloaded} # {fm.ItemNumber} of {_jsonFileForUploadCount}";
+                }
+                else
+                {
+                    labelJSONFile.Content = $"JSON file from {djmd.DBOwner} {djmd.FormName} {djmd.DateDownloaded}";
+                }
+            }
+            else
+            {
+                labelJSONFile.Content = $"({fm.ItemNumber} of {_jsonFileForUploadCount}) JSON file from {fm.JSONFile.Name}: # of items - {VesselUnloadServerRepository.VesselLandings.Count} ";
+            }
         }
 
         private void OnDataGridLoadingRow(object sender, DataGridRowEventArgs e)
@@ -1694,14 +2046,30 @@ namespace NSAP_ODK.Views
             _isJSONData = false;
             _jsonDateDownloadnode = null;
 
-
-            switch (((TreeViewItem)treeViewJSONNavigator.SelectedItem).Tag?.ToString())
+            string itemTag = ((TreeViewItem)treeViewJSONNavigator.SelectedItem).Tag?.ToString();
+            switch (itemTag)
             {
                 case "NSAP_ODK.Entities.Database.FileInfoJSONMetadata":
                     ProcessJsonFileForDisplay((FileInfoJSONMetadata)((TreeViewItem)e.NewValue).Tag);
                     break;
                 case "NSAP_ODK.Entities.Database.DownloadedJsonMetadata":
                     ShowJSONMetadata((DownloadedJsonMetadata)((TreeViewItem)treeViewJSONNavigator.SelectedItem).Tag);
+                    _jsonFileForUploadCount = ((TreeViewItem)treeViewJSONNavigator.SelectedItem).Items.Count;
+                    break;
+                default:
+                    try
+                    {
+                        if (File.Exists(itemTag))
+                        {
+                            FileInfoJSONMetadata fjmd = new FileInfoJSONMetadata { JSONFile = new FileInfo(itemTag) };
+                            _jsonFileUseCreationDateForHistory = fjmd.JSONFile.CreationTime;
+                            ProcessJsonFileForDisplay(fjmd);
+                        }
+                    }
+                    catch
+                    {
+                        //ignore
+                    }
                     break;
 
             }
@@ -1725,20 +2093,54 @@ namespace NSAP_ODK.Views
         {
             ContextMenu cm = new ContextMenu();
             MenuItem m = null;
-            string tag = ((TreeViewItem)treeViewJSONNavigator.SelectedItem).Tag.ToString();
+            string tag = ((TreeViewItem)treeViewJSONNavigator.SelectedItem).Tag?.ToString();
             //if (tag == "date_download")
             if (DateTime.TryParse(((TreeViewItem)treeViewJSONNavigator.SelectedItem).Header.ToString(), out DateTime v))
             {
                 m = new MenuItem { Header = "Upload all", Name = "menuUploadAllJsonFiles" };
                 m.Click += OnMenuClick;
                 cm.Items.Add(m);
+
+                var metadata = (DownloadedJsonMetadata)((TreeViewItem)treeViewJSONNavigator.SelectedItem).Tag;
+                if (metadata.DownloadType == "all")
+                {
+
+                    m = new MenuItem { Header = "Reupload all", Name = "menuReuploadAll" };
+                    m.Click += OnMenuClick;
+                    cm.Items.Add(m);
+
+                    m = new MenuItem { Header = "Update xFormIdentifier", Name = "menuUpdateXformIdentifier" };
+                    m.Click += OnMenuClick;
+                    cm.Items.Add(m);
+                }
+
             }
-            else if (tag.Contains("FileInfoJSONMetadata"))
+            else if (File.Exists(tag))
+            {
+                FileInfo fi = new FileInfo(tag);
+                if (fi.Extension.ToLower() == ".json")
+                {
+                    _isJSONData = true;
+                    m = new MenuItem { Header = "Upload", Name = "menuUploadJsonFile" };
+                    m.Click += OnMenuClick;
+                    cm.Items.Add(m);
+                }
+            }
+            else if (tag != null && tag.Contains("FileInfoJSONMetadata"))
             {
                 m = new MenuItem { Header = "Upload", Name = "menuUploadJsonFile" };
                 m.Click += OnMenuClick;
                 cm.Items.Add(m);
             }
+            else if (((TreeViewItem)treeViewJSONNavigator.SelectedItem).Header.ToString() == "Upload history JSON files")
+            {
+                m = new MenuItem { Header = "Upload all", Name = "menuUploadAllJsonHistoryFiles" };
+                m.Click += OnMenuClick;
+                cm.Items.Add(m);
+            }
+
+
+
             if (cm.Items.Count > 0)
             {
                 cm.IsOpen = true;

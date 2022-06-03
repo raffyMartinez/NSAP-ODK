@@ -1,0 +1,29 @@
+﻿<Window x:Class="NSAP_ODK.Views.UploadJSONHistoryOptionsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NSAP_ODK.Views"
+        mc:Ignorable="d"
+        Title="Select option" Height="184.787" Width="359.574" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="100"/>
+        </Grid.ColumnDefinitions>
+        <Label Content="Select what to do with upload history JSON files" Grid.ColumnSpan="2" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold"/>
+        <StackPanel Grid.Row="1" Margin="10">
+            <RadioButton Content="Replace entire content of database" Margin="0 5" ToolTip="Fish landing records will be erased and replaced by JSON files" x:Name="rbReplace"/>
+            <RadioButton Content="Update missing content of database" Margin="0 5" ToolTip="Fish landing records are not erased and only missing data is updated" x:Name="rbUpdateMissing"/>
+        </StackPanel>
+        <StackPanel Grid.Row="1" Grid.Column="1" Margin="10">
+            <Button Content="Ok" Height="25" Width="60" Margin="0 5" IsDefault="True" x:Name="buttonOk" Click="OnButtonClicked"/>
+            <Button Content="Cancel" Height="25" Width="60" Margin="0 5" IsCancel="True" x:Name="buttonCancel" Click="OnButtonClicked"/>
+        </StackPanel>
+    </Grid>
+
+</Window>

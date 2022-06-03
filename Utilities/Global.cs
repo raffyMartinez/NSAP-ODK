@@ -198,6 +198,10 @@ namespace NSAP_ODK.Utilities
             NSAPEntities.SummaryItemViewModel = new SummaryItemViewModel();
             EntityLoaded?.Invoke(null, new EntityLoadedEventArg { Count = NSAPEntities.SummaryItemViewModel.Count });
 
+            EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "Koboserver" });
+            NSAPEntities.KoboServerViewModel = new KoboServerViewModel();
+            EntityLoaded?.Invoke(null, new EntityLoadedEventArg { Count = NSAPEntities.KoboServerViewModel.Count() });
+
 
 
             //NSAPEntities.GearUnloadViewModel = new GearUnloadViewModel();

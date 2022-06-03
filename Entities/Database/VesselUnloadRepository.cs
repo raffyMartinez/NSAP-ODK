@@ -20,7 +20,7 @@ namespace NSAP_ODK.Entities.Database
         {
             VesselUnloads = getVesselUnloads(gu);
         }
-        public VesselUnloadRepository(bool isNew=false)
+        public VesselUnloadRepository(bool isNew = false)
         {
             if (!isNew)
             {
@@ -1860,6 +1860,137 @@ namespace NSAP_ODK.Entities.Database
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
+
+        public bool UpdateEx(VesselUnload item)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                using (MySqlConnection con = new MySqlConnection(MySQLConnect.ConnectionString()))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+
+                        cmd.Parameters.AddWithValue("@xform_id", item.XFormIdentifier);
+                        cmd.Parameters.AddWithValue("@odk_row_id", item.ODKRowID);
+                        cmd.CommandText = @"Update dbo_vessel_unload_1 SET
+                                            xform_identifier = @xform_id
+                                            Where row_id=@odk_row_id";
+                        try
+                        {
+                            con.Open();
+                            success = cmd.ExecuteNonQuery() > 0;
+                        }
+                        catch (MySqlException msex)
+                        {
+
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (OleDbCommand cmd = conn.CreateCommand())
+                    {
+                        if (item.XFormIdentifier == null)
+                        {
+                            cmd.Parameters.Add("@XForm_id", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            cmd.Parameters.Add("@XForm_id", OleDbType.VarChar).Value = item.XFormIdentifier;
+                        }
+
+                        cmd.Parameters.Add("@ODK_row_id", OleDbType.VarChar).Value = $"{{{item.ODKRowID}}}";
+
+                        cmd.CommandText = $@"UPDATE dbo_vessel_unload_1 SET
+                                        XFormIdentifier = @XForm_id
+                                        WHERE RowID =@ODK_row_id";
+
+
+                        try
+                        {
+                            conn.Open();
+                            success = cmd.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException odbx)
+                        {
+
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
+
+        public static bool UpdateXFormID(string rowID, string xFormID)
+        {
+            bool success = false;
+            if (Utilities.Global.Settings.UsemySQL)
+            {
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+                {
+                    using (var cmd = conn.CreateCommand())
+                    {
+
+                        cmd.Parameters.AddWithValue("@xformID", xFormID);
+                        //cmd.Parameters.AddWithValue("@rowID", rowID);
+                        //cmd.Parameters.AddWithValue("@rowID", $"{{{rowID}}}");
+                        cmd.CommandText = "UPDATE dbo_vessel_unload_1 set xform_identifier=@xformID WHERE row_id=@rowID";
+                        try
+                        {
+                            conn.Open();
+                            success = cmd.ExecuteNonQuery() > 0;
+                        }
+                        catch (MySqlException mx)
+                        {
+                            Logger.Log(mx);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@xformID", xFormID);
+                        //cmd.Parameters.AddWithValue("@rowID", rowID);
+                        cmd.Parameters.AddWithValue("@rowID", $"{{{rowID}}}");
+                        cmd.CommandText = "UPDATE dbo_vessel_unload_1 set XFormIdentifier=@xformID WHERE RowID=@rowID";
+                        try
+                        {
+                            con.Open();
+                            success = cmd.ExecuteNonQuery() > 0;
+                        }
+                        catch (MySqlException mx)
+                        {
+                            Logger.Log(mx);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
                     }
                 }
             }

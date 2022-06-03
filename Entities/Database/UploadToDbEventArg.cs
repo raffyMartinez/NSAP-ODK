@@ -11,14 +11,24 @@ namespace NSAP_ODK.Entities.Database
         StartOfUpload,
         Uploading,
         EndOfUpload,
-        Cancelled
+        SearchingUpdates,
+        UpdateFound,
+        StartOfUpdate,
+        Updating,
+        EndOfUpdate,
+        Cancelled,
+        UnloadFound,
+        
 
     }
     public class UploadToDbEventArg:EventArgs
     {
         public string EntitySaved { get; set; }
         public int VesselUnloadSavedCount { get; set; }
+
+        public int VesselUnloadUpdatedCount { get; set; }
         public int VesselUnloadToSaveCount { get; set; }
+        public int VesselUnloadToUpdateCount { get; set; }
 
         public int VesselUnloadTotalSavedCount { get; set; }
 
@@ -28,5 +38,7 @@ namespace NSAP_ODK.Entities.Database
         public int LandingSiteBoatLandingsTotalSavedCount { get; set; }
 
         public UploadToDBIntent Intent { get; set; }
+
+        public int VesselUnloadFoundCount { get; set; }
     }
 }

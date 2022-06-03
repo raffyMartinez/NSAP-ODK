@@ -1313,7 +1313,16 @@ namespace NSAP_ODK.Entities.Database.FromJson
             get
             {
                 //_savedVesselUnloadObject = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.FirstOrDefault(t => t.ODKRowID == _uuid);
-                _savedVesselUnloadObject = NSAPEntities.SummaryItemViewModel.SummaryItemCollection.FirstOrDefault(t => t.ODKRowID == _uuid);
+                try
+                {
+
+                    _savedVesselUnloadObject = NSAPEntities.SummaryItemViewModel.SummaryItemCollection.FirstOrDefault(t => t.ODKRowID == _uuid);
+                }
+                catch (Exception ex)
+                {
+                    Utilities.Logger.Log(ex);
+                    _savedVesselUnloadObject = null;
+                }
                 return _savedVesselUnloadObject;
             }
 
@@ -1641,7 +1650,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
             return _listCatchComps;
 
         }
-
+        public static bool UpdateInProgress { get; set; }
         public static bool UploadInProgress { get; set; }
         public static bool CancelUpload { get; set; }
 
@@ -1651,99 +1660,161 @@ namespace NSAP_ODK.Entities.Database.FromJson
             return Task.Run(() => UploadToDatabase());
         }
 
-        //public static bool UploadToDatabase()
-        //{
-        //    UploadInProgress = true;
-        //    int savedCount = 0;
-        //    var landings = VesselLandings.Where(t => t.SavedInLocalDatabase == false).ToList();
-        //    if (landings.Count > 0)
-        //    {
-        //        UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadToSaveCount = landings.Count, Intent = UploadToDBIntent.StartOfUpload });
-        //        foreach (var landing in landings)
-        //        {
-        //            if (!CancelUpload)
-        //            {
-        //                try
-        //                {
-        //                    bool proceed = false;
-        //                    var landingSiteSampling = NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(landing);
-        //                    if (landingSiteSampling == null)
-        //                    {
-        //                        landingSiteSampling = new LandingSiteSampling
-        //                        {
-        //                            PK = NSAPEntities.LandingSiteSamplingViewModel.NextRecordNumber,
-        //                            LandingSiteID = landing.LandingSite == null ? null : (int?)landing.LandingSite.LandingSiteID,
-        //                            FishingGroundID = landing.FishingGround?.Code,
-        //                            IsSamplingDay = true,
-        //                            SamplingDate = landing.SamplingDate.Date,
-        //                            NSAPRegionID = landing.NSAPRegion.Code,
-        //                            LandingSiteText = landing.LandingSiteText == null ? "" : landing.LandingSiteText,
-        //                            FMAID = landing.NSAPRegionFMA.FMA.FMAID
-        //                        };
-        //                        proceed = NSAPEntities.LandingSiteSamplingViewModel.AddRecordToRepo(landingSiteSampling);
-        //                        if (proceed)
-        //                        {
-        //                            landingSiteSampling.GearUnloadViewModel = new GearUnloadViewModel(landingSiteSampling);
-        //                        }
-        //                    }
-        //                    else
-        //                    {
-        //                        proceed = true;
-        //                    }
+        public static Task<int> UpdateXFormIDsAsync()
+        {
+            return Task.Run(() => UpdateXFormIDsEx());
+        }
 
-        //                    GearUnload gear_unload = null;
-        //                    if (proceed)
-        //                    {
-        //                        proceed = false;
+        private static int UpdateXFormIDsEx()
+        {
+            bool updateStart = false;
+            int updatedCount = 0;
+            int loopCount = 0;
+            UpdateInProgress = true;
+            UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.SearchingUpdates });
+            var landings = VesselLandings.Where(t => t._xform_id_string.Length > 0).ToList();
+            UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadToUpdateCount = VesselLandings.Count, Intent = UploadToDBIntent.StartOfUpdate });
+            foreach (VesselLanding landing in landings)
+            {
+                //bool updated = false;
+               loopCount++;
+               if (!CancelUpload)
+               {
+                    if (!updateStart)
+                    {
+                        updateStart = true;
+                        UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.UpdateFound });
+                    }
 
-        //                        gear_unload = landingSiteSampling.GearUnloadViewModel.GetGearUnloads(landingSiteSampling).FirstOrDefault(t => t.GearUsedText == landing.GearUsedText || t.GearID == landing.GearCode);
-        //                        if (gear_unload == null)
-        //                        {
-        //                            if (landing.GearCode == "_OT")
-        //                            {
-        //                                landing.GearCode = null;
-        //                            }
-        //                            gear_unload = new GearUnload
-        //                            {
-        //                                PK = landingSiteSampling.GearUnloadViewModel.NextRecordNumber,
-        //                                Parent = landingSiteSampling,
-        //                                LandingSiteSamplingID = landingSiteSampling.PK,
-        //                                GearID = landing.GearCode,
-        //                                //GearID = landing.GearUsed != null ? landing.NSAPRegion.Gears.FirstOrDefault(t => t.RowID == (int)landing.GearUsed).Gear.Code : null,
-        //                                GearUsedText = landing.GearUsedText == null ? "" : landing.GearUsedText,
-        //                                Remarks = ""
-        //                            };
-        //                            proceed = landingSiteSampling.GearUnloadViewModel.AddRecordToRepo(gear_unload);
-        //                            if (proceed)
-        //                            {
-        //                                gear_unload.VesselUnloadViewModel = new VesselUnloadViewModel(isNew: true);
-        //                            }
-        //                        }
-        //                        else
-        //                        {
-        //                            if (gear_unload.VesselUnloadViewModel == null)
-        //                            {
-        //                                gear_unload.VesselUnloadViewModel = new VesselUnloadViewModel(gear_unload);
-        //                            }
-        //                            proceed = true;
-        //                        }
-        //                    }
+                    if (VesselUnloadRepository.UpdateXFormID(landing._uuid, landing._xform_id_string))
+                    {
+                        if (NSAPEntities.SummaryItemViewModel.UpdateRecordInRepo(landing._uuid, landing._xform_id_string))
+                        {
+                            updatedCount++;
+                            UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadUpdatedCount = updatedCount, Intent = UploadToDBIntent.Updating, VesselUnloadFoundCount=loopCount });
+                            //updated = true;
+                        }
+                    }
+                    else
+                    {
+                        UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.UnloadFound, VesselUnloadFoundCount = loopCount });
+                    }
+                }
+                else
+                {
+                    UploadInProgress = false;
+                    UpdateInProgress = false;
+                    break;
+                }
 
-        //                    if (proceed)
-        //                    {
-        //                        landing.GearUnload = gear_unload;
-        //                        savedCount++;
-        //                    }
-        //                }
-        //                catch (Exception ex)
-        //                {
 
-        //                }
-        //            }
-        //        }
-        //    }
-        //    return savedCount > 0;
-        //}
+            }
+            if (CancelUpload)
+            {
+                UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.Cancelled });
+            }
+            else
+            {
+                UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadUpdatedCount = updatedCount, Intent = UploadToDBIntent.EndOfUpdate });
+            }
+            UploadInProgress = false;
+            return updatedCount;
+        }
+        private static int UpdateXFormIDs()
+        {
+            bool updateStart = false;
+            UpdateInProgress = true;
+            int updatedCount = 0;
+            UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.SearchingUpdates });
+            foreach (var landing in VesselLandings)
+            {
+                UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadToUpdateCount = VesselLandings.Count, Intent = UploadToDBIntent.StartOfUpdate });
+                if (!CancelUpload)
+                {
+                    try
+                    {
+                        var landingSiteSampling = NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(landing);
+                        if (landingSiteSampling != null)
+                        {
+                            if (landingSiteSampling.GearUnloadViewModel == null)
+                            {
+                                landingSiteSampling.GearUnloadViewModel = new GearUnloadViewModel(landingSiteSampling);
+                            }
+
+
+
+
+                            GearUnload gear_unload = null;
+
+                            gear_unload = landingSiteSampling.GearUnloadViewModel.GetGearUnloads(landingSiteSampling).FirstOrDefault(t => t.GearUsedText == landing.GearUsedText || t.GearID == landing.GearCode);
+                            if (gear_unload != null)
+                            {
+                                if (gear_unload.VesselUnloadViewModel == null)
+                                {
+                                    gear_unload.VesselUnloadViewModel = new VesselUnloadViewModel(gear_unload);
+                                }
+
+                                bool proceed = true;
+                                VesselUnload vu = gear_unload.VesselUnloadViewModel.getVesselUnload(landing._uuid);
+                                if (vu != null)
+                                {
+                                    if (vu.XFormIdentifier.Length == 0)
+                                    {
+                                        vu.XFormIdentifier = landing._xform_id_string;
+                                    }
+                                    else
+                                    {
+                                        proceed = false;
+                                    }
+                                }
+                                else if (vu == null)
+                                {
+                                    vu = new VesselUnload
+                                    {
+                                        XFormIdentifier = landing._xform_id_string,
+                                        ODKRowID = landing._uuid
+                                    };
+                                }
+
+                                if (proceed && gear_unload.VesselUnloadViewModel.UpdateRecordInRepo(vu, updateXFormID: true))
+                                {
+                                    if (!updateStart)
+                                    {
+                                        updateStart = true;
+                                        UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.UpdateFound });
+                                    }
+                                    if (NSAPEntities.SummaryItemViewModel.UpdateRecordInRepo(vu))
+                                    {
+                                        updatedCount++;
+                                        UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadUpdatedCount = updatedCount, Intent = UploadToDBIntent.Updating });
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+
+                    }
+
+                }
+                else
+                {
+                    break;
+                }
+            }
+            if (CancelUpload)
+            {
+                UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.Cancelled });
+            }
+            else
+            {
+                UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadUpdatedCount = updatedCount, Intent = UploadToDBIntent.EndOfUpdate });
+            }
+            UploadInProgress = false;
+            return updatedCount;
+        }
         public static bool UploadToDatabase()
         {
             UploadInProgress = true;
@@ -1781,7 +1852,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                 proceed = true;
                             }
 
-                            if (proceed && landingSiteSampling.GearUnloadViewModel==null)
+                            if (proceed && landingSiteSampling.GearUnloadViewModel == null)
                             {
                                 landingSiteSampling.GearUnloadViewModel = new GearUnloadViewModel(landingSiteSampling);
                             }
@@ -1816,7 +1887,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                     proceed = true;
                                 }
 
-                                if (proceed && gear_unload.VesselUnloadViewModel==null)
+                                if (proceed && gear_unload.VesselUnloadViewModel == null)
                                 {
                                     gear_unload.VesselUnloadViewModel = new VesselUnloadViewModel(isNew: true);
                                 }
@@ -2159,6 +2230,8 @@ namespace NSAP_ODK.Entities.Database.FromJson
                     }
                     else
                     {
+                        UploadInProgress = false;
+                        UpdateInProgress = false;
                         break;
                     }
                 }

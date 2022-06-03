@@ -11,6 +11,7 @@ namespace NSAP_ODK.Entities.Database
     {
         public event EventHandler DatabaseUpdatedEvent;
         public bool EditSucceeded;
+        private bool _updateXFormID;
 
         public int CountLandingWithCatchComposition()
         {
@@ -575,7 +576,15 @@ namespace NSAP_ODK.Entities.Database
             return vu;
         }
 
-
+        public VesselUnload getVesselUnload(string odkROWID)
+        {
+            var vu = VesselUnloadCollection.FirstOrDefault(n => n.ODKRowID == odkROWID);
+            if (vu != null)
+            {
+                vu.ContainerViewModel = this;
+            }
+            return vu;
+        }
         private void VesselUnloadCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             EditSucceeded = false;
@@ -598,7 +607,14 @@ namespace NSAP_ODK.Entities.Database
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<VesselUnload> tempList = e.NewItems.OfType<VesselUnload>().ToList();
-                        EditSucceeded = VesselUnloads.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        if (_updateXFormID)
+                        {
+                            EditSucceeded = VesselUnloads.UpdateEx(tempList[0]);
+                        }
+                        else
+                        {
+                            EditSucceeded = VesselUnloads.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        }
                     }
                     break;
             }
@@ -618,6 +634,8 @@ namespace NSAP_ODK.Entities.Database
             }
             return grid;
         }
+
+
         public bool AddRecordToRepo(VesselUnload item)
         {
             if (item == null)
@@ -626,21 +644,39 @@ namespace NSAP_ODK.Entities.Database
             return EditSucceeded;
         }
 
-        public bool UpdateRecordInRepo(VesselUnload item)
+        public bool UpdateRecordInRepo(VesselUnload item, bool updateXFormID = false)
         {
-            if (item.PK == 0)
-                throw new Exception("Error: ID cannot be zero");
-
+            _updateXFormID = updateXFormID;
             int index = 0;
-            while (index < VesselUnloadCollection.Count)
+            if (_updateXFormID)
             {
-                if (VesselUnloadCollection[index].PK == item.PK)
+                while (index < VesselUnloadCollection.Count)
                 {
-                    VesselUnloadCollection[index] = item;
-                    break;
+                    if (VesselUnloadCollection[index].ODKRowID == item.ODKRowID)
+                    {
+                        VesselUnloadCollection[index] = item;
+                        break;
+                    }
+                    index++;
                 }
-                index++;
             }
+            else
+            {
+                if (item.PK == 0)
+                    throw new Exception("Error: ID cannot be zero");
+
+
+                while (index < VesselUnloadCollection.Count)
+                {
+                    if (VesselUnloadCollection[index].PK == item.PK)
+                    {
+                        VesselUnloadCollection[index] = item;
+                        break;
+                    }
+                    index++;
+                }
+            }
+
             return EditSucceeded;
         }
 

@@ -21,6 +21,7 @@
                 <MenuItem Header="_Upload media" x:Name="menuUploadMedia" Click="OnMenuClick" />
                 <MenuItem Header="Import ODK excel" x:Name="menuImport" Click="OnMenuClick"/>
                 <MenuItem Header="Upload downloaded JSON files" x:Name="menuUploadJson" Click="OnMenuClick"/>
+                <MenuItem Header="Re-upload JSON files from history" x:Name="menuReUploadJsonHistory" Click="OnMenuClick"/>
                 <MenuItem Header="Use vessel unload json file" x:Name="menuVesselUnloadJSON" Click="OnMenuClick" Visibility="Collapsed"/>
                 <MenuItem Header="Use vessel counts json file" x:Name="menuVesselCountJSON" Click="OnMenuClick" Visibility="Collapsed"/>
                 <MenuItem Header="Delete data past date" x:Name="menuDeletePastDate" Click="OnMenuClick" Visibility="Collapsed"/>

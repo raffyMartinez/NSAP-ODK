@@ -563,15 +563,19 @@ namespace NSAP_ODK.Views
                     break;
                 case NSAPEntity.LandingSite:
                     //dataGrid.DataContext = NSAPEntities.LandingSiteSamplingViewModel.OrphanedLandingSites().OrderBy(t => t.LandingSiteName.Trim()).ToList();
-                    dataGrid.DataContext = NSAPEntities.SummaryItemViewModel.GetOrphanedLandingSites().OrderBy(t => t.LandingSiteName.Trim()).ToList();
+                    //dataGrid.DataContext = NSAPEntities.SummaryItemViewModel.GetOrphanedLandingSites().OrderBy(t => t.LandingSiteName.Trim()).ToList();
+                    dataGrid.DataContext = NSAPEntities.SummaryItemViewModel.OrphanedLandingSites.OrderBy(t => t.LandingSiteName).ToList();
                     break;
                 case NSAPEntity.Enumerator:
                     //dataGrid.DataContext = NSAPEntities.NSAPEnumeratorViewModel.OrphanedEnumerators().OrderBy(t=>t.Name);
-                    dataGrid.DataContext = NSAPEntities.NSAPEnumeratorViewModel.OrphanedEnumerators();
+
+                    //dataGrid.DataContext = NSAPEntities.NSAPEnumeratorViewModel.OrphanedEnumerators();
+                    //dataGrid.DataContext = await NSAPEntities.SummaryItemViewModel.GetOrphanedEnumeratorsAync();
+                    dataGrid.DataContext = NSAPEntities.SummaryItemViewModel.OrphanedEnumerators.OrderBy(t => t.Name).ToList();
                     break;
                 case NSAPEntity.FishingGear:
                     //dataGrid.DataContext = NSAPEntities.GearUnloadViewModel.OrphanedFishingGears();
-                    dataGrid.DataContext = NSAPEntities.SummaryItemViewModel.OrphanedFishingGears();
+                    dataGrid.DataContext = NSAPEntities.SummaryItemViewModel.OrphanedFishingGears.OrderBy(t => t.Name).ToList();
                     break;
                 case NSAPEntity.FishingVessel:
                     dataGrid.DataContext = NSAPEntities.FishingVesselViewModel.OrphanedFishingVesseks();
@@ -579,6 +583,9 @@ namespace NSAP_ODK.Views
             }
 
         }
+
+
+
         private async void OnButtonClick(object sender, RoutedEventArgs e)
         {
             labelStatus.Content = "";

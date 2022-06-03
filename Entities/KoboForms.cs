@@ -217,7 +217,7 @@ namespace NSAP_ODK.Entities
             get
             {
                 string lastSaveDate = "";
-                switch(KoboFormType)
+                switch (KoboFormType)
                 {
                     case KoboFormType.FormTypeCatchAndEffort:
                         if (NSAPEntities.SummaryItemViewModel.Count > 0)
@@ -262,10 +262,10 @@ namespace NSAP_ODK.Entities
                         //    //lastSaveDate = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
                         //    //    .Max(t => t.DateTimeSubmitted).ToString("MMM-dd-yyyy HH:mm:ss");
                         //}
-                        if(NSAPEntities.SummaryItemViewModel.Count>0)
+                        if (NSAPEntities.SummaryItemViewModel.Count > 0)
                         {
                             DateTime? ld = NSAPEntities.SummaryItemViewModel.LastSavedDateInDatabase((XLSForm_IDString));
-                            if(ld!=null)
+                            if (ld != null)
                             {
                                 lastSaveDate = ((DateTime)ld).ToString("MMM-dd-yyyy HH:mm");
                             }
@@ -296,7 +296,6 @@ namespace NSAP_ODK.Entities
 
     public static class KoboForms
     {
-
 
 
         public static List<KoboForm> FormsFromJSON { get; internal set; }
@@ -346,20 +345,63 @@ namespace NSAP_ODK.Entities
 
 
 
-        public static async Task<bool> GetVersionFromXLSForm(KoboForm kf, string user_name, string password)
+        public static async Task<bool> GetVersionFromXLSForm(KoboForm kf, string user_name, string password, HttpClient httpClient)
         {
-            using (var httpClient = new HttpClient())
+            //using (var httpClient = new HttpClient())
+            // {
+            HttpResponseMessage response;
+            byte[] bytes;
+            Encoding encoding;
+            string the_response = "";
+            string base64authorization = "";
+            HttpRequestMessage request;
+            var api_call = $"https://kf.kobotoolbox.org/api/v2/assets/{kf.id_string}/?format=json";
+            using (request = new HttpRequestMessage(new HttpMethod("GET"), api_call))
             {
-                HttpResponseMessage response;
-                byte[] bytes;
-                Encoding encoding;
-                string the_response = "";
-                string base64authorization = "";
-                HttpRequestMessage request;
-                var api_call = $"https://kf.kobotoolbox.org/api/v2/assets/{kf.id_string}/?format=json";
+                base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{user_name}:{password}"));
+                request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
+                try
+                {
+                    response = await httpClient.SendAsync(request);
+                    bytes = await response.Content.ReadAsByteArrayAsync();
+                    encoding = Encoding.GetEncoding("utf-8");
+                    the_response = encoding.GetString(bytes, 0, bytes.Length);
+                    if (the_response.Contains("Invalid username/password"))
+                    {
+
+                    }
+                    else
+                    {
+
+                        var x = MakeXLSForm(the_response);
+                        kf.Version_ID = x.version_id;
+                        //Version_ID = x.version_id;
+                        XLSFormVersion = x.content.settings.version;
+                        kf.xlsform_version = XLSFormVersion;
+                        XLSForm_idString = x.content.settings.id_string;
+                        if (x.name == "NSAP Fish Catch Monitoring e-Form" || x.name == "Fisheries landing survey")
+                        {
+                            kf.eForm_version = x.content.survey.Where(t => t.name == "intronote").FirstOrDefault().@default.Replace("Version ", "");
+                        }
+
+                    }
+                }
+                catch (HttpRequestException)
+                {
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(ex);
+                }
+            }
+
+            if (kf.koboform_files == null)
+            {
+                api_call = $"https://kf.kobotoolbox.org/api/v2/assets/{kf.id_string}/files/?format=json";
                 using (request = new HttpRequestMessage(new HttpMethod("GET"), api_call))
                 {
-                    base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{user_name}:{password}"));
+                    //base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{user_name}:{password}"));
                     request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
                     try
                     {
@@ -367,61 +409,18 @@ namespace NSAP_ODK.Entities
                         bytes = await response.Content.ReadAsByteArrayAsync();
                         encoding = Encoding.GetEncoding("utf-8");
                         the_response = encoding.GetString(bytes, 0, bytes.Length);
-                        if (the_response.Contains("Invalid username/password"))
-                        {
 
-                        }
-                        else
-                        {
+                        kf.koboform_files = GetFilesFromKoboform(the_response);
 
-                            var x = MakeXLSForm(the_response);
-                            kf.Version_ID = x.version_id;
-                            //Version_ID = x.version_id;
-                            XLSFormVersion = x.content.settings.version;
-                            kf.xlsform_version = XLSFormVersion;
-                            XLSForm_idString = x.content.settings.id_string;
-                            if(x.name=="NSAP Fish Catch Monitoring e-Form" || x.name=="Fisheries landing survey")
-                            {
-                                kf.eForm_version = x.content.survey.Where(t => t.name == "intronote").FirstOrDefault().@default.Replace("Version ","");
-                            }
 
-                        }
-                    }
-                    catch (HttpRequestException)
-                    {
-                        return false;
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
                     }
                 }
-
-                if (kf.koboform_files == null)
-                {
-                    api_call = $"https://kf.kobotoolbox.org/api/v2/assets/{kf.id_string}/files/?format=json";
-                    using (request = new HttpRequestMessage(new HttpMethod("GET"), api_call))
-                    {
-                        //base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{user_name}:{password}"));
-                        request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
-                        try
-                        {
-                            response = await httpClient.SendAsync(request);
-                            bytes = await response.Content.ReadAsByteArrayAsync();
-                            encoding = Encoding.GetEncoding("utf-8");
-                            the_response = encoding.GetString(bytes, 0, bytes.Length);
-
-                            kf.koboform_files = GetFilesFromKoboform(the_response);
-
-
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Log(ex);
-                        }
-                    }
-                }
             }
+            //}
             return false;
         }
 

@@ -12,10 +12,15 @@ namespace NSAP_ODK.Entities.Database
     {
         private bool _editSuccess;
         private TreeViewModelControl.AllSamplingEntitiesEventHandler _treeViewData;
+        private NSAPEntity _orphanedEntity;
+        private List<OrphanedEnumerator> _orphanedEnumerators;
+        private List<OrphanedLandingSite> _orphanedLandingSites;
+        private List<OrphanedFishingGear> _orphanedFishingGears;
         public ObservableCollection<SummaryItem> SummaryItemCollection { get; set; }
         private SummaryItemRepository SummaryItems { get; set; }
 
         public event EventHandler<BuildSummaryReportEventArg> BuildingSummaryTable;
+        public event EventHandler<BuildOrphanedEntityEventArg> BuildingOrphanedEntity;
         public bool UpdateRecordsInRepo(GearUnload gu)
         {
             int counter = 0;
@@ -45,18 +50,25 @@ namespace NSAP_ODK.Entities.Database
             return count > 0;
         }
 
-        public List<OrphanedFishingGear> OrphanedFishingGears()
+        public Task<List<OrphanedFishingGear>> GetOrphanedFishingGearsAsync()
+        {
+            return Task.Run(() => GetOrphanedFishingGears());
+        }
+        public List<OrphanedFishingGear> GetOrphanedFishingGears()
         {
             //var items = GearUnloadCollection
             //    .Where(t => t.GearID!=null && t.GearID.Length == 0 && t.GearUsedText!=null && t.GearUsedText.Length>0)
             //    .OrderBy(t => t.GearUsedText)
             //    .GroupBy(t => t.GearUsedText).ToList();
+            ProceessBuildOrphanedEntitiesEvent(status: BuildOrphanedEntityStatus.StatusBuildStart, isIndeterminate: true);
 
             var items = SummaryItemCollection
                 .Where(t => (t.GearCode == null || t.GearCode.Length == 0) && t.GearText != null && t.GearText.Length > 0)
                 .OrderBy(t => t.GearText)
                 .GroupBy(t => t.GearText).ToList();
 
+            ProceessBuildOrphanedEntitiesEvent(status: BuildOrphanedEntityStatus.StatusBuildFirstRecordFound, totalRows: items.Count());
+            int counter = 0;
             var list = new List<OrphanedFishingGear>();
             foreach (var item in items)
             {
@@ -75,8 +87,11 @@ namespace NSAP_ODK.Entities.Database
                     GearUnloads = GetGearUnloads(item.Key)
                 };
                 list.Add(orphan);
+                counter++;
+                ProceessBuildOrphanedEntitiesEvent(status: BuildOrphanedEntityStatus.StatusBuildFetchedRow, currentRow: counter);
             }
 
+            ProceessBuildOrphanedEntitiesEvent(status: BuildOrphanedEntityStatus.StatusBuildEnd, totalRowsFetched: counter);
             return list;
 
         }
@@ -96,13 +111,26 @@ namespace NSAP_ODK.Entities.Database
             }
             return counter > 0;
         }
+
+        public Task<List<OrphanedLandingSite>> GetOrphanedLandingSitesAsync()
+        {
+            return Task.Run(() => GetOrphanedLandingSites());
+        }
         public List<OrphanedLandingSite> GetOrphanedLandingSites()
         {
+            ProceessBuildOrphanedEntitiesEvent(status: BuildOrphanedEntityStatus.StatusBuildStart, isIndeterminate: true);
             List<OrphanedLandingSite> thisList = new List<OrphanedLandingSite>();
+            int counter = 0;
 
-            foreach (var item in SummaryItemCollection.Where(t => t.LandingSiteID == null)
+
+            var orphanedLandingSites = SummaryItemCollection.Where(t => t.LandingSiteID == null)
                 .OrderBy(t => t.LandingSiteText)
-                .GroupBy(t => t.LandingSiteText))
+                .GroupBy(t => t.LandingSiteText);
+
+            ProceessBuildOrphanedEntitiesEvent(status: BuildOrphanedEntityStatus.StatusBuildFirstRecordFound, totalRows: orphanedLandingSites.Count());
+
+
+            foreach (var item in orphanedLandingSites)
             {
                 var orphan = new OrphanedLandingSite
                 {
@@ -110,7 +138,11 @@ namespace NSAP_ODK.Entities.Database
                     LandingSiteSamplings = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection.Where(t => t.LandingSiteName == item.Key).ToList()
                 };
                 thisList.Add(orphan);
+                counter++;
+                ProceessBuildOrphanedEntitiesEvent(status: BuildOrphanedEntityStatus.StatusBuildFetchedRow, currentRow: counter);
             }
+
+            ProceessBuildOrphanedEntitiesEvent(status: BuildOrphanedEntityStatus.StatusBuildEnd, totalRowsFetched: counter);
             return thisList;
         }
         public int GetLandingSiteSamplingMaxRecordNumber()
@@ -208,14 +240,48 @@ namespace NSAP_ODK.Entities.Database
             }
             return lastVU;
         }
+        public int CountByFormID(string xFormID)
+        {
+            return SummaryItemCollection.Count(t => t.XFormIdentifier == xFormID);
+        }
 
-        public bool UpdateRecordInRepo(VesselUnload vu)
+        public bool UpdateRecordInRepo(string rowID, string xFormID)
         {
             bool success = false;
-            var item = SummaryItemCollection.FirstOrDefault(t => t.VesselUnloadID == vu.PK);
-            if (SummaryItemCollection.Remove(item))
+            try
             {
-                success = AddRecordToRepo(vu);
+                SummaryItemCollection.FirstOrDefault(t => t.ODKRowID == rowID).XFormIdentifier = xFormID;
+                success = true;
+            }
+            catch
+            {
+                //ignore
+            }
+            return success;
+        }
+        public bool UpdateRecordInRepo(VesselUnload vu, bool updateXFormID = false)
+        {
+            bool success = false;
+            SummaryItem item = null;
+            if (updateXFormID)
+            {
+                try
+                {
+                    SummaryItemCollection.FirstOrDefault(t => t.ODKRowID == vu.ODKRowID).XFormIdentifier = vu.XFormIdentifier;
+                    success = true;
+                }
+                catch
+                {
+                    //ignore
+                }
+            }
+            else
+            {
+                item = SummaryItemCollection.FirstOrDefault(t => t.VesselUnloadID == vu.PK);
+                if (SummaryItemCollection.Remove(item))
+                {
+                    success = AddRecordToRepo(vu);
+                }
             }
             return success;
         }
@@ -245,8 +311,42 @@ namespace NSAP_ODK.Entities.Database
 
             return this_list;
         }
+
+        public List<OrphanedEnumerator> OrphanedEnumerators
+        {
+            get { return _orphanedEnumerators; }
+        }
+
+        public List<OrphanedLandingSite> OrphanedLandingSites
+        {
+            get { return _orphanedLandingSites; }
+        }
+        public List<OrphanedFishingGear> OrphanedFishingGears
+        {
+            get { return _orphanedFishingGears; }
+        }
+        public async Task SetOrphanedEntityAsync(NSAPEntity orphanedEntity)
+        {
+            switch (orphanedEntity)
+            {
+                case NSAPEntity.Enumerator:
+                    _orphanedEnumerators = await GetOrphanedEnumeratorsAsync();
+                    break;
+                case NSAPEntity.LandingSite:
+                    _orphanedLandingSites = await GetOrphanedLandingSitesAsync();
+                    break;
+                case NSAPEntity.FishingGear:
+                    _orphanedFishingGears = await GetOrphanedFishingGearsAsync();
+                    break;
+            }
+        }
+        public Task<List<OrphanedEnumerator>> GetOrphanedEnumeratorsAsync()
+        {
+            return Task.Run(() => GetOrphanedEnumerators());
+        }
         public List<OrphanedEnumerator> GetOrphanedEnumerators()
         {
+            ProceessBuildOrphanedEntitiesEvent(status: BuildOrphanedEntityStatus.StatusBuildStart, isIndeterminate: true);
             List<OrphanedEnumerator> a_list = new List<OrphanedEnumerator>();
             var vesselUnloadsWithOrphanedEnumerators = SummaryItemCollection
                .Where(t => t.EnumeratorID == null && t.EnumeratorText.Length > 0)
@@ -257,7 +357,8 @@ namespace NSAP_ODK.Entities.Database
                    EnumeratorName = enumerator.Key.EnumeratorName
                }).ToList();
 
-
+            int counter = 0;
+            ProceessBuildOrphanedEntitiesEvent(status: BuildOrphanedEntityStatus.StatusBuildFirstRecordFound, totalRows: vesselUnloadsWithOrphanedEnumerators.Count);
             foreach (var item in vesselUnloadsWithOrphanedEnumerators)
             {
                 var orphan = new OrphanedEnumerator
@@ -266,8 +367,11 @@ namespace NSAP_ODK.Entities.Database
                     SampledLandings = GetSampledVesselUnloads(item.EnumeratorName, item.LandingSiteName)
                 };
                 a_list.Add(orphan);
+                counter++;
+                ProceessBuildOrphanedEntitiesEvent(status: BuildOrphanedEntityStatus.StatusBuildFetchedRow, currentRow: counter);
             }
 
+            ProceessBuildOrphanedEntitiesEvent(status: BuildOrphanedEntityStatus.StatusBuildEnd, totalRowsFetched: counter);
             return a_list.OrderBy(t => t.Name.Trim()).ToList();
         }
 
@@ -1224,7 +1328,31 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
         }
+        private void ProceessBuildOrphanedEntitiesEvent(BuildOrphanedEntityStatus status, int? totalRows = null, int? currentRow = null, int? totalRowsFetched = null, bool isIndeterminate = false)
+        {
+            switch (status)
+            {
+                case BuildOrphanedEntityStatus.StatusBuildStart:
+                    if (!isIndeterminate)
+                    {
 
+                    }
+                    else
+                    {
+                        BuildingOrphanedEntity?.Invoke(null, new BuildOrphanedEntityEventArg { BuildOrphanedEntityStatus = BuildOrphanedEntityStatus.StatusBuildStart, IsIndeterminate = isIndeterminate });
+                    }
+                    break;
+                case BuildOrphanedEntityStatus.StatusBuildFirstRecordFound:
+                    BuildingOrphanedEntity?.Invoke(null, new BuildOrphanedEntityEventArg { BuildOrphanedEntityStatus = BuildOrphanedEntityStatus.StatusBuildFirstRecordFound, TotalCount = (int)totalRows });
+                    break;
+                case BuildOrphanedEntityStatus.StatusBuildFetchedRow:
+                    BuildingOrphanedEntity?.Invoke(null, new BuildOrphanedEntityEventArg { BuildOrphanedEntityStatus = BuildOrphanedEntityStatus.StatusBuildFetchedRow, CurrentCount = (int)currentRow });
+                    break;
+                case BuildOrphanedEntityStatus.StatusBuildEnd:
+                    BuildingOrphanedEntity?.Invoke(null, new BuildOrphanedEntityEventArg { BuildOrphanedEntityStatus = BuildOrphanedEntityStatus.StatusBuildEnd, TotalCountFetched = (int)totalRowsFetched });
+                    break;
+            }
+        }
         private void ProcessBuildEvent(BuildSummaryReportStatus status, int? totalRows = null, int? currentRow = null, int? totalRowsFetched = null, bool isIndeterminate = false)
         {
             switch (status)
@@ -1443,6 +1571,8 @@ namespace NSAP_ODK.Entities.Database
             }
             return _editSuccess;
         }
+
+
         public bool UpdateRecordInRepo(SummaryItem item)
         {
             if (item.ID == 0)

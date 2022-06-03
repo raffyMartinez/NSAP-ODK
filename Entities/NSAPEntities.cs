@@ -81,6 +81,7 @@ namespace NSAP_ODK.Entities
         public static JSONFileViewModel JSONFileViewModel;
         public static ODKEformVersionViewModel ODKEformVersionViewModel;
         public static SummaryItemViewModel SummaryItemViewModel;
+        public static KoboServerViewModel KoboServerViewModel;
 
 
         static NSAPEntities()

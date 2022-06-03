@@ -285,6 +285,7 @@
                 <TreeViewItem Header="e-Form versions" x:Name="summaryTreeForrmVersions">
                     <TreeViewItem Header="Enumerators and form versions" x:Name="summaryTreeNodeEnumeratorForms"/>
                 </TreeViewItem>
+                <TreeViewItem Header="Databases" x:Name="summaryTreeNodeDatabases"/>
             </TreeView>
 
             <StackPanel Grid.Column="1" x:Name="panelSummaryLabel" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center">
