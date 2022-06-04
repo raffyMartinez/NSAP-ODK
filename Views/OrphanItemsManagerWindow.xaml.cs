@@ -601,6 +601,7 @@ namespace NSAP_ODK.Views
                     buttonReplace.IsEnabled = false;
                     //DoTheReplacement();
                     //dataGrid.Items.Refresh();
+                    await NSAPEntities.SummaryItemViewModel.SetOrphanedEntityAsync(NSAPEntity);
                     RefreshItemsSource();
 
 

@@ -1318,6 +1318,40 @@ namespace NSAP_ODK.NSAPMysql
                         Logger.Log(ex);
                     }
                     #endregion
+                    #region koboservers
+                    cmd.CommandText = @"CREATE TABLE IF NOT EXISTS  `kobo_servers` (
+                                                `server_numeric_id` INT NOT NULL,
+                                                `form_name` VARCHAR(150) NOT NULL,
+                                                `server_id` VARCHAR(150) NOT NULL,
+                                                `owner` VARCHAR(150) NOT NULL,
+                                                `form_version` VARCHAR(150) NOT NULL,
+                                                `e_form_version` VARCHAR(150) NULL,
+                                                `date_created` DATETIME NOT NULL,
+                                                `date_modified` DATETIME NOT NULL,
+                                                `date_last_submission` DATETIME NOT NULL,
+                                                `submission_count` INT NOT NULL,
+                                                `user_count` INT NOT NULL,
+                                                `date_last_accessed` DATETIME NOT NULL,
+                                                `saved_in_db_count` INT NOT NULL,
+                                                `last_uploaded_json` VARCHAR(150) NULL,
+                                                `last_created_json` VARCHAR(150) NULL,
+                                                PRIMARY KEY(`server_numeric_id`) )
+                                                ENGINE=InnoDB";
+
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        tableCount++;
+                    }
+                    catch (MySqlException msex)
+                    {
+
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                    #endregion
                 }
             }
 

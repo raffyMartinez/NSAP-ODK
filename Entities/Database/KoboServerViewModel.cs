@@ -65,9 +65,11 @@ namespace NSAP_ODK.Entities.Database
                         DateLastAccessed = DateTime.Now,
                         UserCount = kf.users.Count,
                         SavedInDBCount = NSAPEntities.SummaryItemViewModel.CountByFormID(kf.id_string),
-                        LastUploadedJSON = KoboserverCollection.FirstOrDefault(t => t.ServerNumericID == kf.formid).LastUploadedJSON,
-                        LastCreatedJSON = KoboserverCollection.FirstOrDefault(t => t.ServerNumericID == kf.formid).LastCreatedJSON,
+                        LastUploadedJSON = KoboserverCollection.FirstOrDefault(t => t.ServerNumericID == kf.formid)?.LastUploadedJSON,
+                        LastCreatedJSON = KoboserverCollection.FirstOrDefault(t => t.ServerNumericID == kf.formid)?.LastCreatedJSON
+
                     };
+
 
                     if (GetKoboServer(ks.ServerNumericID) == null)
                     {
@@ -77,13 +79,14 @@ namespace NSAP_ODK.Entities.Database
                     {
                         UpdateRecordInRepo(ks);
                     }
+
                 }
             }
         }
 
         public string GetLastUploadedJSON()
         {
-            var fl_server = KoboserverCollection.FirstOrDefault(t => t.LastUploadedJSON.Length > 0);
+            var fl_server = KoboserverCollection.FirstOrDefault(t => t.LastUploadedJSON?.Length > 0);
             if (fl_server != null)
             {
                 return fl_server.LastUploadedJSON;

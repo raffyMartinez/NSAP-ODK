@@ -55,6 +55,7 @@ namespace NSAP_ODK.Entities.Database
             {
                 //VesselUnloadSummary vs = VesselUnloadViewModel.GetSummary();
                 VesselUnloadSummary vs = NSAPEntities.SummaryItemViewModel.GetVesselUnloadSummary();
+                CountMissingFormIDs = NSAPEntities.SummaryItemViewModel.CountMissingFormIDs();
                 //FirstSampledLandingDate = NSAPEntities.VesselUnloadViewModel.DateOfFirstSampledLanding;
                 FirstSampledLandingDate = vs.FirstSamplingDate;
                 //LastSampledLandingDate = NSAPEntities.VesselUnloadViewModel.DateOfLastSampledLanding;
@@ -80,6 +81,7 @@ namespace NSAP_ODK.Entities.Database
         public bool IsTotal { get; set; }
         public FMA FMA { get; set; }
 
+        public int CountMissingFormIDs { get; set; }
         public NSAPRegion NSAPRegion
         {
             get

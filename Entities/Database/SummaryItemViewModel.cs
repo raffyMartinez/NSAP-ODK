@@ -1097,6 +1097,11 @@ namespace NSAP_ODK.Entities.Database
 
             return unloads;
         }
+
+        public int CountMissingFormIDs()
+        {
+            return SummaryItemCollection.Count(t => t.XFormIdentifier.Length == 0);
+        }
         public VesselUnloadSummary GetVesselUnloadSummary()
         {
             VesselUnloadSummary vs = new VesselUnloadSummary();

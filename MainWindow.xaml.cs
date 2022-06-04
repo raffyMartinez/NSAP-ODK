@@ -174,6 +174,7 @@ namespace NSAP_ODK
                     propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Date of last sampled landing", Name = "LastSampledLandingDate", Description = "Date of last sampled operation", DisplayOrder = 18, Category = "Submitted fish landing data" });
                     propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Date of latest download", Name = "DateLastDownload", Description = "Date of latest download", DisplayOrder = 19, Category = "Submitted fish landing data" });
                     propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of landings including catch composition", Name = "CountLandingsWithCatchComposition", Description = "Number of sampled landings with included catch composition data", DisplayOrder = 20, Category = "Submitted fish landing data" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of missing Form IDs", Name = "CountMissingFormIDs", Description = "Number of saved forms with missing identifier", DisplayOrder = 21, Category = "Submitted fish landing data" });
 
 
                     propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Saved JSON files folder", Name = "SavedJSONFolder", Description = "Folder containing saved JSON data. Double click to open folder", DisplayOrder = 1, Category = "Saved JSON files" });
@@ -299,8 +300,20 @@ namespace NSAP_ODK
                     dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "Last uploaded JSON file", Binding = new Binding("LastUploadedJSON") });
                     dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "Last created JSON file", Binding = new Binding("LastCreatedJSON") });
 
-                    NSAPEntities.KoboServerViewModel.RefreshSavedCount();
-                    dataGridEFormVersionStats.DataContext = NSAPEntities.KoboServerViewModel.KoboserverCollection.ToList();
+                    if (NSAPEntities.KoboServerViewModel.Count() > 0)
+                    {
+                        NSAPEntities.KoboServerViewModel.RefreshSavedCount();
+                        dataGridEFormVersionStats.DataContext = NSAPEntities.KoboServerViewModel.KoboserverCollection.ToList();
+                    }
+                    else
+                    {
+                        dataGridEFormVersionStats.DataContext = null;
+                        MessageBox.Show("Please connect online to the Kobotoolbox server to get a list of databases",
+                            "NSAP-ODK Database",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information
+                            );
+                    }
                     break;
             }
 
