@@ -331,7 +331,6 @@ namespace NSAP_ODK
 
         }
 
-
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
             Global.RequestLogIn += OnMysQLRequestLogin;

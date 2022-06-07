@@ -113,7 +113,7 @@
                 <Separator/>
                 <MenuItem Header="Backup MySQL Database" x:Name="menuBackupMySQL" Click="OnMenuClicked" Visibility="Collapsed"/>
                 <MenuItem Header="Setup MysQL tables" x:Name="menuSetupMySQLTables" Click="OnMenuClicked" Visibility="Collapsed"/>
-                <MenuItem Header="Update unload statistics" x:Name="menuUpdateUnloadStats" Click="OnMenuClicked" />
+                <!--<MenuItem Header="Update unload statistics" x:Name="menuUpdateUnloadStats" Click="OnMenuClicked" />-->
                 <MenuItem Header="Enumerators first sampling" x:Name="menuEnumeratorFirstSampling" Click="OnMenuClicked" />
             </MenuItem>
 

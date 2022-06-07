@@ -135,26 +135,70 @@ namespace NSAP_ODK.NSAPMysql
             return success && LastError.Length == 0;
         }
 
-        public static bool DeleteDataFromTables()
+        private static bool DeleteTableDataUsingScript()
         {
-            int counter = 0;
-            if (DeleteTableData("dbo_catch_len_freq")) counter++;
-            if (DeleteTableData("dbo_catch_len_wt")) counter++;
-            if (DeleteTableData("dbo_catch_length")) counter++;
-            if (DeleteTableData("dbo_catch_maturity")) counter++;
-            if (DeleteTableData("dbo_vessel_catch")) counter++;
-            if (DeleteTableData("dbo_fg_grid")) counter++;
-            if (DeleteTableData("dbo_gear_soak")) counter++;
-            if (DeleteTableData("dbo_vessel_effort")) counter++;
+            bool success = false;
+            using (var con = new MySqlConnection(MySQLConnect.ConnectionString()))
+            {
+                var sc = new MySqlScript();
+                sc.Query = @"SET FOREIGN_KEY_CHECKS=0;  -- turn off foreign key checks
+                            TRUNCATE TABLE nsap_odk.dbo_catch_len_freq;  
+                            TRUNCATE TABLE nsap_odk.dbo_catch_len_wt;
+                            TRUNCATE TABLE nsap_odk.dbo_catch_length;
+                            TRUNCATE TABLE nsap_odk.dbo_catch_maturity;
+                            TRUNCATE TABLE nsap_odk.dbo_vessel_unload_stats;
+                            TRUNCATE TABLE nsap_odk.dbo_vessel_catch;
+                            TRUNCATE TABLE nsap_odk.dbo_fg_grid;
+                            TRUNCATE TABLE nsap_odk.dbo_gear_soak;
+                            TRUNCATE TABLE nsap_odk.dbo_vessel_effort;
+                            TRUNCATE TABLE nsap_odk.dbo_vessel_unload_1;
+                            TRUNCATE TABLE nsap_odk.dbo_vessel_unload;
+                            TRUNCATE TABLE nsap_odk.dbo_gear_unload;
+                            TRUNCATE TABLE nsap_odk.dbo_lc_fg_sample_day_1;
+                            TRUNCATE TABLE nsap_odk.dbo_lc_fg_sample_day;
+                            SET FOREIGN_KEY_CHECKS=1;  -- turn on foreign key checks";
 
-            if (DeleteTableData("dbo_vessel_unload_stats")) counter++;
-            if (DeleteTableData("dbo_vessel_unload_1")) counter++;
-            if (DeleteTableData("dbo_vessel_unload")) counter++;
-            if (DeleteTableData("dbo_gear_unload")) counter++;
-            if (DeleteTableData("dbo_lc_fg_sample_day_1")) counter++;
-            if (DeleteTableData("dbo_lc_fg_sample_day")) counter++;
+                try
+                {
+                    con.Open();
+                    sc.Connection = con;
+                    int count = sc.Execute();
+                    success = count>0;
+                }
+                catch(Exception ex)
+                {
+                    Logger.Log(ex);
+                }
+            }
+                return success;
+        }
+        public static bool DeleteDataFromTables(bool useScript=false)
+        {
+            if (useScript)
+            {
+                return DeleteTableDataUsingScript();
+            }
+            else
+            {
+                int counter = 0;
+                if (DeleteTableData("dbo_catch_len_freq")) counter++;
+                if (DeleteTableData("dbo_catch_len_wt")) counter++;
+                if (DeleteTableData("dbo_catch_length")) counter++;
+                if (DeleteTableData("dbo_catch_maturity")) counter++;
+                if (DeleteTableData("dbo_vessel_catch")) counter++;
+                if (DeleteTableData("dbo_fg_grid")) counter++;
+                if (DeleteTableData("dbo_gear_soak")) counter++;
+                if (DeleteTableData("dbo_vessel_effort")) counter++;
 
-            return counter == 14;
+                if (DeleteTableData("dbo_vessel_unload_stats")) counter++;
+                if (DeleteTableData("dbo_vessel_unload_1")) counter++;
+                if (DeleteTableData("dbo_vessel_unload")) counter++;
+                if (DeleteTableData("dbo_gear_unload")) counter++;
+                if (DeleteTableData("dbo_lc_fg_sample_day_1")) counter++;
+                if (DeleteTableData("dbo_lc_fg_sample_day")) counter++;
+
+                return counter == 14;
+            }
         }
 
         private static bool DeleteTableData(string tableName)

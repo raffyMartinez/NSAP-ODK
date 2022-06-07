@@ -30,6 +30,7 @@ namespace NSAP_ODK.Views
     {
         private static backupMySQLWindow _instance;
         private bool _backupDBOTablesOnly = false;
+        private string _currentTabName;
         public backupMySQLWindow()
         {
             InitializeComponent();
@@ -45,7 +46,11 @@ namespace NSAP_ODK.Views
                 chkDBOTablesOOnly.Visibility = Visibility.Visible;
             }
             progressLabel.Content = "";
-            labelFolderPath.Content = Utilities.Global.Settings.MySQLBackupFolder;
+            tbRestoreFile.Text = "";
+            tbBackupFile.Text= Global.Settings.MySQLBackupFolder;
+            uint? mps = TablesStats.GetMaxAllowedPacketSize();
+            txtMaxAllowedPacket.Text = mps != null ? ((uint)mps).ToString() : "";
+            
         }
 
         private void BackupMySQLWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -61,7 +66,7 @@ namespace NSAP_ODK.Views
             return _instance;
 
         }
-        string[] _tablesToInclude = new string[13];
+        string[] _tablesToInclude = new string[14];
         private void AddToTables(int index, string tableName)
         {
             _tablesToInclude[index] = tableName;
@@ -74,7 +79,7 @@ namespace NSAP_ODK.Views
                 _backupDBOTablesOnly = value;
                 if (_backupDBOTablesOnly)
                 {
-                    
+
                     TablesToInclude = new List<string>();
                     TablesStats.GetStats();
                     int index = 0;
@@ -82,7 +87,7 @@ namespace NSAP_ODK.Views
                     {
                         if (item.TableName.Substring(0, 3).ToLower() == "dbo")
                         {
-                            switch(item.TableName)
+                            switch (item.TableName)
                             {
                                 case "dbo_lc_fg_sample_day":
                                     index = 0;
@@ -129,11 +134,11 @@ namespace NSAP_ODK.Views
 
                             }
                             AddToTables(index, item.TableName);
-                            
+
                         }
-                        
+
                     }
-                    foreach(var item1 in _tablesToInclude)
+                    foreach (var item1 in _tablesToInclude)
                     {
                         TablesToInclude.Add(item1);
                     }
@@ -163,9 +168,10 @@ namespace NSAP_ODK.Views
                             conn.Open();
                             mb.ExportInfo.ExportEvents = true;
                             mb.ExportProgressChanged += Mb_ExportProgressChanged;
-                            if (TablesToInclude.Count > 0)
+                            if (TablesToInclude?.Count > 0)
                             {
                                 mb.ExportInfo.TablesToBeExportedList = TablesToInclude;
+                                backupFileName = backupFileName.Replace(".sql", " dbo tables.sql");
                             }
                             mb.ExportToFile(backupFileName);
                             if (File.Exists(backupFileName))
@@ -196,6 +202,7 @@ namespace NSAP_ODK.Views
             (
               DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
               {
+                  progressBar.IsIndeterminate = false;
                   progressBar.Maximum = e.TotalRowsInCurrentTable;
                   progressBar.Value = e.CurrentRowIndexInCurrentTable;
                   //do what you need to do on UI Thread
@@ -216,8 +223,14 @@ namespace NSAP_ODK.Views
         }
 
         private string _sqlFile;
-        private void RestoreSQL()
+
+        private Task<bool> RestoreSQLAsync()
         {
+            return Task.Run(() => RestoreSQL());
+        }
+        private bool RestoreSQL()
+        {
+            bool success = false;
             string constring = MySQLConnect.ConnectionString();
             using (MySqlConnection conn = new MySqlConnection(constring))
             {
@@ -232,6 +245,7 @@ namespace NSAP_ODK.Views
                         try
                         {
                             mb.ImportFromFile(_sqlFile);
+                            success = true;
                         }
                         catch (IOException iox)
                         {
@@ -247,6 +261,7 @@ namespace NSAP_ODK.Views
                     }
                 }
             }
+            return success;
         }
 
 
@@ -280,7 +295,7 @@ namespace NSAP_ODK.Views
              DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
              {
 
-                 progressLabel.Content = $"Restoring file {_sqlFile}";
+                 progressLabel.Content = $"Restoring from backupfile";
 
                  //do what you need to do on UI Thread
                  return null;
@@ -290,7 +305,8 @@ namespace NSAP_ODK.Views
 
         private async void Button_Click(object sender, RoutedEventArgs e)
         {
-
+            string msg = "";
+            bool success = false;
             switch (((Button)sender).Name)
             {
                 case "buttonRestore":
@@ -302,23 +318,87 @@ namespace NSAP_ODK.Views
                     if (ofd.ShowDialog() == swf.DialogResult.OK && File.Exists((ofd.FileName)))
                     {
                         _sqlFile = ofd.FileName;
-                        RestoreSQL();
+                        tbRestoreFile.Text = _sqlFile;
+
                     }
                     break;
                 case "buttonOk":
-                    BackupDBOTablesOnly = (bool)chkDBOTablesOOnly.IsChecked;
-                    if (await BackupAsync())
+
+
+                    switch (_currentTabName)
                     {
-                        MessageBox.Show("Backup succeeded!",
-                                         "NSAP-ODK Database",
-                                         MessageBoxButton.OK,
-                                         MessageBoxImage.Information
-                                        );
-                        Close();
+                        case "Backup":
+
+
+                            BackupDBOTablesOnly = (bool)chkDBOTablesOOnly.IsChecked;
+                            if (await BackupAsync())
+                            {
+                                msg = "Backup succeeded!";
+                                success = true;
+                            }
+                            break;
+                        case "Restore":
+                            if (_sqlFile != null && _sqlFile.Length > 0 && await RestoreSQLAsync())
+                            {
+                                msg = "Restore from SQL backupfile succeeded!\r\n\r\nPlease restart application";
+                                success = true;
+                            }
+                            else if (_sqlFile == null || _sqlFile.Length == 0)
+                            {
+                                msg = "SQL backup file was not provided";
+                            }
+                            break;
                     }
+
                     break;
                 case "buttonCancel":
                     Close();
+                    break;
+                case "buttonApply":
+                    if (uint.TryParse(txtMaxAllowedPacket.Text, out uint v))
+                    {
+                        if (TablesStats.ApplySQLChanges(v))
+                        {
+                            success = true;
+                            msg = "Changing packet size did succeeded!";
+                        }
+                        else
+                        {
+                            msg = "Changing packet size did not succeed";
+                        }
+                    }
+                    else
+                    {
+                        msg = "Only numeric values are accepted";
+                    }
+
+                    break;
+            }
+            if (msg.Length > 0)
+            {
+                MessageBox.Show(msg, "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+
+            if (success)
+            {
+                Close();
+            }
+        }
+
+        private void OntabChanged(object sender, SelectionChangedEventArgs e)
+        {
+            buttonOk.IsEnabled = true;
+            _currentTabName = ((TabItem)e.AddedItems[0]).Header.ToString();
+            switch (_currentTabName)
+            {
+                case "Backup":
+                    buttonOk.Content = "Backup";
+                    break;
+                case "Restore":
+                    buttonOk.Content = "Restore";
+                    break;
+                case "Options":
+                    buttonOk.Visibility = Visibility.Collapsed;
                     break;
             }
         }

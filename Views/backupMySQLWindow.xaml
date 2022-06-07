@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NSAP_ODK.Views"
         mc:Ignorable="d"
-        Title="Backup NSAP-ODK MySQL Database" Height="205" Width="453.887" ResizeMode="NoResize">
+        Title="Backup NSAP-ODK MySQL Database" Height="243" Width="453.887" ResizeMode="NoResize">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition/>
@@ -15,19 +15,34 @@
             <ColumnDefinition Width="3*"/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
-        <TabControl>
+        <TabControl SelectionChanged="OntabChanged">
             <TabItem Header="Backup">
                 <StackPanel VerticalAlignment="Center">
                     <Label Content="Backup folder:"  FontWeight="Bold"/>
-                    <Label Content="path" x:Name="labelFolderPath"/>
+                    <TextBlock x:Name="tbBackupFile" Text="backup sql file" Height="40" TextWrapping="Wrap"/>
+                    <!--<Label Content="path" x:Name="labelFolderPath" Height="50"/>-->
                     <CheckBox Content="Backup dbo tables only" Margin="0 10 0 0" x:Name="chkDBOTablesOOnly"/>
                 </StackPanel>
             </TabItem>
             <TabItem Header="Restore" Height="20" VerticalAlignment="Top">
                 <StackPanel>
-                    <Button Content="Select file to restore" Margin="0 40 0 0" Width="120" Height="25" Click="Button_Click" x:Name="buttonRestore"/>
+                    <WrapPanel Margin="10" Orientation="Vertical">
+                        <Label  Content="Sql backup file:" FontWeight="Bold"/>
+                        <TextBlock Text="filename.sql" Height="40" x:Name="tbRestoreFile" TextWrapping="Wrap"/>
+                        <!--<Label Content="filename.sql" x:Name="labelSQLFileName" Height="40"/>-->
+                    </WrapPanel>
+                    <Button Content="Select file to restore" Margin="0 10 0 0" Width="120" Height="25" Click="Button_Click" x:Name="buttonRestore"/>
                 </StackPanel>
             </TabItem>
+            <TabItem Header="Options" Height="20" VerticalAlignment="Top">
+                <StackPanel Margin="5">
+                    <WrapPanel >
+                        <Label Content="Max allowed packet size"/>
+                        <TextBox Width="100" x:Name="txtMaxAllowedPacket"/>
+                    </WrapPanel>
+                    <Button Content="Apply" Height="25" Width="75" HorizontalAlignment="Center" Margin="5 30" x:Name="buttonApply" Click="Button_Click"/>
+                </StackPanel>
+            </TabItem>            
         </TabControl>
 
 
