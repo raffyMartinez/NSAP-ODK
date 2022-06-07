@@ -48,6 +48,11 @@ namespace NSAP_ODK.Views
         private TreeViewItem _firstJSONFileNode;
         private int? _jsonFileForUploadCount = null;
         private string _historyJSONFileForUploading = "";
+        private List<UnrecognizedFishingGround> _unrecognizedFishingGrounds = new List<UnrecognizedFishingGround>();
+        private bool _unrecognizedFGAlredyViewed = false;
+        private DateTime? _unrecognizedFGDateCreated;
+        private int _ufg_count = 0;
+        private List<VesselLanding> _resolvedFishingGroundLandings = new List<VesselLanding>();
         public string JSON { get; set; }
         public string FormID { get; set; }
 
@@ -153,6 +158,7 @@ namespace NSAP_ODK.Views
             labelProgress.Content = "";
             ImportExcel.UploadSubmissionToDB += OnUploadSubmissionToDB;
             VesselUnloadServerRepository.UploadSubmissionToDB += OnUploadSubmissionToDB;
+            VesselUnloadServerRepository.ClearUnrecgnizedFishingGroundsList();
             labelDuplicated.Content = string.Empty;
             if (Debugger.IsAttached)
             {
@@ -363,6 +369,7 @@ namespace NSAP_ODK.Views
             }
 
         }
+        public bool StartAtBeginningOfJSONDownloadList { get; set; }
         public UpdateJSONHistoryMode UpdateJSONHistoryMode { get; set; }
         private HashSet<string> _rootChildrenHeadersHashSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private void AddMetadataToTreeView(DownloadedJsonMetadata djmd, TreeViewItem root)
@@ -454,7 +461,6 @@ namespace NSAP_ODK.Views
             NSAPEntities.KoboServerViewModel.ResetJSONFields();
             jm.Koboserver.LastUploadedJSON = jm.JSONFile.Name;
             NSAPEntities.KoboServerViewModel.ServerWithUploadedJSON = jm.Koboserver;
-            //NSAPEntities.KoboServerViewModel.UpdateRecordInRepo(jm.Koboserver);
         }
         private async Task ProcessJSONHistoryNodes(TreeViewItem root)
         {
@@ -465,7 +471,7 @@ namespace NSAP_ODK.Views
                 if (!VesselUnloadServerRepository.CancelUpload)
                 {
                     var jm = (FileInfoJSONMetadata)jsonNode.Tag;
-                    if (string.IsNullOrEmpty(lastUploadedJSON))
+                    if (string.IsNullOrEmpty(lastUploadedJSON) || UpdateJSONHistoryMode == UpdateJSONHistoryMode.UpdateAll || StartAtBeginningOfJSONDownloadList)
                     {
                         await ProcessHistoryJsonNode(jsonNode);
                     }
@@ -484,6 +490,11 @@ namespace NSAP_ODK.Views
                     break;
                 }
             }
+        }
+
+        private async Task<bool> ProcessResolvedLandings(List<VesselLanding> resolvedLandings)
+        {
+            return await VesselUnloadServerRepository.UploadToDBResolvedLandingsAsync(resolvedLandings);
         }
         private async Task ProcessJSONSNodes(bool updateXFormID = false)
         {
@@ -539,6 +550,13 @@ namespace NSAP_ODK.Views
             string jsonFolder = "";
             switch (((MenuItem)sender).Name)
             {
+                case "menuUnrecognizedFG":
+                    if (_unrecognizedFishingGrounds.Count > 0)
+                    {
+                        ViewUnrecognizedFishingGrounds();
+                        _unrecognizedFGAlredyViewed = true;
+                    }
+                    break;
                 case "menuUploadAllJsonHistoryFiles":
                     UploadJSONHistoryOptionsWindow ujhw = new UploadJSONHistoryOptionsWindow();
                     ujhw.Owner = this;
@@ -842,6 +860,27 @@ namespace NSAP_ODK.Views
             }
         }
 
+        public async Task<bool> SetResolvedFishingGroundLandings(List<VesselLanding> resolvedLandings)
+        {
+            VesselUnloadServerRepository.UploadSubmissionToDB -= OnUploadSubmissionToDB;
+            _resolvedFishingGroundLandings = resolvedLandings;
+            return await ProcessResolvedLandings(_resolvedFishingGroundLandings);
+
+        }
+        private void ViewUnrecognizedFishingGrounds()
+        {
+            UnrecognizedFGsWindows urgw = new UnrecognizedFGsWindows();
+            urgw.Owner = this;
+
+            urgw.UnrecognizedFishingGrounds = new CollectedUnrecognizedFG
+            {
+                DateCreated = (DateTime)_unrecognizedFGDateCreated,
+                UnrecognizedFishingGrounds = _unrecognizedFishingGrounds
+            };
+
+            urgw.ShowDialog();
+
+        }
         private bool ClearTables(bool verboseMode = true)
         {
             bool proceed = false;
@@ -886,6 +925,8 @@ namespace NSAP_ODK.Views
         }
         private async Task Upload()
         {
+            string msg = "";
+            _ufg_count = 0;
             _uploadToDBSuccess = false;
             bool success = false;
             labelProgress.Content = "";
@@ -906,61 +947,44 @@ namespace NSAP_ODK.Views
                             int savedCount = VesselUnloadServerRepository.VesselLandings.Count(t => t.SavedInLocalDatabase == true);
                             success = true;
                             _uploadToDBSuccess = true;
+
                             if (JSON != null && (_jsonfiles == null || _jsonfiles.Count == 0) && await SaveJSONTextTask(verbose: false))
                             {
+                                msg = "Finished uploading to database\r\n" +
+                                       $"from source having {sourceCount} records with {savedCount} saved\r\n" +
+                                       $"and saving JSON file to {Global.Settings.JSONFolder}";
 
-                                TimedMessageBox.Show("Finished uploading to database\r\n" +
-                                                    $"from source having {sourceCount} records with {savedCount} saved\r\n" +
-                                                     $"and saving JSON file to {Global.Settings.JSONFolder}",
-                                                     "NSAP-ODK Database",
-                                                     5000,
-                                                     System.Windows.Forms.MessageBoxButtons.OK);
 
-                                //MessageBox.Show("Finished uploading to database\r\n" +
-                                //    $"from source having {sourceCount} records with {savedCount} saved\r\n" +
-                                //    $"and saving JSON file to {Global.Settings.JSONFolder}",
-                                //    "NSAP-ODK Database",
-                                //    MessageBoxButton.OK,
-                                //    MessageBoxImage.Information);
                             }
                             else
                             {
-                                TimedMessageBox.Show(
-                                    "Finished uploading JSON file to database\r\n" +
-                                    $"from source having {sourceCount} records with {savedCount} saved\r\n",
-                                    "NSAP-ODK Database",
-                                    5000,
-                                    System.Windows.Forms.MessageBoxButtons.OK);
-
-
-                                //MessageBox.Show(
-                                //    "Finished uploading JSON file to database\r\n" +
-                                //    $"from source having {sourceCount} records with {savedCount} saved\r\n",
-                                //    "NSAP-ODK Database",
-                                //    MessageBoxButton.OK,
-                                //    MessageBoxImage.Information);
+                                msg = "Finished uploading JSON file to database\r\n" +
+                                    $"from source having {sourceCount} records with {savedCount} saved\r\n";
                             }
-
-                            ((MainWindow)Owner).SetDataDisplayMode();
-
                         }
                         else if (_savedCount == 0 && VesselUnloadServerRepository.VesselLandings.Count > 0)
                         {
-                            TimedMessageBox.Show(
-                                "All records already saved to the database",
-                                "NSAP-ODK Database",
-                                5000);
-                            //MessageBox.Show("All records already saved to the database");
+                            msg = "All records already saved to the database";
                         }
-                        else
+
+
+                        if (_ufg_count > 0)
                         {
-                            //MessageBox.Show("No records were saved even though at least one should have been saved.\r\nPls contact developer");
+                            msg += $"\r\n\r\nThere were {_ufg_count} landings with unrecognized fishing grounds";
+                        }
+
+                        TimedMessageBox.Show(msg, "NSAP-ODK Database", 5000);
+
+                        if (success)
+                        {
+                            ((MainWindow)Owner).SetDataDisplayMode();
                         }
                     }
                     else
                     {
+                        msg = "You do not have any downloaded data";
                         TimedMessageBox.Show(
-                            "You do not have any downloaded data",
+                            msg,
                             "NSAP-ODK Database",
                             5000);
                         //MessageBox.Show("You do not have any downloaded data", "No data", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -1034,7 +1058,10 @@ namespace NSAP_ODK.Views
             }
             return versionNumber;
         }
-
+        public List<UnrecognizedFishingGround> UnrecognizedFishingGrounds
+        {
+            get { return _unrecognizedFishingGrounds.OrderBy(t => t.SamplingDate).ToList(); }
+        }
         private void OnUploadSubmissionToDB(object sender, UploadToDbEventArg e)
         {
             switch (e.Intent)
@@ -1137,6 +1164,28 @@ namespace NSAP_ODK.Views
                          ), null);
 
                     _savedCount = e.VesselUnloadTotalSavedCount;
+
+
+                    if (VesselUnloadServerRepository.UnrecognizedFishingGrounds?.Count > 0)
+                    {
+                        _ufg_count = VesselUnloadServerRepository.UnrecognizedFishingGrounds.Count;
+                        _unrecognizedFishingGrounds.AddRange(VesselUnloadServerRepository.UnrecognizedFishingGrounds);
+                        //SetUpHashSet(VesselUnloadServerRepository.UnrecognizedFishingGrounds);
+
+                        if (_unrecognizedFGDateCreated == null)
+                        {
+                            _unrecognizedFGDateCreated = DateTime.Now;
+                            menuUnrecognizedFG.Dispatcher.BeginInvoke
+                                (
+                                DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                                {
+                                    menuUnrecognizedFG.Visibility = Visibility.Visible;
+                                    return null;
+                                }
+                                ), null);
+                        }
+                        VesselUnloadServerRepository.ClearUnrecgnizedFishingGroundsList();
+                    }
                     break;
 
                 case UploadToDBIntent.StartOfUpload:
@@ -1221,6 +1270,18 @@ namespace NSAP_ODK.Views
 
                     break;
 
+            }
+        }
+        public HashSet<UnrecognizedFishingGround> UnrecognizedFishingGroundsHashSet { get; private set; }
+        private void SetUpHashSet(List<UnrecognizedFishingGround> ufgs)
+        {
+            if (UnrecognizedFishingGroundsHashSet == null)
+            {
+                UnrecognizedFishingGroundsHashSet = new HashSet<UnrecognizedFishingGround>(new UnrecognizedFishingGroundComparer());
+            }
+            foreach (var item in ufgs.OrderBy(t => t.RowID))
+            {
+                UnrecognizedFishingGroundsHashSet.Add(item);
             }
         }
 
@@ -1989,6 +2050,20 @@ namespace NSAP_ODK.Views
                 this.SavePlacement();
                 ImportExcel.UploadSubmissionToDB -= OnUploadSubmissionToDB;
                 VesselUnloadServerRepository.UploadSubmissionToDB -= OnUploadSubmissionToDB;
+                if (!_unrecognizedFGAlredyViewed && _unrecognizedFishingGrounds.Count > 0)
+                {
+                    if (MessageBox.Show(
+                        "There were unrecognized fishing grounds in the data that was uploaded\r\n\r\n" +
+                        "Select 'Yes' to see them.",
+                        "NSAP-ODK Database",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Question) == MessageBoxResult.Yes
+                        )
+                    {
+                        e.Cancel = true;
+                        ViewUnrecognizedFishingGrounds();
+                    }
+                }
             }
             //KoboAPI.UploadSubmissionToDB -= OnUploadSubmissionToDB;
         }

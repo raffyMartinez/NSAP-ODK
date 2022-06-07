@@ -34,6 +34,92 @@ namespace NSAP_ODK.Entities
             GetGears();
         }
 
+        public static FishingGround GetFishingGround(string region, string fma, string fishing_ground)
+        {
+            FishingGround fg = null;  
+            if (Global.Settings.UsemySQL)
+            {
+                using (var con = new MySqlConnection(MySQLConnect.ConnectionString()))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@regionName", region);
+                        cmd.Parameters.AddWithValue("@fmaName", fma);
+                        cmd.Parameters.AddWithValue("@fgName", fishing_ground);
+
+                        cmd.CommandText = @"SELECT fishing_grounds.fishing_ground_code
+                                            FROM fma INNER JOIN 
+                                                (fishing_grounds INNER JOIN 
+                                                (nsap_region INNER JOIN 
+                                                (nsap_region_fma INNER JOIN 
+                                                nsap_region_fma_fishing_grounds ON 
+                                                    nsap_region_fma.row_id = nsap_region_fma_fishing_grounds.region_fma) ON 
+                                                    nsap_region.code = nsap_region_fma.nsap_region) ON 
+                                                    fishing_grounds.fishing_ground_code = nsap_region_fma_fishing_grounds.fishing_ground) ON 
+                                                    fma.fma_id = nsap_region_fma.fma
+                                            WHERE nsap_region.short_name= @regionName AND
+                                                  fma.fma_name=@fmaName AND 
+                                                  fishing_grounds.fishing_ground_name=@fgName";
+                        try
+                        {
+                            con.Open();
+                            string fg_code = cmd.ExecuteScalar().ToString();
+                            fg = NSAPEntities.FishingGroundViewModel.GetFishingGround(fg_code);
+                        }
+                        catch (OleDbException oex)
+                        {
+
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@regionName", region);
+                        cmd.Parameters.AddWithValue("@fmaName", fma);
+                        cmd.Parameters.AddWithValue("@fgName", fishing_ground);
+
+                        cmd.CommandText = @"SELECT fishingGround.FishingGroundCode
+                                            FROM fma INNER JOIN 
+                                                (fishingGround INNER JOIN 
+                                                (nsapRegion INNER JOIN 
+                                                (NSAPRegionFMA INNER JOIN 
+                                                NSAPRegionFMAFishingGrounds ON 
+                                                    NSAPRegionFMA.RowID = NSAPRegionFMAFishingGrounds.RegionFMA) ON 
+                                                    nsapRegion.Code = NSAPRegionFMA.NSAPRegion) ON 
+                                                    fishingGround.FishingGroundCode = NSAPRegionFMAFishingGrounds.FishingGround) ON 
+                                                    fma.FMAID = NSAPRegionFMA.FMA
+                                            WHERE nsapRegion.ShortName= @regionName AND
+                                                  fma.FMAName=@fmaName AND 
+                                                  fishingGround.FishingGroundName=@fgName";
+
+                        try
+                        {
+                            con.Open();
+                            fg = NSAPEntities.FishingGroundViewModel.GetFishingGround(cmd.ExecuteScalar().ToString());
+                        }
+                        catch (OleDbException oex)
+                        {
+
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return fg;
+        }
+
         /// <summary>
         /// Get the FMAs that are in an NSAP Region
         /// </summary>
@@ -354,7 +440,7 @@ namespace NSAP_ODK.Entities
                             }
                         }
                     }
-                    catch(OleDbException oex)
+                    catch (OleDbException oex)
                     {
 
                     }
@@ -379,18 +465,18 @@ namespace NSAP_ODK.Entities
             }
         }
 
-        public static bool EnumeratorFirstSamplingDateRequired { get; set; } 
+        public static bool EnumeratorFirstSamplingDateRequired { get; set; }
 
 
-        private bool AddColumnToTable(string colName, string tableName )
+        private bool AddColumnToTable(string colName, string tableName)
         {
             bool success = false;
-            string sql= "";
+            string sql = "";
             colName = colName.Trim('\'');
-            switch(colName)
+            switch (colName)
             {
                 case "DateFirstSampling":
-                     sql = $"ALTER TABLE {tableName} ADD COLUMN {colName} DATETIME DEFAULT NULL";
+                    sql = $"ALTER TABLE {tableName} ADD COLUMN {colName} DATETIME DEFAULT NULL";
                     break;
             }
             using (var conn = new OleDbConnection(Global.ConnectionString))
@@ -404,14 +490,14 @@ namespace NSAP_ODK.Entities
                         cmd.ExecuteNonQuery();
                         success = true;
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Logger.Log(ex);
                     }
                 }
             }
 
-                return success;
+            return success;
         }
 
         private void GetGears()

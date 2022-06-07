@@ -66,7 +66,8 @@ namespace NSAP_ODK.Views
         private bool _replaceCSVFilesSuccess;
         private int _numberOfSubmissions;
         private bool _hasDownloadOptions = false;
-        private static HttpClient _httpClient = new HttpClient();
+        //private static HttpClient _httpClient = new HttpClient();
+        private HttpClient _httpClient;
         public DownloadFromServerWindow(ODKResultsWindow parentWindow)
         {
             InitializeComponent();
@@ -1536,12 +1537,13 @@ namespace NSAP_ODK.Views
 
         private void OnFormClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            _httpClient.Dispose();
+            //_httpClient.Dispose();
             this.SavePlacement();
         }
 
         private void OnFormLoaded(object sender, RoutedEventArgs e)
         {
+            _httpClient = MainWindow.HttpClient;
             Title = "Download from server";
             GridGrids.Visibility = Visibility.Collapsed;
             rbAll.IsChecked = true;

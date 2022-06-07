@@ -51,6 +51,7 @@ namespace NSAP_ODK.Views
                     }
                     if (proceed)
                     {
+                        ((ODKResultsWindow)Owner).StartAtBeginningOfJSONDownloadList = (bool)chkStartAtBeginning.IsChecked;
                         DialogResult = true;
                     }
                     else

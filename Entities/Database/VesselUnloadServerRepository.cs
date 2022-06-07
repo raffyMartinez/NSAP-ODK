@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http.Headers;
@@ -1049,6 +1050,10 @@ namespace NSAP_ODK.Entities.Database.FromJson
                 }
             }
         }
+
+        [JsonProperty("landing_site_name")]
+        public string LandingSiteName2 { get; set; }
+
         public string LandingSiteName
         {
             get
@@ -1180,6 +1185,8 @@ namespace NSAP_ODK.Entities.Database.FromJson
                        SectorCode == "c" ? "Commercial" : "";
             }
         }
+        [JsonProperty("fishing_vessel_group/boat_name")]
+        public string BoatName { get; set; }
         [JsonProperty("fishing_vessel_group/boat_used")]
         public int? BoatUsed { get; set; }
         [JsonProperty("fishing_vessel_group/boat_used_text")]
@@ -1258,6 +1265,9 @@ namespace NSAP_ODK.Entities.Database.FromJson
         public string _xform_id_string { get; set; }
         [JsonProperty("meta/instanceID")]
         public string Meta_InstanceID { get; set; }
+
+        [JsonProperty("fishing_ground_name")]
+        public string FishingGroundName { get; set; }
         public int fma_number { get; set; }
         public DateTime start { get; set; }
         public string _status { get; set; }
@@ -1300,9 +1310,22 @@ namespace NSAP_ODK.Entities.Database.FromJson
                         _savedVesselUnloadObject = SavedVesselUnloadObject;
                     }
 
-
-                    _rowid = _savedVesselUnloadObject.VesselUnloadID;
-
+                    if (Debugger.IsAttached)
+                    {
+                        try
+                        {
+                            _rowid = _savedVesselUnloadObject.VesselUnloadID;
+                        }
+                        catch
+                        {
+                            _savedVesselUnloadObject = SavedVesselUnloadObject;
+                            _rowid = _savedVesselUnloadObject.VesselUnloadID;
+                        }
+                    }
+                    else
+                    {
+                        _rowid = _savedVesselUnloadObject.VesselUnloadID;
+                    }
                 }
                 return _rowid;
             }
@@ -1312,7 +1335,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
         {
             get
             {
-                //_savedVesselUnloadObject = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.FirstOrDefault(t => t.ODKRowID == _uuid);
+
                 try
                 {
 
@@ -1320,9 +1343,22 @@ namespace NSAP_ODK.Entities.Database.FromJson
                 }
                 catch (Exception ex)
                 {
-                    Utilities.Logger.Log(ex);
-                    _savedVesselUnloadObject = null;
+                    if (Debugger.IsAttached)
+                    {
+                        Utilities.Logger.Log(ex);
+                        try
+                        {
+                            _savedVesselUnloadObject = NSAPEntities.SummaryItemViewModel.SummaryItemCollection.FirstOrDefault(t => t.ODKRowID == _uuid);
+                        }
+                        catch
+                        {
+                            _savedVesselUnloadObject = null; ;
+                        }
+                    }
+
                 }
+
+
                 return _savedVesselUnloadObject;
             }
 
@@ -1355,6 +1391,15 @@ namespace NSAP_ODK.Entities.Database.FromJson
         private static List<CatchCompGroupCatchCompositionRepeatGmsRepeatGroup> _listGMS;
         private static List<CatchCompGroupCatchCompositionRepeatLenWtRepeat> _listLenWts;
         private static List<CatchCompGroupCatchCompositionRepeatLengthListRepeat> _listLengths;
+        private static List<UnrecognizedFishingGround> _unrecognizedFishingGrounds;
+
+        public static void ClearUnrecgnizedFishingGroundsList()
+        {
+            if (_unrecognizedFishingGrounds != null && _unrecognizedFishingGrounds.Count > 0)
+            {
+                _unrecognizedFishingGrounds.Clear();
+            }
+        }
         public static VesselUnload LastVesselUnload { get; private set; }
         public static string JSON { get; set; }
         public static void CreateLandingsFromJSON()
@@ -1660,6 +1705,11 @@ namespace NSAP_ODK.Entities.Database.FromJson
             return Task.Run(() => UploadToDatabase());
         }
 
+        public static Task<bool> UploadToDBResolvedLandingsAsync(List<VesselLanding> resolvedLanddings)
+        {
+            return Task.Run(() => UploadToDatabase(resolvedLanddings));
+        }
+
         public static Task<int> UpdateXFormIDsAsync()
         {
             return Task.Run(() => UpdateXFormIDsEx());
@@ -1677,9 +1727,9 @@ namespace NSAP_ODK.Entities.Database.FromJson
             foreach (VesselLanding landing in landings)
             {
                 //bool updated = false;
-               loopCount++;
-               if (!CancelUpload)
-               {
+                loopCount++;
+                if (!CancelUpload)
+                {
                     if (!updateStart)
                     {
                         updateStart = true;
@@ -1691,7 +1741,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                         if (NSAPEntities.SummaryItemViewModel.UpdateRecordInRepo(landing._uuid, landing._xform_id_string))
                         {
                             updatedCount++;
-                            UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadUpdatedCount = updatedCount, Intent = UploadToDBIntent.Updating, VesselUnloadFoundCount=loopCount });
+                            UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadUpdatedCount = updatedCount, Intent = UploadToDBIntent.Updating, VesselUnloadFoundCount = loopCount });
                             //updated = true;
                         }
                     }
@@ -1815,13 +1865,31 @@ namespace NSAP_ODK.Entities.Database.FromJson
             UploadInProgress = false;
             return updatedCount;
         }
-        public static bool UploadToDatabase()
+        public static List<UnrecognizedFishingGround> UnrecognizedFishingGrounds
+        {
+            get
+            {
+                return _unrecognizedFishingGrounds;
+            }
+        }
+        public static bool UploadToDatabase(List<VesselLanding> otherLandings = null)
         {
             UploadInProgress = true;
             int savedCount = 0;
-            var landings = VesselLandings.Where(t => t.SavedInLocalDatabase == false).ToList();
+
+            List<VesselLanding> landings;
+            if (otherLandings != null)
+            {
+                landings = otherLandings;
+            }
+            else
+            {
+                landings = VesselLandings.Where(t => t.SavedInLocalDatabase == false).ToList();
+            }
+
             if (landings.Count > 0)
             {
+                _unrecognizedFishingGrounds = new List<UnrecognizedFishingGround>();
                 UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadToSaveCount = landings.Count, Intent = UploadToDBIntent.StartOfUpload });
                 foreach (var landing in landings)
                 {
@@ -1833,19 +1901,50 @@ namespace NSAP_ODK.Entities.Database.FromJson
                             var landingSiteSampling = NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(landing);
                             if (landingSiteSampling == null)
                             {
-                                landingSiteSampling = new LandingSiteSampling
+                                var code = landing.FishingGround?.Code;
+                                if (string.IsNullOrEmpty(code) && !string.IsNullOrEmpty(landing.FishingGroundName))
                                 {
-                                    PK = NSAPEntities.LandingSiteSamplingViewModel.NextRecordNumber,
-                                    LandingSiteID = landing.LandingSite == null ? null : (int?)landing.LandingSite.LandingSiteID,
-                                    FishingGroundID = landing.FishingGround?.Code,
-                                    IsSamplingDay = true,
-                                    SamplingDate = landing.SamplingDate.Date,
-                                    NSAPRegionID = landing.NSAPRegion.Code,
-                                    LandingSiteText = landing.LandingSiteText == null ? "" : landing.LandingSiteText,
-                                    FMAID = landing.NSAPRegionFMA.FMA.FMAID
-                                };
-                                proceed = NSAPEntities.LandingSiteSamplingViewModel.AddRecordToRepo(landingSiteSampling);
+                                    var fg = NSAPRegionWithEntitiesRepository.GetFishingGround(landing.NSAPRegion.ShortName, landing.FMA.Name, landing.FishingGroundName);
+                                    if (fg != null)
+                                    {
+                                        code = fg.Code;
+                                    }
+                                }
 
+                                if (code != null)
+                                {
+                                    landingSiteSampling = new LandingSiteSampling
+                                    {
+                                        PK = NSAPEntities.LandingSiteSamplingViewModel.NextRecordNumber,
+                                        LandingSiteID = landing.LandingSite == null ? null : (int?)landing.LandingSite.LandingSiteID,
+                                        FishingGroundID = code,
+                                        IsSamplingDay = true,
+                                        SamplingDate = landing.SamplingDate.Date,
+                                        NSAPRegionID = landing.NSAPRegion.Code,
+                                        LandingSiteText = landing.LandingSiteText == null ? "" : landing.LandingSiteText,
+                                        FMAID = landing.NSAPRegionFMA.FMA.FMAID
+                                    };
+                                    proceed = NSAPEntities.LandingSiteSamplingViewModel.AddRecordToRepo(landingSiteSampling);
+                                }
+
+                                if (!proceed && landing.FishingGround == null)
+                                {
+                                    UnrecognizedFishingGround urf = new UnrecognizedFishingGround
+                                    {
+                                        FishingGroundName = string.IsNullOrEmpty(landing.FishingGroundName) ? "" : landing.FishingGroundName,
+                                        RegionFishingGround = landing.RegionFishingGroundID,
+                                        FishingGear = landing.GearName,
+                                        FishingVessel = landing.BoatName,
+                                        LandingSite = landing.LandingSiteName2.Replace('»', ','),
+                                        FMA = landing.FMA.Name,
+                                        Region = landing.NSAPRegion.ShortName,
+                                        Enumerator = landing.EnumeratorName,
+                                        SamplingDate = landing.SamplingDate,
+                                        RowID = landing._uuid,
+                                        VesselLanding = landing
+                                    };
+                                    _unrecognizedFishingGrounds.Add(urf);
+                                }
                             }
                             else
                             {
@@ -1875,7 +1974,6 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                         Parent = landingSiteSampling,
                                         LandingSiteSamplingID = landingSiteSampling.PK,
                                         GearID = landing.GearCode,
-                                        //GearID = landing.GearUsed != null ? landing.NSAPRegion.Gears.FirstOrDefault(t => t.RowID == (int)landing.GearUsed).Gear.Code : null,
                                         GearUsedText = landing.GearUsedText == null ? "" : landing.GearUsedText,
                                         Remarks = ""
                                     };
@@ -2243,6 +2341,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
             else
             {
                 UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadTotalSavedCount = savedCount, Intent = UploadToDBIntent.EndOfUpload });
+                _unrecognizedFishingGrounds = new List<UnrecognizedFishingGround>();
             }
             UploadInProgress = false;
             return savedCount > 0;

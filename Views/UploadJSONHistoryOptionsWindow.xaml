@@ -19,6 +19,7 @@
         <StackPanel Grid.Row="1" Margin="10">
             <RadioButton Content="Replace entire content of database" Margin="0 5" ToolTip="Fish landing records will be erased and replaced by JSON files" x:Name="rbReplace"/>
             <RadioButton Content="Update missing content of database" Margin="0 5" ToolTip="Fish landing records are not erased and only missing data is updated" x:Name="rbUpdateMissing"/>
+            <CheckBox Content="Start at the beginning of the list" x:Name="chkStartAtBeginning" Margin="0 8 0 0"/>
         </StackPanel>
         <StackPanel Grid.Row="1" Grid.Column="1" Margin="10">
             <Button Content="Ok" Height="25" Width="60" Margin="0 5" IsDefault="True" x:Name="buttonOk" Click="OnButtonClicked"/>

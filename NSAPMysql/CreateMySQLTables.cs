@@ -1318,6 +1318,7 @@ namespace NSAP_ODK.NSAPMysql
                         Logger.Log(ex);
                     }
                     #endregion
+
                     #region koboservers
                     cmd.CommandText = @"CREATE TABLE IF NOT EXISTS  `kobo_servers` (
                                                 `server_numeric_id` INT NOT NULL,

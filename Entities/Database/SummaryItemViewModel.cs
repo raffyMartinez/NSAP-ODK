@@ -153,6 +153,7 @@ namespace NSAP_ODK.Entities.Database
             }
             else
             {
+
                 return SummaryItemCollection.Max(t => t.SamplingDayID);
             }
         }

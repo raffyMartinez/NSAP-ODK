@@ -176,6 +176,7 @@
     </ApplicationDefinition>
     <Compile Include="Entities\BuildOrphanedEntityEventArg.cs" />
     <Compile Include="Entities\Database\BuildSummaryReportEventArg.cs" />
+    <Compile Include="Entities\Database\CollectedUnrecognizedFG.cs" />
     <Compile Include="Entities\Database\DownloadedJsonMetadata.cs" />
     <Compile Include="Entities\Database\FileInfoJSONMetadata.cs" />
     <Compile Include="Entities\Database\GearUnloadComparer.cs" />
@@ -246,6 +247,8 @@
     <Compile Include="Entities\Database\UnloadChildrenSummary.cs" />
     <Compile Include="Entities\Database\UnloadWithMaturityDatasetManager.cs" />
     <Compile Include="Entities\Database\TrackedVesselUnloadSummary.cs" />
+    <Compile Include="Entities\Database\UnrecognizedFishingGround.cs" />
+    <Compile Include="Entities\Database\UnrecognizedFishingGroundComparer.cs" />
     <Compile Include="Entities\Database\UpdateDatabaseColumnEventArg.cs" />
     <Compile Include="Entities\Database\UpdateHasCatchComposition.cs" />
     <Compile Include="Entities\Database\UpdateHasCatchCompositionRepo.cs" />
@@ -493,6 +496,9 @@
     <Compile Include="Views\MySQLDataStatisticsWindow.xaml.cs">
       <DependentUpon>MySQLDataStatisticsWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\NewFishingGroundWindow.xaml.cs">
+      <DependentUpon>NewFishingGroundWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\OBISResultWindow.xaml.cs">
       <DependentUpon>OBISResultWindow.xaml</DependentUpon>
     </Compile>
@@ -522,6 +528,9 @@
     </Compile>
     <Compile Include="Views\TrackedSummariesForExportWindow.xaml.cs">
       <DependentUpon>TrackedSummariesForExportWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\UnrecognizedFGsWindows.xaml.cs">
+      <DependentUpon>UnrecognizedFGsWindows.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\UploadJSONHistoryOptionsWindow.xaml.cs">
       <DependentUpon>UploadJSONHistoryOptionsWindow.xaml</DependentUpon>
@@ -623,6 +632,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\NewFishingGroundWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\OBISResultWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -660,6 +673,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\TrackedSummariesForExportWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\UnrecognizedFGsWindows.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

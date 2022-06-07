@@ -451,7 +451,9 @@ namespace NSAP_ODK.Entities.Database
                 }
                 else
                 {
-                    return LandingSiteSamplings.MaxRecordNumber() + 1;
+
+                   return LandingSiteSamplings.MaxRecordNumber() + 1;
+                   
                 }
             }
         }

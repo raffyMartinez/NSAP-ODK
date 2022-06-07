@@ -242,8 +242,11 @@ namespace NSAP_ODK.Views
                             MessageBox.Show("The application need to restart to switch to another database backend", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
                             ((MainWindow)Owner).CloseAppilication();
                         }
-                        ((MainWindow)Owner).SetMenuAndOtherToolbarButtonsVisibility(Visibility.Visible);
-                        ((MainWindow)Owner).Focus();
+                        if (Owner != null && Owner.GetType().Name.Contains("MainWindow"))
+                        {
+                            ((MainWindow)Owner).SetMenuAndOtherToolbarButtonsVisibility(Visibility.Visible);
+                            ((MainWindow)Owner).Focus();
+                        }
                     }
                     Close();
                     break;

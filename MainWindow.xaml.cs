@@ -20,6 +20,7 @@ using Microsoft.Win32;
 using System.IO;
 using System.Windows.Threading;
 using System.Text;
+using System.Net.Http;
 
 namespace NSAP_ODK
 {
@@ -64,11 +65,16 @@ namespace NSAP_ODK
         private FishingGround _selectFishingGroundInSummary;
         private NSAPRegion _selectedRegionInSummary;
         private DataGrid _dataGrid;
+        private static HttpClient _httpClient = new HttpClient();
         public MainWindow()
         {
             InitializeComponent();
             Loaded += OnWindowLoaded;
             Closing += OnWindowClosing;
+        }
+        public static HttpClient HttpClient
+        {
+            get { return _httpClient; }
         }
 
         public DataDisplayMode DataDisplayMode { get { return _currentDisplayMode; } }
@@ -102,8 +108,12 @@ namespace NSAP_ODK
             }
 
             CrossTabManager.CrossTabEvent -= OnCrossTabEvent;
-            NSAPEntities.SummaryItemViewModel.BuildingSummaryTable -= SummaryItemViewModel_BuildingSummaryTable;
-            NSAPEntities.SummaryItemViewModel.BuildingOrphanedEntity -= SummaryItemViewModel_BuildingOrphanedEntity;
+            if (NSAPEntities.SummaryItemViewModel != null)
+            {
+                NSAPEntities.SummaryItemViewModel.BuildingSummaryTable -= SummaryItemViewModel_BuildingSummaryTable;
+                NSAPEntities.SummaryItemViewModel.BuildingOrphanedEntity -= SummaryItemViewModel_BuildingOrphanedEntity;
+            }
+            _httpClient.Dispose();
         }
 
 
@@ -352,6 +362,11 @@ namespace NSAP_ODK
                         CrossTabManager.CrossTabEvent += OnCrossTabEvent;
                         _timer = new DispatcherTimer();
                         _timer.Tick += OnTimerTick;
+                        if (NSAPEntities.SummaryItemViewModel != null)
+                        {
+                            NSAPEntities.SummaryItemViewModel.BuildingSummaryTable += SummaryItemViewModel_BuildingSummaryTable;
+                            NSAPEntities.SummaryItemViewModel.BuildingOrphanedEntity += SummaryItemViewModel_BuildingOrphanedEntity;
+                        }
                     }
                     else
                     {
@@ -365,11 +380,7 @@ namespace NSAP_ODK
                     mainStatusLabel.Content = "Application database not found";
                 }
                 SetMenuAndOtherToolbarButtonsVisibility(Visibility.Visible);
-                if (NSAPEntities.SummaryItemViewModel != null)
-                {
-                    NSAPEntities.SummaryItemViewModel.BuildingSummaryTable += SummaryItemViewModel_BuildingSummaryTable;
-                    NSAPEntities.SummaryItemViewModel.BuildingOrphanedEntity += SummaryItemViewModel_BuildingOrphanedEntity;
-                }
+
             }
 
             if (Global.Settings != null && Global.Settings.UsemySQL)
@@ -784,7 +795,7 @@ namespace NSAP_ODK
         {
 
             rowTopLabel.Height = new GridLength(30, GridUnitType.Pixel);
-            ShowStatusRow(isVisible:false);
+            ShowStatusRow(isVisible: false);
             PanelButtons.Visibility = Visibility.Visible;
         }
         private void ResetDisplay()
@@ -2137,6 +2148,7 @@ namespace NSAP_ODK
                     if (Global.Settings.MySQLBackupFolder.Length > 0)
                     {
                         var backupWindow = backupMySQLWindow.GetInstance();
+                        //backupWindow.BackupDBOTablesOnly = true;
                         if (backupWindow.Visibility == Visibility.Visible)
                         {
                             backupWindow.BringIntoView();
