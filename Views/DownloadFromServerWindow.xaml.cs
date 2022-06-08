@@ -647,6 +647,10 @@ namespace NSAP_ODK.Views
                                                 string end_date = ((DateTime)dateEnd.Value).ToString("yyyy-MM-dd");
                                                 api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gte\":\"{start_date}\",\"$lte\":\"{end_date}\"}}}}";
                                                 break;
+                                            case "download_by_week":
+                                                string download_date = DateTime.Today.AddDays(int.Parse(txtDaysToDownload.Text) * -1).ToString("yyyy-MM-dd");
+                                                api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gte\":\"{download_date}\"}}}}";
+                                                break;
                                             case "specify_range_records":
                                                 string start_date1 = ((DateTime)dateStart2.Value).ToString("yyyy-MM-dd");
                                                 api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gte\":\"{start_date1}\"}}}}&limit={TextBoxLimit.Text}";
@@ -1350,6 +1354,21 @@ namespace NSAP_ODK.Views
             //}
         }
 
+        private void UncheckAllRadioButtons()
+        {
+            foreach (var c in stackPanelJSON.Children)
+            {
+                switch (c.GetType().Name)
+                {
+                    case "RadioButton":
+                        if (((RadioButton)c).Name != "rbAll")
+                        {
+                            ((RadioButton)c).IsChecked = false;
+                        }
+                        break;
+                }
+            }
+        }
         private void SetDownloadOptionsVisibility()
         {
             foreach (var c in stackPanelJSON.Children)
@@ -1583,16 +1602,29 @@ namespace NSAP_ODK.Views
 
         private void OnComboSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+
             stackPanelJSON.Visibility = Visibility.Collapsed;
             _downloadOption = ((ComboBoxItem)e.AddedItems[0]).Tag.ToString();
             if (_downloadOption == "json")
             {
                 stackPanelJSON.Visibility = Visibility.Visible;
+                panelWeeksToDownload.Visibility = Visibility.Visible;
             }
         }
 
         private void OnButtonChecked(object sender, RoutedEventArgs e)
         {
+            switch (((RadioButton)sender).Name)
+            {
+                case "rbDownloadByPastWeeks":
+                    UncheckAllRadioButtons();
+                    txtDaysToDownload.IsEnabled = true;
+                    break;
+                default:
+                    rbDownloadByPastWeeks.IsChecked = false;
+                    txtDaysToDownload.IsEnabled = false;
+                    break;
+            }
             _jsonOption = ((RadioButton)sender).Tag.ToString();
             panelDateRange.Visibility = _jsonOption == "specify_date_range" ? Visibility.Visible : Visibility.Collapsed;
             panelStartDateRecords.Visibility = _jsonOption == "specify_range_records" ? Visibility.Visible : Visibility.Collapsed;
@@ -1616,6 +1648,11 @@ namespace NSAP_ODK.Views
                     panelFilterByUser.Visibility = (bool)CheckFilterUser.IsChecked ? Visibility.Visible : Visibility.Collapsed;
                     break;
             }
+
+        }
+
+        private void OnRadioButtonMouseDown(object sender, MouseButtonEventArgs e)
+        {
 
         }
     }

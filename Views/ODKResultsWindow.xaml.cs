@@ -886,7 +886,7 @@ namespace NSAP_ODK.Views
             bool proceed = false;
             if (Global.Settings.UsemySQL)
             {
-                proceed = NSAPMysql.MySQLConnect.DeleteDataFromTables(useScript: true);
+                proceed = NSAPMysql.MySQLConnect.DeleteDataFromTables(useScript:true);
             }
             else if (NSAPEntities.ClearNSAPDatabaseTables())
             {

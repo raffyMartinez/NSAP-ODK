@@ -7,7 +7,7 @@
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         mc:Ignorable="d"
         Closing="OnFormClosing" Loaded="OnFormLoaded"
-        Title="DownloadFromServerWindow" Height="567.202" Width="800">
+        Title="DownloadFromServerWindow" Height="610" Width="800">
 
     <Grid>
         <Grid.ColumnDefinitions>
@@ -92,7 +92,7 @@
                             </ComboBox>
                         </WrapPanel>
                         <ScrollViewer>
-                            <StackPanel x:Name="stackPanelJSON" CanVerticallyScroll="True" Height="282">
+                            <StackPanel x:Name="stackPanelJSON" CanVerticallyScroll="True" Height="331">
 
                                 <RadioButton Content="Download all submissions" Margin="10 5" Checked="OnButtonChecked" Tag="all" x:Name="rbAll"/>
                                 <RadioButton Content="Get all not downloaded" Margin="10 5"  Checked="OnButtonChecked" Tag="all_not_downloaded" x:Name="rbNotDownloaded"/>
@@ -110,12 +110,18 @@
                                     <Label Content="Limit:" Margin="30 5 5 5"/>
                                     <TextBox Width="50" Margin="5 7" x:Name="TextBoxLimit"/>
                                 </WrapPanel>
+                                <WrapPanel Margin="10 0" Visibility="Visible" x:Name="panelWeeksToDownload">
+                                    <RadioButton Tag="download_by_week" VerticalAlignment="Center" Checked="OnButtonChecked" x:Name="rbDownloadByPastWeeks" MouseDown="OnRadioButtonMouseDown" IsThreeState="True"/>
+                                    <Label Content="Download data starting "/>
+                                    <TextBox Height="20" Width="40" IsEnabled="False" Text="7" x:Name="txtDaysToDownload"/>
+                                    <Label Content=" days past the present date"/>
+                                </WrapPanel>                                
                                 <RadioButton Content="Update data of database column" Margin="10 5" Checked="OnButtonChecked" Tag="download_all_for_review"/>
                                 <WrapPanel x:Name="panelDownloadAgain" Visibility="Visible">
                                     <StackPanel>
                                         <Button Content="Specify column to update" Height="28" Padding="5" Margin="5" Width="150" HorizontalAlignment="Left" x:Name="buttonSpecifyColumn" Click="OnButtonClick"/>
                                         <WrapPanel>
-                                            <Label Content="Row start (leave blank to start at the beginning"/>
+                                            <Label Content="Row start (leave blank to start at the beginning)"/>
                                             <TextBox x:Name="textRowStart" Width="75" Margin="10 0 0 0"/>
                                         </WrapPanel>
                                     </StackPanel>
