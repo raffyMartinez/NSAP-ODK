@@ -46,15 +46,14 @@ namespace NSAP_ODK.Views
         {
             panelControls.Visibility = Visibility.Visible;
 
+            labelTitle.Content = "Select what to do with JSON files";
             switch (JSONFilesToUploadType)
             {
                 case JSONFilesToUploadType.UploadTypeDownloadedJsonDownloadAll:
-                    labelTitle.Content = "Select what to do with JSON files";
                     chkStartAtBeginning.Visibility = Visibility.Collapsed;
                     labelPrompt.Visibility = Visibility.Collapsed;
                     break;
                 case JSONFilesToUploadType.UploadTypeDownloadedJsonNotDownloaded:
-                    labelTitle.Content = "Select what to do with JSON files";
                     chkStartAtBeginning.Visibility = Visibility.Collapsed;
                     panelControls.Visibility = Visibility.Collapsed;
                     labelPrompt.Text = "Select OK to update missing sampled vessel landings in the database";
@@ -66,12 +65,16 @@ namespace NSAP_ODK.Views
                     labelPrompt.Visibility = Visibility.Collapsed;
                     break;
                 case JSONFilesToUploadType.UploadTypeJSONHistoryUpdateXFormID:
-                    labelTitle.Content = "Select what to do with JSON files";
                     chkStartAtBeginning.Visibility = Visibility.Collapsed;
                     panelControls.Visibility = Visibility.Collapsed;
                     labelPrompt.Text = "Select OK to update missing XFormIdentifiers in the saved sampled landings in the database";
                     _ignoreControls = true;
                     break;
+            }
+
+            if(string.IsNullOrEmpty(Entities.NSAPEntities.KoboServerViewModel.GetLastUploadedJSON()))
+            {
+                chkStartAtBeginning.IsEnabled = false;
             }
         }
 

@@ -2353,7 +2353,7 @@ namespace NSAP_ODK.Entities.Database
                 using (var update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@id", MySqlDbType.Int32).Value = id;
-                    update.CommandText = "Delete * from dbo_vessel_unload_1 where v_unload_id=@id";
+                    update.CommandText = "Delete  from dbo_vessel_unload_1 where v_unload_id=@id";
                     try
                     {
                         conn.Open();
@@ -2361,7 +2361,7 @@ namespace NSAP_ODK.Entities.Database
                         using (var update1 = conn.CreateCommand())
                         {
                             update1.Parameters.Add("@id", MySqlDbType.Int32).Value = id;
-                            update1.CommandText = "Delete * from dbo_vessel_unload where v_unload_id=@id";
+                            update1.CommandText = "Delete  from dbo_vessel_unload where v_unload_id=@id";
                             try
                             {
                                 success = update1.ExecuteNonQuery() > 0;

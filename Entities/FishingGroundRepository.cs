@@ -239,7 +239,7 @@ namespace NSAP_ODK.Entities
                 using (var update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@code", MySqlDbType.VarChar).Value = code;
-                    update.CommandText = "Delete * from fishing_grounds where fishing_ground_code=@code";
+                    update.CommandText = "Delete from fishing_grounds where fishing_ground_code=@code";
                     try
                     {
                         conn.Open();

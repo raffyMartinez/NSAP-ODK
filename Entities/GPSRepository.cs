@@ -337,7 +337,7 @@ namespace NSAP_ODK.Entities
                 using (var update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@code", MySqlDbType.VarChar).Value = code;
-                    update.CommandText = "Delete * from gps where gps_code=@code";
+                    update.CommandText = "Delete  from gps where gps_code=@code";
                     try
                     {
                         conn.Open();

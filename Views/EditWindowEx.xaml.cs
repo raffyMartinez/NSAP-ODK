@@ -355,8 +355,11 @@ namespace NSAP_ODK.Views
 
         private void OnsfDataGridSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            buttonEdit.IsEnabled = true;
-            buttonDelete.IsEnabled = true;
+            if (_selectedProperty != "BaseGearEffortSpecifiers")
+            {
+                buttonEdit.IsEnabled = true;
+                buttonDelete.IsEnabled = true;
+            }
         }
 
         private void FillPropertyGrid()
@@ -837,6 +840,11 @@ namespace NSAP_ODK.Views
                     if (!_isNew)
                     {
                         PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "EffortSpecifiers", DisplayName = "Number of effort specifiers", DisplayOrder = 4, Description = "Count of specifiers of effort for this gear" });
+
+                        if (gearEdit.Code != gearEdit.BaseGear)
+                        {
+                            PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "BaseGearEffortSpecifiers", DisplayName = "Number of effort specifiers from base gear", DisplayOrder = 5, Description = "Count of specifiers of effort for the base gear" });
+                        }
                     }
 
                     PropertyGrid.SelectedObject = gearEdit;
@@ -1057,8 +1065,15 @@ namespace NSAP_ODK.Views
                     {
                         case NSAPEntity.FishingGear:
                             var ges = (GearEffortSpecification)sfDataGrid.SelectedItem;
-                            var g = NSAPEntities.GearViewModel.GetGear(ges.Gear.Code);
-                            g.GearEffortSpecificationViewModel.DeleteRecordFromRepo(ges);
+                            if (!ges.EffortSpecification.IsForAllTypesFishing)
+                            {
+                                var g = NSAPEntities.GearViewModel.GetGear(ges.Gear.Code);
+                                success = g.GearEffortSpecificationViewModel.DeleteRecordFromRepo(ges);
+                            }
+                            else
+                            {
+                                MessageBox.Show("Cannot delete a universal effort specification", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                            }
                             break;
                         case NSAPEntity.NSAPRegionFMAFishingGround:
                             NSAPRegionFMAFishingGround nrfg = (NSAPRegionFMAFishingGround)_nsapObject;
@@ -1895,88 +1910,98 @@ namespace NSAP_ODK.Views
 
         private void OnDataGridMouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            this.Visibility = Visibility.Hidden;
-
-            if (_editWindowsDict.ContainsKey(_nsapEntity))
+            if (_selectedProperty == "EffortSpecifiers" && ((GearEffortSpecification)sfDataGrid.SelectedItem).EffortSpecification.IsForAllTypesFishing)
             {
-                _editWindowsDict.Remove(_nsapEntity);
+                MessageBox.Show("Cannot edit a universal effort specification", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
             }
-
-            _editWindowsDict.Add(_nsapEntity, this);
-            switch (_selectedProperty)
+            else
             {
-                case "MunicipalityCount":
-                    Municipality mun = (Municipality)sfDataGrid.SelectedItem;
-                    if (mun != null)
-                    {
-                        new EditWindowEx(NSAPEntity.Municipality, mun.MunicipalityID.ToString(), mun).ShowDialog();
+                this.Visibility = Visibility.Hidden;
 
-                    }
-                    break;
+                if (_editWindowsDict.ContainsKey(_nsapEntity))
+                {
+                    _editWindowsDict.Remove(_nsapEntity);
+                }
 
-                case "LandingSiteCount":
-                    NSAPRegionFMAFishingGroundLandingSite nsrls = (NSAPRegionFMAFishingGroundLandingSite)sfDataGrid.SelectedItem;
-                    if (nsrls != null)
-                    {
-                        new EditWindowEx(NSAPEntity.NSAPRegionFMAFishingGroundLandingSite, nsrls.RowID.ToString(), nsrls).ShowDialog();
-                    }
-                    break;
+                _editWindowsDict.Add(_nsapEntity, this);
+                switch (_selectedProperty)
+                {
+                    case "MunicipalityCount":
+                        Municipality mun = (Municipality)sfDataGrid.SelectedItem;
+                        if (mun != null)
+                        {
+                            new EditWindowEx(NSAPEntity.Municipality, mun.MunicipalityID.ToString(), mun).ShowDialog();
 
-                case "EffortSpecifiers":
-                    GearEffortSpecification es = (GearEffortSpecification)sfDataGrid.SelectedItem;
-                    if (es != null)
-                    {
-                        new EditWindowEx(NSAPEntity.FishingGearEffortSpecification, es.RowID.ToString(), es).ShowDialog();
+                        }
+                        break;
 
-                    }
-                    break;
+                    case "LandingSiteCount":
+                        NSAPRegionFMAFishingGroundLandingSite nsrls = (NSAPRegionFMAFishingGroundLandingSite)sfDataGrid.SelectedItem;
+                        if (nsrls != null)
+                        {
+                            new EditWindowEx(NSAPEntity.NSAPRegionFMAFishingGroundLandingSite, nsrls.RowID.ToString(), nsrls).ShowDialog();
+                        }
+                        break;
 
-                case "Gears":
-                    NSAPRegionGear nrg = (NSAPRegionGear)sfDataGrid.SelectedItem;
-                    if (nrg != null)
-                    {
-                        new EditWindowEx(NSAPEntity.NSAPRegionGear, nrg.RowID.ToString(), nrg).ShowDialog();
+                    case "EffortSpecifiers":
+                        GearEffortSpecification es = (GearEffortSpecification)sfDataGrid.SelectedItem;
+                        if (!es.EffortSpecification.IsForAllTypesFishing)
+                        {
+                            if (es != null)
+                            {
+                                new EditWindowEx(NSAPEntity.FishingGearEffortSpecification, es.RowID.ToString(), es).ShowDialog();
 
-                    }
-                    break;
+                            }
+                        }
+                        break;
 
-                case "FMAs":
-                    NSAPRegionFMA nrfma = (NSAPRegionFMA)sfDataGrid.SelectedItem;
-                    if (nrfma != null)
-                    {
-                        new EditWindowEx(NSAPEntity.NSAPRegionFMA, nrfma.RowID.ToString(), nrfma).ShowDialog();
+                    case "Gears":
+                        NSAPRegionGear nrg = (NSAPRegionGear)sfDataGrid.SelectedItem;
+                        if (nrg != null)
+                        {
+                            new EditWindowEx(NSAPEntity.NSAPRegionGear, nrg.RowID.ToString(), nrg).ShowDialog();
 
-                    }
-                    break;
+                        }
+                        break;
 
-                case "Enumerators":
-                    NSAPRegionEnumerator nre = (NSAPRegionEnumerator)sfDataGrid.SelectedItem;
-                    if (nre != null)
-                    {
-                        new EditWindowEx(NSAPEntity.NSAPRegionEnumerator, nre.RowID.ToString(), nre).ShowDialog();
+                    case "FMAs":
+                        NSAPRegionFMA nrfma = (NSAPRegionFMA)sfDataGrid.SelectedItem;
+                        if (nrfma != null)
+                        {
+                            new EditWindowEx(NSAPEntity.NSAPRegionFMA, nrfma.RowID.ToString(), nrfma).ShowDialog();
 
-                    }
-                    break;
+                        }
+                        break;
 
-                case "Vessels":
-                    NSAPRegionFishingVessel nrfv = (NSAPRegionFishingVessel)sfDataGrid.SelectedItem;
-                    if (nrfv != null)
-                    {
-                        new EditWindowEx(NSAPEntity.NSAPRegionFishingVessel, nrfv.RowID.ToString(), nrfv).ShowDialog();
+                    case "Enumerators":
+                        NSAPRegionEnumerator nre = (NSAPRegionEnumerator)sfDataGrid.SelectedItem;
+                        if (nre != null)
+                        {
+                            new EditWindowEx(NSAPEntity.NSAPRegionEnumerator, nre.RowID.ToString(), nre).ShowDialog();
 
-                    }
-                    break;
+                        }
+                        break;
 
-                case "FishingGroundCount":
-                    NSAPRegionFMAFishingGround nrffg = (NSAPRegionFMAFishingGround)sfDataGrid.SelectedItem;
-                    if (nrffg != null)
-                    {
-                        new EditWindowEx(NSAPEntity.NSAPRegionFMAFishingGround, nrffg.RowID.ToString(), nrffg).ShowDialog();
+                    case "Vessels":
+                        NSAPRegionFishingVessel nrfv = (NSAPRegionFishingVessel)sfDataGrid.SelectedItem;
+                        if (nrfv != null)
+                        {
+                            new EditWindowEx(NSAPEntity.NSAPRegionFishingVessel, nrfv.RowID.ToString(), nrfv).ShowDialog();
 
-                    }
-                    break;
+                        }
+                        break;
+
+                    case "FishingGroundCount":
+                        NSAPRegionFMAFishingGround nrffg = (NSAPRegionFMAFishingGround)sfDataGrid.SelectedItem;
+                        if (nrffg != null)
+                        {
+                            new EditWindowEx(NSAPEntity.NSAPRegionFMAFishingGround, nrffg.RowID.ToString(), nrffg).ShowDialog();
+
+                        }
+                        break;
+                }
+                SetUpSubFormSource();
             }
-            SetUpSubFormSource();
             //sfDataGrid.Items.Refresh();
         }
 
@@ -2052,6 +2077,7 @@ namespace NSAP_ODK.Views
 
         private void OnSelectedPropertyItemChanged(object sender, RoutedPropertyChangedEventArgs<PropertyItemBase> e)
         {
+            buttonAdd.IsEnabled = true;
             rowDataGrid.Height = new GridLength(0);
             rowBottomLabel.Height = rowDataGrid.Height;
             var propertyItem = (PropertyItem)((PropertyGrid)e.Source).SelectedPropertyItem;
@@ -2073,7 +2099,12 @@ namespace NSAP_ODK.Views
                     SetUpSubForm();
                     //LabelBottom.Content = $"List of effort specifiers for {NSAPEntities.GearViewModel.CurrentEntity}";
                     break;
-
+                case "BaseGearEffortSpecifiers":
+                    rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
+                    rowBottomLabel.Height = new GridLength(40);
+                    SetUpSubForm();
+                    buttonAdd.IsEnabled = false;
+                    break;
                 case "LandingSiteCount":
                     LabelBottom.Content = $"List of landing sites in {(NSAPRegionFMAFishingGround)_nsapObject}";
                     rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
@@ -2133,18 +2164,27 @@ namespace NSAP_ODK.Views
 
                 case "EffortSpecifiers":
                     Gear gear = NSAPEntities.GearViewModel.GetGear(_entityID);
-                    if (gear.GearEffortSpecificationViewModel.Count == 0)
-                    {
-                        sfDataGrid.ItemsSource = gear.BaseGear.GearEffortSpecificationViewModel.GearEffortSpecificationCollection.OrderBy(t => t.EffortSpecification.Name);
-                        LabelBottom.Content = $"List of effort specifiers (from base gear) for {NSAPEntities.GearViewModel.CurrentEntity}";
-                    }
-                    else if (gear.GearEffortSpecificationViewModel != null)
+                    //if (gear.GearEffortSpecificationViewModel.Count == 0)
+                    //{
+                    //    sfDataGrid.ItemsSource = gear.BaseGear.GearEffortSpecificationViewModel.GearEffortSpecificationCollection.OrderBy(t => t.EffortSpecification.Name);
+                    //    LabelBottom.Content = $"List of effort specifiers (from base gear) for {NSAPEntities.GearViewModel.CurrentEntity}";
+                    //}
+                    //else if (gear.GearEffortSpecificationViewModel != null)
+                    //{
+                    //    sfDataGrid.ItemsSource = gear.GearEffortSpecificationViewModel.GearEffortSpecificationCollection.OrderBy(t => t.EffortSpecification.Name);
+                    //    LabelBottom.Content = $"List of effort specifiers for {NSAPEntities.GearViewModel.CurrentEntity}";
+                    //}
+                    if (gear.GearEffortSpecificationViewModel != null)
                     {
                         sfDataGrid.ItemsSource = gear.GearEffortSpecificationViewModel.GearEffortSpecificationCollection.OrderBy(t => t.EffortSpecification.Name);
                         LabelBottom.Content = $"List of effort specifiers for {NSAPEntities.GearViewModel.CurrentEntity}";
                     }
                     break;
-
+                case "BaseGearEffortSpecifiers":
+                    gear = NSAPEntities.GearViewModel.GetGear(_entityID);
+                    sfDataGrid.ItemsSource = gear.BaseGear.GearEffortSpecificationViewModel.GearEffortSpecificationCollection.OrderBy(t => t.EffortSpecification.Name);
+                    LabelBottom.Content = $"List of effort specifiers (from base gear) for {NSAPEntities.GearViewModel.CurrentEntity}";
+                    break;
                 case "LandingSiteCount":
                     sfDataGrid.ItemsSource = ((NSAPRegionFMAFishingGround)_nsapObject).LandingSites.OrderBy(t => t.LandingSite.LandingSiteName);
                     break;
@@ -2216,7 +2256,7 @@ namespace NSAP_ODK.Views
                     sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Longitude", Binding = new Binding("Longitude") });
                     sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Latitude", Binding = new Binding("Latitude") });
                     break;
-
+                case "BaseGearEffortSpecifiers":
                 case "EffortSpecifiers":
                     sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("RowID"), Visibility = Visibility.Hidden });
                     sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Effort specification", Binding = new Binding("EffortSpecification") });

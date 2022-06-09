@@ -48,7 +48,7 @@ namespace NSAP_ODK.Entities
             dt.Columns.Add(dc);
 
 
-            foreach (var item in GearCollection.OrderBy(t=>t.GearName))
+            foreach (var item in GearCollection.OrderBy(t => t.GearName))
             {
                 var row = dt.NewRow();
                 row["Name"] = item.GearName;
@@ -103,7 +103,7 @@ namespace NSAP_ODK.Entities
             }
         }
 
-        public void FillGearEffortSpecifications(bool includeNumberFishers=false)
+        public void FillGearEffortSpecifications(bool includeNumberFishers = false)
         {
             foreach (Gear gear in GearCollection)
             {
@@ -135,28 +135,41 @@ namespace NSAP_ODK.Entities
             //}
         }
 
-
+        public void AddBaseGearSpecsToGear(Gear g)
+        {
+            foreach (var specAllFishingType in NSAPEntities.EffortSpecificationViewModel.GetBaseGearEffortSpecification())
+            {
+                GearEffortSpecification ges = new GearEffortSpecification();
+                ges.Gear = g;
+                ges.EffortSpecification = specAllFishingType;
+                g.GearEffortSpecificationViewModel.AddBaseGearEffortSpecification(ges);
+            }
+        }
         public GearViewModel()
         {
             Gears = new GearRepository();
             GearCollection = new ObservableCollection<Gear>(Gears.Gears);
 
-            List<EffortSpecification> baseGearEffortSpecs = NSAPEntities.EffortSpecificationViewModel.GetBaseGearEffortSpecification();
+            //List<EffortSpecification> baseGearEffortSpecs = NSAPEntities.EffortSpecificationViewModel.GetBaseGearEffortSpecification();
+            
+            
             foreach (Gear g in GearCollection)
             {
                 g.GetEffortSpecificationsForGear();
+
                 if (g.CodeOfBaseGear.Length > 0)
                 {
                     g.BaseGear = GetGear(g.CodeOfBaseGear);
                     if (g.Code == g.BaseGear.Code && g.BaseGear.IsGenericGear)
                     {
-                        foreach (var specAllFishingType in baseGearEffortSpecs)
-                        {
-                            GearEffortSpecification ges = new GearEffortSpecification();
-                            ges.Gear = g;
-                            ges.EffortSpecification = specAllFishingType;
-                            g.GearEffortSpecificationViewModel.AddBaseGearEffortSpecification(ges);
-                        }
+                        AddBaseGearSpecsToGear(g);
+                        //foreach (var specAllFishingType in baseGearEffortSpecs)
+                        //{
+                        //    GearEffortSpecification ges = new GearEffortSpecification();
+                        //    ges.Gear = g;
+                        //    ges.EffortSpecification = specAllFishingType;
+                        //    g.GearEffortSpecificationViewModel.AddBaseGearEffortSpecification(ges);
+                        //}
                     }
                 }
                 else
@@ -239,6 +252,21 @@ namespace NSAP_ODK.Entities
         public Gear GetGear(string code)
         {
             CurrentEntity = GearCollection.FirstOrDefault(n => n.Code == code);
+            //if(code==CurrentEntity.BaseGear.Code && CurrentEntity)
+            //{
+
+            //}
+            //if (CurrentEntity.GearEffortSpecificationViewModel == null || CurrentEntity.GearEffortSpecificationViewModel.Count <CurrentEntity.BaseGear.GearEffortSpecificationViewModel.Count)
+            //{
+            //    if (CurrentEntity.GearEffortSpecificationViewModel == null)
+            //    {
+            //        CurrentEntity.GearEffortSpecificationViewModel = new GearEffortSpecificationViewModel(CurrentEntity);
+            //    }
+            //    if (CurrentEntity.BaseGear != null && CurrentEntity.GearEffortSpecificationViewModel.Count < CurrentEntity.BaseGear.GearEffortSpecificationViewModel.Count)
+            //    {
+            //        CurrentEntity.GearEffortSpecificationViewModel = CurrentEntity.BaseGear.GearEffortSpecificationViewModel;
+            //    }
+            //}
             return CurrentEntity;
         }
 

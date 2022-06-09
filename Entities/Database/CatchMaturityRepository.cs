@@ -18,7 +18,7 @@ namespace NSAP_ODK.Entities.Database
         {
             CatchMaturities = getCatchMaturites(vc);
         }
-        public CatchMaturityRepository(bool isNew=false)
+        public CatchMaturityRepository(bool isNew = false)
         {
             if (!isNew)
             {
@@ -653,7 +653,7 @@ namespace NSAP_ODK.Entities.Database
                 using (var update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@id", MySqlDbType.Int32).Value = id;
-                    update.CommandText = "Delete * from dbo_catch_maturity where catch_maturity_id=@id";
+                    update.CommandText = "Delete  from dbo_catch_maturity where catch_maturity_id=@id";
                     try
                     {
                         conn.Open();
@@ -684,7 +684,6 @@ namespace NSAP_ODK.Entities.Database
                 using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
                     conn.Open();
-                    var sql = $"Delete * from dbo_catch_maturity where catch_maturity_id={id}";
                     using (OleDbCommand update = conn.CreateCommand())
                     {
                         update.Parameters.Add("@id", OleDbType.Integer).Value = id;

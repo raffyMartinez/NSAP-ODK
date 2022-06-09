@@ -350,7 +350,7 @@ namespace NSAP_ODK.Entities
                 using (var update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@id", MySqlDbType.Int32).Value = id;
-                    update.CommandText = "Delete * from landing_sites where landing_site_id=@id";
+                    update.CommandText = "Delete  from landing_sites where landing_site_id=@id";
                     try
                     {
                         conn.Open();

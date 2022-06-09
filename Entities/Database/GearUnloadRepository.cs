@@ -596,7 +596,7 @@ namespace NSAP_ODK.Entities.Database
                 using (var update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@id", MySqlDbType.Int32).Value = id;
-                    update.CommandText = "Delete * from dbo_gear_unload where unload_gr_id=@id";
+                    update.CommandText = "Delete  from dbo_gear_unload where unload_gr_id=@id";
                     try
                     {
                         conn.Open();

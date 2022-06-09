@@ -241,7 +241,7 @@ namespace NSAP_ODK.Entities
                 using (var update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@id", MySqlDbType.Int32).Value = id;
-                    update.CommandText = "Delete * from engines where engine_id=@id";
+                    update.CommandText = "Delete  from engines where engine_id=@id";
                     try
                     {
                         conn.Open();

@@ -531,7 +531,7 @@ namespace NSAP_ODK.Entities
                 using (var update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@id", MySqlDbType.Int32).Value = id;
-                    update.CommandText =  "Delete * from ph_fish Where RowNo=@id";
+                    update.CommandText =  "Delete  from ph_fish Where RowNo=@id";
                     try
                     {
                         conn.Open();

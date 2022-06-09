@@ -311,7 +311,7 @@ namespace NSAP_ODK.Entities.Database
                 using (var update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@id", MySqlDbType.Int32).Value = id;
-                    update.CommandText = "Delete * from dbo_fg_grid where fg_grid_id=@id";
+                    update.CommandText = "Delete from dbo_fg_grid where fg_grid_id=@id";
                     try
                     {
                         conn.Open();

@@ -13,6 +13,10 @@ namespace NSAP_ODK.Entities
         public ObservableCollection<GearEffortSpecification> GearEffortSpecificationCollection { get; set; }
         private GearEffortSpecificationRepository GearEffortSpecifications { get; set; }
 
+        public bool GearEffortSpecsExists(EffortSpecification e_spec)
+        {
+            return GearEffortSpecificationCollection.FirstOrDefault(t => t.EffortSpecificationID == e_spec.ID) != null;
+        }
         public GearEffortSpecificationViewModel(Gear gear)
         {
             GearEffortSpecifications = new GearEffortSpecificationRepository(gear);
@@ -24,6 +28,7 @@ namespace NSAP_ODK.Entities
         {
             return GearEffortSpecificationCollection.ToList();
         }
+
 
         public GearEffortSpecification GetGearEffortSpecification(int rowID)
         {

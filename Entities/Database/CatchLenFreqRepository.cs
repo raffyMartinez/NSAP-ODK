@@ -316,7 +316,7 @@ namespace NSAP_ODK.Entities.Database
                 using (var update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@id", MySqlDbType.Int32).Value = id;
-                    update.CommandText = "Delete * from dbo_catch_len_freq where catch_lf_id=@id";
+                    update.CommandText = "Delete  from dbo_catch_len_freq where catch_lf_id=@id";
                     try
                     {
                         conn.Open();

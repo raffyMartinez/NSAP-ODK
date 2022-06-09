@@ -247,7 +247,7 @@ namespace NSAP_ODK.Entities
                     using (var update = conn.CreateCommand())
                     {
                         update.Parameters.Add("@code", MySqlDbType.VarChar).Value = code;
-                        update.CommandText = "Delete * from nsap_region where code=@code";
+                        update.CommandText = "Delete  from nsap_region where code=@code";
 
                         try
                         {

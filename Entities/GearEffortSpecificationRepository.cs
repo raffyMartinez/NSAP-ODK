@@ -26,7 +26,7 @@ namespace NSAP_ODK.Entities
                 {
                     using (var cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText =  "SELECT Max([row_id]) AS MaxRowID FROM gear_effort_specification";
+                        cmd.CommandText =  "SELECT Max(row_id) AS MaxRowID FROM gear_effort_specification";
                         try
                         {
                             conn.Open();
@@ -302,7 +302,7 @@ namespace NSAP_ODK.Entities
                 using (var update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@id", MySqlDbType.Int32).Value = id;
-                    update.CommandText = "Delete * from gear_effort_specification where row_id=@id";
+                    update.CommandText = "Delete from gear_effort_specification where row_id=@id";
                     try
                     {
                         conn.Open();

@@ -76,6 +76,15 @@ namespace NSAP_ODK.Entities
         public bool IsNew { get; set; }
 
         [ReadOnly(true)]
+        public int BaseGearEffortSpecifiers
+        {
+            get
+            {
+                return Gear.BaseGear.GearEffortSpecificationViewModel.Count;
+            }
+        }
+
+        [ReadOnly(true)]
         public int EffortSpecifiers
         {
             get
@@ -104,6 +113,12 @@ namespace NSAP_ODK.Entities
             BaseGear = gear.BaseGear.Code;
             IsGeneric = gear.IsGenericGear;
             IsNew = false;
+
+            if(gear.GearEffortSpecificationViewModel==null)
+            {
+                gear.GearEffortSpecificationViewModel = new GearEffortSpecificationViewModel(gear);
+                NSAPEntities.GearViewModel.AddBaseGearSpecsToGear(gear);
+            }
         }
     }
 

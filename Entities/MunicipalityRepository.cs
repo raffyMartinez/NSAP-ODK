@@ -364,7 +364,7 @@ namespace NSAP_ODK.Entities
                 using (var update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@id", MySqlDbType.Int32).Value = id;
-                    update.CommandText = "Delete * from municipalities where mun_no=@id";
+                    update.CommandText = "Delete  from municipalities where mun_no=@id";
                     try
                     {
                         conn.Open();
