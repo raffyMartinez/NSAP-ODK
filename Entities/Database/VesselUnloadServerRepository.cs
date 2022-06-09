@@ -1865,6 +1865,9 @@ namespace NSAP_ODK.Entities.Database.FromJson
             UploadInProgress = false;
             return updatedCount;
         }
+
+
+        public static List<VesselLanding> ResolvedLandingsFromUnrecognizedFishingGrounds { get; private set; }
         public static List<UnrecognizedFishingGround> UnrecognizedFishingGrounds
         {
             get
@@ -1872,15 +1875,15 @@ namespace NSAP_ODK.Entities.Database.FromJson
                 return _unrecognizedFishingGrounds;
             }
         }
-        public static bool UploadToDatabase(List<VesselLanding> otherLandings = null)
+        public static bool UploadToDatabase(List<VesselLanding> resolvedLandings = null)
         {
             UploadInProgress = true;
             int savedCount = 0;
 
             List<VesselLanding> landings;
-            if (otherLandings != null)
+            if (resolvedLandings != null)
             {
-                landings = otherLandings;
+                landings = resolvedLandings;
             }
             else
             {
@@ -2341,7 +2344,14 @@ namespace NSAP_ODK.Entities.Database.FromJson
             else
             {
                 UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadTotalSavedCount = savedCount, Intent = UploadToDBIntent.EndOfUpload });
-                _unrecognizedFishingGrounds = new List<UnrecognizedFishingGround>();
+                if (resolvedLandings == null)
+                {
+                    _unrecognizedFishingGrounds = new List<UnrecognizedFishingGround>();
+                }
+                else
+                {
+                    ResolvedLandingsFromUnrecognizedFishingGrounds = resolvedLandings;
+                }
             }
             UploadInProgress = false;
             return savedCount > 0;

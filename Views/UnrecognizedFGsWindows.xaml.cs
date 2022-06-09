@@ -17,7 +17,7 @@ using NSAP_ODK.Entities.Database;
 using System.IO;
 using NSAP_ODK.Entities;
 using System.Windows.Threading;
-
+using NSAP_ODK.Entities.Database.FromJson;
 namespace NSAP_ODK.Views
 {
     /// <summary>
@@ -65,17 +65,23 @@ namespace NSAP_ODK.Views
                 dataGrid.IsReadOnly = false;
                 dataGrid.CanUserAddRows = false;
                 dataGrid.SelectionUnit = DataGridSelectionUnit.Cell;
-                dataGrid.DataContext = _unrecognizedFishingGrounds.UnrecognizedFishingGrounds.OrderBy(t => t.SamplingDate).ToList();
+                dataGrid.DataContext = _unrecognizedFishingGrounds.UnrecognizedFishingGrounds
+                    .Where(t => t.SavedInLocalDatabase == false)
+                    .OrderBy(t => t.SamplingDate).ToList();
 
                 dataGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "Select", Binding = new Binding("Selected"), IsReadOnly = false });
+
                 var col = new DataGridTextColumn()
                 {
                     Binding = new Binding("SamplingDate"),
                     Header = "Date and time sampled"
                 };
+
                 col.Binding.StringFormat = "MMM-dd-yyyy HH:mm";
                 dataGrid.Columns.Add(col);
-                //dataGrid.Columns.Add(new DataGridTextColumn { Header = "RowID", Binding = new Binding("RowID") });
+
+
+                dataGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "Saved in database", Binding = new Binding("SavedInLocalDatabase"), IsReadOnly = true });
                 dataGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("Enumerator"), IsReadOnly = true });
                 dataGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("FishingVessel"), IsReadOnly = true });
                 dataGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing gear", Binding = new Binding("FishingGear"), IsReadOnly = true });
@@ -89,6 +95,7 @@ namespace NSAP_ODK.Views
             cboFMA.SelectionChanged += CboRegion_SelectionChanged;
             cboFishingGround.SelectionChanged += CboRegion_SelectionChanged;
             cboFishingGround.MouseDoubleClick += CboFishingGround_MouseDoubleClick;
+            progressLabel.Content = "";
         }
 
         public FishingGround NewFishingGround
@@ -223,21 +230,37 @@ namespace NSAP_ODK.Views
                     FillRegions();
                     break;
                 case "buttonUploadNow":
-                    List<Entities.Database.FromJson.VesselLanding> vesselLandings = new List<Entities.Database.FromJson.VesselLanding>();
+                    List<VesselLanding> vesselLandings = new List<VesselLanding>();
                     foreach (UnrecognizedFishingGround item in dataGrid.Items)
                     {
                         if (item.Selected)
                         {
                             item.FishingGroundCode = _selectedFG.Code;
                             item.VesselLanding.RegionFishingGroundID = _nrfg.RowID;
+
                             vesselLandings.Add(item.VesselLanding);
                         }
 
                     }
-                    Entities.Database.FromJson.VesselUnloadServerRepository.UploadSubmissionToDB += VesselUnloadServerRepository_UploadSubmissionToDB;
-                    await ((ODKResultsWindow)Owner).SetResolvedFishingGroundLandings(vesselLandings);
-                    Entities.Database.FromJson.VesselUnloadServerRepository.UploadSubmissionToDB -= VesselUnloadServerRepository_UploadSubmissionToDB;
-                    dataGrid.Items.Refresh();
+                    VesselUnloadServerRepository.UploadSubmissionToDB += VesselUnloadServerRepository_UploadSubmissionToDB;
+                    if (await ((ODKResultsWindow)Owner).SetResolvedFishingGroundLandings(vesselLandings))
+                    {
+
+                        var rls = VesselUnloadServerRepository.ResolvedLandingsFromUnrecognizedFishingGrounds;
+                        if (rls != null && rls.Count > 0)
+                        {
+                            foreach (UnrecognizedFishingGround item in dataGrid.Items)
+                            {
+
+                                item.VesselLanding = rls.FirstOrDefault(t => t._uuid == item.RowID);
+                                item.SavedInLocalDatabase = item.VesselLanding.SavedInLocalDatabase;
+                            }
+                        }
+
+                        dataGrid.Items.Refresh();
+                        buttonCancel.Content = "Close";
+                    }
+                    VesselUnloadServerRepository.UploadSubmissionToDB -= VesselUnloadServerRepository_UploadSubmissionToDB;
                     break;
                 case "buttonCancel":
                     Close();
@@ -349,7 +372,7 @@ namespace NSAP_ODK.Views
                     _savedCount = e.VesselUnloadTotalSavedCount;
 
 
-                    
+
                     break;
 
                 case UploadToDBIntent.StartOfUpload:

@@ -471,7 +471,7 @@ namespace NSAP_ODK.Views
                 if (!VesselUnloadServerRepository.CancelUpload)
                 {
                     var jm = (FileInfoJSONMetadata)jsonNode.Tag;
-                    if (string.IsNullOrEmpty(lastUploadedJSON) || UpdateJSONHistoryMode == UpdateJSONHistoryMode.UpdateAll || StartAtBeginningOfJSONDownloadList)
+                    if (string.IsNullOrEmpty(lastUploadedJSON) || UpdateJSONHistoryMode == UpdateJSONHistoryMode.UpdateReplaceExistingData || StartAtBeginningOfJSONDownloadList)
                     {
                         await ProcessHistoryJsonNode(jsonNode);
                     }
@@ -550,6 +550,7 @@ namespace NSAP_ODK.Views
             string jsonFolder = "";
             switch (((MenuItem)sender).Name)
             {
+                //opens a form that shows a table of sampled fish landings with fishing grounds not yet entered into the database
                 case "menuUnrecognizedFG":
                     if (_unrecognizedFishingGrounds.Count > 0)
                     {
@@ -557,16 +558,24 @@ namespace NSAP_ODK.Views
                         _unrecognizedFGAlredyViewed = true;
                     }
                     break;
+
+                //uploads all the json history files in the treeview.
                 case "menuUploadAllJsonHistoryFiles":
                     UploadJSONHistoryOptionsWindow ujhw = new UploadJSONHistoryOptionsWindow();
                     ujhw.Owner = this;
+                    ujhw.JSONFilesToUploadType = JSONFilesToUploadType.UploadTypeJSONHistoryFiles;
                     if ((bool)ujhw.ShowDialog())
                     {
                         VesselUnloadServerRepository.CancelUpload = false;
-                        if (UpdateJSONHistoryMode == UpdateJSONHistoryMode.UpdateAll)
+
+                        //if we need to replace existing data and then update all
+                        if (UpdateJSONHistoryMode == UpdateJSONHistoryMode.UpdateReplaceExistingData)
                         {
                             ClearTables(verboseMode: false);
                         }
+
+
+                        //call function which uploads all the json files that are listed in the treeview
                         try
                         {
                             await ProcessJSONHistoryNodes((TreeViewItem)treeViewJSONNavigator.SelectedItem);
@@ -577,8 +586,10 @@ namespace NSAP_ODK.Views
                         }
                     }
                     break;
-                case "menuReUploadJsonHistory":
 
+                //locate folder of JSON history files and lists them in a treeview
+                case "menuReUploadJsonHistory":
+                    ClearJSONTreeRootNodes();
                     int counter = 0;
                     jsonFolder = GetJSONFolder(savedHistory: true);
                     if (jsonFolder.Length > 0)
@@ -635,39 +646,45 @@ namespace NSAP_ODK.Views
 
 
                     break;
+
+                //when downloaded JSON of type download_all is selected
                 case "menuReuploadAll":
                     ujhw = new UploadJSONHistoryOptionsWindow();
+                    ujhw.JSONFilesToUploadType = JSONFilesToUploadType.UploadTypeDownloadedJsonDownloadAll;
                     ujhw.Owner = this;
                     if ((bool)ujhw.ShowDialog())
                     {
-                        if (UpdateJSONHistoryMode == UpdateJSONHistoryMode.UpdateAll)
+                        if (UpdateJSONHistoryMode == UpdateJSONHistoryMode.UpdateReplaceExistingData)
                         {
                             ClearTables(verboseMode: false);
                         }
                         await ProcessJSONSNodes();
                     }
-                    //    if (MessageBox.Show(
-                    //        "Do you want to re-upload the JSON files and replace all the fish landing sampling records in the database\r\n\r\n" +
-                    //        "This process will take a long time but will ensure that your data is clean and complete.\r\n" +
-                    //        "It is a good idea to backup or make a copy of the database before proceeding.",
 
-                    //        "NSAP-ODK Database",
-
-                    //        MessageBoxButton.YesNo,
-                    //        MessageBoxImage.Information) == MessageBoxResult.Yes)
-                    //{
-                    //    ClearTables(verboseMode: false);
-                    //    await ProcessJSONSNodes();
-                    //}
                     break;
                 case "menuUpdateXformIdentifier":
-                    await ProcessJSONSNodes(updateXFormID: true);
+                    ujhw = new UploadJSONHistoryOptionsWindow();
+                    ujhw.JSONFilesToUploadType = JSONFilesToUploadType.UploadTypeJSONHistoryUpdateXFormID;
+                    ujhw.Owner = this;
+                    if ((bool)ujhw.ShowDialog())
+                    {
+                        await ProcessJSONSNodes(updateXFormID: true);
+                    }
+                    
+
                     break;
 
                 case "menuUploadAllJsonFiles":
-                    await ProcessJSONSNodes();
+                    ujhw = new UploadJSONHistoryOptionsWindow();
+                    ujhw.JSONFilesToUploadType = JSONFilesToUploadType.UploadTypeDownloadedJsonNotDownloaded;
+                    ujhw.Owner = this;
+                    if ((bool)ujhw.ShowDialog())
+                    {
+                        await ProcessJSONSNodes();
+                    }
                     break;
                 case "menuUploadJson":
+                    ClearJSONTreeRootNodes();
                     _rootChildrenHeadersHashSet.Clear();
                     jsonFolder = GetJSONFolder(savedHistory: false);
                     if (jsonFolder.Length > 0)
@@ -886,7 +903,7 @@ namespace NSAP_ODK.Views
             bool proceed = false;
             if (Global.Settings.UsemySQL)
             {
-                proceed = NSAPMysql.MySQLConnect.DeleteDataFromTables(useScript:true);
+                proceed = NSAPMysql.MySQLConnect.DeleteDataFromTables(useScript: true);
             }
             else if (NSAPEntities.ClearNSAPDatabaseTables())
             {
@@ -2121,41 +2138,48 @@ namespace NSAP_ODK.Views
             _isJSONData = false;
             _jsonDateDownloadnode = null;
 
-            string itemTag = ((TreeViewItem)treeViewJSONNavigator.SelectedItem).Tag?.ToString();
-            switch (itemTag)
+            if (treeViewJSONNavigator.HasItems)
             {
-                case "NSAP_ODK.Entities.Database.FileInfoJSONMetadata":
-                    ProcessJsonFileForDisplay((FileInfoJSONMetadata)((TreeViewItem)e.NewValue).Tag);
-                    break;
-                case "NSAP_ODK.Entities.Database.DownloadedJsonMetadata":
-                    ShowJSONMetadata((DownloadedJsonMetadata)((TreeViewItem)treeViewJSONNavigator.SelectedItem).Tag);
-                    _jsonFileForUploadCount = ((TreeViewItem)treeViewJSONNavigator.SelectedItem).Items.Count;
-                    break;
-                default:
-                    try
-                    {
-                        if (File.Exists(itemTag))
+                string itemTag = ((TreeViewItem)treeViewJSONNavigator.SelectedItem).Tag?.ToString();
+                switch (itemTag)
+                {
+                    case "NSAP_ODK.Entities.Database.FileInfoJSONMetadata":
+                        ProcessJsonFileForDisplay((FileInfoJSONMetadata)((TreeViewItem)e.NewValue).Tag);
+                        break;
+                    case "NSAP_ODK.Entities.Database.DownloadedJsonMetadata":
+                        ShowJSONMetadata((DownloadedJsonMetadata)((TreeViewItem)treeViewJSONNavigator.SelectedItem).Tag);
+                        _jsonFileForUploadCount = ((TreeViewItem)treeViewJSONNavigator.SelectedItem).Items.Count;
+                        break;
+                    default:
+                        try
                         {
-                            FileInfoJSONMetadata fjmd = new FileInfoJSONMetadata { JSONFile = new FileInfo(itemTag) };
-                            _jsonFileUseCreationDateForHistory = fjmd.JSONFile.CreationTime;
-                            ProcessJsonFileForDisplay(fjmd);
+                            if (File.Exists(itemTag))
+                            {
+                                FileInfoJSONMetadata fjmd = new FileInfoJSONMetadata { JSONFile = new FileInfo(itemTag) };
+                                _jsonFileUseCreationDateForHistory = fjmd.JSONFile.CreationTime;
+                                ProcessJsonFileForDisplay(fjmd);
+                            }
                         }
-                    }
-                    catch
-                    {
-                        //ignore
-                    }
-                    break;
+                        catch
+                        {
+                            //ignore
+                        }
+                        break;
 
-            }
+                }
 
-            if (DateTime.TryParse(((TreeViewItem)treeViewJSONNavigator.SelectedItem).Header.ToString(), out DateTime v))
-            {
-                _jsonDateDownloadnode = treeViewJSONNavigator.SelectedItem as TreeViewItem;
+                if (DateTime.TryParse(((TreeViewItem)treeViewJSONNavigator.SelectedItem).Header.ToString(), out DateTime v))
+                {
+                    _jsonDateDownloadnode = treeViewJSONNavigator.SelectedItem as TreeViewItem;
+                }
             }
 
         }
 
+        private void ClearJSONTreeRootNodes()
+        {
+            treeViewJSONNavigator.Items.Clear();
+        }
         private void ShowJSONMetadata(DownloadedJsonMetadata djmd)
         {
             labelJSONFile.Content = $"Metadata for selected downloaded JSON files downloaded on {djmd.DateDownloaded:MMM-dd-yyyy HH:mm}";
@@ -2169,14 +2193,13 @@ namespace NSAP_ODK.Views
             ContextMenu cm = new ContextMenu();
             MenuItem m = null;
             string tag = ((TreeViewItem)treeViewJSONNavigator.SelectedItem).Tag?.ToString();
-            //if (tag == "date_download")
+
             if (DateTime.TryParse(((TreeViewItem)treeViewJSONNavigator.SelectedItem).Header.ToString(), out DateTime v))
             {
-                m = new MenuItem { Header = "Upload all", Name = "menuUploadAllJsonFiles" };
-                m.Click += OnMenuClick;
-                cm.Items.Add(m);
 
                 var metadata = (DownloadedJsonMetadata)((TreeViewItem)treeViewJSONNavigator.SelectedItem).Tag;
+
+                //when the date node of downloaded JSON file tree node is selected 
                 if (metadata.DownloadType == "all")
                 {
 
@@ -2188,6 +2211,13 @@ namespace NSAP_ODK.Views
                     m.Click += OnMenuClick;
                     cm.Items.Add(m);
                 }
+                else
+                {
+                    //when root node of json tree view of downloaded JSON is selected but download type is not download all from server
+                    m = new MenuItem { Header = "Upload all", Name = "menuUploadAllJsonFiles" };
+                    m.Click += OnMenuClick;
+                    cm.Items.Add(m);
+                }
 
             }
             else if (File.Exists(tag))
@@ -2195,6 +2225,8 @@ namespace NSAP_ODK.Views
                 FileInfo fi = new FileInfo(tag);
                 if (fi.Extension.ToLower() == ".json")
                 {
+
+                    //when a single history json node is clicked in the treeview
                     _isJSONData = true;
                     m = new MenuItem { Header = "Upload", Name = "menuUploadJsonFile" };
                     m.Click += OnMenuClick;
@@ -2203,12 +2235,15 @@ namespace NSAP_ODK.Views
             }
             else if (tag != null && tag.Contains("FileInfoJSONMetadata"))
             {
+
+                //when a singel downloaded JSON file is selected
                 m = new MenuItem { Header = "Upload", Name = "menuUploadJsonFile" };
                 m.Click += OnMenuClick;
                 cm.Items.Add(m);
             }
             else if (((TreeViewItem)treeViewJSONNavigator.SelectedItem).Header.ToString() == "Upload history JSON files")
             {
+                //when root node of history json tree view is clicked
                 m = new MenuItem { Header = "Upload all", Name = "menuUploadAllJsonHistoryFiles" };
                 m.Click += OnMenuClick;
                 cm.Items.Add(m);

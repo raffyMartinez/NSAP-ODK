@@ -114,7 +114,7 @@
                                     <RadioButton Tag="download_by_week" VerticalAlignment="Center" Checked="OnButtonChecked" x:Name="rbDownloadByPastWeeks" MouseDown="OnRadioButtonMouseDown" IsThreeState="True"/>
                                     <Label Content="Download data starting "/>
                                     <TextBox Height="20" Width="40" IsEnabled="False" Text="7" x:Name="txtDaysToDownload"/>
-                                    <Label Content=" days past the present date"/>
+                                    <Label Content=" days before the present date"/>
                                 </WrapPanel>                                
                                 <RadioButton Content="Update data of database column" Margin="10 5" Checked="OnButtonChecked" Tag="download_all_for_review"/>
                                 <WrapPanel x:Name="panelDownloadAgain" Visibility="Visible">

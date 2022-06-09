@@ -14,10 +14,18 @@ using System.Windows.Shapes;
 
 namespace NSAP_ODK.Views
 {
+
+    public enum JSONFilesToUploadType
+    {
+        UploadTypeDownloadedJsonDownloadAll,
+        UploadTypeDownloadedJsonNotDownloaded,
+        UploadTypeJSONHistoryFiles,
+        UploadTypeJSONHistoryUpdateXFormID
+    }
     public enum UpdateJSONHistoryMode
     {
         UpdateNoneSelected,
-        UpdateAll,
+        UpdateReplaceExistingData,
         UpdateMissingData
     }
     /// <summary>
@@ -25,12 +33,49 @@ namespace NSAP_ODK.Views
     /// </summary>
     public partial class UploadJSONHistoryOptionsWindow : Window
     {
+        private bool _ignoreControls = false;
         public UploadJSONHistoryOptionsWindow()
         {
             InitializeComponent();
+            Loaded += UploadJSONHistoryOptionsWindow_Loaded;
         }
 
+        public JSONFilesToUploadType JSONFilesToUploadType { get; set; }
 
+        private void UploadJSONHistoryOptionsWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            panelControls.Visibility = Visibility.Visible;
+
+            switch (JSONFilesToUploadType)
+            {
+                case JSONFilesToUploadType.UploadTypeDownloadedJsonDownloadAll:
+                    labelTitle.Content = "Select what to do with JSON files";
+                    chkStartAtBeginning.Visibility = Visibility.Collapsed;
+                    labelPrompt.Visibility = Visibility.Collapsed;
+                    break;
+                case JSONFilesToUploadType.UploadTypeDownloadedJsonNotDownloaded:
+                    labelTitle.Content = "Select what to do with JSON files";
+                    chkStartAtBeginning.Visibility = Visibility.Collapsed;
+                    panelControls.Visibility = Visibility.Collapsed;
+                    labelPrompt.Text = "Select OK to update missing sampled vessel landings in the database";
+                    _ignoreControls = true;
+                    break;
+                case JSONFilesToUploadType.UploadTypeJSONHistoryFiles:
+                    labelTitle.Content = "Select what to do with JSON history files";
+                    chkStartAtBeginning.Visibility = Visibility.Visible;
+                    labelPrompt.Visibility = Visibility.Collapsed;
+                    break;
+                case JSONFilesToUploadType.UploadTypeJSONHistoryUpdateXFormID:
+                    labelTitle.Content = "Select what to do with JSON files";
+                    chkStartAtBeginning.Visibility = Visibility.Collapsed;
+                    panelControls.Visibility = Visibility.Collapsed;
+                    labelPrompt.Text = "Select OK to update missing XFormIdentifiers in the saved sampled landings in the database";
+                    _ignoreControls = true;
+                    break;
+            }
+        }
+
+        public bool IsHistoryJSON { get; set; }
         private void OnButtonClicked(object sender, RoutedEventArgs e)
         {
             switch (((Button)sender).Name)
@@ -39,7 +84,7 @@ namespace NSAP_ODK.Views
                     bool proceed = true;
                     if ((bool)rbReplace.IsChecked)
                     {
-                        ((ODKResultsWindow)Owner).UpdateJSONHistoryMode = UpdateJSONHistoryMode.UpdateAll;
+                        ((ODKResultsWindow)Owner).UpdateJSONHistoryMode = UpdateJSONHistoryMode.UpdateReplaceExistingData;
                     }
                     else if ((bool)rbUpdateMissing.IsChecked)
                     {
@@ -47,11 +92,13 @@ namespace NSAP_ODK.Views
                     }
                     else
                     {
-                        proceed = false;
+
+                        proceed = _ignoreControls;
                     }
+
                     if (proceed)
                     {
-                        ((ODKResultsWindow)Owner).StartAtBeginningOfJSONDownloadList = (bool)chkStartAtBeginning.IsChecked;
+                        ((ODKResultsWindow)Owner).StartAtBeginningOfJSONDownloadList = _ignoreControls && (bool)chkStartAtBeginning.IsChecked;
                         DialogResult = true;
                     }
                     else

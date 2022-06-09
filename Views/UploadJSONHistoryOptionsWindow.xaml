@@ -15,11 +15,14 @@
             <ColumnDefinition/>
             <ColumnDefinition Width="100"/>
         </Grid.ColumnDefinitions>
-        <Label Content="Select what to do with upload history JSON files" Grid.ColumnSpan="2" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold"/>
+        <Label Content="Select what to do with upload history JSON files" Grid.ColumnSpan="2" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold" x:Name="labelTitle"/>
         <StackPanel Grid.Row="1" Margin="10">
-            <RadioButton Content="Replace entire content of database" Margin="0 5" ToolTip="Fish landing records will be erased and replaced by JSON files" x:Name="rbReplace"/>
-            <RadioButton Content="Update missing content of database" Margin="0 5" ToolTip="Fish landing records are not erased and only missing data is updated" x:Name="rbUpdateMissing"/>
-            <CheckBox Content="Start at the beginning of the list" x:Name="chkStartAtBeginning" Margin="0 8 0 0"/>
+            <StackPanel x:Name="panelControls" Visibility="Collapsed">
+                <RadioButton Content="Replace entire content of database" Margin="0 5" ToolTip="Fish landing records will be erased and replaced by JSON files" x:Name="rbReplace" />
+                <RadioButton Content="Update missing content of database" Margin="0 5" ToolTip="Fish landing records are not erased and only missing data is updated" x:Name="rbUpdateMissing" />
+                <CheckBox Content="Start at the beginning of the list" x:Name="chkStartAtBeginning" Margin="0 8 0 0" />
+            </StackPanel>
+            <TextBlock Text="Select Ok to replace missing content of database" x:Name="labelPrompt" TextWrapping="Wrap"/>
         </StackPanel>
         <StackPanel Grid.Row="1" Grid.Column="1" Margin="10">
             <Button Content="Ok" Height="25" Width="60" Margin="0 5" IsDefault="True" x:Name="buttonOk" Click="OnButtonClicked"/>
