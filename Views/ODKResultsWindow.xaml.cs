@@ -56,6 +56,13 @@ namespace NSAP_ODK.Views
         public string JSON { get; set; }
         public string FormID { get; set; }
 
+        public void OpenLogInWindow(bool isOpen=false)
+        {
+            if(isOpen)
+            {
+                OpenServerWindow(refreshDBSummary:true);
+            }
+        }
         public string Version { get; set; }
 
         public string Description { get; set; }
@@ -848,13 +855,7 @@ namespace NSAP_ODK.Views
                     break;
 
                 case "menuDownloadFromServer":
-                    ResetView();
-
-                    rowGrid.Height = new GridLength(1, GridUnitType.Star);
-                    serverForm = new DownloadFromServerWindow(this);
-                    VesselUnloadServerRepository.ResetLists();
-                    serverForm.Owner = this;
-                    serverForm.ShowDialog();
+                    OpenServerWindow();
                     break;
 
                 case "menuClearTables":
@@ -876,7 +877,17 @@ namespace NSAP_ODK.Views
                     break;
             }
         }
+        private void OpenServerWindow(bool refreshDBSummary = false)
+        {
+            var serverForm = new DownloadFromServerWindow(this);
+            ResetView();
 
+            rowGrid.Height = new GridLength(1, GridUnitType.Star);
+            VesselUnloadServerRepository.ResetLists();
+            serverForm.Owner = this;
+            serverForm.RefreshDatabaseSummry = refreshDBSummary;
+            serverForm.ShowDialog();
+        }
         public async Task<bool> SetResolvedFishingGroundLandings(List<VesselLanding> resolvedLandings)
         {
             VesselUnloadServerRepository.UploadSubmissionToDB -= OnUploadSubmissionToDB;

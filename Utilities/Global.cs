@@ -193,7 +193,6 @@ namespace NSAP_ODK.Utilities
             NSAPEntities.LandingSiteSamplingViewModel = new LandingSiteSamplingViewModel();
             EntityLoaded?.Invoke(null, new EntityLoadedEventArg {  Count = NSAPEntities.LandingSiteSamplingViewModel.Count });
 
-
             EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "Summary item" });
             NSAPEntities.SummaryItemViewModel = new SummaryItemViewModel();
             EntityLoaded?.Invoke(null, new EntityLoadedEventArg { Count = NSAPEntities.SummaryItemViewModel.Count });
@@ -202,18 +201,6 @@ namespace NSAP_ODK.Utilities
             NSAPEntities.KoboServerViewModel = new KoboServerViewModel();
             EntityLoaded?.Invoke(null, new EntityLoadedEventArg { Count = NSAPEntities.KoboServerViewModel.Count() });
 
-
-
-            //NSAPEntities.GearUnloadViewModel = new GearUnloadViewModel();
-            //NSAPEntities.VesselUnloadViewModel = new VesselUnloadViewModel();
-            //NSAPEntities.VesselEffortViewModel = new VesselEffortViewModel();
-            //NSAPEntities.VesselCatchViewModel = new VesselCatchViewModel();
-            //NSAPEntities.GearSoakViewModel = new GearSoakViewModel();
-            //NSAPEntities.FishingGroundGridViewModel = new FishingGroundGridViewModel();
-            //NSAPEntities.CatchLenFreqViewModel = new CatchLenFreqViewModel();
-            //NSAPEntities.CatchLengthWeightViewModel = new CatchLengthWeightViewModel();
-            //NSAPEntities.CatchLengthViewModel = new CatchLengthViewModel();
-            //NSAPEntities.CatchMaturityViewModel = new CatchMaturityViewModel();
             NSAPEntities.DBSummary = new DBSummary();
             NSAPEntities.DatabaseEnumeratorSummary = new DatabaseEnumeratorSummary();
             NSAPEntities.JSONFileViewModel = new JSONFileViewModel();

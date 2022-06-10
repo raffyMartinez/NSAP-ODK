@@ -934,6 +934,17 @@ namespace NSAP_ODK.Entities.Database
         {
             LastPrimaryKeys = SummaryItems.GetLastPrimaryKeys();
         }
+
+        public List<string>GetXFormIDList()
+        {
+            List<string> list = new List<string>();
+            foreach(var item in SummaryItemCollection.GroupBy(t => t.XFormIdentifier))
+            {
+                list.Add(item.Key);
+            }
+            return list;
+        }
+
         public LastPrimaryKeys LastPrimaryKeys { get; set; }
         public SummaryItemViewModel()
         {

@@ -112,6 +112,7 @@ namespace NSAP_ODK
             {
                 NSAPEntities.SummaryItemViewModel.BuildingSummaryTable -= SummaryItemViewModel_BuildingSummaryTable;
                 NSAPEntities.SummaryItemViewModel.BuildingOrphanedEntity -= SummaryItemViewModel_BuildingOrphanedEntity;
+                DownloadFromServerWindow.RefreshDatabaseSummaryTable -= DownloadFromServerWindow_RefreshDatabaseSummaryTable;
             }
             _httpClient.Dispose();
         }
@@ -149,6 +150,7 @@ namespace NSAP_ODK
             panelVersionStats.Visibility = Visibility.Collapsed;
             rowSummary.Height = new GridLength(1, GridUnitType.Star);
             propertyGridSummary.Visibility = Visibility.Collapsed;
+            panelSummaryTableHint.Visibility = Visibility.Collapsed;
 
 
 
@@ -324,7 +326,9 @@ namespace NSAP_ODK
                             MessageBoxImage.Information
                             );
                     }
+                    panelSummaryTableHint.Visibility = Visibility.Visible;
                     break;
+
             }
 
 
@@ -365,6 +369,7 @@ namespace NSAP_ODK
                         {
                             NSAPEntities.SummaryItemViewModel.BuildingSummaryTable += SummaryItemViewModel_BuildingSummaryTable;
                             NSAPEntities.SummaryItemViewModel.BuildingOrphanedEntity += SummaryItemViewModel_BuildingOrphanedEntity;
+                            DownloadFromServerWindow.RefreshDatabaseSummaryTable += DownloadFromServerWindow_RefreshDatabaseSummaryTable;
                         }
                     }
                     else
@@ -2370,19 +2375,11 @@ namespace NSAP_ODK
         }
         private void ShowNSAPCalendar()
         {
-            //if (!_saveChangesToGearUnload &&
-            //        NSAPEntities.GearUnloadViewModel.CopyOfGearUnloadList != null &&
-            //        NSAPEntities.GearUnloadViewModel.CopyOfGearUnloadList.Count > 0
-            //    )
-            //{
-            //    UndoChangesToGearUnload(refresh: false);
-            //}
-
             _currentDisplayMode = DataDisplayMode.ODKData;
             ColumnForTreeView.Width = new GridLength(2, GridUnitType.Star);
             SetDataDisplayMode();
         }
-        private void ShowImportWindow()
+        private void ShowImportWindow(bool openLogInWindow = false)
         {
             var window = ODKResultsWindow.GetInstance();
             if (window.IsVisible)
@@ -2395,6 +2392,14 @@ namespace NSAP_ODK
                 window.Owner = this;
                 window.ParentWindow = this;
             }
+
+            window.OpenLogInWindow(isOpen: openLogInWindow);
+        }
+
+        private void DownloadFromServerWindow_RefreshDatabaseSummaryTable()
+        {
+            dataGridEFormVersionStats.DataContext = null;
+            dataGridEFormVersionStats.DataContext = NSAPEntities.KoboServerViewModel.KoboserverCollection.ToList();
         }
 
         public void RefreshSummary()
@@ -3694,6 +3699,11 @@ namespace NSAP_ODK
             ScrollViewer scv = (ScrollViewer)sender;
             scv.ScrollToVerticalOffset(scv.VerticalOffset - e.Delta);
             e.Handled = true;
+        }
+
+        private void OnTextBlockMouseUp(object sender, MouseButtonEventArgs e)
+        {
+            ShowImportWindow(openLogInWindow: true);
         }
     }
 }

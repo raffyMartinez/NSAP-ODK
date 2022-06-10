@@ -7,7 +7,7 @@
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:local="clr-namespace:NSAP_ODK"
         mc:Ignorable="d"
-        Title="NSAP-ODK Fish Landings Database" WindowState="Maximized" Height="815.2">
+        Title="NSAP-ODK Fish Landings Database" WindowState="Maximized" Height="815.2" Width="1788">
 
     <Window.Resources>
         <Style TargetType="{x:Type DataGridRowHeader}">
@@ -137,7 +137,7 @@
                 <MenuItem Header="Settings" x:Name="menuFileSettings" Click="OnMenuClicked"/>
                 <MenuItem Header="_Exit" x:Name="menuExit2" Click="OnMenuClicked" />
             </MenuItem>
-                
+
             <MenuItem Header="_Help">
                 <MenuItem Header="About this software" x:Name="menuAbout" Click="OnMenuClicked" />
             </MenuItem>
@@ -301,6 +301,10 @@
 
                     <StackPanel x:Name="panelVersionStats" Visibility="Collapsed" >
                         <DataGrid x:Name="dataGridEFormVersionStats"  ItemsSource="{Binding}" IsReadOnly="True" LoadingRow="Grid_LoadingRow"/>
+                        <WrapPanel Visibility="Collapsed" x:Name="panelSummaryTableHint" >
+                            <TextBlock Text="Log-in" x:Name="labelLink" MouseUp="OnTextBlockMouseUp" Style="{StaticResource HoverUnderlineStyle}" VerticalAlignment="Center"/>
+                            <Label Content="to kobotoolbox.org to refresh data in this table" />
+                        </WrapPanel>
                     </StackPanel>
                 </StackPanel>
             </ScrollViewer>

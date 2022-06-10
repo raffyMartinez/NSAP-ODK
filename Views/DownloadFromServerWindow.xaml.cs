@@ -42,6 +42,10 @@ namespace NSAP_ODK.Views
     /// 
     public partial class DownloadFromServerWindow : Window
     {
+        public static event Action RefreshDatabaseSummaryTable;
+
+
+
         private int? _numberToDownloadPerBatch;
         private List<KoboForm> _koboForms;
         private string _user;
@@ -82,6 +86,8 @@ namespace NSAP_ODK.Views
             base.OnSourceInitialized(e);
             this.ApplyPlacement();
         }
+
+        public bool RefreshDatabaseSummry { get; set; }
         private void AddFormIDToTree()
         {
             treeForms.Items.Clear();
@@ -106,6 +112,10 @@ namespace NSAP_ODK.Views
                 ((TreeViewItem)treeForms.Items[0]).IsSelected = true;
                 ((TreeViewItem)treeForms.Items[0]).IsExpanded = true;
                 GridGrids.Visibility = Visibility.Visible;
+                if(RefreshDatabaseSummry)
+                {
+                    RefreshDatabaseSummaryTable();
+                }
             }
         }
 
