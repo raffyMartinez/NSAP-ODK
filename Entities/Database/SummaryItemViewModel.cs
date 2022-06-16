@@ -21,11 +21,12 @@ namespace NSAP_ODK.Entities.Database
 
         public event EventHandler<BuildSummaryReportEventArg> BuildingSummaryTable;
         public event EventHandler<BuildOrphanedEntityEventArg> BuildingOrphanedEntity;
+
         public bool UpdateRecordsInRepo(GearUnload gu)
         {
             int counter = 0;
             foreach (SummaryItem si in SummaryItemCollection
-                        .Where(t => t.GearCode.Length == 0 && t.GearText == gu.GearUsedText))
+                        .Where(t => t.GearCode?.Length == 0 && t.GearText == gu.GearUsedText))
             {
                 si.SamplingDayID = gu.Parent.PK;
                 si.GearCode = gu.GearID;
@@ -53,6 +54,16 @@ namespace NSAP_ODK.Entities.Database
         public Task<List<OrphanedFishingGear>> GetOrphanedFishingGearsAsync()
         {
             return Task.Run(() => GetOrphanedFishingGears());
+        }
+
+        public List<string> RowIDs_SamplingsWithMissingLandingSiteInformation()
+        {
+            List<string> row_ids = new List<string>();
+            foreach (var item in SummaryItemCollection.Where(t => t.LandingSiteID == null && string.IsNullOrEmpty(t.LandingSiteText)))
+            {
+                row_ids.Add(item.ODKRowID);
+            }
+            return row_ids;
         }
         public List<OrphanedFishingGear> GetOrphanedFishingGears()
         {
@@ -116,7 +127,112 @@ namespace NSAP_ODK.Entities.Database
         {
             return Task.Run(() => GetOrphanedLandingSites());
         }
+
         public List<OrphanedLandingSite> GetOrphanedLandingSites()
+        {
+            ProceessBuildOrphanedEntitiesEvent(status: BuildOrphanedEntityStatus.StatusBuildStart, isIndeterminate: true);
+            List<OrphanedLandingSite> thisList = new List<OrphanedLandingSite>();
+            int counter = 0;
+
+
+            var orphanedLandingSites = SummaryItemCollection.Where(t => t.LandingSiteID == null)
+                .OrderBy(t => t.LandingSiteText)
+                .GroupBy(t => new
+                {
+                    LandingSiteName = t.LandingSiteText,
+                    Enumerator = t.EnumeratorNameToUse,
+                    Region = t.Region,
+                    FMA = t.FMA,
+                    FishingGround = NSAPEntities.FishingGroundViewModel.GetFishingGround(t.FishingGroundID),
+                })
+                .Select(ls => new
+                {
+                    LandingSiteName = ls.Key.LandingSiteName,
+                    Enumerator = ls.Key.Enumerator,
+                    Region = ls.Key.Region,
+                    FMA = ls.Key.FMA,
+                    FishingGround = ls.Key.FishingGround
+                }).ToList();
+
+            ProceessBuildOrphanedEntitiesEvent(status: BuildOrphanedEntityStatus.StatusBuildFirstRecordFound, totalRows: orphanedLandingSites.Count());
+
+
+            foreach (var item in orphanedLandingSites)
+            {
+                //var landingSiteSamplings = new List<LandingSiteSampling>();
+                var orphan = new OrphanedLandingSite
+                {
+                    EnumeratorName = item.Enumerator,
+                    LandingSiteName = item.LandingSiteName,
+                    Region = item.Region,
+                    FMA = item.FMA,
+                    FishingGround = item.FishingGround,
+                    LandingSiteSamplings = GetLandingSiteSamplings(item.Enumerator, item.LandingSiteName)
+                };
+                //foreach (var sd in item)
+                //{
+                //    landingSiteSamplings.Add(NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection.FirstOrDefault(t => t.PK == sd.SamplingDayID));
+                //}
+                //orphan.LandingSiteSamplings = landingSiteSamplings;
+                thisList.Add(orphan);
+                counter++;
+                ProceessBuildOrphanedEntitiesEvent(status: BuildOrphanedEntityStatus.StatusBuildFetchedRow, currentRow: counter);
+            }
+
+            ProceessBuildOrphanedEntitiesEvent(status: BuildOrphanedEntityStatus.StatusBuildEnd, totalRowsFetched: counter);
+            return thisList;
+        }
+
+        public List<LandingSiteSampling> GetLandingSiteSamplings(string enumerator, string landingSiteName)
+        {
+            List<int> samplingDayIDs = new List<int>();
+            List<LandingSiteSampling> lss = new List<LandingSiteSampling>();
+            foreach (var item in SummaryItemCollection.Where(t => t.EnumeratorNameToUse == enumerator && t.LandingSiteNameText == landingSiteName))
+            {
+                if (!samplingDayIDs.Contains(item.SamplingDayID))
+                {
+                    samplingDayIDs.Add(item.SamplingDayID);
+                }
+            }
+
+            foreach (var item in samplingDayIDs)
+            {
+                lss.Add(NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(item));
+            }
+            return lss;
+        }
+        public List<OrphanedLandingSite> GetOrphanedLandingSitesex()
+        {
+            ProceessBuildOrphanedEntitiesEvent(status: BuildOrphanedEntityStatus.StatusBuildStart, isIndeterminate: true);
+            List<OrphanedLandingSite> thisList = new List<OrphanedLandingSite>();
+            int counter = 0;
+
+
+            var orphanedLandingSites = SummaryItemCollection.Where(t => t.LandingSiteID == null)
+                .OrderBy(t => t.LandingSiteText)
+                .GroupBy(t => t.LandingSiteText);
+
+            ProceessBuildOrphanedEntitiesEvent(status: BuildOrphanedEntityStatus.StatusBuildFirstRecordFound, totalRows: orphanedLandingSites.Count());
+
+
+            foreach (var item in orphanedLandingSites)
+            {
+                var landingSiteSamplings = new List<LandingSiteSampling>();
+                var orphan = new OrphanedLandingSite { LandingSiteName = item.Key };
+                foreach (var sd in item)
+                {
+                    landingSiteSamplings.Add(NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection.FirstOrDefault(t => t.PK == sd.SamplingDayID));
+                }
+                orphan.LandingSiteSamplings = landingSiteSamplings;
+                thisList.Add(orphan);
+                counter++;
+                ProceessBuildOrphanedEntitiesEvent(status: BuildOrphanedEntityStatus.StatusBuildFetchedRow, currentRow: counter);
+            }
+
+            ProceessBuildOrphanedEntitiesEvent(status: BuildOrphanedEntityStatus.StatusBuildEnd, totalRowsFetched: counter);
+            return thisList;
+        }
+        public List<OrphanedLandingSite> GetOrphanedLandingSites1()
         {
             ProceessBuildOrphanedEntitiesEvent(status: BuildOrphanedEntityStatus.StatusBuildStart, isIndeterminate: true);
             List<OrphanedLandingSite> thisList = new List<OrphanedLandingSite>();
@@ -246,6 +362,46 @@ namespace NSAP_ODK.Entities.Database
             return SummaryItemCollection.Count(t => t.XFormIdentifier == xFormID);
         }
 
+        public int CountLandingsWithOrphanedEnumerators()
+        {
+            return SummaryItemCollection.Count(t => t.EnumeratorID == null && t.EnumeratorText.Length > 0);
+        }
+
+        public int CountLandingsWithOrphanedGears()
+        {
+            int count = 0;
+            foreach (var grouping_gu in SummaryItemCollection.GroupBy(t => t.GearUnloadID))
+            {
+                var gu_first = grouping_gu.First();
+                if (string.IsNullOrEmpty(gu_first.GearCode) && gu_first.GearText.Length > 0)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        public int CountLandingsWithOrphanedLandingSites()
+        {
+            int count = 0;
+            foreach (var grouping_ls in SummaryItemCollection.Where(t => t.LandingSiteID == null).GroupBy(t => t.LandingSiteText))
+            {
+                count += grouping_ls.Count();
+                //var ls_first = grouping_ls.First();
+                //if (ls_first.LandingSiteID == null || (ls_first.LandingSiteID == null && ls_first.LandingSiteText.Length == 0))
+                //{
+                //    count++;
+                //}
+            }
+
+            return count;
+        }
+
+        public int CountLandingsWithOrphanedFishingVessels()
+        {
+            return SummaryItemCollection.Count(t => t.VesselID == null && t.VesselText?.Length > 0);
+        }
         public bool UpdateRecordInRepo(string rowID, string xFormID)
         {
             bool success = false;
@@ -260,7 +416,7 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
-        public bool UpdateRecordInRepo(VesselUnload vu, bool updateXFormID = false)
+        public bool UpdateRecordInRepo(VesselUnload vu, bool updateXFormID = false, bool updateEnumerators = false)
         {
             bool success = false;
             SummaryItem item = null;
@@ -275,6 +431,12 @@ namespace NSAP_ODK.Entities.Database
                 {
                     //ignore
                 }
+            }
+            else if (updateEnumerators)
+            {
+                var si = SummaryItemCollection.FirstOrDefault(t => t.ODKRowID == vu.ODKRowID);
+                si.EnumeratorID = vu.NSAPEnumeratorID;
+                success = true;
             }
             else
             {
@@ -299,8 +461,23 @@ namespace NSAP_ODK.Entities.Database
             //}
             return ct;
         }
+        public List<SummaryItem> GetSummaryItems(string enumenratorName, string landingSiteName)
+        {
+            return SummaryItemCollection.Where(t => t.EnumeratorID == null && t.EnumeratorText == enumenratorName && t.LandingSiteNameText == landingSiteName).ToList();
+        }
 
         public List<VesselUnload> GetSampledVesselUnloads(string enumeratorName, string landingSiteName)
+        {
+            List<VesselUnload> this_list = new List<VesselUnload>();
+            foreach (var item in SummaryItemCollection.Where(t => t.EnumeratorID == null && t.EnumeratorText == enumeratorName && t.LandingSiteNameText == landingSiteName))
+            {
+                this_list.Add(new VesselUnload { PK = item.VesselUnloadID, ODKRowID = item.ODKRowID });
+                //this_list.Add(item.VesselUnload);
+            }
+
+            return this_list;
+        }
+        public List<VesselUnload> GetSampledVesselUnloads1(string enumeratorName, string landingSiteName)
         {
             List<VesselUnload> this_list = new List<VesselUnload>();
             foreach (var item in SummaryItemCollection.Where(t => t.EnumeratorText == enumeratorName && t.LandingSiteNameText == landingSiteName))
@@ -313,6 +490,7 @@ namespace NSAP_ODK.Entities.Database
             return this_list;
         }
 
+        public VesselUnload VesselUnload { get; private set; }
         public List<OrphanedEnumerator> OrphanedEnumerators
         {
             get { return _orphanedEnumerators; }
@@ -345,7 +523,52 @@ namespace NSAP_ODK.Entities.Database
         {
             return Task.Run(() => GetOrphanedEnumerators());
         }
+
         public List<OrphanedEnumerator> GetOrphanedEnumerators()
+        {
+            ProceessBuildOrphanedEntitiesEvent(status: BuildOrphanedEntityStatus.StatusBuildStart, isIndeterminate: true);
+            List<OrphanedEnumerator> a_list = new List<OrphanedEnumerator>();
+            var vesselUnloadsWithOrphanedEnumerators = SummaryItemCollection
+               .Where(t => t.EnumeratorID == null && t.EnumeratorText.Length > 0)
+               .GroupBy(t => new
+               {
+                   LandingSiteName = t.LandingSiteNameText,
+                   EnumeratorName = t.EnumeratorNameToUse,
+                   FMA = t.FMA,
+                   Region = t.Region,
+                   FishingGround = t.FishingGround
+               })
+               .Select(enumerator => new
+               {
+                   LandingSiteName = enumerator.Key.LandingSiteName,
+                   EnumeratorName = enumerator.Key.EnumeratorName,
+                   FMA = enumerator.Key.FMA,
+                   Region = enumerator.Key.Region,
+                   FishingGround = enumerator.Key.FishingGround,
+               }).ToList();
+
+            int counter = 0;
+            ProceessBuildOrphanedEntitiesEvent(status: BuildOrphanedEntityStatus.StatusBuildFirstRecordFound, totalRows: vesselUnloadsWithOrphanedEnumerators.Count);
+            foreach (var item in vesselUnloadsWithOrphanedEnumerators)
+            {
+                var orphan = new OrphanedEnumerator
+                {
+                    Name = item.EnumeratorName,
+                    SampledLandings = GetSampledVesselUnloads(item.EnumeratorName, item.LandingSiteName),
+                    Region = item.Region,
+                    FMA = item.FMA,
+                    FishingGround = item.FishingGround,
+                    LandingSiteName = item.LandingSiteName,
+                };
+                a_list.Add(orphan);
+                counter++;
+                ProceessBuildOrphanedEntitiesEvent(status: BuildOrphanedEntityStatus.StatusBuildFetchedRow, currentRow: counter);
+            }
+
+            ProceessBuildOrphanedEntitiesEvent(status: BuildOrphanedEntityStatus.StatusBuildEnd, totalRowsFetched: counter);
+            return a_list.OrderBy(t => t.Name.Trim()).ToList();
+        }
+        public List<OrphanedEnumerator> GetOrphanedEnumerators1()
         {
             ProceessBuildOrphanedEntitiesEvent(status: BuildOrphanedEntityStatus.StatusBuildStart, isIndeterminate: true);
             List<OrphanedEnumerator> a_list = new List<OrphanedEnumerator>();
@@ -901,7 +1124,7 @@ namespace NSAP_ODK.Entities.Database
         public List<GearUnload> GetGearUnloads(string gearUsedText)
         {
             List<GearUnload> gearUnloads = new List<GearUnload>();
-            foreach (var si in SummaryItemCollection.Where(t => t.GearText == gearUsedText && t.GearCode.Length == 0).GroupBy(t => t.SamplingDayID))
+            foreach (var si in SummaryItemCollection.Where(t => t.GearText == gearUsedText && t.GearCode?.Length == 0).GroupBy(t => t.SamplingDayID))
             {
                 var lss = NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(si.Key);
                 foreach (GearUnload gu in lss.GearUnloadViewModel.getGearUnloads(gearUsedText))
@@ -935,10 +1158,10 @@ namespace NSAP_ODK.Entities.Database
             LastPrimaryKeys = SummaryItems.GetLastPrimaryKeys();
         }
 
-        public List<string>GetXFormIDList()
+        public List<string> GetXFormIDList()
         {
             List<string> list = new List<string>();
-            foreach(var item in SummaryItemCollection.GroupBy(t => t.XFormIdentifier))
+            foreach (var item in SummaryItemCollection.GroupBy(t => t.XFormIdentifier))
             {
                 list.Add(item.Key);
             }
@@ -1109,6 +1332,19 @@ namespace NSAP_ODK.Entities.Database
 
             return unloads;
         }
+        public int CountMissingLandingSiteInformation()
+        {
+            return SummaryItemCollection.Count(t => t.LandingSiteID == null && string.IsNullOrEmpty(t.LandingSiteText));
+        }
+
+        public int CountMissingEnumeratorInformation()
+        {
+            return SummaryItemCollection.Count(t => t.EnumeratorID == null && string.IsNullOrEmpty(t.EnumeratorText));
+        }
+        public int CountMissingFishingGearInformation()
+        {
+            return SummaryItemCollection.Count(t => string.IsNullOrEmpty(t.GearCode) && string.IsNullOrEmpty(t.GearText));
+        }
 
         public int CountMissingFormIDs()
         {
@@ -1253,17 +1489,10 @@ namespace NSAP_ODK.Entities.Database
 
                         break;
                     case "tv_FishingGroundViewModel":
-                        //items = SummaryItemCollection.Where(t => t.RegionID == _treeViewData.NSAPRegion.Code &&
-                        //                                    t.FMAId == _treeViewData.FMA.FMAID &&
-                        //                                    t.FishingGroundID == _treeViewData.FishingGround.Code &&
-                        //                                    t.LandingSiteID != null).ToList();
 
                         items = SummaryItemCollection.Where(t => t.RegionID == _treeViewData.NSAPRegion.Code &&
                                                             t.FMAId == _treeViewData.FMA.FMAID &&
                                                             t.FishingGroundID == _treeViewData.FishingGround.Code).ToList();
-
-                        //_fishing_ground_summaryItems = items.GroupBy(t => (int)t.LandingSiteID)
-                        //                                    .OrderBy(t => t.First().LandingSiteName).ToList();
 
 
                         _fishing_ground_summaryItems = items.GroupBy(t => t.LandingSiteNameText.Trim())
@@ -1340,11 +1569,32 @@ namespace NSAP_ODK.Entities.Database
                         }
 
                         break;
-                        //case "tv_MonthViewModel":
-                        //    break;
                 }
             }
         }
+
+        public int? UpdateLandingSiteInLanding(string samplingIdentifierUUID, string landingSiteText)
+        {
+            var landing = SummaryItemCollection.FirstOrDefault(t => t.ODKRowID == samplingIdentifierUUID);
+            if (landing != null && landing.LandingSiteText.Length == 0 && landing.LandingSiteID == null && landingSiteText != null)
+            {
+                SummaryItemCollection.FirstOrDefault(t => t.ODKRowID == samplingIdentifierUUID).LandingSiteText = landingSiteText.Replace("»", ",");
+                return landing.SamplingDayID;
+            }
+            return null;
+        }
+
+        public bool LandingHasLandingSite(string samplingIdentifierUUID)
+        {
+            return SummaryItemCollection.FirstOrDefault(t => t.ODKRowID == samplingIdentifierUUID) != null;
+        }
+        internal bool XformIDExists(string formID)
+        {
+            var item = SummaryItemCollection.FirstOrDefault(t => t.ODKRowID == formID);
+            return item != null;
+
+        }
+
         private void ProceessBuildOrphanedEntitiesEvent(BuildOrphanedEntityStatus status, int? totalRows = null, int? currentRow = null, int? totalRowsFetched = null, bool isIndeterminate = false)
         {
             switch (status)
@@ -1596,6 +1846,7 @@ namespace NSAP_ODK.Entities.Database
                 throw new Exception("Error: ID cannot be zero");
 
             int index = 0;
+
             while (index < SummaryItemCollection.Count)
             {
                 if (SummaryItemCollection[index].ID == item.ID)
@@ -1605,6 +1856,7 @@ namespace NSAP_ODK.Entities.Database
                 }
                 index++;
             }
+
             return _editSuccess;
         }
         private void SummaryItemCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)

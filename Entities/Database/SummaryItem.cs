@@ -8,6 +8,7 @@ namespace NSAP_ODK.Entities.Database
 {
     public class SummaryItem
     {
+        public string UserName { get; set; }
         public string XFormIdentifier { get; set; }
         public string ODKRowID { get; set; }
         public string SamplingDateFormatted
@@ -23,7 +24,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if(GPS==null)
+                if (GPS == null)
                 {
                     return GPSCode;
                 }
@@ -44,7 +45,7 @@ namespace NSAP_ODK.Entities.Database
         public int? NumberOfFishers { get; set; }
         public override string ToString()
         {
-            string ls = LandingSite==null ? LandingSiteText : LandingSite.ToString();
+            string ls = LandingSite == null ? LandingSiteText : LandingSite.ToString();
             string gr = Gear != null ? Gear.GearName : GearText;
             return $"{ID}-{Region.ShortName}-{FMA.Name}-{FishingGround.Name}-{ls}-{gr}-{SamplingDate.ToString("MMM-dd-yyyy")}";
         }
@@ -66,7 +67,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if(VesselID==null)
+                if (VesselID == null)
                 {
                     return VesselText;
                 }
@@ -104,7 +105,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if (GearCode==null || GearCode.Length > 0)
+                if (GearCode == null || GearCode.Length > 0)
                 {
                     return NSAPEntities.GearViewModel.GetGear(GearCode);
                 }
@@ -140,34 +141,61 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
+        private GearUnload _gearUnload;
         public GearUnload GearUnload
         {
             get
             {
-                LandingSiteSampling lss = new LandingSiteSampling
+                if (_gearUnload == null)
                 {
-                    NSAPRegion = Region,
-                    FMA = FMA,
-                    LandingSite = LandingSite,
-                    LandingSiteText = LandingSiteText,
-                    FishingGround = FishingGround,
-                    SamplingDate = SamplingDate.Date
-                };
+                    LandingSiteSampling lss = new LandingSiteSampling
+                    {
+                        NSAPRegion = Region,
+                        FMA = FMA,
+                        LandingSite = LandingSite,
+                        LandingSiteText = LandingSiteText,
+                        FishingGround = FishingGround,
+                        SamplingDate = SamplingDate.Date
+                    };
 
-                return new GearUnload
-                {
-                    Parent = lss,
-                    GearID = GearCode,
-                    Boats = GearUnloadBoats,
-                    Catch = GearUnloadCatch,
-                    GearUsedText = GearText,
-                    Gear = Gear,
-                    PK = GearUnloadID
-                };
+                    _gearUnload= new GearUnload
+                    {
+                        Parent = lss,
+                        GearID = GearCode,
+                        Boats = GearUnloadBoats,
+                        Catch = GearUnloadCatch,
+                        GearUsedText = GearText,
+                        Gear = Gear,
+                        PK = GearUnloadID
+                    };
+                }
+                return _gearUnload;
+            }
+            set
+            {
+                _gearUnload = value;
             }
         }
         public int GearUnloadID { get; set; }
         public int VesselUnloadID { get; set; }
+
+        private VesselUnload _vesselUnload;
+
+        public VesselUnload VesselUnload
+        {
+            get
+            {
+                if (_vesselUnload == null)
+                {
+                    if (GearUnload.VesselUnloadViewModel == null)
+                    {
+                        GearUnload.VesselUnloadViewModel = new VesselUnloadViewModel(GearUnload);
+                    }
+                    _vesselUnload = GearUnload.VesselUnloadViewModel.VesselUnloadCollection.FirstOrDefault(t => t.PK == VesselUnloadID);
+                }
+                return _vesselUnload;
+            }
+        }
         public string RegionID { get; set; }
 
         public int FMAId { get; set; }
@@ -191,7 +219,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if (GearCode==null || GearCode.Length == 0)
+                if (GearCode == null || GearCode.Length == 0)
                 {
                     return GearText;
                 }
@@ -233,7 +261,7 @@ namespace NSAP_ODK.Entities.Database
             get
             {
                 string code = "";
-                switch(SectorCode.ToLower())
+                switch (SectorCode.ToLower())
                 {
                     case "m":
                         code = "Municipal";

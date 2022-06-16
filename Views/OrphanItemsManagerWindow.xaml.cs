@@ -177,8 +177,13 @@ namespace NSAP_ODK.Views
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of landings", Binding = new Binding("NumberOfLandings"), IsReadOnly = true });
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of vessel countings", Binding = new Binding("NumberOfVesselCountings"), IsReadOnly = true });
                     break;
-                case NSAPEntity.SpeciesName:
+
                 case NSAPEntity.LandingSite:
+                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("EnumeratorName"), IsReadOnly = true });
+                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of landings", Binding = new Binding("NumberOfLandings"), IsReadOnly = true });
+                    break;
+                case NSAPEntity.SpeciesName:
+
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of landings", Binding = new Binding("NumberOfLandings"), IsReadOnly = true });
                     break;
                 case NSAPEntity.FishingGear:
@@ -424,7 +429,14 @@ namespace NSAP_ODK.Views
                             {
                                 unload.NSAPEnumerator = ReplacementEnumerator;
                                 unload.NSAPEnumeratorID = ReplacementEnumerator.ID;
-                                if (unload.ContainerViewModel.UpdateRecordInRepo(unload) && NSAPEntities.SummaryItemViewModel.UpdateRecordInRepo(unload))
+                                //if (unload.ContainerViewModel.UpdateRecordInRepo(unload) && NSAPEntities.SummaryItemViewModel.UpdateRecordInRepo(unload))
+                                //{
+
+                                //    _countReplaced++;
+                                //    ShowProgressWhileReplacing(_countReplaced, $"Updated enumerator {_countReplaced} of {_countForReplacement}");
+
+                                //}
+                                if (VesselUnloadRepository.UpdateEnumerator(unload) && NSAPEntities.SummaryItemViewModel.UpdateRecordInRepo(unload, updateEnumerators: true))
                                 {
 
                                     _countReplaced++;
@@ -694,9 +706,13 @@ namespace NSAP_ODK.Views
                                     if (!procced)
                                     {
                                         procced = true;
+                                        //if (((OrphanedEnumerator)item).SampledLandings.Count > 0)
+                                        //{
+                                        //    replacementWindow.LandingSiteSampling = ((OrphanedEnumerator)item).SampledLandings[0].Parent.Parent;
+                                        //}
                                         if (((OrphanedEnumerator)item).SampledLandings.Count > 0)
                                         {
-                                            replacementWindow.LandingSiteSampling = ((OrphanedEnumerator)item).SampledLandings[0].Parent.Parent;
+                                            replacementWindow.NSAPRegion = ((OrphanedEnumerator)item).Region;
                                         }
                                     }
                                     _countForReplacement += ((OrphanedEnumerator)item).SampledLandings.Count;

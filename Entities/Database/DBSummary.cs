@@ -55,7 +55,17 @@ namespace NSAP_ODK.Entities.Database
             {
                 //VesselUnloadSummary vs = VesselUnloadViewModel.GetSummary();
                 VesselUnloadSummary vs = NSAPEntities.SummaryItemViewModel.GetVesselUnloadSummary();
+                CountMissingEnumeratorInformation = NSAPEntities.SummaryItemViewModel.CountMissingEnumeratorInformation();
+                CountMissinsLandingSiteInformation = NSAPEntities.SummaryItemViewModel.CountMissingLandingSiteInformation();
                 CountMissingFormIDs = NSAPEntities.SummaryItemViewModel.CountMissingFormIDs();
+                CountMissingFishingGearInformation = NSAPEntities.SummaryItemViewModel.CountMissingFishingGearInformation();
+
+
+                CountLandingsWithOrphanedEnumerators = NSAPEntities.SummaryItemViewModel.CountLandingsWithOrphanedEnumerators();
+                CountLandingsWithOrphanedFishingGears = NSAPEntities.SummaryItemViewModel.CountLandingsWithOrphanedGears();
+                CountLandingsWithOrphanedFishingVessels = NSAPEntities.SummaryItemViewModel.CountLandingsWithOrphanedFishingVessels();
+                CountLandingsWithOrphanedLandingSites = NSAPEntities.SummaryItemViewModel.CountLandingsWithOrphanedLandingSites();
+
                 //FirstSampledLandingDate = NSAPEntities.VesselUnloadViewModel.DateOfFirstSampledLanding;
                 FirstSampledLandingDate = vs.FirstSamplingDate;
                 //LastSampledLandingDate = NSAPEntities.VesselUnloadViewModel.DateOfLastSampledLanding;
@@ -75,12 +85,21 @@ namespace NSAP_ODK.Entities.Database
         {
 
         }
+
+        public int CountLandingsWithOrphanedEnumerators { get; set; }
+        public int CountLandingsWithOrphanedFishingGears { get; set; }
+        public int CountLandingsWithOrphanedLandingSites { get; set; }
+        public int CountLandingsWithOrphanedFishingVessels { get; set; }
         public string EnumeratorName { get; set; }
         [ReadOnly(true)]
         public int CountLandingsWithCatchComposition { get; set; }
         public bool IsTotal { get; set; }
         public FMA FMA { get; set; }
 
+        //missing landing site information is when landing site ID is null and landing site text is empty
+        public int CountMissinsLandingSiteInformation { get; set; }
+        public int CountMissingEnumeratorInformation { get; set; }
+        public int CountMissingFishingGearInformation { get; set; }
         public int CountMissingFormIDs { get; set; }
         public NSAPRegion NSAPRegion
         {

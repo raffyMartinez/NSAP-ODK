@@ -71,6 +71,7 @@
     <Reference Include="K4os.Hash.xxHash, Version=1.0.6.0, Culture=neutral, PublicKeyToken=32cd54395057cec3, processorArchitecture=MSIL">
       <HintPath>packages\K4os.Hash.xxHash.1.0.6\lib\net46\K4os.Hash.xxHash.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="MySql.Data, Version=8.0.28.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
       <HintPath>packages\MySql.Data.8.0.28\lib\net452\MySql.Data.dll</HintPath>
     </Reference>
@@ -175,8 +176,11 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Entities\BuildOrphanedEntityEventArg.cs" />
+    <Compile Include="Entities\Database\AccessColumn.cs" />
     <Compile Include="Entities\Database\BuildSummaryReportEventArg.cs" />
     <Compile Include="Entities\Database\CollectedUnrecognizedFG.cs" />
+    <Compile Include="Entities\Database\CreateTablesInAccess.cs" />
+    <Compile Include="Entities\Database\CreateTablesInAccessEventArgs.cs" />
     <Compile Include="Entities\Database\DownloadedJsonMetadata.cs" />
     <Compile Include="Entities\Database\FileInfoJSONMetadata.cs" />
     <Compile Include="Entities\Database\GearUnloadComparer.cs" />
@@ -184,6 +188,7 @@
     <Compile Include="Entities\Database\KoboServerRepository.cs" />
     <Compile Include="Entities\Database\KoboServerViewModel.cs" />
     <Compile Include="Entities\Database\LastPrimaryKeys.cs" />
+    <Compile Include="Entities\Database\SQLDumpParsed.cs" />
     <Compile Include="Entities\Database\SummaryItem.cs" />
     <Compile Include="Entities\Database\SummaryItemViewModel.cs" />
     <Compile Include="Entities\Database\SummaryManager.cs" />
@@ -490,6 +495,9 @@
     <Compile Include="Views\ImportByPlainTextWindow.xaml.cs">
       <DependentUpon>ImportByPlainTextWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\ImportSQLDumpWindow.xaml.cs">
+      <DependentUpon>ImportSQLDumpWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\LogInMySQLWindow.xaml.cs">
       <DependentUpon>LogInMySQLWindow.xaml</DependentUpon>
     </Compile>
@@ -513,6 +521,9 @@
     </Compile>
     <Compile Include="Views\SelectColumnToUpdateWindow.xaml.cs">
       <DependentUpon>SelectColumnToUpdateWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\SelectImportActionWindow.xaml.cs">
+      <DependentUpon>SelectImportActionWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\SelectionToReplaceOrpanWIndow.xaml.cs">
       <DependentUpon>SelectionToReplaceOrpanWIndow.xaml</DependentUpon>
@@ -624,6 +635,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\ImportSQLDumpWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\LogInMySQLWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -653,6 +668,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\SelectColumnToUpdateWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\SelectImportActionWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -1938,6 +1938,119 @@ namespace NSAP_ODK.Entities.Database
             return success;
         }
 
+        public static bool UpdateMissingLandingSite(int rowID, string landingSiteText)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+                {
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@row_id", rowID);
+                        cmd.Parameters.AddWithValue("@landing_site", landingSiteText);
+                        cmd.CommandText = "UPDATE dbo_lc_fg_sample_day SET land_ctr_text=@landing_site WHERE unload_day_id=@row_id";
+                        try
+                        {
+                            conn.Open();
+                            success = cmd.ExecuteNonQuery() > 0;
+                        }
+                        catch (MySqlException msex)
+                        {
+                            Logger.Log(msex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@row_id", rowID);
+                        cmd.Parameters.AddWithValue("@landing_site", landingSiteText);
+                        cmd.CommandText = "UPDATE dbo_LC_FG_sample_day SET land_ctr_text=@landing_site WHERE unload_day_id=@row_id";
+                        try
+                        {
+                            con.Open();
+                            success = cmd.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException oex)
+                        {
+                            Logger.Log(oex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
+
+        public static bool UpdateEnumerator(VesselUnload vu)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
+                {
+                    using (var cmd = conn.CreateCommand())
+                    {
+
+                        cmd.Parameters.AddWithValue("@en_id", vu.NSAPEnumerator.ID);
+                        cmd.Parameters.AddWithValue("@rowID", vu.ODKRowID);
+                        cmd.CommandText = "UPDATE dbo_vessel_unload_1 set enumerator_id=@en_id WHERE row_id=@rowID";
+                        try
+                        {
+                            conn.Open();
+                            success = cmd.ExecuteNonQuery() > 0;
+                        }
+                        catch (MySqlException mx)
+                        {
+                            Logger.Log(mx);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@en_id", vu.NSAPEnumerator.ID);
+                        //cmd.Parameters.AddWithValue("@rowID", rowID);
+                        cmd.Parameters.AddWithValue("@rowID", $"{{{vu.ODKRowID}}}");
+                        cmd.CommandText = "UPDATE dbo_vessel_unload_1 set EnumeratorID=@en_id WHERE RowID=@rowID";
+                        try
+                        {
+                            con.Open();
+                            success = cmd.ExecuteNonQuery() > 0;
+                        }
+                        catch (OleDbException oex)
+                        {
+                            Logger.Log(oex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
         public static bool UpdateXFormID(string rowID, string xFormID)
         {
             bool success = false;
@@ -1949,8 +2062,7 @@ namespace NSAP_ODK.Entities.Database
                     {
 
                         cmd.Parameters.AddWithValue("@xformID", xFormID);
-                        //cmd.Parameters.AddWithValue("@rowID", rowID);
-                        //cmd.Parameters.AddWithValue("@rowID", $"{{{rowID}}}");
+                        cmd.Parameters.AddWithValue("@rowID", rowID);
                         cmd.CommandText = "UPDATE dbo_vessel_unload_1 set xform_identifier=@xformID WHERE row_id=@rowID";
                         try
                         {
@@ -1983,9 +2095,9 @@ namespace NSAP_ODK.Entities.Database
                             con.Open();
                             success = cmd.ExecuteNonQuery() > 0;
                         }
-                        catch (MySqlException mx)
+                        catch (OleDbException oex)
                         {
-                            Logger.Log(mx);
+                            Logger.Log(oex);
                         }
                         catch (Exception ex)
                         {
@@ -2226,10 +2338,16 @@ namespace NSAP_ODK.Entities.Database
             return success;
         }
 
-        public static bool ClearTable()
+        public static bool ClearTable(string otherConnectionString = "")
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            string con_string = Global.ConnectionString;
+            if (otherConnectionString.Length > 0)
+            {
+                con_string = otherConnectionString;
+            }
+
+            using (OleDbConnection conn = new OleDbConnection(con_string))
             {
                 conn.Open();
                 using (var cmd = conn.CreateCommand())

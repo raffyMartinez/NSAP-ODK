@@ -128,7 +128,7 @@ namespace NSAP_ODK.NSAPMysql
                                     `region` VARCHAR(6) NOT NULL,
                                     `date_start` DATE NOT NULL,
                                     `date_end` DATE NULL,
-                                    `date_first_upload` DATE NULL,
+                                    `date_first_sampling` DATE NULL,
                                     PRIMARY KEY (`row_id`),
                                     INDEX `enumerator_id_nre_fk_idx` (`enumerator_id` ASC) VISIBLE,
                                     INDEX `region_nre_fk_idx` (`region` ASC) VISIBLE,
@@ -751,7 +751,7 @@ namespace NSAP_ODK.NSAPMysql
                     #endregion
 
                     #region landing site sampling
-                    cmd.CommandText = @"CREATE TABLE IF NOT EXISTS `dbo_LC_FG_sample_day`(
+                    cmd.CommandText = @"CREATE TABLE IF NOT EXISTS `dbo_lc_fg_sample_day`(
                                     `unload_day_id` INT NOT NULL,
                                     `region_id` VARCHAR(6) NOT NULL,
                                     `fma` INT NOT NULL,
@@ -805,7 +805,7 @@ namespace NSAP_ODK.NSAPMysql
                     #endregion
 
                     #region landing site sampling 1
-                    cmd.CommandText = @"CREATE TABLE IF NOT EXISTS `dbo_LC_FG_sample_day_1`(
+                    cmd.CommandText = @"CREATE TABLE IF NOT EXISTS `dbo_lc_fg_sample_day_1`(
                                         `unload_day_id` INT NOT NULL,
                                         `datetime_submitted`DATETIME NULL,
                                         `user_name` VARCHAR(30) NULL,

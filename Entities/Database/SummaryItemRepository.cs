@@ -62,6 +62,7 @@ namespace NSAP_ODK.Entities.Database
                                                  fv.vessel_id,
                                                  vu1.sampling_date,
                                                  vu.boat_text AS vessel_text,
+                                                 vu1.user_name,
                                                  vu1.success AS is_success,
                                                  vu1.tracked AS is_tracked,
                                                  vu1.gps,
@@ -219,6 +220,7 @@ namespace NSAP_ODK.Entities.Database
                                 GearText = dr["gear_text"].ToString(),
                                 GearUnloadBoats = gu_boats,
                                 GearUnloadCatch = gu_catch,
+                                UserName = dr["user_name"].ToString(),
                                 EnumeratorID = en_id,
                                 EnumeratorName = dr["enumerator_name"].ToString(),
                                 EnumeratorText = dr["enumerator_text"].ToString(),
@@ -245,6 +247,10 @@ namespace NSAP_ODK.Entities.Database
                                 VesselEffortRows = count_efforts,
                                 DateSubmitted=(DateTime)dr["datetime_submitted"]
                             };
+                            if(string.IsNullOrEmpty(si.EnumeratorText))
+                            {
+                                si.EnumeratorText = si.UserName;
+                            }
                             items.Add(si);
                         }
                     }
@@ -491,6 +497,7 @@ namespace NSAP_ODK.Entities.Database
                                                  fv.VesselID AS vessel_id,
                                                  vu1.SamplingDate AS sampling_date,
                                                  vu.boat_text AS vessel_text,
+                                                 vu1.user_name,
                                                  vu1.Success AS is_success,
                                                  vu1.Tracked AS is_tracked,
                                                  vu1.GPS,
@@ -646,6 +653,7 @@ namespace NSAP_ODK.Entities.Database
                                     GearText = dr["gear_text"].ToString(),
                                     GearUnloadBoats = gu_boats,
                                     GearUnloadCatch = gu_catch,
+                                    UserName = dr["user_name"].ToString(),
                                     EnumeratorID = en_id,
                                     EnumeratorName = dr["enumerator_name"].ToString(),
                                     EnumeratorText = dr["enumerator_text"].ToString(),
@@ -673,6 +681,10 @@ namespace NSAP_ODK.Entities.Database
                                     DateSubmitted=(DateTime)dr["datetime_submitted"]
 
                                 };
+                                if (string.IsNullOrEmpty(si.EnumeratorText))
+                                {
+                                    si.EnumeratorText = si.UserName;
+                                }
                                 items.Add(si);
                             }
                         }

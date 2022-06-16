@@ -302,8 +302,8 @@
                     <StackPanel x:Name="panelVersionStats" Visibility="Collapsed" >
                         <DataGrid x:Name="dataGridEFormVersionStats"  ItemsSource="{Binding}" IsReadOnly="True" LoadingRow="Grid_LoadingRow"/>
                         <WrapPanel Visibility="Collapsed" x:Name="panelSummaryTableHint" >
-                            <TextBlock Text="Log-in" x:Name="labelLink" MouseUp="OnTextBlockMouseUp" Style="{StaticResource HoverUnderlineStyle}" VerticalAlignment="Center"/>
-                            <Label Content="to kobotoolbox.org to refresh data in this table" />
+                            <TextBlock Text="Log-in" x:Name="labelLink" MouseUp="OnTextBlockMouseUp" Style="{StaticResource HoverUnderlineStyle}" VerticalAlignment="Center" FontWeight="Bold"/>
+                            <Label Content="and connect to the online database (kobotoolbox) to refresh data in this table" />
                         </WrapPanel>
                     </StackPanel>
                 </StackPanel>

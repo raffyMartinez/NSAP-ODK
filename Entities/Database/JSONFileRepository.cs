@@ -71,10 +71,17 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-        public static bool ClearTable()
+        public static bool ClearTable(string otherConnectionString="")
         {
             bool success = false;
-            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+
+            string con_string = Global.ConnectionString;
+            if(otherConnectionString.Length>0)
+            {
+                con_string = otherConnectionString;
+            }
+
+            using (OleDbConnection conn = new OleDbConnection(con_string))
             {
                 conn.Open();
                 var sql = $"Delete * from JSONFile";

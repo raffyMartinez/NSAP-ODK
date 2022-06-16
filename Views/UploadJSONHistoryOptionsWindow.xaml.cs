@@ -20,7 +20,8 @@ namespace NSAP_ODK.Views
         UploadTypeDownloadedJsonDownloadAll,
         UploadTypeDownloadedJsonNotDownloaded,
         UploadTypeJSONHistoryFiles,
-        UploadTypeJSONHistoryUpdateXFormID
+        UploadTypeJSONHistoryUpdateXFormID,
+        UploadTypeJSONHistoryUpdateLandingSites
     }
     public enum UpdateJSONHistoryMode
     {
@@ -49,6 +50,7 @@ namespace NSAP_ODK.Views
             labelTitle.Content = "Select what to do with JSON files";
             switch (JSONFilesToUploadType)
             {
+
                 case JSONFilesToUploadType.UploadTypeDownloadedJsonDownloadAll:
                     chkStartAtBeginning.Visibility = Visibility.Collapsed;
                     labelPrompt.Visibility = Visibility.Collapsed;
@@ -64,10 +66,16 @@ namespace NSAP_ODK.Views
                     chkStartAtBeginning.Visibility = Visibility.Visible;
                     labelPrompt.Visibility = Visibility.Collapsed;
                     break;
+
+                case JSONFilesToUploadType.UploadTypeJSONHistoryUpdateLandingSites:
                 case JSONFilesToUploadType.UploadTypeJSONHistoryUpdateXFormID:
                     chkStartAtBeginning.Visibility = Visibility.Collapsed;
                     panelControls.Visibility = Visibility.Collapsed;
                     labelPrompt.Text = "Select OK to update missing XFormIdentifiers in the saved sampled landings in the database";
+                    if(JSONFilesToUploadType==JSONFilesToUploadType.UploadTypeJSONHistoryUpdateLandingSites)
+                    {
+                        labelPrompt.Text = "Select OK to update missing landing sites in the saved sampled landings in the database";
+                    }
                     _ignoreControls = true;
                     break;
             }

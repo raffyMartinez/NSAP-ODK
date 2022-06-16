@@ -109,12 +109,13 @@ namespace NSAP_ODK.Views
                             break;
                     }
                 }
+
                 ((TreeViewItem)treeForms.Items[0]).IsSelected = true;
                 ((TreeViewItem)treeForms.Items[0]).IsExpanded = true;
                 GridGrids.Visibility = Visibility.Visible;
                 if(RefreshDatabaseSummry)
                 {
-                    RefreshDatabaseSummaryTable();
+                    RefreshDatabaseSummaryTable?.Invoke();
                 }
             }
         }
@@ -513,6 +514,11 @@ namespace NSAP_ODK.Views
                         DownloadFromServerOptionsWindow dsow = new DownloadFromServerOptionsWindow();
                         dsow.Owner = this;
                         dsow.CountItemsToDownload = sizeToDownload;
+                        if((bool)rbAll.IsChecked)
+                        {
+                            dsow.CountItemsToDownload = _formSummary.NumberOfSubmissions;
+                        }
+
                         proceed = (bool)dsow.ShowDialog();
                         _hasDownloadOptions = proceed;
                         return;

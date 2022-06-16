@@ -163,16 +163,16 @@ namespace NSAP_ODK.NSAPMysql
                     con.Open();
                     sc.Connection = con;
                     int count = sc.Execute();
-                    success = count>0;
+                    success = count > 0;
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Logger.Log(ex);
                 }
             }
-                return success;
+            return success;
         }
-        public static bool DeleteDataFromTables(bool useScript=false)
+        public static bool DeleteDataFromTables(bool useScript = false)
         {
             if (useScript)
             {

@@ -1432,7 +1432,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
         public static List<VesselLanding> VesselLandings { get; internal set; }
 
         public static event EventHandler<UploadToDbEventArg> UploadSubmissionToDB;
-
+        public static event Action<int> LandingWithUpdatedLandingSite;
         public static void ResetLists()
         {
             _listGridBingoCoordinates = null;
@@ -1710,12 +1710,96 @@ namespace NSAP_ODK.Entities.Database.FromJson
             return Task.Run(() => UploadToDatabase(resolvedLanddings));
         }
 
-        public static Task<int> UpdateXFormIDsAsync()
+        public static Task<int> ProcessXFormIDsAsync(bool locateUnsavedFromServer = false)
         {
-            return Task.Run(() => UpdateXFormIDsEx());
+            if (locateUnsavedFromServer)
+            {
+                return Task.Run(() => LocateXFormIDsUnsaved());
+            }
+            else
+            {
+                return Task.Run(() => ProcessXFormIDsEx());
+            }
         }
 
-        private static int UpdateXFormIDsEx()
+        public static List<VesselLanding> UnsavedVesselLandings { get; private set; }
+
+        public static Task UpdateMissingLandingSitesAsync()
+        {
+
+            return Task.Run(() => UpdateMissingLandingSites());
+        }
+
+        private static void UpdateMissingLandingSites()
+        {
+            int foundCount = 0;
+            foreach (VesselLanding landing in VesselLandings)
+            {
+                int? rowID = NSAPEntities.SummaryItemViewModel.
+                    UpdateLandingSiteInLanding(landing._uuid, landing.LandingSiteName2);
+
+                if (rowID != null)
+                {
+                    foundCount++;
+                    VesselUnloadRepository.UpdateMissingLandingSite((int)rowID, landing.LandingSiteName2);
+                    LandingWithUpdatedLandingSite?.Invoke(foundCount);
+                }
+            }
+
+        }
+
+        public static Task<List<VesselLanding>> GetFormWithMissingLandingSiteInfoAsync()
+        {
+            return Task.Run(() => GetFormWithMissingLandingSiteInfo());
+        }
+        private static List<VesselLanding> GetFormWithMissingLandingSiteInfo()
+        {
+            List<VesselLanding> formsWithMissingLSInfo = new List<VesselLanding>();
+            foreach (VesselLanding landing in VesselLandings)
+            {
+                //if (landing.LandingSiteID == null && string.IsNullOrEmpty(landing.LandingSiteText))
+                //{
+                //    formsWithMissingLSInfo.Add(landing);
+                //}
+                if(landing.LandingSite==null && 
+                    string.IsNullOrEmpty(landing.LandingSiteText)
+                    )
+                {
+                    formsWithMissingLSInfo.Add(landing);
+                }
+            }
+            return formsWithMissingLSInfo;
+        }
+        private static int LocateXFormIDsUnsaved()
+        {
+            UnsavedVesselLandings = new List<VesselLanding>();
+            bool locateStart = false;
+            int loopCount = 0;
+            int foundCount = 0;
+
+            foreach (VesselLanding landing in VesselLandings)
+            {
+                loopCount++;
+                if (!CancelUpload)
+                {
+                    if (!locateStart)
+                    {
+                        locateStart = true;
+                    }
+                    if (!NSAPEntities.SummaryItemViewModel.XformIDExists(landing._uuid))
+                    {
+                        UnsavedVesselLandings.Add(landing);
+                        foundCount++;
+                    }
+                }
+                else
+                {
+
+                }
+            }
+            return 0;
+        }
+        private static int ProcessXFormIDsEx()
         {
             bool updateStart = false;
             int updatedCount = 0;
@@ -1924,9 +2008,10 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                         IsSamplingDay = true,
                                         SamplingDate = landing.SamplingDate.Date,
                                         NSAPRegionID = landing.NSAPRegion.Code,
-                                        LandingSiteText = landing.LandingSiteText == null ? "" : landing.LandingSiteText,
+                                        LandingSiteText = landing.LandingSiteText == null ? landing.LandingSiteName2 : landing.LandingSiteText,
                                         FMAID = landing.NSAPRegionFMA.FMA.FMAID
                                     };
+
                                     proceed = NSAPEntities.LandingSiteSamplingViewModel.AddRecordToRepo(landingSiteSampling);
                                 }
 
@@ -1977,7 +2062,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                         Parent = landingSiteSampling,
                                         LandingSiteSamplingID = landingSiteSampling.PK,
                                         GearID = landing.GearCode,
-                                        GearUsedText = landing.GearUsedText == null ? "" : landing.GearUsedText,
+                                        GearUsedText = landing.GearUsedText == null ? landing.GearName : landing.GearUsedText,
                                         Remarks = ""
                                     };
                                     proceed = landingSiteSampling.GearUnloadViewModel.AddRecordToRepo(gear_unload);
@@ -2047,7 +2132,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                     SamplingDate = landing.SamplingDate,
                                     Notes = landing.Remarks,
                                     NSAPEnumeratorID = landing.NSAPEnumerator == null ? null : (int?)landing.NSAPEnumerator.ID,
-                                    EnumeratorText = landing.EnumeratorText,
+                                    EnumeratorText = string.IsNullOrEmpty(landing.EnumeratorText) ? landing.user_name : landing.EnumeratorText,
                                     DateAddedToDatabase = DateTime.Now,
                                     FromExcelDownload = false,
                                     TimeStart = landing.start,

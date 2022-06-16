@@ -2,6 +2,9 @@
 using System.Data.OleDb;
 using System.Collections.Generic;
 using NSAP_ODK.Entities.Database;
+using System.Threading;
+using System.Threading.Tasks;
+
 namespace NSAP_ODK.Entities
 {
 
@@ -91,21 +94,26 @@ namespace NSAP_ODK.Entities
 
 
         }
-        public static bool ClearNSAPDatabaseTables()
+
+        public static Task<bool> ClearNSAPDatabaseTablesAsync(string otherConnectionString = "")
+        {
+            return Task.Run(() => ClearNSAPDatabaseTables(otherConnectionString));
+        }
+        public static bool ClearNSAPDatabaseTables(string otherConnectionString = "")
         {
             bool success = false;
-            JSONFileRepository.ClearTable();
-            CatchMaturityRepository.ClearTable();
-            CatchLengthRepository.ClearTable();
-            CatchLenWeightRepository.ClearTable();
-            CatchLenFreqRepository.ClearTable();
-            VesselCatchRepository.ClearTable();
-            FishingGroundGridRepository.ClearTable();
-            GearSoakRepository.ClearTable();
-            VesselEffortRepository.ClearTable();
-            VesselUnloadRepository.ClearTable();
-            GearUnloadRepository.ClearTable();
-            if (LandingSiteSamplingRepository.ClearTable())
+            JSONFileRepository.ClearTable(otherConnectionString);
+            CatchMaturityRepository.ClearTable(otherConnectionString);
+            CatchLengthRepository.ClearTable(otherConnectionString);
+            CatchLenWeightRepository.ClearTable(otherConnectionString);
+            CatchLenFreqRepository.ClearTable(otherConnectionString);
+            VesselCatchRepository.ClearTable(otherConnectionString);
+            FishingGroundGridRepository.ClearTable(otherConnectionString);
+            GearSoakRepository.ClearTable(otherConnectionString);
+            VesselEffortRepository.ClearTable(otherConnectionString);
+            VesselUnloadRepository.ClearTable(otherConnectionString);
+            GearUnloadRepository.ClearTable(otherConnectionString);
+            if (LandingSiteSamplingRepository.ClearTable(otherConnectionString))
             {
                 success = true;
             }

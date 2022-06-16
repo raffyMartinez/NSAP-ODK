@@ -1,0 +1,47 @@
+﻿<Window x:Class="NSAP_ODK.Views.ImportSQLDumpWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NSAP_ODK.Views"
+        mc:Ignorable="d"
+        Title="Import" Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition/>
+            <RowDefinition Height="30"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="100"/>
+        </Grid.ColumnDefinitions>
+        <Menu>
+            <MenuItem Header="File">
+                <MenuItem Header="Select sql file" x:Name="menuSelectSQLFile" Click="onMenuClicked"/>
+                <MenuItem Header="Close" x:Name="menuClose" Click="onMenuClicked"/>
+            </MenuItem>
+        </Menu>    
+        <Label Content="Import data using SQL dump" Grid.Row="1" Grid.ColumnSpan="2"/>
+        <StackPanel Grid.Row="2" Grid.Column="1" >
+            <Button Content="Ok" Width="60" Height="25" Margin="0 5" x:Name="buttonOk" IsDefault="True" Click="OnButtonClick" IsEnabled="false"/>
+            <Button Content="Cancel" Width="60" Height="25" Margin="0 5" x:Name="buttonCancel" IsCancel="True" Click="OnButtonClick"/>
+        </StackPanel>
+        <!--<Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <TreeView x:Name="treeViewTables"/>
+            --><!--<DataGrid Grid.Column="1" x:Name="dataGrid" ItemsSource="{Binding}" IsReadOnly="True" AutoGenerateColumns="False"/>-->
+            <!--<TextBox x:Name="txtSQLDump" Text="test text" IsReadOnly="True" Grid.Column="1"/>--><!--
+            <FlowDocumentScrollViewer x:Name="flowReader" Background="LightBlue" Grid.Column="1" IsToolBarVisible="False" FontSize="10" FontWeight="Normal"/>
+        </Grid>-->
+        <FlowDocumentScrollViewer x:Name="flowReader" Background="LightBlue" Grid.Row="2" IsToolBarVisible="False"/>
+        <StatusBar Grid.Row="3" Grid.ColumnSpan="2" x:Name="statusBar">
+            <ProgressBar Width="200" Height="17" x:Name="progressBar"/>
+            <Label x:Name="progressLabel" Content="This is a progress label"/>
+        </StatusBar>
+    </Grid>
+</Window>

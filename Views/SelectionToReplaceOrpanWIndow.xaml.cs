@@ -285,7 +285,7 @@ namespace NSAP_ODK.Views
         public Entities.NSAPEntity NSAPEntity { get; set; }
         public LandingSiteSampling LandingSiteSampling { get; set; }
 
-
+        public NSAPRegion NSAPRegion { get; set; }
         public VesselUnload VesselUnload { get; set; }
 
 
@@ -336,7 +336,7 @@ namespace NSAP_ODK.Views
                     break;
                 case Entities.NSAPEntity.Enumerator:
                     foreach (var regionEnumerator in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection
-                        .Where(t => t.Code == LandingSiteSampling.NSAPRegionID)
+                        .Where(t => t.Code == NSAPRegion.Code)
                         .FirstOrDefault().NSAPEnumerators.OrderBy(t => t.Enumerator.Name))
                     {
                         var rb = new RadioButton { Content = regionEnumerator.Enumerator.Name, Tag = regionEnumerator.Enumerator };

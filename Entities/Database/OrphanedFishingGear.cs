@@ -11,7 +11,19 @@ namespace NSAP_ODK.Entities.Database
         public string Name { get; set; }
         public List<GearUnload> GearUnloads{ get; set; }
 
-        public NSAPRegion Region { get { return GearUnloads[0].Parent.NSAPRegion; } }
+        public NSAPRegion Region { 
+            get 
+            {
+                if (GearUnloads.Count > 0)
+                {
+                    return GearUnloads[0].Parent.NSAPRegion;
+                }
+                else
+                {
+                    return null;
+                }
+            } 
+        }
 
         public FMA FMA { get { return GearUnloads[0].Parent.FMA; } }
 

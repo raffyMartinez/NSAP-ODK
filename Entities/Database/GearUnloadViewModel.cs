@@ -355,7 +355,7 @@ namespace NSAP_ODK.Entities.Database
         public GearUnload getGearUnload(int pk, bool loadVesselViewModel = false)
         {
             var gu = GearUnloadCollection.FirstOrDefault(n => n.PK == pk);
-            if (loadVesselViewModel)
+            if ( gu!=null && loadVesselViewModel)
             {
                 if (gu.VesselUnloadViewModel == null)
                 {

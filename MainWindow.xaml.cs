@@ -186,7 +186,19 @@ namespace NSAP_ODK
                     propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Date of last sampled landing", Name = "LastSampledLandingDate", Description = "Date of last sampled operation", DisplayOrder = 18, Category = "Submitted fish landing data" });
                     propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Date of latest download", Name = "DateLastDownload", Description = "Date of latest download", DisplayOrder = 19, Category = "Submitted fish landing data" });
                     propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of landings including catch composition", Name = "CountLandingsWithCatchComposition", Description = "Number of sampled landings with included catch composition data", DisplayOrder = 20, Category = "Submitted fish landing data" });
-                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of missing Form IDs", Name = "CountMissingFormIDs", Description = "Number of saved forms with missing identifier", DisplayOrder = 21, Category = "Submitted fish landing data" });
+
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of landings with missing Form IDs", Name = "CountMissingFormIDs", Description = "Number of saved forms with missing identifier", DisplayOrder = 1, Category = "Data quality check" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of landings with missing landing site information", Name = "CountMissinsLandingSiteInformation", Description = "Number of saved forms with missing information on landing sites", DisplayOrder = 2, Category = "Data quality check" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of landings with missing fishing gear information", Name = "CountMissingFishingGearInformation", Description = "Number of saved forms with missing information on fishing gears", DisplayOrder = 3, Category = "Data quality check" });
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of landings with missing enumerator information", Name = "CountMissingEnumeratorInformation", Description = "Number of saved forms with missing information on enumerators", DisplayOrder = 4, Category = "Data quality check" });
+
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of landings with orphaned enumerators", Name = "CountLandingsWithOrphanedEnumerators", Description = "Number of saved forms with orphaned enumerator names", DisplayOrder = 5, Category = "Data quality check" });
+
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of landings with orphaned landing sites", Name = "CountLandingsWithOrphanedLandingSites", Description = "Number of saved forms with orphaned landing site names", DisplayOrder = 6, Category = "Data quality check" });
+
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of gear unloads with orphaned fishing gears", Name = "CountLandingsWithOrphanedFishingGears", Description = "Number of gear unloads with orphaned fishing gear names", DisplayOrder = 7, Category = "Data quality check" });
+
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of landings with orphaned fishing vessels", Name = "CountLandingsWithOrphanedFishingVessels", Description = "Number of saved forms with orphaned fishing vessel names", DisplayOrder = 8, Category = "Data quality check" });
 
 
                     propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Saved JSON files folder", Name = "SavedJSONFolder", Description = "Folder containing saved JSON data. Double click to open folder", DisplayOrder = 1, Category = "Saved JSON files" });

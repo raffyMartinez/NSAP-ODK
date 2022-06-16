@@ -53,14 +53,15 @@ namespace NSAP_ODK.Views
         private DateTime? _unrecognizedFGDateCreated;
         private int _ufg_count = 0;
         private List<VesselLanding> _resolvedFishingGroundLandings = new List<VesselLanding>();
+        private List<VesselLanding> _formsWithMissingLandingSiteInfo = new List<VesselLanding>();
         public string JSON { get; set; }
         public string FormID { get; set; }
 
-        public void OpenLogInWindow(bool isOpen=false)
+        public void OpenLogInWindow(bool isOpen = false)
         {
-            if(isOpen)
+            if (isOpen)
             {
-                OpenServerWindow(refreshDBSummary:true);
+                OpenServerWindow(refreshDBSummary: true);
             }
         }
         public string Version { get; set; }
@@ -173,6 +174,7 @@ namespace NSAP_ODK.Views
                 menuVesselCountJSON.Visibility = Visibility.Visible;
                 menuVesselUnloadJSON.Visibility = Visibility.Visible;
                 menuDeletePastDate.Visibility = Visibility.Visible;
+                menuImportSQLDump.Visibility = Visibility.Visible;
             }
             menuSaveJson.IsEnabled = true;
 
@@ -469,6 +471,8 @@ namespace NSAP_ODK.Views
             jm.Koboserver.LastUploadedJSON = jm.JSONFile.Name;
             NSAPEntities.KoboServerViewModel.ServerWithUploadedJSON = jm.Koboserver;
         }
+
+
         private async Task ProcessJSONHistoryNodes(TreeViewItem root)
         {
             bool lastJSONUploadFound = false;
@@ -503,7 +507,20 @@ namespace NSAP_ODK.Views
         {
             return await VesselUnloadServerRepository.UploadToDBResolvedLandingsAsync(resolvedLandings);
         }
-        private async Task ProcessJSONSNodes(bool updateXFormID = false)
+
+        private async Task ProcessLandingsWithMissingLandingSites()
+        {
+            VesselUnloadServerRepository.LandingWithUpdatedLandingSite += VesselUnloadServerRepository_LandingWithUpdatedLandingSite;
+            await VesselUnloadServerRepository.UpdateMissingLandingSitesAsync();
+            VesselUnloadServerRepository.LandingWithUpdatedLandingSite -= VesselUnloadServerRepository_LandingWithUpdatedLandingSite;
+        }
+
+        private void VesselUnloadServerRepository_LandingWithUpdatedLandingSite(int obj)
+        {
+            //
+        }
+
+        private async Task ProcessJSONSNodes(bool updateXFormID = false, bool locateUnsavedFromServerDownload = false, bool updateLandingSites = false, bool locateMissingLSInfo=false)
         {
             _jsonDateDownloadnode.IsExpanded = true;
             VesselUnloadServerRepository.CancelUpload = false;
@@ -515,7 +532,19 @@ namespace NSAP_ODK.Views
                 {
                     if (updateXFormID)
                     {
-                        await UpdateXFormIDs();
+                        await ProcessXFormIDs();
+                    }
+                    else if (locateUnsavedFromServerDownload)
+                    {
+                        await ProcessXFormIDs(locateUnsavedFromServer: true);
+                    }
+                    if (updateLandingSites)
+                    {
+                        await ProcessLandingsWithMissingLandingSites();
+                    }
+                    if(locateMissingLSInfo)
+                    {
+                        _formsWithMissingLandingSiteInfo.AddRange(await VesselUnloadServerRepository.GetFormWithMissingLandingSiteInfoAsync());
                     }
                     else
                     {
@@ -550,6 +579,8 @@ namespace NSAP_ODK.Views
             return "";
         }
 
+        public string ImportIntoMDBFile { get; set; }
+        public SelectImportActionOption ImportActionOption { get; set; }
 
 
         private async void OnMenuClick(object sender, RoutedEventArgs e)
@@ -557,12 +588,31 @@ namespace NSAP_ODK.Views
             string jsonFolder = "";
             switch (((MenuItem)sender).Name)
             {
+                case "menuLocateMissingLSInfo":
+                    _formsWithMissingLandingSiteInfo.Clear();
+                    await ProcessJSONSNodes(locateMissingLSInfo: true);
+                    break;
+                case "menuLocateUnsaved":
+                    await ProcessJSONSNodes(locateUnsavedFromServerDownload: true);
+                    break;
+                case "menuImportSQLDump":
+                    SelectImportActionWindow siaw = new SelectImportActionWindow();
+                    siaw.Owner = this;
+                    if ((bool)siaw.ShowDialog())
+                    {
+                        ImportSQLDumpWindow isqlw = new ImportSQLDumpWindow();
+                        isqlw.ImportActionOption = ImportActionOption;
+                        isqlw.ImportIntoMDBFile = ImportIntoMDBFile;
+                        isqlw.Owner = this;
+                        isqlw.ShowDialog();
+                    }
+                    break;
+
                 //opens a form that shows a table of sampled fish landings with fishing grounds not yet entered into the database
                 case "menuUnrecognizedFG":
                     if (_unrecognizedFishingGrounds.Count > 0)
                     {
                         ViewUnrecognizedFishingGrounds();
-                        _unrecognizedFGAlredyViewed = true;
                     }
                     break;
 
@@ -669,6 +719,15 @@ namespace NSAP_ODK.Views
                     }
 
                     break;
+                case "menuUpdateLandingSites":
+                    ujhw = new UploadJSONHistoryOptionsWindow();
+                    ujhw.JSONFilesToUploadType = JSONFilesToUploadType.UploadTypeJSONHistoryUpdateLandingSites;
+                    ujhw.Owner = this;
+                    if ((bool)ujhw.ShowDialog())
+                    {
+                        await ProcessJSONSNodes(updateLandingSites: true);
+                    }
+                    break;
                 case "menuUpdateXformIdentifier":
                     ujhw = new UploadJSONHistoryOptionsWindow();
                     ujhw.JSONFilesToUploadType = JSONFilesToUploadType.UploadTypeJSONHistoryUpdateXFormID;
@@ -677,7 +736,7 @@ namespace NSAP_ODK.Views
                     {
                         await ProcessJSONSNodes(updateXFormID: true);
                     }
-                    
+
 
                     break;
 
@@ -907,7 +966,7 @@ namespace NSAP_ODK.Views
             };
 
             urgw.ShowDialog();
-
+            _unrecognizedFGAlredyViewed = true;
         }
         private bool ClearTables(bool verboseMode = true)
         {
@@ -934,11 +993,11 @@ namespace NSAP_ODK.Views
             }
             return proceed;
         }
-        private async Task UpdateXFormIDs()
+        private async Task ProcessXFormIDs(bool locateUnsavedFromServer = false)
         {
             if (!VesselUnloadServerRepository.CancelUpload)
             {
-                int updateCount = await VesselUnloadServerRepository.UpdateXFormIDsAsync();
+                int updateCount = await VesselUnloadServerRepository.ProcessXFormIDsAsync(locateUnsavedFromServer);
                 _updateXFormIDCount += updateCount;
                 if (updateCount > 0)
                 {
@@ -2093,7 +2152,6 @@ namespace NSAP_ODK.Views
                     }
                 }
             }
-            //KoboAPI.UploadSubmissionToDB -= OnUploadSubmissionToDB;
         }
 
         private void ProcessJsonFileForDisplay(FileInfoJSONMetadata fm)
@@ -2103,11 +2161,7 @@ namespace NSAP_ODK.Views
             VesselUnloadServerRepository.JSON = JSON;
             VesselUnloadServerRepository.CreateLandingsFromJSON();
             _historyJSONFileForUploading = fm.JSONFile.Name;
-            //ShowResultFromAPI("effort", gridJSONContent);
-            //if (gridJSONContent.Items.Count > 0)
-            //{
-            //menuView.Visibility = Visibility.Visible;
-            //_isJSONData = true;
+
             VesselUnloadServerRepository.ResetLists();
             SetMenus();
             gridJSONContent.Visibility = Visibility.Visible;
@@ -2138,14 +2192,11 @@ namespace NSAP_ODK.Views
 
         private void OnTreeviewItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            //gridJSONContent.Visibility = Visibility.Collapsed;
-            //propertyGridMetadata.Visibility = Visibility.Collapsed;
             rowJSONGrid.Height = new GridLength(0);
             rowJSONMetadata.Height = new GridLength(0);
 
             labelJSONFile.Content = "";
             gridJSONContent.Visibility = Visibility.Collapsed;
-            //menuView.Visibility = Visibility.Collapsed;
             _isJSONData = false;
             _jsonDateDownloadnode = null;
 
@@ -2195,7 +2246,6 @@ namespace NSAP_ODK.Views
         {
             labelJSONFile.Content = $"Metadata for selected downloaded JSON files downloaded on {djmd.DateDownloaded:MMM-dd-yyyy HH:mm}";
             rowJSONMetadata.Height = new GridLength(1, GridUnitType.Star);
-            //propertyGridMetadata.Visibility = Visibility.Visible;
             propertyGridMetadata.SelectedObject = djmd;
             propertyGridMetadata.AutoGenerateProperties = true;
         }
@@ -2221,6 +2271,21 @@ namespace NSAP_ODK.Views
                     m = new MenuItem { Header = "Update xFormIdentifier", Name = "menuUpdateXformIdentifier" };
                     m.Click += OnMenuClick;
                     cm.Items.Add(m);
+
+                    m = new MenuItem { Header = "Update landing sites", Name = "menuUpdateLandingSites" };
+                    m.Click += OnMenuClick;
+                    cm.Items.Add(m);
+
+                    m = new MenuItem { Header = "Locate unsaved landings uploaded to the server", Name = "menuLocateUnsaved" };
+                    m.Click += OnMenuClick;
+                    cm.Items.Add(m);
+
+                    if(Debugger.IsAttached)
+                    {
+                        m = new MenuItem { Header = "Locate missing landing site infor", Name = "menuLocateMissingLSInfo" };
+                        m.Click += OnMenuClick;
+                        cm.Items.Add(m);
+                    }
                 }
                 else
                 {

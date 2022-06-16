@@ -33,6 +33,16 @@ namespace NSAP_ODK.Utilities
 
         //public static string MDBPath = $"{AppDomain.CurrentDomain.BaseDirectory}/nsap_odk.mdb";
 
+
+        //public static Stream ToStream(this string str)
+        //{
+        //    MemoryStream stream = new MemoryStream();
+        //    StreamWriter writer = new StreamWriter(stream);
+        //    writer.Write(str);
+        //    writer.Flush();
+        //    stream.Position = 0;
+        //    return stream;
+        //}
         public static bool HasInternet { get; private set; }
         public static bool HasInternetConnection()
         {
