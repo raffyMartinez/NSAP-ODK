@@ -2241,7 +2241,7 @@ namespace NSAP_ODK
 
                     break;
                 case "menuLocateDatabase":
-                    
+
                     if (LocateBackendDB(out string backendPath))
                     {
                         menuDummy.IsChecked = true;
@@ -2435,7 +2435,8 @@ namespace NSAP_ODK
 
             if (OpenImportedDatabaseInApplication)
             {
-               if( OpenDatabaseInApp(ImportIntoMDBFile, out string dummy))
+                OpenImportedDatabaseInApplication = false;
+                if (OpenDatabaseInApp(ImportIntoMDBFile, out string dummy))
                 {
                     menuDummy.IsChecked = true;
                     menuDatabaseSummary.IsChecked = true;
