@@ -76,6 +76,7 @@ namespace NSAP_ODK.NSAPMysql
                                         PRIMARY KEY (`row_id`),
                                         INDEX `nsap_region_nrf_fk_idx` (`nsap_region` ASC) VISIBLE,
                                         INDEX `fma_nrf_fk_idx` (`fma` ASC) VISIBLE,
+                                        UNIQUE KEY `altKey_nrf` (`nsap_region`,`fma`),
                                         CONSTRAINT `nsap_region_nrf_fk`
                                           FOREIGN KEY (`nsap_region`)
                                           REFERENCES `nsap_region` (`code`)
@@ -132,6 +133,7 @@ namespace NSAP_ODK.NSAPMysql
                                     PRIMARY KEY (`row_id`),
                                     INDEX `enumerator_id_nre_fk_idx` (`enumerator_id` ASC) VISIBLE,
                                     INDEX `region_nre_fk_idx` (`region` ASC) VISIBLE,
+                                    UNIQUE KEY `altKey_nre` (`enumerator_id`,`region`),
                                     CONSTRAINT `enumerator_id_nre_fk`
                                       FOREIGN KEY (`enumerator_id`)
                                       REFERENCES `nsap_enumerators` (`enumerator_id`)
@@ -316,6 +318,7 @@ namespace NSAP_ODK.NSAPMysql
                                         PRIMARY KEY (`row_id`),
                                         INDEX `gear_ges_fk_idx` (`gear` ASC) VISIBLE,
                                         INDEX `effort_spec_ges_fk_idx` (`effort_spec` ASC) VISIBLE,
+                                        UNIQUE KEY `altKey_gef` (`gear`,`effort_spec`),
                                         CONSTRAINT `gear_ges_fk`
                                           FOREIGN KEY (`gear`)
                                           REFERENCES `gears` (`gear_code`)
@@ -378,6 +381,7 @@ namespace NSAP_ODK.NSAPMysql
                                         PRIMARY KEY (`row_id`),
                                         INDEX `fishing_ground_nffg_fk_idx` (`fishing_ground` ASC) VISIBLE,
                                         INDEX `region_nffg_fk_idx` (`region_fma` ASC) VISIBLE,
+                                        UNIQUE KEY `altKey_nrfg` (`region_fma`,`fishing_ground`),
                                         CONSTRAINT `fishing_ground_nffg_fk`
                                           FOREIGN KEY (`fishing_ground`)
                                           REFERENCES `fishing_grounds` (`fishing_ground_code`)
@@ -416,6 +420,7 @@ namespace NSAP_ODK.NSAPMysql
                                         PRIMARY KEY (`row_id`),
                                         INDEX `nsap_region_fma_fg_ls_fk_idx` (`nsap_region_fma_fg` ASC) VISIBLE,
                                         INDEX `landing_site_fg_fk_idx` (`landing_site` ASC) VISIBLE,
+                                        UNIQUE KEY `altKey_nrls` (`nsap_region_fma_fg`,`landing_site`),
                                         CONSTRAINT `nsap_region_fma_fg_ls_fk`
                                           FOREIGN KEY (`nsap_region_fma_fg`)
                                           REFERENCES `nsap_region_fma_fishing_grounds` (`row_id`)
@@ -454,6 +459,7 @@ namespace NSAP_ODK.NSAPMysql
                                         PRIMARY KEY (`row_id`),
                                         INDEX `nsap_region_nrg_fk_idx` (`nsap_region` ASC) VISIBLE,
                                         INDEX `gear_nrg_fk_idx` (`gear` ASC) VISIBLE,
+                                        UNIQUE KEY `altKey_nrg`(`nsap_region`,`gear`),
                                         CONSTRAINT `nsap_region_nrg_fk`
                                           FOREIGN KEY (`nsap_region`)
                                           REFERENCES `nsap_region` (`code`)
@@ -573,6 +579,7 @@ namespace NSAP_ODK.NSAPMysql
                                         PRIMARY KEY (`row_id`),
                                         INDEX `vessel_nrv_fk_idx` (`vessel` ASC) VISIBLE,
                                         INDEX `region_nrv_fk_idx` (`region` ASC) VISIBLE,
+                                        UNIQUE KEY `altKey_nrv`(`vessel`,`region`),
                                         CONSTRAINT `vessel_nrv_fk`
                                           FOREIGN KEY (`vessel`)
                                           REFERENCES `fishing_vessel` (`vessel_id`)
@@ -762,6 +769,7 @@ namespace NSAP_ODK.NSAPMysql
                                     `is_sample_day` TINYINT(1) NOT NULL,
                                     `land_ctr_text` VARCHAR(150) NULL,
                                     PRIMARY KEY (`unload_day_id`),
+                                    UNIQUE KEY `altKey` (`land_ctr_id`,`ground_id`,`sdate`),
                                     INDEX `region_id_lss_fk_idx` (`region_id` ASC) VISIBLE,
                                     INDEX `fma_lss_fk_idx` (`fma` ASC) VISIBLE,
                                     INDEX `land_ctr_id_lss_fk_idx` (`land_ctr_id` ASC) VISIBLE,
@@ -860,6 +868,7 @@ namespace NSAP_ODK.NSAPMysql
                                         PRIMARY KEY (`unload_gr_id`),
                                         INDEX `unload_day_id_gu_fk_idx` (`unload_day_id` ASC) VISIBLE,
                                         INDEX `gr_id_gu_fk_idx` (`gr_id` ASC) VISIBLE,
+                                        UNIQUE KEY `altKey_gu` (`gr_id`,`unload_day_id`),
                                         CONSTRAINT `unload_day_id_gu_fk`
                                           FOREIGN KEY (`unload_day_id`)
                                           REFERENCES `dbo_LC_FG_sample_day` (`unload_day_id`)
@@ -1000,6 +1009,7 @@ namespace NSAP_ODK.NSAPMysql
                                         `grid25`VARCHAR(10) NOT NULL,
                                         PRIMARY KEY (`fg_grid_id`),
                                         INDEX `v_unload_id_fgg_fk_idx` (`v_unload_id` ASC) VISIBLE,
+                                        UNIQUE KEY `altKey_fgg` (`grid25`,`v_unload_id`),
                                         CONSTRAINT `v_unload_id_fgg_fk`
                                           FOREIGN KEY (`v_unload_id`)
                                           REFERENCES `dbo_vessel_unload` (`v_unload_id`)

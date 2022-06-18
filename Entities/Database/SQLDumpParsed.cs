@@ -795,7 +795,7 @@ namespace NSAP_ODK.Entities.Database
                                     col.AccessColumnName = "catch_id";
                                     break;
                                 case "length":
-                                    col.AccessColumnName = "len_class";
+                                    col.AccessColumnName = "length";
                                     break;
                                 case "weight":
                                     col.AccessColumnName = "weight";

@@ -1990,6 +1990,36 @@ namespace NSAP_ODK
             }
         }
 
+        public bool OpenDatabaseInApp(string filename, out string backendPath)
+        {
+            backendPath = "";
+            bool success = false;
+            Global.SetMDBPath(filename);
+            if (Global.AppProceed)
+            {
+                SetDataDisplayMode();
+                ShowSplash();
+                samplingTree.ReadDatabase();
+                if (
+                    NSAPEntities.NSAPRegionViewModel.Count > 0 &&
+                    NSAPEntities.FishSpeciesViewModel.Count > 0 &&
+                    NSAPEntities.NotFishSpeciesViewModel.Count > 0 &&
+                    NSAPEntities.FMAViewModel.Count > 0
+                    )
+                {
+                    SetDataDisplayMode();
+                    menuDatabaseSummary.IsChecked = true;
+                    success = true;
+                    backendPath = filename;
+                }
+                else
+                {
+                    ShowDatabaseNotFoundView();
+                }
+            }
+            return success;
+        }
+
         public bool LocateBackendDB(out string backendPath)
         {
             bool success = false;
@@ -2001,30 +2031,30 @@ namespace NSAP_ODK
             ofd.InitialDirectory = AppDomain.CurrentDomain.BaseDirectory;
             if ((bool)ofd.ShowDialog() && File.Exists(ofd.FileName))
             {
-
-                Global.SetMDBPath(ofd.FileName);
-                if (Global.AppProceed)
-                {
-                    SetDataDisplayMode();
-                    ShowSplash();
-                    samplingTree.ReadDatabase();
-                    if (
-                        NSAPEntities.NSAPRegionViewModel.Count > 0 &&
-                        NSAPEntities.FishSpeciesViewModel.Count > 0 &&
-                        NSAPEntities.NotFishSpeciesViewModel.Count > 0 &&
-                        NSAPEntities.FMAViewModel.Count > 0
-                        )
-                    {
-                        SetDataDisplayMode();
-                        menuDatabaseSummary.IsChecked = true;
-                        success = true;
-                        backendPath = ofd.FileName;
-                    }
-                    else
-                    {
-                        ShowDatabaseNotFoundView();
-                    }
-                }
+                success = OpenDatabaseInApp(ofd.FileName, out backendPath);
+                //Global.SetMDBPath(ofd.FileName);
+                //if (Global.AppProceed)
+                //{
+                //    SetDataDisplayMode();
+                //    ShowSplash();
+                //    samplingTree.ReadDatabase();
+                //    if (
+                //        NSAPEntities.NSAPRegionViewModel.Count > 0 &&
+                //        NSAPEntities.FishSpeciesViewModel.Count > 0 &&
+                //        NSAPEntities.NotFishSpeciesViewModel.Count > 0 &&
+                //        NSAPEntities.FMAViewModel.Count > 0
+                //        )
+                //    {
+                //        SetDataDisplayMode();
+                //        menuDatabaseSummary.IsChecked = true;
+                //        success = true;
+                //        backendPath = ofd.FileName;
+                //    }
+                //    else
+                //    {
+                //        ShowDatabaseNotFoundView();
+                //    }
+                //}
             }
             return success;
         }
@@ -2101,7 +2131,6 @@ namespace NSAP_ODK
                     Clipboard.SetText(sb.ToString());
                     break;
                 case "menuCopyText":
-                    // var stateCAnSelectMultiple = _dataGrid.cans
                     if (_dataGrid != null)
                     {
                         var smode = _dataGrid.SelectionMode;
@@ -2212,8 +2241,12 @@ namespace NSAP_ODK
 
                     break;
                 case "menuLocateDatabase":
-
-                    LocateBackendDB(out string backendPath);
+                    
+                    if (LocateBackendDB(out string backendPath))
+                    {
+                        menuDummy.IsChecked = true;
+                        menuDatabaseSummary.IsChecked = true;
+                    }
                     break;
                 case "menuImportGPX":
                     OpenFileDialog opf = new OpenFileDialog();
@@ -2385,6 +2418,8 @@ namespace NSAP_ODK
                 }
             }
         }
+        public string ImportIntoMDBFile { get; set; }
+        public bool OpenImportedDatabaseInApplication { get; set; }
         private void ShowNSAPCalendar()
         {
             _currentDisplayMode = DataDisplayMode.ODKData;
@@ -2393,19 +2428,32 @@ namespace NSAP_ODK
         }
         private void ShowImportWindow(bool openLogInWindow = false)
         {
-            var window = ODKResultsWindow.GetInstance();
-            if (window.IsVisible)
-            {
-                window.BringIntoView();
-            }
-            else
-            {
-                window.Show();
-                window.Owner = this;
-                window.ParentWindow = this;
-            }
-
+            ODKResultsWindow window = new ODKResultsWindow();
+            window.Owner = this;
             window.OpenLogInWindow(isOpen: openLogInWindow);
+            window.ShowDialog();
+
+            if (OpenImportedDatabaseInApplication)
+            {
+               if( OpenDatabaseInApp(ImportIntoMDBFile, out string dummy))
+                {
+                    menuDummy.IsChecked = true;
+                    menuDatabaseSummary.IsChecked = true;
+                }
+            }
+            //var window = ODKResultsWindow.GetInstance();
+            //if (window.IsVisible)
+            //{
+            //    window.BringIntoView();
+            //}
+            //else
+            //{
+            //    window.Show();
+            //    window.Owner = this;
+            //    window.ParentWindow = this;
+            //}
+
+            //window.OpenLogInWindow(isOpen: openLogInWindow);
         }
 
         private void DownloadFromServerWindow_RefreshDatabaseSummaryTable()

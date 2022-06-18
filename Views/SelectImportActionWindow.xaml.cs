@@ -46,6 +46,7 @@ namespace NSAP_ODK.Views
                 case "buttonOk":
                     ((ODKResultsWindow)Owner).ImportActionOption = ImportActionOption;
                     ((ODKResultsWindow)Owner).ImportIntoMDBFile = MDBFile;
+                    ((ODKResultsWindow)Owner).OpenImportedDatabaseInApplication = (bool)chkOpenAfterImport.IsChecked;
                     DialogResult = true;
                     break;
                 case "buttonSelect":
@@ -64,7 +65,7 @@ namespace NSAP_ODK.Views
             {
                 dialog = new swf.SaveFileDialog();
                 ((swf.SaveFileDialog)dialog).Title = "Create new Microsoft Access Database (MDB) file";
-                 ((swf.SaveFileDialog)dialog).Filter = "MDB file (*.mdb)|*.mdb|All files (*.)|*.*";
+                ((swf.SaveFileDialog)dialog).Filter = "MDB file (*.mdb)|*.mdb|All files (*.)|*.*";
                 ((swf.SaveFileDialog)dialog).DefaultExt = "*.mdb";
             }
             else

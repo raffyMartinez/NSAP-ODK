@@ -313,10 +313,11 @@ namespace NSAP_ODK.Entities.Database
             foreach (var item in g)
             {
                 var gu = item.FirstOrDefault().GearUnload;
-                gu.Parent = new LandingSiteSampling
-                {
-                    SamplingDate = item.FirstOrDefault().SamplingDate
-                };
+                //gu.Parent = new LandingSiteSampling
+                //{
+                //    SamplingDate = item.FirstOrDefault().SamplingDate
+                //};
+                gu.Parent.SamplingDate = item.FirstOrDefault().SamplingDate;
 
                 List<VesselUnload> lvu = new List<VesselUnload>();
                 var vus = item.GroupBy(t => t.VesselUnloadID);
@@ -776,7 +777,10 @@ namespace NSAP_ODK.Entities.Database
             HashSet<GearUnload> gear_unloads = new HashSet<GearUnload>(new GearUnloadComparer());
             foreach (var item in summaryItems)
             {
+                if(item.GearUnload==null)
+                {
 
+                }
                 gear_unloads.Add(item.GearUnload);
             }
 

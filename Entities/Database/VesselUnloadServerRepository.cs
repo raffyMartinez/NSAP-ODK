@@ -1965,6 +1965,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
             int savedCount = 0;
 
             List<VesselLanding> landings;
+            UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.Searching });
             if (resolvedLandings != null)
             {
                 landings = resolvedLandings;

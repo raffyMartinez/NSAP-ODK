@@ -463,7 +463,7 @@ namespace NSAP_ODK.Entities.Database
         private List<SummaryItem> getSummaryItems()
         {
 
-
+            int count = 0;
             List<SummaryItem> items = new List<SummaryItem>();
             if (Global.Settings.UsemySQL)
             {
@@ -549,6 +549,7 @@ namespace NSAP_ODK.Entities.Database
                             con.Open();
                             var dr = cmd.ExecuteReader();
                             int id = 0;
+                            
                             while (dr.Read())
                             {
                                 int? ls_id = null;
@@ -632,64 +633,115 @@ namespace NSAP_ODK.Entities.Database
                                 {
                                     count_maturity = (int)dr["count_maturity"];
                                 }
+                                SummaryItem si = new SummaryItem();
+                                si.ID = ++id;
+                                si.ODKRowID = dr["RowID"].ToString();
+                                si.XFormIdentifier = dr["xform_identifier"].ToString();
+                                si.SamplingDayID = (int)dr["unload_day_id"];
+                                si.GearUnloadID = (int)dr["unload_gr_id"];
+                                si.VesselUnloadID = (int)dr["v_unload_id"];
+                                si.RegionID = dr["reg_code"].ToString();
+                                si.RegionSequence = (int)dr["reg_seq"];
+                                si.FMAId = (int)dr["fma_id"];
+                                si.FishingGroundID = dr["fishing_ground_code"].ToString();
+                                si.LandingSiteID = ls_id;
+                                si.LandingSiteName = dr["landing_site_name"].ToString();
+                                si.LandingSiteText = dr["landing_site_text"].ToString();
+                                si.GearCode = dr["gear_code"].ToString();
+                                si.GearName = dr["gear_name"].ToString();
+                                si.GearText = dr["gear_text"].ToString();
+                                si.GearUnloadBoats = gu_boats;
+                                si.GearUnloadCatch = gu_catch;
+                                si.UserName = dr["user_name"].ToString();
+                                si.EnumeratorID = en_id;
+                                si.EnumeratorName = dr["enumerator_name"].ToString();
+                                si.EnumeratorText = dr["enumerator_text"].ToString();
+                                si.FormVersion = dr["form_version"].ToString().Replace("Version ", "");
+                                si.SamplingDate = (DateTime)dr["sampling_date"];
+                                si.DateAdded = dr["date_added"]==DBNull.Value?DateTime.Now: (DateTime)dr["date_added"];
+                                si.IsSuccess = (bool)dr["is_success"];
+                                si.IsTracked = (bool)dr["is_tracked"];
+                                si.SectorCode = dr["sector_code"].ToString();
+                                si.HasCatchComposition = (bool)dr["has_catch_composition"];
+                                si.IsTripCompleted = (bool)dr["trip_is_completed"];
+                                si.CatchCompositionRows = count_catch_comp;
+                                si.VesselID = vessel_id;
+                                si.VesselName = dr["vessel_name"].ToString();
+                                si.VesselText = dr["vessel_text"].ToString();
+                                si.NumberOfFishers = no_fishers;
+                                si.GPSCode = dr["gps"].ToString();
+                                si.CatchMaturityRows = count_maturity;
+                                si.FishingGridRows = count_grids;
+                                si.GearSoakRows = count_gear_soaks;
+                                si.LenFreqRows = count_len_freq;
+                                si.LengthRows = count_len;
+                                si.LenWtRows = count_len_wt;
+                                si.VesselEffortRows = count_efforts;
+                                si.DateSubmitted = (DateTime)dr["datetime_submitted"];
 
-                                SummaryItem si = new SummaryItem
-                                {
-                                    ID = ++id,
-                                    ODKRowID = dr["RowID"].ToString(),
-                                    XFormIdentifier = dr["xform_identifier"].ToString(),
-                                    SamplingDayID = (int)dr["unload_day_id"],
-                                    GearUnloadID = (int)dr["unload_gr_id"],
-                                    VesselUnloadID = (int)dr["v_unload_id"],
-                                    RegionID = dr["reg_code"].ToString(),
-                                    RegionSequence = (int)dr["reg_seq"],
-                                    FMAId = (int)dr["fma_id"],
-                                    FishingGroundID = dr["fishing_ground_code"].ToString(),
-                                    LandingSiteID = ls_id,
-                                    LandingSiteName = dr["landing_site_name"].ToString(),
-                                    LandingSiteText = dr["landing_site_text"].ToString(),
-                                    GearCode = dr["gear_code"].ToString(),
-                                    GearName = dr["gear_name"].ToString(),
-                                    GearText = dr["gear_text"].ToString(),
-                                    GearUnloadBoats = gu_boats,
-                                    GearUnloadCatch = gu_catch,
-                                    UserName = dr["user_name"].ToString(),
-                                    EnumeratorID = en_id,
-                                    EnumeratorName = dr["enumerator_name"].ToString(),
-                                    EnumeratorText = dr["enumerator_text"].ToString(),
-                                    FormVersion = dr["form_version"].ToString().Replace("Version ", ""),
-                                    SamplingDate = (DateTime)dr["sampling_date"],
-                                    DateAdded = (DateTime)dr["date_added"],
-                                    IsSuccess = (bool)dr["is_success"],
-                                    IsTracked = (bool)dr["is_tracked"],
-                                    SectorCode = dr["sector_code"].ToString(),
-                                    HasCatchComposition = (bool)dr["has_catch_composition"],
-                                    IsTripCompleted = (bool)dr["trip_is_completed"],
-                                    CatchCompositionRows = count_catch_comp,
-                                    VesselID = vessel_id,
-                                    VesselName = dr["vessel_name"].ToString(),
-                                    VesselText = dr["vessel_text"].ToString(),
-                                    NumberOfFishers = no_fishers,
-                                    GPSCode = dr["gps"].ToString(),
-                                    CatchMaturityRows = count_maturity,
-                                    FishingGridRows = count_grids,
-                                    GearSoakRows = count_gear_soaks,
-                                    LenFreqRows = count_len_freq,
-                                    LengthRows = count_len,
-                                    LenWtRows = count_len_wt,
-                                    VesselEffortRows = count_efforts,
-                                    DateSubmitted=(DateTime)dr["datetime_submitted"]
+                                //SummaryItem si = new SummaryItem
+                                //{
+                                //    ID = ++id,
+                                //    ODKRowID = dr["RowID"].ToString(),
+                                //    XFormIdentifier = dr["xform_identifier"].ToString(),
+                                //    SamplingDayID = (int)dr["unload_day_id"],
+                                //    GearUnloadID = (int)dr["unload_gr_id"],
+                                //    VesselUnloadID = (int)dr["v_unload_id"],
+                                //    RegionID = dr["reg_code"].ToString(),
+                                //    RegionSequence = (int)dr["reg_seq"],
+                                //    FMAId = (int)dr["fma_id"],
+                                //    FishingGroundID = dr["fishing_ground_code"].ToString(),
+                                //    LandingSiteID = ls_id,
+                                //    LandingSiteName = dr["landing_site_name"].ToString(),
+                                //    LandingSiteText = dr["landing_site_text"].ToString(),
+                                //    GearCode = dr["gear_code"].ToString(),
+                                //    GearName = dr["gear_name"].ToString(),
+                                //    GearText = dr["gear_text"].ToString(),
+                                //    GearUnloadBoats = gu_boats,
+                                //    GearUnloadCatch = gu_catch,
+                                //    UserName = dr["user_name"].ToString(),
+                                //    EnumeratorID = en_id,
+                                //    EnumeratorName = dr["enumerator_name"].ToString(),
+                                //    EnumeratorText = dr["enumerator_text"].ToString(),
+                                //    FormVersion = dr["form_version"].ToString().Replace("Version ", ""),
+                                //    SamplingDate = (DateTime)dr["sampling_date"],
+                                //    DateAdded = (DateTime)dr["date_added"],
+                                //    IsSuccess = (bool)dr["is_success"],
+                                //    IsTracked = (bool)dr["is_tracked"],
+                                //    SectorCode = dr["sector_code"].ToString(),
+                                //    HasCatchComposition = (bool)dr["has_catch_composition"],
+                                //    IsTripCompleted = (bool)dr["trip_is_completed"],
+                                //    CatchCompositionRows = count_catch_comp,
+                                //    VesselID = vessel_id,
+                                //    VesselName = dr["vessel_name"].ToString(),
+                                //    VesselText = dr["vessel_text"].ToString(),
+                                //    NumberOfFishers = no_fishers,
+                                //    GPSCode = dr["gps"].ToString(),
+                                //    CatchMaturityRows = count_maturity,
+                                //    FishingGridRows = count_grids,
+                                //    GearSoakRows = count_gear_soaks,
+                                //    LenFreqRows = count_len_freq,
+                                //    LengthRows = count_len,
+                                //    LenWtRows = count_len_wt,
+                                //    VesselEffortRows = count_efforts,
+                                //    DateSubmitted=(DateTime)dr["datetime_submitted"]
 
-                                };
+                                //};
                                 if (string.IsNullOrEmpty(si.EnumeratorText))
                                 {
                                     si.EnumeratorText = si.UserName;
                                 }
                                 items.Add(si);
+                                count++;
+                                if(count==21537)
+                                {
+
+                                }
                             }
                         }
                         catch (Exception ex)
                         {
+                            Logger.Log($"error at loop {count}");
                             Logger.Log(ex);
                         }
                     }

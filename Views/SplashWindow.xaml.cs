@@ -78,10 +78,11 @@ namespace NSAP_ODK.Views
 
             // this will be run only once after updating the regions-enumerators table  
             // where date of first sampling is added to the table
-            if(NSAPRegionWithEntitiesRepository.EnumeratorFirstSamplingDateRequired)
-            {
-                NSAPEntities.NSAPEnumeratorViewModel.FirstSamplingOfEnumerators = NSAPEntities.NSAPEnumeratorViewModel.GetFirstSamplingOfEnumerators();
-            }
+
+            //if(NSAPRegionWithEntitiesRepository.EnumeratorFirstSamplingDateRequired)
+            //{
+            //    NSAPEntities.NSAPEnumeratorViewModel.FirstSamplingOfEnumerators = NSAPEntities.NSAPEnumeratorViewModel.GetFirstSamplingOfEnumerators();
+            //}
             
         }
 

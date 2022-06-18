@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data.OleDb;
 using NSAP_ODK.Utilities;
-using Microsoft.VisualBasic.FileIO;
+
 namespace NSAP_ODK.Entities.Database
 {
     public static class CreateTablesInAccess
@@ -43,7 +43,7 @@ namespace NSAP_ODK.Entities.Database
         }
         public static bool DropTables()
         {
-            AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent="dropping tables" });
+            AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "dropping tables" });
             int countDropped = 0;
             using (var con = new OleDbConnection(_connectionString))
             {
@@ -234,7 +234,7 @@ namespace NSAP_ODK.Entities.Database
 
                 }
             }
-            AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent="tables dropped" });
+            AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "tables dropped" });
             return countDropped == 34;
         }
 
@@ -248,31 +248,194 @@ namespace NSAP_ODK.Entities.Database
                 .Where(t => t.ForParsing)
                 .OrderBy(t => t.Sequence).ToList();
 
-            AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { TotalTableCount = tablesForImporting.Count ,Intent="begin import"}); ;
+            AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { TotalTableCount = tablesForImporting.Count, Intent = "begin import" }); ;
 
             int currentTableCount = 0;
             foreach (var item in tablesForImporting)
             {
-                string sql = MakeInsertSQL(item.AccessTableName, item.Columns);
+
+                //string sql = MakeInsertSQL(item.AccessTableName, item.Columns);
                 currentTableCount++;
-                AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent="parsing table", CurrentTableName = item.AccessTableName, CurrentRowCount = 0, CurrentTableCount = currentTableCount });
-                int count = 0;
+                AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "parsing table", CurrentTableName = item.AccessTableName, CurrentRowCount = 0, CurrentTableCount = currentTableCount });
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine(string.Join(",", item.Columns));
+                Console.WriteLine(sb.ToString());
                 foreach (var line in item.DataLines)
                 {
                     foreach (string lineItem in line.Split(new[] { "),(" }, StringSplitOptions.None))
                     {
-                        if (DoInsertQuery(sql, lineItem.Trim(new char[] { '(', ')' }), item.Columns))
+                        var list = SplitQualified(lineItem.Trim(new char[] { ')', '(' }), ',', '\'', true);
+                        var new_line = "";
+                        //foreach (string list_member in list)
+                        //{
+                        //    //new_line = "";
+                        //    //if(int.TryParse(list_member,out int i) || DateTime.TryParse(list_member,out DateTime d) || list_member=="NULL")
+                        //    if (int.TryParse(list_member, out int i) || DateTime.TryParse(list_member, out DateTime d))
+                        //    {
+                        //        new_line += $"{list_member},";
+                        //    }
+                        //    else if (list_member == "NULL")
+                        //    {
+                        //        new_line += ",";
+                        //    }
+                        //    else
+                        //    {
+                        //        new_line += $"\"{list_member}\",";
+                        //    }
+                        //}
+                        int loopCount = 0;
+                        foreach(string list_member in list)
                         {
-                            count++;
-                            AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { CurrentTableName=item.AccessTableName, Intent="row imported", CurrentRowCount = count }); ;
+                            //new_line = "";
+                            if (list_member == "NULL")
+                            {
+                                new_line += ",";
+                            }
+                            else
+                            {
+                                switch (item.Columns[loopCount].MySQLType.Split('(')[0])
+                                {
+                                    case "int":
+                                    case "tinyint":
+                                    case "double":
+                                    case "datetime":
+                                    case "date":
+                                        new_line += $"{list_member},";
+                                        break;
+                                    case "varchar":
+                                        new_line += $"\"{list_member}\",";
+                                        break;
+
+                                }
+                            }
+                            loopCount++;
                         }
+
+                        sb.AppendLine(new_line.Trim(','));
                     }
                 }
+
+                System.IO.File.WriteAllText($@"{AppDomain.CurrentDomain.BaseDirectory}\temp.csv", sb.ToString());
+                Console.WriteLine(sb.ToString());
+                if (DoInsertQuery(item.AccessTableName))
+                {
+
+                }
+
+                //foreach(var parsed_item in parsed_items)
+                //{
+                //if(DoInsertQuery(sql,parsed_item,item.Columns))
+                //{
+                //    count++;
+                //    AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { CurrentTableName = item.AccessTableName, Intent = "row imported", CurrentRowCount = count }); 
+                //}
+                //}
             }
             AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "import done" });
             return currentTableCount == tablesForImporting.Count;
         }
 
+        private static bool DoInsertQuery(string tableName)
+        {
+            bool success = false;
+            using (var con = new OleDbConnection(ConnectionString))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    cmd.CommandText = $@"INSERT INTO {tableName} SELECT * FROM [Text;FMT=Delimited;DATABASE={AppDomain.CurrentDomain.BaseDirectory};HDR=yes].[temp.csv]";
+                    con.Open();
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        success = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+
+            }
+            return success;
+
+            //System.Data.OleDb.OleDbCommand AccessCommand = new System.Data.OleDb.OleDbCommand("SELECT * INTO [ImportTable] FROM [Text;FMT=Delimited;DATABASE=C:\\Documents and Settings\\...\\My Documents\\My Database\\Text;HDR=No].[x123456.csv]", AccessConnection);
+
+            //AccessCommand.ExecuteNonQuery();
+            //AccessConnection.Close();
+        }
+        private static bool DoInsertQuery(string sql, List<string> col_values, List<AccessColumn> columns)
+        {
+            bool success = false;
+            using (var con = new OleDbConnection(ConnectionString))
+            {
+                //var col_values = line.Split(',');
+                //var col_values = SplitQualified(line, ',', '\'', true);
+
+
+
+                using (var cmd = con.CreateCommand())
+                {
+                    int col_count = 0;
+                    foreach (AccessColumn col in columns)
+                    {
+                        var arr_type = col.MySQLType.Split('(');
+                        string column_value = col_values[col_count].Trim(new char[] { '\'', ')', '(' });
+                        if (column_value == "NULL")
+                        {
+                            cmd.Parameters.AddWithValue($"@par_{col.AccessColumnName}", DBNull.Value);
+                        }
+                        else
+                        {
+                            try
+                            {
+                                switch (arr_type[0])
+                                {
+                                    case "int":
+                                        cmd.Parameters.AddWithValue($"@par_{col.AccessColumnName}", int.Parse(column_value));
+                                        break;
+                                    case "varchar":
+                                        cmd.Parameters.AddWithValue($"@par_{col.AccessColumnName}", column_value);
+                                        break;
+                                    case "tinyint":
+                                        cmd.Parameters.AddWithValue($"@par_{col.AccessColumnName}", int.Parse(column_value));
+                                        break;
+                                    case "double":
+                                        cmd.Parameters.AddWithValue($"@par_{col.AccessColumnName}", double.Parse(column_value));
+                                        break;
+                                    case "datetime":
+                                    case "date":
+                                        cmd.Parameters.AddWithValue($"@par_{col.AccessColumnName}", DateTime.Parse(column_value));
+                                        break;
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Log(ex);
+                            }
+                        }
+
+                        col_count++;
+                    }
+
+                    cmd.CommandText = sql;
+                    try
+                    {
+                        con.Open();
+                        success = cmd.ExecuteNonQuery() > 0;
+                    }
+                    catch (OleDbException oex)
+                    {
+                        Logger.Log(oex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+
+            }
+            return success;
+        }
         private static string MakeInsertSQL(string tableName, List<AccessColumn> columns)
         {
             string sql = $"INSERT INTO {tableName} (";
@@ -378,79 +541,7 @@ namespace NSAP_ODK.Entities.Database
 
             return results;
         }
-        private static bool DoInsertQuery(string sql, string line, List<AccessColumn> columns)
-        {
-            bool success = false;
-            using (var con = new OleDbConnection(ConnectionString))
-            {
-                //var col_values = line.Split(',');
-                var col_values = SplitQualified(line, ',', '\'', true);
 
-
-
-                using (var cmd = con.CreateCommand())
-                {
-                    int col_count = 0;
-                    foreach (AccessColumn col in columns)
-                    {
-                        var arr_type = col.MySQLType.Split('(');
-                        string column_value = col_values[col_count].Trim('\'');
-                        if (column_value == "NULL")
-                        {
-                            cmd.Parameters.AddWithValue($"@par_{col.AccessColumnName}", DBNull.Value);
-                        }
-                        else
-                        {
-                            try
-                            {
-                                switch (arr_type[0])
-                                {
-                                    case "int":
-                                        cmd.Parameters.AddWithValue($"@par_{col.AccessColumnName}", int.Parse(column_value));
-                                        break;
-                                    case "varchar":
-                                        cmd.Parameters.AddWithValue($"@par_{col.AccessColumnName}", column_value);
-                                        break;
-                                    case "tinyint":
-                                        cmd.Parameters.AddWithValue($"@par_{col.AccessColumnName}", int.Parse(column_value));
-                                        break;
-                                    case "double":
-                                        cmd.Parameters.AddWithValue($"@par_{col.AccessColumnName}", double.Parse(column_value));
-                                        break;
-                                    case "datetime":
-                                    case "date":
-                                        cmd.Parameters.AddWithValue($"@par_{col.AccessColumnName}", DateTime.Parse(column_value));
-                                        break;
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Logger.Log(ex);
-                            }
-                        }
-
-                        col_count++;
-                    }
-
-                    cmd.CommandText = sql;
-                    try
-                    {
-                        con.Open();
-                        success = cmd.ExecuteNonQuery() > 0;
-                    }
-                    catch (OleDbException oex)
-                    {
-                        Logger.Log(oex);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
-                    }
-                }
-
-            }
-            return success;
-        }
         public static Dictionary<string, List<string>> SQLDumpDictionary { get; set; }
 
     }

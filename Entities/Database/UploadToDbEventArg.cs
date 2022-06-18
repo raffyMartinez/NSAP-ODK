@@ -18,7 +18,7 @@ namespace NSAP_ODK.Entities.Database
         EndOfUpdate,
         Cancelled,
         UnloadFound,
-        
+        Searching
 
     }
     public class UploadToDbEventArg:EventArgs

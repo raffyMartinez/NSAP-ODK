@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NSAP_ODK.Views"
         mc:Ignorable="d"
-        Title="Choose import action" Height="202" Width="396">
+        Title="Choose import action" Height="240" Width="396" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
@@ -19,8 +19,9 @@
         </WrapPanel>
         <StackPanel Grid.Row="1" Margin="0 20 0 0">
             <RadioButton Content="Import into a new database" Margin="5 5" x:Name="rbImportNewDB" Checked="OnRadioButtonChecked" />
-            <RadioButton Content="Import into an existing database and replace existing content" Margin="5 5" x:Name="rbImportExistingDB" Checked="OnRadioButtonChecked" />
-            <RadioButton Content="Import into current database and replace existing content" Margin="5 5" x:Name="rbImportCurrentDB" Checked="OnRadioButtonChecked" />
+            <RadioButton Content="Import into an existing database and replace existing content" Margin="5 5" x:Name="rbImportExistingDB" Checked="OnRadioButtonChecked" IsEnabled="False" />
+            <RadioButton Content="Import into current database and replace existing content" Margin="5 5" x:Name="rbImportCurrentDB" Checked="OnRadioButtonChecked" IsEnabled="False"/>
+            <CheckBox Content="Open in NSAP-ODK Database after import" x:Name="chkOpenAfterImport" Margin="5 15 0 0" IsChecked="True"/>
         </StackPanel>
         <Label Content="Select an option for the imported SQL file" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
 

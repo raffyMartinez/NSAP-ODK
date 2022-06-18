@@ -30,6 +30,7 @@ namespace NSAP_ODK.Views
     /// </summary>
     public partial class ODKResultsWindow : Window
     {
+         private DispatcherTimer _timer;
         private TreeViewItem _jsonDateDownloadnode;
         private static ODKResultsWindow _instance;
         private List<VesselLanding> _mainSheets;
@@ -56,13 +57,24 @@ namespace NSAP_ODK.Views
         private List<VesselLanding> _formsWithMissingLandingSiteInfo = new List<VesselLanding>();
         public string JSON { get; set; }
         public string FormID { get; set; }
+        private bool _openLogInWindow;
 
-        public void OpenLogInWindow(bool isOpen = false)
+        private void OnTimerTick(object sender, EventArgs e)
         {
-            if (isOpen)
+            _timer.Stop();
+            if (_openLogInWindow)
             {
+                _openLogInWindow = false;
                 OpenServerWindow(refreshDBSummary: true);
             }
+        }
+        public void OpenLogInWindow(bool isOpen = false)
+        {
+            _openLogInWindow = isOpen;
+            //if (_openLogInWindow = isOpen)
+            //{
+            //    OpenServerWindow(refreshDBSummary: true);
+            //}
         }
         public string Version { get; set; }
 
@@ -107,6 +119,10 @@ namespace NSAP_ODK.Views
 
         private void OnWindowClosed(object sender, EventArgs e)
         {
+            if (_timer != null)
+            {
+                _timer.Tick -= OnTimerTick;
+            }
             _instance = null;
             if (_uploadToDBSuccess || _savedCount > 0)
             {
@@ -162,22 +178,30 @@ namespace NSAP_ODK.Views
 
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
+
+
             Title = "Manage NSAP-ODK data";
             labelProgress.Content = "";
             ImportExcel.UploadSubmissionToDB += OnUploadSubmissionToDB;
             VesselUnloadServerRepository.UploadSubmissionToDB += OnUploadSubmissionToDB;
             VesselUnloadServerRepository.ClearUnrecgnizedFishingGroundsList();
             labelDuplicated.Content = string.Empty;
+
             if (Debugger.IsAttached)
             {
                 menuClearTables.Visibility = Visibility.Visible;
                 menuVesselCountJSON.Visibility = Visibility.Visible;
                 menuVesselUnloadJSON.Visibility = Visibility.Visible;
                 menuDeletePastDate.Visibility = Visibility.Visible;
-                menuImportSQLDump.Visibility = Visibility.Visible;
             }
-            menuSaveJson.IsEnabled = true;
 
+            menuImportSQLDump.Visibility = Visibility.Visible;
+            if(Global.Settings.UsemySQL)
+            {
+                menuImportSQLDump.Visibility = Visibility.Collapsed;
+            }
+
+            menuSaveJson.IsEnabled = true;
             menuView.Visibility = Visibility.Collapsed;
 
             ResetView();
@@ -187,6 +211,15 @@ namespace NSAP_ODK.Views
             {
                 menuReUploadJsonHistory.Visibility = Visibility.Collapsed;
             }
+
+            if (_openLogInWindow)
+            {
+                _timer = new DispatcherTimer();
+                _timer.Tick += OnTimerTick;
+                _timer.Interval = TimeSpan.FromSeconds(1);
+                _timer.Start();
+            }
+
         }
 
         private void SetMenuViewVisibility()
@@ -465,6 +498,7 @@ namespace NSAP_ODK.Views
         private async Task ProcessHistoryJsonNode(TreeViewItem historyJSONNode)
         {
             var jm = (FileInfoJSONMetadata)historyJSONNode.Tag;
+            _jsonFileUseCreationDateForHistory = jm.JSONFile.CreationTime;
             historyJSONNode.IsSelected = true;
             await Upload();
             NSAPEntities.KoboServerViewModel.ResetJSONFields();
@@ -578,7 +612,7 @@ namespace NSAP_ODK.Views
             }
             return "";
         }
-
+        public bool OpenImportedDatabaseInApplication { get; set; }
         public string ImportIntoMDBFile { get; set; }
         public SelectImportActionOption ImportActionOption { get; set; }
 
@@ -603,8 +637,17 @@ namespace NSAP_ODK.Views
                         ImportSQLDumpWindow isqlw = new ImportSQLDumpWindow();
                         isqlw.ImportActionOption = ImportActionOption;
                         isqlw.ImportIntoMDBFile = ImportIntoMDBFile;
+
                         isqlw.Owner = this;
-                        isqlw.ShowDialog();
+                        if((bool)isqlw.ShowDialog())
+                        {
+                            if(OpenImportedDatabaseInApplication)
+                            {
+                                ((MainWindow)Owner).OpenImportedDatabaseInApplication = true;
+                                ((MainWindow)Owner).ImportIntoMDBFile = ImportIntoMDBFile;
+
+                            }
+                        }
                     }
                     break;
 
@@ -1132,7 +1175,7 @@ namespace NSAP_ODK.Views
 
             if (success)
             {
-                ParentWindow.RefreshDownloadHistory();
+                ParentWindow?.RefreshDownloadHistory();
             }
         }
         private string VersionFromJSON(string json)
@@ -1153,6 +1196,30 @@ namespace NSAP_ODK.Views
         {
             switch (e.Intent)
             {
+                case UploadToDBIntent.Searching:
+
+                    progressBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              progressBar.IsIndeterminate = true;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+                    labelProgress.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              labelProgress.Content = "Searching...";
+
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
                 case UploadToDBIntent.UnloadFound:
                     progressBar.Dispatcher.BeginInvoke
                         (
@@ -1281,6 +1348,7 @@ namespace NSAP_ODK.Views
                         (
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
+                              progressBar.IsIndeterminate = false;
                               if (e.Intent == UploadToDBIntent.StartOfUpload)
                               {
                                   progressBar.Maximum = e.VesselUnloadToSaveCount;

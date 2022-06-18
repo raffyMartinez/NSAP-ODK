@@ -208,7 +208,7 @@ namespace NSAP_ODK.Views
                         {
                             if (await Import())
                             {
-
+                                DialogResult = true;
                             }
                         }
                     }

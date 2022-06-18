@@ -95,6 +95,7 @@
 
                 <Separator />
                 <MenuItem Header="Database summary" x:Name="menuDatabaseSummary"  IsCheckable="True" Checked="OnMenuItemChecked"/>
+                <MenuItem Header="dummy" x:Name="menuDummy"  IsCheckable="True" Checked="OnMenuItemChecked" Visibility="Collapsed"/>
             </MenuItem>
 
             <MenuItem Header="NSAP Data" x:Name="menuNSAPData">

@@ -11,5 +11,10 @@ namespace NSAP_ODK.Entities.Database
         public string MySQLType { get; set; }
         public string AccessColumnName { get; set; }
         public string MySQLColumnName { get; set; }
+
+        public override string ToString()
+        {
+            return AccessColumnName;
+        }
     }
 }
