@@ -7,19 +7,19 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 namespace NSAP_ODK.Entities.Database
 {
-    public class VesselCatchViewModel:IDisposable
+    public class VesselCatchViewModel : IDisposable
     {
         public bool EditSuccess { get; set; }
         public ObservableCollection<VesselCatch> VesselCatchCollection { get; set; }
         private VesselCatchRepository VesselCatches { get; set; }
 
-
+        private static StringBuilder _csv = new StringBuilder();
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-
+        public static int CurrentIDNumber { get; set; }
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
@@ -118,7 +118,7 @@ namespace NSAP_ODK.Entities.Database
                 VesselCatchCollection.CollectionChanged += VesselCatches_CollectionChanged;
             }
         }
-        public VesselCatchViewModel(bool isNew=false)
+        public VesselCatchViewModel(bool isNew = false)
         {
             VesselCatches = new VesselCatchRepository(isNew);
             if (isNew)
@@ -534,7 +534,19 @@ namespace NSAP_ODK.Entities.Database
             return VesselCatchCollection.FirstOrDefault(n => n.PK == pk);
         }
 
+        private static bool SetCSV(VesselCatch item)
+        {
+            string sp_id = item.SpeciesID == null ? "" : ((int)item.SpeciesID).ToString();
+            string catch_kg = item.Catch_kg == null ? "" : ((double)item.Catch_kg).ToString();
+            string sample_kg = item.Sample_kg == null ? "" : ((double)item.Sample_kg).ToString();
+            _csv.AppendLine($"{item.PK},{item.Parent.PK},{sp_id},{catch_kg},{sample_kg},\"{item.TaxaCode}\",\"{item.SpeciesText}\"");
+            return true;
+        }
 
+        public static string CSV
+        {
+            get { return $"{AccessHelper.GetColumnNamesCSV("dbo_vessel_catch")}\r\n{_csv}"; }
+        }
         private void VesselCatches_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             EditSuccess = false;
@@ -542,8 +554,17 @@ namespace NSAP_ODK.Entities.Database
             {
                 case NotifyCollectionChangedAction.Add:
                     {
-                        int newIndex = e.NewStartingIndex;
-                        EditSuccess = VesselCatches.Add(VesselCatchCollection[newIndex]);
+                        VesselCatch newItem = VesselCatchCollection[e.NewStartingIndex];
+                        if (newItem.DelayedSave)
+                        {
+                            EditSuccess = SetCSV(newItem);
+                        }
+                        else
+                        {
+                            EditSuccess = VesselCatches.Add(newItem);
+                        }
+                        //int newIndex = e.NewStartingIndex;
+                        //EditSuccess = VesselCatches.Add(VesselCatchCollection[newIndex]);
                     }
                     break;
 

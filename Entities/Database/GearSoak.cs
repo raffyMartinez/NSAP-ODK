@@ -28,6 +28,7 @@ namespace NSAP_ODK.Entities.Database
     public class GearSoak
     {
         private VesselUnload _parent;
+        public bool DelayedSave { get; set; }
         public int PK { get; set; }
         public int VesselUnloadID { get; set; }
 

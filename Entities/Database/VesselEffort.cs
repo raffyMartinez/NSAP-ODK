@@ -26,6 +26,8 @@ namespace NSAP_ODK.Entities.Database
     {
         private VesselUnload _parent;
         private EffortSpecification _effortSpecification;
+
+        public bool DelayedSave { get; set; }
         public int PK { get; set; }
         public int VesselUnloadID { get; set; }
         public int EffortSpecID { get; set; }

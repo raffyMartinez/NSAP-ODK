@@ -7,17 +7,19 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 namespace NSAP_ODK.Entities.Database
 {
-    public class CatchLenFreqViewModel:IDisposable
+    public class CatchLenFreqViewModel : IDisposable
     {
         private bool _editSuccess;
         public ObservableCollection<CatchLenFreq> CatchLenFreqCollection { get; set; }
         private CatchLenFreqRepository CatchLenFreqs { get; set; }
+
+        private static StringBuilder _csv = new StringBuilder();
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-
+        public static int CurrentIDNumber { get; set; }
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
@@ -36,7 +38,7 @@ namespace NSAP_ODK.Entities.Database
             CatchLenFreqCollection = new ObservableCollection<CatchLenFreq>(CatchLenFreqs.CatchLenFreqs);
             CatchLenFreqCollection.CollectionChanged += CatchLenFreqCollection_CollectionChanged;
         }
-        public CatchLenFreqViewModel(bool isNew=false)
+        public CatchLenFreqViewModel(bool isNew = false)
         {
             CatchLenFreqs = new CatchLenFreqRepository(isNew);
             if (isNew)
@@ -55,13 +57,13 @@ namespace NSAP_ODK.Entities.Database
             return CatchLenFreqCollection.ToList();
         }
 
-        public List<CatchLenFreqFlattened> GetAllFlattenedItems(bool tracked=false)
+        public List<CatchLenFreqFlattened> GetAllFlattenedItems(bool tracked = false)
         {
             List<CatchLenFreqFlattened> thisList = new List<CatchLenFreqFlattened>();
             if (tracked)
             {
                 foreach (var item in CatchLenFreqCollection
-                    .Where(t=>t.Parent.Parent.OperationIsTracked==tracked))
+                    .Where(t => t.Parent.Parent.OperationIsTracked == tracked))
                 {
                     thisList.Add(new CatchLenFreqFlattened(item));
                 }
@@ -86,6 +88,17 @@ namespace NSAP_ODK.Entities.Database
             return CatchLenFreqCollection.FirstOrDefault(n => n.PK == pk);
         }
 
+        private static bool SetCSV(CatchLenFreq item)
+        {
+            _csv.AppendLine($"{item.PK},{item.Parent.PK},{item.LengthClass},{item.Frequency}");
+            return true;
+        }
+
+        public static string CSV
+        {
+            get { return $"{AccessHelper.GetColumnNamesCSV("dbo_catch_len_freq")}\r\n{_csv}"; }
+        }
+
 
         private void CatchLenFreqCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
@@ -95,22 +108,31 @@ namespace NSAP_ODK.Entities.Database
             {
                 case NotifyCollectionChangedAction.Add:
                     {
-                        int newIndex = e.NewStartingIndex;
-                        _editSuccess = CatchLenFreqs.Add(CatchLenFreqCollection[newIndex]);
+                        CatchLenFreq newItem = CatchLenFreqCollection[e.NewStartingIndex];
+                        if (newItem.DelayedSave)
+                        {
+                            _editSuccess = SetCSV(newItem);
+                        }
+                        else
+                        {
+                            _editSuccess = CatchLenFreqs.Add(newItem);
+                        }
+                        //int newIndex = e.NewStartingIndex;
+                        //_editSuccess = CatchLenFreqs.Add(CatchLenFreqCollection[newIndex]);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<CatchLenFreq> tempListOfRemovedItems = e.OldItems.OfType<CatchLenFreq>().ToList();
-                        _editSuccess= CatchLenFreqs.Delete(tempListOfRemovedItems[0].PK);
+                        _editSuccess = CatchLenFreqs.Delete(tempListOfRemovedItems[0].PK);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<CatchLenFreq> tempList = e.NewItems.OfType<CatchLenFreq>().ToList();
-                        _editSuccess =  CatchLenFreqs.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        _editSuccess = CatchLenFreqs.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -157,7 +179,7 @@ namespace NSAP_ODK.Entities.Database
                 }
                 else
                 {
-                    return CatchLenFreqs.MaxRecordNumber()+ 1;
+                    return CatchLenFreqs.MaxRecordNumber() + 1;
                 }
             }
         }

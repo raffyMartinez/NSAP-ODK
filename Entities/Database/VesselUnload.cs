@@ -523,7 +523,7 @@ namespace NSAP_ODK.Entities.Database
         private FishingVessel _fishingVessel;
         private NSAPEnumerator _nsapEnumerator;
 
-
+        public bool DelayedSave { get; set; }
         public VesselUnloadViewModel ContainerViewModel { get; set; }
         public VesselCatchViewModel VesselCatchViewModel { get; set; }
         public FishingGroundGridViewModel FishingGroundGridViewModel { get; set; }

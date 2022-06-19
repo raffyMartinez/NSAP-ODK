@@ -30,7 +30,7 @@ namespace NSAP_ODK.Views
     /// </summary>
     public partial class ODKResultsWindow : Window
     {
-         private DispatcherTimer _timer;
+        private DispatcherTimer _timer;
         private TreeViewItem _jsonDateDownloadnode;
         private static ODKResultsWindow _instance;
         private List<VesselLanding> _mainSheets;
@@ -196,7 +196,7 @@ namespace NSAP_ODK.Views
             }
 
             menuImportSQLDump.Visibility = Visibility.Visible;
-            if(Global.Settings.UsemySQL)
+            if (Global.Settings.UsemySQL)
             {
                 menuImportSQLDump.Visibility = Visibility.Collapsed;
             }
@@ -219,7 +219,61 @@ namespace NSAP_ODK.Views
                 _timer.Interval = TimeSpan.FromSeconds(1);
                 _timer.Start();
             }
+            CreateTablesInAccess.AccessTableEvent += CreateTablesInAccess_AccessTableEvent;
+        }
 
+        private void CreateTablesInAccess_AccessTableEvent(object sender, CreateTablesInAccessEventArgs e)
+        {
+            switch (e.Intent)
+            {
+                case "start importing csv":
+                    progressBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              progressBar.Value = 0;
+                              progressBar.Maximum = e.TotalTableCount;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+                    labelProgress.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              labelProgress.Content = "Starting to save JSON data";
+
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case "done imported csv":
+                    progressBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              progressBar.Value++;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+                    labelProgress.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              labelProgress.Content = $"Finished saving JSON to {e.CurrentTableName} (Table {progressBar.Value} of {progressBar.Maximum})";
+
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                    break;
+            }
         }
 
         private void SetMenuViewVisibility()
@@ -554,7 +608,7 @@ namespace NSAP_ODK.Views
             //
         }
 
-        private async Task ProcessJSONSNodes(bool updateXFormID = false, bool locateUnsavedFromServerDownload = false, bool updateLandingSites = false, bool locateMissingLSInfo=false)
+        private async Task ProcessJSONSNodes(bool updateXFormID = false, bool locateUnsavedFromServerDownload = false, bool updateLandingSites = false, bool locateMissingLSInfo = false)
         {
             _jsonDateDownloadnode.IsExpanded = true;
             VesselUnloadServerRepository.CancelUpload = false;
@@ -576,7 +630,7 @@ namespace NSAP_ODK.Views
                     {
                         await ProcessLandingsWithMissingLandingSites();
                     }
-                    if(locateMissingLSInfo)
+                    if (locateMissingLSInfo)
                     {
                         _formsWithMissingLandingSiteInfo.AddRange(await VesselUnloadServerRepository.GetFormWithMissingLandingSiteInfoAsync());
                     }
@@ -639,9 +693,9 @@ namespace NSAP_ODK.Views
                         isqlw.ImportIntoMDBFile = ImportIntoMDBFile;
 
                         isqlw.Owner = this;
-                        if((bool)isqlw.ShowDialog())
+                        if ((bool)isqlw.ShowDialog())
                         {
-                            if(OpenImportedDatabaseInApplication)
+                            if (OpenImportedDatabaseInApplication)
                             {
                                 ((MainWindow)Owner).OpenImportedDatabaseInApplication = true;
                                 ((MainWindow)Owner).ImportIntoMDBFile = ImportIntoMDBFile;
@@ -666,6 +720,8 @@ namespace NSAP_ODK.Views
                     ujhw.JSONFilesToUploadType = JSONFilesToUploadType.UploadTypeJSONHistoryFiles;
                     if ((bool)ujhw.ShowDialog())
                     {
+                        VesselUnloadServerRepository.DelayedSave = !Global.Settings.UsemySQL;
+                        VesselUnloadServerRepository.TotalUploadCount = 0;
                         VesselUnloadServerRepository.CancelUpload = false;
 
                         //if we need to replace existing data and then update all
@@ -679,6 +735,15 @@ namespace NSAP_ODK.Views
                         try
                         {
                             await ProcessJSONHistoryNodes((TreeViewItem)treeViewJSONNavigator.SelectedItem);
+                            if (VesselUnloadServerRepository.DelayedSave && VesselUnloadServerRepository.TotalUploadCount > 0)
+                            {
+                                if (await CreateTablesInAccess.UploadImportJsonResultAsync())
+                                {
+                                    MessageBox.Show("Finished uploading JSON history files to the database", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                                    Close();
+                                }
+
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -1028,7 +1093,7 @@ namespace NSAP_ODK.Views
 
             if (proceed)
             {
-                ParentWindow.ShowDBSummary();
+                ((MainWindow)Owner).ShowDBSummary();
                 if (verboseMode)
                 {
                     MessageBox.Show("All repo cleared");
@@ -1053,7 +1118,7 @@ namespace NSAP_ODK.Views
                 }
             }
         }
-        private async Task Upload()
+        private async Task Upload(bool verbose = true)
         {
             string msg = "";
             _ufg_count = 0;
@@ -1103,7 +1168,10 @@ namespace NSAP_ODK.Views
                             msg += $"\r\n\r\nThere were {_ufg_count} landings with unrecognized fishing grounds";
                         }
 
-                        TimedMessageBox.Show(msg, "NSAP-ODK Database", 5000);
+                        if (!VesselUnloadServerRepository.DelayedSave)
+                        {
+                            TimedMessageBox.Show(msg, "NSAP-ODK Database", 5000);
+                        }
 
                         if (success)
                         {
@@ -2348,7 +2416,7 @@ namespace NSAP_ODK.Views
                     m.Click += OnMenuClick;
                     cm.Items.Add(m);
 
-                    if(Debugger.IsAttached)
+                    if (Debugger.IsAttached)
                     {
                         m = new MenuItem { Header = "Locate missing landing site infor", Name = "menuLocateMissingLSInfo" };
                         m.Click += OnMenuClick;

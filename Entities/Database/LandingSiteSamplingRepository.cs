@@ -368,6 +368,8 @@ namespace NSAP_ODK.Entities.Database
         public bool Add(LandingSiteSampling item)
         {
             bool success = false;
+
+
             if (Global.Settings.UsemySQL)
             {
                 success = AddToMySQL(item);

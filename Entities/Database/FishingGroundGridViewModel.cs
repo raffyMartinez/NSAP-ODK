@@ -7,17 +7,19 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 namespace NSAP_ODK.Entities.Database
 {
-    public class FishingGroundGridViewModel:IDisposable
+    public class FishingGroundGridViewModel : IDisposable
     {
         public bool _editSuccess;
         public ObservableCollection<FishingGroundGrid> FishingGroundGridCollection { get; set; }
         private FishingGroundGridRepository FishingGroundGrids { get; set; }
+
+        private static StringBuilder _csv = new StringBuilder();
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-
+        public static int CurrentIDNumber { get; set; }
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
@@ -36,7 +38,7 @@ namespace NSAP_ODK.Entities.Database
             FishingGroundGridCollection = new ObservableCollection<FishingGroundGrid>(FishingGroundGrids.FishingGroundGrids);
             FishingGroundGridCollection.CollectionChanged += FishingGroundGridCollection_CollectionChanged;
         }
-        public FishingGroundGridViewModel(bool isNew=false)
+        public FishingGroundGridViewModel(bool isNew = false)
         {
             FishingGroundGrids = new FishingGroundGridRepository(isNew);
             if (isNew)
@@ -55,13 +57,13 @@ namespace NSAP_ODK.Entities.Database
             return FishingGroundGridCollection.ToList();
         }
 
-        public List<FishingGroundGridFlattened> GetAllFlattenedItems(bool tracked=false)
+        public List<FishingGroundGridFlattened> GetAllFlattenedItems(bool tracked = false)
         {
             List<FishingGroundGridFlattened> thisList = new List<FishingGroundGridFlattened>();
             if (tracked)
             {
                 foreach (var item in FishingGroundGridCollection
-                    .Where(t=>t.Parent.OperationIsTracked==tracked))
+                    .Where(t => t.Parent.OperationIsTracked == tracked))
                 {
                     thisList.Add(new FishingGroundGridFlattened(item));
                 }
@@ -86,6 +88,15 @@ namespace NSAP_ODK.Entities.Database
             return FishingGroundGridCollection.FirstOrDefault(n => n.PK == pk);
         }
 
+        private bool SetCSV(FishingGroundGrid item)
+        {
+            _csv.AppendLine($"{item.PK},{item.Parent.PK},\"{item.UTMZone}\",\"{item.Grid}\"");
+            return true;
+        }
+        public static string CSV
+        {
+            get { return $"{AccessHelper.GetColumnNamesCSV("dbo_fg_grid")}\r\n{_csv}"; }
+        }
 
         private void FishingGroundGridCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
@@ -94,22 +105,31 @@ namespace NSAP_ODK.Entities.Database
             {
                 case NotifyCollectionChangedAction.Add:
                     {
-                        int newIndex = e.NewStartingIndex;
-                        _editSuccess = FishingGroundGrids.Add(FishingGroundGridCollection[newIndex]);
+                        FishingGroundGrid newItem = FishingGroundGridCollection[e.NewStartingIndex];
+                        if (newItem.DelayedSave)
+                        {
+                            _editSuccess = SetCSV(newItem);
+                        }
+                        else
+                        {
+                            _editSuccess = FishingGroundGrids.Add(newItem);
+                        }
+                        //int newIndex = e.NewStartingIndex;
+                        //_editSuccess = FishingGroundGrids.Add(FishingGroundGridCollection[newIndex]);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<FishingGroundGrid> tempListOfRemovedItems = e.OldItems.OfType<FishingGroundGrid>().ToList();
-                        _editSuccess=FishingGroundGrids.Delete(tempListOfRemovedItems[0].PK);
+                        _editSuccess = FishingGroundGrids.Delete(tempListOfRemovedItems[0].PK);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<FishingGroundGrid> tempList = e.NewItems.OfType<FishingGroundGrid>().ToList();
-                        _editSuccess=FishingGroundGrids.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        _editSuccess = FishingGroundGrids.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }

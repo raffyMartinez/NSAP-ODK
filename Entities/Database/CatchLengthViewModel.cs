@@ -7,19 +7,21 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 namespace NSAP_ODK.Entities.Database
 {
-    public class CatchLengthViewModel:IDisposable
+    public class CatchLengthViewModel : IDisposable
     {
 
 
         public bool _editSuccess;
         public ObservableCollection<CatchLength> CatchLengthCollection { get; set; }
         private CatchLengthRepository CatchLengths { get; set; }
+
+        private static StringBuilder _csv = new StringBuilder();
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-
+        public static int CurrentIDNumber { get; set; }
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
@@ -38,7 +40,7 @@ namespace NSAP_ODK.Entities.Database
             CatchLengthCollection = new ObservableCollection<CatchLength>(CatchLengths.CatchLengths);
             CatchLengthCollection.CollectionChanged += CatchLenFreqCollection_CollectionChanged;
         }
-        public CatchLengthViewModel(bool isNew=false)
+        public CatchLengthViewModel(bool isNew = false)
         {
             CatchLengths = new CatchLengthRepository(isNew);
             if (isNew)
@@ -57,13 +59,13 @@ namespace NSAP_ODK.Entities.Database
             return CatchLengthCollection.ToList();
         }
 
-        public List<CatchLengthFlattened> GetAllFlattenedItems(bool tracked=false)
+        public List<CatchLengthFlattened> GetAllFlattenedItems(bool tracked = false)
         {
             List<CatchLengthFlattened> thisList = new List<CatchLengthFlattened>();
             if (tracked)
             {
                 foreach (var item in CatchLengthCollection
-                    .Where(t=>t.Parent.Parent.OperationIsTracked == tracked))
+                    .Where(t => t.Parent.Parent.OperationIsTracked == tracked))
                 {
                     thisList.Add(new CatchLengthFlattened(item));
                 }
@@ -88,7 +90,16 @@ namespace NSAP_ODK.Entities.Database
             return CatchLengthCollection.FirstOrDefault(n => n.PK == pk);
         }
 
+        private static bool SetCSV(CatchLength item)
+        {
+            _csv.AppendLine($"{item.PK},{item.Parent.PK},{item.Length}");
+            return true;
+        }
 
+        public static string CSV
+        {
+            get { return $"{AccessHelper.GetColumnNamesCSV("dbo_catch_len")}\r\n{_csv}"; }
+        }
         private void CatchLenFreqCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             _editSuccess = false;
@@ -96,22 +107,31 @@ namespace NSAP_ODK.Entities.Database
             {
                 case NotifyCollectionChangedAction.Add:
                     {
-                        int newIndex = e.NewStartingIndex;
-                        _editSuccess = CatchLengths.Add(CatchLengthCollection[newIndex]);
+                        CatchLength newItem = CatchLengthCollection[e.NewStartingIndex];
+                        if (newItem.DelayedSave)
+                        {
+                            _editSuccess = SetCSV(newItem);
+                        }
+                        else
+                        {
+                            _editSuccess = CatchLengths.Add(newItem);
+                        }
+                        //int newIndex = e.NewStartingIndex;
+                        //_editSuccess = CatchLengths.Add(CatchLengthCollection[newIndex]);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<CatchLength> tempListOfRemovedItems = e.OldItems.OfType<CatchLength>().ToList();
-                        _editSuccess= CatchLengths.Delete(tempListOfRemovedItems[0].PK);
+                        _editSuccess = CatchLengths.Delete(tempListOfRemovedItems[0].PK);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<CatchLength> tempList = e.NewItems.OfType<CatchLength>().ToList();
-                        _editSuccess= CatchLengths.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        _editSuccess = CatchLengths.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -150,7 +170,7 @@ namespace NSAP_ODK.Entities.Database
 
         public int NextRecordNumber
         {
-            
+
             get
             {
                 if (CatchLengthCollection.Count == 0)

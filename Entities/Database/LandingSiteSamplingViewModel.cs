@@ -9,6 +9,8 @@ namespace NSAP_ODK.Entities.Database
 {
     public class LandingSiteSamplingViewModel
     {
+        private static StringBuilder _csv = new StringBuilder();
+        private static StringBuilder _csv_1 = new StringBuilder();
         public bool EditSuccess { get; set; }
         public ObservableCollection<LandingSiteSampling> LandingSiteSamplingCollection { get; set; }
         private LandingSiteSamplingRepository LandingSiteSamplings { get; set; }
@@ -78,15 +80,15 @@ namespace NSAP_ODK.Entities.Database
             List<LandingSiteSampling> lss = LandingSiteSamplingCollection.Where(t => t.SamplingDate.Date == si.SamplingDate.Date).ToList();
             foreach (LandingSiteSampling ls in lss)
             {
-                List<GearUnload> gus = ls.GearUnloadViewModel.GearUnloadCollection.Where(t=>t.GearUsedName==si.GearUsedName) .ToList();
+                List<GearUnload> gus = ls.GearUnloadViewModel.GearUnloadCollection.Where(t => t.GearUsedName == si.GearUsedName).ToList();
                 foreach (GearUnload gu in gus)
                 {
-                    if(gu.VesselUnloadViewModel==null)
+                    if (gu.VesselUnloadViewModel == null)
                     {
                         gu.VesselUnloadViewModel = new VesselUnloadViewModel(gu);
                     }
                     VesselUnload vu = gu.VesselUnloadViewModel.VesselUnloadCollection.ToList().FirstOrDefault(t => t.PK == si.VesselUnloadID);
-                    
+
                     if (vu != null)
                     {
                         vu.SetSubModels();
@@ -179,7 +181,7 @@ namespace NSAP_ODK.Entities.Database
 
         public List<OrphanedLandingSite> OrphanedLandingSites()
         {
-            return NSAPEntities.SummaryItemViewModel.GetOrphanedLandingSites();    
+            return NSAPEntities.SummaryItemViewModel.GetOrphanedLandingSites();
         }
         public List<OrphanedLandingSite> OrphanedLandingSitesi()
         {
@@ -326,17 +328,17 @@ namespace NSAP_ODK.Entities.Database
 
         public LandingSiteSampling getLandingSiteSampling(FromJson.VesselLanding landing)
         {
-            if(landing.FishingGround==null)
+            if (landing.FishingGround == null)
             {
                 return null;
             }
             else if (landing.LandingSiteText != null && landing.LandingSiteText.Length > 0)
             {
                 return LandingSiteSamplingCollection
-                    .Where(t => t.NSAPRegionID==landing.NSAPRegionCode &&
-                    t.FMAID==landing.fma_number &&
+                    .Where(t => t.NSAPRegionID == landing.NSAPRegionCode &&
+                    t.FMAID == landing.fma_number &&
                     t.LandingSiteName == landing.LandingSiteName &&
-                    t.FishingGroundID == landing.FishingGround.Code && 
+                    t.FishingGroundID == landing.FishingGround.Code &&
                     t.SamplingDate.Date == landing.SamplingDate.Date).FirstOrDefault();
             }
             else if (landing.LandingSite == null)
@@ -346,7 +348,7 @@ namespace NSAP_ODK.Entities.Database
             else
             {
                 return LandingSiteSamplingCollection
-                    .Where(t => t.NSAPRegionID==landing.NSAPRegionCode &&
+                    .Where(t => t.NSAPRegionID == landing.NSAPRegionCode &&
                     t.FishingGroundID == landing.FishingGround.Code &&
                     t.LandingSiteID == landing.LandingSite.LandingSiteID &&
                     t.SamplingDate.Date == landing.SamplingDate.Date).FirstOrDefault();
@@ -377,6 +379,48 @@ namespace NSAP_ODK.Entities.Database
             return LandingSiteSamplingCollection.FirstOrDefault(n => n.PK == pk);
         }
 
+        private static bool SetCSV(LandingSiteSampling item)
+        {
+            string ls_id = "";
+            string ls_text = "";
+            if (!string.IsNullOrEmpty(item.LandingSiteText))
+            {
+                ls_text = item.LandingSiteText.Replace("»", ",");
+            }
+            if (item.LandingSiteID != null)
+            {
+                ls_id = ((int)item.LandingSiteID).ToString();
+            }
+
+
+            _csv.AppendLine($"{item.PK},\"{item.NSAPRegionID}\",{item.SamplingDate.Date},{ls_id},\"{item.FishingGroundID}\",\"{item.Remarks}\",{Convert.ToInt32(item.IsSamplingDay)},\"{ls_text}\",{item.FMAID}");
+
+
+            string enum_id = "";
+            if (item.EnumeratorID != null)
+            {
+                enum_id = ((int)item.EnumeratorID).ToString();
+            }
+            _csv_1.AppendLine($"{item.PK},{item.DateSubmitted},\"{item.UserName}\",\"{item.DeviceID}\",\"{item.XFormIdentifier}\",{item.DateAdded},{Convert.ToInt32(item.FromExcelDownload)},\"{item.FormVersion}\",\"{item.RowID}\",{enum_id},\"{item.EnumeratorText}\"");
+            return true;
+        }
+
+        public static string CSV_1
+        {
+            get
+            {
+                return $"{AccessHelper.GetColumnNamesCSV("dbo_LC_FG_sample_day_1")}\r\n{_csv_1.ToString()}";
+            }
+
+        }
+        public static string CSV
+        {
+            get
+            {
+                return $"{AccessHelper.GetColumnNamesCSV("dbo_LC_FG_sample_day")}\r\n{_csv.ToString()}";
+            }
+
+        }
 
         private void LandingSiteSamplingCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
@@ -385,8 +429,18 @@ namespace NSAP_ODK.Entities.Database
             {
                 case NotifyCollectionChangedAction.Add:
 
-                    int newIndex = e.NewStartingIndex;
-                    EditSuccess = LandingSiteSamplings.Add(LandingSiteSamplingCollection[newIndex]);
+                    LandingSiteSampling newItem = LandingSiteSamplingCollection[e.NewStartingIndex];
+                    if (!newItem.DelayedSave)
+                    {
+                        EditSuccess = LandingSiteSamplings.Add(newItem);
+                    }
+                    else
+                    {
+                        EditSuccess = SetCSV(newItem);
+                        //AccessHelper.GetColumnNamesCSV("dbo_LC_FG_sample_day_1");
+                    }
+                    //int newIndex = e.NewStartingIndex;
+                    //EditSuccess = LandingSiteSamplings.Add(LandingSiteSamplingCollection[newIndex]);
 
                     break;
 
@@ -452,8 +506,8 @@ namespace NSAP_ODK.Entities.Database
                 else
                 {
 
-                   return LandingSiteSamplings.MaxRecordNumber() + 1;
-                   
+                    return LandingSiteSamplings.MaxRecordNumber() + 1;
+
                 }
             }
         }

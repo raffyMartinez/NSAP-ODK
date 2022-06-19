@@ -29,6 +29,8 @@ namespace NSAP_ODK.Entities.Database
     public class CatchLenFreq
     {
         private VesselCatch _parent;
+
+        public bool DelayedSave { get; set; }
         public int PK { get; set; }
         public int VesselCatchID { get; set; }
 

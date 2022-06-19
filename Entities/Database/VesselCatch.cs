@@ -86,7 +86,7 @@ namespace NSAP_ODK.Entities.Database
     {
 
         private VesselUnload _parent;
-
+        public bool DelayedSave { get; set; }
         public CatchLenFreqViewModel CatchLenFreqViewModel { get; set; }
         public CatchLengthViewModel CatchLengthViewModel { get; set; }
         public CatchLengthWeightViewModel CatchLengthWeightViewModel { get; set; }
@@ -207,13 +207,13 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if(CatchLenFreqViewModel==null)
+                if (CatchLenFreqViewModel == null)
                 {
                     CatchLengthViewModel = new CatchLengthViewModel(this);
                 }
 
                 return CatchLenFreqViewModel.CatchLenFreqCollection.ToList();
-                    //.Where(t => t.Parent.PK == PK).ToList();
+                //.Where(t => t.Parent.PK == PK).ToList();
 
             }
         }
@@ -222,12 +222,12 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if(CatchLengthViewModel==null)
+                if (CatchLengthViewModel == null)
                 {
                     CatchLengthViewModel = new CatchLengthViewModel(this);
                 }
                 return CatchLengthWeightViewModel.CatchLengthWeightCollection.ToList();
-                   //Where(t => t.Parent.PK == PK).ToList();
+                //Where(t => t.Parent.PK == PK).ToList();
 
             }
         }
@@ -242,7 +242,7 @@ namespace NSAP_ODK.Entities.Database
                 }
 
                 return CatchLengthViewModel.CatchLengthCollection.ToList();
-                    //.Where(t => t.Parent.PK == PK).ToList();
+                //.Where(t => t.Parent.PK == PK).ToList();
 
             }
         }

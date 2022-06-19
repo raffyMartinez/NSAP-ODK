@@ -1282,7 +1282,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
             }
             else
             {
-                NSAPEntities.SummaryItemViewModel.RefreshLastPrimaryLeys();
+                NSAPEntities.SummaryItemViewModel.RefreshLastPrimaryLeys(VesselUnloadServerRepository.DelayedSave);
                 //_pk = NSAPEntities.SummaryItemViewModel.GetNextRecordNumber() - 1;
                 _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastVesselUnloadPK;
             }
@@ -1393,6 +1393,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
         private static List<CatchCompGroupCatchCompositionRepeatLengthListRepeat> _listLengths;
         private static List<UnrecognizedFishingGround> _unrecognizedFishingGrounds;
 
+        public static bool DelayedSave { get; set; }
         public static void ClearUnrecgnizedFishingGroundsList()
         {
             if (_unrecognizedFishingGrounds != null && _unrecognizedFishingGrounds.Count > 0)
@@ -1959,6 +1960,8 @@ namespace NSAP_ODK.Entities.Database.FromJson
                 return _unrecognizedFishingGrounds;
             }
         }
+
+        public static int TotalUploadCount { get; set; }
         public static bool UploadToDatabase(List<VesselLanding> resolvedLandings = null)
         {
             UploadInProgress = true;
@@ -2010,7 +2013,8 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                         SamplingDate = landing.SamplingDate.Date,
                                         NSAPRegionID = landing.NSAPRegion.Code,
                                         LandingSiteText = landing.LandingSiteText == null ? landing.LandingSiteName2 : landing.LandingSiteText,
-                                        FMAID = landing.NSAPRegionFMA.FMA.FMAID
+                                        FMAID = landing.NSAPRegionFMA.FMA.FMAID,
+                                        DelayedSave = DelayedSave
                                     };
 
                                     proceed = NSAPEntities.LandingSiteSamplingViewModel.AddRecordToRepo(landingSiteSampling);
@@ -2064,7 +2068,8 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                         LandingSiteSamplingID = landingSiteSampling.PK,
                                         GearID = landing.GearCode,
                                         GearUsedText = landing.GearUsedText == null ? landing.GearName : landing.GearUsedText,
-                                        Remarks = ""
+                                        Remarks = "",
+                                        DelayedSave = DelayedSave
                                     };
                                     proceed = landingSiteSampling.GearUnloadViewModel.AddRecordToRepo(gear_unload);
 
@@ -2138,7 +2143,8 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                     FromExcelDownload = false,
                                     TimeStart = landing.start,
                                     HasCatchComposition = withCatchComp,
-                                    XFormIdentifier = landing._xform_id_string
+                                    XFormIdentifier = landing._xform_id_string,
+                                    DelayedSave = DelayedSave
                                 };
 
                                 if (JSONFileCreationTime != null)
@@ -2148,7 +2154,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
                                 if (gear_unload.VesselUnloadViewModel.AddRecordToRepo(vu))
                                 {
-
+                                    VesselUnloadViewModel.CurrentIDNumber = vu.PK;
 
                                     //if (vu.VesselEffortViewModel == null)
                                     //{
@@ -2172,9 +2178,13 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                 VesselUnloadID = vu.PK,
                                                 EffortSpecID = effort.EffortType,
                                                 EffortValueNumeric = effort.EffortIntensity,
-                                                EffortValueText = effort.EffortDescription
+                                                EffortValueText = effort.EffortDescription,
+                                                DelayedSave=DelayedSave
                                             };
-                                            vu.VesselEffortViewModel.AddRecordToRepo(ve);
+                                            if(vu.VesselEffortViewModel.AddRecordToRepo(ve))
+                                            {
+                                                VesselEffortViewModel.CurrentIDNumber = ve.PK;
+                                            }
 
                                         }
                                         vu.VesselEffortViewModel.Dispose();
@@ -2203,9 +2213,13 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                 TimeAtSet = soak.SetTime,
                                                 TimeAtHaul = soak.HaulTime,
                                                 WaypointAtSet = soak.WaypointAtSet,
-                                                WaypointAtHaul = soak.WaypointAtHaul
+                                                WaypointAtHaul = soak.WaypointAtHaul,
+                                                DelayedSave=DelayedSave
                                             };
-                                            vu.GearSoakViewModel.AddRecordToRepo(gs);
+                                            if(vu.GearSoakViewModel.AddRecordToRepo(gs))
+                                            {
+                                                GearSoakViewModel.CurrentIDNumber = gs.PK;
+                                            }
                                         }
                                         vu.GearSoakViewModel.Dispose();
                                     }
@@ -2231,9 +2245,13 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                 Parent = vu,
                                                 VesselUnloadID = vu.PK,
                                                 UTMZoneText = gr.Parent.UTMZone,
-                                                Grid = gr.CompleteGridName
+                                                Grid = gr.CompleteGridName,
+                                                DelayedSave=DelayedSave
                                             };
-                                            vu.FishingGroundGridViewModel.AddRecordToRepo(fgg);
+                                            if (vu.FishingGroundGridViewModel.AddRecordToRepo(fgg))
+                                            {
+                                                FishingGroundGridViewModel.CurrentIDNumber = fgg.PK;
+                                            }
                                         }
                                         vu.FishingGroundGridViewModel.Dispose();
                                     }
@@ -2263,12 +2281,14 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                 Catch_kg = catchComp.SpeciesWt,
                                                 Sample_kg = catchComp.SpeciesSampleWt,
                                                 TaxaCode = catchComp.TaxaCode,
-                                                SpeciesText = catchComp.SpeciesNameOther
+                                                SpeciesText = catchComp.SpeciesNameOther,
+                                                DelayedSave=DelayedSave
                                             };
 
 
                                             if (vu.VesselCatchViewModel.AddRecordToRepo(vc))
                                             {
+                                                VesselCatchViewModel.CurrentIDNumber = vc.PK;
 
                                                 //if (vc.CatchLenFreqViewModel == null)
                                                 //{
@@ -2291,9 +2311,13 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                             Parent = vc,
                                                             VesselCatchID = vc.PK,
                                                             LengthClass = lf.LengthClass,
-                                                            Frequency = lf.Frequency
+                                                            Frequency = lf.Frequency,
+                                                            DelayedSave=DelayedSave
                                                         };
-                                                        vc.CatchLenFreqViewModel.AddRecordToRepo(clf);
+                                                       if( vc.CatchLenFreqViewModel.AddRecordToRepo(clf))
+                                                        {
+                                                            CatchLenFreqViewModel.CurrentIDNumber = clf.PK;
+                                                        }
                                                     }
                                                     vc.CatchLenFreqViewModel.Dispose();
                                                 }
@@ -2319,9 +2343,13 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                             Parent = vc,
                                                             VesselCatchID = vc.PK,
                                                             Length = lw.Length,
-                                                            Weight = lw.Weight
+                                                            Weight = lw.Weight,
+                                                            DelayedSave=DelayedSave
                                                         };
-                                                        vc.CatchLengthWeightViewModel.AddRecordToRepo(clw);
+                                                        if(vc.CatchLengthWeightViewModel.AddRecordToRepo(clw))
+                                                        {
+                                                            CatchLengthWeightViewModel.CurrentIDNumber = clw.PK;
+                                                        }
 
                                                     }
                                                     vc.CatchLengthWeightViewModel.Dispose();
@@ -2348,10 +2376,14 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                             PK = (int)l.PK,
                                                             Parent = vc,
                                                             VesselCatchID = vc.PK,
-                                                            Length = l.Length
+                                                            Length = l.Length,
+                                                            DelayedSave=DelayedSave
 
                                                         };
-                                                        vc.CatchLengthViewModel.AddRecordToRepo(cl);
+                                                        if (vc.CatchLengthViewModel.AddRecordToRepo(cl))
+                                                        {
+                                                            CatchLengthViewModel.CurrentIDNumber = cl.PK;
+                                                        }
                                                     }
                                                     vc.CatchLengthViewModel.Dispose();
                                                 }
@@ -2382,13 +2414,17 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                             MaturityCode = m.GMSCode,
                                                             WeightGutContent = m.StomachContentWt,
                                                             GutContentCode = m.GutContentCategoryCode,
-                                                            GonadWeight = m.GonadWeight
+                                                            GonadWeight = m.GonadWeight,
+                                                            DelayedSave=DelayedSave
                                                         };
                                                         if (cm.GonadWeight != null)
                                                         {
 
                                                         }
-                                                        vc.CatchMaturityViewModel.AddRecordToRepo(cm);
+                                                        if(vc.CatchMaturityViewModel.AddRecordToRepo(cm))
+                                                        {
+                                                            CatchMaturityViewModel.CurrentIDNumber = cm.PK;
+                                                        }
                                                     }
                                                     vc.CatchMaturityViewModel.Dispose();
                                                 }
@@ -2404,6 +2440,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                         savedCount++;
                                         landing.SavedInLocalDatabase = true;
                                         UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadSavedCount = savedCount, Intent = UploadToDBIntent.Uploading });
+                                        TotalUploadCount++;
                                     }
 
 

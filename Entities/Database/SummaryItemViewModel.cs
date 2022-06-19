@@ -1157,9 +1157,9 @@ namespace NSAP_ODK.Entities.Database
             return gu;
         }
 
-        public void RefreshLastPrimaryLeys()
+        public void RefreshLastPrimaryLeys(bool delayedSave=false)
         {
-            LastPrimaryKeys = SummaryItems.GetLastPrimaryKeys();
+            LastPrimaryKeys = SummaryItems.GetLastPrimaryKeys(delayedSave);
         }
 
         public List<string> GetXFormIDList()

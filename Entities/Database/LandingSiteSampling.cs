@@ -39,7 +39,7 @@ namespace NSAP_ODK.Entities.Database
         private FishingGround _fishingGround;
 
 
-
+        public bool DelayedSave { get; set; }
         public int PK { get; set; }
         public string NSAPRegionID { get; set; }
         public DateTime SamplingDate { get; set; }

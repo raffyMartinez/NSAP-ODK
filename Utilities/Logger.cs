@@ -98,7 +98,7 @@ namespace NSAP_ODK.Utilities
         }
 
         public static void Log(Exception ex)
-         {
+        {
             using (StreamWriter writer = new StreamWriter(_filepath, true))
             {
                 writer.WriteLine($"Error: {ex.Message}\r\n{ex.StackTrace}\r\n Date :{DateTime.Now.ToString()}\r\nVersion:{_appVersion}");

@@ -7,19 +7,19 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 namespace NSAP_ODK.Entities.Database
 {
-    public class VesselEffortViewModel:IDisposable
+    public class VesselEffortViewModel : IDisposable
     {
         public bool EditSucceeded { get; set; }
         public ObservableCollection<VesselEffort> VesselEffortCollection { get; set; }
         private VesselEffortRepository VesselEfforts { get; set; }
-
+        private static StringBuilder _csv = new StringBuilder();
 
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-
+        public static int CurrentIDNumber { get; set; }
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
@@ -38,7 +38,7 @@ namespace NSAP_ODK.Entities.Database
             VesselEffortCollection = new ObservableCollection<VesselEffort>(VesselEfforts.VesselEfforts);
             VesselEffortCollection.CollectionChanged += LandingSiteSamplingCollection_CollectionChanged;
         }
-        public VesselEffortViewModel(bool isNew=false)
+        public VesselEffortViewModel(bool isNew = false)
         {
             VesselEfforts = new VesselEffortRepository(isNew);
             if (isNew)
@@ -57,13 +57,13 @@ namespace NSAP_ODK.Entities.Database
             return VesselEffortRepository.ClearTable();
         }
 
-        public List<VesselEffortFlattened> GetAllFlattenedItems(bool tracked=false)
+        public List<VesselEffortFlattened> GetAllFlattenedItems(bool tracked = false)
         {
             List<VesselEffortFlattened> thisList = new List<VesselEffortFlattened>();
             if (tracked)
             {
                 foreach (var item in VesselEffortCollection
-                    .Where(t=>t.Parent.OperationIsTracked==tracked))
+                    .Where(t => t.Parent.OperationIsTracked == tracked))
                 {
                     thisList.Add(new VesselEffortFlattened(item));
                 }
@@ -103,29 +103,49 @@ namespace NSAP_ODK.Entities.Database
             return VesselEffortCollection.FirstOrDefault(n => n.PK == pk);
         }
 
+        private static bool SetCSV(VesselEffort item)
+        {
+            _csv.AppendLine($"{item.PK},{item.Parent.PK},{item.EffortSpecID},{item.EffortValueNumeric},\"{item.EffortValueText}\"");
+            return true;
+        }
+
+        public static string CSV
+        {
+            get { return $"{AccessHelper.GetColumnNamesCSV("dbo_vessel_effort")}\r\n{_csv.ToString()}"; }
+        }
 
         private void LandingSiteSamplingCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            EditSucceeded = false;
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
                     {
-                        int newIndex = e.NewStartingIndex;
-                        EditSucceeded = VesselEfforts.Add(VesselEffortCollection[newIndex]);
+                        VesselEffort newItem = VesselEffortCollection[e.NewStartingIndex];
+                        if (newItem.DelayedSave)
+                        {
+                            EditSucceeded = SetCSV(newItem);
+                        }
+                        else
+                        {
+                            EditSucceeded = VesselEfforts.Add(newItem);
+                        }
+                        //int newIndex = e.NewStartingIndex;
+                        //EditSucceeded = VesselEfforts.Add(VesselEffortCollection[newIndex]);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<VesselEffort> tempListOfRemovedItems = e.OldItems.OfType<VesselEffort>().ToList();
-                       EditSucceeded= VesselEfforts.Delete(tempListOfRemovedItems[0].PK);
+                        EditSucceeded = VesselEfforts.Delete(tempListOfRemovedItems[0].PK);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<VesselEffort> tempList = e.NewItems.OfType<VesselEffort>().ToList();
-                        EditSucceeded=VesselEfforts.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        EditSucceeded = VesselEfforts.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }

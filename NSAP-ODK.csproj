@@ -176,6 +176,7 @@
     </ApplicationDefinition>
     <Compile Include="Entities\BuildOrphanedEntityEventArg.cs" />
     <Compile Include="Entities\Database\AccessColumn.cs" />
+    <Compile Include="Entities\Database\AccessHelper.cs" />
     <Compile Include="Entities\Database\BuildSummaryReportEventArg.cs" />
     <Compile Include="Entities\Database\CollectedUnrecognizedFG.cs" />
     <Compile Include="Entities\Database\CreateTablesInAccess.cs" />
@@ -249,6 +250,7 @@
     <Compile Include="Entities\Database\TrackedLandingCentroidViewModel.cs" />
     <Compile Include="Entities\Database\TrackedOperationSummary.cs" />
     <Compile Include="Entities\Database\UnloadChildrenSummary.cs" />
+    <Compile Include="Entities\Database\UnloadStatsLine.cs" />
     <Compile Include="Entities\Database\UnloadWithMaturityDatasetManager.cs" />
     <Compile Include="Entities\Database\TrackedVesselUnloadSummary.cs" />
     <Compile Include="Entities\Database\UnrecognizedFishingGround.cs" />

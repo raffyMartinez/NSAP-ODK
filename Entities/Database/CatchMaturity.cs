@@ -45,6 +45,8 @@ namespace NSAP_ODK.Entities.Database
         private VesselCatch _parent;
         public int PK { get; set; }
 
+        public bool DelayedSave { get; set; }
+
         public double? GonadWeight { get; set; }
         public int VesselCatchID { get; set; }
 

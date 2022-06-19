@@ -12,7 +12,9 @@ namespace NSAP_ODK.Entities.Database
         public event EventHandler DatabaseUpdatedEvent;
         public bool EditSucceeded;
         private bool _updateXFormID;
-
+        private static StringBuilder _csv = new StringBuilder();
+        private static StringBuilder _csv_1 = new StringBuilder();
+        private static StringBuilder _unloadStats_csv = new StringBuilder();
         public int CountLandingWithCatchComposition()
         {
             return VesselUnloadCollection.Count(t => t.HasCatchComposition == true);
@@ -29,9 +31,18 @@ namespace NSAP_ODK.Entities.Database
         //    }
         //}
 
+        public static int CurrentIDNumber { get; set; }
         public bool UpdateUnloadStats(VesselUnload vu)
         {
-            return VesselUnloads.AddUnloadStats(vu);
+            if (vu.DelayedSave)
+            {
+                _unloadStats_csv.AppendLine($"{vu.PK},{vu.CountEffortIndicators},{vu.CountGrids},{vu.CountGearSoak},{vu.CountCatchCompositionItems},{vu.CountLengthRows},{vu.CountLenFreqRows},{vu.CountLenWtRows},{vu.CountMaturityRows}");
+                return true;
+            }
+            else
+            {
+                return VesselUnloads.AddUnloadStats(vu);
+            }
         }
 
         public Task<int> UpdateUnloadStatsAsync()
@@ -39,10 +50,10 @@ namespace NSAP_ODK.Entities.Database
             return Task.Run(() => UpdateUnloadStats());
         }
 
-        public List<Download_summary> GetDownlodaSummary(List<SummaryItem> downloadedItems, DateTime downloadDate)
+        public List<Download_summary> GetDownlodaSummary(List<SummaryItem> downloadedvus, DateTime downloadDate)
         {
             List<Download_summary> dws = new List<Download_summary>();
-            var enumerators = downloadedItems.GroupBy(t => t.EnumeratorName).OrderBy(t => t.Key);
+            var enumerators = downloadedvus.GroupBy(t => t.EnumeratorName).OrderBy(t => t.Key);
             int n = 0;
 
 
@@ -79,17 +90,17 @@ namespace NSAP_ODK.Entities.Database
             Download_summary s = new Download_summary
             {
                 Enumerator = "Grand total",
-                NumberLandings = downloadedItems.Count,
-                NumberLandingsWithCatchComposition = downloadedItems.Count(t => t.HasCatchComposition == true),
-                NumberOfTrackedLandings = downloadedItems.Count(t => t.IsTracked == true)
+                NumberLandings = downloadedvus.Count,
+                NumberLandingsWithCatchComposition = downloadedvus.Count(t => t.HasCatchComposition == true),
+                NumberOfTrackedLandings = downloadedvus.Count(t => t.IsTracked == true)
             };
             sorted.Add(s);
             return sorted;
         }
-        public List<Download_summary> GetDownlodaSummary1(List<VesselUnload> downloadedItems, DateTime downloadDate)
+        public List<Download_summary> GetDownlodaSummary1(List<VesselUnload> downloadedvus, DateTime downloadDate)
         {
             List<Download_summary> dws = new List<Download_summary>();
-            var enumerators = downloadedItems.GroupBy(t => t.EnumeratorName).OrderBy(t => t.Key);
+            var enumerators = downloadedvus.GroupBy(t => t.EnumeratorName).OrderBy(t => t.Key);
             int n = 0;
 
 
@@ -126,9 +137,9 @@ namespace NSAP_ODK.Entities.Database
             Download_summary s = new Download_summary
             {
                 Enumerator = "Grand total",
-                NumberLandings = downloadedItems.Count,
-                NumberLandingsWithCatchComposition = downloadedItems.Count(t => t.HasCatchComposition == true),
-                NumberOfTrackedLandings = downloadedItems.Count(t => t.OperationIsTracked == true)
+                NumberLandings = downloadedvus.Count,
+                NumberLandingsWithCatchComposition = downloadedvus.Count(t => t.HasCatchComposition == true),
+                NumberOfTrackedLandings = downloadedvus.Count(t => t.OperationIsTracked == true)
             };
             sorted.Add(s);
             return sorted;
@@ -147,20 +158,20 @@ namespace NSAP_ODK.Entities.Database
         {
             int result = 0;
             ManageUpdateEvent(intent: "start", rowsForUpdating: VesselUnloadCollection.Count);
-            foreach (var item in VesselUnloadCollection)
+            foreach (var vu in VesselUnloadCollection)
             {
-                item.CountGrids = NSAPEntities.FishingGroundGridViewModel.FishingGroundGridCollection.Count(t => t.Parent.PK == item.PK);
-                item.CountGearSoak = NSAPEntities.GearSoakViewModel.GearSoakCollection.Count(t => t.Parent.PK == item.PK);
-                item.CountEffortIndicators = NSAPEntities.VesselEffortViewModel.VesselEffortCollection.Count(t => t.Parent.PK == item.PK);
-                if (item.HasCatchComposition)
+                vu.CountGrids = NSAPEntities.FishingGroundGridViewModel.FishingGroundGridCollection.Count(t => t.Parent.PK == vu.PK);
+                vu.CountGearSoak = NSAPEntities.GearSoakViewModel.GearSoakCollection.Count(t => t.Parent.PK == vu.PK);
+                vu.CountEffortIndicators = NSAPEntities.VesselEffortViewModel.VesselEffortCollection.Count(t => t.Parent.PK == vu.PK);
+                if (vu.HasCatchComposition)
                 {
-                    item.CountCatchCompositionItems = NSAPEntities.VesselCatchViewModel.VesselCatchCollection.Count(t => t.Parent.PK == item.PK);
-                    foreach (var c in NSAPEntities.VesselCatchViewModel.VesselCatchCollection.Where(t => t.Parent.PK == item.PK))
+                    vu.CountCatchCompositionItems = NSAPEntities.VesselCatchViewModel.VesselCatchCollection.Count(t => t.Parent.PK == vu.PK);
+                    foreach (var c in NSAPEntities.VesselCatchViewModel.VesselCatchCollection.Where(t => t.Parent.PK == vu.PK))
                     {
-                        item.CountLenFreqRows += c.ListCatchLenFreq.Count;
-                        item.CountLenWtRows += c.ListCatchLengthWeight.Count;
-                        item.CountLengthRows += c.ListCatchLength.Count;
-                        item.CountMaturityRows += c.ListCatchMaturity.Count;
+                        vu.CountLenFreqRows += c.ListCatchLenFreq.Count;
+                        vu.CountLenWtRows += c.ListCatchLengthWeight.Count;
+                        vu.CountLengthRows += c.ListCatchLength.Count;
+                        vu.CountMaturityRows += c.ListCatchMaturity.Count;
                     }
                 }
                 if (result == 1)
@@ -168,7 +179,7 @@ namespace NSAP_ODK.Entities.Database
                     ManageUpdateEvent(intent: "start updating");
                 }
 
-                if (VesselUnloads.AddUnloadStats(item))
+                if (VesselUnloads.AddUnloadStats(vu))
                 {
                     result++;
                     ManageUpdateEvent(intent: "row updated", runningCount: result);
@@ -219,22 +230,22 @@ namespace NSAP_ODK.Entities.Database
 
             }
         }
-        public Task<int> UpdateHasCatchCompositionColumnsAsync(List<UpdateHasCatchCompositionResultItem> updateItems, int round)
+        public Task<int> UpdateHasCatchCompositionColumnsAsync(List<UpdateHasCatchCompositionResultItem> updateItem, int round)
         {
-            return Task.Run(() => UpdateHasCatchCompositionColumns(updateItems, round));
+            return Task.Run(() => UpdateHasCatchCompositionColumns(updateItem, round));
         }
 
-        public Task<int> UpdateXFormIdentifierColumnAsync(List<UpdateXFormIdentifierItem> updateItems, int round)
+        public Task<int> UpdateXFormIdentifierColumnAsync(List<UpdateXFormIdentifierItem> updateItem, int round)
         {
-            return Task.Run(() => UpdateXFormIdentifierColumn(updateItems, round));
+            return Task.Run(() => UpdateXFormIdentifierColumn(updateItem, round));
         }
-        private int UpdateXFormIdentifierColumn(List<UpdateXFormIdentifierItem> updateItems, int round)
+        private int UpdateXFormIdentifierColumn(List<UpdateXFormIdentifierItem> updateItem, int round)
         {
-            ManageUpdateEvent(intent: "start", round: round, rowsForUpdating: updateItems.Count);
+            ManageUpdateEvent(intent: "start", round: round, rowsForUpdating: updateItem.Count);
             int results = 0;
-            foreach (var item in updateItems)
+            foreach (var vu in updateItem)
             {
-                if (VesselUnloads.UpdateXFormIdentifierColumn(item))
+                if (VesselUnloads.UpdateXFormIdentifierColumn(vu))
                 {
                     results++;
                     ManageUpdateEvent(intent: "row updated", runningCount: results);
@@ -243,13 +254,13 @@ namespace NSAP_ODK.Entities.Database
             ManageUpdateEvent(intent: "finished");
             return results;
         }
-        private int UpdateHasCatchCompositionColumns(List<UpdateHasCatchCompositionResultItem> updateItems, int round)
+        private int UpdateHasCatchCompositionColumns(List<UpdateHasCatchCompositionResultItem> updateItem, int round)
         {
-            ManageUpdateEvent(intent: "start", round: round, rowsForUpdating: updateItems.Count);
+            ManageUpdateEvent(intent: "start", round: round, rowsForUpdating: updateItem.Count);
             int results = 0;
-            foreach (var item in updateItems)
+            foreach (var vu in updateItem)
             {
-                VesselUnloads.UpdateHasCatchCompositionColumn(item);
+                VesselUnloads.UpdateHasCatchCompositionColumn(vu);
                 results++;
                 ManageUpdateEvent(intent: "row updated", runningCount: results);
             }
@@ -274,13 +285,13 @@ namespace NSAP_ODK.Entities.Database
         public List<DateTime> MonthsSampledByEnumerator(NSAPEnumerator enumerator)
         {
             List<DateTime> list = new List<DateTime>();
-            foreach (var item in VesselUnloadCollection
+            foreach (var vu in VesselUnloadCollection
                 .Where(t => t.NSAPEnumeratorID != null && t.NSAPEnumerator.ID == enumerator.ID)
                 .GroupBy(t => t.MonthSampled)
                 .OrderBy(t => t.Key)
                 .ToList())
             {
-                list.Add(item.Key);
+                list.Add(vu.Key);
             }
             return list;
         }
@@ -360,13 +371,13 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-        public static List<VesselUnload> GetVesselUnloads(List<GearUnload> items)
+        public static List<VesselUnload> GetVesselUnloads(List<GearUnload> vus)
         {
             List<VesselUnload> vessel_unloads = new List<VesselUnload>();
-            foreach (GearUnload item in items)
+            foreach (GearUnload vu in vus)
             {
-                item.VesselUnloadViewModel = new VesselUnloadViewModel(item, updatesubViewModels: true);
-                vessel_unloads.AddRange(item.VesselUnloadViewModel.VesselUnloadCollection.ToList());
+                vu.VesselUnloadViewModel = new VesselUnloadViewModel(vu, updatesubViewModels: true);
+                vessel_unloads.AddRange(vu.VesselUnloadViewModel.VesselUnloadCollection.ToList());
             }
             return vessel_unloads;
         }
@@ -443,36 +454,36 @@ namespace NSAP_ODK.Entities.Database
 
             //int counter = NSAPEntities.VesselCatchViewModel.DeleteCatchFromUnloads(listUnload);
 
-            foreach (var item in listUnload)
+            foreach (var vu in listUnload)
             {
-                foreach (var soakItem in item.ListGearSoak)
+                foreach (var soakvu in vu.ListGearSoak)
                 {
-                    if (NSAPEntities.GearSoakViewModel.DeleteRecordFromRepo(soakItem.PK))
+                    if (NSAPEntities.GearSoakViewModel.DeleteRecordFromRepo(soakvu.PK))
                     {
                         counter++;
                     }
                 }
 
 
-                foreach (var gridItem in item.ListFishingGroundGrid)
+                foreach (var gridvu in vu.ListFishingGroundGrid)
                 {
-                    if (NSAPEntities.FishingGroundGridViewModel.DeleteRecordFromRepo(gridItem.PK))
+                    if (NSAPEntities.FishingGroundGridViewModel.DeleteRecordFromRepo(gridvu.PK))
                     {
                         counter++;
                     }
                 }
 
-                foreach (var effortItem in item.ListVesselEffort)
+                foreach (var effortvu in vu.ListVesselEffort)
                 {
-                    if (NSAPEntities.VesselEffortViewModel.DeleteRecordFromRepo(effortItem.PK))
+                    if (NSAPEntities.VesselEffortViewModel.DeleteRecordFromRepo(effortvu.PK))
                     {
                         counter++;
                     }
                 }
 
-                NSAPEntities.VesselCatchViewModel.DeleteCatchFromUnload(item);
+                NSAPEntities.VesselCatchViewModel.DeleteCatchFromUnload(vu);
 
-                if (DeleteRecordFromRepo(item.PK))
+                if (DeleteRecordFromRepo(vu.PK))
                 {
                     countUnloadDeleted++;
                     DeleteUnloadChildrenEvent?.Invoke(this, null);
@@ -494,11 +505,11 @@ namespace NSAP_ODK.Entities.Database
         public List<LandingSiteSampling> GetLandingSiteSamplings(string enumeratorName)
         {
             var list = new List<LandingSiteSampling>();
-            foreach (var item in VesselUnloadCollection.Where(t => t.EnumeratorName == enumeratorName && t.NSAPEnumeratorID == null))
+            foreach (var vu in VesselUnloadCollection.Where(t => t.EnumeratorName == enumeratorName && t.NSAPEnumeratorID == null))
             {
-                if (!list.Contains(item.Parent.Parent))
+                if (!list.Contains(vu.Parent.Parent))
                 {
-                    list.Add(item.Parent.Parent);
+                    list.Add(vu.Parent.Parent);
                 }
             }
 
@@ -541,9 +552,9 @@ namespace NSAP_ODK.Entities.Database
         public List<VesselUnloadFlattened> GetAllFlattenedItems()
         {
             List<VesselUnloadFlattened> thisList = new List<VesselUnloadFlattened>();
-            foreach (var item in VesselUnloadCollection)
+            foreach (var vu in VesselUnloadCollection)
             {
-                thisList.Add(new VesselUnloadFlattened(item));
+                thisList.Add(new VesselUnloadFlattened(vu));
             }
             return thisList;
         }
@@ -576,6 +587,88 @@ namespace NSAP_ODK.Entities.Database
             return vu;
         }
 
+        private static bool SetCSV(VesselUnload vu)
+        {
+            string boat_id = "";
+            if (vu.VesselID != null)
+            {
+                boat_id = ((int)vu.VesselID).ToString();
+            }
+
+            string catch_wt = "";
+            if (vu.WeightOfCatch != null)
+            {
+                catch_wt = ((double)vu.WeightOfCatch).ToString();
+            }
+
+            string sample_wt = "";
+            if (vu.WeightOfCatchSample != null)
+            {
+                sample_wt = ((double)vu.WeightOfCatchSample).ToString();
+            }
+
+            string boxes_total = "";
+            if (vu.Boxes != null)
+            {
+                boxes_total = ((int)vu.Boxes).ToString();
+            }
+
+            string boxes_sampled = "";
+            if (vu.BoxesSampled != null)
+            {
+                boxes_sampled = ((int)vu.BoxesSampled).ToString();
+            }
+
+            string raising_factor = "";
+            if (vu.RaisingFactor != null)
+            {
+                raising_factor = ((double)vu.RaisingFactor).ToString();
+            }
+
+            _csv.AppendLine($"{vu.Parent.PK},{vu.PK},{boat_id},{catch_wt},{sample_wt},{boxes_total},{boxes_sampled},\"{vu.VesselText}\",{Convert.ToInt32(vu.IsBoatUsed)},{raising_factor}");
+
+
+            string departure = "";
+            if (vu.DepartureFromLandingSite != null)
+            {
+                departure = ((DateTime)vu.DepartureFromLandingSite).ToString();
+            }
+
+            string arrival = "";
+            if (vu.ArrivalAtLandingSite != null)
+            {
+                arrival = ((DateTime)vu.ArrivalAtLandingSite).ToString();
+            }
+
+            string xFormDate = "";
+            if (vu.XFormDate != null)
+            {
+                xFormDate = ((DateTime)vu.XFormDate).ToString();
+            }
+
+            string enum_id = "";
+            if (vu.NSAPEnumeratorID != null)
+            {
+                enum_id = ((int)vu.NSAPEnumeratorID).ToString();
+            }
+
+            _csv_1.AppendLine($"{vu.PK},{Convert.ToInt32(vu.OperationIsSuccessful)},{Convert.ToInt32(vu.OperationIsTracked)},{departure},{arrival},\"{vu.SectorCode}\",\"{vu.ODKRowID}\",\"{vu.XFormIdentifier}\",{xFormDate},\"{vu.UserName}\",\"{vu.DeviceID}\",{vu.DateTimeSubmitted},\"{vu.FormVersion}\",\"{vu.GPSCode}\",{vu.SamplingDate},\"{vu.Notes}\",{enum_id},\"{vu.EnumeratorText}\",{vu.DateAddedToDatabase},{Convert.ToInt32(vu.FromExcelDownload)},{Convert.ToInt32(vu.FishingTripIsCompleted)},{Convert.ToInt32(vu.HasCatchComposition)},{vu.NumberOfFishers}");
+
+            return true;
+        }
+
+        public static string UnloadStatsCSV
+        {
+            get { return $"{AccessHelper.GetColumnNamesCSV("dbo_vessel_unload_stats")}\r\n{_unloadStats_csv}"; }
+        }
+        public static string CSV_1
+        {
+            get { return $"{AccessHelper.GetColumnNamesCSV("dbo_vessel_unload_1")}\r\n{_csv_1}"; }
+        }
+        public static string CSV
+        {
+            get { return $"{AccessHelper.GetColumnNamesCSV("dbo_vessel_unload")}\r\n{_csv.ToString()}"; }
+        }
         public VesselUnload getVesselUnload(string odkROWID)
         {
             var vu = VesselUnloadCollection.FirstOrDefault(n => n.ODKRowID == odkROWID);
@@ -585,6 +678,8 @@ namespace NSAP_ODK.Entities.Database
             }
             return vu;
         }
+
+
         private void VesselUnloadCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             EditSucceeded = false;
@@ -592,15 +687,24 @@ namespace NSAP_ODK.Entities.Database
             {
                 case NotifyCollectionChangedAction.Add:
                     {
-                        int newIndex = e.NewStartingIndex;
-                        EditSucceeded = VesselUnloads.Add(VesselUnloadCollection[newIndex]);
+                        VesselUnload newvu = VesselUnloadCollection[e.NewStartingIndex];
+                        if (newvu.DelayedSave)
+                        {
+                            EditSucceeded = SetCSV(newvu);
+                        }
+                        else
+                        {
+                            EditSucceeded = VesselUnloads.Add(newvu);
+                        }
+                        //int newIndex = e.NewStartingIndex;
+                        //EditSucceeded = VesselUnloads.Add(VesselUnloadCollection[newIndex]);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
                     {
-                        List<VesselUnload> tempListOfRemovedItems = e.OldItems.OfType<VesselUnload>().ToList();
-                        EditSucceeded = VesselUnloads.Delete(tempListOfRemovedItems[0].PK);
+                        List<VesselUnload> tempListOfRemovedvus = e.OldItems.OfType<VesselUnload>().ToList();
+                        EditSucceeded = VesselUnloads.Delete(tempListOfRemovedvus[0].PK);
                     }
                     break;
 
@@ -636,15 +740,15 @@ namespace NSAP_ODK.Entities.Database
         }
 
 
-        public bool AddRecordToRepo(VesselUnload item)
+        public bool AddRecordToRepo(VesselUnload vu)
         {
-            if (item == null)
+            if (vu == null)
                 throw new ArgumentNullException("Error: The argument is Null");
-            VesselUnloadCollection.Add(item);
+            VesselUnloadCollection.Add(vu);
             return EditSucceeded;
         }
 
-        public bool UpdateRecordInRepo(VesselUnload item, bool updateXFormID = false)
+        public bool UpdateRecordInRepo(VesselUnload vu, bool updateXFormID = false)
         {
             _updateXFormID = updateXFormID;
             int index = 0;
@@ -652,9 +756,9 @@ namespace NSAP_ODK.Entities.Database
             {
                 while (index < VesselUnloadCollection.Count)
                 {
-                    if (VesselUnloadCollection[index].ODKRowID == item.ODKRowID)
+                    if (VesselUnloadCollection[index].ODKRowID == vu.ODKRowID)
                     {
-                        VesselUnloadCollection[index] = item;
+                        VesselUnloadCollection[index] = vu;
                         break;
                     }
                     index++;
@@ -662,15 +766,15 @@ namespace NSAP_ODK.Entities.Database
             }
             else
             {
-                if (item.PK == 0)
+                if (vu.PK == 0)
                     throw new Exception("Error: ID cannot be zero");
 
 
                 while (index < VesselUnloadCollection.Count)
                 {
-                    if (VesselUnloadCollection[index].PK == item.PK)
+                    if (VesselUnloadCollection[index].PK == vu.PK)
                     {
-                        VesselUnloadCollection[index] = item;
+                        VesselUnloadCollection[index] = vu;
                         break;
                     }
                     index++;

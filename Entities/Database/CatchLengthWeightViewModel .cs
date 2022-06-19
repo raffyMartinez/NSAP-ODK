@@ -7,18 +7,18 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 namespace NSAP_ODK.Entities.Database
 {
-    public class CatchLengthWeightViewModel:IDisposable
+    public class CatchLengthWeightViewModel : IDisposable
     {
         private bool _editSuccess;
         public ObservableCollection<CatchLengthWeight> CatchLengthWeightCollection { get; set; }
         private CatchLenWeightRepository CatchLengthWeights { get; set; }
-
+        private static StringBuilder _csv = new StringBuilder();
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-
+        public static int CurrentIDNumber { get; set; }
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
@@ -37,7 +37,7 @@ namespace NSAP_ODK.Entities.Database
             CatchLengthWeightCollection = new ObservableCollection<CatchLengthWeight>(CatchLengthWeights.CatchLengthWeights);
             CatchLengthWeightCollection.CollectionChanged += CatchLengthWeightCollection_CollectionChanged;
         }
-        public CatchLengthWeightViewModel(bool isNew=false)
+        public CatchLengthWeightViewModel(bool isNew = false)
         {
             CatchLengthWeights = new CatchLenWeightRepository(isNew);
             if (isNew)
@@ -87,7 +87,16 @@ namespace NSAP_ODK.Entities.Database
             return CatchLengthWeightCollection.FirstOrDefault(n => n.PK == pk);
         }
 
+        private static bool SetCSV(CatchLengthWeight item)
+        {
+            _csv.AppendLine($"{item.PK},{item.Parent.PK},{item.Length},{item.Weight}");
+            return true;
+        }
 
+        public static string CSV
+        {
+            get { return $"{AccessHelper.GetColumnNamesCSV("dbo_catch_len_wt")}\r\n{ _csv}"; }
+        }
         private void CatchLengthWeightCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             _editSuccess = false;
@@ -95,8 +104,17 @@ namespace NSAP_ODK.Entities.Database
             {
                 case NotifyCollectionChangedAction.Add:
                     {
-                        int newIndex = e.NewStartingIndex;
-                        _editSuccess = CatchLengthWeights.Add(CatchLengthWeightCollection[newIndex]);
+                        CatchLengthWeight newItem = CatchLengthWeightCollection[e.NewStartingIndex];
+                        if (newItem.DelayedSave)
+                        {
+                            _editSuccess = SetCSV(newItem);
+                        }
+                        else
+                        {
+                            _editSuccess = CatchLengthWeights.Add(newItem);
+                        }
+                        //int newIndex = e.NewStartingIndex;
+                        //_editSuccess = CatchLengthWeights.Add(CatchLengthWeightCollection[newIndex]);
                     }
                     break;
 

@@ -13,7 +13,7 @@ namespace NSAP_ODK.Entities.Database
         public bool EditSuccess;
         public ObservableCollection<GearUnload> GearUnloadCollection { get; set; }
         private GearUnloadRepository GearUnloads { get; set; }
-
+        private static StringBuilder _csv = new StringBuilder();
         public GearUnloadViewModel(LandingSiteSampling parent)
         {
             GearUnloads = new GearUnloadRepository(parent);
@@ -45,7 +45,38 @@ namespace NSAP_ODK.Entities.Database
             GearUnloadCollection = new ObservableCollection<GearUnload>(GearUnloads.GearUnloads);
             GearUnloadCollection.CollectionChanged += GearUnloadCollection_CollectionChanged;
         }
+        private static bool SetCSV(GearUnload item)
+        {
+            string boat_ct = "";
+            string catch_wt = "";
+            string gr_id = "";
+            string gr_text = item.GearUsedText;
+            if (!string.IsNullOrEmpty(item.GearID))
+            {
+                gr_id = $"\"{item.GearID}\"";
+                gr_text = "";
+            }
+            if (item.Boats != null)
+            {
+                boat_ct = ((int)item.Boats).ToString();
+            }
+            if (item.Catch != null)
+            {
+                catch_wt = ((double)item.Catch).ToString();
+            }
 
+            _csv.AppendLine($"{item.PK},{item.Parent.PK},{gr_id},{boat_ct},{catch_wt},\"{gr_text}\",\"{item.Remarks}\"");
+            return true;
+        }
+
+        public static string CSV
+        {
+            get
+            {
+                return $"{AccessHelper.GetColumnNamesCSV("dbo_gear_unload")}\r\n{_csv.ToString()}";
+            }
+
+        }
         public List<OrphanedFishingGear> OrphanedFishingGears()
         {
             //var items = GearUnloadCollection
@@ -355,7 +386,7 @@ namespace NSAP_ODK.Entities.Database
         public GearUnload getGearUnload(int pk, bool loadVesselViewModel = false)
         {
             var gu = GearUnloadCollection.FirstOrDefault(n => n.PK == pk);
-            if ( gu!=null && loadVesselViewModel)
+            if (gu != null && loadVesselViewModel)
             {
                 if (gu.VesselUnloadViewModel == null)
                 {
@@ -415,8 +446,17 @@ namespace NSAP_ODK.Entities.Database
             {
                 case NotifyCollectionChangedAction.Add:
                     {
-                        int newIndex = e.NewStartingIndex;
-                        EditSuccess = GearUnloads.Add(GearUnloadCollection[newIndex]);
+                        GearUnload newItem = GearUnloadCollection[e.NewStartingIndex];
+                        if (newItem.DelayedSave)
+                        {
+                            EditSuccess = SetCSV(newItem);
+                        }
+                        else
+                        {
+                            EditSuccess = GearUnloads.Add(newItem);
+                        }
+                        //int newIndex = e.NewStartingIndex;
+                        //EditSuccess = GearUnloads.Add(GearUnloadCollection[newIndex]);
                     }
                     break;
 

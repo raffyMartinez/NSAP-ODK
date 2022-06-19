@@ -7,19 +7,19 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 namespace NSAP_ODK.Entities.Database
 {
-    public class GearSoakViewModel:IDisposable
+    public class GearSoakViewModel : IDisposable
     {
 
         private bool _editSuccess;
         public ObservableCollection<GearSoak> GearSoakCollection { get; set; }
         private GearSoakRepository GearSoaks { get; set; }
-
+        private static StringBuilder _csv = new StringBuilder();
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-
+        public static int CurrentIDNumber { get; set; }
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
@@ -88,7 +88,16 @@ namespace NSAP_ODK.Entities.Database
             return GearSoakCollection.FirstOrDefault(n => n.PK == pk);
         }
 
+        public static string CSV
+        {
+            get { return $"{AccessHelper.GetColumnNamesCSV("dbo_gear_soak")}\r\n{_csv}"; }
+        }
+        private static bool SetCSV(GearSoak item)
+        {
 
+            _csv.AppendLine($"{item.PK},{item.Parent.PK},{item.TimeAtSet},{item.TimeAtHaul},\"{item.WaypointAtSet}\",\"{item.WaypointAtHaul}\"");
+            return true;
+        }
         private void GearSoaks_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             _editSuccess = false;
@@ -96,8 +105,17 @@ namespace NSAP_ODK.Entities.Database
             {
                 case NotifyCollectionChangedAction.Add:
                     {
-                        int newIndex = e.NewStartingIndex;
-                        _editSuccess = GearSoaks.Add(GearSoakCollection[newIndex]);
+                        GearSoak newItem = GearSoakCollection[e.NewStartingIndex];
+                        if (newItem.DelayedSave)
+                        {
+                            _editSuccess = SetCSV(newItem);
+                        }
+                        else
+                        {
+                            _editSuccess = GearSoaks.Add(newItem);
+                        }
+                        //int newIndex = e.NewStartingIndex;
+                        //_editSuccess = GearSoaks.Add(GearSoakCollection[newIndex]);
                     }
                     break;
 

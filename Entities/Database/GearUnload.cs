@@ -42,7 +42,7 @@ namespace NSAP_ODK.Entities.Database
     {
         private Gear _gear;
         private LandingSiteSampling _parent;
-
+        public bool DelayedSave { get; set; }
         public List<VesselUnload> AttachedVesselUnloads { get; set; }
         public string Remarks { get; set; }
         public int PK { get; set; }

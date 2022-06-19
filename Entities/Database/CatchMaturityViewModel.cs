@@ -7,7 +7,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 namespace NSAP_ODK.Entities.Database
 {
-    public class CatchMaturityViewModel:IDisposable
+    public class CatchMaturityViewModel : IDisposable
     {
         public void Dispose()
         {
@@ -28,16 +28,17 @@ namespace NSAP_ODK.Entities.Database
             // free native resources if there are any.
         }
         private bool _editSuccess;
+        private static StringBuilder _csv = new StringBuilder();
         public ObservableCollection<CatchMaturity> CatchMaturityCollection { get; set; }
         private CatchMaturityRepository CatchMaturities { get; set; }
-
+        public static int CurrentIDNumber { get; set; }
         public CatchMaturityViewModel(VesselCatch vc)
         {
             CatchMaturities = new CatchMaturityRepository(vc);
             CatchMaturityCollection = new ObservableCollection<CatchMaturity>(CatchMaturities.CatchMaturities);
             CatchMaturityCollection.CollectionChanged += CatchMaturityCollection_CollectionChanged;
         }
-        public CatchMaturityViewModel(bool isNew=false)
+        public CatchMaturityViewModel(bool isNew = false)
         {
             CatchMaturities = new CatchMaturityRepository(isNew);
             if (isNew)
@@ -56,13 +57,13 @@ namespace NSAP_ODK.Entities.Database
             return CatchMaturityCollection.ToList();
         }
 
-        public List<CatchMaturityFlattened> GetAllFlattenedItems(bool tracked=false)
+        public List<CatchMaturityFlattened> GetAllFlattenedItems(bool tracked = false)
         {
             List<CatchMaturityFlattened> thisList = new List<CatchMaturityFlattened>();
-            if(tracked)
+            if (tracked)
             {
                 foreach (var item in CatchMaturityCollection
-                    .Where(t=>t.Parent.Parent.OperationIsTracked==tracked))
+                    .Where(t => t.Parent.Parent.OperationIsTracked == tracked))
                 {
                     thisList.Add(new CatchMaturityFlattened(item));
                 }
@@ -84,7 +85,16 @@ namespace NSAP_ODK.Entities.Database
             return CatchMaturityCollection.FirstOrDefault(n => n.PK == pk);
         }
 
+        private static bool SetCSV(CatchMaturity item)
+        {
+            _csv.AppendLine($"{item.PK},{item.Parent.PK},{item.Length},{item.Weight},\"{item.SexCode}\",\"{item.MaturityCode}\",{item.WeightGutContent},\"{item.GutContentCode}\",{item.GonadWeight}");
+            return true;
+        }
 
+        public static string CSV
+        {
+            get { return $"{AccessHelper.GetColumnNamesCSV("dbo_catch_maturity")}\r\n{_csv}"; }
+        }
         private void CatchMaturityCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             _editSuccess = false;
@@ -92,22 +102,31 @@ namespace NSAP_ODK.Entities.Database
             {
                 case NotifyCollectionChangedAction.Add:
                     {
-                        int newIndex = e.NewStartingIndex;
-                        _editSuccess = CatchMaturities.Add(CatchMaturityCollection[newIndex]);
+                        CatchMaturity newItem = CatchMaturityCollection[e.NewStartingIndex];
+                        if (newItem.DelayedSave)
+                        {
+                            _editSuccess = SetCSV(newItem);
+                        }
+                        else
+                        {
+                            _editSuccess = CatchMaturities.Add(newItem);
+                        }
+                        //int newIndex = e.NewStartingIndex;
+                        //_editSuccess = CatchMaturities.Add(CatchMaturityCollection[newIndex]);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<CatchMaturity> tempListOfRemovedItems = e.OldItems.OfType<CatchMaturity>().ToList();
-                        _editSuccess= CatchMaturities.Delete(tempListOfRemovedItems[0].PK);
+                        _editSuccess = CatchMaturities.Delete(tempListOfRemovedItems[0].PK);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<CatchMaturity> tempList = e.NewItems.OfType<CatchMaturity>().ToList();
-                        _editSuccess= CatchMaturities.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        _editSuccess = CatchMaturities.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }

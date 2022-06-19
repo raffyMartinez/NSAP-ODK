@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data.OleDb;
 using NSAP_ODK.Utilities;
+using System.IO;
 
 namespace NSAP_ODK.Entities.Database
 {
@@ -22,6 +23,55 @@ namespace NSAP_ODK.Entities.Database
                 _mdbFile = value;
                 _connectionString = "Provider=Microsoft.JET.OLEDB.4.0;data source=" + _mdbFile;
             }
+        }
+
+
+        public static async Task<bool> UploadImportJsonResultAsync()
+        {
+            AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "start importing csv", TotalTableCount = 14 });
+            bool success = false;
+            MDBFile = Global.MDBPath;
+            if (await Task.Run(() => DoInsertQuery("dbo_LC_FG_sample_day", LandingSiteSamplingViewModel.CSV)))
+            {
+                if (await Task.Run(() => DoInsertQuery("dbo_LC_FG_sample_day_1", LandingSiteSamplingViewModel.CSV_1)))
+                {
+                    if (await Task.Run(() => DoInsertQuery("dbo_gear_unload", GearUnloadViewModel.CSV)))
+                    {
+                        if (await Task.Run(() => DoInsertQuery("dbo_vessel_unload", VesselUnloadViewModel.CSV)))
+                        {
+                            if (await Task.Run(() => DoInsertQuery("dbo_vessel_unload_1", VesselUnloadViewModel.CSV_1)))
+                            {
+                                if (await Task.Run(() => DoInsertQuery("dbo_vessel_unload_stats", VesselUnloadViewModel.UnloadStatsCSV)))
+                                {
+                                    if (await Task.Run(() => DoInsertQuery("dbo_vessel_effort", VesselEffortViewModel.CSV)))
+                                    {
+                                        if (await Task.Run(() => DoInsertQuery("dbo_fg_grid", FishingGroundGridViewModel.CSV)))
+                                        {
+                                            if (await Task.Run(() => DoInsertQuery("dbo_gear_soak", GearSoakViewModel.CSV)))
+                                            {
+                                                if (await Task.Run(() => DoInsertQuery("dbo_vessel_catch", VesselCatchViewModel.CSV)))
+                                                {
+                                                    if (await Task.Run(() => DoInsertQuery("dbo_catch_len", CatchLengthViewModel.CSV)))
+                                                    {
+                                                        if (await Task.Run(() => DoInsertQuery("dbo_catch_len_freq", CatchLenFreqViewModel.CSV)))
+                                                        {
+                                                            if (await Task.Run(() => DoInsertQuery("dbo_catch_len_wt", CatchLengthWeightViewModel.CSV)))
+                                                            {
+                                                                success = await Task.Run(() => DoInsertQuery("dbo_catch_maturity", CatchMaturityViewModel.CSV));
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return success;
         }
 
         public static string ConnectionString
@@ -284,7 +334,7 @@ namespace NSAP_ODK.Entities.Database
                         //    }
                         //}
                         int loopCount = 0;
-                        foreach(string list_member in list)
+                        foreach (string list_member in list)
                         {
                             //new_line = "";
                             if (list_member == "NULL")
@@ -333,6 +383,40 @@ namespace NSAP_ODK.Entities.Database
             }
             AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "import done" });
             return currentTableCount == tablesForImporting.Count;
+        }
+
+        private static bool DoInsertQuery(string tableName, string csv)
+        {
+            bool success = false;
+            string base_dir = AppDomain.CurrentDomain.BaseDirectory;
+            string csv_file = $@"{base_dir}\temp.csv";
+            File.WriteAllText(csv_file, csv);
+
+            using (var con = new OleDbConnection(ConnectionString))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    cmd.CommandText = $@"INSERT INTO {tableName} SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
+                    con.Open();
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        success = true;
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = tableName });
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+
+            }
+            return success;
+
+            //System.Data.OleDb.OleDbCommand AccessCommand = new System.Data.OleDb.OleDbCommand("SELECT * INTO [ImportTable] FROM [Text;FMT=Delimited;DATABASE=C:\\Documents and Settings\\...\\My Documents\\My Database\\Text;HDR=No].[x123456.csv]", AccessConnection);
+
+            //AccessCommand.ExecuteNonQuery();
+            //AccessConnection.Close();
         }
 
         private static bool DoInsertQuery(string tableName)

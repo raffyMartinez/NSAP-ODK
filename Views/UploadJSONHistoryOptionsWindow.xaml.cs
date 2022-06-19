@@ -109,7 +109,8 @@ namespace NSAP_ODK.Views
 
                     if (proceed)
                     {
-                        ((ODKResultsWindow)Owner).StartAtBeginningOfJSONDownloadList = _ignoreControls && (bool)chkStartAtBeginning.IsChecked;
+                        ((ODKResultsWindow)Owner).StartAtBeginningOfJSONDownloadList = _ignoreControls || (bool)chkStartAtBeginning.IsChecked;
+                        //((ODKResultsWindow)Owner).StartAtBeginningOfJSONDownloadList = (bool)chkStartAtBeginning.IsChecked;
                         DialogResult = true;
                     }
                     else
