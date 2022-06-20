@@ -2763,7 +2763,7 @@ namespace NSAP_ODK
         private void OnTreeViewItemSelected(object sender, TreeViewModelControl.AllSamplingEntitiesEventHandler e)
         {
             gridCalendarHeader.Visibility = Visibility.Visible;
-            NSAPEntities.SummaryItemViewModel.ResetResults();
+            //NSAPEntities.SummaryItemViewModel.ResetResults();
             NSAPEntities.SummaryItemViewModel.TreeViewData = e;
             string labelContent = "";
             GridNSAPData.SelectionUnit = DataGridSelectionUnit.FullRow;

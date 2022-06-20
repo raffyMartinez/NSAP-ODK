@@ -263,7 +263,7 @@ namespace NSAP_ODK.Entities.Database
             return items;
         }
         public bool DelayedSave { get; set; }
-        public LastPrimaryKeys GetLastPrimaryKeys(bool delayedSave=false)
+        public LastPrimaryKeys GetLastPrimaryKeys(bool delayedSave = false)
         {
             LastPrimaryKeys lpks = new LastPrimaryKeys();
             if (Global.Settings.UsemySQL)
@@ -376,15 +376,11 @@ namespace NSAP_ODK.Entities.Database
                     lpks.LastLenFreqPK = CatchLenFreqViewModel.CurrentIDNumber;
                     lpks.LastMaturityPK = CatchMaturityViewModel.CurrentIDNumber;
 
-                    //lpks.LastVesselUnloadPK = VesselUnloadViewModel.CurrentIDNumber + 1;
-                    //lpks.LastFishingGridsPK = FishingGroundGridViewModel.CurrentIDNumber + 1;
-                    //lpks.LastGearSoaksPK = GearSoakViewModel.CurrentIDNumber + 1;
-                    //lpks.LastVesselEffortsPK = VesselEffortViewModel.CurrentIDNumber + 1;
-                    //lpks.LastVesselCatchPK = VesselCatchViewModel.CurrentIDNumber + 1;
-                    //lpks.LastLenWtPK = CatchLengthWeightViewModel.CurrentIDNumber + 1;
-                    //lpks.LastLengthsPK = CatchLengthViewModel.CurrentIDNumber + 1;
-                    //lpks.LastLenFreqPK = CatchLenFreqViewModel.CurrentIDNumber + 1;
-                    //lpks.LastMaturityPK = CatchMaturityViewModel.CurrentIDNumber + 1;
+                    if (lpks.LastVesselUnloadPK == 0 && NSAPEntities.SummaryItemViewModel.Count > 0)
+                    {
+                       lpks= GetLastPrimaryKeys();
+                    }
+
                 }
                 else
                 {

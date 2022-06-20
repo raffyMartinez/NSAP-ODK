@@ -1079,10 +1079,18 @@ namespace NSAP_ODK.Views
                     {
                         if (await CreateTablesInAccess.UploadImportJsonResultAsync())
                         {
-                           var r =  MessageBox.Show("Finished uploading JSON history files to the database\r\n\r\nWill you upload additional JSON files?", "NSAP-ODK Database", MessageBoxButton.YesNo, MessageBoxImage.Information);
-                            if(r==MessageBoxResult.No)
+                            if (menuName == "menuUpload")
                             {
+                                MessageBox.Show("Finished uploading JSON history files to the database", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
                                 Close();
+                            }
+                            else
+                            {
+                                var r = MessageBox.Show("Finished uploading JSON history files to the database\r\n\r\nWill you upload additional JSON files?", "NSAP-ODK Database", MessageBoxButton.YesNo, MessageBoxImage.Information);
+                                if (r == MessageBoxResult.No)
+                                {
+                                    Close();
+                                }
                             }
                         }
 
@@ -1224,7 +1232,7 @@ namespace NSAP_ODK.Views
                             msg += $"\r\n\r\nThere were {_ufg_count} landings with unrecognized fishing grounds";
                         }
 
-                        if (!VesselUnloadServerRepository.DelayedSave || _savedCount==0)
+                        if (!VesselUnloadServerRepository.DelayedSave)// || _savedCount==0)
                         {
                             TimedMessageBox.Show(msg, "NSAP-ODK Database", 5000);
                         }

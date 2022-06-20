@@ -1296,7 +1296,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
         {
             get
             {
-                if (!SavedInLocalDatabase)
+                 if (!SavedInLocalDatabase)
                 {
                     if (_rowid == 0)
                     {
