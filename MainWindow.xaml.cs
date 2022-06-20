@@ -1640,6 +1640,7 @@ namespace NSAP_ODK
 
         public void ShowDBSummary()
         {
+            menuDummy.IsChecked = true;
             menuDatabaseSummary.IsChecked = true;
         }
         private void OnMenuItemChecked(object sender, RoutedEventArgs e)

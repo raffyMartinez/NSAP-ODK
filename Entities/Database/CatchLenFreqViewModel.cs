@@ -77,6 +77,10 @@ namespace NSAP_ODK.Entities.Database
             }
             return thisList;
         }
+        public static void ClearCSV()
+        {
+            _csv.Clear();
+        }
         public bool ClearRepository()
         {
             CatchLenFreqCollection.Clear();

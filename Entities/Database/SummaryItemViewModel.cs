@@ -1759,12 +1759,15 @@ namespace NSAP_ODK.Entities.Database
         public void ResetResults()
         {
             SummaryResults = new List<SummaryResults>();
+            LastPrimaryKeys.Reset();
         }
         public List<SummaryResults> SummaryResults { get; private set; }
 
         public void Clear()
         {
             SummaryItemCollection.Clear();
+            LastPrimaryKeys.Reset();
+
         }
         public bool AddRecordToRepo(VesselUnload vu)
         {

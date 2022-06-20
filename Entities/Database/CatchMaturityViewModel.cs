@@ -79,7 +79,10 @@ namespace NSAP_ODK.Entities.Database
             CatchMaturityCollection.Clear();
             return CatchMaturityRepository.ClearTable();
         }
-
+        public static void ClearCSV()
+        {
+            _csv.Clear();
+        }
         public CatchMaturity getCatchMaturity(int pk)
         {
             return CatchMaturityCollection.FirstOrDefault(n => n.PK == pk);

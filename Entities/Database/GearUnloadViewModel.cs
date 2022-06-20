@@ -117,6 +117,13 @@ namespace NSAP_ODK.Entities.Database
             }
             return list;
         }
+
+        public static void ClearCSV()
+        {
+            
+            _csv.Clear();
+        }
+
         public int CountCompletedGearUnload
         {
             //get { return GearUnloadCollection.Where(t => t.Boats != null).Where(t => t.Catch != null).Count(); }

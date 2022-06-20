@@ -134,6 +134,15 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
+
+        public static void ClearCSV()
+        {
+            _csv.Clear();
+        }
+            
+
+
+
         public int Count
         {
             get { return CatchLengthWeightCollection.Count; }

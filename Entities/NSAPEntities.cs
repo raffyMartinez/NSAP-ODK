@@ -99,6 +99,22 @@ namespace NSAP_ODK.Entities
         {
             return Task.Run(() => ClearNSAPDatabaseTables(otherConnectionString));
         }
+
+        public static void ClearCSVData()
+        {
+            CatchMaturityViewModel.ClearCSV();
+            CatchLengthViewModel.ClearCSV();
+            CatchLengthWeightViewModel.ClearCSV();
+            CatchLenFreqViewModel.ClearCSV();
+            VesselCatchViewModel.ClearCSV();
+            FishingGroundGridViewModel.ClearCSV();
+            GearSoakViewModel.ClearCSV();
+            VesselEffortViewModel.ClearCSV();
+            VesselUnloadViewModel.ClearCSV();
+            GearUnloadViewModel.ClearCSV();
+            LandingSiteSamplingViewModel.ClearCSV();
+
+        }
         public static bool ClearNSAPDatabaseTables(string otherConnectionString = "")
         {
             bool success = false;

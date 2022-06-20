@@ -1318,8 +1318,10 @@ namespace NSAP_ODK.Entities.Database.FromJson
                         }
                         catch
                         {
+                            _rowid = SavedVesselUnloadObject.VesselUnloadID;
                             _savedVesselUnloadObject = SavedVesselUnloadObject;
-                            _rowid = _savedVesselUnloadObject.VesselUnloadID;
+                            //_savedVesselUnloadObject = SavedVesselUnloadObject;
+                            //_rowid = _savedVesselUnloadObject.VesselUnloadID;
                         }
                     }
                     else
@@ -1434,6 +1436,18 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
         public static event EventHandler<UploadToDbEventArg> UploadSubmissionToDB;
         public static event Action<int> LandingWithUpdatedLandingSite;
+        
+        public static void ResetGroupIDs()
+        {
+            SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat.SetRowIDs();
+            GridCoordGroupBingoRepeat.SetRowIDs();
+            EffortsGroupEffortRepeat.SetRowIDs();
+            CatchCompGroupCatchCompositionRepeat.SetRowIDs();
+            CatchCompGroupCatchCompositionRepeatLenWtRepeat.SetRowIDs();
+            CatchCompGroupCatchCompositionRepeatLengthListRepeat.SetRowIDs();
+            CatchCompGroupCatchCompositionRepeatLengthFreqRepeat.SetRowIDs();
+            CatchCompGroupCatchCompositionRepeatGmsRepeatGroup.SetRowIDs();
+        }
         public static void ResetLists()
         {
             _listGridBingoCoordinates = null;
@@ -1961,7 +1975,11 @@ namespace NSAP_ODK.Entities.Database.FromJson
             }
         }
 
-        public static int TotalUploadCount { get; set; }
+        public static void ResetTotalUploadCounter()
+        {
+            TotalUploadCount = 0;
+        }
+        public static int TotalUploadCount { get; private set; }
         public static bool UploadToDatabase(List<VesselLanding> resolvedLandings = null)
         {
             UploadInProgress = true;

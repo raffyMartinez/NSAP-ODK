@@ -84,7 +84,11 @@ namespace NSAP_ODK.Entities.Database
             CatchLengthCollection.Clear();
             return CatchLengthRepository.ClearTable();
         }
+        public static void ClearCSV()
+        {
 
+            _csv.Clear();
+        }
         public CatchLength getCatchLength(int pk)
         {
             return CatchLengthCollection.FirstOrDefault(n => n.PK == pk);

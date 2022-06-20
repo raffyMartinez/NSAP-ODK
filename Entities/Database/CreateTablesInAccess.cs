@@ -11,8 +11,11 @@ namespace NSAP_ODK.Entities.Database
 {
     public static class CreateTablesInAccess
     {
+        private static int _importCSVCount;
         private static string _mdbFile;
         private static string _connectionString;
+
+
         public static event EventHandler<CreateTablesInAccessEventArgs> AccessTableEvent;
         public static List<SQLDumpParsed> ListSQLDumpParsed { get; set; }
         public static string MDBFile
@@ -28,6 +31,7 @@ namespace NSAP_ODK.Entities.Database
 
         public static async Task<bool> UploadImportJsonResultAsync()
         {
+            _importCSVCount = 0;
             AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "start importing csv", TotalTableCount = 14 });
             bool success = false;
             MDBFile = Global.MDBPath;
@@ -402,7 +406,7 @@ namespace NSAP_ODK.Entities.Database
                     {
                         cmd.ExecuteNonQuery();
                         success = true;
-                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = tableName });
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = tableName, CurrentTableCount = ++_importCSVCount });
                     }
                     catch (Exception ex)
                     {

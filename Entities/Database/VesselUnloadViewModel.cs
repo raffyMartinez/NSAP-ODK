@@ -145,6 +145,13 @@ namespace NSAP_ODK.Entities.Database
             return sorted;
         }
 
+        public static void ClearCSV()
+        {
+            _csv.Clear();
+            _csv_1.Clear();
+            _unloadStats_csv.Clear();
+        }
+
         //public static VesselUnloadSummary GetSummary()
         //{
         //    return VesselUnloadRepository.GetSummary();

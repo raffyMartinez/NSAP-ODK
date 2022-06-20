@@ -114,6 +114,11 @@ namespace NSAP_ODK.Entities.Database
             get { return $"{AccessHelper.GetColumnNamesCSV("dbo_vessel_effort")}\r\n{_csv.ToString()}"; }
         }
 
+        public static void ClearCSV()
+        {
+            _csv.Clear();
+        }
+
         private void LandingSiteSamplingCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             EditSucceeded = false;

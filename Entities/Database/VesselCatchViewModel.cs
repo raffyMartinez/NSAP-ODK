@@ -109,6 +109,11 @@ namespace NSAP_ODK.Entities.Database
             return list;
         }
 
+        public static void ClearCSV()
+        {
+            _csv.Clear();
+        }
+
         public VesselCatchViewModel(VesselUnload vu)
         {
             if (vu != null)

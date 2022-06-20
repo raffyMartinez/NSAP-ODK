@@ -299,9 +299,15 @@ namespace NSAP_ODK.Entities.Database
             return new LandingSiteSamplingFlattened(LandingSiteSamplingCollection.Where(t => t.PK == id).FirstOrDefault());
         }
 
-        public void Clear()
+        public  void Clear()
         {
             LandingSiteSamplingCollection.Clear();
+        }
+        public static void ClearCSV()
+        {
+
+            _csv.Clear();
+            _csv_1.Clear();
         }
         public bool ClearRepository()
         {
