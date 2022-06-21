@@ -596,37 +596,37 @@ namespace NSAP_ODK.Entities.Database
 
         private static bool SetCSV(VesselUnload vu)
         {
-            string boat_id = "";
+            string boat_id = string.Empty;
             if (vu.VesselID != null)
             {
                 boat_id = ((int)vu.VesselID).ToString();
             }
 
-            string catch_wt = "";
+            string catch_wt = string.Empty;
             if (vu.WeightOfCatch != null)
             {
                 catch_wt = ((double)vu.WeightOfCatch).ToString();
             }
 
-            string sample_wt = "";
+            string sample_wt = string.Empty;
             if (vu.WeightOfCatchSample != null)
             {
                 sample_wt = ((double)vu.WeightOfCatchSample).ToString();
             }
 
-            string boxes_total = "";
+            string boxes_total = string.Empty;
             if (vu.Boxes != null)
             {
                 boxes_total = ((int)vu.Boxes).ToString();
             }
 
-            string boxes_sampled = "";
+            string boxes_sampled = string.Empty;
             if (vu.BoxesSampled != null)
             {
                 boxes_sampled = ((int)vu.BoxesSampled).ToString();
             }
 
-            string raising_factor = "";
+            string raising_factor = string.Empty;
             if (vu.RaisingFactor != null)
             {
                 raising_factor = ((double)vu.RaisingFactor).ToString();
@@ -635,25 +635,25 @@ namespace NSAP_ODK.Entities.Database
             _csv.AppendLine($"{vu.Parent.PK},{vu.PK},{boat_id},{catch_wt},{sample_wt},{boxes_total},{boxes_sampled},\"{vu.VesselText}\",{Convert.ToInt32(vu.IsBoatUsed)},{raising_factor}");
 
 
-            string departure = "";
+            string departure = string.Empty;
             if (vu.DepartureFromLandingSite != null)
             {
                 departure = ((DateTime)vu.DepartureFromLandingSite).ToString();
             }
 
-            string arrival = "";
+            string arrival = string.Empty;
             if (vu.ArrivalAtLandingSite != null)
             {
                 arrival = ((DateTime)vu.ArrivalAtLandingSite).ToString();
             }
 
-            string xFormDate = "";
+            string xFormDate = string.Empty;
             if (vu.XFormDate != null)
             {
                 xFormDate = ((DateTime)vu.XFormDate).ToString();
             }
 
-            string enum_id = "";
+            string enum_id = string.Empty;
             if (vu.NSAPEnumeratorID != null)
             {
                 enum_id = ((int)vu.NSAPEnumeratorID).ToString();

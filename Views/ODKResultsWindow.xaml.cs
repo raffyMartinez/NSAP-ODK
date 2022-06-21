@@ -255,7 +255,7 @@ namespace NSAP_ODK.Views
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
 
-                              progressBar.Value=e.CurrentTableCount;
+                              progressBar.Value = e.CurrentTableCount;
                               //do what you need to do on UI Thread
                               return null;
                           }), null);
@@ -554,7 +554,7 @@ namespace NSAP_ODK.Views
             var jm = (FileInfoJSONMetadata)historyJSONNode.Tag;
             _jsonFileUseCreationDateForHistory = jm.JSONFile.CreationTime;
             historyJSONNode.IsSelected = true;
-            await Upload(verbose:!VesselUnloadServerRepository.DelayedSave);
+            await Upload(verbose: !VesselUnloadServerRepository.DelayedSave);
             NSAPEntities.KoboServerViewModel.ResetJSONFields();
             jm.Koboserver.LastUploadedJSON = jm.JSONFile.Name;
             NSAPEntities.KoboServerViewModel.ServerWithUploadedJSON = jm.Koboserver;
@@ -645,7 +645,7 @@ namespace NSAP_ODK.Views
                     }
                     else
                     {
-                        if (!firstLoopDone && NSAPEntities.SummaryItemViewModel.Count==0)
+                        if (!firstLoopDone && NSAPEntities.SummaryItemViewModel.Count == 0)
                         {
                             VesselUnloadServerRepository.ResetGroupIDs();
                             firstLoopDone = true;
@@ -754,6 +754,8 @@ namespace NSAP_ODK.Views
                             {
                                 if (await CreateTablesInAccess.UploadImportJsonResultAsync())
                                 {
+                                    NSAPEntities.ClearCSVData();
+                                    VesselUnloadServerRepository.ResetTotalUploadCounter();
                                     MessageBox.Show("Finished uploading JSON history files to the database", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
                                     Close();
                                 }
@@ -851,6 +853,8 @@ namespace NSAP_ODK.Views
                         {
                             if (await CreateTablesInAccess.UploadImportJsonResultAsync())
                             {
+                                NSAPEntities.ClearCSVData();
+                                VesselUnloadServerRepository.ResetTotalUploadCounter();
                                 var r = MessageBox.Show("Finished uploading JSON history files to the database\r\n\r\nWill you upload additional JSON files?", "NSAP-ODK Database", MessageBoxButton.YesNo, MessageBoxImage.Information);
                                 if (r == MessageBoxResult.No)
                                 {
@@ -1067,7 +1071,7 @@ namespace NSAP_ODK.Views
                 case "menuUpload":
                 case "menuUploadJsonFile":
                     VesselUnloadServerRepository.CancelUpload = false;
-                    if(!Global.Settings.UsemySQL)
+                    if (!Global.Settings.UsemySQL)
                     {
                         NSAPEntities.ClearCSVData();
                         VesselUnloadServerRepository.ResetTotalUploadCounter();
@@ -1079,6 +1083,8 @@ namespace NSAP_ODK.Views
                     {
                         if (await CreateTablesInAccess.UploadImportJsonResultAsync())
                         {
+                            NSAPEntities.ClearCSVData();
+                            VesselUnloadServerRepository.ResetTotalUploadCounter();
                             if (menuName == "menuUpload")
                             {
                                 MessageBox.Show("Finished uploading JSON history files to the database", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);

@@ -288,6 +288,7 @@ namespace NSAP_ODK
 
                     dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("ServerNumericID") });
                     dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "Name", Binding = new Binding("FormName") });
+                    dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "Owner", Binding = new Binding("Owner") });
                     dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "ID2", Binding = new Binding("ServerID") });
                     dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "e-Form version", Binding = new Binding("eFormVersion") });
 
@@ -2763,7 +2764,6 @@ namespace NSAP_ODK
         private void OnTreeViewItemSelected(object sender, TreeViewModelControl.AllSamplingEntitiesEventHandler e)
         {
             gridCalendarHeader.Visibility = Visibility.Visible;
-            //NSAPEntities.SummaryItemViewModel.ResetResults();
             NSAPEntities.SummaryItemViewModel.TreeViewData = e;
             string labelContent = "";
             GridNSAPData.SelectionUnit = DataGridSelectionUnit.FullRow;
