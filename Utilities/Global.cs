@@ -215,7 +215,10 @@ namespace NSAP_ODK.Utilities
             NSAPEntities.DatabaseEnumeratorSummary = new DatabaseEnumeratorSummary();
             NSAPEntities.JSONFileViewModel = new JSONFileViewModel();
             NSAPEntities.ODKEformVersionViewModel = new ODKEformVersionViewModel();
-
+            
+            NSAPEntities.ResetEntititesCurrentIDs();
+            Entities.Database.FromJson.VesselUnloadServerRepository.ResetGroupIDState();
+            
             EntityLoaded?.Invoke(null, new EntityLoadedEventArg { IsEnding = true });
 
         }

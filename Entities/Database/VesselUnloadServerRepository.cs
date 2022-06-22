@@ -21,6 +21,11 @@ namespace NSAP_ODK.Entities.Database.FromJson
         private int _rowID;
 
         public static bool RowIDSet { get; private set; }
+
+        public static void ResetIDState()
+        {
+            RowIDSet = false;
+        }
         public static void SetRowIDs()
         {
             //if (NSAPEntities.CatchLengthWeightViewModel.CatchLengthWeightCollection.Count == 0)
@@ -69,6 +74,11 @@ namespace NSAP_ODK.Entities.Database.FromJson
         private static int _pk;
         private int _rowID;
         public static bool RowIDSet { get; private set; }
+
+        public static void ResetIDState()
+        {
+            RowIDSet = false;
+        }
         public static void SetRowIDs()
         {
             //if (NSAPEntities.CatchLenFreqViewModel.CatchLenFreqCollection.Count == 0)
@@ -117,6 +127,11 @@ namespace NSAP_ODK.Entities.Database.FromJson
         private static int _pk;
         private int _rowID;
         public static bool RowIDSet { get; private set; }
+
+        public static void ResetIDState()
+        {
+            RowIDSet = false;
+        }
         public static void SetRowIDs()
         {
             //if (NSAPEntities.CatchLengthViewModel.CatchLengthCollection.Count == 0)
@@ -162,6 +177,11 @@ namespace NSAP_ODK.Entities.Database.FromJson
         private int _rowID;
 
         public static bool RowIDSet { get; private set; }
+
+        public static void ResetIDState()
+        {
+            RowIDSet = false;
+        }
         public static void SetRowIDs()
         {
             //if (NSAPEntities.CatchMaturityViewModel.CatchMaturityCollection.Count == 0)
@@ -423,6 +443,11 @@ namespace NSAP_ODK.Entities.Database.FromJson
         //alias of SpeciesSampleWt
         public double? SampleWeightOfCatch { get { return SpeciesSampleWt; } }
         public static bool RowIDSet { get; private set; }
+
+        public static void ResetIDState()
+        {
+            RowIDSet = false;
+        }
         public static void SetRowIDs()
         {
 
@@ -499,7 +524,10 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
         public static bool RowIDSet { get; private set; }
 
-
+        public static void ResetIDState()
+        {
+            RowIDSet = false;
+        }
         public static void SetRowIDs()
         {
             //if (NSAPEntities.GearSoakViewModel.GearSoakCollection.Count == 0)
@@ -576,6 +604,11 @@ namespace NSAP_ODK.Entities.Database.FromJson
             }
         }
         public static bool RowIDSet { get; private set; }
+
+        public static void ResetIDState()
+        {
+            RowIDSet = false;
+        }
         public static void SetRowIDs()
         {
 
@@ -656,6 +689,11 @@ namespace NSAP_ODK.Entities.Database.FromJson
         }
 
         public static bool RowIDSet { get; private set; }
+
+        public static void ResetIDState()
+        {
+            RowIDSet = false;
+        }
         public static void SetRowIDs()
         {
             //if (NSAPEntities.VesselEffortViewModel.VesselEffortCollection.Count == 0)
@@ -1436,7 +1474,18 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
         public static event EventHandler<UploadToDbEventArg> UploadSubmissionToDB;
         public static event Action<int> LandingWithUpdatedLandingSite;
-        
+
+        public static void ResetGroupIDState()
+        {
+            SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat.ResetIDState();
+            GridCoordGroupBingoRepeat.ResetIDState();
+            EffortsGroupEffortRepeat.ResetIDState();
+            CatchCompGroupCatchCompositionRepeat.ResetIDState();
+            CatchCompGroupCatchCompositionRepeatLenWtRepeat.ResetIDState();
+            CatchCompGroupCatchCompositionRepeatLengthListRepeat.ResetIDState();
+            CatchCompGroupCatchCompositionRepeatLengthFreqRepeat.ResetIDState();
+            CatchCompGroupCatchCompositionRepeatGmsRepeatGroup.ResetIDState();
+        }
         public static void ResetGroupIDs()
         {
             SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat.SetRowIDs();
@@ -1965,7 +2014,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
             return updatedCount;
         }
 
-
+        
         public static List<VesselLanding> ResolvedLandingsFromUnrecognizedFishingGrounds { get; private set; }
         public static List<UnrecognizedFishingGround> UnrecognizedFishingGrounds
         {

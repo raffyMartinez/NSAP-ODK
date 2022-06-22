@@ -34,14 +34,21 @@ namespace NSAP_ODK.Entities.Database
                                             GROUP BY t1.form_version
                                             order by t1.datetime_submitted";
 
-                        MySqlDataReader dr = cmd.ExecuteReader();
-                        while (dr.Read())
+                        try
                         {
-                            ODKEformVersion item = new ODKEformVersion();
-                            item.Version = dr["form_version"].ToString().Replace("Version ", "");
-                            item.Count = int.Parse( dr["n"].ToString());
-                            item.FirstSubmission = (DateTime)dr["submitted_on"];
-                            thisList.Add(item);
+                            MySqlDataReader dr = cmd.ExecuteReader();
+                            while (dr.Read())
+                            {
+                                ODKEformVersion item = new ODKEformVersion();
+                                item.Version = dr["form_version"].ToString().Replace("Version ", "");
+                                item.Count = int.Parse(dr["n"].ToString());
+                                item.FirstSubmission = (DateTime)dr["submitted_on"];
+                                thisList.Add(item);
+                            }
+                        }
+                        catch(Exception ex)
+                        {
+                            Logger.Log(ex);
                         }
                     }
                 }
@@ -57,14 +64,21 @@ namespace NSAP_ODK.Entities.Database
                                             FROM dbo_vessel_unload_1
                                             GROUP BY dbo_vessel_unload_1.form_version";
 
-                        OleDbDataReader dr = cmd.ExecuteReader();
-                        while (dr.Read())
+                        try
                         {
-                            ODKEformVersion item = new ODKEformVersion();
-                            item.Version = dr["form_version"].ToString().Replace("Version ", "");
-                            item.Count = (int)dr["n"];
-                            item.FirstSubmission = (DateTime)dr["submitted_on"];
-                            thisList.Add(item);
+                            OleDbDataReader dr = cmd.ExecuteReader();
+                            while (dr.Read())
+                            {
+                                ODKEformVersion item = new ODKEformVersion();
+                                item.Version = dr["form_version"].ToString().Replace("Version ", "");
+                                item.Count = (int)dr["n"];
+                                item.FirstSubmission = (DateTime)dr["submitted_on"];
+                                thisList.Add(item);
+                            }
+                        }
+                        catch(Exception ex)
+                        {
+                            Logger.Log(ex);
                         }
                     }
                 }

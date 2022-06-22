@@ -330,15 +330,15 @@ namespace NSAP_ODK
                         NSAPEntities.KoboServerViewModel.RefreshSavedCount();
                         dataGridEFormVersionStats.DataContext = NSAPEntities.KoboServerViewModel.KoboserverCollection.ToList();
                     }
-                    else
-                    {
-                        dataGridEFormVersionStats.DataContext = null;
-                        MessageBox.Show("Please connect online to the Kobotoolbox server to get a list of databases",
-                            "NSAP-ODK Database",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Information
-                            );
-                    }
+                    //else
+                    //{
+                    //    dataGridEFormVersionStats.DataContext = null;
+                    //    MessageBox.Show("Please connect online to the Kobotoolbox server to get a list of databases",
+                    //        "NSAP-ODK Database",
+                    //        MessageBoxButton.OK,
+                    //        MessageBoxImage.Information
+                    //        );
+                    //}
                     panelSummaryTableHint.Visibility = Visibility.Visible;
                     break;
 
@@ -2009,7 +2009,11 @@ namespace NSAP_ODK
             if (Global.AppProceed)
             {
                 SetDataDisplayMode();
+
+
+                //show splash screen and load entities
                 ShowSplash();
+
                 samplingTree.ReadDatabase();
                 if (
                     NSAPEntities.NSAPRegionViewModel.Count > 0 &&
@@ -2022,6 +2026,7 @@ namespace NSAP_ODK
                     menuDatabaseSummary.IsChecked = true;
                     success = true;
                     backendPath = filename;
+                    
                 }
                 else
                 {
