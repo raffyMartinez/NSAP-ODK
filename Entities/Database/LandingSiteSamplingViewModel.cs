@@ -415,7 +415,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                return $"{AccessHelper.GetColumnNamesCSV("dbo_LC_FG_sample_day_1")}\r\n{_csv_1.ToString()}";
+                return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_LC_FG_sample_day_1")}\r\n{_csv_1.ToString()}";
             }
 
         }
@@ -423,7 +423,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                return $"{AccessHelper.GetColumnNamesCSV("dbo_LC_FG_sample_day")}\r\n{_csv.ToString()}";
+                return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_LC_FG_sample_day")}\r\n{_csv.ToString()}";
             }
 
         }

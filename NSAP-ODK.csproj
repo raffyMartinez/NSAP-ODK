@@ -176,7 +176,6 @@
     </ApplicationDefinition>
     <Compile Include="Entities\BuildOrphanedEntityEventArg.cs" />
     <Compile Include="Entities\Database\AccessColumn.cs" />
-    <Compile Include="Entities\Database\AccessHelper.cs" />
     <Compile Include="Entities\Database\BuildSummaryReportEventArg.cs" />
     <Compile Include="Entities\Database\CollectedUnrecognizedFG.cs" />
     <Compile Include="Entities\Database\CreateTablesInAccess.cs" />

@@ -2040,21 +2040,29 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
                                 if (!proceed && landing.FishingGround == null)
                                 {
-                                    UnrecognizedFishingGround urf = new UnrecognizedFishingGround
+                                    if (!string.IsNullOrEmpty(landing.FishingGroundName))
                                     {
-                                        FishingGroundName = string.IsNullOrEmpty(landing.FishingGroundName) ? "" : landing.FishingGroundName,
-                                        RegionFishingGround = landing.RegionFishingGroundID,
-                                        FishingGear = landing.GearName,
-                                        FishingVessel = landing.BoatName,
-                                        LandingSite = landing.LandingSiteName2.Replace('»', ','),
-                                        FMA = landing.FMA.Name,
-                                        Region = landing.NSAPRegion.ShortName,
-                                        Enumerator = landing.EnumeratorName,
-                                        SamplingDate = landing.SamplingDate,
-                                        RowID = landing._uuid,
-                                        VesselLanding = landing
-                                    };
-                                    _unrecognizedFishingGrounds.Add(urf);
+                                        UnrecognizedFishingGround urf = new UnrecognizedFishingGround
+                                        {
+                                            FishingGroundName = string.IsNullOrEmpty(landing.FishingGroundName) ? "" : landing.FishingGroundName,
+                                            RegionFishingGround = landing.RegionFishingGroundID,
+                                            FishingGear = landing.GearName,
+                                            FishingVessel = landing.BoatName,
+                                            LandingSite = landing.LandingSiteName2.Replace('»', ','),
+                                            FMA = landing.FMA.Name,
+                                            Region = landing.NSAPRegion.ShortName,
+                                            Enumerator = landing.EnumeratorName,
+                                            SamplingDate = landing.SamplingDate,
+                                            RowID = landing._uuid,
+                                            VesselLanding = landing
+                                        };
+                                        _unrecognizedFishingGrounds.Add(urf);
+                                    }
+                                    else
+                                    {
+                                        Utilities.Logger.Log("Missing fishing ground info.Cannot upload\r\n" +
+                                            $"ODK row ID:{ landing._uuid}, user name:{landing.user_name}, region:{landing.NSAPRegion.ShortName}, fma:{landing.FMA}, version:{landing.intronote}") ;
+                                    }
                                 }
                             }
                             else
@@ -2079,12 +2087,13 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                     {
                                         landing.GearCode = null;
                                     }
+
                                     gear_unload = new GearUnload
                                     {
                                         PK = landingSiteSampling.GearUnloadViewModel.NextRecordNumber,
                                         Parent = landingSiteSampling,
                                         LandingSiteSamplingID = landingSiteSampling.PK,
-                                        GearID = landing.GearCode,
+                                        GearID = NSAPEntities.GearViewModel.GearCodeExist(landing.GearCode)?landing.GearCode:string.Empty,
                                         GearUsedText = landing.GearUsedText == null ? landing.GearName : landing.GearUsedText,
                                         Remarks = "",
                                         DelayedSave = DelayedSave

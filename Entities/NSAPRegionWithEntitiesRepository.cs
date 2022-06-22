@@ -823,7 +823,15 @@ namespace NSAP_ODK.Entities
                     {
                         conn.Open();
                         cmd.CommandText = "SELECT Max(row_id) AS max_record_no FROM nsap_region_fma_fishing_grounds";
-                        max_rec_no = (int)cmd.ExecuteScalar();
+                        try
+                        {
+                            max_rec_no = (int)cmd.ExecuteScalar();
+                        }
+                        catch
+                        {
+                            //
+                        }
+                        
                     }
                 }
             }
@@ -835,7 +843,14 @@ namespace NSAP_ODK.Entities
                     const string sql = "SELECT Max(RowId) AS max_record_no FROM NSAPRegionFMAFishingGrounds";
                     using (OleDbCommand getMax = new OleDbCommand(sql, conn))
                     {
-                        max_rec_no = (int)getMax.ExecuteScalar();
+                        try
+                        {
+                            max_rec_no = (int)getMax.ExecuteScalar();
+                        }
+                        catch
+                        {
+                            //
+                        }
                     }
                 }
             }

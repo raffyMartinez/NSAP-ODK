@@ -111,7 +111,7 @@ namespace NSAP_ODK.Entities.Database
 
         public static string CSV
         {
-            get { return $"{AccessHelper.GetColumnNamesCSV("dbo_vessel_effort")}\r\n{_csv.ToString()}"; }
+            get { return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_vessel_effort")}\r\n{_csv.ToString()}"; }
         }
 
         public static void ClearCSV()

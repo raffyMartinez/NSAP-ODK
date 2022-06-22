@@ -73,7 +73,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                return $"{AccessHelper.GetColumnNamesCSV("dbo_gear_unload")}\r\n{_csv.ToString()}";
+                return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_gear_unload")}\r\n{_csv.ToString()}";
             }
 
         }

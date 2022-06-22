@@ -11,8 +11,7 @@ namespace NSAP_ODK.Entities.Database
 {
     public static class AccessHelper
     {
-
-        public static string GetColumnNamesCSV(string tableName)
+        public static string GetColumnNamesCSV1(string tableName)
         {
             string csv = "";
             using (var con = new OleDbConnection(Global.ConnectionString))

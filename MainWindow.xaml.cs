@@ -400,10 +400,19 @@ namespace NSAP_ODK
 
             }
 
-            if (Global.Settings != null && Global.Settings.UsemySQL)
+            if (Global.Settings != null )
             {
-                Title += " - MySQL";
+                if (!File.Exists(Global.Settings.MDBPath))
+                {
+                    ResetDisplay();
+                    ShowDatabaseNotFoundView();
+                }
+                else if (Global.Settings.UsemySQL)
+                {
+                    Title += " - MySQL";
+                }
             }
+            
             else if (Global.Settings == null)
             {
                 ResetDisplay();
@@ -3673,6 +3682,7 @@ namespace NSAP_ODK
                     aw.ShowDialog();
                     break;
                 case "buttonSettings":
+                    ShowStatusRow(isVisible:false);
                     ShowSettingsWindow();
                     break;
                 case "buttonExit":

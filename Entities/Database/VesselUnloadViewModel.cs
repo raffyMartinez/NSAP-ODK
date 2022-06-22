@@ -666,15 +666,15 @@ namespace NSAP_ODK.Entities.Database
 
         public static string UnloadStatsCSV
         {
-            get { return $"{AccessHelper.GetColumnNamesCSV("dbo_vessel_unload_stats")}\r\n{_unloadStats_csv}"; }
+            get { return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_vessel_unload_stats")}\r\n{_unloadStats_csv}"; }
         }
         public static string CSV_1
         {
-            get { return $"{AccessHelper.GetColumnNamesCSV("dbo_vessel_unload_1")}\r\n{_csv_1}"; }
+            get { return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_vessel_unload_1")}\r\n{_csv_1}"; }
         }
         public static string CSV
         {
-            get { return $"{AccessHelper.GetColumnNamesCSV("dbo_vessel_unload")}\r\n{_csv.ToString()}"; }
+            get { return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_vessel_unload")}\r\n{_csv.ToString()}"; }
         }
         public VesselUnload getVesselUnload(string odkROWID)
         {

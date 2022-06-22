@@ -100,7 +100,7 @@ namespace NSAP_ODK.Entities.Database
 
         public static string CSV
         {
-            get { return $"{AccessHelper.GetColumnNamesCSV("dbo_catch_len_freq")}\r\n{_csv}"; }
+            get { return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_catch_len_freq")}\r\n{_csv}"; }
         }
 
 

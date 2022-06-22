@@ -221,6 +221,58 @@ namespace NSAP_ODK.Views
                 cboRegion.Items.Add(kv);
             }
         }
+        private void CreateTablesInAccess_AccessTableEvent(object sender, CreateTablesInAccessEventArgs e)
+        {
+            switch (e.Intent)
+            {
+                case "start importing csv":
+                    progressBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              progressBar.Value = 0;
+                              progressBar.Maximum = e.TotalTableCount;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+                    progressLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              progressLabel.Content = "Starting to save JSON data";
+
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case "done imported csv":
+                    progressBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              progressBar.Value = e.CurrentTableCount;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+                    progressLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              progressLabel.Content = $"Finished saving JSON to {e.CurrentTableName} (Table {e.CurrentTableCount} of {progressBar.Maximum})";
+
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+            }
+        }
         private async void onButtonClick(object sender, RoutedEventArgs e)
         {
             switch (((Button)sender).Name)
@@ -242,10 +294,21 @@ namespace NSAP_ODK.Views
                         }
 
                     }
-                    VesselUnloadServerRepository.UploadSubmissionToDB += VesselUnloadServerRepository_UploadSubmissionToDB;
+                    //VesselUnloadServerRepository.UploadSubmissionToDB += VesselUnloadServerRepository_UploadSubmissionToDB;
                     if (await ((ODKResultsWindow)Owner).SetResolvedFishingGroundLandings(vesselLandings))
                     {
-
+                        if(VesselUnloadServerRepository.DelayedSave && VesselUnloadServerRepository.TotalUploadCount>0)
+                        {
+                            CreateTablesInAccess.AccessTableEvent += CreateTablesInAccess_AccessTableEvent;
+                            if (await CreateTablesInAccess.UploadImportJsonResultAsync())
+                            {
+                                NSAPEntities.ClearCSVData();
+                                VesselUnloadServerRepository.ResetTotalUploadCounter();
+                                MessageBox.Show("Finished uploading JSON history files to the database", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                                Close();
+                            }
+                            CreateTablesInAccess.AccessTableEvent -= CreateTablesInAccess_AccessTableEvent;
+                        }
                         var rls = VesselUnloadServerRepository.ResolvedLandingsFromUnrecognizedFishingGrounds;
                         if (rls != null && rls.Count > 0)
                         {
@@ -260,7 +323,7 @@ namespace NSAP_ODK.Views
                         dataGrid.Items.Refresh();
                         buttonCancel.Content = "Close";
                     }
-                    VesselUnloadServerRepository.UploadSubmissionToDB -= VesselUnloadServerRepository_UploadSubmissionToDB;
+                    //VesselUnloadServerRepository.UploadSubmissionToDB -= VesselUnloadServerRepository_UploadSubmissionToDB;
                     break;
                 case "buttonCancel":
                     Close();

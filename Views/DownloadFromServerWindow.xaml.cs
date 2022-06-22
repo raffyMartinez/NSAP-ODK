@@ -113,7 +113,7 @@ namespace NSAP_ODK.Views
                 ((TreeViewItem)treeForms.Items[0]).IsSelected = true;
                 ((TreeViewItem)treeForms.Items[0]).IsExpanded = true;
                 GridGrids.Visibility = Visibility.Visible;
-                if(RefreshDatabaseSummry)
+                if (RefreshDatabaseSummry)
                 {
                     RefreshDatabaseSummaryTable?.Invoke();
                 }
@@ -514,7 +514,7 @@ namespace NSAP_ODK.Views
                         DownloadFromServerOptionsWindow dsow = new DownloadFromServerOptionsWindow();
                         dsow.Owner = this;
                         dsow.CountItemsToDownload = sizeToDownload;
-                        if((bool)rbAll.IsChecked)
+                        if ((bool)rbAll.IsChecked)
                         {
                             dsow.CountItemsToDownload = _formSummary.NumberOfSubmissions;
                         }
@@ -728,7 +728,8 @@ namespace NSAP_ODK.Views
                                                 var response = await _httpClient.SendAsync(request);
                                                 var bytes = await response.Content.ReadAsByteArrayAsync();
                                                 Encoding encoding = Encoding.GetEncoding("utf-8");
-                                                string the_response = encoding.GetString(bytes, 0, bytes.Length);
+                                                StringBuilder the_response = new StringBuilder(encoding.GetString(bytes, 0, bytes.Length));
+                                                //string the_response = encoding.GetString(bytes, 0, bytes.Length);
                                                 //((ODKResultsWindow)Owner).JSON = the_response;
                                                 ((ODKResultsWindow)Owner).FormID = _formID;
                                                 ((ODKResultsWindow)Owner).Description = _description;
@@ -746,7 +747,7 @@ namespace NSAP_ODK.Views
                                                             versionDate = versionDate1;
                                                             if (versionDate >= new DateTime(2021, 10, 1))
                                                             {
-                                                                json = VesselLandingFixDownload.JsonNewToOldVersion(the_response);
+                                                                json = VesselLandingFixDownload.JsonNewToOldVersion(the_response.ToString());
                                                                 //VesselUnloadServerRepository.JSON = VesselLandingFixDownload.JsonNewToOldVersion(the_response);
                                                             }
                                                             else
@@ -756,7 +757,7 @@ namespace NSAP_ODK.Views
                                                         }
                                                         else
                                                         {
-                                                            json = the_response;
+                                                            json = the_response.ToString();
                                                             //VesselUnloadServerRepository.JSON = the_response;
                                                         }
                                                         ((ODKResultsWindow)Owner).JSON = json;
@@ -768,14 +769,14 @@ namespace NSAP_ODK.Views
 
                                                         break;
                                                     case ODKServerDownload.ServerDownloadLandings:
-                                                        ((ODKResultsWindow)Owner).JSON = the_response;
-                                                        LandingSiteBoatLandingsFromServerRepository.JSON = the_response;
+                                                        ((ODKResultsWindow)Owner).JSON = the_response.ToString();
+                                                        LandingSiteBoatLandingsFromServerRepository.JSON = the_response.ToString();
                                                         LandingSiteBoatLandingsFromServerRepository.CreateLandingSiteBoatLandingsFromJson();
                                                         break;
                                                 }
 
 
-                                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.GotJSONString, JSONString = the_response });
+                                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.GotJSONString, JSONString = the_response.ToString() });
                                                 ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ConvertDataToEntities });
 
                                                 switch (_parentWindow.ODKServerDownload)
@@ -788,6 +789,10 @@ namespace NSAP_ODK.Views
                                                         break;
                                                 }
                                                 ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
+
+                                                the_response.Clear();
+                                                the_response = null;
+
                                                 Close();
 
                                             }
@@ -954,7 +959,8 @@ namespace NSAP_ODK.Views
 
                     var bytes = await response.Content.ReadAsByteArrayAsync();
                     Encoding encoding = Encoding.GetEncoding("utf-8");
-                    string the_response = encoding.GetString(bytes, 0, bytes.Length);
+                    StringBuilder the_response = new StringBuilder(encoding.GetString(bytes, 0, bytes.Length));
+                    //string the_response = encoding.GetString(bytes, 0, bytes.Length);
                     //((ODKResultsWindow)Owner).JSON = the_response;
                     ((ODKResultsWindow)Owner).FormID = _formID;
                     ((ODKResultsWindow)Owner).Description = _description;
@@ -963,16 +969,19 @@ namespace NSAP_ODK.Views
 
                     DateTime? versionDate = null;
 
+
+                    //StringBuilder final_json = null; ;
                     switch (_parentWindow.ODKServerDownload)
                     {
                         case ODKServerDownload.ServerDownloadVesselUnload:
-                            string json;
+                            //string json;
                             if (DateTime.TryParse(_xlsFormVersion, out DateTime versionDate1))
                             {
                                 versionDate = versionDate1;
                                 if (versionDate >= new DateTime(2021, 10, 1))
                                 {
-                                    json = VesselLandingFixDownload.JsonNewToOldVersion(the_response);
+                                    the_response = new StringBuilder(VesselLandingFixDownload.JsonNewToOldVersion(the_response.ToString()));
+                                    //json = VesselLandingFixDownload.JsonNewToOldVersion(the_response.ToString());
                                     //VesselUnloadServerRepository.JSON = VesselLandingFixDownload.JsonNewToOldVersion(the_response);
                                 }
                                 else
@@ -982,14 +991,15 @@ namespace NSAP_ODK.Views
                             }
                             else
                             {
-                                json = the_response;
-                                //VesselUnloadServerRepository.JSON = the_response;
+                                //final_json = new StringBuilder(the_response.ToString());
+                                //json = the_response.ToString();
+                                VesselUnloadServerRepository.JSON = the_response.ToString();
                             }
 
                             if (string.IsNullOrEmpty(filename))
                             {
-                                ((ODKResultsWindow)Owner).JSON = json;
-                                VesselUnloadServerRepository.JSON = json;
+                                ((ODKResultsWindow)Owner).JSON = the_response.ToString();
+                                VesselUnloadServerRepository.JSON = the_response.ToString();
                                 VesselUnloadServerRepository.ResetLists();
                                 VesselUnloadServerRepository.CreateLandingsFromJSON();
                                 VesselUnloadServerRepository.FillDuplicatedLists();
@@ -997,21 +1007,21 @@ namespace NSAP_ODK.Views
                             else
                             {
                                 ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.SavingToJSONTextFile, FileName = filename });
-                                File.WriteAllText(filename, json);
+                                File.WriteAllText(filename, the_response.ToString());
                             }
 
 
                             break;
                         case ODKServerDownload.ServerDownloadLandings:
-                            ((ODKResultsWindow)Owner).JSON = the_response;
-                            LandingSiteBoatLandingsFromServerRepository.JSON = the_response;
+                            ((ODKResultsWindow)Owner).JSON = the_response.ToString();
+                            LandingSiteBoatLandingsFromServerRepository.JSON = the_response.ToString();
                             LandingSiteBoatLandingsFromServerRepository.CreateLandingSiteBoatLandingsFromJson();
                             break;
                     }
 
                     if (string.IsNullOrEmpty(filename))
                     {
-                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.GotJSONString, JSONString = the_response });
+                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.GotJSONString, JSONString = the_response.ToString() });
                         ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ConvertDataToEntities });
 
 
@@ -1031,8 +1041,11 @@ namespace NSAP_ODK.Views
                     {
                         ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
                     }
+                    //final_json.Clear();
+                    //final_json = null;
 
-
+                    the_response.Clear();
+                    the_response = null;
 
                 }
                 catch (HttpRequestException)
@@ -1046,7 +1059,7 @@ namespace NSAP_ODK.Views
                     _downloadBatchCancel = true;
                 }
             }
-            //}
+
         }
 
 

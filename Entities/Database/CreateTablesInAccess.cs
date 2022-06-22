@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Data.OleDb;
 using NSAP_ODK.Utilities;
 using System.IO;
+using System.Data;
 
 namespace NSAP_ODK.Entities.Database
 {
@@ -77,7 +78,28 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
-
+        public static string GetColumnNamesCSV(string tableName)
+        {
+            string csv = "";
+            using (var con = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    cmd.CommandText = $"Select * from {tableName}";
+                    con.Open();
+                    using (var reader = cmd.ExecuteReader(System.Data.CommandBehavior.SchemaOnly))
+                    {
+                        var table = reader.GetSchemaTable();
+                        var nameCol = table.Columns["ColumnName"];
+                        foreach (DataRow row in table.Rows)
+                        {
+                            csv += $"{row[nameCol]},";
+                        }
+                    }
+                }
+            }
+            return csv.Trim(',');
+        }
         public static string ConnectionString
         {
             get
@@ -389,9 +411,16 @@ namespace NSAP_ODK.Entities.Database
             return currentTableCount == tablesForImporting.Count;
         }
 
+        private static List<string> _tablesWithErrorButResumed = new List<string>();
+        public static List<string> TablesWithErrorButResumed
+        {
+            get { return _tablesWithErrorButResumed; }
+        }
+
         private static bool DoInsertQuery(string tableName, string csv)
         {
             bool success = false;
+
             string base_dir = AppDomain.CurrentDomain.BaseDirectory;
             string csv_file = $@"{base_dir}\temp.csv";
             File.WriteAllText(csv_file, csv);
@@ -410,12 +439,23 @@ namespace NSAP_ODK.Entities.Database
                     }
                     catch (Exception ex)
                     {
+                        Logger.Log($"Error bulk insert for {tableName}");
                         Logger.Log(ex);
+
+                        if (tableName == "dbo_catch_len" ||
+                            tableName == "dbo_catch_len_freq" ||
+                            tableName == "dbo_catch_len_wt" ||
+                            tableName == "dbo_catch_maturity")
+                        {
+
+                            _tablesWithErrorButResumed.Add(tableName);
+                        }
+
                     }
                 }
 
             }
-            return success;
+            return success || _tablesWithErrorButResumed.Count > 0;
 
             //System.Data.OleDb.OleDbCommand AccessCommand = new System.Data.OleDb.OleDbCommand("SELECT * INTO [ImportTable] FROM [Text;FMT=Delimited;DATABASE=C:\\Documents and Settings\\...\\My Documents\\My Database\\Text;HDR=No].[x123456.csv]", AccessConnection);
 

@@ -550,7 +550,7 @@ namespace NSAP_ODK.Entities.Database
 
         public static string CSV
         {
-            get { return $"{AccessHelper.GetColumnNamesCSV("dbo_vessel_catch")}\r\n{_csv}"; }
+            get { return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_vessel_catch")}\r\n{_csv}"; }
         }
         private void VesselCatches_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {

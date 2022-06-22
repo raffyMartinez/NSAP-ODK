@@ -459,7 +459,7 @@ namespace NSAP_ODK.Entities.Database
 
                         using (var cmd = con.CreateCommand())
                         {
-                            cmd.CommandText = "SELECT max(catch_lf_id) FROM dbo_catch_len_freq;";
+                            cmd.CommandText = "SELECT max(catch_len_freq_id) FROM dbo_catch_len_freq;";
                             try
                             {
                                 lpks.LastLenFreqPK = (int)cmd.ExecuteScalar();
