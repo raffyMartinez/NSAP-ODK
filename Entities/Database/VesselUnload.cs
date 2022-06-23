@@ -89,7 +89,7 @@ namespace NSAP_ODK.Entities.Database
                 DeviceID = vesselUnload.DeviceID;
                 XFormIdentifier = vesselUnload.XFormIdentifier;
                 XFormDate = vesselUnload.XFormDate == null ? "" : ((DateTime)vesselUnload.XFormDate).ToString("MMM-dd-yyyy HH:mm");
-                DateAddedToDatabase = ((DateTime)vesselUnload.DateAddedToDatabase).ToString("MMM-dd-yyyy HH:mm");
+                DateAddedToDatabase = vesselUnload.DateAddedToDatabase==null?DateTime.Now.ToString("MMM-dd-yyyy HH:mm"):((DateTime)vesselUnload.DateAddedToDatabase).ToString("MMM-dd-yyyy HH:mm");
                 SectorCode = vesselUnload.SectorCode;
                 FromExcelDownload = vesselUnload.FromExcelDownload;
             }
@@ -384,7 +384,7 @@ namespace NSAP_ODK.Entities.Database
             XFormDate = vesselUnload.XFormDate == null ? "" : ((DateTime)vesselUnload.XFormDate).ToString("dd-MMM-yyyy HH:mm");
             FormVersion = vesselUnload.FormVersion;
             Submitted = vesselUnload.DateTimeSubmitted.ToString("dd-MMM-yyyy HH:mm");
-            DateAddedToDatabase = ((DateTime)vesselUnload.DateAddedToDatabase).ToString("dd-MMM-yyyy HH:mm");
+            DateAddedToDatabase = vesselUnload.DateAddedToDatabase==null?DateTime.Now.ToString("MMM-dd-yyyy HH:mm"): ((DateTime)vesselUnload.DateAddedToDatabase).ToString("dd-MMM-yyyy HH:mm");
 
             HasCatchComposition = vesselUnload.HasCatchComposition;
             NumberOfFishers = vesselUnload.NumberOfFishers;
@@ -691,7 +691,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if(VesselEffortViewModel==null)
+                if(VesselEffortViewModel==null||VesselEffortViewModel.VesselEffortCollection==null)
                 {
                     VesselEffortViewModel = new VesselEffortViewModel(this);
                 }
@@ -721,7 +721,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if(GearSoakViewModel==null)
+                if(GearSoakViewModel==null||GearSoakViewModel.GearSoakCollection==null)
                 {
                     GearSoakViewModel = new GearSoakViewModel(this);
                 }
@@ -733,7 +733,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if(FishingGroundGridViewModel==null)
+                if(FishingGroundGridViewModel==null ||FishingGroundGridViewModel.FishingGroundGridCollection==null)
                 {
                     FishingGroundGridViewModel = new FishingGroundGridViewModel(this);
                 }
@@ -762,6 +762,10 @@ namespace NSAP_ODK.Entities.Database
         }
         public void GetCounts()
         {
+            if(VesselCatchViewModel==null||VesselCatchViewModel.VesselCatchCollection==null)
+            {
+                VesselCatchViewModel = new VesselCatchViewModel(this);
+            }
             if (VesselCatchViewModel != null)
             {
                 foreach (VesselCatch vc in VesselCatchViewModel.VesselCatchCollection)
@@ -771,6 +775,18 @@ namespace NSAP_ODK.Entities.Database
                     CountLenWtRows += vc.CatchLengthWeightViewModel.CatchLengthWeightCollection.Count;
                     CountMaturityRows += vc.CatchMaturityViewModel.CatchMaturityCollection.Count;
                 }
+            }
+            if(FishingGroundGridViewModel.FishingGroundGridCollection==null)
+            {
+                FishingGroundGridViewModel = new FishingGroundGridViewModel(this);
+            }
+            if(GearSoakViewModel.GearSoakCollection==null)
+            {
+                GearSoakViewModel = new GearSoakViewModel(this);
+            }
+            if(VesselEffortViewModel.VesselEffortCollection==null)
+            {
+                VesselEffortViewModel = new VesselEffortViewModel(this);
             }
             CountGrids = FishingGroundGridViewModel.FishingGroundGridCollection.Count;
             CountGearSoak = GearSoakViewModel.GearSoakCollection.Count;

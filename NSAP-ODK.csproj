@@ -187,6 +187,7 @@
     <Compile Include="Entities\Database\KoboServerRepository.cs" />
     <Compile Include="Entities\Database\KoboServerViewModel.cs" />
     <Compile Include="Entities\Database\LastPrimaryKeys.cs" />
+    <Compile Include="Entities\Database\OrphanedSpeciesNameRaw.cs" />
     <Compile Include="Entities\Database\SQLDumpParsed.cs" />
     <Compile Include="Entities\Database\SummaryItem.cs" />
     <Compile Include="Entities\Database\SummaryItemViewModel.cs" />

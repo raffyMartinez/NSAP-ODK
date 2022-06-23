@@ -137,6 +137,80 @@ namespace NSAP_ODK.Entities.Database
             VesselCatchCollection.CollectionChanged += VesselCatches_CollectionChanged;
         }
 
+        public static List<OrphanedSpeciesName> OrphanedSpeciesNamesStatic(bool getMultiLine = false)
+        {
+            List<OrphanedSpeciesName> list = new List<OrphanedSpeciesName>();
+
+            List<OrphanedSpeciesNameRaw> osnr_list = new List<OrphanedSpeciesNameRaw>();
+
+            osnr_list = VesselCatchRepository.GetOrphanedSpecies(getMultiLine).OrderBy(t=>t.OrphanedSpName).ToList();
+
+            var gr_osn = osnr_list.GroupBy(t => new
+            {
+                region = t.RegionName,
+                fma = t.FMAName,
+                fishing_ground = t.FishingGroundName,
+                //landing_site = t.LandingSiteID == null ? t.LandingSiteName : NSAPEntities.LandingSiteViewModel.GetLandingSite((int)t.LandingSiteID).ToString(),
+                //gear = string.IsNullOrEmpty(t.GearName) ? t.GearText : t.GearName,
+                //enumerator = string.IsNullOrEmpty(t.EnumeratorName) ? t.EnumeratorText : t.EnumeratorText,
+                species = t.OrphanedSpName,
+                hash_code = t.HashCode,
+                taxa = t.Taxa
+            })
+                .Select(osn => new
+                {
+                    region = osn.Key.region,
+                    fma = osn.Key.fma,
+                    fishing_ground = osn.Key.fishing_ground,
+                    //landing_site = osn.Key.landing_site,
+                    //gear = osn.Key.gear,
+                    //enumerator = osn.Key.enumerator,
+                    species = osn.Key.species,
+                    hash_code = osn.Key.hash_code,
+                    taxa = osn.Key.taxa
+                }).ToList();
+
+            foreach (var item in gr_osn)
+            {
+                OrphanedSpeciesName o = new OrphanedSpeciesName
+                {
+                    Name = item.species,
+                    //Enumerator = item.enumerator,
+                    Region = item.region,
+                    FMA = item.fma,
+                    FishingGround = item.fishing_ground,
+                    //LandingSite = item.landing_site,
+                    //Gear = item.gear,
+                    HashCode = item.hash_code,
+                    Taxa = item.taxa,
+                    //HashCode = (item.region + item.fma + item.fishing_ground + item.species + item.taxa).GetHashCode()
+                };
+
+                o.SampledLandings = GetUnloadsfromOrphanedSpecies(o, osnr_list);
+                list.Add(o);
+            }
+
+
+            return list;
+        }
+
+        private static List<VesselUnload> GetUnloadsfromOrphanedSpecies(OrphanedSpeciesName os, List<OrphanedSpeciesNameRaw> osnr)
+        {
+            List<VesselUnload> vus = new List<VesselUnload>();
+
+            foreach (OrphanedSpeciesNameRaw item in osnr.Where(t => t.HashCode == os.HashCode))
+            {
+                VesselUnload vu = new VesselUnload
+                {
+                    PK = item.VesselUnloadID,
+                };
+                //vu.VesselCatchViewModel = new VesselCatchViewModel(vu);
+                vus.Add(vu);
+
+            }
+            return vus;
+        }
+
         public List<OrphanedSpeciesName> OrphanedSpeciesNames(bool getMultiLine = false)
         {
             List<IGrouping<string, VesselCatch>> catches = new List<IGrouping<string, VesselCatch>>();

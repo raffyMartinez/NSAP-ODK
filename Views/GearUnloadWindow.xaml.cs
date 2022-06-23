@@ -74,8 +74,11 @@ namespace NSAP_ODK.Views
             InitializeComponent();
             _gearUnloads = gearUnloads;
             _treeItemData = treeItemData;
-            textBoxBoats.Text = _gearUnloads[0].Boats.ToString();
-            textBoxCatch.Text = _gearUnloads[0].Catch.ToString();
+            if (_gearUnloads.Count > 0)
+            {
+                //textBoxBoats.Text = _gearUnloads[0].Boats.ToString();
+                //textBoxCatch.Text = _gearUnloads[0].Catch.ToString();
+            }
             _parentWindow = parent;
             Title = $"Gear unload for {gearUnloads[0].GearUsedName}";
             _listSource = GearUnloadWindowListSource.ListSourceGearUnload;

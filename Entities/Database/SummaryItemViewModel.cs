@@ -1788,6 +1788,7 @@ namespace NSAP_ODK.Entities.Database
                 GearUnloadCatch = vu.Parent.Catch,
                 GearCode = vu.Parent.GearID,
                 GearText = vu.Parent.GearUsedText,
+                //GearName = vu.Parent.Gear.GearName,
 
                 VesselUnloadID = vu.PK,
                 XFormIdentifier = vu.XFormIdentifier,
@@ -1803,6 +1804,7 @@ namespace NSAP_ODK.Entities.Database
                 IsTripCompleted = vu.FishingTripIsCompleted,
                 EnumeratorID = vu.NSAPEnumeratorID,
                 EnumeratorText = vu.EnumeratorText,
+                //EnumeratorName = vu.EnumeratorName,
                 SamplingDate = vu.SamplingDate,
                 IsSuccess = vu.OperationIsSuccessful,
                 SectorCode = vu.SectorCode,
@@ -1815,8 +1817,18 @@ namespace NSAP_ODK.Entities.Database
                 LenFreqRows = vu.CountLenFreqRows,
                 LengthRows = vu.CountLengthRows,
                 LenWtRows = vu.CountLenWtRows,
-                CatchMaturityRows = vu.CountMaturityRows
+                CatchMaturityRows = vu.CountMaturityRows,
+                
+                
             };
+            if(vu.NSAPEnumeratorID!=null)
+            {
+                si.EnumeratorName = vu.EnumeratorName;
+            }
+            if(!string.IsNullOrEmpty( vu.Parent.GearID))
+            {
+                si.GearName = vu.Parent.Gear.GearName;
+            }
 
             SummaryItemCollection.Add(si);
             return _editSuccess;

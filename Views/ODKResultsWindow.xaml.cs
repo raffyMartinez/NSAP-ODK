@@ -589,9 +589,15 @@ namespace NSAP_ODK.Views
                             lastJSONUploadFound = true;
                         }
                     }
+
+                    if (VesselUnloadServerRepository.TotalUploadCount > 5000)
+                    {
+                        await SaveUploadedJsonInLoop();
+                    }
                 }
                 else
                 {
+
                     VesselUnloadServerRepository.CancelUpload = false;
                     break;
                 }
@@ -651,6 +657,10 @@ namespace NSAP_ODK.Views
                             firstLoopDone = true;
                         }
                         await Upload(verbose: !VesselUnloadServerRepository.DelayedSave);
+                        if (VesselUnloadServerRepository.TotalUploadCount > 5000)
+                        {
+                            await SaveUploadedJsonInLoop(isHistoryJson: false);
+                        }
                     }
                 }
                 else
@@ -750,17 +760,18 @@ namespace NSAP_ODK.Views
                         try
                         {
                             await ProcessJSONHistoryNodes((TreeViewItem)treeViewJSONNavigator.SelectedItem);
-                            if (VesselUnloadServerRepository.DelayedSave && VesselUnloadServerRepository.TotalUploadCount > 0)
-                            {
-                                if (await CreateTablesInAccess.UploadImportJsonResultAsync())
-                                {
-                                    NSAPEntities.ClearCSVData();
-                                    VesselUnloadServerRepository.ResetTotalUploadCounter();
-                                    MessageBox.Show("Finished uploading JSON history files to the database", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
-                                    Close();
-                                }
+                            await SaveUploadedJsonInLoop(closeWindow: true, verbose: true);
+                            //if (VesselUnloadServerRepository.DelayedSave && VesselUnloadServerRepository.TotalUploadCount > 0)
+                            //{
+                            //    if (await CreateTablesInAccess.UploadImportJsonResultAsync())
+                            //    {
+                            //        NSAPEntities.ClearCSVData();
+                            //        VesselUnloadServerRepository.ResetTotalUploadCounter();
+                            //        MessageBox.Show("Finished uploading JSON history files to the database", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                            //        Close();
+                            //    }
 
-                            }
+                            //}
                         }
                         catch (Exception ex)
                         {
@@ -848,21 +859,7 @@ namespace NSAP_ODK.Views
                             ClearTables(verboseMode: false);
                         }
                         await ProcessJSONSNodes();
-
-                        if (VesselUnloadServerRepository.DelayedSave && VesselUnloadServerRepository.TotalUploadCount > 0)
-                        {
-                            if (await CreateTablesInAccess.UploadImportJsonResultAsync())
-                            {
-                                NSAPEntities.ClearCSVData();
-                                VesselUnloadServerRepository.ResetTotalUploadCounter();
-                                var r = MessageBox.Show("Finished uploading JSON history files to the database\r\n\r\nWill you upload additional JSON files?", "NSAP-ODK Database", MessageBoxButton.YesNo, MessageBoxImage.Information);
-                                if (r == MessageBoxResult.No)
-                                {
-                                    Close();
-                                }
-                            }
-
-                        }
+                        await SaveUploadedJsonInLoop(closeWindow: true, verbose: true, isHistoryJson: false);
                     }
 
                     break;
@@ -1079,28 +1076,29 @@ namespace NSAP_ODK.Views
                     }
 
                     await Upload();
-                    if (VesselUnloadServerRepository.DelayedSave && VesselUnloadServerRepository.TotalUploadCount > 0)
-                    {
-                        if (await CreateTablesInAccess.UploadImportJsonResultAsync())
-                        {
-                            NSAPEntities.ClearCSVData();
-                            VesselUnloadServerRepository.ResetTotalUploadCounter();
-                            if (menuName == "menuUpload")
-                            {
-                                MessageBox.Show("Finished uploading JSON history files to the database", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
-                                Close();
-                            }
-                            else
-                            {
-                                var r = MessageBox.Show("Finished uploading JSON history files to the database\r\n\r\nWill you upload additional JSON files?", "NSAP-ODK Database", MessageBoxButton.YesNo, MessageBoxImage.Information);
-                                if (r == MessageBoxResult.No)
-                                {
-                                    Close();
-                                }
-                            }
-                        }
+                    await SaveUploadedJsonInLoop(verbose: true, allowDownloadAgain: true, isHistoryJson: menuName == "menuUpload");
+                    //if (VesselUnloadServerRepository.DelayedSave && VesselUnloadServerRepository.TotalUploadCount > 0)
+                    //{
+                    //    if (await CreateTablesInAccess.UploadImportJsonResultAsync())
+                    //    {
+                    //        NSAPEntities.ClearCSVData();
+                    //        VesselUnloadServerRepository.ResetTotalUploadCounter();
+                    //        if (menuName == "menuUpload")
+                    //        {
+                    //            MessageBox.Show("Finished uploading JSON history files to the database", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                    //            Close();
+                    //        }
+                    //        else
+                    //        {
+                    //            var r = MessageBox.Show("Finished uploading JSON history files to the database\r\n\r\nWill you upload additional JSON files?", "NSAP-ODK Database", MessageBoxButton.YesNo, MessageBoxImage.Information);
+                    //            if (r == MessageBoxResult.No)
+                    //            {
+                    //                Close();
+                    //            }
+                    //        }
+                    //    }
 
-                    }
+                    //}
 
 
                     break;
@@ -1113,6 +1111,53 @@ namespace NSAP_ODK.Views
                     Close();
                     break;
             }
+        }
+
+        private async Task<bool> SaveUploadedJsonInLoop(bool closeWindow = false, bool verbose = false, bool isHistoryJson = true, bool allowDownloadAgain = false)
+        {
+            bool success = false;
+            //await ProcessJSONHistoryNodes((TreeViewItem)treeViewJSONNavigator.SelectedItem);
+            if (VesselUnloadServerRepository.DelayedSave && VesselUnloadServerRepository.TotalUploadCount > 0)
+            {
+                if (await CreateTablesInAccess.UploadImportJsonResultAsync())
+                {
+                    NSAPEntities.ClearCSVData();
+                    VesselUnloadServerRepository.ResetTotalUploadCounter();
+
+                    if (verbose)
+                    {
+                        string msg = "Finished uploading JSON history files to the database";
+                        if (isHistoryJson)
+                        {
+                            msg = "Finished uploading downloaded JSON files to the database";
+                        }
+                        if (allowDownloadAgain)
+                        {
+                            msg += "\r\n\r\nDo you want to download again?";
+                            MessageBoxResult r = MessageBox.Show(msg, "NSAP-ODK Database", MessageBoxButton.YesNo, MessageBoxImage.Information);
+                            if (r == MessageBoxResult.No)
+                            {
+                                closeWindow = true;
+                            }
+                            else
+                            {
+                                closeWindow = false;
+                            }
+                        }
+                        else
+                        {
+                            MessageBox.Show(msg, "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
+                    }
+
+                    if (closeWindow)
+                    {
+                        Close();
+                    }
+                }
+
+            }
+            return success;
         }
         private void OpenServerWindow(bool refreshDBSummary = false)
         {

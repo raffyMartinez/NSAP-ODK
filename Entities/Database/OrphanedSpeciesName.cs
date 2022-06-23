@@ -10,17 +10,27 @@ namespace NSAP_ODK.Entities.Database
     {
         public string Name { get; set; }
 
-        public NSAPRegion Region { get { return SampledLandings[0].Parent.Parent.NSAPRegion; } }
+        public string Region { get; set; }
 
-        public FMA FMA { get { return SampledLandings[0].Parent.Parent.FMA; } }
+        public string FMA { get; set; }
 
-        public FishingGround FishingGround { get { return SampledLandings[0].Parent.Parent.FishingGround; } }
+        public string FishingGround { get; set; }
 
         public int NumberOfLandings { get { return SampledLandings.Count; } }
 
-      public List<VesselUnload> SampledLandings { get; set; }
+        public List<VesselUnload> SampledLandings { get; set; }
 
-       public bool ForReplacement { get; set; }
+        public bool ForReplacement { get; set; }
+
+        public string Enumerator { get; set; }
+
+        public string LandingSite { get; set; }
+
+        public string Gear { get; set; }
+
+        public string Taxa { get; set; }
+
+        public int HashCode { get; set; }
 
     }
 }

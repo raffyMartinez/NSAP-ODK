@@ -400,7 +400,7 @@ namespace NSAP_ODK
 
             }
 
-            if (Global.Settings != null )
+            if (Global.Settings != null)
             {
                 if (!File.Exists(Global.Settings.MDBPath))
                 {
@@ -412,7 +412,7 @@ namespace NSAP_ODK
                     Title += " - MySQL";
                 }
             }
-            
+
             else if (Global.Settings == null)
             {
                 ResetDisplay();
@@ -805,7 +805,7 @@ namespace NSAP_ODK
 
         }
 
-        private void ShowStatusRow(bool isVisible = true)
+        private void ShowStatusRow(bool isVisible = true, bool resetIndicators = true)
         {
             if (!isVisible)
             {
@@ -814,6 +814,12 @@ namespace NSAP_ODK
             else
             {
                 rowStatus.Height = new GridLength(30, GridUnitType.Pixel);
+            }
+            if (resetIndicators)
+            {
+                mainStatusBar.Value = 0;
+                dbPathLabel.Content = string.Empty;
+                mainStatusLabel.Content = string.Empty;
             }
 
         }
@@ -2026,7 +2032,7 @@ namespace NSAP_ODK
                     menuDatabaseSummary.IsChecked = true;
                     success = true;
                     backendPath = filename;
-                    
+
                 }
                 else
                 {
@@ -3672,7 +3678,7 @@ namespace NSAP_ODK
         }
         private async void OnToolbarButtonClick(object sender, RoutedEventArgs e)
         {
-            ShowStatusRow();
+            bool showStatus = false;
             menuDatabaseSummary.IsChecked = false;
             switch (((Button)sender).Name)
             {
@@ -3680,6 +3686,7 @@ namespace NSAP_ODK
                     await GenerateAllCSV();
                     break;
                 case "buttonSummary":
+                    showStatus = true;
                     menuDatabaseSummary.IsChecked = true;
                     break;
                 case "buttonAbout":
@@ -3687,21 +3694,23 @@ namespace NSAP_ODK
                     aw.ShowDialog();
                     break;
                 case "buttonSettings":
-                    ShowStatusRow(isVisible:false);
                     ShowSettingsWindow();
                     break;
                 case "buttonExit":
                     Close();
                     break;
                 case "buttonCalendar":
+                    showStatus = true;
                     ShowNSAPCalendar();
                     break;
                 case "buttonDownloadHistory":
+                    showStatus = true;
                     _currentDisplayMode = DataDisplayMode.DownloadHistory;
                     ColumnForTreeView.Width = new GridLength(1, GridUnitType.Star);
                     SetDataDisplayMode();
                     break;
             }
+            ShowStatusRow(showStatus);
         }
 
         private void OnTreeMouseRightButtonDown(object sender, MouseButtonEventArgs e)

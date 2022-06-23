@@ -120,6 +120,7 @@ namespace NSAP_ODK.Views
                 case NSAPEntity.SpeciesName:
                     labelTitle.Content = "Manage orphaned species names";
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "Species name", Binding = new Binding("Name"), IsReadOnly = true });
+                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Taxa", Binding = new Binding("Taxa"), IsReadOnly = true });
                     checkMultipleSp.Visibility = Visibility.Visible;
                     buttonFix.Visibility = Visibility.Visible;
                     checkCheckAll.Visibility = Visibility.Visible;
@@ -183,7 +184,10 @@ namespace NSAP_ODK.Views
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of landings", Binding = new Binding("NumberOfLandings"), IsReadOnly = true });
                     break;
                 case NSAPEntity.SpeciesName:
-
+                    //dataGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSite"), IsReadOnly = true });
+                    //dataGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("Enumerator"), IsReadOnly = true });
+                    //dataGrid.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("Gear"), IsReadOnly = true });
+                    ((DataGridTextColumn)dataGrid.Columns.FirstOrDefault(t => t.Header.ToString() == "Region")).Binding = new Binding("Region");
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of landings", Binding = new Binding("NumberOfLandings"), IsReadOnly = true });
                     break;
                 case NSAPEntity.FishingGear:
@@ -354,6 +358,10 @@ namespace NSAP_ODK.Views
                             {
                                 foreach (var unload in sp.SampledLandings)
                                 {
+                                    if(unload.VesselCatchViewModel==null)
+                                    {
+                                        unload.VesselCatchViewModel = new VesselCatchViewModel(unload);
+                                    }
                                     foreach (VesselCatch vc in unload.ListVesselCatch)
                                     {
                                         if (vc.SpeciesID == null && vc.SpeciesText != null && vc.SpeciesText == sp.Name)
@@ -369,7 +377,7 @@ namespace NSAP_ODK.Views
                                                 vc.SetTaxa(ReplacementNotFishSpecies.Taxa);
                                             }
 
-                                            if (NSAPEntities.VesselCatchViewModel.UpdateRecordInRepo(vc))
+                                            if (unload.VesselCatchViewModel.UpdateRecordInRepo(vc))
                                             {
                                                 Console.WriteLine(vc.SpeciesID);
                                                 _countReplaced++;
@@ -569,7 +577,8 @@ namespace NSAP_ODK.Views
             {
                 //case NSAPEntity.FishSpecies:
                 case NSAPEntity.SpeciesName:
-                    dataGrid.DataContext = NSAPEntities.VesselCatchViewModel.OrphanedSpeciesNames();
+                    //dataGrid.DataContext = NSAPEntities.VesselCatchViewModel.OrphanedSpeciesNames();
+                    dataGrid.DataContext = VesselCatchViewModel.OrphanedSpeciesNamesStatic();
                     break;
                 case NSAPEntity.NonFishSpecies:
                     break;
