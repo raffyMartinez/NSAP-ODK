@@ -55,6 +55,8 @@ namespace NSAP_ODK.Views
         private int _ufg_count = 0;
         private List<VesselLanding> _resolvedFishingGroundLandings = new List<VesselLanding>();
         private List<VesselLanding> _formsWithMissingLandingSiteInfo = new List<VesselLanding>();
+        private int? _downloadedJSONBatchSize;
+        private DownloadedJsonMetadata _downloadedJsonMetadata;
         public string JSON { get; set; }
         public string FormID { get; set; }
         private bool _openLogInWindow;
@@ -590,7 +592,7 @@ namespace NSAP_ODK.Views
                         }
                     }
 
-                    if (VesselUnloadServerRepository.TotalUploadCount > 5000)
+                    if (VesselUnloadServerRepository.TotalUploadCount >= 5000)
                     {
                         await SaveUploadedJsonInLoop();
                     }
@@ -657,7 +659,11 @@ namespace NSAP_ODK.Views
                             firstLoopDone = true;
                         }
                         await Upload(verbose: !VesselUnloadServerRepository.DelayedSave);
-                        if (VesselUnloadServerRepository.TotalUploadCount > 5000)
+                        if (_downloadedJsonMetadata?.BatchSize != null && (int)_downloadedJsonMetadata.BatchSize <= VesselUnloadServerRepository.TotalUploadCount)
+                        {
+                            await SaveUploadedJsonInLoop(isHistoryJson: false);
+                        }
+                        else if (VesselUnloadServerRepository.TotalUploadCount >= 5000)
                         {
                             await SaveUploadedJsonInLoop(isHistoryJson: false);
                         }
@@ -1117,43 +1123,49 @@ namespace NSAP_ODK.Views
         {
             bool success = false;
             //await ProcessJSONHistoryNodes((TreeViewItem)treeViewJSONNavigator.SelectedItem);
-            if (VesselUnloadServerRepository.DelayedSave && VesselUnloadServerRepository.TotalUploadCount > 0)
+            if (VesselUnloadServerRepository.DelayedSave)
             {
-                if (await CreateTablesInAccess.UploadImportJsonResultAsync())
+                if (VesselUnloadServerRepository.TotalUploadCount > 0)
                 {
-                    NSAPEntities.ClearCSVData();
-                    VesselUnloadServerRepository.ResetTotalUploadCounter();
-
-                    if (verbose)
+                    if (await CreateTablesInAccess.UploadImportJsonResultAsync())
                     {
-                        string msg = "Finished uploading JSON history files to the database";
-                        if (isHistoryJson)
+                        NSAPEntities.ClearCSVData();
+                        VesselUnloadServerRepository.ResetTotalUploadCounter();
+                    }
+                }
+
+                //success if true if we have made this far wityout exceptions called earlier
+                success = true;
+
+                if (verbose)
+                {
+                    string msg = "Finished uploading JSON history files to the database";
+                    if (isHistoryJson)
+                    {
+                        msg = "Finished uploading downloaded JSON files to the database";
+                    }
+                    if (allowDownloadAgain)
+                    {
+                        msg += "\r\n\r\nDo you want to download again?";
+                        MessageBoxResult r = MessageBox.Show(msg, "NSAP-ODK Database", MessageBoxButton.YesNo, MessageBoxImage.Information);
+                        if (r == MessageBoxResult.No)
                         {
-                            msg = "Finished uploading downloaded JSON files to the database";
-                        }
-                        if (allowDownloadAgain)
-                        {
-                            msg += "\r\n\r\nDo you want to download again?";
-                            MessageBoxResult r = MessageBox.Show(msg, "NSAP-ODK Database", MessageBoxButton.YesNo, MessageBoxImage.Information);
-                            if (r == MessageBoxResult.No)
-                            {
-                                closeWindow = true;
-                            }
-                            else
-                            {
-                                closeWindow = false;
-                            }
+                            closeWindow = true;
                         }
                         else
                         {
-                            MessageBox.Show(msg, "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                            closeWindow = false;
                         }
                     }
-
-                    if (closeWindow)
+                    else
                     {
-                        Close();
+                        MessageBox.Show(msg, "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
+                }
+
+                if (closeWindow)
+                {
+                    Close();
                 }
 
             }
@@ -2442,6 +2454,7 @@ namespace NSAP_ODK.Views
             e.Row.Header = (e.Row.GetIndex() + 1).ToString();
         }
 
+
         private void OnTreeviewItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             rowJSONGrid.Height = new GridLength(0);
@@ -2461,9 +2474,11 @@ namespace NSAP_ODK.Views
                         var md = (FileInfoJSONMetadata)((TreeViewItem)e.NewValue).Tag;
                         ProcessJsonFileForDisplay(md);
                         _jsonFileUseCreationDateForHistory = md.JSONFile.CreationTime;
+                        VesselUnloadServerRepository.CurrentJSONFileName = md.JSONFile.FullName;
                         break;
                     case "NSAP_ODK.Entities.Database.DownloadedJsonMetadata":
-                        ShowJSONMetadata((DownloadedJsonMetadata)((TreeViewItem)treeViewJSONNavigator.SelectedItem).Tag);
+                        _downloadedJsonMetadata = (DownloadedJsonMetadata)((TreeViewItem)treeViewJSONNavigator.SelectedItem).Tag;
+                        ShowJSONMetadata(_downloadedJsonMetadata);
                         _jsonFileForUploadCount = ((TreeViewItem)treeViewJSONNavigator.SelectedItem).Items.Count;
                         break;
                     default:

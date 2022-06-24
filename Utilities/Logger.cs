@@ -21,7 +21,7 @@ namespace NSAP_ODK.Utilities
     }
     public static class Logger
     {
-        private static string _appVersion=$"Version: {Assembly.GetExecutingAssembly().GetName().Version.ToString()}";
+        private static string _appVersion = $"Version: {Assembly.GetExecutingAssembly().GetName().Version.ToString()}";
         private static LogType _logType = LogType.Logfile;
         private static string _filepath = "";
 
@@ -50,7 +50,7 @@ namespace NSAP_ODK.Utilities
             }
         }
 
-        
+
         public static string FilePath
         {
             get { return _filepath; }
@@ -70,7 +70,13 @@ namespace NSAP_ODK.Utilities
         {
             SetFilePathToDefault();
         }
-
+        public static void LogMissingCatchInfo(string s)
+        {
+            using (StreamWriter writer = new StreamWriter($"{AppDomain.CurrentDomain.BaseDirectory}/log_missing_catch.txt", true))
+            {
+                writer.WriteLine(s);
+            }
+        }
 
         public static void Log(string s, bool simpleLog = false)
         {
@@ -84,7 +90,7 @@ namespace NSAP_ODK.Utilities
                 {
                     writer.WriteLine(s);
                 }
-                 writer.WriteLine(Environment.NewLine);
+                writer.WriteLine(Environment.NewLine);
             }
         }
 
@@ -93,7 +99,7 @@ namespace NSAP_ODK.Utilities
             using (StreamWriter writer = new StreamWriter(_filepath, true))
             {
                 writer.WriteLine($"Log message:{s}\r\nError: {ex.Message}\r\n{ex.StackTrace}\r\n Date :{DateTime.Now.ToString()}\r\nVersion:{_appVersion}");
-                 writer.WriteLine(Environment.NewLine);
+                writer.WriteLine(Environment.NewLine);
             }
         }
 

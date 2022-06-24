@@ -92,7 +92,7 @@
                             </ComboBox>
                         </WrapPanel>
                         <ScrollViewer>
-                            <StackPanel x:Name="stackPanelJSON" CanVerticallyScroll="True" Height="331">
+                            <StackPanel x:Name="stackPanelJSON" CanVerticallyScroll="True" Height="340">
 
                                 <RadioButton Content="Download all submissions" Margin="10 5" Checked="OnButtonChecked" Tag="all" x:Name="rbAll"/>
                                 <RadioButton Content="Get all not downloaded" Margin="10 5"  Checked="OnButtonChecked" Tag="all_not_downloaded" x:Name="rbNotDownloaded"/>
@@ -115,8 +115,18 @@
                                     <Label Content="Download data starting "/>
                                     <TextBox Height="20" Width="40" IsEnabled="False" Text="7" x:Name="txtDaysToDownload"/>
                                     <Label Content=" days before the present date"/>
-                                </WrapPanel>                                
+                                </WrapPanel>
                                 <RadioButton Content="Update data of database column" Margin="10 5" Checked="OnButtonChecked" Tag="download_all_for_review"/>
+                                
+                                <WrapPanel Margin="10 0"  x:Name="panelDLSpecificFormUsingUUID">
+                                    <RadioButton Tag="download_specific_form" VerticalAlignment="Center" Checked="OnButtonChecked" x:Name="rbDownloadSpecificForm" MouseDown="OnRadioButtonMouseDown" IsThreeState="True"/>
+                                    <Label Content="Download form with UUID "/>
+                                    <TextBox Height="20" Width="250" IsEnabled="False" Text="a34e8295-c674-4632-b1ac-0c5cad8e8b5c" x:Name="txtFormUUID"/>
+
+                                </WrapPanel>
+
+
+
                                 <WrapPanel x:Name="panelDownloadAgain" Visibility="Visible">
                                     <StackPanel>
                                         <Button Content="Specify column to update" Height="28" Padding="5" Margin="5" Width="150" HorizontalAlignment="Left" x:Name="buttonSpecifyColumn" Click="OnButtonClick"/>

@@ -671,6 +671,12 @@ namespace NSAP_ODK.Views
                                                 string start_date1 = ((DateTime)dateStart2.Value).ToString("yyyy-MM-dd");
                                                 api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gte\":\"{start_date1}\"}}}}&limit={TextBoxLimit.Text}";
                                                 break;
+                                            case "download_specific_form":
+                                                string uuid = txtFormUUID.Text;
+                                                //api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_uuid\":{{\"$eq\":\"{uuid}\"}}}}";
+                                                //api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"meta/instanceID\":{{\"$eq\":\"{uuid}\"}}}}";
+                                                api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_id\":{{\"$eq\":\"{uuid}\"}}}}";
+                                                break;
                                         }
 
                                         if ((bool)CheckFilterUser.IsChecked || (bool)CheckLimitoTracked.IsChecked)
@@ -1617,6 +1623,14 @@ namespace NSAP_ODK.Views
                     break;
             }
 
+            txtFormUUID.Text = "";
+            //panelDLSpecificFormUsingUUID.Visibility = Visibility.Collapsed;
+            //if (System.Diagnostics.Debugger.IsAttached)
+            //{
+            //    panelDLSpecificFormUsingUUID.Visibility = Visibility.Visible;
+            //}
+
+
             _timer = new DispatcherTimer();
             _timer.Tick += OnTimerTick;
 
@@ -1638,20 +1652,33 @@ namespace NSAP_ODK.Views
             {
                 stackPanelJSON.Visibility = Visibility.Visible;
                 panelWeeksToDownload.Visibility = Visibility.Visible;
+                if (System.Diagnostics.Debugger.IsAttached)
+                {
+                    panelDLSpecificFormUsingUUID.Visibility = Visibility.Visible;
+                }
             }
         }
 
         private void OnButtonChecked(object sender, RoutedEventArgs e)
         {
+
             switch (((RadioButton)sender).Name)
             {
+                case "rbDownloadSpecificForm":
+                    UncheckAllRadioButtons();
+                    rbDownloadByPastWeeks.IsChecked = false;
+                    txtFormUUID.IsEnabled = true;
+                    break;
                 case "rbDownloadByPastWeeks":
                     UncheckAllRadioButtons();
+                    rbDownloadSpecificForm.IsChecked = false;
                     txtDaysToDownload.IsEnabled = true;
                     break;
                 default:
+                    rbDownloadSpecificForm.IsChecked = false;
                     rbDownloadByPastWeeks.IsChecked = false;
                     txtDaysToDownload.IsEnabled = false;
+                    txtFormUUID.IsEnabled = false;
                     break;
             }
             _jsonOption = ((RadioButton)sender).Tag.ToString();

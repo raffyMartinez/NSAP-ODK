@@ -1334,7 +1334,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
         {
             get
             {
-                 if (!SavedInLocalDatabase)
+                if (!SavedInLocalDatabase)
                 {
                     if (_rowid == 0)
                     {
@@ -1370,6 +1370,8 @@ namespace NSAP_ODK.Entities.Database.FromJson
                 return _rowid;
             }
         }
+
+
 
         private SummaryItem SavedVesselUnloadObject
         {
@@ -1825,7 +1827,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                 //{
                 //    formsWithMissingLSInfo.Add(landing);
                 //}
-                if(landing.LandingSite==null && 
+                if (landing.LandingSite == null &&
                     string.IsNullOrEmpty(landing.LandingSiteText)
                     )
                 {
@@ -2014,7 +2016,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
             return updatedCount;
         }
 
-        
+
         public static List<VesselLanding> ResolvedLandingsFromUnrecognizedFishingGrounds { get; private set; }
         public static List<UnrecognizedFishingGround> UnrecognizedFishingGrounds
         {
@@ -2029,6 +2031,8 @@ namespace NSAP_ODK.Entities.Database.FromJson
             TotalUploadCount = 0;
         }
         public static int TotalUploadCount { get; private set; }
+
+        public static string CurrentJSONFileName { get; set; }
         public static bool UploadToDatabase(List<VesselLanding> resolvedLandings = null)
         {
             UploadInProgress = true;
@@ -2110,7 +2114,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                     else
                                     {
                                         Utilities.Logger.Log("Missing fishing ground info.Cannot upload\r\n" +
-                                            $"ODK row ID:{ landing._uuid}, user name:{landing.user_name}, region:{landing.NSAPRegion.ShortName}, fma:{landing.FMA}, version:{landing.intronote}") ;
+                                            $"ODK row ID:{ landing._uuid}, user name:{landing.user_name}, region:{landing.NSAPRegion.ShortName}, fma:{landing.FMA}, version:{landing.intronote}");
                                     }
                                 }
                             }
@@ -2142,7 +2146,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                         PK = landingSiteSampling.GearUnloadViewModel.NextRecordNumber,
                                         Parent = landingSiteSampling,
                                         LandingSiteSamplingID = landingSiteSampling.PK,
-                                        GearID = NSAPEntities.GearViewModel.GearCodeExist(landing.GearCode)?landing.GearCode:string.Empty,
+                                        GearID = NSAPEntities.GearViewModel.GearCodeExist(landing.GearCode) ? landing.GearCode : string.Empty,
                                         GearUsedText = landing.GearUsedText == null ? landing.GearName : landing.GearUsedText,
                                         Remarks = "",
                                         DelayedSave = DelayedSave
@@ -2255,9 +2259,9 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                 EffortSpecID = effort.EffortType,
                                                 EffortValueNumeric = effort.EffortIntensity,
                                                 EffortValueText = effort.EffortDescription,
-                                                DelayedSave=DelayedSave
+                                                DelayedSave = DelayedSave
                                             };
-                                            if(vu.VesselEffortViewModel.AddRecordToRepo(ve))
+                                            if (vu.VesselEffortViewModel.AddRecordToRepo(ve))
                                             {
                                                 VesselEffortViewModel.CurrentIDNumber = ve.PK;
                                             }
@@ -2290,9 +2294,9 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                 TimeAtHaul = soak.HaulTime,
                                                 WaypointAtSet = soak.WaypointAtSet,
                                                 WaypointAtHaul = soak.WaypointAtHaul,
-                                                DelayedSave=DelayedSave
+                                                DelayedSave = DelayedSave
                                             };
-                                            if(vu.GearSoakViewModel.AddRecordToRepo(gs))
+                                            if (vu.GearSoakViewModel.AddRecordToRepo(gs))
                                             {
                                                 GearSoakViewModel.CurrentIDNumber = gs.PK;
                                             }
@@ -2322,7 +2326,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                 VesselUnloadID = vu.PK,
                                                 UTMZoneText = gr.Parent.UTMZone,
                                                 Grid = gr.CompleteGridName,
-                                                DelayedSave=DelayedSave
+                                                DelayedSave = DelayedSave
                                             };
                                             if (vu.FishingGroundGridViewModel.AddRecordToRepo(fgg))
                                             {
@@ -2358,9 +2362,13 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                 Sample_kg = catchComp.SpeciesSampleWt,
                                                 TaxaCode = catchComp.TaxaCode,
                                                 SpeciesText = catchComp.SpeciesNameOther,
-                                                DelayedSave=DelayedSave
+                                                DelayedSave = DelayedSave
                                             };
 
+                                            if ( vc.SpeciesID == null && string.IsNullOrEmpty(vc.SpeciesText) && vc.Parent.HasCatchComposition)
+                                            {
+                                                Utilities.Logger.LogMissingCatchInfo($@"""{vc.Parent.ODKRowID}"",""{vc.Parent.XFormIdentifier}"",""{vc.Parent.FormVersion}"",""{vc.Parent.Parent.GearUsedName}"",""{vc.Parent.EnumeratorName}"",""{vc.Parent.Parent.Parent.LandingSiteName}"",{vc.Parent.SamplingDate},""{System.IO.Path.GetFileName( CurrentJSONFileName)}""");
+                                            }
 
                                             if (vu.VesselCatchViewModel.AddRecordToRepo(vc))
                                             {
@@ -2388,9 +2396,9 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                             VesselCatchID = vc.PK,
                                                             LengthClass = lf.LengthClass,
                                                             Frequency = lf.Frequency,
-                                                            DelayedSave=DelayedSave
+                                                            DelayedSave = DelayedSave
                                                         };
-                                                       if( vc.CatchLenFreqViewModel.AddRecordToRepo(clf))
+                                                        if (vc.CatchLenFreqViewModel.AddRecordToRepo(clf))
                                                         {
                                                             CatchLenFreqViewModel.CurrentIDNumber = clf.PK;
                                                         }
@@ -2420,9 +2428,9 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                             VesselCatchID = vc.PK,
                                                             Length = lw.Length,
                                                             Weight = lw.Weight,
-                                                            DelayedSave=DelayedSave
+                                                            DelayedSave = DelayedSave
                                                         };
-                                                        if(vc.CatchLengthWeightViewModel.AddRecordToRepo(clw))
+                                                        if (vc.CatchLengthWeightViewModel.AddRecordToRepo(clw))
                                                         {
                                                             CatchLengthWeightViewModel.CurrentIDNumber = clw.PK;
                                                         }
@@ -2453,7 +2461,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                             Parent = vc,
                                                             VesselCatchID = vc.PK,
                                                             Length = l.Length,
-                                                            DelayedSave=DelayedSave
+                                                            DelayedSave = DelayedSave
 
                                                         };
                                                         if (vc.CatchLengthViewModel.AddRecordToRepo(cl))
@@ -2491,13 +2499,13 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                             WeightGutContent = m.StomachContentWt,
                                                             GutContentCode = m.GutContentCategoryCode,
                                                             GonadWeight = m.GonadWeight,
-                                                            DelayedSave=DelayedSave
+                                                            DelayedSave = DelayedSave
                                                         };
                                                         if (cm.GonadWeight != null)
                                                         {
 
                                                         }
-                                                        if(vc.CatchMaturityViewModel.AddRecordToRepo(cm))
+                                                        if (vc.CatchMaturityViewModel.AddRecordToRepo(cm))
                                                         {
                                                             CatchMaturityViewModel.CurrentIDNumber = cm.PK;
                                                         }
