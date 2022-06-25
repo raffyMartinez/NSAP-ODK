@@ -1139,10 +1139,11 @@ namespace NSAP_ODK.Views
 
                 if (verbose)
                 {
-                    string msg = "Finished uploading JSON history files to the database";
+                    string msg = "Finished uploading downloaded JSON files to the database";
                     if (isHistoryJson)
                     {
-                        msg = "Finished uploading downloaded JSON files to the database";
+                        msg = "Finished uploading JSON history files to the database";
+
                     }
                     if (allowDownloadAgain)
                     {

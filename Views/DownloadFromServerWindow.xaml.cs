@@ -507,9 +507,9 @@ namespace NSAP_ODK.Views
 
                     int sizeToDownload = _formSummary.NumberOfSubmissions - _formSummary.NumberSavedToDatabase;
 
-                    if (sizeToDownload >= Utilities.Settings.DefaultDownloadSizeForBatchMode &&
-                            ((bool)rbAll.IsChecked || (bool)rbNotDownloaded.IsChecked) &&
-                            !_hasDownloadOptions)
+                    if ( !_hasDownloadOptions && (bool)rbAll.IsChecked || (sizeToDownload >= Utilities.Settings.DefaultDownloadSizeForBatchMode && 
+                             (bool)rbNotDownloaded.IsChecked))
+                            
                     {
                         DownloadFromServerOptionsWindow dsow = new DownloadFromServerOptionsWindow();
                         dsow.Owner = this;
