@@ -100,6 +100,9 @@ namespace NSAP_ODK.Entities
             return Task.Run(() => ClearNSAPDatabaseTables(otherConnectionString));
         }
 
+        /// <summary>
+        /// Resets CSV data of catch and effort entities to an empty string
+        /// </summary>
         public static void ClearCSVData()
         {
             CatchMaturityViewModel.ClearCSV();
@@ -115,6 +118,9 @@ namespace NSAP_ODK.Entities
             LandingSiteSamplingViewModel.ClearCSV();
         }
 
+        /// <summary>
+        /// Resets currentID numbers of catch and effort entities back to zero
+        /// </summary>
         public static void ResetEntititesCurrentIDs()
         {
             CatchMaturityViewModel.CurrentIDNumber = 0;
@@ -127,6 +133,12 @@ namespace NSAP_ODK.Entities
             VesselEffortViewModel.CurrentIDNumber=0;
             VesselUnloadViewModel.CurrentIDNumber=0;
         }
+
+        /// <summary>
+        /// CLears database mdb catch and effort entities table
+        /// </summary>
+        /// <param name="otherConnectionString"></param>
+        /// <returns></returns>
         public static bool ClearNSAPDatabaseTables(string otherConnectionString = "")
         {
             bool success = false;

@@ -1477,6 +1477,9 @@ namespace NSAP_ODK.Entities.Database.FromJson
         public static event EventHandler<UploadToDbEventArg> UploadSubmissionToDB;
         public static event Action<int> LandingWithUpdatedLandingSite;
 
+        /// <summary>
+        /// Reset ID is set boolean to false for repeating groups in a vessel landing json
+        /// </summary>
         public static void ResetGroupIDState()
         {
             SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat.ResetIDState();
@@ -1488,8 +1491,9 @@ namespace NSAP_ODK.Entities.Database.FromJson
             CatchCompGroupCatchCompositionRepeatLengthFreqRepeat.ResetIDState();
             CatchCompGroupCatchCompositionRepeatGmsRepeatGroup.ResetIDState();
         }
-        public static void ResetGroupIDs()
+        public static void ResetGroupIDs(bool delayedSave=false)
         {
+            NSAPEntities.SummaryItemViewModel.RefreshLastPrimaryLeys(delayedSave);
             SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat.SetRowIDs();
             GridCoordGroupBingoRepeat.SetRowIDs();
             EffortsGroupEffortRepeat.SetRowIDs();

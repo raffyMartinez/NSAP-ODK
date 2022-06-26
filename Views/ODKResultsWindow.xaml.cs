@@ -754,6 +754,7 @@ namespace NSAP_ODK.Views
                     {
                         VesselUnloadServerRepository.DelayedSave = !Global.Settings.UsemySQL;
                         VesselUnloadServerRepository.ResetTotalUploadCounter();
+                        VesselUnloadServerRepository.ResetGroupIDs(VesselUnloadServerRepository.DelayedSave);
                         VesselUnloadServerRepository.CancelUpload = false;
 
                         //if we need to replace existing data and then update all
@@ -865,6 +866,7 @@ namespace NSAP_ODK.Views
                             //NSAPEntities.ClearCSVData();
                             VesselUnloadServerRepository.ResetTotalUploadCounter();
                             VesselUnloadServerRepository.DelayedSave = true;
+                            VesselUnloadServerRepository.ResetGroupIDs(VesselUnloadServerRepository.DelayedSave);
                         }
                         _jsonFileUseCreationDateForHistory = null;
                         if (UpdateJSONHistoryMode == UpdateJSONHistoryMode.UpdateReplaceExistingData)
@@ -1091,6 +1093,7 @@ namespace NSAP_ODK.Views
                         NSAPEntities.ClearCSVData();
                         VesselUnloadServerRepository.ResetTotalUploadCounter();
                         VesselUnloadServerRepository.DelayedSave = true;
+                        VesselUnloadServerRepository.ResetGroupIDs(VesselUnloadServerRepository.DelayedSave);
                     }
 
                     await Upload();
