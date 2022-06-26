@@ -1117,7 +1117,7 @@ namespace NSAP_ODK.Views
                     );
                 }
 
-
+                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.SetNumberOfLoops, Loops = loops});
                 for (int loop = 0; loop < loops; loop++)
                 {
                     string api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&sort={{\"_id\":1}}&start={((int)NumberToDownloadPerBatch * loop) + 1}&limit={NumberToDownloadPerBatch}";
@@ -1319,12 +1319,16 @@ namespace NSAP_ODK.Views
                     ProgressBar.Value += 1;
                     labelProgress.Content = $"Retrieved version info for {e.FormName}";
                     break;
+                case DownloadFromServerIntent.SetNumberOfLoops:
+                    ProgressBar.Maximum = (int)e.Loops;
+                    break;
                 case DownloadFromServerIntent.DownloadingData:
-                    ProgressBar.Value += 1;
+                    
                     labelProgress.Content = "Downloading data";
 
                     if (e.Loops != null)
                     {
+                        ProgressBar.Value =(int)e.Loop;
                         labelProgress.Content = $"Downloading data {e.Loop + 1} of {e.Loops}";
                     }
                     break;

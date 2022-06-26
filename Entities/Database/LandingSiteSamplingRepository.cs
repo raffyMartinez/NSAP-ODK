@@ -558,6 +558,7 @@ namespace NSAP_ODK.Entities.Database
                             switch (odbex.ErrorCode)
                             {
                                 case -2147467259:
+                                    Logger.Log(odbex);
                                     break;
                                 default:
                                     Logger.Log(odbex);

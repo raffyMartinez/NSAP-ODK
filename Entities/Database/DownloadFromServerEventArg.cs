@@ -9,6 +9,7 @@ namespace NSAP_ODK.Entities.Database
     public enum DownloadFromServerIntent
     {
         ContactingServer,
+        SetNumberOfLoops,
         DownloadingData,
         GotXLSFormVersion,
         GotJSONString,
