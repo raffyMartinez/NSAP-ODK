@@ -2343,6 +2343,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                     //}
                                     if (landing.CatchComposition != null)
                                     {
+                                        int missingCatchInfoCounter = 0;
                                         vu.VesselCatchViewModel = new VesselCatchViewModel(isNew: true);
                                         vu.CountCatchCompositionItems = landing.CatchComposition.Count;
                                         if (!CatchCompGroupCatchCompositionRepeat.RowIDSet)
@@ -2365,9 +2366,10 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                 DelayedSave = DelayedSave
                                             };
 
-                                            if ( vc.SpeciesID == null && string.IsNullOrEmpty(vc.SpeciesText) && vc.Parent.HasCatchComposition)
+                                            if (vc.SpeciesID == null && string.IsNullOrEmpty(vc.SpeciesText) && vc.Parent.HasCatchComposition)
                                             {
-                                                Utilities.Logger.LogMissingCatchInfo($@"""{vc.Parent.ODKRowID}"",""{vc.Parent.XFormIdentifier}"",""{vc.Parent.FormVersion}"",""{vc.Parent.Parent.GearUsedName}"",""{vc.Parent.EnumeratorName}"",""{vc.Parent.Parent.Parent.LandingSiteName}"",{vc.Parent.SamplingDate},""{System.IO.Path.GetFileName( CurrentJSONFileName)}""");
+                                                vu.VesselCatchViewModel.MissingCatchInfoCount = ++missingCatchInfoCounter;
+
                                             }
 
                                             if (vu.VesselCatchViewModel.AddRecordToRepo(vc))
@@ -2514,6 +2516,11 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                 }
 
                                             }
+                                        }
+
+                                        if (missingCatchInfoCounter > 0)
+                                        {
+                                            Utilities.Logger.LogMissingCatchInfo($@"""{vu.ODKRowID}"",{missingCatchInfoCounter}, ""{vu.XFormIdentifier}"",""{vu.FormVersion}"",""{vu.Parent.GearUsedName}"",""{vu.EnumeratorName}"",""{vu.Parent.Parent.LandingSiteName}"",{vu.SamplingDate},""{System.IO.Path.GetFileName(CurrentJSONFileName)}"",{DateTime.Now}");
                                         }
                                         vu.VesselCatchViewModel.Dispose();
                                     }

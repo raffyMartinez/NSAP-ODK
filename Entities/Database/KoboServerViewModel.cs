@@ -23,6 +23,11 @@ namespace NSAP_ODK.Entities.Database
         {
             return KoboserverCollection.Count;
         }
+
+        public bool ClearTable()
+        {
+            return Koboservers.ClearTable();
+        }
         public void RefreshSavedCount()
         {
             _updateSavedCount = true;

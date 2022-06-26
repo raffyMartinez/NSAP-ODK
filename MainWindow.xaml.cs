@@ -2047,36 +2047,31 @@ namespace NSAP_ODK
             bool success = false;
             backendPath = "";
             OpenFileDialog ofd = new OpenFileDialog();
+            ofd.CheckFileExists = false;
             ofd.Title = "Locate backend database for NSAP data";
             ofd.Filter = "MDB file(*.mdb)|*.mdb|All file types (*.*)|*.*";
             ofd.FilterIndex = 1;
             ofd.InitialDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            if ((bool)ofd.ShowDialog() && File.Exists(ofd.FileName))
+            if ((bool)ofd.ShowDialog())
             {
-                success = OpenDatabaseInApp(ofd.FileName, out backendPath);
-                //Global.SetMDBPath(ofd.FileName);
-                //if (Global.AppProceed)
-                //{
-                //    SetDataDisplayMode();
-                //    ShowSplash();
-                //    samplingTree.ReadDatabase();
-                //    if (
-                //        NSAPEntities.NSAPRegionViewModel.Count > 0 &&
-                //        NSAPEntities.FishSpeciesViewModel.Count > 0 &&
-                //        NSAPEntities.NotFishSpeciesViewModel.Count > 0 &&
-                //        NSAPEntities.FMAViewModel.Count > 0
-                //        )
-                //    {
-                //        SetDataDisplayMode();
-                //        menuDatabaseSummary.IsChecked = true;
-                //        success = true;
-                //        backendPath = ofd.FileName;
-                //    }
-                //    else
-                //    {
-                //        ShowDatabaseNotFoundView();
-                //    }
-                //}
+
+                bool proceed = File.Exists(ofd.FileName);
+
+                if (!proceed && MessageBox.Show(
+                    $"{ofd.FileName} does not exist\r\n\r\nWould you like to create a new one?",
+                    "NSAP-ODK Database",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Information) == MessageBoxResult.Yes)
+                {
+                    File.Copy($@"{AppDomain.CurrentDomain.BaseDirectory}\nsap_odk.dat", ofd.FileName);
+                    proceed = true;
+                }
+
+
+                if (proceed)
+                {
+                    success = OpenDatabaseInApp(ofd.FileName, out backendPath);
+                }
             }
             return success;
         }

@@ -13,7 +13,59 @@ namespace NSAP_ODK.Entities.Database
     {
         public List<Koboserver> Koboservers { get; set; }
 
-
+        public bool ClearTable()
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+                using (var con = new MySqlConnection(MySQLConnect.ConnectionString()))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = "Delete * from kobo_servers";
+                        con.Open();
+                        try
+                        {
+                            cmd.ExecuteNonQuery();
+                            success = true;
+                        }
+                        catch (OleDbException olx)
+                        {
+                            Logger.Log(olx);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = "Delete * from kobo_servers";
+                        con.Open();
+                        try
+                        {
+                            cmd.ExecuteNonQuery();
+                            success = true;
+                        }
+                        catch (OleDbException olx)
+                        {
+                            Logger.Log(olx);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
         public KoboServerRepository()
         {
             Koboservers = getKoboservers();
@@ -634,11 +686,11 @@ namespace NSAP_ODK.Entities.Database
                                 this_list.Add(ks);
                             }
                         }
-                        catch(MySqlException mex)
+                        catch (MySqlException mex)
                         {
 
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             Logger.Log(ex);
                         }

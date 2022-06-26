@@ -746,6 +746,7 @@ namespace NSAP_ODK.Views
 
                 //uploads all the json history files in the treeview.
                 case "menuUploadAllJsonHistoryFiles":
+                    bool proceed = true;
                     UploadJSONHistoryOptionsWindow ujhw = new UploadJSONHistoryOptionsWindow();
                     ujhw.Owner = this;
                     ujhw.JSONFilesToUploadType = JSONFilesToUploadType.UploadTypeJSONHistoryFiles;
@@ -758,31 +759,36 @@ namespace NSAP_ODK.Views
                         //if we need to replace existing data and then update all
                         if (UpdateJSONHistoryMode == UpdateJSONHistoryMode.UpdateReplaceExistingData)
                         {
-                            ClearTables(verboseMode: false);
+                            proceed = ClearTables(verboseMode: false);
                         }
 
 
-                        //call function which uploads all the json files that are listed in the treeview
-                        try
+                        if (proceed)
                         {
-                            await ProcessJSONHistoryNodes((TreeViewItem)treeViewJSONNavigator.SelectedItem);
-                            await SaveUploadedJsonInLoop(closeWindow: true, verbose: true);
-                            //if (VesselUnloadServerRepository.DelayedSave && VesselUnloadServerRepository.TotalUploadCount > 0)
-                            //{
-                            //    if (await CreateTablesInAccess.UploadImportJsonResultAsync())
-                            //    {
-                            //        NSAPEntities.ClearCSVData();
-                            //        VesselUnloadServerRepository.ResetTotalUploadCounter();
-                            //        MessageBox.Show("Finished uploading JSON history files to the database", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
-                            //        Close();
-                            //    }
+                            //call function which uploads all the json files that are listed in the treeview
+                            try
+                            {
+                                await ProcessJSONHistoryNodes((TreeViewItem)treeViewJSONNavigator.SelectedItem);
+                                await SaveUploadedJsonInLoop(closeWindow: true, verbose: true);
+                                //if (VesselUnloadServerRepository.DelayedSave && VesselUnloadServerRepository.TotalUploadCount > 0)
+                                //{
+                                //    if (await CreateTablesInAccess.UploadImportJsonResultAsync())
+                                //    {
+                                //        NSAPEntities.ClearCSVData();
+                                //        VesselUnloadServerRepository.ResetTotalUploadCounter();
+                                //        MessageBox.Show("Finished uploading JSON history files to the database", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                                //        Close();
+                                //    }
 
-                            //}
+                                //}
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Log(ex);
+                            }
                         }
-                        catch (Exception ex)
-                        {
-                            Logger.Log(ex);
-                        }
+
+
                     }
                     break;
 
@@ -848,6 +854,7 @@ namespace NSAP_ODK.Views
 
                 //when downloaded JSON of type download_all is selected
                 case "menuReuploadAll":
+                    proceed = true;
                     ujhw = new UploadJSONHistoryOptionsWindow();
                     ujhw.JSONFilesToUploadType = JSONFilesToUploadType.UploadTypeDownloadedJsonDownloadAll;
                     ujhw.Owner = this;
@@ -862,10 +869,15 @@ namespace NSAP_ODK.Views
                         _jsonFileUseCreationDateForHistory = null;
                         if (UpdateJSONHistoryMode == UpdateJSONHistoryMode.UpdateReplaceExistingData)
                         {
-                            ClearTables(verboseMode: false);
+                            proceed = ClearTables(verboseMode: false);
                         }
-                        await ProcessJSONSNodes();
-                        await SaveUploadedJsonInLoop(closeWindow: true, verbose: true, isHistoryJson: false);
+
+                        if (proceed)
+                        {
+                            await ProcessJSONSNodes();
+                            await SaveUploadedJsonInLoop(closeWindow: true, verbose: true, isHistoryJson: false);
+                        }
+
                     }
 
                     break;
@@ -1226,6 +1238,10 @@ namespace NSAP_ODK.Views
                 {
                     MessageBox.Show("All repo cleared");
                 }
+            }
+            else
+            {
+                MessageBox.Show("Clearting tables not successful. Operation will not proceed", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             return proceed;
         }

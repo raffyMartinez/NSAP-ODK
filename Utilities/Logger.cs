@@ -72,7 +72,15 @@ namespace NSAP_ODK.Utilities
         }
         public static void LogMissingCatchInfo(string s)
         {
-            using (StreamWriter writer = new StreamWriter($"{AppDomain.CurrentDomain.BaseDirectory}/log_missing_catch.txt", true))
+            string missingCatchLogFile = $"{AppDomain.CurrentDomain.BaseDirectory}/log_missing_catch.txt";
+            if (!File.Exists(missingCatchLogFile))
+            {
+                using (StreamWriter writer = new StreamWriter(missingCatchLogFile, true))
+                {
+                    writer.WriteLine("RowID,# missing,FormID,Version,Gear,Enumerator,Landing site,Sampling date,File name,Date processed");
+                }
+            }
+            using (StreamWriter writer = new StreamWriter(missingCatchLogFile, true))
             {
                 writer.WriteLine(s);
             }

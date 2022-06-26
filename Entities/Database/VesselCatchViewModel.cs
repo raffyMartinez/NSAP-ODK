@@ -19,6 +19,8 @@ namespace NSAP_ODK.Entities.Database
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
+        public  int? MissingCatchInfoCount { get; set; }
         public static int CurrentIDNumber { get; set; }
         protected virtual void Dispose(bool disposing)
         {

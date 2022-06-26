@@ -156,6 +156,7 @@ namespace NSAP_ODK.NSAPMysql
                             TRUNCATE TABLE nsap_odk.dbo_gear_unload;
                             TRUNCATE TABLE nsap_odk.dbo_lc_fg_sample_day_1;
                             TRUNCATE TABLE nsap_odk.dbo_lc_fg_sample_day;
+                            TRUNCATE TABLE nsap_odk.kobo_servers;
                             SET FOREIGN_KEY_CHECKS=1;  -- turn on foreign key checks";
 
                 try
