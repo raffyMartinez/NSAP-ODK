@@ -50,6 +50,9 @@ namespace NSAP_ODK.Entities
 
         public static async Task<int> GenerateAll()
         {
+
+            RefreshEntities();
+
             FilesCount = 0;
             _fileName = $"{_folderSaveLocation}\\effortspec.csv";
             int result = await GenerateEffortSpecCSV();
@@ -425,6 +428,20 @@ namespace NSAP_ODK.Entities
                 await LogAsync(sb.ToString(), _fileName);
             }
             return counter;
+        }
+
+        public static void RefreshEntities()
+        {
+            foreach(var item in NSAPEntities.Regions)
+            {
+                NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(item);
+                //NSAPRegion r = NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(item);
+                //if(r.Gears.Count==0 || r.NSAPEnumerators.Count==0)
+                //{
+                //    var rvm = NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(r);
+                //    rvm.RefreshNSAPRegionEntities(r);
+                //}
+            }
         }
         public static async Task<int> GenerateGearsCSV()
         {

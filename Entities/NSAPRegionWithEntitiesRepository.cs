@@ -467,7 +467,14 @@ namespace NSAP_ODK.Entities
 
         public static bool EnumeratorFirstSamplingDateRequired { get; set; }
 
-
+        public  bool RefreshNSAPRegionEntities(NSAPRegion region)
+        {
+            NSAPRegion = region;
+            GetGears();
+            GetEnumerators();
+            GetFMAS();
+            return true;
+        }
         private bool AddColumnToTable(string colName, string tableName)
         {
             bool success = false;
@@ -988,7 +995,14 @@ namespace NSAP_ODK.Entities
                         update.Parameters.Add("@region_code", OleDbType.VarChar).Value = NSAPRegion.Code;
                         update.Parameters.Add("@enum_id", OleDbType.Integer).Value = regionEnumerator.EnumeratorID;
                         update.Parameters.Add("@start", OleDbType.Date).Value = regionEnumerator.DateStart;
-                        update.Parameters.Add("@end", OleDbType.Date).Value = regionEnumerator.DateEnd;
+                        if (regionEnumerator.DateEnd == null)
+                        {
+                            update.Parameters.Add("@end", OleDbType.Date).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@end", OleDbType.Date).Value = regionEnumerator.DateEnd;
+                        }
                         try
                         {
                             success = update.ExecuteNonQuery() > 0;
