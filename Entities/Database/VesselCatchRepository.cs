@@ -135,16 +135,6 @@ namespace NSAP_ODK.Entities.Database
                             StringBuilder sb = new StringBuilder(osnr.RegionName);
                             sb.Append(osnr.FMAName);
                             sb.Append(osnr.FishingGroundName);
-
-                            //string ls = osnr.LandingSiteName;
-                            //if (osnr.LandingSiteID != null)
-                            //{
-                            //    ls = NSAPEntities.LandingSiteViewModel.GetLandingSite((int)osnr.LandingSiteID).ToString();
-                            //}
-                            //sb.Append(ls);
-
-                            //sb.Append(string.IsNullOrEmpty(osnr.GearName) ? osnr.GearText : osnr.GearName);
-                            //sb.Append(string.IsNullOrEmpty(osnr.EnumeratorName) ? osnr.EnumeratorText : osnr.EnumeratorName);
                             sb.Append(osnr.OrphanedSpName);
                             sb.Append(osnr.Taxa);
 
@@ -198,7 +188,6 @@ namespace NSAP_ODK.Entities.Database
                         while (dr.Read())
                         {
                             string spName = dr["species_text"].ToString().Trim(new char[] { ' ', '\n' });
-                            //string spName = dr["species_text"].ToString().Trim(new string[] { " " , "\\n" });
                             bool proceed = false;
                             if (multiline && spName.Contains("\n"))
                             {
@@ -236,16 +225,6 @@ namespace NSAP_ODK.Entities.Database
                                 StringBuilder sb = new StringBuilder(osnr.RegionName);
                                 sb.Append(osnr.FMAName);
                                 sb.Append(osnr.FishingGroundName);
-
-                                //string ls = osnr.LandingSiteName;
-                                //if (osnr.LandingSiteID != null)
-                                //{
-                                //    ls = NSAPEntities.LandingSiteViewModel.GetLandingSite((int)osnr.LandingSiteID).ToString();
-                                //}
-                                //sb.Append(ls);
-
-                                //sb.Append(string.IsNullOrEmpty(osnr.GearName) ? osnr.GearText : osnr.GearName);
-                                //sb.Append(string.IsNullOrEmpty(osnr.EnumeratorName) ? osnr.EnumeratorText : osnr.EnumeratorName);
                                 sb.Append(osnr.OrphanedSpName);
                                 sb.Append(osnr.Taxa);
 
@@ -257,6 +236,37 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
             return this_list;
+        }
+
+        public static int CountOfLandingsWithOrphanedSpName()
+        {
+            int rows = 0;
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = @"SELECT DISTINCT dbo_vessel_catch.v_unload_id
+                                            FROM dbo_vessel_catch
+                                            WHERE(((dbo_vessel_catch.species_id)Is Null) AND((Len([species_text])) > 0))";
+
+                        con.Open();
+                        OleDbDataReader dr = cmd.ExecuteReader();
+                        while(dr.Read())
+                        {
+                            rows++;
+                        }
+
+                        
+                    }
+                }
+            }
+            return rows;
         }
         private List<VesselCatch> getFromMySQL(VesselUnload vu = null)
         {

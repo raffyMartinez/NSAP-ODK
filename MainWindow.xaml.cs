@@ -199,7 +199,7 @@ namespace NSAP_ODK
                     propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of gear unloads with orphaned fishing gears", Name = "CountLandingsWithOrphanedFishingGears", Description = "Number of gear unloads with orphaned fishing gear names", DisplayOrder = 7, Category = "Data quality check" });
 
                     propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of landings with orphaned fishing vessels", Name = "CountLandingsWithOrphanedFishingVessels", Description = "Number of saved forms with orphaned fishing vessel names", DisplayOrder = 8, Category = "Data quality check" });
-
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of landings with orphaned species names", Name = "CountLandingsWithOrphanedSpeciesNames", Description = "Number of saved forms with orphaned species names", DisplayOrder = 9, Category = "Data quality check" });
 
                     propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Saved JSON files folder", Name = "SavedJSONFolder", Description = "Folder containing saved JSON data. Double click to open folder", DisplayOrder = 1, Category = "Saved JSON files" });
                     propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of saved catch and effort monitoring JSON files", Name = "SavedFishingEffortJSONCount", Description = "Number of saved JSON files containing catch and effort monitoring data", DisplayOrder = 2, Category = "Saved JSON files" });

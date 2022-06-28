@@ -79,13 +79,18 @@ namespace NSAP_ODK.Entities.Database
                 SavedVesselCountsJSONCount = NSAPEntities.JSONFileViewModel.CountSavedVesselCountsJsonFile();
                 //CountLandingsWithCatchComposition = NSAPEntities.VesselUnloadViewModel.CountLandingWithCatchComposition();
                 CountLandingsWithCatchComposition = vs.CountUnloadsWithCatchComposition;
+
+                CountLandingsWithOrphanedSpeciesNames = VesselCatchViewModel.GetNumberOfLanddingsWithOrphanedSpecies();
+                //CountLandingsWithOrphanedSpeciesNames = 
+                //    VesselCatchRepository.GetOrphanedSpecies().GroupBy(t => t.VesselUnloadID).Count() + 
+                //    VesselCatchRepository.GetOrphanedSpecies(multiline:true).GroupBy(t => t.VesselUnloadID).Count();
             }
         }
         public DBSummary()
         {
 
         }
-
+        public int CountLandingsWithOrphanedSpeciesNames { get; set; }
         public int CountLandingsWithOrphanedEnumerators { get; set; }
         public int CountLandingsWithOrphanedFishingGears { get; set; }
         public int CountLandingsWithOrphanedLandingSites { get; set; }

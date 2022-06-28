@@ -152,9 +152,6 @@ namespace NSAP_ODK.Entities.Database
                 region = t.RegionName,
                 fma = t.FMAName,
                 fishing_ground = t.FishingGroundName,
-                //landing_site = t.LandingSiteID == null ? t.LandingSiteName : NSAPEntities.LandingSiteViewModel.GetLandingSite((int)t.LandingSiteID).ToString(),
-                //gear = string.IsNullOrEmpty(t.GearName) ? t.GearText : t.GearName,
-                //enumerator = string.IsNullOrEmpty(t.EnumeratorName) ? t.EnumeratorText : t.EnumeratorText,
                 species = t.OrphanedSpName,
                 hash_code = t.HashCode,
                 taxa = t.Taxa
@@ -164,9 +161,6 @@ namespace NSAP_ODK.Entities.Database
                     region = osn.Key.region,
                     fma = osn.Key.fma,
                     fishing_ground = osn.Key.fishing_ground,
-                    //landing_site = osn.Key.landing_site,
-                    //gear = osn.Key.gear,
-                    //enumerator = osn.Key.enumerator,
                     species = osn.Key.species,
                     hash_code = osn.Key.hash_code,
                     taxa = osn.Key.taxa
@@ -177,15 +171,11 @@ namespace NSAP_ODK.Entities.Database
                 OrphanedSpeciesName o = new OrphanedSpeciesName
                 {
                     Name = item.species,
-                    //Enumerator = item.enumerator,
                     Region = item.region,
                     FMA = item.fma,
                     FishingGround = item.fishing_ground,
-                    //LandingSite = item.landing_site,
-                    //Gear = item.gear,
                     HashCode = item.hash_code,
                     Taxa = item.taxa,
-                    //HashCode = (item.region + item.fma + item.fishing_ground + item.species + item.taxa).GetHashCode()
                 };
 
                 o.SampledLandings = GetUnloadsfromOrphanedSpecies(o, osnr_list);
@@ -195,7 +185,10 @@ namespace NSAP_ODK.Entities.Database
 
             return list;
         }
-
+        public static int GetNumberOfLanddingsWithOrphanedSpecies()
+        {
+            return VesselCatchRepository.CountOfLandingsWithOrphanedSpName();
+        }
         private static List<VesselUnload> GetUnloadsfromOrphanedSpecies(OrphanedSpeciesName os, List<OrphanedSpeciesNameRaw> osnr)
         {
             List<VesselUnload> vus = new List<VesselUnload>();

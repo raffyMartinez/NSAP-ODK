@@ -184,9 +184,6 @@ namespace NSAP_ODK.Views
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of landings", Binding = new Binding("NumberOfLandings"), IsReadOnly = true });
                     break;
                 case NSAPEntity.SpeciesName:
-                    //dataGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSite"), IsReadOnly = true });
-                    //dataGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("Enumerator"), IsReadOnly = true });
-                    //dataGrid.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("Gear"), IsReadOnly = true });
                     ((DataGridTextColumn)dataGrid.Columns.FirstOrDefault(t => t.Header.ToString() == "Region")).Binding = new Binding("Region");
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of landings", Binding = new Binding("NumberOfLandings"), IsReadOnly = true });
                     break;
