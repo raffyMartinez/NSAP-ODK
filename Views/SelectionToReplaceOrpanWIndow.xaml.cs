@@ -437,12 +437,15 @@ namespace NSAP_ODK.Views
                     ewx.ShowDialog();
                     break;
                 case "buttonViewList":
-                    string fishList = ItemsToReplace[0];
-                    for (int x = 1; x < ItemsToReplace.Count; x++)
+                    if (ItemsToReplace != null)
                     {
-                        fishList += "\r\n" + ItemsToReplace[x];
+                        string fishList = ItemsToReplace[0];
+                        for (int x = 1; x < ItemsToReplace.Count; x++)
+                        {
+                            fishList += "\r\n" + ItemsToReplace[x];
+                        }
+                        MessageBox.Show(fishList, "Fish name for replacement", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
-                    MessageBox.Show(fishList, "Fish name for replacement", MessageBoxButton.OK, MessageBoxImage.Information);
                     break;
                 case "buttonReplace":
                     if (_selectedButton != null)

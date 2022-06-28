@@ -103,10 +103,12 @@ namespace NSAP_ODK.Entities.Database
                                             WHERE
 		                                            vc.species_id Is Null
 		                                            AND
-		                                            char_length(vc.species_text)>0";
+		                                            char_length(vc.species_text)>0
+                                            ORDER BY
+                                                    vc.species_text";
                         con.Open();
                         MySqlDataReader dr = cmd.ExecuteReader();
-                        while(dr.Read())
+                        while (dr.Read())
                         {
                             int? lsid = null;
                             if (dr["land_ctr_id"] != DBNull.Value)
@@ -127,7 +129,7 @@ namespace NSAP_ODK.Entities.Database
                                 GearText = dr["gr_text"].ToString(),
                                 Taxa = dr["taxa"].ToString(),
                                 VesselUnloadID = (int)dr["v_unload_id"],
-                                OrphanedSpName = dr["species_text"].ToString()
+                                OrphanedSpName = dr["species_text"].ToString().Trim(new char[] { ' ', '\n' })
                             };
 
                             StringBuilder sb = new StringBuilder(osnr.RegionName);
@@ -186,20 +188,23 @@ namespace NSAP_ODK.Entities.Database
                                             WHERE
                                                     dbo_vessel_catch.species_id Is Null
                                                     AND
-                                                    Len([species_text])>0";
+                                                    Len([species_text])>0
+                                            ORDER BY
+                                                    dbo_vessel_catch.species_text";
 
 
                         con.Open();
                         OleDbDataReader dr = cmd.ExecuteReader();
                         while (dr.Read())
                         {
-                            string spName = dr["species_text"].ToString();
+                            string spName = dr["species_text"].ToString().Trim(new char[] { ' ', '\n' });
+                            //string spName = dr["species_text"].ToString().Trim(new string[] { " " , "\\n" });
                             bool proceed = false;
-                            if (multiline && spName.Contains("\\n"))
+                            if (multiline && spName.Contains("\n"))
                             {
                                 proceed = true;
                             }
-                            else if (!multiline && !spName.Contains("\\n"))
+                            else if (!multiline && !spName.Contains("\n"))
                             {
                                 proceed = true;
                             }
@@ -225,22 +230,22 @@ namespace NSAP_ODK.Entities.Database
                                     GearText = dr["gr_text"].ToString(),
                                     Taxa = dr["taxa"].ToString(),
                                     VesselUnloadID = (int)dr["v_unload_id"],
-                                    OrphanedSpName = dr["species_text"].ToString()
+                                    OrphanedSpName = spName
                                 };
 
                                 StringBuilder sb = new StringBuilder(osnr.RegionName);
                                 sb.Append(osnr.FMAName);
                                 sb.Append(osnr.FishingGroundName);
 
-                                string ls = osnr.LandingSiteName;
-                                if (osnr.LandingSiteID != null)
-                                {
-                                    ls = NSAPEntities.LandingSiteViewModel.GetLandingSite((int)osnr.LandingSiteID).ToString();
-                                }
-                                sb.Append(ls);
+                                //string ls = osnr.LandingSiteName;
+                                //if (osnr.LandingSiteID != null)
+                                //{
+                                //    ls = NSAPEntities.LandingSiteViewModel.GetLandingSite((int)osnr.LandingSiteID).ToString();
+                                //}
+                                //sb.Append(ls);
 
-                                sb.Append(string.IsNullOrEmpty(osnr.GearName) ? osnr.GearText : osnr.GearName);
-                                sb.Append(string.IsNullOrEmpty(osnr.EnumeratorName) ? osnr.EnumeratorText : osnr.EnumeratorName);
+                                //sb.Append(string.IsNullOrEmpty(osnr.GearName) ? osnr.GearText : osnr.GearName);
+                                //sb.Append(string.IsNullOrEmpty(osnr.EnumeratorName) ? osnr.EnumeratorText : osnr.EnumeratorName);
                                 sb.Append(osnr.OrphanedSpName);
                                 sb.Append(osnr.Taxa);
 

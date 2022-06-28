@@ -20,7 +20,7 @@ namespace NSAP_ODK.Entities.Database
             GC.SuppressFinalize(this);
         }
 
-        public  int? MissingCatchInfoCount { get; set; }
+        public int? MissingCatchInfoCount { get; set; }
         public static int CurrentIDNumber { get; set; }
         protected virtual void Dispose(bool disposing)
         {
@@ -145,7 +145,7 @@ namespace NSAP_ODK.Entities.Database
 
             List<OrphanedSpeciesNameRaw> osnr_list = new List<OrphanedSpeciesNameRaw>();
 
-            osnr_list = VesselCatchRepository.GetOrphanedSpecies(getMultiLine).OrderBy(t=>t.OrphanedSpName).ToList();
+            osnr_list = VesselCatchRepository.GetOrphanedSpecies(getMultiLine);//.OrderBy(t=>t.OrphanedSpName).ToList();
 
             var gr_osn = osnr_list.GroupBy(t => new
             {
@@ -259,7 +259,7 @@ namespace NSAP_ODK.Entities.Database
         {
             bool isDone = false;
             int counter = 0;
-            foreach (var item in VesselCatchCollection.Where(t => t.CatchName == multilineItem).ToList())
+            foreach (var item in VesselCatchCollection.Where(t => t.CatchName.Trim(new char[] { ' ','\n'}) == multilineItem).ToList())
             {
                 if (item.VesselUnloadID == 605)
                 {

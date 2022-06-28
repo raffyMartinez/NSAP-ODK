@@ -256,20 +256,33 @@ namespace NSAP_ODK.Views
         }
         private int FixMulitlineSpecies()
         {
-            _countReplaced = 0;
+             _countReplaced = 0;
             foreach (var item in dataGrid.Items)
             {
+               
                 var orphanedSpecies = (OrphanedSpeciesName)item;
                 if (orphanedSpecies.ForReplacement)
                 {
+                    int countReplaced = 0;
                     var list = SpeciesName_Weight.ParseMultiSpeciesRow(orphanedSpecies.Name);
                     if (list.Count > 1)
                     {
-                        if (NSAPEntities.VesselCatchViewModel.ConvertToIindividualCatches(orphanedSpecies.Name, list) > 0)
+                        foreach (VesselUnload vu in orphanedSpecies.SampledLandings)
                         {
-                            _countReplaced += orphanedSpecies.SampledLandings.Count;
-                            ShowProgressWhileReplacing(_countReplaced, $"Fixed multii-species row {_countReplaced} of {_countForReplacement}");
+                            if (vu.VesselCatchViewModel == null)
+                            {
+                                vu.VesselCatchViewModel = new VesselCatchViewModel(vu);
+                            }
+                            if (vu.VesselCatchViewModel.ConvertToIindividualCatches(orphanedSpecies.Name, list) > 0)
+                            {
+                                countReplaced += orphanedSpecies.SampledLandings.Count;
+                            }
                         }
+                    }
+                    if (countReplaced > 0)
+                    {
+                        _countReplaced++;
+                        ShowProgressWhileReplacing(_countReplaced, $"Fixed multi-species row {_countReplaced} of {_countForReplacement}");
                     }
                 }
 
@@ -358,7 +371,7 @@ namespace NSAP_ODK.Views
                             {
                                 foreach (var unload in sp.SampledLandings)
                                 {
-                                    if(unload.VesselCatchViewModel==null)
+                                    if (unload.VesselCatchViewModel == null)
                                     {
                                         unload.VesselCatchViewModel = new VesselCatchViewModel(unload);
                                     }
@@ -840,7 +853,8 @@ namespace NSAP_ODK.Views
                         //}
                         _timer.Interval = TimeSpan.FromSeconds(3);
                         _timer.Start();
-                        dataGrid.DataContext = NSAPEntities.VesselCatchViewModel.OrphanedSpeciesNames(getMultiLine: (bool)checkMultipleSp.IsChecked);
+                        //dataGrid.DataContext = NSAPEntities.VesselCatchViewModel.OrphanedSpeciesNames(getMultiLine: (bool)checkMultipleSp.IsChecked);
+                        dataGrid.DataContext = VesselCatchViewModel.OrphanedSpeciesNamesStatic(getMultiLine: (bool)checkMultipleSp.IsChecked);
                     }
                     break;
                 case "buttonCancel":
@@ -862,7 +876,8 @@ namespace NSAP_ODK.Views
             {
                 case "checkMultipleSp":
                     _isMultiline = (bool)chk.IsChecked;
-                    dataGrid.DataContext = NSAPEntities.VesselCatchViewModel.OrphanedSpeciesNames(getMultiLine: (bool)chk.IsChecked);
+                    //dataGrid.DataContext = NSAPEntities.VesselCatchViewModel.OrphanedSpeciesNames(getMultiLine: (bool)chk.IsChecked);
+                    dataGrid.DataContext = VesselCatchViewModel.OrphanedSpeciesNamesStatic(getMultiLine: (bool)chk.IsChecked);
                     buttonFix.IsEnabled = (bool)chk.IsChecked;
                     checkCheckAll.IsEnabled = buttonFix.IsEnabled;
                     buttonSelectReplacement.IsEnabled = !(bool)chk.IsChecked;

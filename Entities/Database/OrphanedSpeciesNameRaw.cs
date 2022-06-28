@@ -26,5 +26,10 @@ namespace NSAP_ODK.Entities.Database
         public int VesselUnloadID { get; set; }
 
         public int HashCode { get; set; }
+
+        public override string ToString()
+        {
+            return $"{RegionName}, {FMAName}, {FishingGroundName}, {Taxa}, {OrphanedSpName}"; 
+        }
     }
 }
