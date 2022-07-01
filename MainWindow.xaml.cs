@@ -66,6 +66,7 @@ namespace NSAP_ODK
         private NSAPRegion _selectedRegionInSummary;
         private DataGrid _dataGrid;
         private static HttpClient _httpClient = new HttpClient();
+        private Koboserver _selectedKoboserver;
         public MainWindow()
         {
             InitializeComponent();
@@ -208,6 +209,7 @@ namespace NSAP_ODK
 
                     break;
                 case "Enumerators and form versions":
+                    dataGridEFormVersionStats.ContextMenu.Visibility = Visibility.Collapsed;
                     labelSummary.Content = "Enumerators and latest eForm versions";
                     panelVersionStats.Visibility = Visibility.Visible;
                     dataGridEFormVersionStats.AutoGenerateColumns = false;
@@ -228,7 +230,8 @@ namespace NSAP_ODK
                     dataGridEFormVersionStats.DataContext = NSAPEntities.SummaryItemViewModel.EnumeratorsAndLatestFormVersion();
                     break;
                 case "e-Form versions":
-                    labelSummary.Content = "eForm versions, number of submitted landings and date of first submission";
+                    dataGridEFormVersionStats.ContextMenu.Visibility = Visibility.Collapsed;
+                    labelSummary.Content = "eForm versions, number of submitted landings anded date of first submission";
                     panelVersionStats.Visibility = Visibility.Visible;
                     dataGridEFormVersionStats.AutoGenerateColumns = false;
                     dataGridEFormVersionStats.Columns.Clear();
@@ -249,6 +252,7 @@ namespace NSAP_ODK
                     dataGridEFormVersionStats.DataContext = NSAPEntities.ODKEformVersionViewModel.ODKEformVersionCollection.ToList();
                     break;
                 case "Enumerators":
+
                     ShowStatusRow(isVisible: false);
                     NSAPEntities.DatabaseEnumeratorSummary.Refresh();
                     //propertyGridSummary.Properties.Clear();
@@ -281,6 +285,10 @@ namespace NSAP_ODK
                     propertyGridSummary.Visibility = Visibility.Visible;
                     break;
                 case "Databases":
+                    _selectedKoboserver = null;
+                    dataGridEFormVersionStats.ContextMenu.IsOpen = false;
+                    dataGridEFormVersionStats.ContextMenu.Visibility = Visibility.Visible;
+
                     panelVersionStats.Visibility = Visibility.Visible;
                     labelSummary.Content = "Summary of online databases (Kobotoolbox)";
                     dataGridEFormVersionStats.AutoGenerateColumns = false;
@@ -1180,7 +1188,19 @@ namespace NSAP_ODK
         {
             switch (((DataGrid)sender).Name)
             {
-
+                case "dataGridEFormVersionStats":
+                    if (dataGridEFormVersionStats.SelectedItem != null)
+                    {
+                        switch (dataGridEFormVersionStats.SelectedItem.GetType().Name)
+                        {
+                            case "Koboserver":
+                                _selectedKoboserver = (Koboserver)dataGridEFormVersionStats.SelectedItem;
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    break;
                 case "dataGridSummary":
                     if (dataGridSummary.SelectedItem != null)
                     {
@@ -1685,6 +1705,7 @@ namespace NSAP_ODK
                     break;
                 case "menuGPS":
                     _nsapEntity = NSAPEntity.GPS;
+                    buttonImport.Visibility = Visibility.Visible;
                     textOfTitle = "List of GPS units";
                     break;
                 case "menuProvinces":
@@ -2118,6 +2139,15 @@ namespace NSAP_ODK
 
             switch (itemName)
             {
+
+                case "menuRemoveKoboserver":
+                    NSAPEntities.KoboServerViewModel.DeleteRecordFromRepo(_selectedKoboserver.ServerNumericID);
+                    break;
+
+                case "menuRemoveAllKoboserversOfOwner":
+                    NSAPEntities.KoboServerViewModel.RemoveAllKoboserversOfOwner(_selectedKoboserver);
+                    break;
+
                 case "menuFileSettings1":
                 case "menuFileSettings":
                     ShowSettingsWindow();

@@ -28,6 +28,7 @@
             <TreeViewItem Header="Effort" Tag="effort"/>
             <TreeViewItem Header="Length frequency" Tag="lenfreq"/>
             <TreeViewItem Header="Length" Tag="len"/>
+            <TreeViewItem Header="Length-weight" Tag="len_wt"/>
             <TreeViewItem Header="Catch maturity" Tag ="maturity"/>
         </TreeView>
         <StackPanel Grid.Row="1" Grid.ColumnSpan="2" HorizontalAlignment="Center">

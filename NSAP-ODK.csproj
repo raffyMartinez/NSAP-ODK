@@ -180,6 +180,7 @@
     <Compile Include="Entities\Database\CollectedUnrecognizedFG.cs" />
     <Compile Include="Entities\Database\CreateTablesInAccess.cs" />
     <Compile Include="Entities\Database\CreateTablesInAccessEventArgs.cs" />
+    <Compile Include="Entities\Database\CrossTabLengthWeight.cs" />
     <Compile Include="Entities\Database\DownloadedJsonMetadata.cs" />
     <Compile Include="Entities\Database\FileInfoJSONMetadata.cs" />
     <Compile Include="Entities\Database\GearUnloadComparer.cs" />

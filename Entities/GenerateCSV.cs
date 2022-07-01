@@ -432,7 +432,7 @@ namespace NSAP_ODK.Entities
 
         public static void RefreshEntities()
         {
-            foreach(var item in NSAPEntities.Regions)
+            foreach (var item in NSAPEntities.Regions)
             {
                 NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(item);
                 //NSAPRegion r = NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(item);
@@ -602,10 +602,18 @@ namespace NSAP_ODK.Entities
 
             //GPS section
             sb = new StringBuilder(header);
-            foreach (var gps in NSAPEntities.GPSViewModel.GPSCollection.OrderBy(t => t.AssignedName))
+            if (NSAPEntities.GPSViewModel.Count == 0)
             {
-                sb.AppendLine($"gps,{gps.Code},{gps.AssignedName},gps");
+                sb.Append("gps,gps,Generic GPS,gps");
                 counter++;
+            }
+            else
+            {
+                foreach (var gps in NSAPEntities.GPSViewModel.GPSCollection.OrderBy(t => t.AssignedName))
+                {
+                    sb.AppendLine($"gps,{gps.Code},{gps.AssignedName},gps");
+                    counter++;
+                }
             }
             await LogAsync(sb.ToString(), $"{_folderSaveLocation}\\gps_select.csv");
             FilesCount++;
@@ -708,10 +716,19 @@ namespace NSAP_ODK.Entities
 
 
             //GPS section
-            foreach (var gps in NSAPEntities.GPSViewModel.GPSCollection.OrderBy(t => t.AssignedName))
+
+            if (NSAPEntities.GPSViewModel.Count == 0)
             {
-                sb.AppendLine($"gps,{gps.Code},{gps.AssignedName},gps");
+                sb.Append("gps,gps,Generic GPS,gps");
                 counter++;
+            }
+            else
+            {
+                foreach (var gps in NSAPEntities.GPSViewModel.GPSCollection.OrderBy(t => t.AssignedName))
+                {
+                    sb.AppendLine($"gps,{gps.Code},{gps.AssignedName},gps");
+                    counter++;
+                }
             }
 
             if (counter > 0)

@@ -388,9 +388,6 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
         //this is the combined name from fish species, invert species or other name
         //catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/species_name_selected
-        //[JsonProperty("catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/species_name_selected")]
-        //catch_comp_group/catch_composition_repeat/speciesname_group/species_name_selected
-
 
         [JsonProperty("catch_comp_group/catch_composition_repeat/speciesname_group/species_name_selected")]
         public string SpeciesNameSelected
@@ -1192,14 +1189,32 @@ namespace NSAP_ODK.Entities.Database.FromJson
             {
                 if (GPS2 != null)
                 {
+                    if (GPS2 == "gps")
+                    {
+                        if (!NSAPEntities.GPSViewModel.Exists(GPS2))
+                        {
+                            GPS gps = new GPS
+                            {
+                                Code = "gps",
+                                AssignedName = "Generic GPS",
+                                DeviceType = DeviceType.DeviceTypeGPS
+                            };
+
+
+                            NSAPEntities.GPSViewModel.AddGenericGPS(gps);
+                        }
+                    }
+
+
                     return NSAPEntities.GPSViewModel.GetGPS(GPS2);
+
                 }
                 else
                 {
                     return NSAPEntities.GPSViewModel.GetGPS(GPSCode);
                 }
             }
-        }
+        } 
         [JsonProperty("soak_time_group/soaktime_tracking_group/time_depart_landingsite")]
         public DateTime? TimeDepartLandingSite { get; set; }
         [JsonProperty("soak_time_group/soaktime_tracking_group/time_arrive_landingsite")]
@@ -1491,7 +1506,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
             CatchCompGroupCatchCompositionRepeatLengthFreqRepeat.ResetIDState();
             CatchCompGroupCatchCompositionRepeatGmsRepeatGroup.ResetIDState();
         }
-        public static void ResetGroupIDs(bool delayedSave=false)
+        public static void ResetGroupIDs(bool delayedSave = false)
         {
             NSAPEntities.SummaryItemViewModel.RefreshLastPrimaryLeys(delayedSave);
             SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat.SetRowIDs();
@@ -2370,10 +2385,14 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                 DelayedSave = DelayedSave
                                             };
 
-                                            if (vc.SpeciesID == null && string.IsNullOrEmpty(vc.SpeciesText) && vc.Parent.HasCatchComposition)
+                                            if (catchComp.SpeciesID != null && !NSAPEntities.FishSpeciesViewModel.SpeciesIDExists((int)catchComp.SpeciesID))
+                                            {
+                                                vc.SpeciesID = null;
+                                                vc.SpeciesText = catchComp.SpeciesName;
+                                            }
+                                            else if (vc.SpeciesID == null && string.IsNullOrEmpty(vc.SpeciesText) && vc.Parent.HasCatchComposition)
                                             {
                                                 vu.VesselCatchViewModel.MissingCatchInfoCount = ++missingCatchInfoCounter;
-
                                             }
 
                                             if (vu.VesselCatchViewModel.AddRecordToRepo(vc))

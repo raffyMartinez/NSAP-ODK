@@ -1655,7 +1655,9 @@ namespace NSAP_ODK.Views
             if (_downloadOption == "json")
             {
                 stackPanelJSON.Visibility = Visibility.Visible;
-                panelWeeksToDownload.Visibility = Visibility.Visible;
+
+                //panelWeeksToDownload.Visibility = Visibility.Visible;
+                
                 if (System.Diagnostics.Debugger.IsAttached)
                 {
                     panelDLSpecificFormUsingUUID.Visibility = Visibility.Visible;

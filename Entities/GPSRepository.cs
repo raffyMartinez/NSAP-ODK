@@ -15,6 +15,7 @@ namespace NSAP_ODK.Entities
     {
         public List<GPS> GPSes { get; set; }
 
+
         public GPSRepository()
         {
             GPSes = getGPSes();

@@ -24,6 +24,15 @@ namespace NSAP_ODK.Entities.Database
             return KoboserverCollection.Count;
         }
 
+        public bool RemoveAllKoboserversOfOwner(Koboserver ks)
+        {
+            return false;
+        }
+
+        public bool RemoveKoboserver(Koboserver ks)
+        {
+            return false;
+        }
         public bool ClearTable()
         {
             return Koboservers.ClearTable();

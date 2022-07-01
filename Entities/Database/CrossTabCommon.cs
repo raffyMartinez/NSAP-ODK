@@ -34,7 +34,7 @@ namespace NSAP_ODK.Entities.Database
                     Province = "";
                     Municipality = "";
                 }
-                if(_vesselUnload.FishingGroundGridViewModel==null)
+                if (_vesselUnload.FishingGroundGridViewModel == null)
                 {
                     _vesselUnload.FishingGroundGridViewModel = new FishingGroundGridViewModel(_vesselUnload);
                 }
@@ -114,6 +114,15 @@ namespace NSAP_ODK.Entities.Database
             CommonProperties = CrossTabManager.UnloadCrossTabCommonPropertyDictionary[_vesselUnload.PK];
         }
 
+        public CrossTabCommon(CatchLengthWeight clw)
+        {
+            _samplingDate = clw.Parent.Parent.Parent.Parent.SamplingDate;
+            _landingSiteSampling = clw.Parent.Parent.Parent.Parent;
+            _gearUnload = clw.Parent.Parent.Parent;
+            _vesselUnload = clw.Parent.Parent;
+            _vesselCatch = clw.Parent;
+            CommonProperties = CrossTabManager.UnloadCrossTabCommonPropertyDictionary[_vesselUnload.PK];
+        }
         public CrossTabCommon(CatchLength cl)
         {
             _samplingDate = cl.Parent.Parent.Parent.Parent.SamplingDate;

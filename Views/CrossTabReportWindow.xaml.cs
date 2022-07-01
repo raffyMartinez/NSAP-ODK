@@ -159,6 +159,12 @@ namespace NSAP_ODK.Views
                         dataGrid.Columns.Add(new DataGridTextColumn { Header = "Length", Binding = new Binding("Length")  });
                         mainLabel.Content = "Crosstab between length of catch and fishing effort";
                         break;
+                    case "len_wt":
+                        dataGrid.DataContext = CrossTabManager.CrossTabLengthWeights;
+                        dataGrid.Columns.Add(new DataGridTextColumn { Header = "Length", Binding = new Binding("Length") });
+                        dataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("Weight")  });
+                        mainLabel.Content = "Crosstab between length/weight of catch and fishing effort";
+                        break;
                     case "maturity":
                         dataGrid.DataContext = CrossTabManager.CrossTabMaturities;
                         dataGrid.Columns.Add(new DataGridTextColumn { Header = "Length", Binding = new Binding("Length") });

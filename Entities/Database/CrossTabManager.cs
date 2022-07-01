@@ -11,6 +11,7 @@ namespace NSAP_ODK.Entities.Database
     public static class CrossTabManager
     {
         private static List<CrossTabEffort> _crossTabEfforts;
+        private static List<CrossTabLengthWeight> _crossTabLenWts;
         private static List<CrossTabEffortAll> _crossTabEffortsAll;
         private static List<CrossTabLenFreq> _crossTabLenFreqs;
         private static List<CrossTabMaturity> _crossTabMaturities;
@@ -53,6 +54,7 @@ namespace NSAP_ODK.Entities.Database
             _crossTabMaturities = new List<CrossTabMaturity>();
             _crossTabLengths = new List<CrossTabLength>();
             _crossTabEffortsAll = new List<CrossTabEffortAll>();
+            _crossTabLenWts = new List<CrossTabLengthWeight>();
 
             string topic = _sev.ContextMenuTopic;
 
@@ -165,6 +167,17 @@ namespace NSAP_ODK.Entities.Database
                     {
                         ctc = new CrossTabCommon(cl);
                         _crossTabLengths.Add(new CrossTabLength { CrossTabCommon = ctc, Length = cl.Length });
+                    }
+
+                    foreach (var clw in vc.ListCatchLengthWeight)
+                    {
+                        ctc = new CrossTabCommon(clw);
+                        _crossTabLenWts.Add(new CrossTabLengthWeight
+                        {
+                            Length = clw.Length,
+                            Weight = clw.Weight,
+                            CrossTabCommon = ctc,
+                        });
                     }
 
                 }
@@ -589,6 +602,8 @@ namespace NSAP_ODK.Entities.Database
 
 
         }
+
+        public static List<CrossTabLengthWeight> CrossTabLengthWeights { get { return _crossTabLenWts; } }
         public static List<CrossTabLength> CrossTabLengths { get { return _crossTabLengths; } }
         public static List<CrossTabMaturity> CrossTabMaturities { get { return _crossTabMaturities; } }
 
@@ -615,8 +630,10 @@ namespace NSAP_ODK.Entities.Database
                     _crossTabDataSet.Tables.Add(_effortCrostabDataTable);
                     _crossTabDataSet.Tables.Add(_effortSpeciesCrostabDataTable);
                     _crossTabDataSet.Tables.Add(ListToDataTable(CrossTabLengths, "Length"));
+                    _crossTabDataSet.Tables.Add(ListToDataTable(CrossTabLengthWeights, "Length-Weight"));
                     _crossTabDataSet.Tables.Add(ListToDataTable(CrossTabMaturities, "Maturity"));
                     _crossTabDataSet.Tables.Add(ListToDataTable(CrossTabLenFreqs, "Len-Freq"));
+
                 }
                 catch (Exception ex)
                 {
@@ -699,6 +716,9 @@ namespace NSAP_ODK.Entities.Database
                                 case "CrossTabMaturity":
                                     ctc = (item as CrossTabMaturity).CrossTabCommon;
                                     break;
+                                case "CrossTabLengthWeight":
+                                    ctc = (item as CrossTabLengthWeight).CrossTabCommon;
+                                    break;
                             }
                             foreach (PropertyDescriptor ptd in prop.GetChildProperties())
                             {
@@ -762,6 +782,18 @@ namespace NSAP_ODK.Entities.Database
                                     {
                                         row[prop.Name] = (item as CrossTabLength).Length;
                                     }
+                                    break;
+                                case "CrossTabLengthWeight":
+                                    switch (prop.Name)
+                                    {
+                                        case "Length":
+                                            row[prop.Name] = (item as CrossTabLengthWeight).Length;
+                                            break;
+                                        case "Weight":
+                                            row[prop.Name] = (item as CrossTabLengthWeight).Weight;
+                                            break;
+                                    }
+
                                     break;
                                 case "CrossTabLenFreq":
                                     switch (prop.Name)

@@ -47,6 +47,11 @@ namespace NSAP_ODK.Views
             panelSector.Visibility = Visibility.Collapsed;
             switch (NSAPEntityType)
             {
+                case NSAPEntity.GPS:
+                    Title = "Import GPS in csv";
+                    FillRegionRadioButtons();
+                    labelEntityImport.Text = "Import GPS using CSV with headers in the first row";
+                    break;
                 case NSAPEntity.Enumerator:
                     Title = "Import enumerator names";
                     FillRegionCheckBoxes();
@@ -86,11 +91,27 @@ namespace NSAP_ODK.Views
         private int CheckedRegions()
         {
             int count = 0;
-            foreach (CheckBox c in panelRegions.Children)
+            if (panelRegions.Children.Count > 0)
             {
-                if ((bool)c.IsChecked)
+                if (panelRegions.Children[0].GetType().Name == "CheckBox")
                 {
-                    count++;
+                    foreach (CheckBox c in panelRegions.Children)
+                    {
+                        if ((bool)c.IsChecked)
+                        {
+                            count++;
+                        }
+                    }
+                }
+                else if(panelRegions.Children[0].GetType().Name=="RadioButton")
+                {
+                    foreach(RadioButton rb in panelRegions.Children)
+                    {
+                        if((bool)rb.IsChecked)
+                        {
+                            count++;
+                        }
+                    }
                 }
             }
             return count;
@@ -108,6 +129,23 @@ namespace NSAP_ODK.Views
                     {
                         switch (NSAPEntityType)
                         {
+                            case NSAPEntity.GPS:
+                                if (textBox.Text.Length > 0)
+                                {
+                                    NSAPEntities.GPSViewModel.ImportGPSCSV = textBox.Text;
+                                    
+                                    if(NSAPEntities.GPSViewModel.GPSCSVImportSuccess)
+                                    {
+
+                                    
+                                    }
+                                    else
+                                    {
+
+                                    }
+                                }
+
+                                break;
                             case NSAPEntity.Enumerator:
                                 foreach (var item in textBox.Text.Split('\n').ToList())
                                 {

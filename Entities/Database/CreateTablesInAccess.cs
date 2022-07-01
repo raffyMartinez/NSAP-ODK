@@ -78,6 +78,37 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
+
+        public static List<string> GetColumnNames(string tableName, bool makeLowerCase=false)
+        {
+            List<string> cols = new List<string>();
+            using (var con = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    cmd.CommandText = $"Select * from {tableName}";
+                    con.Open();
+                    using (var reader = cmd.ExecuteReader(CommandBehavior.SchemaOnly))
+                    {
+                        var table = reader.GetSchemaTable();
+                        var nameCol = table.Columns["ColumnName"];
+                        foreach (DataRow row in table.Rows)
+                        {
+                            if (makeLowerCase)
+                            {
+                                cols.Add($"{row[nameCol].ToString().ToLower()}");
+                            }
+                            else
+                            {
+                                cols.Add($"{row[nameCol]}");
+                            }
+                        }
+                    }
+                }
+            }
+            return cols;
+        }
+
         public static string GetColumnNamesCSV(string tableName)
         {
             string csv = "";

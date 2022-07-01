@@ -56,10 +56,10 @@
         <!--buttons on the right of the screen-->
         <StackPanel Grid.Row="3" Grid.Column="1" Grid.RowSpan="4" x:Name="PanelButtons">
             <Button Content="Add" Margin="10" Height="30" x:Name="buttonAdd" Click="OnButtonClick" />
-            <Button Content="Import" Margin="10" Height="30" x:Name="buttonImport" Click="OnButtonClick" Visibility="Collapsed"/>
             <Button Content="Edit" Margin="10" Height="30" x:Name="buttonEdit" Click="OnButtonClick" />
             <Button Content="Delete" Margin="10" Height="30" x:Name="buttonDelete" Click="OnButtonClick" />
             <Button Content="Orphan" Margin="10" Height="30" x:Name="buttonOrphan" Click="OnButtonClick" Visibility="Collapsed" />
+            <Button Content="Import" Margin="10" Height="30" x:Name="buttonImport" Click="OnButtonClick" Visibility="Collapsed"/>
             <Button Content="Export" Margin="10" Height="30" x:Name="buttonExport" Click="OnButtonClick" Visibility="Collapsed" />
             <!--<Button Content="Summary" Margin="10" Height="30" x:Name="buttonEntitySummary" Click="OnButtonClick" Visibility="Collapsed" />-->
         </StackPanel>
@@ -301,7 +301,14 @@
                                MouseRightButtonUp="OnPropertyGridContextMenu" />
 
                     <StackPanel x:Name="panelVersionStats" Visibility="Collapsed" >
-                        <DataGrid x:Name="dataGridEFormVersionStats"  ItemsSource="{Binding}" IsReadOnly="True" LoadingRow="Grid_LoadingRow"/>
+                        <DataGrid x:Name="dataGridEFormVersionStats"  ItemsSource="{Binding}" IsReadOnly="True" LoadingRow="Grid_LoadingRow" SelectionChanged="OnDataGridSelectionChanged">
+                            <DataGrid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Remove server" x:Name="menuRemoveKoboserver" Click="OnMenuClicked" />
+                                    <MenuItem Header="Remove all servers of owner" x:Name="menuRemoveAllKoboserversOfOwner" Click="OnMenuClicked"/>
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
+                        </DataGrid>
                         <WrapPanel Visibility="Collapsed" x:Name="panelSummaryTableHint" >
                             <TextBlock Text="Log-in" x:Name="labelLink" MouseUp="OnTextBlockMouseUp" Style="{StaticResource HoverUnderlineStyle}" VerticalAlignment="Center" FontWeight="Bold"/>
                             <Label Content="and connect to the online database (kobotoolbox) to refresh data in this table" />
@@ -314,6 +321,8 @@
                 <StackPanel  x:Name="panelOpening">
                     <CheckBox x:Name="checkLandingSiteWithLandings" Margin="20 0 0 0" Visibility="Collapsed" Content="Only show landing sites with catch monitoring" Checked="OnCheckBoxChecked" Unchecked="OnCheckBoxChecked"/>
                     <DataGrid x:Name="dataGridSummary" Visibility="Collapsed" ItemsSource="{Binding}" IsReadOnly="True" Margin="20" LoadingRow="Grid_LoadingRow" RowHeaderWidth="30" SelectionChanged="OnDataGridSelectionChanged" MouseDoubleClick="OnGridDoubleClick"  MouseRightButtonUp="OnMenuRightClick"/>
+
+
 
                 </StackPanel>
             </ScrollViewer>

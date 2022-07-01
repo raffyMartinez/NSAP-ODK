@@ -253,7 +253,7 @@ namespace NSAP_ODK.Entities.Database
                     {
                         cmd.CommandText = @"SELECT DISTINCT dbo_vessel_catch.v_unload_id
                                             FROM dbo_vessel_catch
-                                            WHERE(((dbo_vessel_catch.species_id)Is Null) AND((Len([species_text])) > 0))";
+                                            WHERE dbo_vessel_catch.species_id Is Null AND Len([species_text]) > 0";
 
                         con.Open();
                         OleDbDataReader dr = cmd.ExecuteReader();

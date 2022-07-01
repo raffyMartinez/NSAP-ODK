@@ -6,12 +6,16 @@ using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Data;
-
+using NSAP_ODK.Entities.Database;
 namespace NSAP_ODK.Entities
 {
     public class GPSViewModel
     {
         private bool _editSuccess;
+        private bool _isGenericGPS;
+        private string _importGPSCSV;
+        private List<string> _csvHeaders = new List<string>();
+        private int _importGPSCSVImportedCount;
         public ObservableCollection<GPS> GPSCollection { get; set; }
         private GPSRepository GPSes { get; set; }
 
@@ -55,6 +59,95 @@ namespace NSAP_ODK.Entities
             return ds;
         }
 
+        public string GPSImportErrorMessage { get; private set; }
+        public string ImportGPSCSV
+        {
+            
+            get { return _importGPSCSV; }
+            set
+            {
+
+                _importGPSCSVImportedCount = 0;
+                _csvHeaders.Clear();
+                bool validHeader = false;
+
+                _importGPSCSV = value;
+                int loopCount = 0;
+                int rowCount = 0;
+                foreach (var item in _importGPSCSV.Split('\n').ToList())
+                {
+                    if (loopCount == 0)
+                    {
+                        foreach (var header in item.Split(',').ToList())
+                        {
+                            _csvHeaders.Add(header.Replace("_", "").ToLower());
+                        }
+                        validHeader = ISValidCSVHeaders();
+                    }
+                    else if (validHeader)
+                    {
+                        if (item.Length > 0)
+                        {
+
+                            var arrGPS = item.Split(',');
+                            GPS gps = new GPS
+                            {
+                                Code = arrGPS[0].Trim('\"'),
+                                AssignedName = arrGPS[1].Trim('\"'),
+                                Brand = arrGPS[2],
+                                Model = arrGPS[3],
+                                DeviceType = (DeviceType)int.Parse(arrGPS[4])
+                            };
+                            var result = NSAPEntities.GPSViewModel.ValidateGPS(gps, true, "", "");
+                            if (result.ErrorMessage.Length == 0 )
+                            {
+                                if (NSAPEntities.GPSViewModel.AddRecordToRepo(gps))
+                                {
+                                    _importGPSCSVImportedCount++;
+                                }
+                            }
+                            else
+                            {
+                                
+                            }
+                            rowCount++;
+                        }
+                    }
+                    else
+                    {
+                        GPSCSVImportSuccess = false;
+                        break;
+                    }
+                    loopCount++;
+                }
+                GPSCSVImportSuccess = rowCount == _importGPSCSVImportedCount;
+            }
+            
+        }
+
+        public bool GPSCSVImportSuccess { get; private set; }
+
+        private bool ISValidCSVHeaders()
+        {
+            int headerCount = 0;
+            List<string> headerList = null;
+            if (Utilities.Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                headerList = CreateTablesInAccess.GetColumnNames(tableName: "gps", makeLowerCase: true);
+                foreach (var item in headerList)
+                {
+                    if (_csvHeaders.Contains(item))
+                    {
+                        headerCount++;
+                    }
+                }
+            }
+            return headerCount == headerList.Count;
+        }
         public GPSViewModel()
         {
             GPSes = new GPSRepository();
@@ -104,7 +197,7 @@ namespace NSAP_ODK.Entities
                     {
                         int newIndex = e.NewStartingIndex;
                         GPS newGPS = GPSCollection[newIndex];
-                        if (GPSes.Add(newGPS))
+                        if (!_isGenericGPS && GPSes.Add(newGPS))
                         {
                             _editSuccess = true;
                             CurrentEntity = newGPS;
@@ -114,13 +207,13 @@ namespace NSAP_ODK.Entities
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<GPS> tempListOfRemovedItems = e.OldItems.OfType<GPS>().ToList();
-                        _editSuccess= GPSes.Delete(tempListOfRemovedItems[0].Code);
+                        _editSuccess = GPSes.Delete(tempListOfRemovedItems[0].Code);
                     }
                     break;
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<GPS> tempList = e.NewItems.OfType<GPS>().ToList();
-                        _editSuccess= GPSes.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        _editSuccess = GPSes.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -131,10 +224,24 @@ namespace NSAP_ODK.Entities
             get { return GPSCollection.Count; }
         }
 
+        public bool AddGenericGPS(GPS gps)
+        {
+            _isGenericGPS = true;
+            GPSCollection.Add(gps);
+            CurrentEntity = gps;
+            return true;
+        }
+
+        public bool Exists(string gpsCode)
+        {
+            return GPSCollection.FirstOrDefault(t => t.Code == gpsCode) != null;
+        }
         public bool AddRecordToRepo(GPS gps)
         {
             if (gps == null)
                 throw new ArgumentNullException("Error: The argument is Null");
+
+            _isGenericGPS = false;
             GPSCollection.Add(gps);
 
             return _editSuccess;
@@ -182,6 +289,11 @@ namespace NSAP_ODK.Entities
             if (isNew && (gps.Code.Length < 3 || gps.Code.Length > 6))
             {
                 evr.AddMessage("Code must be at least 3 to 6 letters long");
+            }
+
+            if (gps.Code.ToLower() == "gps")
+            {
+                evr.AddMessage($"The code \"{gps.Code}\" is reserverd and cannot be used.");
             }
 
             if (isNew && gps.AssignedName.Length < 5)

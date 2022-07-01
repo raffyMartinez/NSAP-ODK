@@ -547,6 +547,11 @@ namespace NSAP_ODK.Entities
             return _editSuccess;
         }
 
+
+        public bool SpeciesIDExists(int speciesID)
+        {
+            return SpeciesCollection.FirstOrDefault(t => t.SpeciesCode == speciesID) != null;
+        }
         public bool SpeciesNameExist(string genus, string species)
         {
             foreach (FishSpecies fs in SpeciesCollection)
