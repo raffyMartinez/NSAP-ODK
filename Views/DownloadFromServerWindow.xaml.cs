@@ -507,8 +507,8 @@ namespace NSAP_ODK.Views
 
                     int sizeToDownload = _formSummary.NumberOfSubmissions - _formSummary.NumberSavedToDatabase;
 
-                    if ( !_hasDownloadOptions && (bool)rbAll.IsChecked || (sizeToDownload >= Utilities.Settings.DefaultDownloadSizeForBatchMode && 
-                             (bool)rbNotDownloaded.IsChecked))
+                    if ( !_hasDownloadOptions && ((bool)rbAll.IsChecked || (sizeToDownload >= Utilities.Settings.DefaultDownloadSizeForBatchMode && 
+                             (bool)rbNotDownloaded.IsChecked)))
                             
                     {
                         DownloadFromServerOptionsWindow dsow = new DownloadFromServerOptionsWindow();
@@ -735,8 +735,6 @@ namespace NSAP_ODK.Views
                                                 var bytes = await response.Content.ReadAsByteArrayAsync();
                                                 Encoding encoding = Encoding.GetEncoding("utf-8");
                                                 StringBuilder the_response = new StringBuilder(encoding.GetString(bytes, 0, bytes.Length));
-                                                //string the_response = encoding.GetString(bytes, 0, bytes.Length);
-                                                //((ODKResultsWindow)Owner).JSON = the_response;
                                                 ((ODKResultsWindow)Owner).FormID = _formID;
                                                 ((ODKResultsWindow)Owner).Description = _description;
                                                 ((ODKResultsWindow)Owner).Count = _count;
