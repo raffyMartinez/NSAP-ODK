@@ -239,7 +239,20 @@ namespace NSAP_ODK.Entities
                         }
                         catch (OleDbException dbex)
                         {
-                            Logger.Log(dbex);
+                            switch(dbex.ErrorCode)
+                            {
+                                case -2147467259:
+                                    //duplicate value in index or primary key error
+                                    if(dbex.Message.Contains("create duplicate values in the index, primary key, or relationship"))
+                                    {
+                                        //success would be false so just continue
+                                    }
+                                    break;
+                                default:
+                                    Logger.Log(dbex);
+                                    break;
+                            }
+                            //Logger.Log(dbex);
                         }
                         catch (Exception ex)
                         {

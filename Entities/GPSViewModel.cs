@@ -16,6 +16,7 @@ namespace NSAP_ODK.Entities
         private string _importGPSCSV;
         private List<string> _csvHeaders = new List<string>();
         private int _importGPSCSVImportedCount;
+
         public ObservableCollection<GPS> GPSCollection { get; set; }
         private GPSRepository GPSes { get; set; }
 
@@ -59,14 +60,19 @@ namespace NSAP_ODK.Entities
             return ds;
         }
 
+        public int ImportGPSCSVImportedCount
+        {
+            get { return _importGPSCSVImportedCount; }
+        }
         public string GPSImportErrorMessage { get; private set; }
         public string ImportGPSCSV
         {
-            
+
             get { return _importGPSCSV; }
             set
             {
-
+                int validationErrorCount = 0;
+                string validationErrorMessage = "";
                 _importGPSCSVImportedCount = 0;
                 _csvHeaders.Clear();
                 bool validHeader = false;
@@ -88,41 +94,72 @@ namespace NSAP_ODK.Entities
                     {
                         if (item.Length > 0)
                         {
-
                             var arrGPS = item.Split(',');
-                            GPS gps = new GPS
+                            try
                             {
-                                Code = arrGPS[0].Trim('\"'),
-                                AssignedName = arrGPS[1].Trim('\"'),
-                                Brand = arrGPS[2],
-                                Model = arrGPS[3],
-                                DeviceType = (DeviceType)int.Parse(arrGPS[4])
-                            };
-                            var result = NSAPEntities.GPSViewModel.ValidateGPS(gps, true, "", "");
-                            if (result.ErrorMessage.Length == 0 )
-                            {
-                                if (NSAPEntities.GPSViewModel.AddRecordToRepo(gps))
+                                GPS gps = new GPS
                                 {
-                                    _importGPSCSVImportedCount++;
+                                    Code = arrGPS[0].Trim('\"'),
+                                    AssignedName = arrGPS[1].Trim('\"'),
+                                    Brand = arrGPS[2],
+                                    Model = arrGPS[3],
+
+                                };
+
+                                if (int.TryParse(arrGPS[4], out int v))
+                                {
+                                    gps.DeviceType = (DeviceType)v;
+                                    var result = NSAPEntities.GPSViewModel.ValidateGPS(gps, true, "", "");
+                                    if (result.ErrorMessage.Length == 0)
+                                    {
+                                        if (NSAPEntities.GPSViewModel.AddRecordToRepo(gps))
+                                        {
+                                            _importGPSCSVImportedCount++;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        validationErrorCount++;
+                                        //validationErrorMessage += $"{result.ErrorMessage}\n";
+                                    }
+                                    rowCount++;
                                 }
+
+
                             }
-                            else
+                            catch (Exception ex)
                             {
-                                
+                                Utilities.Logger.Log(ex);
                             }
-                            rowCount++;
                         }
+
                     }
                     else
                     {
+                        GPSImportErrorMessage = "CSV headers does not match with the database";
                         GPSCSVImportSuccess = false;
                         break;
                     }
                     loopCount++;
                 }
-                GPSCSVImportSuccess = rowCount == _importGPSCSVImportedCount;
+
+                var diff = rowCount - _importGPSCSVImportedCount;
+                if (diff != 0)
+                {
+                    string item_items = "items were";
+                    if (diff == 1)
+                    {
+                        item_items = "item was";
+                    }
+                    GPSImportErrorMessage = $"Not all GPS items in the CSV was imported\r\n\r\n{diff} GPS {item_items} not imported";
+                    if (validationErrorCount > 0)
+                    {
+                        GPSImportErrorMessage += $"\r\n{validationErrorMessage.Trim('\n')}";
+                    }
+                }
+                GPSCSVImportSuccess = _importGPSCSVImportedCount > 0;
             }
-            
+
         }
 
         public bool GPSCSVImportSuccess { get; private set; }
@@ -311,15 +348,36 @@ namespace NSAP_ODK.Entities
                 evr.AddMessage("Brand must not be empty");
             }
 
-            if (!isNew && gps.AssignedName.Length > 0
-                && oldAssignedName != gps.AssignedName
-                && GPSAssignedNameExist(gps.AssignedName))
-                evr.AddMessage("GPS name already used");
+            if (gps.AssignedName.Length > 0 && gps.Code.Length > 0)
+            {
+                if (isNew)
+                {
+                    if (GPSAssignedNameExist(gps.AssignedName))
+                    {
+                        evr.AddMessage("GPS name already used");
+                    }
 
-            if (!isNew && gps.Code.Length > 0
-                && oldCode != gps.Code
-                && GPSCodeExist(gps.Code))
-                evr.AddMessage("GPS code already used");
+                    if (GPSCodeExist(gps.Code))
+                    {
+                        evr.AddMessage("GPS code already used");
+                    }
+                }
+                else
+                {
+
+                    if (oldAssignedName != gps.AssignedName &&
+                        GPSAssignedNameExist(gps.AssignedName))
+                    {
+                        evr.AddMessage("GPS name already used");
+                    }
+
+                    if (oldCode != gps.Code &&
+                        GPSCodeExist(gps.Code))
+                    {
+                        evr.AddMessage("GPS code already used");
+                    }
+                }
+            }
 
             return evr;
         }

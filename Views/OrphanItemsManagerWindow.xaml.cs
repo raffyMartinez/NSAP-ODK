@@ -545,9 +545,11 @@ namespace NSAP_ODK.Views
                                                 otherGearUnload.Catch = gu.Catch;
                                                 gu.Boats = null;
                                                 gu.Catch = null;
-                                                if (NSAPEntities.GearUnloadViewModel.UpdateRecordInRepo(otherGearUnload))
+                                                //if (NSAPEntities.GearUnloadViewModel.UpdateRecordInRepo(otherGearUnload))
+                                                if(landingSiteSampling.GearUnloadViewModel.UpdateRecordInRepo(otherGearUnload))
                                                 {
-                                                    NSAPEntities.GearUnloadViewModel.UpdateRecordInRepo(gu);
+                                                    landingSiteSampling.GearUnloadViewModel.UpdateRecordInRepo(gu);
+                                                    //NSAPEntities.GearUnloadViewModel.UpdateRecordInRepo(gu);
                                                 }
                                             }
                                             ShowProgressWhileReplacing(_countReplaced, $"Updated landing site {_countReplaced} of {_countForReplacement}");

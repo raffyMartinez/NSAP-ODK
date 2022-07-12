@@ -983,7 +983,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                     var regionEnumerator = (NSAPEntities.NSAPEnumeratorViewModel.GetNSAPEnumerator((int)RegionEnumeratorID));
                     if (regionEnumerator != null && NSAPRegion.NSAPEnumerators.Count > 0 && RegionEnumeratorID != null)
                     {
-                        var enumerator = NSAPRegion.NSAPEnumerators.FirstOrDefault(t => t.RowID == (int)RegionEnumeratorID).Enumerator;
+                        var enumerator = NSAPRegion.NSAPEnumerators.FirstOrDefault(t => t.RowID == (int)RegionEnumeratorID)?.Enumerator;
                         return enumerator;
                     }
                     else

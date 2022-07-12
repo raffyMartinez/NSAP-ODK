@@ -251,6 +251,7 @@
     <Compile Include="Entities\Database\TrackedLandingCentroidViewModel.cs" />
     <Compile Include="Entities\Database\TrackedOperationSummary.cs" />
     <Compile Include="Entities\Database\UnloadChildrenSummary.cs" />
+    <Compile Include="Entities\Database\UnloadMeasureSummaryForMonth.cs" />
     <Compile Include="Entities\Database\UnloadStatsLine.cs" />
     <Compile Include="Entities\Database\UnloadWithMaturityDatasetManager.cs" />
     <Compile Include="Entities\Database\TrackedVesselUnloadSummary.cs" />

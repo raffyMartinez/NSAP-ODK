@@ -22,7 +22,13 @@
         <!--<Label Content="Import GPS items, one line per row with headers in the first row" VerticalContentAlignment="Center" Margin="10,0" FontSize="14" Grid.Row="1"/>-->
         <Label Content="Select region" VerticalContentAlignment="Center" Margin="10,0" FontSize="14"  Grid.Column="1" Grid.Row="1"/>
         <Border BorderThickness=".5" BorderBrush="LightGray" Grid.Row="2" Margin="10 0">
-                <TextBox  x:Name="textBox" TextWrapping="Wrap" AcceptsReturn="True"/>
+            <TextBox  x:Name="textBox" TextWrapping="Wrap" AcceptsReturn="True">
+                <TextBox.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Import file" x:Name="menuImportFile" Click="onMenuClick"/>
+                    </ContextMenu>
+                </TextBox.ContextMenu>
+            </TextBox>
         </Border>
         <Border BorderThickness=".5" BorderBrush="LightGray" Grid.Row="2" Margin="10 0" Grid.Column="1">
             <StackPanel x:Name="panelRegions">

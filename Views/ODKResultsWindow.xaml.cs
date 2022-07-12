@@ -214,6 +214,11 @@ namespace NSAP_ODK.Views
                 menuReUploadJsonHistory.Visibility = Visibility.Collapsed;
             }
 
+            if (DownloadFromServerWindow.HasLoggedInToServer)
+            {
+                menuDownloadFromServerOtherUser.Visibility = Visibility.Visible;
+            }
+
             if (_openLogInWindow)
             {
                 _timer = new DispatcherTimer();
@@ -1078,7 +1083,8 @@ namespace NSAP_ODK.Views
                     break;
 
                 case "menuDownloadFromServer":
-                    OpenServerWindow();
+                case "menuDownloadFromServerOtherUser":
+                    OpenServerWindow(logInAsOtherUser: menuName == "menuDownloadFromServerOtherUser");
                     break;
 
                 case "menuClearTables":
@@ -1187,7 +1193,19 @@ namespace NSAP_ODK.Views
             }
             return success;
         }
-        private void OpenServerWindow(bool refreshDBSummary = false)
+
+        public void EnableLoginFromADifferentUser(bool enable=true)
+        {
+            if (enable)
+            {
+                menuDownloadFromServerOtherUser.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                menuDownloadFromServerOtherUser.Visibility = Visibility.Collapsed;
+            }
+        }
+        private void OpenServerWindow(bool refreshDBSummary = false, bool logInAsOtherUser = false)
         {
             var serverForm = new DownloadFromServerWindow(this);
             ResetView();
@@ -1196,6 +1214,7 @@ namespace NSAP_ODK.Views
             VesselUnloadServerRepository.ResetLists();
             serverForm.Owner = this;
             serverForm.RefreshDatabaseSummry = refreshDBSummary;
+            serverForm.LogInAsAnotherUser = logInAsOtherUser;
             serverForm.ShowDialog();
         }
         public async Task<bool> SetResolvedFishingGroundLandings(List<VesselLanding> resolvedLandings)

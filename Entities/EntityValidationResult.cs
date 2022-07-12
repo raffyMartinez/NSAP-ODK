@@ -21,6 +21,7 @@ namespace NSAP_ODK.Entities
         public void AddMessage(string message, MessageType messageType = MessageType.Error)
         {
             AddMessage(new EntityValidationMessage($"{message}\r\n", messageType));
+            //AddMessage(new EntityValidationMessage(message, messageType));
         }
 
         public void AddMessage(EntityValidationMessage message)

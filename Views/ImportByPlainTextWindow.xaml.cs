@@ -5,7 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using NSAP_ODK.Entities;
+using Microsoft.Win32;
+using System.IO;
 
 namespace NSAP_ODK.Views
 {
@@ -15,6 +16,7 @@ namespace NSAP_ODK.Views
     public partial class ImportByPlainTextWindow : Window
     {
         private NSAPRegion _selectedRegion;
+        private bool _errorMessageHandled;
         public ImportByPlainTextWindow()
         {
             InitializeComponent();
@@ -44,6 +46,7 @@ namespace NSAP_ODK.Views
 
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
+            menuImportFile.IsEnabled = false;
             panelSector.Visibility = Visibility.Collapsed;
             switch (NSAPEntityType)
             {
@@ -51,6 +54,7 @@ namespace NSAP_ODK.Views
                     Title = "Import GPS in csv";
                     FillRegionRadioButtons();
                     labelEntityImport.Text = "Import GPS using CSV with headers in the first row";
+                    menuImportFile.IsEnabled = true;
                     break;
                 case NSAPEntity.Enumerator:
                     Title = "Import enumerator names";
@@ -103,11 +107,11 @@ namespace NSAP_ODK.Views
                         }
                     }
                 }
-                else if(panelRegions.Children[0].GetType().Name=="RadioButton")
+                else if (panelRegions.Children[0].GetType().Name == "RadioButton")
                 {
-                    foreach(RadioButton rb in panelRegions.Children)
+                    foreach (RadioButton rb in panelRegions.Children)
                     {
-                        if((bool)rb.IsChecked)
+                        if ((bool)rb.IsChecked)
                         {
                             count++;
                         }
@@ -124,7 +128,7 @@ namespace NSAP_ODK.Views
             switch (((Button)sender).Name)
             {
                 case "buttonOk":
-
+                    string msg = "";
                     if (textBox.Text.Length > 0 && CheckedRegions() > 0)
                     {
                         switch (NSAPEntityType)
@@ -133,16 +137,15 @@ namespace NSAP_ODK.Views
                                 if (textBox.Text.Length > 0)
                                 {
                                     NSAPEntities.GPSViewModel.ImportGPSCSV = textBox.Text;
-                                    
-                                    if(NSAPEntities.GPSViewModel.GPSCSVImportSuccess)
+                                    msg = NSAPEntities.GPSViewModel.GPSImportErrorMessage;
+                                    if (NSAPEntities.GPSViewModel.GPSCSVImportSuccess)
                                     {
-
-                                    
+                                        if (NSAPEntities.GPSViewModel.GPSImportErrorMessage?.Length > 0)
+                                        {
+                                            msg = NSAPEntities.GPSViewModel.GPSImportErrorMessage;
+                                        }
                                     }
-                                    else
-                                    {
-
-                                    }
+                                    importCount = NSAPEntities.GPSViewModel.ImportGPSCSVImportedCount;
                                 }
 
                                 break;
@@ -175,11 +178,11 @@ namespace NSAP_ODK.Views
                                     }
                                     else
                                     {
-                                        foreach (var msg in entityMessages)
+                                        foreach (var msg1 in entityMessages)
                                         {
-                                            if (msg.MessageType == MessageType.Error)
+                                            if (msg1.MessageType == MessageType.Error)
                                             {
-                                                Logger.Log($"Batch import by text error in adding new enumerator: {msg.Message} after adding {nse.Name}");
+                                                Logger.Log($"Batch import by text error in adding new enumerator: {msg1.Message} after adding {nse.Name}");
                                             }
                                         }
                                     }
@@ -196,12 +199,19 @@ namespace NSAP_ODK.Views
                         }
                         else
                         {
-                            MessageBox.Show($"Was not able to import an item", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                            if (msg?.Length > 0)
+                            {
+                                MessageBox.Show(msg,"NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                            }
+                            else
+                            {
+                                MessageBox.Show($"Was not able to import an item", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                            }
                         }
                     }
                     else
                     {
-                        MessageBox.Show("Provide an item to import and a selected region1", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                        MessageBox.Show("Provide an item to import and a selected region", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
 
                     break;
@@ -210,6 +220,48 @@ namespace NSAP_ODK.Views
                     break;
             }
 
+        }
+
+        public string OpenCSVFile(string entityName)
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.CheckFileExists = false;
+            ofd.Title = $"Open csv file containg {entityName} data";
+            ofd.Filter = "CSV files(*.csv)|*.CSV|All file types (*.*)|*.*";
+            ofd.FilterIndex = 1;
+            ofd.InitialDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            if ((bool)ofd.ShowDialog())
+            {
+
+                return ofd.FileName;
+            }
+            return null;
+        }
+
+        private void onMenuClick(object sender, RoutedEventArgs e)
+        {
+            switch (((MenuItem)sender).Name)
+            {
+                case "menuImportFile":
+                    string csv = "";
+                    string entityName = "";
+                    switch (NSAPEntityType)
+                    {
+                        case NSAPEntity.GPS:
+                            entityName = "GPS";
+                            break;
+                        default:
+                            break;
+                    }
+
+                    csv = OpenCSVFile(entityName);
+                    if (csv?.Length > 0)
+                    {
+                        textBox.Text = File.ReadAllText(csv);
+                    }
+
+                    break;
+            }
         }
     }
 }

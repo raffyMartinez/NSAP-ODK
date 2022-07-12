@@ -347,8 +347,7 @@ namespace NSAP_ODK.Entities
 
         public static async Task<bool> GetVersionFromXLSForm(KoboForm kf, string user_name, string password, HttpClient httpClient)
         {
-            //using (var httpClient = new HttpClient())
-            // {
+            bool success = true;
             HttpResponseMessage response;
             byte[] bytes;
             Encoding encoding;
@@ -359,40 +358,42 @@ namespace NSAP_ODK.Entities
             using (request = new HttpRequestMessage(new HttpMethod("GET"), api_call))
             {
                 base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{user_name}:{password}"));
-                request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
-                try
+                if (request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}"))
                 {
-                    response = await httpClient.SendAsync(request);
-                    bytes = await response.Content.ReadAsByteArrayAsync();
-                    encoding = Encoding.GetEncoding("utf-8");
-                    the_response = encoding.GetString(bytes, 0, bytes.Length);
-                    if (the_response.Contains("Invalid username/password"))
+                    try
                     {
-
-                    }
-                    else
-                    {
-
-                        var x = MakeXLSForm(the_response);
-                        kf.Version_ID = x.version_id;
-                        //Version_ID = x.version_id;
-                        XLSFormVersion = x.content.settings.version;
-                        kf.xlsform_version = XLSFormVersion;
-                        XLSForm_idString = x.content.settings.id_string;
-                        if (x.name == "NSAP Fish Catch Monitoring e-Form" || x.name == "Fisheries landing survey")
+                        response = await httpClient.SendAsync(request);
+                        bytes = await response.Content.ReadAsByteArrayAsync();
+                        encoding = Encoding.GetEncoding("utf-8");
+                        the_response = encoding.GetString(bytes, 0, bytes.Length);
+                        if (the_response.Contains("Invalid username/password"))
                         {
-                            kf.eForm_version = x.content.survey.Where(t => t.name == "intronote").FirstOrDefault().@default.Replace("Version ", "");
-                        }
 
+                        }
+                        else
+                        {
+
+                            var x = MakeXLSForm(the_response);
+                            kf.Version_ID = x.version_id;
+                            //Version_ID = x.version_id;
+                            XLSFormVersion = x.content.settings.version;
+                            kf.xlsform_version = XLSFormVersion;
+                            XLSForm_idString = x.content.settings.id_string;
+                            if (x.name == "NSAP Fish Catch Monitoring e-Form" || x.name == "Fisheries landing survey")
+                            {
+                                kf.eForm_version = x.content.survey.Where(t => t.name == "intronote").FirstOrDefault().@default.Replace("Version ", "");
+                            }
+
+                        }
                     }
-                }
-                catch (HttpRequestException)
-                {
-                    return false;
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log(ex);
+                    catch (HttpRequestException)
+                    {
+                        success = false;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
             }
 
@@ -402,26 +403,29 @@ namespace NSAP_ODK.Entities
                 using (request = new HttpRequestMessage(new HttpMethod("GET"), api_call))
                 {
                     //base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{user_name}:{password}"));
-                    request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
-                    try
+                    if (request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}"))
                     {
-                        response = await httpClient.SendAsync(request);
-                        bytes = await response.Content.ReadAsByteArrayAsync();
-                        encoding = Encoding.GetEncoding("utf-8");
-                        the_response = encoding.GetString(bytes, 0, bytes.Length);
+                        try
+                        {
+                            response = await httpClient.SendAsync(request);
+                            bytes = await response.Content.ReadAsByteArrayAsync();
+                            encoding = Encoding.GetEncoding("utf-8");
+                            the_response = encoding.GetString(bytes, 0, bytes.Length);
 
-                        kf.koboform_files = GetFilesFromKoboform(the_response);
+                            kf.koboform_files = GetFilesFromKoboform(the_response);
 
 
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                            success = false;
+                        }
                     }
                 }
             }
             //}
-            return false;
+            return success;
         }
 
         public static void ResetVersion_and_ID()

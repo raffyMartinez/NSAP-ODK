@@ -117,7 +117,7 @@
                                     <Label Content=" days before the present date"/>
                                 </WrapPanel>
                                 <RadioButton Content="Update data of database column" Margin="10 5" Checked="OnButtonChecked" Tag="download_all_for_review"/>
-                                
+
                                 <WrapPanel Margin="10 0"  x:Name="panelDLSpecificFormUsingUUID">
                                     <RadioButton Tag="download_specific_form" VerticalAlignment="Center" Checked="OnButtonChecked" x:Name="rbDownloadSpecificForm" MouseDown="OnRadioButtonMouseDown" IsThreeState="True"/>
                                     <Label Content="Download form with UUID "/>
@@ -178,6 +178,7 @@
         <!--panel for holding buttons on right side of form -->
         <StackPanel Grid.Column="1" Grid.Row="1" Grid.RowSpan="4">
             <Button Content="Close" Height="25" Width="100" x:Name="ButtonClose" Click="OnButtonClick" Margin="10" IsCancel="True" />
+            <Button Content="Log-out" Height="25" Width="100" x:Name="ButtonLogout" Click="OnButtonClick" Margin="10" IsCancel="True" IsEnabled="false"/>
         </StackPanel>
     </Grid>
 </Window>

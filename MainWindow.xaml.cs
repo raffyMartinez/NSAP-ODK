@@ -1441,7 +1441,7 @@ namespace NSAP_ODK
                                     {
                                         if (ls.LandingSite.LandingSiteID == landingSite.LandingSiteID)
                                         {
-                                            message = "Selected landing site cannot be deleted because it is used in an fishing ground in a region\r\n" +
+                                            message = "Selected landing site cannot be deleted because it is used in a fishing ground in a region\r\n" +
                                                     "Delete the landing site first in the list of landing sites in a fishing ground";
                                             break;
                                         }
@@ -1645,7 +1645,6 @@ namespace NSAP_ODK
                     var iw = new ImportByPlainTextWindow();
                     iw.Owner = this;
                     iw.NSAPEntityType = _nsapEntity;
-                    //iw.ParentWindow = this;
                     iw.ShowDialog();
                     break;
                 case "buttonDetails":

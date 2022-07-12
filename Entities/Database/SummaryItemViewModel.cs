@@ -65,6 +65,31 @@ namespace NSAP_ODK.Entities.Database
             }
             return row_ids;
         }
+
+        public Dictionary<LandingSite, UnloadMeasureSummaryForMonth> GetUnloadMonthlySummaries()
+        {
+            Dictionary<LandingSite, UnloadMeasureSummaryForMonth> d = new Dictionary<LandingSite, UnloadMeasureSummaryForMonth>();
+            foreach (LandingSite ls in NSAPEntities.LandingSiteViewModel.LandingSiteCollection)
+            {
+                foreach (var item in SummaryItemCollection
+                    .Where(t => t.LandingSiteID == ls.LandingSiteID)
+                    .GroupBy(t => t.SamplingMonthYear())
+                    )
+                {
+
+                    //UnloadMeasureSummaryForMonth ums;
+
+                    UnloadMeasureSummaryForMonth ums = new UnloadMeasureSummaryForMonth();
+                    d.Add(ls, ums);
+                    //d[ls].Month = item.First(t => (DateTime)t.SamplingMonthYear());
+                    d[ls].CountGMS = item.Sum(t => t.CatchMaturityRows);
+                    d[ls].CountL = item.Sum(t => t.LengthRows);
+                    d[ls].CountLF = item.Sum(t => t.LengthRows);
+                    d[ls].CountLW += item.Sum(t => t.LenWtRows);
+                }
+            }
+            return d;
+        }
         public List<OrphanedFishingGear> GetOrphanedFishingGears()
         {
             //var items = GearUnloadCollection
@@ -777,7 +802,7 @@ namespace NSAP_ODK.Entities.Database
             HashSet<GearUnload> gear_unloads = new HashSet<GearUnload>(new GearUnloadComparer());
             foreach (var item in summaryItems)
             {
-                if(item.GearUnload==null)
+                if (item.GearUnload == null)
                 {
 
                 }
@@ -1157,7 +1182,7 @@ namespace NSAP_ODK.Entities.Database
             return gu;
         }
 
-        public void RefreshLastPrimaryLeys(bool delayedSave=false)
+        public void RefreshLastPrimaryLeys(bool delayedSave = false)
         {
             LastPrimaryKeys = SummaryItems.GetLastPrimaryKeys(delayedSave);
         }
@@ -1818,14 +1843,14 @@ namespace NSAP_ODK.Entities.Database
                 LengthRows = vu.CountLengthRows,
                 LenWtRows = vu.CountLenWtRows,
                 CatchMaturityRows = vu.CountMaturityRows,
-                
-                
+
+
             };
-            if(vu.NSAPEnumeratorID!=null)
+            if (vu.NSAPEnumeratorID != null)
             {
                 si.EnumeratorName = vu.EnumeratorName;
             }
-            if(!string.IsNullOrEmpty( vu.Parent.GearID))
+            if (!string.IsNullOrEmpty(vu.Parent.GearID))
             {
                 si.GearName = vu.Parent.Gear.GearName;
             }

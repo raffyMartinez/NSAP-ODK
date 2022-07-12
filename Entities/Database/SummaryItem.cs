@@ -158,7 +158,7 @@ namespace NSAP_ODK.Entities.Database
                         SamplingDate = SamplingDate.Date
                     };
 
-                    _gearUnload= new GearUnload
+                    _gearUnload = new GearUnload
                     {
                         Parent = lss,
                         GearID = GearCode,
@@ -247,6 +247,10 @@ namespace NSAP_ODK.Entities.Database
                     return EnumeratorName;
                 }
             }
+        }
+        public DateTime SamplingMonthYear()
+        {
+            return new DateTime(SamplingDate.Year, SamplingDate.Month, 1);
         }
 
         public string EnumeratorText { get; set; }
