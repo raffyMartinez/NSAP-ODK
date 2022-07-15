@@ -78,11 +78,12 @@ namespace NSAP_ODK.Views
             {
                 //textBoxBoats.Text = _gearUnloads[0].Boats.ToString();
                 //textBoxCatch.Text = _gearUnloads[0].Catch.ToString();
+
+                _parentWindow = parent;
+                Title = $"Gear unload for {gearUnloads[0].GearUsedName}";
+                _listSource = GearUnloadWindowListSource.ListSourceGearUnload;
+                tabPageBoatCount.Visibility = Visibility.Visible;
             }
-            _parentWindow = parent;
-            Title = $"Gear unload for {gearUnloads[0].GearUsedName}";
-            _listSource = GearUnloadWindowListSource.ListSourceGearUnload;
-            tabPageBoatCount.Visibility = Visibility.Visible;
         }
         public GearUnloadWindow(GearUnload gearUnload, TreeViewModelControl.AllSamplingEntitiesEventHandler treeItemData, MainWindow parent)
         {

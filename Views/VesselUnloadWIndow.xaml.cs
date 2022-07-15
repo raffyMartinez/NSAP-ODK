@@ -163,6 +163,7 @@ namespace NSAP_ODK.Views
                         gridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Other", Binding = new Binding("Catch_kg") });
                         gridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("Catch_kg") });
                         gridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Weight of sample", Binding = new Binding("Sample_kg") });
+                        gridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "TWS", Binding = new Binding("TWS") });
 
                         gridVesselUnload.DataContext = editedCatchItems;
 

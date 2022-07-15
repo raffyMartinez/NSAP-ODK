@@ -95,6 +95,7 @@ namespace NSAP_ODK.Views
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Family", Binding = new Binding("CrossTabCommon.Family")  });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Species", Binding = new Binding("CrossTabCommon.SN")  });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Species weight", Binding = new Binding("CrossTabCommon.SpeciesWeight")  });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "TWS", Binding = new Binding("CrossTabCommon.TWS")  });
 
         }
 

@@ -434,6 +434,10 @@ namespace NSAP_ODK.Entities.Database.FromJson
         [JsonProperty("catch_comp_group/catch_composition_repeat/speciesname_group/species_wt")]
         public double? SpeciesWt { get; set; }
 
+        [JsonProperty("catch_comp_group/catch_composition_repeat/speciesname_group/tws")]
+        public double? TWS { get; set; }
+
+
         //alias of SpeciesWt
         public double? WeightOfCatch { get { return SpeciesWt; } }
 
@@ -2379,6 +2383,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                 VesselUnloadID = vu.PK,
                                                 SpeciesID = catchComp.SpeciesID,
                                                 Catch_kg = catchComp.SpeciesWt,
+                                                TWS = catchComp.TWS,
                                                 Sample_kg = catchComp.SpeciesSampleWt,
                                                 TaxaCode = catchComp.TaxaCode,
                                                 SpeciesText = catchComp.SpeciesNameOther,

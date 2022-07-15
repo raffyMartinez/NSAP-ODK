@@ -611,9 +611,10 @@ namespace NSAP_ODK.Entities.Database
         private static bool SetCSV(VesselCatch item)
         {
             string sp_id = item.SpeciesID == null ? "" : ((int)item.SpeciesID).ToString();
+            string tws = item.TWS == null ? "" : ((double)item.TWS).ToString();
             string catch_kg = item.Catch_kg == null ? "" : ((double)item.Catch_kg).ToString();
             string sample_kg = item.Sample_kg == null ? "" : ((double)item.Sample_kg).ToString();
-            _csv.AppendLine($"{item.PK},{item.Parent.PK},{sp_id},{catch_kg},{sample_kg},\"{item.TaxaCode}\",\"{item.SpeciesText}\"");
+            _csv.AppendLine($"{item.PK},{item.Parent.PK},{sp_id},{catch_kg},{sample_kg},\"{item.TaxaCode}\",\"{item.SpeciesText}\",{tws}");
             return true;
         }
 

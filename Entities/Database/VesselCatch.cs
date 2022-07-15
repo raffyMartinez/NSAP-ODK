@@ -16,6 +16,7 @@ namespace NSAP_ODK.Entities.Database
             Taxa = vesselCatch.Taxa.ToString();
             Catch_kg = vesselCatch.Catch_kg;
             Sample_kg = vesselCatch.Sample_kg;
+            TWS = vesselCatch.TWS;
         }
 
         public int ID { get; private set; }
@@ -26,6 +27,8 @@ namespace NSAP_ODK.Entities.Database
         public string Taxa { get; private set; }
         public double? Catch_kg { get; private set; }
         public double? Sample_kg { get; private set; }
+
+        public double? TWS { get; private set; }
     }
 
     public class VesselCatchEdited
@@ -42,6 +45,7 @@ namespace NSAP_ODK.Entities.Database
             TaxaName = vc.Taxa.Name;
             Sample_kg = vc.Sample_kg;
             Catch_kg = vc.Catch_kg;
+            TWS = vc.TWS;
 
 
             if ((vc.SpeciesText == null || vc.SpeciesText.Length == 0) && vc.SpeciesID != null)
@@ -78,6 +82,8 @@ namespace NSAP_ODK.Entities.Database
 
         public double? Catch_kg { get; set; }
         public double? Sample_kg { get; set; }
+
+        public double? TWS { get; set; }
         public double? Boxes_count { get; set; }
         public int? Boxes_sampled { get; set; }
         public double? RaisingFactor { get; set; }
@@ -157,6 +163,8 @@ namespace NSAP_ODK.Entities.Database
 
         public double? Catch_kg { get; set; }
         public double? Sample_kg { get; set; }
+
+        public double? TWS { get; set; }
 
         public string CatchNameEx
         {

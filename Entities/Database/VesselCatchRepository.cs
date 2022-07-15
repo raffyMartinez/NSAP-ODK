@@ -13,10 +13,18 @@ namespace NSAP_ODK.Entities.Database
     class VesselCatchRepository
     {
         public List<VesselCatch> VesselCatches { get; set; }
+        private bool _requireTableDefinitionUpdate = false;
+
+        private string _newColumnName;
 
         public VesselCatchRepository(VesselUnload vu)
         {
             VesselCatches = getVesselCatches(vu);
+            if (VesselCatches == null && _requireTableDefinitionUpdate && UpdateTableDefinition(_newColumnName))
+            {
+                _requireTableDefinitionUpdate = false;
+                VesselCatches = getVesselCatches(vu);
+            }
         }
         public VesselCatchRepository(bool isNew = false)
         {
@@ -257,12 +265,12 @@ namespace NSAP_ODK.Entities.Database
 
                         con.Open();
                         OleDbDataReader dr = cmd.ExecuteReader();
-                        while(dr.Read())
+                        while (dr.Read())
                         {
                             rows++;
                         }
 
-                        
+
                     }
                 }
             }
@@ -293,6 +301,7 @@ namespace NSAP_ODK.Entities.Database
                         item.SpeciesID = string.IsNullOrEmpty(dr["species_id"].ToString()) ? null : (int?)dr["species_id"];
                         item.Catch_kg = string.IsNullOrEmpty(dr["catch_kg"].ToString()) ? null : (double?)dr["catch_kg"];
                         item.Sample_kg = string.IsNullOrEmpty(dr["samp_kg"].ToString()) ? null : (double?)dr["samp_kg"];
+                        item.Sample_kg = string.IsNullOrEmpty(dr["tws"].ToString()) ? null : (double?)dr["tws"];
                         item.TaxaCode = dr["taxa"].ToString();
                         item.SpeciesText = dr["species_text"].ToString();
                         item.CatchLenFreqViewModel = new CatchLenFreqViewModel(item);
@@ -340,6 +349,7 @@ namespace NSAP_ODK.Entities.Database
                                 item.SpeciesID = string.IsNullOrEmpty(dr["species_id"].ToString()) ? null : (int?)dr["species_id"];
                                 item.Catch_kg = string.IsNullOrEmpty(dr["catch_kg"].ToString()) ? null : (double?)dr["catch_kg"];
                                 item.Sample_kg = string.IsNullOrEmpty(dr["samp_kg"].ToString()) ? null : (double?)dr["samp_kg"];
+                                item.TWS = string.IsNullOrEmpty(dr["tws"].ToString()) ? null : (double?)dr["tws"];
                                 item.TaxaCode = dr["taxa"].ToString();
                                 item.SpeciesText = dr["species_text"].ToString();
                                 item.CatchLenFreqViewModel = new CatchLenFreqViewModel(item);
@@ -350,9 +360,23 @@ namespace NSAP_ODK.Entities.Database
                             }
 
                         }
+                        //catch (OleDbException oex)
+                        //{
+                        //    Logger.Log(oex);
+                        //}
                         catch (Exception ex)
                         {
-                            Logger.Log(ex);
+                            if (ex.HResult == -2146233080)
+                            {
+
+                                _requireTableDefinitionUpdate = true;
+                                _newColumnName = ex.Message;
+                                return null;
+                            }
+                            else
+                            {
+                                Logger.Log(ex);
+                            }
 
                         }
                     }
@@ -360,6 +384,47 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
             return thisList;
+        }
+
+        private bool UpdateTableDefinition(string colName)
+        {
+            bool success = false;
+            using (var conn = new OleDbConnection(Global.ConnectionString))
+            {
+                conn.Open();
+                var sql = "";
+                switch (colName)
+                {
+                    case "tws":
+
+                        sql = $@"ALTER TABLE dbo_vessel_catch ADD COLUMN {colName} FLOAT";
+                        break;
+
+                }
+
+                OleDbCommand cmd = new OleDbCommand();
+                cmd.Connection = conn;
+                cmd.CommandText = sql;
+
+                try
+                {
+                    cmd.ExecuteNonQuery();
+                    success = true;
+
+                }
+                catch (OleDbException dbex)
+                {
+                    Logger.Log(dbex);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(ex);
+                }
+
+                cmd.Connection.Close();
+                conn.Close();
+            }
+            return success;
         }
         private bool AddToMySQL(VesselCatch item)
         {
@@ -410,8 +475,17 @@ namespace NSAP_ODK.Entities.Database
                         update.Parameters.Add("@species_text", MySqlDbType.VarChar).Value = item.SpeciesText;
                     }
 
-                    update.CommandText = @"Insert into dbo_vessel_catch(catch_id, v_unload_id, species_id, catch_kg, samp_kg, taxa, species_text)
-                            Values (@pk, @parent_id, @species_id, @catch_kg, @sample_kg, @taxa, @species_text)";
+                    if (item.TWS == null)
+                    {
+                        update.Parameters.Add("@tws", MySqlDbType.VarChar).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@tws", MySqlDbType.VarChar).Value = item.TWS;
+                    }
+
+                    update.CommandText = @"Insert into dbo_vessel_catch(catch_id, v_unload_id, species_id, catch_kg, samp_kg, taxa, species_text, tws)
+                            Values (@pk, @parent_id, @species_id, @catch_kg, @sample_kg, @taxa, @species_text, @tws)";
                     try
                     {
                         conn.Open();
@@ -442,8 +516,8 @@ namespace NSAP_ODK.Entities.Database
                 {
                     conn.Open();
 
-                    var sql = @"Insert into dbo_vessel_catch(catch_id, v_unload_id, species_id, catch_kg, samp_kg, taxa, species_text)
-                            Values (?, ?, ?, ?, ?, ?, ?)";
+                    var sql = @"Insert into dbo_vessel_catch(catch_id, v_unload_id, species_id, catch_kg, samp_kg, taxa, species_text, tws)
+                            Values (?, ?, ?, ?, ?, ?, ?, ?)";
                     using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
                         update.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
@@ -482,6 +556,15 @@ namespace NSAP_ODK.Entities.Database
                         else
                         {
                             update.Parameters.Add("@species_text", OleDbType.VarChar).Value = item.SpeciesText;
+                        }
+
+                        if(item.TWS==null)
+                        {
+                            update.Parameters.Add("@tws", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@tws", OleDbType.VarChar).Value = item.TWS;
                         }
 
                         try
@@ -548,6 +631,15 @@ namespace NSAP_ODK.Entities.Database
                         cmd.Parameters.Add("@sample_kg", MySqlDbType.Double).Value = (double)item.Sample_kg;
                     }
 
+                    if (item.TWS == null)
+                    {
+                        cmd.Parameters.Add("@tws", MySqlDbType.Double).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        cmd.Parameters.Add("@tws", MySqlDbType.Double).Value = (double)item.TWS;
+                    }
+
                     cmd.Parameters.Add("@taxa", MySqlDbType.VarChar).Value = item.TaxaCode;
                     cmd.Parameters.Add("@species_text", MySqlDbType.VarChar).Value = item.SpeciesText;
                     cmd.Parameters.Add("@catch_id", MySqlDbType.Int32).Value = item.PK;
@@ -557,6 +649,7 @@ namespace NSAP_ODK.Entities.Database
                                 species_id = @species_id,
                                 catch_kg = @catch_kg,
                                 samp_kg = @sample_kg,
+                                tws = @tws,
                                 taxa = @taxa,
                                 species_text = @species_text
                             WHERE catch_id = @catch_id";
@@ -620,6 +713,14 @@ namespace NSAP_ODK.Entities.Database
                         {
                             cmd.Parameters.Add("@sample_kg", OleDbType.Double).Value = (double)item.Sample_kg;
                         }
+                        if (item.TWS == null)
+                        {
+                            cmd.Parameters.Add("@tws", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            cmd.Parameters.Add("@tws", OleDbType.Double).Value = (double)item.TWS;
+                        }
 
                         cmd.Parameters.Add("@taxa", OleDbType.VarChar).Value = item.TaxaCode;
                         cmd.Parameters.Add("@species_text", OleDbType.VarChar).Value = item.SpeciesText;
@@ -630,6 +731,7 @@ namespace NSAP_ODK.Entities.Database
                                 species_id = @species_id,
                                 catch_kg = @catch_kg,
                                 samp_kg = @sample_kg,
+                                tws = @tws,
                                 taxa = @taxa,
                                 species_text = @species_text
                             WHERE catch_id = @catch_id";

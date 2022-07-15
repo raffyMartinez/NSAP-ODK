@@ -226,7 +226,13 @@ namespace NSAP_ODK.Entities.Database
                 _sn = value;
             }
         }
-
+        public double? TWS
+        {
+            get
+            {
+                return _vesselCatch.TWS;
+            }
+        }
         public double? SpeciesWeight
         {
             get

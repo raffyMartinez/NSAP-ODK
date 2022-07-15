@@ -1103,6 +1103,7 @@ namespace NSAP_ODK.NSAPMysql
                                         `v_unload_id` INT NOT NULL,
                                         `species_id` INT NULL,
                                         `catch_kg` DOUBLE NULL,
+                                        `tws` DOUBLE NULL,
                                         `samp_kg` DOUBLE NULL,
                                         `taxa` VARCHAR(6) NULL,
                                         `species_text` VARCHAR(200) NULL,

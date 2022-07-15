@@ -374,7 +374,11 @@ namespace NSAP_ODK.Views
                                     }
                                     foreach (VesselCatch vc in unload.ListVesselCatch)
                                     {
-                                        if (vc.SpeciesID == null && vc.SpeciesText != null && vc.SpeciesText == sp.Name)
+                                        if (vc.SpeciesID == null )
+                                        {
+
+                                        }
+                                        if (vc.SpeciesID == null && vc.SpeciesText != null && vc.SpeciesText.Trim(new char[] { '\n',' '}) == sp.Name)
                                         {
                                             if (_replacementFishSpecies != null)
                                             {
@@ -389,7 +393,7 @@ namespace NSAP_ODK.Views
 
                                             if (unload.VesselCatchViewModel.UpdateRecordInRepo(vc))
                                             {
-                                                Console.WriteLine(vc.SpeciesID);
+                                                //Console.WriteLine(vc.SpeciesID);
                                                 _countReplaced++;
                                                 ShowProgressWhileReplacing(_countReplaced, $"Updated species names {_countReplaced} of {_countForReplacement}");
                                             }

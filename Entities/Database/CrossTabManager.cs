@@ -31,20 +31,6 @@ namespace NSAP_ODK.Entities.Database
             return Task.Run(() => GearByMonthYear(sev));
         }
 
-        //public static void Reset()
-        //{
-        //    _crossTabEfforts = new List<CrossTabEffort>();
-        //    _crossTabEffortsAll = new List<CrossTabEffortAll>();
-        //    _crossTabLenFreqs = new List<CrossTabLenFreq>();
-        //    _crossTabMaturities = new List<CrossTabMaturity>();
-        //    _crossTabLengths = new List<CrossTabLength>();
-        //    _effortSpeciesCrostabDataTable = new DataTable();
-        //    _effortCrostabDataTable = new DataTable();
-        //    _gearUnloads = new List<GearUnload>();
-        //    _landingSiteSamplings = new List<LandingSiteSampling>();
-        //    _crossTabDataSet = new DataSet();
-
-        //}
         private static int GearByMonthYear(TreeViewModelControl.AllSamplingEntitiesEventHandler sev)
         {
             int counter = 0;
@@ -483,6 +469,9 @@ namespace NSAP_ODK.Entities.Database
             dc = new DataColumn { ColumnName = "Weight of species" };
             _effortSpeciesCrostabDataTable.Columns.Add(dc);
 
+            dc = new DataColumn { ColumnName = "TWS" };
+            _effortSpeciesCrostabDataTable.Columns.Add(dc);
+
 
             foreach (var spec in NSAPEntities.EffortSpecificationViewModel.EffortSpecCollection.OrderBy(t => t.Name))
             {
@@ -562,6 +551,7 @@ namespace NSAP_ODK.Entities.Database
                 row["Species"] = item.CrossTabCommon.SN;
                 row["Total weight of catch"] = ctcp.TotalWeight;
                 row["Weight of species"] = item.CrossTabCommon.SpeciesWeight;
+                row["TWS"] = item.CrossTabCommon.TWS;
 
                 foreach (var ve in ctcp.VesselUnload.ListVesselEffort)
                 {
