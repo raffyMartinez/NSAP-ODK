@@ -751,6 +751,17 @@ namespace NSAP_ODK.Entities.Database
                                         case "SpeciesWeight":
                                             row[ptd.Name] = ctc.SpeciesWeight;
                                             break;
+                                        case "TWS":
+                                            if (ctc.TWS == null)
+                                            {
+                                                row[ptd.Name] = DBNull.Value;
+                                            }
+                                            else
+                                            {
+                                                row[ptd.Name] = (double)ctc.TWS;
+                                            }
+
+                                            break;
                                     }
 
 
