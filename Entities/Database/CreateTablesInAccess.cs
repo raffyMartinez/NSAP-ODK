@@ -130,9 +130,11 @@ namespace NSAP_ODK.Entities.Database
                     }
                     catch(Exception ex)
                     {
+                        Logger.Log($"{ex.Message}\r\nWill attempt to roll back transaction");
                         try
                         {
                             transaction.Rollback();
+                            Logger.Log("Database upload failed. Transaction was rolled back");
                         }
                         catch
                         {
