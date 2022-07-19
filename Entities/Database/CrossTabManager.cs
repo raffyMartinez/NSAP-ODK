@@ -610,8 +610,6 @@ namespace NSAP_ODK.Entities.Database
             {
                 ErrorMessage = "";
                 _crossTabDataSet = new DataSet();
-                //_effortSpeciesCrostabDataTable = new DataTable();
-                //_effortCrostabDataTable = new DataTable();
                 try
                 {
                     _effortSpeciesCrostabDataTable.TableName = "Effort";
@@ -671,10 +669,6 @@ namespace NSAP_ODK.Entities.Database
                                     }
                                 }
                             }
-                            //else if(pt.Name=="SN")
-                            //{
-                            //    table.Columns.Add(pt.Name, Nullable.GetUnderlyingType(pt.PropertyType) ?? pt.PropertyType);
-                            //}
                             else
                             {
                                 table.Columns.Add(pt.Name, Nullable.GetUnderlyingType(pt.PropertyType) ?? pt.PropertyType);
@@ -718,23 +712,7 @@ namespace NSAP_ODK.Entities.Database
                                     {
                                         if (ptdd.Name != "VesselUnload")
                                         {
-
-                                            //switch (prop.ComponentType.Name)
-                                            //{
-                                            //    case "CrossTabLength":
-                                            //        ctc = (item as CrossTabLength).CrossTabCommon;
-                                            //        break;
-                                            //    case "CrossTabLenFreq":
-                                            //        ctc = (item as CrossTabLenFreq).CrossTabCommon;
-                                            //        break;
-                                            //    case "CrossTabMaturity":
-                                            //        ctc = (item as CrossTabMaturity).CrossTabCommon;
-                                            //        break;
-                                            //}
-
-
                                             row[ptdd.Name] = ptdd.GetValue(ctc.CommonProperties) ?? DBNull.Value;
-
                                         }
                                     }
                                 }
@@ -760,17 +738,9 @@ namespace NSAP_ODK.Entities.Database
                                             {
                                                 row[ptd.Name] = (double)ctc.TWS;
                                             }
-
                                             break;
                                     }
-
-
-                                    //row[ptd.Name] = ptd.GetValue(ctc.CommonProperties) ?? DBNull.Value;
                                 }
-                                //else
-                                //{
-                                //    row[ptd.Name] = ptd.GetValue(item) ?? DBNull.Value;
-                                //}
                             }
 
                         }
@@ -856,25 +826,12 @@ namespace NSAP_ODK.Entities.Database
                                     }
                                     break;
                             }
-
-
-                            //try
-                            //{
-                            //    row[prop.Name] = prop.GetValue(item) ?? DBNull.Value;
-                            //}
-                            //catch
-                            //{
-                            //    row[prop.Name] = DBNull.Value;
-                            //}
                         }
                     }
                     table.Rows.Add(row);
                 }
-
             }
             return table;
         }
-
-
     }
 }

@@ -73,10 +73,6 @@ namespace NSAP_ODK.Views
         public void OpenLogInWindow(bool isOpen = false)
         {
             _openLogInWindow = isOpen;
-            //if (_openLogInWindow = isOpen)
-            //{
-            //    OpenServerWindow(refreshDBSummary: true);
-            //}
         }
         public string Version { get; set; }
 
@@ -90,7 +86,6 @@ namespace NSAP_ODK.Views
             set
             {
                 _odkServerDownload = value;
-                //menuView.Visibility = Visibility.Visible;
             }
         }
 
@@ -663,6 +658,7 @@ namespace NSAP_ODK.Views
                             VesselUnloadServerRepository.ResetGroupIDs();
                             firstLoopDone = true;
                         }
+                        VesselUnloadServerRepository.DelayedSave = !Global.Settings.UsemySQL;
                         await Upload(verbose: !VesselUnloadServerRepository.DelayedSave);
                         if (_downloadedJsonMetadata?.BatchSize != null && (int)_downloadedJsonMetadata.BatchSize <= VesselUnloadServerRepository.TotalUploadCount)
                         {
@@ -916,6 +912,7 @@ namespace NSAP_ODK.Views
                     if ((bool)ujhw.ShowDialog())
                     {
                         await ProcessJSONSNodes();
+                        await SaveUploadedJsonInLoop(closeWindow: true, verbose: true, isHistoryJson: false);
                     }
                     break;
                 case "menuUploadJson":

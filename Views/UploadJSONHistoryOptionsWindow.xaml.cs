@@ -58,7 +58,7 @@ namespace NSAP_ODK.Views
                 case JSONFilesToUploadType.UploadTypeDownloadedJsonNotDownloaded:
                     chkStartAtBeginning.Visibility = Visibility.Collapsed;
                     panelControls.Visibility = Visibility.Collapsed;
-                    labelPrompt.Text = "Select OK to update missing sampled vessel landings in the database";
+                    labelPrompt.Text = "Select OK to update  sampled vessel landings in the database";
                     _ignoreControls = true;
                     break;
                 case JSONFilesToUploadType.UploadTypeJSONHistoryFiles:

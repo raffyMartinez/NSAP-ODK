@@ -29,8 +29,122 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
+        public static Task<bool> UploadImportJsonResultAsync()
+        {
+            return Task.Run(() => UploadImportJsonResult());
+        }
+        public static  bool UploadImportJsonResult()
+        {
+            bool success = false;
+            string base_dir = AppDomain.CurrentDomain.BaseDirectory;
+            string csv_file = $@"{base_dir}\temp.csv";
+            MDBFile = Global.MDBPath;
+            using (OleDbConnection connection =new OleDbConnection(ConnectionString))
+            {
+                using (var cmd = connection.CreateCommand())
+                {
+                    OleDbTransaction transaction = null;
+                    try
+                    {
+                        connection.Open();
+                        transaction = connection.BeginTransaction(IsolationLevel.ReadCommitted);
+                        cmd.Transaction = transaction;
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "start importing csv", TotalTableCount = 14 });
 
-        public static async Task<bool> UploadImportJsonResultAsync()
+                        File.WriteAllText(csv_file, LandingSiteSamplingViewModel.CSV);
+                        cmd.CommandText = $@"INSERT INTO dbo_LC_FG_sample_day SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
+                        cmd.ExecuteNonQuery();
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_LC_FG_sample_day", CurrentTableCount = ++_importCSVCount });
+
+                        File.WriteAllText(csv_file, LandingSiteSamplingViewModel.CSV_1);
+                        cmd.CommandText = $@"INSERT INTO dbo_LC_FG_sample_day_1 SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
+                        cmd.ExecuteNonQuery();
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_LC_FG_sample_day_1", CurrentTableCount = ++_importCSVCount });
+
+                        File.WriteAllText(csv_file, GearUnloadViewModel.CSV);
+                        cmd.CommandText = $@"INSERT INTO dbo_gear_unload SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
+                        cmd.ExecuteNonQuery();
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_gear_unload", CurrentTableCount = ++_importCSVCount });
+
+
+                        File.WriteAllText(csv_file, VesselUnloadViewModel.CSV);
+                        cmd.CommandText = $@"INSERT INTO dbo_vessel_unload SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
+                        cmd.ExecuteNonQuery();
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_vessel_unload", CurrentTableCount = ++_importCSVCount });
+
+                        File.WriteAllText(csv_file, VesselUnloadViewModel.CSV_1);
+                        cmd.CommandText = $@"INSERT INTO dbo_vessel_unload_1 SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
+                        cmd.ExecuteNonQuery();
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_vessel_unload_1", CurrentTableCount = ++_importCSVCount });
+
+                        File.WriteAllText(csv_file, VesselUnloadViewModel.UnloadStatsCSV);
+                        cmd.CommandText = $@"INSERT INTO dbo_vessel_unload_stats SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
+                        cmd.ExecuteNonQuery();
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_vessel_unload_stats", CurrentTableCount = ++_importCSVCount });
+
+                        File.WriteAllText(csv_file, VesselEffortViewModel.CSV);
+                        cmd.CommandText = $@"INSERT INTO dbo_vessel_effort SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
+                        cmd.ExecuteNonQuery();
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_vessel_effort", CurrentTableCount = ++_importCSVCount });
+
+
+                        File.WriteAllText(csv_file, FishingGroundGridViewModel.CSV);
+                        cmd.CommandText = $@"INSERT INTO dbo_fg_grid SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
+                        cmd.ExecuteNonQuery();
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_fg_grid", CurrentTableCount = ++_importCSVCount });
+
+                        File.WriteAllText(csv_file, GearSoakViewModel.CSV);
+                        cmd.CommandText = $@"INSERT INTO dbo_gear_soak SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
+                        cmd.ExecuteNonQuery();
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_gear_soak", CurrentTableCount = ++_importCSVCount });
+
+                        File.WriteAllText(csv_file, VesselCatchViewModel.CSV);
+                        cmd.CommandText = $@"INSERT INTO dbo_vessel_catch SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
+                        cmd.ExecuteNonQuery();
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_vessel_catch", CurrentTableCount = ++_importCSVCount });
+
+                        File.WriteAllText(csv_file, CatchLengthViewModel.CSV);
+                        cmd.CommandText = $@"INSERT INTO dbo_catch_len SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
+                        cmd.ExecuteNonQuery();
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_catch_len", CurrentTableCount = ++_importCSVCount });
+
+                        File.WriteAllText(csv_file, CatchLenFreqViewModel.CSV);
+                        cmd.CommandText = $@"INSERT INTO dbo_catch_len_freq SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
+                        cmd.ExecuteNonQuery();
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_catch_len_freq", CurrentTableCount = ++_importCSVCount });
+
+                        File.WriteAllText(csv_file, CatchLengthWeightViewModel.CSV);
+                        cmd.CommandText = $@"INSERT INTO dbo_catch_len_wt SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
+                        cmd.ExecuteNonQuery();
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_catch_len_wt", CurrentTableCount = ++_importCSVCount });
+
+                        File.WriteAllText(csv_file, CatchMaturityViewModel.CSV);
+                        cmd.CommandText = $@"INSERT INTO dbo_catch_maturity SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
+                        cmd.ExecuteNonQuery();
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_catch_maturity", CurrentTableCount = ++_importCSVCount });
+
+
+                        transaction.Commit();
+                        success = true;
+                        _importCSVCount = 0;
+                    }
+                    catch(Exception ex)
+                    {
+                        try
+                        {
+                            transaction.Rollback();
+                        }
+                        catch
+                        {
+                            // Do nothing here; transaction is not active.
+                        }
+                    }
+
+                }
+            }
+            return success;
+        }
+        public static async Task<bool> UploadImportJsonResultAsync1()
         {
             _importCSVCount = 0;
             AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "start importing csv", TotalTableCount = 14 });
@@ -79,7 +193,7 @@ namespace NSAP_ODK.Entities.Database
             return success;
         }
 
-        public static List<string> GetColumnNames(string tableName, bool makeLowerCase=false)
+        public static List<string> GetColumnNames(string tableName, bool makeLowerCase = false)
         {
             List<string> cols = new List<string>();
             using (var con = new OleDbConnection(Global.ConnectionString))
