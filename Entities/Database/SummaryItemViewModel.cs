@@ -399,12 +399,11 @@ namespace NSAP_ODK.Entities.Database
             foreach (var grouping_gu in SummaryItemCollection.GroupBy(t => t.GearUnloadID))
             {
                 var gu_first = grouping_gu.First();
-                if (string.IsNullOrEmpty(gu_first.GearCode) && gu_first.GearText.Length > 0)
+                if (string.IsNullOrEmpty(gu_first.GearCode) && gu_first.GearText?.Length > 0)
                 {
                     count++;
                 }
             }
-
             return count;
         }
 
@@ -414,13 +413,7 @@ namespace NSAP_ODK.Entities.Database
             foreach (var grouping_ls in SummaryItemCollection.Where(t => t.LandingSiteID == null).GroupBy(t => t.LandingSiteText))
             {
                 count += grouping_ls.Count();
-                //var ls_first = grouping_ls.First();
-                //if (ls_first.LandingSiteID == null || (ls_first.LandingSiteID == null && ls_first.LandingSiteText.Length == 0))
-                //{
-                //    count++;
-                //}
             }
-
             return count;
         }
 
@@ -1185,6 +1178,7 @@ namespace NSAP_ODK.Entities.Database
         public void RefreshLastPrimaryLeys(bool delayedSave = false)
         {
             LastPrimaryKeys = SummaryItems.GetLastPrimaryKeys(delayedSave);
+            //LastPrimaryKeys = SummaryItems.GetLastPrimaryKeys();
         }
 
         public List<string> GetXFormIDList()

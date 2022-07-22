@@ -863,7 +863,7 @@ namespace NSAP_ODK.NSAPMysql
                                         `gr_id` VARCHAR(6) NULL,
                                         `boats` INT NULL,
                                         `catch` DOUBLE NULL,
-                                        `gr_text` VARCHAR(30) NULL,
+                                        `gr_text` VARCHAR(60) NULL,
                                         `remarks` VARCHAR(80) NULL,
                                         PRIMARY KEY (`unload_gr_id`),
                                         INDEX `unload_day_id_gu_fk_idx` (`unload_day_id` ASC) VISIBLE,

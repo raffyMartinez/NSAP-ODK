@@ -301,6 +301,7 @@ namespace NSAP_ODK.Entities.Database
                         item.SpeciesID = string.IsNullOrEmpty(dr["species_id"].ToString()) ? null : (int?)dr["species_id"];
                         item.Catch_kg = string.IsNullOrEmpty(dr["catch_kg"].ToString()) ? null : (double?)dr["catch_kg"];
                         item.Sample_kg = string.IsNullOrEmpty(dr["samp_kg"].ToString()) ? null : (double?)dr["samp_kg"];
+                        item.TWS = string.IsNullOrEmpty(dr["tws"].ToString()) ? null : (double?)dr["tws"];
                         item.Sample_kg = string.IsNullOrEmpty(dr["tws"].ToString()) ? null : (double?)dr["tws"];
                         item.TaxaCode = dr["taxa"].ToString();
                         item.SpeciesText = dr["species_text"].ToString();

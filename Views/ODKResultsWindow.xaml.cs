@@ -126,6 +126,9 @@ namespace NSAP_ODK.Views
                 ((MainWindow)Owner).RefreshSummary();
             }
             ((MainWindow)Owner).Focus();
+
+            CreateTablesInAccess.AccessTableEvent -= CreateTablesInAccess_AccessTableEvent;
+            NSAPMysql.MySQLConnect.AccessTableEvent -= CreateTablesInAccess_AccessTableEvent;
         }
 
         private string GetJsonTextFileFromFileOpenDialog()
@@ -204,10 +207,10 @@ namespace NSAP_ODK.Views
             ResetView();
             rowGrid.Height = new GridLength(1, GridUnitType.Star);
 
-            if (NSAPEntities.KoboServerViewModel.Count() == 0)
-            {
-                menuReUploadJsonHistory.Visibility = Visibility.Collapsed;
-            }
+            //if (NSAPEntities.KoboServerViewModel.Count() == 0)
+            //{
+            //    menuReUploadJsonHistory.Visibility = Visibility.Collapsed;
+            //}
 
             if (DownloadFromServerWindow.HasLoggedInToServer)
             {
@@ -222,6 +225,7 @@ namespace NSAP_ODK.Views
                 _timer.Start();
             }
             CreateTablesInAccess.AccessTableEvent += CreateTablesInAccess_AccessTableEvent;
+            NSAPMysql.MySQLConnect.AccessTableEvent += CreateTablesInAccess_AccessTableEvent;
         }
 
         private void CreateTablesInAccess_AccessTableEvent(object sender, CreateTablesInAccessEventArgs e)
@@ -578,7 +582,7 @@ namespace NSAP_ODK.Views
                     {
                         if (!firstLoopDone)
                         {
-                            VesselUnloadServerRepository.ResetGroupIDs();
+                            VesselUnloadServerRepository.ResetGroupIDs(delayedSave:true);
                             firstLoopDone = true;
                         }
                         await ProcessHistoryJsonNode(jsonNode);
@@ -704,6 +708,9 @@ namespace NSAP_ODK.Views
 
         private async void OnMenuClick(object sender, RoutedEventArgs e)
         {
+            UploadJSONHistoryOptionsWindow ujhw;
+            int counter = 0;
+            bool proceed = false;
             string jsonFolder = "";
             string menuName = ((MenuItem)sender).Name;
             switch (menuName)
@@ -747,13 +754,15 @@ namespace NSAP_ODK.Views
 
                 //uploads all the json history files in the treeview.
                 case "menuUploadAllJsonHistoryFiles":
-                    bool proceed = true;
-                    UploadJSONHistoryOptionsWindow ujhw = new UploadJSONHistoryOptionsWindow();
+
+
+                    proceed = true;
+                    ujhw = new UploadJSONHistoryOptionsWindow();
                     ujhw.Owner = this;
                     ujhw.JSONFilesToUploadType = JSONFilesToUploadType.UploadTypeJSONHistoryFiles;
                     if ((bool)ujhw.ShowDialog())
                     {
-                        VesselUnloadServerRepository.DelayedSave = !Global.Settings.UsemySQL;
+                        VesselUnloadServerRepository.DelayedSave = true;
                         VesselUnloadServerRepository.ResetTotalUploadCounter();
                         VesselUnloadServerRepository.ResetGroupIDs(VesselUnloadServerRepository.DelayedSave);
                         VesselUnloadServerRepository.CancelUpload = false;
@@ -772,17 +781,6 @@ namespace NSAP_ODK.Views
                             {
                                 await ProcessJSONHistoryNodes((TreeViewItem)treeViewJSONNavigator.SelectedItem);
                                 await SaveUploadedJsonInLoop(closeWindow: true, verbose: true);
-                                //if (VesselUnloadServerRepository.DelayedSave && VesselUnloadServerRepository.TotalUploadCount > 0)
-                                //{
-                                //    if (await CreateTablesInAccess.UploadImportJsonResultAsync())
-                                //    {
-                                //        NSAPEntities.ClearCSVData();
-                                //        VesselUnloadServerRepository.ResetTotalUploadCounter();
-                                //        MessageBox.Show("Finished uploading JSON history files to the database", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
-                                //        Close();
-                                //    }
-
-                                //}
                             }
                             catch (Exception ex)
                             {
@@ -792,65 +790,81 @@ namespace NSAP_ODK.Views
 
 
                     }
+
                     break;
 
                 //locate folder of JSON history files and lists them in a treeview
                 case "menuReUploadJsonHistory":
-                    ClearJSONTreeRootNodes();
-                    int counter = 0;
-                    jsonFolder = GetJSONFolder(savedHistory: true);
-                    if (jsonFolder.Length > 0)
+                    if (NSAPEntities.KoboServerViewModel.Count() == 0)
                     {
-                        _jsonfiles = Directory.GetFiles(jsonFolder).Select(s => new FileInfo(s)).ToList();
-                        if (_jsonfiles.Any())
+                       var result= MessageBox.Show(
+                           "Log-in to the kobotoolbox server is required\r\n\r\nDo you want to log-in now?",
+                           "NSAP-ODK Database",
+                           MessageBoxButton.YesNo,
+                           MessageBoxImage.Information);
+
+                        if(result==MessageBoxResult.Yes)
                         {
-                            TreeViewItem root = new TreeViewItem { Header = "Upload history JSON files" };
-                            treeViewJSONNavigator.Items.Add(root);
-                            foreach (var f in _jsonfiles.OrderBy(t => t.CreationTime))
-                            {
-                                if (f.Extension == ".json")
-                                {
-                                    var parts = f.Name.Split(new char[] { ' ' });
-                                    if (int.TryParse(parts[0], out int v) &&
-                                        DateTime.TryParse(parts[1], out DateTime d1) &&
-                                        DateTime.TryParse(parts[1], out DateTime d3))
-                                    {
-                                        var ks = NSAPEntities.KoboServerViewModel.GetKoboServer(int.Parse(parts[0]));
-                                        if (ks != null && ks.IsFishLandingSurveyForm)
-                                        {
-                                            counter++;
-                                            FileInfoJSONMetadata fm = new FileInfoJSONMetadata
-                                            {
-                                                JSONFile = new FileInfo(f.FullName),
-                                                ItemNumber = counter,
-                                                Koboserver = ks
-                                            };
-                                            //TreeViewItem fileNode = new TreeViewItem { Header = f.Name, Tag = f.FullName };
-                                            TreeViewItem fileNode = new TreeViewItem { Header = f.Name, Tag = fm };
-                                            root.Items.Add(fileNode);
-                                        }
-                                    }
-                                }
-                            }
-                            root.IsExpanded = true;
+                            OpenServerWindow();
                         }
-                    }
-                    ResetView();
-                    if (counter > 0)
-                    {
-                        _targetGrid = gridJSONContent;
-                        //ProcessJsonFileForDisplay((FileInfoJSONMetadata)_firstJSONFileNode.Tag);
-                        //treeViewJSONNavigator.Focus();
-                        _jsonFileForUploadCount = counter;
                     }
                     else
                     {
-                        treeViewJSONNavigator.DataContext = null;
-                        treeViewJSONNavigator.Items.Clear();
-                        MessageBox.Show("No JSON files from Kobotoolbox server was found", "NSAP-ODK Database");
+                        ClearJSONTreeRootNodes();
+                        counter = 0;
+                        jsonFolder = GetJSONFolder(savedHistory: true);
+                        if (jsonFolder.Length > 0)
+                        {
+                            _jsonfiles = Directory.GetFiles(jsonFolder).Select(s => new FileInfo(s)).ToList();
+                            if (_jsonfiles.Any())
+                            {
+                                TreeViewItem root = new TreeViewItem { Header = "Upload history JSON files" };
+                                treeViewJSONNavigator.Items.Add(root);
+                                foreach (var f in _jsonfiles.OrderBy(t => t.CreationTime))
+                                {
+                                    if (f.Extension == ".json")
+                                    {
+                                        var parts = f.Name.Split(new char[] { ' ' });
+                                        if (int.TryParse(parts[0], out int v) &&
+                                            DateTime.TryParse(parts[1], out DateTime d1) &&
+                                            DateTime.TryParse(parts[1], out DateTime d3))
+                                        {
+                                            var ks = NSAPEntities.KoboServerViewModel.GetKoboServer(int.Parse(parts[0]));
+                                            if (ks != null && ks.IsFishLandingSurveyForm)
+                                            {
+                                                counter++;
+                                                FileInfoJSONMetadata fm = new FileInfoJSONMetadata
+                                                {
+                                                    JSONFile = new FileInfo(f.FullName),
+                                                    ItemNumber = counter,
+                                                    Koboserver = ks
+                                                };
+                                                //TreeViewItem fileNode = new TreeViewItem { Header = f.Name, Tag = f.FullName };
+                                                TreeViewItem fileNode = new TreeViewItem { Header = f.Name, Tag = fm };
+                                                root.Items.Add(fileNode);
+                                            }
+                                        }
+                                    }
+                                }
+                                root.IsExpanded = true;
+                            }
+                        }
+                        ResetView();
+                        if (counter > 0)
+                        {
+                            _targetGrid = gridJSONContent;
+                            //ProcessJsonFileForDisplay((FileInfoJSONMetadata)_firstJSONFileNode.Tag);
+                            //treeViewJSONNavigator.Focus();
+                            _jsonFileForUploadCount = counter;
+                        }
+                        else
+                        {
+                            treeViewJSONNavigator.DataContext = null;
+                            treeViewJSONNavigator.Items.Clear();
+                            MessageBox.Show("No JSON files from Kobotoolbox server was found", "NSAP-ODK Database");
+                        }
+                        rowJsonFiles.Height = new GridLength(1, GridUnitType.Star);
                     }
-                    rowJsonFiles.Height = new GridLength(1, GridUnitType.Star);
-
 
                     break;
 
@@ -1143,9 +1157,22 @@ namespace NSAP_ODK.Views
             //await ProcessJSONHistoryNodes((TreeViewItem)treeViewJSONNavigator.SelectedItem);
             if (VesselUnloadServerRepository.DelayedSave)
             {
+                bool proceed = false;
                 if (VesselUnloadServerRepository.TotalUploadCount > 0)
                 {
-                    if (await CreateTablesInAccess.UploadImportJsonResultAsync())
+                    if (Global.Settings.UsemySQL && await NSAPMysql.MySQLConnect.BulkUpdateMySQLTablesWithLandingSurveyDataAsync())
+                    {
+                        proceed = true;
+                    }
+                    else
+                    {
+                        if (await CreateTablesInAccess.UploadImportJsonResultAsync())
+                        {
+                            proceed = true;
+
+                        }
+                    }
+                    if (proceed)
                     {
                         NSAPEntities.ClearCSVData();
                         VesselUnloadServerRepository.ResetTotalUploadCounter();
@@ -1191,7 +1218,7 @@ namespace NSAP_ODK.Views
             return success;
         }
 
-        public void EnableLoginFromADifferentUser(bool enable=true)
+        public void EnableLoginFromADifferentUser(bool enable = true)
         {
             if (enable)
             {

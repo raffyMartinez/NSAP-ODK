@@ -60,12 +60,27 @@ namespace NSAP_ODK.Entities.Database
             {
                 boat_ct = ((int)item.Boats).ToString();
             }
+
             if (item.Catch != null)
             {
                 catch_wt = ((double)item.Catch).ToString();
             }
 
+            if(Global.Settings.UsemySQL)
+            {
+                if(item.Boats==null)
+                {
+                    boat_ct = @"\N";
+                }
+
+                if(item.Catch==null)
+                {
+                    catch_wt = @"\N";
+                }
+            }
+
             _csv.AppendLine($"{item.PK},{item.Parent.PK},{gr_id},{boat_ct},{catch_wt},\"{gr_text}\",\"{item.Remarks}\"");
+
             return true;
         }
 
@@ -73,7 +88,14 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_gear_unload")}\r\n{_csv.ToString()}";
+                if (Global.Settings.UsemySQL)
+                {
+                    return $"{NSAPMysql.MySQLConnect.GetColumnNamesCSV("dbo_gear_unload")}\r\n{_csv.ToString()}";
+                }
+                else
+                {
+                    return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_gear_unload")}\r\n{_csv.ToString()}";
+                }
             }
 
         }
@@ -120,7 +142,7 @@ namespace NSAP_ODK.Entities.Database
 
         public static void ClearCSV()
         {
-            
+
             _csv.Clear();
         }
 

@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Data;
+
 namespace NSAP_ODK.Entities.Database
 {
     public class LandingSiteSamplingViewModel
@@ -299,7 +301,7 @@ namespace NSAP_ODK.Entities.Database
             return new LandingSiteSamplingFlattened(LandingSiteSamplingCollection.Where(t => t.PK == id).FirstOrDefault());
         }
 
-        public  void Clear()
+        public void Clear()
         {
             LandingSiteSamplingCollection.Clear();
         }
@@ -385,21 +387,57 @@ namespace NSAP_ODK.Entities.Database
             return LandingSiteSamplingCollection.FirstOrDefault(n => n.PK == pk);
         }
 
+
+
         private static bool SetCSV(LandingSiteSampling item)
         {
             string ls_id = "";
             string ls_text = "";
+            string sampling_date = item.SamplingDate.Date.ToString();
+            string date_submitted = item.DateSubmitted.ToString();
+            string date_added = item.DateAdded.ToString();
+            
             if (!string.IsNullOrEmpty(item.LandingSiteText))
             {
                 ls_text = item.LandingSiteText.Replace("»", ",");
             }
+            
             if (item.LandingSiteID != null)
             {
                 ls_id = ((int)item.LandingSiteID).ToString();
             }
+            
+            if (Utilities.Global.Settings.UsemySQL)
+            {
+                if (item.LandingSiteID == null)
+                {
+                    ls_id = @"\N";
+                }
+
+                sampling_date = item.SamplingDate.Date.ToString("yyyy-MM-dd HH:mm:ss");
+                if (item.DateSubmitted == null)
+                {
+                    date_submitted = @"\N";
+                }
+                else
+                {
+                    date_submitted = ((DateTime)item.DateSubmitted).ToString("yyyy-MM-dd HH:mm:ss");
+                }
+                if (item.DateAdded == null)
+                {
+                    date_added = @"\N";
+                }
+                else
+                {
+                    date_added = ((DateTime)item.DateAdded).ToString("yyyy-MM-dd HH:mm:ss");
+                }
+            }
 
 
-            _csv.AppendLine($"{item.PK},\"{item.NSAPRegionID}\",{item.SamplingDate.Date},{ls_id},\"{item.FishingGroundID}\",\"{item.Remarks}\",{Convert.ToInt32(item.IsSamplingDay)},\"{ls_text}\",{item.FMAID}");
+
+
+
+            //_csv.AppendLine($"{item.PK},\"{item.NSAPRegionID}\",{item.SamplingDate.Date},{ls_id},\"{item.FishingGroundID}\",\"{item.Remarks}\",{Convert.ToInt32(item.IsSamplingDay)},\"{ls_text}\",{item.FMAID}");
 
 
             string enum_id = "";
@@ -407,7 +445,24 @@ namespace NSAP_ODK.Entities.Database
             {
                 enum_id = ((int)item.EnumeratorID).ToString();
             }
-            _csv_1.AppendLine($"{item.PK},{item.DateSubmitted},\"{item.UserName}\",\"{item.DeviceID}\",\"{item.XFormIdentifier}\",{item.DateAdded},{Convert.ToInt32(item.FromExcelDownload)},\"{item.FormVersion}\",\"{item.RowID}\",{enum_id},\"{item.EnumeratorText}\"");
+            else if (Utilities.Global.Settings.UsemySQL && item.EnumeratorID == null)
+            {
+                enum_id = @"\N";
+            }
+
+
+
+            //_csv_1.AppendLine($"{item.PK},{item.DateSubmitted},\"{item.UserName}\",\"{item.DeviceID}\",\"{item.XFormIdentifier}\",{item.DateAdded},{Convert.ToInt32(item.FromExcelDownload)},\"{item.FormVersion}\",\"{item.RowID}\",{enum_id},\"{item.EnumeratorText}\"");
+
+            if (Utilities.Global.Settings.UsemySQL)
+            {
+                _csv.AppendLine($"{item.PK},\"{item.NSAPRegionID}\",{item.FMAID},{sampling_date},{ls_id},\"{item.FishingGroundID}\",\"{item.Remarks}\",{Convert.ToInt32(item.IsSamplingDay)},\"{ls_text}\"");
+            }
+            else
+            {
+                _csv.AppendLine($"{item.PK},\"{item.NSAPRegionID}\",{sampling_date},{ls_id},\"{item.FishingGroundID}\",\"{item.Remarks}\",{Convert.ToInt32(item.IsSamplingDay)},\"{ls_text}\",{item.FMAID}");
+            }
+            _csv_1.AppendLine($"{item.PK},{date_submitted},\"{item.UserName}\",\"{item.DeviceID}\",\"{item.XFormIdentifier}\",{date_added},{Convert.ToInt32(item.FromExcelDownload)},\"{item.FormVersion}\",\"{item.RowID}\",{enum_id},\"{item.EnumeratorText}\"");
             return true;
         }
 
@@ -415,7 +470,14 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_LC_FG_sample_day_1")}\r\n{_csv_1.ToString()}";
+                if (Utilities.Global.Settings.UsemySQL)
+                {
+                    return $"{NSAPMysql.MySQLConnect.GetColumnNamesCSV("dbo_LC_FG_sample_day_1")}\r\n{_csv_1.ToString()}";
+                }
+                else
+                {
+                    return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_LC_FG_sample_day_1")}\r\n{_csv_1.ToString()}";
+                }
             }
 
         }
@@ -423,7 +485,14 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_LC_FG_sample_day")}\r\n{_csv.ToString()}";
+                if (Utilities.Global.Settings.UsemySQL)
+                {
+                    return $"{NSAPMysql.MySQLConnect.GetColumnNamesCSV("dbo_LC_FG_sample_day")}\r\n{_csv.ToString()}";
+                }
+                else
+                {
+                    return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_LC_FG_sample_day")}\r\n{_csv.ToString()}";
+                }
             }
 
         }

@@ -105,13 +105,32 @@ namespace NSAP_ODK.Entities.Database
 
         private static bool SetCSV(VesselEffort item)
         {
-            _csv.AppendLine($"{item.PK},{item.Parent.PK},{item.EffortSpecID},{item.EffortValueNumeric},\"{item.EffortValueText}\"");
+            string effort_numeric = "";
+            if (item.EffortValueNumeric != null)
+            {
+                effort_numeric = ((double)item.EffortValueNumeric).ToString();
+            }
+            else if (Utilities.Global.Settings.UsemySQL && item.EffortValueNumeric == null)
+            {
+                effort_numeric = @"\N";
+            }
+            _csv.AppendLine($"{item.PK},{item.Parent.PK},{item.EffortSpecID},{effort_numeric},\"{item.EffortValueText}\"");
             return true;
         }
 
         public static string CSV
         {
-            get { return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_vessel_effort")}\r\n{_csv.ToString()}"; }
+            get
+            {
+                if (Utilities.Global.Settings.UsemySQL)
+                {
+                    return $"{NSAPMysql.MySQLConnect.GetColumnNamesCSV("dbo_vessel_effort")}\r\n{_csv.ToString()}";
+                }
+                else
+                {
+                    return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_vessel_effort")}\r\n{_csv.ToString()}";
+                }
+            }
         }
 
         public static void ClearCSV()

@@ -252,7 +252,7 @@ namespace NSAP_ODK.Entities.Database
         {
             bool isDone = false;
             int counter = 0;
-            foreach (var item in VesselCatchCollection.Where(t => t.CatchName.Trim(new char[] { ' ','\n'}) == multilineItem).ToList())
+            foreach (var item in VesselCatchCollection.Where(t => t.CatchName.Trim(new char[] { ' ', '\n' }) == multilineItem).ToList())
             {
                 if (item.VesselUnloadID == 605)
                 {
@@ -614,13 +614,51 @@ namespace NSAP_ODK.Entities.Database
             string tws = item.TWS == null ? "" : ((double)item.TWS).ToString();
             string catch_kg = item.Catch_kg == null ? "" : ((double)item.Catch_kg).ToString();
             string sample_kg = item.Sample_kg == null ? "" : ((double)item.Sample_kg).ToString();
-            _csv.AppendLine($"{item.PK},{item.Parent.PK},{sp_id},{catch_kg},{sample_kg},\"{item.TaxaCode}\",\"{item.SpeciesText}\",{tws}");
+
+            if (Utilities.Global.Settings.UsemySQL)
+            {
+                if (item.Catch_kg == null)
+                {
+                    catch_kg = @"\N";
+                }
+
+                if (item.Sample_kg == null)
+                {
+                    sample_kg = @"\N";
+                }
+
+                if (item.SpeciesID == null)
+                {
+                    sp_id = @"\N";
+                }
+
+                if (item.TWS == null)
+                {
+                    tws = @"\N";
+                }
+
+                _csv.AppendLine($"{item.PK},{item.Parent.PK},{sp_id},{catch_kg},{tws},{sample_kg},\"{item.TaxaCode}\",\"{item.SpeciesText}\"");
+            }
+            else
+            {
+                _csv.AppendLine($"{item.PK},{item.Parent.PK},{sp_id},{catch_kg},{sample_kg},\"{item.TaxaCode}\",\"{item.SpeciesText}\",{tws}");
+            }
             return true;
         }
 
         public static string CSV
         {
-            get { return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_vessel_catch")}\r\n{_csv}"; }
+            get
+            {
+                if (Utilities.Global.Settings.UsemySQL)
+                {
+                    return $"{NSAPMysql.MySQLConnect.GetColumnNamesCSV("dbo_vessel_catch")}\r\n{_csv}";
+                }
+                else
+                {
+                    return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_vessel_catch")}\r\n{_csv}";
+                }
+            }
         }
         private void VesselCatches_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {

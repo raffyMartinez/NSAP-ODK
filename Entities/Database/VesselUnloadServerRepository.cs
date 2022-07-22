@@ -2058,6 +2058,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
         public static string CurrentJSONFileName { get; set; }
         public static bool UploadToDatabase(List<VesselLanding> resolvedLandings = null)
         {
+            DelayedSave = true;
             UploadInProgress = true;
             int savedCount = 0;
 

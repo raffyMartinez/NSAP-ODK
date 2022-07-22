@@ -33,13 +33,13 @@ namespace NSAP_ODK.Entities.Database
         {
             return Task.Run(() => UploadImportJsonResult());
         }
-        public static  bool UploadImportJsonResult()
+        public static bool UploadImportJsonResult()
         {
             bool success = false;
             string base_dir = AppDomain.CurrentDomain.BaseDirectory;
             string csv_file = $@"{base_dir}\temp.csv";
             MDBFile = Global.MDBPath;
-            using (OleDbConnection connection =new OleDbConnection(ConnectionString))
+            using (OleDbConnection connection = new OleDbConnection(ConnectionString))
             {
                 using (var cmd = connection.CreateCommand())
                 {
@@ -128,7 +128,7 @@ namespace NSAP_ODK.Entities.Database
                         success = true;
                         _importCSVCount = 0;
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Logger.Log($"{ex.Message}\r\nWill attempt to roll back transaction");
                         try
@@ -142,54 +142,6 @@ namespace NSAP_ODK.Entities.Database
                         }
                     }
 
-                }
-            }
-            return success;
-        }
-        public static async Task<bool> UploadImportJsonResultAsync1()
-        {
-            _importCSVCount = 0;
-            AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "start importing csv", TotalTableCount = 14 });
-            bool success = false;
-            MDBFile = Global.MDBPath;
-            if (await Task.Run(() => DoInsertQuery("dbo_LC_FG_sample_day", LandingSiteSamplingViewModel.CSV)))
-            {
-                if (await Task.Run(() => DoInsertQuery("dbo_LC_FG_sample_day_1", LandingSiteSamplingViewModel.CSV_1)))
-                {
-                    if (await Task.Run(() => DoInsertQuery("dbo_gear_unload", GearUnloadViewModel.CSV)))
-                    {
-                        if (await Task.Run(() => DoInsertQuery("dbo_vessel_unload", VesselUnloadViewModel.CSV)))
-                        {
-                            if (await Task.Run(() => DoInsertQuery("dbo_vessel_unload_1", VesselUnloadViewModel.CSV_1)))
-                            {
-                                if (await Task.Run(() => DoInsertQuery("dbo_vessel_unload_stats", VesselUnloadViewModel.UnloadStatsCSV)))
-                                {
-                                    if (await Task.Run(() => DoInsertQuery("dbo_vessel_effort", VesselEffortViewModel.CSV)))
-                                    {
-                                        if (await Task.Run(() => DoInsertQuery("dbo_fg_grid", FishingGroundGridViewModel.CSV)))
-                                        {
-                                            if (await Task.Run(() => DoInsertQuery("dbo_gear_soak", GearSoakViewModel.CSV)))
-                                            {
-                                                if (await Task.Run(() => DoInsertQuery("dbo_vessel_catch", VesselCatchViewModel.CSV)))
-                                                {
-                                                    if (await Task.Run(() => DoInsertQuery("dbo_catch_len", CatchLengthViewModel.CSV)))
-                                                    {
-                                                        if (await Task.Run(() => DoInsertQuery("dbo_catch_len_freq", CatchLenFreqViewModel.CSV)))
-                                                        {
-                                                            if (await Task.Run(() => DoInsertQuery("dbo_catch_len_wt", CatchLengthWeightViewModel.CSV)))
-                                                            {
-                                                                success = await Task.Run(() => DoInsertQuery("dbo_catch_maturity", CatchMaturityViewModel.CSV));
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
                 }
             }
             return success;
@@ -223,6 +175,34 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
             return cols;
+        }
+
+        public static DataTable GetDataTableFromCsv(string csv)
+        {
+            string base_dir = AppDomain.CurrentDomain.BaseDirectory;
+            string csv_file = $@"{base_dir}\temp.csv";
+            File.WriteAllText(csv_file, csv);
+
+            string pathOnly = Path.GetDirectoryName(csv_file);
+            string fileName = Path.GetFileName(csv_file);
+
+            string sql = @"SELECT * FROM [" + fileName + "]";
+
+            using (OleDbConnection connection = new OleDbConnection(
+                      @"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + pathOnly +
+                      ";Extended Properties=\"Text;HDR=Yes\""))
+            {
+                using (OleDbCommand command = new OleDbCommand(sql, connection))
+                {
+                    using (OleDbDataAdapter adapter = new OleDbDataAdapter(command))
+                    {
+                        DataTable dataTable = new DataTable();
+                        dataTable.Locale = System.Globalization.CultureInfo.CurrentCulture;
+                        adapter.Fill(dataTable);
+                        return dataTable;
+                    }
+                }
+            }
         }
 
         public static string GetColumnNamesCSV(string tableName)

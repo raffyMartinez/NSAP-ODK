@@ -205,7 +205,14 @@ namespace NSAP_ODK.Entities.Database
                 }
                 else
                 {
-                    return NotFishSpecies.ToString();
+                    if (NotFishSpecies == null)
+                    {
+                        return string.Empty;
+                    }
+                    else
+                    {
+                        return NotFishSpecies.ToString();
+                    }
                 }
 
             }

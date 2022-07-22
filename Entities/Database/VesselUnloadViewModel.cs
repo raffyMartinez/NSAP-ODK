@@ -37,7 +37,9 @@ namespace NSAP_ODK.Entities.Database
         {
             if (vu.DelayedSave)
             {
+
                 _unloadStats_csv.AppendLine($"{vu.PK},{vu.CountEffortIndicators},{vu.CountGrids},{vu.CountGearSoak},{vu.CountCatchCompositionItems},{vu.CountLengthRows},{vu.CountLenFreqRows},{vu.CountLenWtRows},{vu.CountMaturityRows}");
+
                 return true;
             }
             else
@@ -597,6 +599,9 @@ namespace NSAP_ODK.Entities.Database
 
         private static bool SetCSV(VesselUnload vu)
         {
+            string date_submitted = vu.DateTimeSubmitted.ToString();
+            string date_added = vu.DateAddedToDatabase.ToString();
+            string date_sampled = vu.DateSampling.ToString();
             string boat_id = string.Empty;
             if (vu.VesselID != null)
             {
@@ -633,7 +638,7 @@ namespace NSAP_ODK.Entities.Database
                 raising_factor = ((double)vu.RaisingFactor).ToString();
             }
 
-            _csv.AppendLine($"{vu.Parent.PK},{vu.PK},{boat_id},{catch_wt},{sample_wt},{boxes_total},{boxes_sampled},\"{vu.VesselText}\",{Convert.ToInt32(vu.IsBoatUsed)},{raising_factor}");
+
 
 
             string departure = string.Empty;
@@ -660,22 +665,151 @@ namespace NSAP_ODK.Entities.Database
                 enum_id = ((int)vu.NSAPEnumeratorID).ToString();
             }
 
-            _csv_1.AppendLine($"{vu.PK},{Convert.ToInt32(vu.OperationIsSuccessful)},{Convert.ToInt32(vu.OperationIsTracked)},{departure},{arrival},\"{vu.SectorCode}\",\"{vu.ODKRowID}\",\"{vu.XFormIdentifier}\",{xFormDate},\"{vu.UserName}\",\"{vu.DeviceID}\",{vu.DateTimeSubmitted},\"{vu.FormVersion}\",\"{vu.GPSCode}\",{vu.SamplingDate},\"{vu.Notes}\",{enum_id},\"{vu.EnumeratorText}\",{vu.DateAddedToDatabase},{Convert.ToInt32(vu.FromExcelDownload)},{Convert.ToInt32(vu.FishingTripIsCompleted)},{Convert.ToInt32(vu.HasCatchComposition)},{vu.NumberOfFishers}");
+            string no_fishers = string.Empty;
+            if (vu.NumberOfFishers != null)
+            {
+                no_fishers = ((int)vu.NumberOfFishers).ToString();
+            }
+
+            if (Utilities.Global.Settings.UsemySQL)
+            {
+                if (vu.VesselID == null)
+                {
+                    boat_id = @"\N";
+                }
+
+                if (vu.WeightOfCatch == null)
+                {
+                    catch_wt = @"\N";
+                }
+
+                if (vu.WeightOfCatchSample == null)
+                {
+                    sample_wt = @"\N";
+                }
+
+                if (vu.Boxes == null)
+                {
+                    boxes_total = @"\N";
+                }
+
+                if (vu.BoxesSampled == null)
+                {
+                    boxes_sampled = @"\N";
+                }
+
+
+                if (vu.RaisingFactor == null)
+                {
+                    raising_factor = @"\N";
+                }
+
+
+
+                if (vu.DepartureFromLandingSite == null)
+                {
+                    departure = @"\N";
+                }
+                else
+                {
+                    departure = ((DateTime)vu.DepartureFromLandingSite).ToString("yyyy-MM-dd HH:mm:ss");
+                }
+
+
+                if (vu.ArrivalAtLandingSite == null)
+                {
+                    arrival = @"\N";
+                }
+                else
+                {
+                    arrival = ((DateTime)vu.ArrivalAtLandingSite).ToString("yyyy-MM-dd HH:mm:ss");
+                }
+
+
+
+                if (vu.XFormDate == null)
+                {
+                    xFormDate = @"\N";
+                }
+                else
+                {
+                    xFormDate = ((DateTime)vu.XFormDate).ToString("yyyy-MM-dd HH:mm:ss");
+                }
+
+                if (vu.NSAPEnumeratorID == null)
+                {
+                    enum_id = @"\N";
+                }
+
+                if (vu.NumberOfFishers == null)
+                {
+                    no_fishers = @"\N";
+                }
+
+                date_submitted = vu.DateTimeSubmitted.ToString("yyyy-MM-dd HH:mm:ss");
+                date_sampled = vu.SamplingDate.ToString("yyyy-MM-dd HH:mm:ss");
+                if (vu.DateAddedToDatabase == null)
+                {
+                    date_added = @"\N";
+                }
+                else
+                {
+                    date_added = ((DateTime)vu.DateAddedToDatabase).ToString("yyyy-MM-dd HH:mm:ss");
+                }
+            }
+
+
+            _csv.AppendLine($"{vu.Parent.PK},{vu.PK},{boat_id},{catch_wt},{sample_wt},{boxes_total},{boxes_sampled},\"{vu.VesselText}\",{Convert.ToInt32(vu.IsBoatUsed)},{raising_factor}");
+            _csv_1.AppendLine($"{vu.PK},{Convert.ToInt32(vu.OperationIsSuccessful)},{Convert.ToInt32(vu.OperationIsTracked)},{departure},{arrival},\"{vu.SectorCode}\",\"{vu.ODKRowID}\",\"{vu.XFormIdentifier}\",{xFormDate},\"{vu.UserName}\",\"{vu.DeviceID}\",{date_submitted},\"{vu.FormVersion}\",\"{vu.GPSCode}\",{date_sampled},\"{vu.Notes}\",{enum_id},\"{vu.EnumeratorText}\",{date_added},{Convert.ToInt32(vu.FromExcelDownload)},{Convert.ToInt32(vu.FishingTripIsCompleted)},{Convert.ToInt32(vu.HasCatchComposition)},{no_fishers}");
+
+
 
             return true;
         }
 
         public static string UnloadStatsCSV
         {
-            get { return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_vessel_unload_stats")}\r\n{_unloadStats_csv}"; }
+            get
+            {
+                if (Utilities.Global.Settings.UsemySQL)
+                {
+                    return $"{NSAPMysql.MySQLConnect.GetColumnNamesCSV("dbo_vessel_unload_stats")}\r\n{_unloadStats_csv}";
+                }
+                else
+                {
+                    return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_vessel_unload_stats")}\r\n{_unloadStats_csv}";
+                }
+            }
         }
         public static string CSV_1
         {
-            get { return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_vessel_unload_1")}\r\n{_csv_1}"; }
+
+            get
+            {
+                if (Utilities.Global.Settings.UsemySQL)
+                {
+                    return $"{NSAPMysql.MySQLConnect.GetColumnNamesCSV("dbo_vessel_unload_1")}\r\n{_csv_1}";
+                }
+                else
+                {
+                    return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_vessel_unload_1")}\r\n{_csv_1}";
+                }
+            }
         }
         public static string CSV
         {
-            get { return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_vessel_unload")}\r\n{_csv.ToString()}"; }
+
+            get
+            {
+                if (Utilities.Global.Settings.UsemySQL)
+                {
+                    return $"{NSAPMysql.MySQLConnect.GetColumnNamesCSV("dbo_vessel_unload")}\r\n{_csv}";
+                }
+                else
+                {
+                    return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_vessel_unload")}\r\n{_csv.ToString()}";
+                }
+            }
         }
         public VesselUnload getVesselUnload(string odkROWID)
         {

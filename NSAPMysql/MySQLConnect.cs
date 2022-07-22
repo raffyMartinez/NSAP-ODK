@@ -1,16 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MySql.Data;
 using MySql.Data.MySqlClient;
 using NSAP_ODK.Utilities;
+using NSAP_ODK.Entities.Database;
+using System.IO;
 
 namespace NSAP_ODK.NSAPMysql
 {
     public static class MySQLConnect
     {
+        public static event EventHandler<CreateTablesInAccessEventArgs> AccessTableEvent;
+        private static string _mySQLSecureFolder;
+        private static int _importCSVCount;
+        public static string MYSQLPrivFolder
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_mySQLSecureFolder))
+                {
+                    _mySQLSecureFolder = GetMySQLSecureFileFolder();
+                }
+                return _mySQLSecureFolder;
+            }
+        }
+
+
         public static string UserName { get; set; }
         public static string Password { get; set; }
 
@@ -76,6 +95,177 @@ namespace NSAP_ODK.NSAPMysql
                 }
             }
             return canCreate;
+        }
+
+        public static Task<bool> BulkUpdateMySQLTablesWithLandingSurveyDataAsync()
+        {
+            return Task.Run(() => BulkUpdateMySQLTablesWithLandingSurveyData());
+        }
+
+        private static string GetMySQLSecureFileFolder()
+        {
+            using (MySqlConnection con = new MySqlConnection(ConnectionString()))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    con.Open();
+                    cmd.CommandText = "Select @@global.secure_file_priv";
+                    try
+                    {
+                        return cmd.ExecuteScalar() as string;
+                    }
+                    catch
+                    {
+                        return string.Empty;
+                    }
+                }
+            }
+
+        }
+        public static bool BulkUpdateMySQLTablesWithLandingSurveyData()
+        {
+            bool success = false;
+            //string base_dir = AppDomain.CurrentDomain.BaseDirectory;
+
+            string csv_file = $@"{MYSQLPrivFolder}temp.csv".Replace('\\', '/');
+            using (MySqlConnection conn = new MySqlConnection(ConnectionString() + ";AllowLoadLocalInfile = true;"))
+            //using (MySqlConnection conn = new MySqlConnection(ConnectionString()))
+            {
+                conn.Open();
+                using (MySqlTransaction tran = conn.BeginTransaction(IsolationLevel.Serializable))
+                {
+                    try
+                    {
+                        using (MySqlCommand cmd = new MySqlCommand())
+                        {
+                            cmd.Connection = conn;
+                            cmd.Transaction = tran;
+                            AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "start importing csv", TotalTableCount = 14 });
+
+                            File.WriteAllText(csv_file, LandingSiteSamplingViewModel.CSV);
+                            cmd.CommandText = MakeCommandText(csv_file, "dbo_lc_fg_sample_day");
+                            cmd.ExecuteNonQuery();
+                            AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_LC_FG_sample_day", CurrentTableCount = ++_importCSVCount });
+
+
+                            File.WriteAllText(csv_file, LandingSiteSamplingViewModel.CSV_1);
+                            cmd.CommandText = MakeCommandText(csv_file, "dbo_lc_fg_sample_day_1");
+                            cmd.ExecuteNonQuery();
+                            AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_LC_FG_sample_day_1", CurrentTableCount = ++_importCSVCount });
+
+                            File.WriteAllText(csv_file, GearUnloadViewModel.CSV);
+                            cmd.CommandText = MakeCommandText(csv_file, "dbo_gear_unload");
+                            cmd.ExecuteNonQuery();
+                            AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_gear_unload", CurrentTableCount = ++_importCSVCount });
+
+                            File.WriteAllText(csv_file, VesselUnloadViewModel.CSV);
+                            cmd.CommandText = MakeCommandText(csv_file, "dbo_vessel_unload");
+                            cmd.ExecuteNonQuery();
+                            AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_vessel_unload", CurrentTableCount = ++_importCSVCount });
+
+                            File.WriteAllText(csv_file, VesselUnloadViewModel.CSV_1);
+                            cmd.CommandText = MakeCommandText(csv_file, "dbo_vessel_unload_1");
+                            cmd.ExecuteNonQuery();
+                            AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_vessel_unload_1", CurrentTableCount = ++_importCSVCount });
+
+                            File.WriteAllText(csv_file, VesselUnloadViewModel.UnloadStatsCSV);
+                            cmd.CommandText = MakeCommandText(csv_file, "dbo_vessel_unload_stats");
+                            cmd.ExecuteNonQuery();
+                            AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_vessel_unload_stats", CurrentTableCount = ++_importCSVCount });
+
+                            File.WriteAllText(csv_file, GearSoakViewModel.CSV);
+                            cmd.CommandText = MakeCommandText(csv_file, "dbo_gear_soak");
+                            cmd.ExecuteNonQuery();
+                            AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_gear_soak", CurrentTableCount = ++_importCSVCount });
+
+                            File.WriteAllText(csv_file, VesselEffortViewModel.CSV);
+                            cmd.CommandText = MakeCommandText(csv_file, "dbo_vessel_effort");
+                            cmd.ExecuteNonQuery();
+                            AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_vessel_effort", CurrentTableCount = ++_importCSVCount });
+
+                            File.WriteAllText(csv_file, FishingGroundGridViewModel.CSV);
+                            cmd.CommandText = MakeCommandText(csv_file, "dbo_fg_grid");
+                            cmd.ExecuteNonQuery();
+                            AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_fg_grid", CurrentTableCount = ++_importCSVCount });
+
+                            File.WriteAllText(csv_file, VesselCatchViewModel.CSV);
+                            cmd.CommandText = MakeCommandText(csv_file, "dbo_vessel_catch");
+                            cmd.ExecuteNonQuery();
+                            AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_vessel_catch", CurrentTableCount = ++_importCSVCount });
+
+                            File.WriteAllText(csv_file, CatchLenFreqViewModel.CSV);
+                            cmd.CommandText = MakeCommandText(csv_file, "dbo_catch_len_freq");
+                            cmd.ExecuteNonQuery();
+                            AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_catch_len_freq", CurrentTableCount = ++_importCSVCount });
+
+                            File.WriteAllText(csv_file, CatchLengthViewModel.CSV);
+                            cmd.CommandText = MakeCommandText(csv_file, "dbo_catch_length");
+                            cmd.ExecuteNonQuery();
+                            AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_catch_length", CurrentTableCount = ++_importCSVCount });
+
+                            File.WriteAllText(csv_file, CatchLengthWeightViewModel.CSV);
+                            cmd.CommandText = MakeCommandText(csv_file, "dbo_catch_len_wt");
+                            cmd.ExecuteNonQuery();
+                            AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_catch_len_wt", CurrentTableCount = ++_importCSVCount });
+
+                            File.WriteAllText(csv_file, CatchMaturityViewModel.CSV);
+                            cmd.CommandText = MakeCommandText(csv_file, "dbo_catch_maturity");
+                            cmd.ExecuteNonQuery();
+                            AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_catch_maturity", CurrentTableCount = ++_importCSVCount });
+
+                            tran.Commit();
+                            success = true;
+                            _importCSVCount = 0;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log($"{ex.Message}\r\nWill attempt to roll back transaction");
+                        try
+                        {
+                            tran.Rollback();
+                            Logger.Log("Database upload failed. Transaction was rolled back");
+                        }
+                        catch
+                        {
+                            // Do nothing here; transaction is not active.
+                        }
+                    }
+                }
+            }
+            return success;
+        }
+
+        private static string MakeCommandText(string csv_file, string table_name)
+        {
+            return $@"SET FOREIGN_KEY_CHECKS=0;
+                     LOAD DATA INFILE '{csv_file}' INTO TABLE {table_name} 
+                     FIELDS TERMINATED BY ',' 
+                     OPTIONALLY ENCLOSED BY '""' 
+                     LINES TERMINATED BY '\r\n'  
+                     IGNORE 1 ROWS;
+                     SET FOREIGN_KEY_CHECKS=1";
+        }
+
+        public static string GetColumnNamesCSV(string tableName)
+        {
+            string cols = "";
+            using (MySqlConnection con = new MySqlConnection(ConnectionString()))
+            {
+                using (MySqlCommand cmd = con.CreateCommand())
+                {
+                    cmd.CommandText = $"Select * from nsap_odk.{tableName}";
+                    con.Open();
+                    MySqlDataReader dr = cmd.ExecuteReader();
+                    var dt = dr.GetSchemaTable();
+
+                    foreach (DataRow r in dt.Rows)
+                    {
+                        cols += $"{r[dt.Columns["ColumnName"]]},";
+                    }
+                }
+            }
+            return cols.Trim(new char[] { ',', ' ' });
         }
 
         public static int TableCount { get; internal set; }

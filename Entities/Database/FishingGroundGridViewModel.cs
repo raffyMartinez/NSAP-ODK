@@ -95,7 +95,17 @@ namespace NSAP_ODK.Entities.Database
         }
         public static string CSV
         {
-            get { return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_fg_grid")}\r\n{_csv}"; }
+            get
+            {
+                if (Utilities.Global.Settings.UsemySQL)
+                {
+                    return $"{NSAPMysql.MySQLConnect.GetColumnNamesCSV("dbo_fg_grid")}\r\n{_csv}";
+                }
+                else
+                {
+                    return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_fg_grid")}\r\n{_csv}";
+                }
+            }
         }
 
         private void FishingGroundGridCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
