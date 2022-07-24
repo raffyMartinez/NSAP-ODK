@@ -879,7 +879,6 @@ namespace NSAP_ODK.Views
             {
                 case "checkMultipleSp":
                     _isMultiline = (bool)chk.IsChecked;
-                    //dataGrid.DataContext = NSAPEntities.VesselCatchViewModel.OrphanedSpeciesNames(getMultiLine: (bool)chk.IsChecked);
                     dataGrid.DataContext = VesselCatchViewModel.OrphanedSpeciesNamesStatic(getMultiLine: (bool)chk.IsChecked);
                     buttonFix.IsEnabled = (bool)chk.IsChecked;
                     checkCheckAll.IsEnabled = buttonFix.IsEnabled;

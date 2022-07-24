@@ -73,81 +73,94 @@ namespace NSAP_ODK.Entities.Database
                     using (var cmd = con.CreateCommand())
                     {
                         cmd.CommandText = @"SELECT
-                                                    r.short_name,
-		                                            f.fma_name,
-		                                            fg.fishing_ground_name,
-		                                            ne.enumerator_name,
-		                                            sd.land_ctr_id,
-		                                            sd.land_ctr_text,
-		                                            vu1.enumerator_text,
-		                                            t.taxa,
-		                                            vc.species_text,
-		                                            g.gear_name,
-		                                            gu.gr_text,
-		                                            vu1.v_unload_id
+                                              r.short_name,
+                                              f.fma_name,
+                                              fg.fishing_ground_name,
+                                              ne.enumerator_name,
+                                              sd.land_ctr_id,
+                                              sd.land_ctr_text,
+                                              vu1.enumerator_text,
+                                              t.taxa,
+                                              vc.species_text,
+                                              g.gear_name,
+                                              gu.gr_text,
+                                              vu1.v_unload_id
                                             FROM
-		                                            nsap_odk.gears as g
+                                              nsap_odk.gears as g
                                             RIGHT JOIN
-		                                            ((nsap_odk.fishing_grounds as fg 
-		                                            INNER JOIN (nsap_odk.fma as f 
-		                                            INNER JOIN (nsap_odk.nsap_region as r 
-		                                            INNER JOIN (nsap_odk.dbo_lc_fg_sample_day as sd 
-		                                            INNER JOIN (nsap_odk.dbo_gear_unload as gu
-		                                            INNER JOIN (nsap_odk.nsap_enumerators as ne 
-		                                            RIGHT JOIN ((nsap_odk.dbo_vessel_unload as vu 
-		                                            INNER JOIN nsap_odk.dbo_vessel_catch as vc
-				                                            ON vu.v_unload_id = vc.v_unload_id) 
-		                                            INNER JOIN nsap_odk.dbo_vessel_unload_1 as vu1
-				                                            ON vu.v_unload_id = vu1.v_unload_id) 
-				                                            ON ne.enumerator_id = vu1.enumerator_id) 
-				                                            ON gu.unload_gr_id = vu.unload_gr_id) 
-				                                            ON sd.unload_day_id = gu.unload_day_id) 
-				                                            ON r.code = sd.region_id) 
-				                                            ON f.fma_id = sd.fma) 
-				                                            ON fg.fishing_ground_code = sd.ground_id) 
-				                                            LEFT JOIN nsap_odk.taxa as t ON vc.taxa = t.taxa_code)
+                                              ((nsap_odk.fishing_grounds as fg 
+                                              INNER JOIN (nsap_odk.fma as f 
+                                              INNER JOIN (nsap_odk.nsap_region as r 
+                                              INNER JOIN (nsap_odk.dbo_lc_fg_sample_day as sd 
+                                              INNER JOIN (nsap_odk.dbo_gear_unload as gu
+                                              INNER JOIN (nsap_odk.nsap_enumerators as ne 
+                                              RIGHT JOIN ((nsap_odk.dbo_vessel_unload as vu 
+                                              INNER JOIN nsap_odk.dbo_vessel_catch as vc
+                                                ON vu.v_unload_id = vc.v_unload_id) 
+                                              INNER JOIN nsap_odk.dbo_vessel_unload_1 as vu1
+                                                ON vu.v_unload_id = vu1.v_unload_id) 
+                                                ON ne.enumerator_id = vu1.enumerator_id) 
+                                                ON gu.unload_gr_id = vu.unload_gr_id) 
+                                                ON sd.unload_day_id = gu.unload_day_id) 
+                                                ON r.code = sd.region_id) 
+                                                ON f.fma_id = sd.fma) 
+                                                ON fg.fishing_ground_code = sd.ground_id) 
+                                                LEFT JOIN nsap_odk.taxa as t ON vc.taxa = t.taxa_code)
                                             ON
-		                                            g.gear_code = gu.gr_id
+                                               g.gear_code = gu.gr_id
                                             WHERE
-		                                            vc.species_id Is Null
-		                                            AND
-		                                            char_length(vc.species_text)>0
+                                               vc.species_id Is Null
+                                              AND
+                                               char_length(vc.species_text)>0
                                             ORDER BY
-                                                    vc.species_text";
+                                               vc.species_text";
                         con.Open();
                         MySqlDataReader dr = cmd.ExecuteReader();
                         while (dr.Read())
                         {
-                            int? lsid = null;
-                            if (dr["land_ctr_id"] != DBNull.Value)
+                            string spName = dr["species_text"].ToString().Trim(new char[] { ' ', '\n' });
+                            bool proceed = false;
+                            if (multiline && spName.Contains("\n"))
                             {
-                                lsid = (int)dr["land_ctr_id"];
+                                proceed = true;
                             }
-
-                            OrphanedSpeciesNameRaw osnr = new OrphanedSpeciesNameRaw
+                            else if (!multiline && !spName.Contains("\n"))
                             {
-                                RegionName = dr["short_name"].ToString(),
-                                FMAName = dr["fma_namme"].ToString(),
-                                FishingGroundName = dr["fishing_ground_name"].ToString(),
-                                LandingSiteID = lsid,
-                                LandingSiteName = dr["land_ctr_text"].ToString(),
-                                EnumeratorName = dr["enumerator_name"].ToString(),
-                                EnumeratorText = dr["enumerator_text"].ToString(),
-                                GearName = dr["gear_name"].ToString(),
-                                GearText = dr["gr_text"].ToString(),
-                                Taxa = dr["taxa"].ToString(),
-                                VesselUnloadID = (int)dr["v_unload_id"],
-                                OrphanedSpName = dr["species_text"].ToString().Trim(new char[] { ' ', '\n' })
-                            };
+                                proceed = true;
+                            }
+                            if (proceed)
+                            {
+                                int? lsid = null;
+                                if (dr["land_ctr_id"] != DBNull.Value)
+                                {
+                                    lsid = (int)dr["land_ctr_id"];
+                                }
 
-                            StringBuilder sb = new StringBuilder(osnr.RegionName);
-                            sb.Append(osnr.FMAName);
-                            sb.Append(osnr.FishingGroundName);
-                            sb.Append(osnr.OrphanedSpName);
-                            sb.Append(osnr.Taxa);
+                                OrphanedSpeciesNameRaw osnr = new OrphanedSpeciesNameRaw
+                                {
+                                    RegionName = dr["short_name"].ToString(),
+                                    FMAName = dr["fma_name"].ToString(),
+                                    FishingGroundName = dr["fishing_ground_name"].ToString(),
+                                    LandingSiteID = lsid,
+                                    LandingSiteName = dr["land_ctr_text"].ToString(),
+                                    EnumeratorName = dr["enumerator_name"].ToString(),
+                                    EnumeratorText = dr["enumerator_text"].ToString(),
+                                    GearName = dr["gear_name"].ToString(),
+                                    GearText = dr["gr_text"].ToString(),
+                                    Taxa = dr["taxa"].ToString(),
+                                    VesselUnloadID = (int)dr["v_unload_id"],
+                                    OrphanedSpName = dr["species_text"].ToString().Trim(new char[] { ' ', '\n' })
+                                };
 
-                            osnr.HashCode = sb.ToString().GetHashCode();
-                            this_list.Add(osnr);
+                                StringBuilder sb = new StringBuilder(osnr.RegionName);
+                                sb.Append(osnr.FMAName);
+                                sb.Append(osnr.FishingGroundName);
+                                sb.Append(osnr.OrphanedSpName);
+                                sb.Append(osnr.Taxa);
+
+                                osnr.HashCode = sb.ToString().GetHashCode();
+                                this_list.Add(osnr);
+                            }
                         }
                     }
                 }

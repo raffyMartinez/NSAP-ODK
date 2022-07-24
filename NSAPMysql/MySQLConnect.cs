@@ -124,6 +124,8 @@ namespace NSAP_ODK.NSAPMysql
         }
         public static bool BulkUpdateMySQLTablesWithLandingSurveyData()
         {
+            Logger.Log($"In MySQlConnect.BulkUpdateMySQLTablesWithLandingSurveyData");
+            string table_name = "";
             bool success = false;
             //string base_dir = AppDomain.CurrentDomain.BaseDirectory;
 
@@ -143,73 +145,87 @@ namespace NSAP_ODK.NSAPMysql
                             AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "start importing csv", TotalTableCount = 14 });
 
                             File.WriteAllText(csv_file, LandingSiteSamplingViewModel.CSV);
-                            cmd.CommandText = MakeCommandText(csv_file, "dbo_lc_fg_sample_day");
+                            table_name = "dbo_lc_fg_sample_day";
+                            cmd.CommandText = MakeCommandText(csv_file, table_name);
                             cmd.ExecuteNonQuery();
                             AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_LC_FG_sample_day", CurrentTableCount = ++_importCSVCount });
 
 
                             File.WriteAllText(csv_file, LandingSiteSamplingViewModel.CSV_1);
-                            cmd.CommandText = MakeCommandText(csv_file, "dbo_lc_fg_sample_day_1");
+                            table_name = "dbo_lc_fg_sample_day_1";
+                            cmd.CommandText = MakeCommandText(csv_file, table_name);
                             cmd.ExecuteNonQuery();
                             AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_LC_FG_sample_day_1", CurrentTableCount = ++_importCSVCount });
 
                             File.WriteAllText(csv_file, GearUnloadViewModel.CSV);
-                            cmd.CommandText = MakeCommandText(csv_file, "dbo_gear_unload");
+                            table_name = "dbo_gear_unload";
+                            cmd.CommandText = MakeCommandText(csv_file, table_name);
                             cmd.ExecuteNonQuery();
                             AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_gear_unload", CurrentTableCount = ++_importCSVCount });
 
                             File.WriteAllText(csv_file, VesselUnloadViewModel.CSV);
-                            cmd.CommandText = MakeCommandText(csv_file, "dbo_vessel_unload");
+                            table_name = "dbo_vessel_unload";
+                            cmd.CommandText = MakeCommandText(csv_file, table_name);
                             cmd.ExecuteNonQuery();
                             AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_vessel_unload", CurrentTableCount = ++_importCSVCount });
 
                             File.WriteAllText(csv_file, VesselUnloadViewModel.CSV_1);
-                            cmd.CommandText = MakeCommandText(csv_file, "dbo_vessel_unload_1");
+                            table_name = "dbo_vessel_unload_1";
+                            cmd.CommandText = MakeCommandText(csv_file, table_name);
                             cmd.ExecuteNonQuery();
                             AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_vessel_unload_1", CurrentTableCount = ++_importCSVCount });
 
                             File.WriteAllText(csv_file, VesselUnloadViewModel.UnloadStatsCSV);
-                            cmd.CommandText = MakeCommandText(csv_file, "dbo_vessel_unload_stats");
+                            table_name = "dbo_vessel_unload_stats";
+                            cmd.CommandText = MakeCommandText(csv_file, table_name);
                             cmd.ExecuteNonQuery();
                             AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_vessel_unload_stats", CurrentTableCount = ++_importCSVCount });
 
                             File.WriteAllText(csv_file, GearSoakViewModel.CSV);
-                            cmd.CommandText = MakeCommandText(csv_file, "dbo_gear_soak");
+                            table_name = "dbo_gear_soak";
+                            cmd.CommandText = MakeCommandText(csv_file, table_name);
                             cmd.ExecuteNonQuery();
                             AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_gear_soak", CurrentTableCount = ++_importCSVCount });
 
                             File.WriteAllText(csv_file, VesselEffortViewModel.CSV);
-                            cmd.CommandText = MakeCommandText(csv_file, "dbo_vessel_effort");
+                            table_name = "dbo_vessel_effort";
+                            cmd.CommandText = MakeCommandText(csv_file, table_name);
                             cmd.ExecuteNonQuery();
                             AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_vessel_effort", CurrentTableCount = ++_importCSVCount });
 
                             File.WriteAllText(csv_file, FishingGroundGridViewModel.CSV);
-                            cmd.CommandText = MakeCommandText(csv_file, "dbo_fg_grid");
+                            table_name = "dbo_fg_grid";
+                            cmd.CommandText = MakeCommandText(csv_file, table_name);
                             cmd.ExecuteNonQuery();
                             AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_fg_grid", CurrentTableCount = ++_importCSVCount });
 
                             File.WriteAllText(csv_file, VesselCatchViewModel.CSV);
-                            cmd.CommandText = MakeCommandText(csv_file, "dbo_vessel_catch");
+                            table_name = "dbo_vessel_catch";
+                            cmd.CommandText = MakeCommandText(csv_file, table_name);
                             cmd.ExecuteNonQuery();
                             AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_vessel_catch", CurrentTableCount = ++_importCSVCount });
 
                             File.WriteAllText(csv_file, CatchLenFreqViewModel.CSV);
-                            cmd.CommandText = MakeCommandText(csv_file, "dbo_catch_len_freq");
+                            table_name = "dbo_catch_len_freq";
+                            cmd.CommandText = MakeCommandText(csv_file, table_name);
                             cmd.ExecuteNonQuery();
                             AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_catch_len_freq", CurrentTableCount = ++_importCSVCount });
 
                             File.WriteAllText(csv_file, CatchLengthViewModel.CSV);
-                            cmd.CommandText = MakeCommandText(csv_file, "dbo_catch_length");
+                            table_name = "dbo_catch_length";
+                            cmd.CommandText = MakeCommandText(csv_file, table_name);
                             cmd.ExecuteNonQuery();
                             AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_catch_length", CurrentTableCount = ++_importCSVCount });
 
                             File.WriteAllText(csv_file, CatchLengthWeightViewModel.CSV);
-                            cmd.CommandText = MakeCommandText(csv_file, "dbo_catch_len_wt");
+                            table_name = "dbo_catch_len_wt";
+                            cmd.CommandText = MakeCommandText(csv_file, table_name);
                             cmd.ExecuteNonQuery();
                             AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_catch_len_wt", CurrentTableCount = ++_importCSVCount });
 
                             File.WriteAllText(csv_file, CatchMaturityViewModel.CSV);
-                            cmd.CommandText = MakeCommandText(csv_file, "dbo_catch_maturity");
+                            table_name = "dbo_catch_maturity";
+                            cmd.CommandText = MakeCommandText(csv_file, table_name);
                             cmd.ExecuteNonQuery();
                             AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_catch_maturity", CurrentTableCount = ++_importCSVCount });
 
@@ -220,7 +236,7 @@ namespace NSAP_ODK.NSAPMysql
                     }
                     catch (Exception ex)
                     {
-                        Logger.Log($"{ex.Message}\r\nWill attempt to roll back transaction");
+                        Logger.Log($"{ex.Message}\r\nWill attempt to roll back transaction for table {table_name}");
                         try
                         {
                             tran.Rollback();

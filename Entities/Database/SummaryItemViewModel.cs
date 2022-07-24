@@ -10,6 +10,8 @@ namespace NSAP_ODK.Entities.Database
 {
     public class SummaryItemViewModel
     {
+        //private readonly object collectionLock = new object();
+
         private bool _editSuccess;
         private TreeViewModelControl.AllSamplingEntitiesEventHandler _treeViewData;
         private NSAPEntity _orphanedEntity;
@@ -22,6 +24,22 @@ namespace NSAP_ODK.Entities.Database
         public event EventHandler<BuildSummaryReportEventArg> BuildingSummaryTable;
         public event EventHandler<BuildOrphanedEntityEventArg> BuildingOrphanedEntity;
 
+        public SummaryItem GetItem(string odkROWID)
+        {
+            return SummaryItemCollection.ToList().FirstOrDefault(t => t.ODKRowID == odkROWID);
+            //lock (collectionLock)
+            //{
+            //    return SummaryItemCollection.ToList().FirstOrDefault(t => t.ODKRowID == odkROWID);
+            //}
+            //foreach(var item in SummaryItemCollection.ToList())
+            //{
+            //    if(item.ODKRowID==odkROWID)
+            //    {
+            //        return item;
+            //    }
+            //}
+            //return null;
+        }
         public bool UpdateRecordsInRepo(GearUnload gu)
         {
             int counter = 0;

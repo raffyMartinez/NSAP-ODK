@@ -35,6 +35,7 @@ namespace NSAP_ODK.Entities.Database
         }
         public static bool UploadImportJsonResult()
         {
+            Logger.Log($"In CreateTablesInAccess.UploadImportJsonResult");
             bool success = false;
             string base_dir = AppDomain.CurrentDomain.BaseDirectory;
             string csv_file = $@"{base_dir}\temp.csv";
