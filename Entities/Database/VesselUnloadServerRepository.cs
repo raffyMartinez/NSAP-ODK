@@ -1433,19 +1433,21 @@ namespace NSAP_ODK.Entities.Database.FromJson
                     {
                         if (Debugger.IsAttached)
                         {
-                            Utilities.Logger.Log(ex);
+                            Utilities.Logger.Log("VesselUnloadServerRepository.SavedVesselUnloadObject SummaryItemCollection was modified while in debug mode when getting SavedVesselUnloadObject.");
                             try
                             {
                                 _savedVesselUnloadObject = NSAPEntities.SummaryItemViewModel.GetItem(_uuid);
                             }
                             catch
                             {
-                                _savedVesselUnloadObject = null; ;
+                                _savedVesselUnloadObject = null;
                             }
                         }
-
+                        else
+                        {
+                            Utilities.Logger.Log("VesselUnloadServerRepository.SavedVesselUnloadObject Error when getting savedVeselUnloadObject when in release mode", ex);
+                        }
                     }
-
                 }
                 return _savedVesselUnloadObject;
             }
@@ -1462,9 +1464,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                 return (bool)_isSaved;
             }
             set { _isSaved = value; }
-
         }
-
     }
 
 
@@ -2289,10 +2289,6 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                 {
                                     VesselUnloadViewModel.CurrentIDNumber = vu.PK;
 
-                                    //if (vu.VesselEffortViewModel == null)
-                                    //{
-                                    //   
-                                    //}
                                     if (landing.GearEffortSpecs != null)
                                     {
                                         vu.VesselEffortViewModel = new VesselEffortViewModel(isNew: true);
@@ -2323,10 +2319,6 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                         vu.VesselEffortViewModel.Dispose();
                                     }
 
-                                    //if (vu.GearSoakViewModel == null)
-                                    //{
-                                    //   
-                                    //}
                                     if (landing.GearSoakTimes != null)
                                     {
                                         vu.GearSoakViewModel = new GearSoakViewModel(isNew: true);
@@ -2357,10 +2349,6 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                         vu.GearSoakViewModel.Dispose();
                                     }
 
-                                    //if (vu.FishingGroundGridViewModel == null)
-                                    //{
-                                    //    vu.FishingGroundGridViewModel = new FishingGroundGridViewModel(isNew: true);
-                                    //}
                                     if (landing.GridCoordinates != null)
                                     {
                                         vu.FishingGroundGridViewModel = new FishingGroundGridViewModel(isNew: true);
@@ -2389,11 +2377,6 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                         vu.FishingGroundGridViewModel.Dispose();
                                     }
 
-
-                                    //if (vu.VesselCatchViewModel == null)
-                                    //{
-                                    //    vu.VesselCatchViewModel = new VesselCatchViewModel(isNew: true);
-                                    //}
                                     if (landing.CatchComposition != null)
                                     {
                                         int missingCatchInfoCounter = 0;
@@ -2403,10 +2386,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                         {
                                             CatchCompGroupCatchCompositionRepeat.SetRowIDs();
                                         }
-                                        if (landing._uuid == "2c3185c6-4f0e-402b-93e0-099be004fb74")
-                                        {
-                                            //Utilities.Logger.Log($"Portunus with null sp_id at uuid {landing._uuid}"); 
-                                        }
+
                                         foreach (var catchComp in landing.CatchComposition
                                             .Where(t => t.Parent.PK == landing.PK))
                                         {
@@ -2428,25 +2408,10 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                 };
 
 
-                                                //if (catchComp.SpeciesID != null && !NSAPEntities.FishSpeciesViewModel.SpeciesIDExists((int)catchComp.SpeciesID))
-                                                //{
-                                                //    vc.SpeciesID = null;
-                                                //    vc.SpeciesText = catchComp.SpeciesName;
-                                                //}
-                                                //else 
-                                                if (vc.SpeciesID == null && string.IsNullOrEmpty(vc.SpeciesText) && vc.Parent.HasCatchComposition)
-                                                {
-                                                    vu.VesselCatchViewModel.MissingCatchInfoCount = ++missingCatchInfoCounter;
-                                                }
-
                                                 if (vu.VesselCatchViewModel.AddRecordToRepo(vc))
                                                 {
                                                     VesselCatchViewModel.CurrentIDNumber = vc.PK;
 
-                                                    //if (vc.CatchLenFreqViewModel == null)
-                                                    //{
-                                                    //    vc.CatchLenFreqViewModel = new CatchLenFreqViewModel(isNew: true);
-                                                    //}
                                                     if (catchComp.LenFreqRepeat != null)
                                                     {
                                                         vc.CatchLenFreqViewModel = new CatchLenFreqViewModel(isNew: true);
@@ -2475,10 +2440,6 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                         vc.CatchLenFreqViewModel.Dispose();
                                                     }
 
-                                                    //if (vc.CatchLengthWeightViewModel == null)
-                                                    //{
-                                                    //    vc.CatchLengthWeightViewModel = new CatchLengthWeightViewModel(isNew: true);
-                                                    //}
                                                     if (catchComp.LenWtRepeat != null)
                                                     {
                                                         vc.CatchLengthWeightViewModel = new CatchLengthWeightViewModel(isNew: true);
@@ -2508,11 +2469,6 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                         vc.CatchLengthWeightViewModel.Dispose();
                                                     }
 
-
-                                                    //if (vc.CatchLengthViewModel == null)
-                                                    //{
-                                                    //    vc.CatchLengthViewModel = new CatchLengthViewModel(isNew: true);
-                                                    //}
                                                     if (catchComp.LengthListRepeat != null)
                                                     {
                                                         vc.CatchLengthViewModel = new CatchLengthViewModel(isNew: true);
@@ -2541,10 +2497,6 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                         vc.CatchLengthViewModel.Dispose();
                                                     }
 
-                                                    //if (vc.CatchMaturityViewModel == null)
-                                                    //{
-                                                    //    vc.CatchMaturityViewModel = new CatchMaturityViewModel(isNew: false);
-                                                    //}
                                                     if (catchComp.GMSRepeat != null)
                                                     {
                                                         vc.CatchMaturityViewModel = new CatchMaturityViewModel(isNew: false);
@@ -2586,9 +2538,8 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                             }
                                             else
                                             {
-                                                //Utilities.Logger.Log($"NULL Species ID and species text from catch composition item {catchComp.PK}from landding {landing._uuid} ");
                                                 missingCatchInfoCounter++;
-                                             }
+                                            }
                                         }
 
 
@@ -2607,8 +2558,6 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                         UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadSavedCount = savedCount, Intent = UploadToDBIntent.Uploading });
                                         TotalUploadCount++;
                                     }
-
-
                                 }
                             }
                         }

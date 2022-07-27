@@ -601,7 +601,7 @@ namespace NSAP_ODK.Entities.Database
         {
             string date_submitted = vu.DateTimeSubmitted.ToString();
             string date_added = vu.DateAddedToDatabase.ToString();
-            string date_sampled = vu.DateSampling.ToString();
+            string date_sampled = vu.SamplingDate.ToString();
             string boat_id = string.Empty;
             if (vu.VesselID != null)
             {
@@ -637,9 +637,6 @@ namespace NSAP_ODK.Entities.Database
             {
                 raising_factor = ((double)vu.RaisingFactor).ToString();
             }
-
-
-
 
             string departure = string.Empty;
             if (vu.DepartureFromLandingSite != null)
