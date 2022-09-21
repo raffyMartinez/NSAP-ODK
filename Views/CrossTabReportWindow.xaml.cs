@@ -96,6 +96,8 @@ namespace NSAP_ODK.Views
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Species", Binding = new Binding("CrossTabCommon.SN") });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Species weight", Binding = new Binding("CrossTabCommon.SpeciesWeight") });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "TWS", Binding = new Binding("CrossTabCommon.TWS") });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight unit", Binding = new Binding("CrossTabCommon.WeightUnit") });
+
 
         }
 

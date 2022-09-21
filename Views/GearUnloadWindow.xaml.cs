@@ -294,6 +294,7 @@ namespace NSAP_ODK.Views
                 case GearUnloadWindowListSource.ListSourceGearUnload:
                     _vesselUnloads = VesselUnloadViewModel.GetVesselUnloads(_gearUnloads);
                     GridVesselUnload.DataContext = _vesselUnloads;
+                    
                     LabelTitle.Content = $"Vessel unloads from {_gearUnloads[0].Parent.LandingSite} using {_gearUnloads[0].GearUsedName} on {_gearUnloads[0].Parent.SamplingDate.ToString("MMM-dd-yyyy")}";
                     break;
                 case GearUnloadWindowListSource.listSourceVesselUnload:

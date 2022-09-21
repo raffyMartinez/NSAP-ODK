@@ -555,7 +555,7 @@ namespace NSAP_ODK.Entities
             {
                 foreach (var enumerator in region.NSAPEnumerators.OrderBy(t => t.Enumerator.Name))
                 {
-                    sb.AppendLine($"enumerator,{enumerator.RowID},{enumerator.Enumerator.Name},{region.Code}");
+                    sb.AppendLine($@"enumerator,{enumerator.RowID},""{enumerator.Enumerator.Name}"",{region.Code}");
                     counter++;
                 }
             }
@@ -690,7 +690,7 @@ namespace NSAP_ODK.Entities
             {
                 foreach (var enumerator in region.NSAPEnumerators.OrderBy(t => t.Enumerator.Name))
                 {
-                    sb.AppendLine($"enumerator,{enumerator.RowID},{enumerator.Enumerator.Name},{region.Code}");
+                    sb.AppendLine($@"enumerator,{enumerator.RowID},""{enumerator.Enumerator.Name}"",{region.Code}");
                     counter++;
                 }
             }

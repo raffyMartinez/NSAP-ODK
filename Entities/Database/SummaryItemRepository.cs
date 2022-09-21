@@ -267,7 +267,7 @@ namespace NSAP_ODK.Entities.Database
         public LastPrimaryKeys GetLastPrimaryKeys(bool delayedSave = false)
         {
             LastPrimaryKeys lpks = new LastPrimaryKeys();
-            if(delayedSave)
+            if (delayedSave)
             {
                 lpks.LastVesselUnloadPK = VesselUnloadViewModel.CurrentIDNumber;
                 lpks.LastFishingGridsPK = FishingGroundGridViewModel.CurrentIDNumber;
@@ -286,7 +286,7 @@ namespace NSAP_ODK.Entities.Database
             }
             else
             {
-                if(Global.Settings.UsemySQL)
+                if (Global.Settings.UsemySQL)
                 {
                     using (var con = new MySqlConnection(MySQLConnect.ConnectionString()))
                     {
@@ -714,6 +714,75 @@ namespace NSAP_ODK.Entities.Database
                 {
                     using (var cmd = con.CreateCommand())
                     {
+                        //cmd.CommandText = @"SELECT
+                        //    sd.unload_day_id, 
+                        //    ls.LandingSiteID AS landing_site_id, 
+                        //    ls.LandingSiteName AS landing_site_name, 
+                        //    sd.land_ctr_text AS landing_site_text, 
+                        //    nr.Sequence AS reg_seq, 
+                        //    nr.ShortName AS reg_shortname, 
+                        //    nr.RegionName AS reg_name, 
+                        //    nr.Code AS reg_code, 
+                        //    sd.fma AS fma_id, 
+                        //    sd.ground_id AS fishing_ground_code, 
+                        //    sd.has_fishing_operation, 
+                        //    sd.remarks, 
+                        //    gu.unload_gr_id, 
+                        //    gr.GearCode AS gear_code, 
+                        //    gr.GearName AS gear_name, 
+                        //    gu.gr_text AS gear_text, 
+                        //    gu.boats, gu.catch, 
+                        //    vu.v_unload_id, 
+                        //    fv.VesselName AS vessel_name, 
+                        //    fv.VesselID AS vessel_id, 
+                        //    vu1.SamplingDate AS sampling_date, 
+                        //    vu.boat_text AS vessel_text, 
+                        //    vu1.user_name, 
+                        //    vu1.Success AS is_success, 
+                        //    vu1.Tracked AS is_tracked, 
+                        //    vu1.GPS, 
+                        //    vu1.sector_code, 
+                        //    vu1.datetime_submitted, 
+                        //    vu1.form_version, 
+                        //    vu1.RowID, 
+                        //    vu1.XFormIdentifier AS xform_identifier, 
+                        //    vu1.datetime_submitted, 
+                        //    en.EnumeratorID AS enumerator_id, 
+                        //    vu1.EnumeratorText AS enumerator_text, 
+                        //    en.EnumeratorName AS enumerator_name, 
+                        //    vu1.DateAdded AS date_added, 
+                        //    vu1.HasCatchComposition AS has_catch_composition, 
+                        //    vu1.trip_is_completed, 
+                        //    vu1.NumberOfFishers AS no_fishers, 
+                        //    vu_st.count_effort, 
+                        //    vu_st.count_grid, 
+                        //    vu_st.count_soak, 
+                        //    vu_st.count_catch_composition, 
+                        //    vu_st.count_lengths, 
+                        //    vu_st.count_lenfreq, 
+                        //    vu_st.count_lenwt, 
+                        //    vu_st.count_maturity
+                        //    FROM 
+                        //        nsapRegion AS nr 
+                        //        INNER JOIN (landingSite AS ls 
+                        //        RIGHT JOIN (gear AS gr 
+                        //        RIGHT JOIN ((fishingVessel AS fv 
+                        //        RIGHT JOIN ((dbo_LC_FG_sample_day AS sd 
+                        //        LEFT JOIN (dbo_gear_unload AS gu 
+                        //        LEFT JOIN dbo_vessel_unload AS vu 
+                        //            ON gu.unload_gr_id = vu.unload_gr_id) 
+                        //            ON sd.unload_day_id = gu.unload_day_id) 
+                        //            LEFT JOIN (NSAPEnumerator AS en 
+                        //            RIGHT JOIN dbo_vessel_unload_1 AS vu1 
+                        //                ON en.EnumeratorID = vu1.EnumeratorID) 
+                        //                ON vu.v_unload_id = vu1.v_unload_id) 
+                        //                ON fv.VesselID = vu.boat_id) 
+                        //                    LEFT JOIN dbo_vessel_unload_stats AS vu_st 
+                        //                        ON vu.v_unload_id = vu_st.v_unload_id) 
+                        //                        ON gr.GearCode = gu.gr_id) 
+                        //                        ON ls.LandingSiteID = sd.land_ctr_id) 
+                        //                        ON nr.Code = sd.region_id
+                        //    ORDER BY sd.unload_day_id, vu1.SamplingDate";
                         cmd.CommandText = @"SELECT 
                                                  sd.unload_day_id,
                                                  ls.LandingSiteID AS landing_site_id,
@@ -725,12 +794,15 @@ namespace NSAP_ODK.Entities.Database
                                                  nr.Code AS reg_code,
                                                  sd.fma AS fma_id,
                                                  sd.ground_id AS fishing_ground_code,
+                                                 sd.has_fishing_operation,
+                                                 sd.remarks,   
                                                  gu.unload_gr_id,
                                                  gr.GearCode AS gear_code,
                                                  gr.GearName AS gear_name,
                                                  gu.gr_text AS gear_text,
                                                  gu.boats,
                                                  gu.catch,
+                                                 gu.sp_twsp_count,   
                                                  vu.v_unload_id,
                                                  fv.VesselName AS vessel_name,
                                                  fv.VesselID AS vessel_id,
@@ -791,6 +863,8 @@ namespace NSAP_ODK.Entities.Database
 
                             while (dr.Read())
                             {
+                                //int? gr_unload_id = null;
+                                //int? vs_unload_id = null;
                                 int? ls_id = null;
                                 int? en_id = null;
                                 int? gu_boats = null;
@@ -805,6 +879,9 @@ namespace NSAP_ODK.Entities.Database
                                 int? count_len = null;
                                 int? count_len_freq = null;
                                 int? count_maturity = null;
+                                int? count_twsp = null;
+
+
 
                                 if (dr["landing_site_id"] != DBNull.Value)
                                 {
@@ -824,6 +901,10 @@ namespace NSAP_ODK.Entities.Database
                                 if (dr["catch"] != DBNull.Value)
                                 {
                                     gu_catch = (double)dr["catch"];
+                                }
+                                if(dr["sp_twsp_count"] != DBNull.Value)
+                                {
+                                    count_twsp = (int)dr["sp_twsp_count"];
                                 }
                                 if (dr["vessel_id"] != DBNull.Value)
                                 {
@@ -877,20 +958,24 @@ namespace NSAP_ODK.Entities.Database
                                 si.ODKRowID = dr["RowID"].ToString();
                                 si.XFormIdentifier = dr["xform_identifier"].ToString();
                                 si.SamplingDayID = (int)dr["unload_day_id"];
+
                                 si.GearUnloadID = (int)dr["unload_gr_id"];
                                 si.VesselUnloadID = (int)dr["v_unload_id"];
                                 si.RegionID = dr["reg_code"].ToString();
+
                                 si.RegionSequence = (int)dr["reg_seq"];
                                 si.FMAId = (int)dr["fma_id"];
                                 si.FishingGroundID = dr["fishing_ground_code"].ToString();
                                 si.LandingSiteID = ls_id;
                                 si.LandingSiteName = dr["landing_site_name"].ToString();
                                 si.LandingSiteText = dr["landing_site_text"].ToString();
+                                si.LandingSiteHasOperation = (bool)dr["has_fishing_operation"];
                                 si.GearCode = dr["gear_code"].ToString();
                                 si.GearName = dr["gear_name"].ToString();
                                 si.GearText = dr["gear_text"].ToString();
                                 si.GearUnloadBoats = gu_boats;
                                 si.GearUnloadCatch = gu_catch;
+                                si.TWSpCount = count_twsp;
                                 si.UserName = dr["user_name"].ToString();
                                 si.EnumeratorID = en_id;
                                 si.EnumeratorName = dr["enumerator_name"].ToString();

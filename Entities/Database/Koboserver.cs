@@ -40,6 +40,9 @@ namespace NSAP_ODK.Entities.Database
         public string LastUploadedJSON { get; set; }
         public string LastCreatedJSON { get; set; }
 
-
+        public override string ToString()
+        {
+            return FormName;
+        }
     }
 }

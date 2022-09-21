@@ -53,11 +53,11 @@ namespace NSAP_ODK.Views
 
         private void UndoChanges(bool refresh=true)
         {
-            NSAPEntities.GearUnloadViewModel.UndoChangesToGearUnloadBoatCatch(_gearUnloads);
-            if (refresh)
-            {
-                dataGridGearUnload.Items.Refresh();
-            }
+            //NSAPEntities.GearUnloadViewModel.UndoChangesToGearUnloadBoatCatch(_gearUnloads);
+            //if (refresh)
+            //{
+            //    dataGridGearUnload.Items.Refresh();
+            //}
 
         }
         private void SaveChanges()
@@ -76,7 +76,8 @@ namespace NSAP_ODK.Views
             //    _treeItemData.FishingGround
             //    );
 
-            _gearUnloads = NSAPEntities.GearUnloadViewModel.GetAllGearUnloads(_treeItemData);
+            //_gearUnloads = NSAPEntities.GearUnloadViewModel.GetAllGearUnloads(_treeItemData);
+            _gearUnloads = NSAPEntities.SummaryItemViewModel.GetGearUnloadsFromTree(_treeItemData);
 
             dataGridGearUnload.DataContext = _gearUnloads;
 

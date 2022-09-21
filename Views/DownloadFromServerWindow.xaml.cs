@@ -650,6 +650,7 @@ namespace NSAP_ODK.Views
                                                 ((ODKResultsWindow)Owner).FormID = _formID;
                                                 ((ODKResultsWindow)Owner).Description = _description;
                                                 ((ODKResultsWindow)Owner).Count = _count;
+                                                ((ODKResultsWindow)Owner).Koboform = _formSummary.KoboForm;
 
 
                                                 DateTime? versionDate = null;
@@ -686,8 +687,10 @@ namespace NSAP_ODK.Views
                                                         break;
                                                     case ODKServerDownload.ServerDownloadLandings:
                                                         ((ODKResultsWindow)Owner).JSON = the_response.ToString();
-                                                        LandingSiteBoatLandingsFromServerRepository.JSON = the_response.ToString();
-                                                        LandingSiteBoatLandingsFromServerRepository.CreateLandingSiteBoatLandingsFromJson();
+                                                        BoatLandingsFromServerRepository.JSON = the_response.ToString();
+                                                        BoatLandingsFromServerRepository.CreateBoatLandingsFromJson();
+                                                        //LandingSiteBoatLandingsFromServerRepository.JSON = the_response.ToString();
+                                                        //LandingSiteBoatLandingsFromServerRepository.CreateLandingSiteBoatLandingsFromJson();
                                                         break;
                                                 }
 
@@ -701,7 +704,7 @@ namespace NSAP_ODK.Views
                                                         _parentWindow.MainSheets = VesselUnloadServerRepository.VesselLandings;
                                                         break;
                                                     case ODKServerDownload.ServerDownloadLandings:
-                                                        _parentWindow.MainSheetsLanding = LandingSiteBoatLandingsFromServerRepository.LandingSiteBoatLandings;
+                                                        _parentWindow.MainSheetsLanding = BoatLandingsFromServerRepository.BoatLandings;
                                                         break;
                                                 }
                                                 ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
@@ -965,7 +968,7 @@ namespace NSAP_ODK.Views
                                 _parentWindow.MainSheets = VesselUnloadServerRepository.VesselLandings;
                                 break;
                             case ODKServerDownload.ServerDownloadLandings:
-                                _parentWindow.MainSheetsLanding = LandingSiteBoatLandingsFromServerRepository.LandingSiteBoatLandings;
+                                _parentWindow.MainSheetsLanding = BoatLandingsFromServerRepository.BoatLandings;
                                 break;
                         }
                         ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
@@ -974,6 +977,7 @@ namespace NSAP_ODK.Views
                     else
                     {
                         ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
+                        File.WriteAllText(filename, the_response.ToString());
                     }
                     //final_json.Clear();
                     //final_json = null;
@@ -1500,11 +1504,11 @@ namespace NSAP_ODK.Views
         {
             var summary = new FormSummary(_koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)));
 
-            if (summary.Title.Contains("Daily landings and catch estimate"))
+            if (summary.Title.Contains("Daily landings and catch estimate") || summary.Title.Contains("NSAP Fishing boats landed and TWSP"))
             {
                 _parentWindow.ODKServerDownload = ODKServerDownload.ServerDownloadLandings;
             }
-            else if (summary.Title.Contains("Fisheries landing survey"))
+            else if (summary.Title.Contains("Fisheries landing survey") || summary.Title.Contains("NSAP Fish Catch Monitoring e-Form"))
             {
                 _parentWindow.ODKServerDownload = ODKServerDownload.ServerDownloadVesselUnload;
             }

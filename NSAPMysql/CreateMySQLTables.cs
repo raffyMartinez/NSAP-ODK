@@ -768,6 +768,7 @@ namespace NSAP_ODK.NSAPMysql
                                     `remarks` VARCHAR(80) NULL,
                                     `is_sample_day` TINYINT(1) NOT NULL,
                                     `land_ctr_text` VARCHAR(150) NULL,
+                                    `has_fishing_operation` TINYINT(1) NOT NULL,    
                                     PRIMARY KEY (`unload_day_id`),
                                     UNIQUE KEY `altKey` (`land_ctr_id`,`ground_id`,`sdate`),
                                     INDEX `region_id_lss_fk_idx` (`region_id` ASC) VISIBLE,

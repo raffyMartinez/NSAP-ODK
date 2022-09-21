@@ -313,7 +313,9 @@ namespace NSAP_ODK.Entities.Database
             else
             {
 
-                return SummaryItemCollection.Max(t => t.SamplingDayID);
+                //var max=SummaryItemCollection.Max(t => t.SamplingDayID);
+                //return SummaryItemCollection.Max(t => t.SamplingDayID);
+                return LandingSiteSamplingRepository.MaxRecordNumber_from_db();
             }
         }
         public int GetGearUnloadMaxRecordNumber()
@@ -794,33 +796,104 @@ namespace NSAP_ODK.Entities.Database
             }
             return results;
         }
+
+        public List<ServerUploadsByMonth> ListServerUploadsByMonths()
+        {
+            var reg_fg_ls = SummaryItemCollection
+            .GroupBy(t => new
+            {
+                Koboserver = NSAPEntities.KoboServerViewModel.GetKoboServer(t.XFormIdentifier),
+                MonthOfSubmission = new DateTime(t.DateSubmitted.Year, t.DateSubmitted.Month, 1)
+            })
+            .Select(submission => new
+            {
+                KoboServer = submission.Key.Koboserver,
+                MonthOfSubmission = submission.Key.MonthOfSubmission,
+                Count = submission.Count()
+            }).ToList();
+
+            List<ServerUploadsByMonth> list = new List<ServerUploadsByMonth>();
+            foreach (var item in reg_fg_ls)
+            {
+                list.Add(
+                    new ServerUploadsByMonth
+                    {
+                        CountUploads = item.Count,
+                        MonthOfSubmission = item.MonthOfSubmission,
+                        Koboserver = item.KoboServer,
+                        CountEnumerators = NumberOfEnumeratorsByMonthForKoboServer(item.KoboServer, item.MonthOfSubmission)
+                    }
+                );
+            }
+            return list;
+        }
+        public List<GearUnload>GetGearUnloadsFromTree(TreeViewModelControl.AllSamplingEntitiesEventHandler treeData)
+        {
+            List<GearUnload> unload_list = new List<GearUnload>();
+            var items = SummaryItemCollection.Where(t => t.Region.Code == treeData.NSAPRegion.Code &&
+                t.FMA.FMAID == treeData.FMA.FMAID &&
+                t.FishingGround.Code == treeData.FishingGround.Code &&
+                t.LandingSite!=null &&
+                t.LandingSite.LandingSiteID == treeData.LandingSite.LandingSiteID &&
+                t.SamplingDate > (DateTime)treeData.MonthSampled && t.SamplingDate < ((DateTime)treeData.MonthSampled).AddMonths(1)).ToList()
+
+                .GroupBy(gu => gu.GearUnloadID).Select(x => x.First()).ToList();
+
+            foreach(var item in items)
+            {
+                unload_list.Add(item.GearUnload);
+            }
+
+            return unload_list;
+        }
+        private int NumberOfEnumeratorsByMonthForKoboServer(Koboserver ks, DateTime monthSubmitted)
+        {
+            if (ks != null)
+            {
+                //var n = SummaryItemCollection.Where(t => t.MonthSubmitted == monthSubmitted && t.XFormIdentifier == ks.ServerID).GroupBy(t => t.EnumeratorNameToUse).Count();
+                return SummaryItemCollection.Where(t => t.MonthSubmitted == monthSubmitted && t.XFormIdentifier == ks.ServerID).GroupBy(t => t.EnumeratorNameToUse).Count();
+            }
+            else
+            {
+                return 0;
+            }
+        }
         public List<GearUnload> GetGearUnloads(string gearUsedName, int offsetDays)
         {
-            string lsName = _treeViewData.LandingSiteText;
-            DateTime sDate = ((DateTime)_treeViewData.MonthSampled).AddDays(offsetDays);
-            if (_treeViewData.LandingSite != null)
+            if (offsetDays >= 0)
             {
-                lsName = _treeViewData.LandingSite.LandingSiteName;
-            }
 
-            var summaryItems = SummaryItemCollection.Where(t => t.RegionID == _treeViewData.NSAPRegion.Code &&
-                                                t.FMAId == _treeViewData.FMA.FMAID &&
-                                                t.FishingGroundID == _treeViewData.FishingGround.Code &&
-                                                t.LandingSiteName == lsName &&
-                                                t.GearUsedName == gearUsedName &&
-                                                t.SamplingDate.Date == sDate.Date).ToList();
 
-            HashSet<GearUnload> gear_unloads = new HashSet<GearUnload>(new GearUnloadComparer());
-            foreach (var item in summaryItems)
-            {
-                if (item.GearUnload == null)
+                string lsName = _treeViewData.LandingSiteText;
+                DateTime sDate = ((DateTime)_treeViewData.MonthSampled).AddDays(offsetDays);
+                if (_treeViewData.LandingSite != null)
                 {
-
+                    lsName = _treeViewData.LandingSite.LandingSiteName;
                 }
-                gear_unloads.Add(item.GearUnload);
-            }
 
-            return gear_unloads.ToList();
+                var summaryItems = SummaryItemCollection.Where(t => t.RegionID == _treeViewData.NSAPRegion.Code &&
+                                                    t.FMAId == _treeViewData.FMA.FMAID &&
+                                                    t.FishingGroundID == _treeViewData.FishingGround.Code &&
+                                                    (t.LandingSiteName == lsName || t.LandingSiteID == _treeViewData.LandingSite.LandingSiteID) &&
+                                                    t.GearUsedName == gearUsedName &&
+                                                    t.SamplingDate.Date == sDate.Date).ToList();
+
+                HashSet<GearUnload> gear_unloads = new HashSet<GearUnload>(new GearUnloadComparer());
+                foreach (var item in summaryItems)
+                {
+                    if (item.GearUnload == null)
+                    {
+
+                    }
+                    gear_unloads.Add(item.GearUnload);
+                }
+
+                return gear_unloads.ToList();
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public Task<List<SummaryResults>> GetRegionOverallSummaryAsync()
@@ -1173,6 +1246,11 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
             return gearUnloads;
+        }
+
+        public GearUnload GetGearUnload(int landingSiteSamplingID, string gearName)
+        {
+            return SummaryItemCollection.FirstOrDefault(t => t.SamplingDayID == landingSiteSamplingID && t.GearUsedName == gearName)?.GearUnload;
         }
         public GearUnload GetGearUnload(string gearUsedName, int offsetDays)
         {
@@ -1855,7 +1933,7 @@ namespace NSAP_ODK.Entities.Database
                 LengthRows = vu.CountLengthRows,
                 LenWtRows = vu.CountLenWtRows,
                 CatchMaturityRows = vu.CountMaturityRows,
-
+                LandingSiteHasOperation=vu.Parent.Parent.HasFishingOperation
 
             };
             if (vu.NSAPEnumeratorID != null)
@@ -1866,6 +1944,8 @@ namespace NSAP_ODK.Entities.Database
             {
                 si.GearName = vu.Parent.Gear.GearName;
             }
+
+
 
             SummaryItemCollection.Add(si);
             return _editSuccess;

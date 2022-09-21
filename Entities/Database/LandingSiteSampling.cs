@@ -37,7 +37,7 @@ namespace NSAP_ODK.Entities.Database
         private NSAPRegion _nsapRegion;
         private FMA _fma;
         private FishingGround _fishingGround;
-
+        public bool HasFishingOperation { get; set; }
 
         public bool DelayedSave { get; set; }
         public int PK { get; set; }
@@ -151,7 +151,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if(EnumeratorID==null)
+                if (EnumeratorID == null)
                 {
                     return EnumeratorText;
                 }

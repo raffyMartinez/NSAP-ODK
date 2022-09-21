@@ -24,6 +24,27 @@ namespace NSAP_ODK.Entities.Database
             GearUnloads = getGearUnloads();
         }
 
+        public static int MaxRecordNumberFromDB()
+        {
+            int maxRecNo = 0;
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        con.Open();
+                        cmd.CommandText = "SELECT Max(unload_gr_id) AS max_id FROM dbo_gear_unload";
+                        maxRecNo = (int)cmd.ExecuteScalar();
+                    }
+                }
+            }
+            return maxRecNo;
+        }
         public int MaxRecordNumber()
         {
             return NSAPEntities.SummaryItemViewModel.GetGearUnloadMaxRecordNumber();
@@ -197,8 +218,10 @@ namespace NSAP_ODK.Entities.Database
                                 item.GearID = dr["gr_id"].ToString();
                                 item.Boats = string.IsNullOrEmpty(dr["boats"].ToString()) ? null : (int?)dr["boats"];
                                 item.Catch = string.IsNullOrEmpty(dr["catch"].ToString()) ? null : (double?)dr["catch"];
+                                item.SpeciesWithTWSpCount = string.IsNullOrEmpty(dr["sp_twsp_count"].ToString()) ? null : (int?)dr["sp_twsp_count"];
                                 item.GearUsedText = dr["gr_text"].ToString();
                                 item.Remarks = dr["remarks"].ToString();
+                                item.TotalWtSpViewModel = new TotalWtSpViewModel(item);
                                 //item.VesselUnloadViewModel = new VesselUnloadViewModel(item);
                                 thisList.Add(item);
 
@@ -206,7 +229,18 @@ namespace NSAP_ODK.Entities.Database
                         }
                         catch (Exception ex)
                         {
-                            Logger.Log(ex);
+                            if (ex.Message.Contains("sp_twsp_count"))
+                            {
+                                conection.Close();
+                                if (AddFieldToTable("sp_twsp_count"))
+                                {
+                                    return getGearUnloads(ls);
+                                }
+                            }
+                            else
+                            {
+                                Logger.Log(ex);
+                            }
 
                         }
                     }
@@ -216,6 +250,35 @@ namespace NSAP_ODK.Entities.Database
             return thisList;
         }
 
+        public static bool AddFieldToTable(string fieldName)
+        {
+            bool success = false;
+            string sql = "";
+            switch (fieldName)
+            {
+                case "sp_twsp_count":
+                    sql = "ALTER TABLE dbo_gear_unload ADD COLUMN sp_twsp_count INT";
+                    break;
+            }
+            using (var con = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    con.Open();
+                    cmd.CommandText = sql;
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        success = true;
+                    }
+                    catch(Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
         private bool AddToMySQL(GearUnload item)
         {
             bool success = false;
@@ -488,8 +551,9 @@ namespace NSAP_ODK.Entities.Database
 
                         update.Parameters.Add("@parent", OleDbType.Integer).Value = item.LandingSiteSamplingID;
 
-                        if (item.GearID == null)
-                        {
+                        //if (item.GearID == null)
+                        if(string.IsNullOrEmpty(item.GearID))
+                        { 
                             update.Parameters.Add("@gear_id", OleDbType.Integer).Value = DBNull.Value;
                         }
                         else
@@ -547,7 +611,7 @@ namespace NSAP_ODK.Entities.Database
                         {
                             success = update.ExecuteNonQuery() > 0;
                         }
-                        catch (OleDbException)
+                        catch (OleDbException olx)
                         {
                             success = false;
                         }
@@ -560,7 +624,7 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
-        public static bool ClearTable(string otherConnectionString="")
+        public static bool ClearTable(string otherConnectionString = "")
         {
             bool success = false;
             string con_string = Global.ConnectionString;

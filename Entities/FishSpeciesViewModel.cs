@@ -438,7 +438,7 @@ namespace NSAP_ODK.Entities
                         SortName = item.ToString()
                     });
 
-                    if (item.NameInOldFishbase.Length > 0 && item.NameInOldFishbase != item.ToString())
+                    if (item.NameInOldFishbase!=null && item.NameInOldFishbase.Length > 0 && item.NameInOldFishbase != item.ToString())
                     {
                         list.Add(new FishSpeciesForCSV
                         {
@@ -460,6 +460,15 @@ namespace NSAP_ODK.Entities
         public FishSpecies GetSpecies (string species)
         {
             return SpeciesCollection.FirstOrDefault(t => t.ToString() == species);
+        }
+        public List<string>GetSpeciesNameFromGenus(string genus)
+        {
+            List<string> speciesList = new List<string>();
+            foreach(var item in SpeciesCollection.Where(t => t.GenericName == genus).ToList())
+            {
+                speciesList.Add(item.SpecificName);
+            }
+            return speciesList;
         }
 
         //public FishSpecies GetSpecies

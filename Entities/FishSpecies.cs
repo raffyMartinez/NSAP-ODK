@@ -22,10 +22,10 @@ namespace NSAP_ODK.Entities
             SpecificName = fishSpecies.SpecificName;
             Family = fishSpecies.Family;
             MaxLength = fishSpecies.LengthMax;
-            CommonLength = fishSpecies.LengthCommon; 
+            CommonLength = fishSpecies.LengthCommon;
 
-            if(fishSpecies.LengthType!=null)
-              LengthType = fishSpecies.LengthType.Code;
+            if (fishSpecies.LengthType != null)
+                LengthType = fishSpecies.LengthType.Code;
 
             SpeciesCode = fishSpecies.SpeciesCode;
             RowNumber = fishSpecies.RowNumber;
@@ -58,6 +58,16 @@ namespace NSAP_ODK.Entities
         [ItemsSource(typeof(MainCatchingMethodItemsSource))]
         public string MainCatchingMethod { get; set; }
     }
+
+    public class SelectedFishSpeciesData
+    {
+        public SelectedFishSpeciesData(FishSpecies species)
+        {
+            FishSpecies = species;
+        }
+        public FishSpecies FishSpecies { get; set; }
+        public bool AlreadyInLocalSpeciesList { get; set; }
+    }
     public class FishSpecies
     {
         public int RowNumber { get; set; }
@@ -80,7 +90,7 @@ namespace NSAP_ODK.Entities
         {
             get
             {
-                if (NameInOldFishbase !=null &&  NameInOldFishbase.Length>0 && NameInOldFishbase!=ToString())
+                if (NameInOldFishbase != null && NameInOldFishbase.Length > 0 && NameInOldFishbase != ToString())
                 {
                     return NameInOldFishbase;
                 }
@@ -104,7 +114,7 @@ namespace NSAP_ODK.Entities
             //    return "";
             //}
         }
-        public FishSpecies(int rowNumber,string genus, string species)
+        public FishSpecies(int rowNumber, string genus, string species)
         {
             RowNumber = rowNumber;
             GenericName = genus;
@@ -115,6 +125,6 @@ namespace NSAP_ODK.Entities
         {
 
         }
-        
+
     }
 }

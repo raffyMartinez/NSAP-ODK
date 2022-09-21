@@ -50,9 +50,13 @@ namespace NSAP_ODK.Entities.Database
         public string GearID { get; set; }
         public int? Boats { get; set; }
         public double? Catch { get; set; }
+
+        public int? SpeciesWithTWSpCount { get; set; }
         public VesselUnloadViewModel VesselUnloadViewModel { get; set; }
 
         public int NumberOfSampledLandingsEx { get; set; }
+
+        public TotalWtSpViewModel TotalWtSpViewModel { get; set; }
         public int NumberOfSampledLandings
         {
             get

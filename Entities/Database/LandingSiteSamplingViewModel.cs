@@ -396,17 +396,17 @@ namespace NSAP_ODK.Entities.Database
             string sampling_date = item.SamplingDate.Date.ToString();
             string date_submitted = item.DateSubmitted.ToString();
             string date_added = item.DateAdded.ToString();
-            
-            if (!string.IsNullOrEmpty(item.LandingSiteText))
+
+            if (!string.IsNullOrEmpty(item.LandingSiteText) && item.LandingSiteID == null)
             {
                 ls_text = item.LandingSiteText.Replace("»", ",");
             }
-            
+
             if (item.LandingSiteID != null)
             {
                 ls_id = ((int)item.LandingSiteID).ToString();
             }
-            
+
             if (Utilities.Global.Settings.UsemySQL)
             {
                 if (item.LandingSiteID == null)
@@ -460,7 +460,7 @@ namespace NSAP_ODK.Entities.Database
             }
             else
             {
-                _csv.AppendLine($"{item.PK},\"{item.NSAPRegionID}\",{sampling_date},{ls_id},\"{item.FishingGroundID}\",\"{item.Remarks}\",{Convert.ToInt32(item.IsSamplingDay)},\"{ls_text}\",{item.FMAID}");
+                _csv.AppendLine($"{item.PK},\"{item.NSAPRegionID}\",{sampling_date},{ls_id},\"{item.FishingGroundID}\",\"{item.Remarks}\",{Convert.ToInt32(item.IsSamplingDay)},\"{ls_text}\",{item.FMAID},{Convert.ToInt32(item.HasFishingOperation)}");
             }
             _csv_1.AppendLine($"{item.PK},{date_submitted},\"{item.UserName}\",\"{item.DeviceID}\",\"{item.XFormIdentifier}\",{date_added},{Convert.ToInt32(item.FromExcelDownload)},\"{item.FormVersion}\",\"{item.RowID}\",{enum_id},\"{item.EnumeratorText}\"");
             return true;
@@ -581,8 +581,10 @@ namespace NSAP_ODK.Entities.Database
                 else
                 {
 
-                    return LandingSiteSamplings.MaxRecordNumber() + 1;
-
+                    var m = LandingSiteSamplingCollection.Max(t => t.PK);
+                    //return m + 1;
+                    //return LandingSiteSamplings.MaxRecordNumber() + 1;
+                    return LandingSiteSamplingCollection.Max(t => t.PK) + 1;
                 }
             }
         }

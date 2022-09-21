@@ -230,7 +230,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                return _vesselCatch.TWS;
+                return _vesselCatch.Sample_kg;
             }
         }
         public double? SpeciesWeight
@@ -238,6 +238,14 @@ namespace NSAP_ODK.Entities.Database
             get
             {
                 return _vesselCatch.Catch_kg;
+            }
+        }
+
+        public string WeightUnit
+        {
+            get
+            {
+                return _vesselCatch.WeighingUnit;
             }
         }
 

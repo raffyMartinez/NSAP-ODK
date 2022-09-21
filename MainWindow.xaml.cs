@@ -338,22 +338,36 @@ namespace NSAP_ODK
                         NSAPEntities.KoboServerViewModel.RefreshSavedCount();
                         dataGridEFormVersionStats.DataContext = NSAPEntities.KoboServerViewModel.KoboserverCollection.ToList();
                     }
-                    //else
-                    //{
-                    //    dataGridEFormVersionStats.DataContext = null;
-                    //    MessageBox.Show("Please connect online to the Kobotoolbox server to get a list of databases",
-                    //        "NSAP-ODK Database",
-                    //        MessageBoxButton.OK,
-                    //        MessageBoxImage.Information
-                    //        );
-                    //}
                     panelSummaryTableHint.Visibility = Visibility.Visible;
                     break;
-
             }
 
 
 
+        }
+
+        private void ShowServerMonthlySummary(Koboserver ks)
+        {
+            labelSummary.Content = $"Monthly summary statistics for server: {ks.FormName}";
+            panelSummaryTableHint.Visibility = Visibility.Collapsed;
+            panelVersionStats.Visibility = Visibility.Visible;
+            dataGridEFormVersionStats.AutoGenerateColumns = false;
+            dataGridEFormVersionStats.Columns.Clear();
+
+            DataGridTextColumn col = new DataGridTextColumn()
+            {
+                Binding = new Binding("MonthOfSubmission"),
+                Header = "Month submitted",
+                CellStyle = AlignRightStyle
+            };
+            col.Binding.StringFormat = "MMM-yyyy";
+            dataGridEFormVersionStats.Columns.Add(col);
+
+
+            dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "Number of submissions", Binding = new Binding("CountUploads"), CellStyle = AlignRightStyle });
+            dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "Number of unique enumerators", Binding = new Binding("CountEnumerators"), CellStyle = AlignRightStyle });
+
+            dataGridEFormVersionStats.DataContext = NSAPEntities.SummaryItemViewModel.ListServerUploadsByMonths().Where(t => t.Koboserver?.ServerID == ks.ServerID).OrderBy(t => t.MonthOfSubmission);
         }
 
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
@@ -943,7 +957,15 @@ namespace NSAP_ODK
                         summaryTreeNodeEnumerators.Items.Add(item1);
                     }
                     summaryTreeNodeOverall.IsSelected = true;
-
+                    if (NSAPEntities.SummaryItemViewModel.Count > 0)
+                    {
+                        summaryTreeNodeDatabases.Items.Clear();
+                        foreach (var item in NSAPEntities.KoboServerViewModel.KoboserverCollection)
+                        {
+                            TreeViewItem nodeKoboServer = new TreeViewItem { Header = item.FormName, Tag = item };
+                            summaryTreeNodeDatabases.Items.Add(nodeKoboServer);
+                        }
+                    }
                     break;
             }
         }
@@ -2176,6 +2198,13 @@ namespace NSAP_ODK
                     }
                     Clipboard.SetText(sb.ToString());
                     break;
+
+                case "menuRegionLandingSites":
+                    RegionLandingSitesWindow rlsw = new RegionLandingSitesWindow();
+                    rlsw.NSAPRegion = (NSAPRegion)dataGridEntities.SelectedItem;
+                    rlsw.ShowDialog();
+
+                    break;
                 case "menuCopyText":
                     if (_dataGrid != null)
                     {
@@ -2546,7 +2575,6 @@ namespace NSAP_ODK
                                 summaryRegion = ((TreeViewItem)treeViewSummary.SelectedItem).Header.ToString();
                                 cellinfo = dataGridSummary.SelectedCells[0];
                                 summaryFishingGround = ((TextBlock)cellinfo.Column.GetCellContent(cellinfo.Item)).Text;
-                                //unloads = NSAPEntities.VesselUnloadViewModel.GetAllVesselUnloads(summaryRegion, summaryFishingGround);
                                 unloads = NSAPEntities.SummaryItemViewModel.GetVesselUnloads(summaryRegion, summaryFishingGround);
                                 formTitle = $"All vessel unload of {summaryFishingGround}, {summaryRegion} ";
                                 break;
@@ -2566,7 +2594,6 @@ namespace NSAP_ODK
                                     _summaryLevelType);
                                 break;
                             case SummaryLevelType.Enumerator:
-                                //summaryRegion = ((TreeViewItem)((TreeViewItem)((TreeViewItem)treeViewSummary.SelectedItem).Parent).Parent).Header.ToString();
                                 summaryRegion = ((TreeViewItem)((TreeViewItem)treeViewSummary.SelectedItem).Parent).Header.ToString();
                                 unloads = NSAPEntities.SummaryItemViewModel.GetVesselUnloads(
                                     (SummaryResults)dataGridSummary.SelectedItem,
@@ -2602,6 +2629,7 @@ namespace NSAP_ODK
 
                     break;
                 case "GridNSAPData":
+                    //calendar view
                     if (_currentDisplayMode == DataDisplayMode.ODKData)
                     {
 
@@ -2791,14 +2819,11 @@ namespace NSAP_ODK
 
         private void MakeCalendar(TreeViewModelControl.AllSamplingEntitiesEventHandler e)
         {
-            //NSAPEntities.SummaryItemViewModel.ResetResults();
-            //NSAPEntities.SummaryItemViewModel.TreeViewData = e;
             var listGearUnload = NSAPEntities.SummaryItemViewModel.GearUnloadsByMonth((DateTime)e.MonthSampled);
 
             if (listGearUnload.Count > 0)
             {
                 _fishingCalendarViewModel = new FishingCalendarViewModel(listGearUnload.OrderBy(t => t.GearUsedName).ToList());
-                //_fishingCalendarViewModel = new FishingCalendarViewModel(listGearUnload.OrderBy(t => t.Gear.GearName).ToList());
                 GridNSAPData.Columns.Clear();
                 GridNSAPData.AutoGenerateColumns = true;
                 GridNSAPData.DataContext = _fishingCalendarViewModel.DataTable;
@@ -2858,87 +2883,6 @@ namespace NSAP_ODK
             }
             labelRowCount.Content = $"Rows: {GridNSAPData.Items.Count}";
         }
-        //private async void OnTreeViewItemSelected1(object sender, TreeViewModelControl.AllSamplingEntitiesEventHandler e)
-        //{
-        //    labelRowCount.Visibility = Visibility.Collapsed;
-        //    _acceptDataGridCellClick = false;
-        //    _allSamplingEntitiesEventHandler = e;
-        //    gridCalendarHeader.Visibility = Visibility.Visible;
-        //    GridNSAPData.Visibility = Visibility.Visible;
-        //    _gearUnload = null;
-        //    if (_gearUnloadWindow != null)
-        //    {
-        //        _gearUnloadWindow.TurnGridOff();
-        //    }
-
-        //    string labelContent = "";
-        //    switch (e.TreeViewEntity)
-        //    {
-        //        case "tv_NSAPRegionViewModel":
-        //            labelContent = $"Summary of database content for {e.NSAPRegion.Name}";
-        //            SetUpSummaryGrid1(SummaryLevelType.Region, GridNSAPData, e.NSAPRegion);
-        //            break;
-        //        case "tv_FMAViewModel":
-        //            labelContent = $"Summary of database content for {e.FMA.Name}, {e.NSAPRegion.Name}";
-        //            SetUpSummaryGrid1(SummaryLevelType.FMA, GridNSAPData, e.NSAPRegion, e.FMA);
-        //            break;
-        //        case "tv_FishingGroundViewModel":
-        //            labelContent = $"Summary of database content for {e.FishingGround.Name}, {e.FMA.Name}, {e.NSAPRegion.Name}";
-        //            SetUpSummaryGrid1(SummaryLevelType.FishingGround, GridNSAPData, e.NSAPRegion, e.FMA, e.FishingGround, inSummaryView: false);
-        //            break;
-        //        case "tv_LandingSiteViewModel":
-        //            labelContent = $"Summary of database content for {e.LandingSiteText}, {e.FishingGround.Name}, {e.FMA.Name}, {e.NSAPRegion.Name}";
-
-        //            SummaryManager.SummaryLevelType = SummaryLevelType.LandingSite;
-        //            SummaryManager.TreeEntities = e;
-
-
-
-        //            SetUpSummaryGrid1(SummaryLevelType.LandingSite, GridNSAPData, e.NSAPRegion, e.FMA, e.FishingGround, landingSite: e.LandingSiteText);
-
-
-        //            if (CrossTabReportWindow.Instance != null)
-        //            {
-        //                _allSamplingEntitiesEventHandler.ContextMenuTopic = "contextMenuCrosstabLandingSite";
-        //                await CrossTabManager.GearByMonthYearAsync(_allSamplingEntitiesEventHandler);
-        //                ShowCrossTabWIndow();
-        //            }
-        //            break;
-        //        case "tv_MonthViewModel":
-        //            gridCalendarHeader.Visibility = Visibility.Visible;
-        //            MonthLabel.Content = $"Fisheries landing sampling calendar for {((DateTime)e.MonthSampled).ToString("MMMM-yyyy")}";
-        //            MonthSubLabel.Content = $"{e.LandingSiteText}, {e.FishingGround}, {e.FMA}, {e.NSAPRegion}";
-        //            GridNSAPData.Visibility = Visibility.Visible;
-        //            GridNSAPData.SelectionUnit = DataGridSelectionUnit.Cell;
-        //            PropertyGrid.Visibility = Visibility.Collapsed;
-        //            NSAPEntities.NSAPRegion = e.NSAPRegion;
-        //            MakeCalendar(e);
-
-        //            if (CrossTabReportWindow.Instance != null)
-        //            {
-        //                _allSamplingEntitiesEventHandler.ContextMenuTopic = "contextMenuCrosstabMonth";
-        //                await CrossTabManager.GearByMonthYearAsync(_allSamplingEntitiesEventHandler);
-        //                ShowCrossTabWIndow();
-        //            }
-        //            break;
-        //    }
-
-
-        //    if (e.TreeViewEntity != "tv_MonthViewModel")
-        //    {
-        //        MonthLabel.Content = labelContent;
-        //        MonthSubLabel.Visibility = Visibility.Collapsed;
-        //        labelSummary.Content = labelContent;
-        //        dataGridSummary.Visibility = Visibility.Visible;
-        //        panelOpening.Visibility = Visibility.Visible;
-        //    }
-        //    else
-        //    {
-        //        MonthSubLabel.Visibility = Visibility.Visible;
-        //        _acceptDataGridCellClick = true;
-        //    }
-
-        //}
 
         private async void OnSelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {
@@ -2985,7 +2929,7 @@ namespace NSAP_ODK
 
                     }
 
-                    if (_gearUnloadWindow != null)
+                    if (_gearUnloadWindow != null && _gearUnloads!=null)
                     {
                         _gearUnloadWindow.TurnGridOff();
                         if (_gearUnloads != null)
@@ -3058,7 +3002,6 @@ namespace NSAP_ODK
         public void RefreshDownloadedSummaryItemsGrid()
         {
             var dt = DateTime.Parse(((TreeViewItem)((TreeViewItem)treeViewDownloadHistory.SelectedItem).Parent).Header.ToString());
-            //var dt = DateTime.Parse(((TreeViewItem)treeViewDownloadHistory.SelectedItem).Header.ToString());
             var unloads = _vesselDownloadHistory[dt];
             List<UnloadChildrenSummary> list = new List<UnloadChildrenSummary>();
 
@@ -3557,10 +3500,16 @@ namespace NSAP_ODK
                     ShowSummary(header);
                     rowSummaryDataGrid.Height = new GridLength(0);
                     rowOverallSummary.Height = new GridLength(1, GridUnitType.Star);
+
                     break;
                 default:
                     switch (tvItem.Tag.GetType().Name)
                     {
+                        case "Koboserver":
+                            rowSummaryDataGrid.Height = new GridLength(0);
+                            rowOverallSummary.Height = new GridLength(1, GridUnitType.Star);
+                            ShowServerMonthlySummary((Koboserver)tvItem.Tag);
+                            break;
                         case "NSAPRegion":
                             switch (((TreeViewItem)tvItem.Parent).Header)
                             {
@@ -3777,12 +3726,22 @@ namespace NSAP_ODK
 
         private void OnMenuRightClick(object sender, MouseButtonEventArgs e)
         {
+
             _dataGrid = (DataGrid)sender;
             ContextMenu cm = new ContextMenu();
             MenuItem m = null;
             m = new MenuItem { Header = "Copy text", Name = "menuCopyText" };
             m.Click += OnMenuClicked;
             cm.Items.Add(m);
+
+
+            if (_nsapEntity == NSAPEntity.NSAPRegion)
+            {
+                m = new MenuItem { Header = "Landing sites", Name = "menuRegionLandingSites" };
+                m.Click += OnMenuClicked;
+                cm.Items.Add(m);
+            }
+
             cm.IsOpen = true;
         }
 

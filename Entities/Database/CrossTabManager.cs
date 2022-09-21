@@ -472,6 +472,9 @@ namespace NSAP_ODK.Entities.Database
             dc = new DataColumn { ColumnName = "TWS" };
             _effortSpeciesCrostabDataTable.Columns.Add(dc);
 
+            dc = new DataColumn { ColumnName = "Weight unit" };
+            _effortSpeciesCrostabDataTable.Columns.Add(dc);
+
 
             foreach (var spec in NSAPEntities.EffortSpecificationViewModel.EffortSpecCollection.OrderBy(t => t.Name))
             {
@@ -552,6 +555,7 @@ namespace NSAP_ODK.Entities.Database
                 row["Total weight of catch"] = ctcp.TotalWeight;
                 row["Weight of species"] = item.CrossTabCommon.SpeciesWeight;
                 row["TWS"] = item.CrossTabCommon.TWS;
+                row["Weight unit"] = item.CrossTabCommon.WeightUnit;
 
                 foreach (var ve in ctcp.VesselUnload.ListVesselEffort)
                 {
@@ -729,16 +733,16 @@ namespace NSAP_ODK.Entities.Database
                                         case "SpeciesWeight":
                                             row[ptd.Name] = ctc.SpeciesWeight;
                                             break;
-                                        case "TWS":
-                                            if (ctc.TWS == null)
-                                            {
-                                                row[ptd.Name] = DBNull.Value;
-                                            }
-                                            else
-                                            {
-                                                row[ptd.Name] = (double)ctc.TWS;
-                                            }
-                                            break;
+                                        //case "TWS":
+                                        //    if (ctc.TWS == null)
+                                        //    {
+                                        //        row[ptd.Name] = DBNull.Value;
+                                        //    }
+                                        //    else
+                                        //    {
+                                        //        row[ptd.Name] = (double)ctc.TWS;
+                                        //    }
+                                        //    break;
                                     }
                                 }
                             }

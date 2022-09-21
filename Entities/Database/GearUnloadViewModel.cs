@@ -79,7 +79,7 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
 
-            _csv.AppendLine($"{item.PK},{item.Parent.PK},{gr_id},{boat_ct},{catch_wt},\"{gr_text}\",\"{item.Remarks}\"");
+            _csv.AppendLine($"{item.PK},{item.Parent.PK},{gr_id},{boat_ct},{catch_wt},\"{gr_text}\",\"{item.Remarks}\",{item.SpeciesWithTWSpCount}");
 
             return true;
         }

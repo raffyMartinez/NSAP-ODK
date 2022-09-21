@@ -8,9 +8,12 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using Xceed.Wpf.Toolkit.PropertyGrid;
-
-
-
+using Microsoft.Win32;
+using ClosedXML.Excel;
+using System.Threading.Tasks;
+using System.Windows.Threading;
+//using wpftk= Xceed.Wpf.Toolkit;
+//using System.Windows.Forms;
 
 namespace NSAP_ODK.Views
 {
@@ -20,6 +23,8 @@ namespace NSAP_ODK.Views
     public partial class EditWindowEx : Window
     {
         private static Dictionary<NSAPEntity, EditWindowEx> _editWindowsDict = new Dictionary<NSAPEntity, EditWindowEx>();
+        private string _newGenus;
+        private string _newSpecies;
         private string _oldGenus;
         private string _oldSpecies;
         private string _oldName;
@@ -36,6 +41,20 @@ namespace NSAP_ODK.Views
         private object _originalSource;
         private bool _textDBIdentifierValid;
         private EntityContext _entityContext;
+        private ComboBox _cboGenus = new ComboBox();
+        private ComboBox _cboSpecies = new ComboBox();
+        private FishSpecies _selectedFishSpecies;
+        private bool _requireUpdateToFishBase = false;
+        private string _excelUpdateFileName;
+        private bool _updatingFBSpecies;
+        private int _fbSpeciesUpdateListCount;
+        private static bool _showUpdateMessage = true;
+        private FBSpeciesUpdateMode _fbSpeciesUpdateMode;
+        private bool _speciesInFishSpeciesList;
+
+        private bool _cboGenusGotFocus = false;
+        private bool _cboSpeciesGotFocus = false;
+
 
 
 
@@ -50,14 +69,65 @@ namespace NSAP_ODK.Views
             Activated += OnWindowActivated;
             Loaded += OnFormLoaded;
             this.PropertyGrid.MouseDoubleClick += OnPropertyGridDoubleClick;
+
             sfDataGrid.SelectionChanged += OnsfDataGridSelectionChanged;
             _nsapEntity = nsapENtity;
             _entityID = entityID;
             _isNew = _entityID.Length == 0;
             _nsapObject = nsapObject;
         }
-
-        private void OnWindowActivated(object sender, EventArgs e)
+        private async Task UpdateFBSpeciesTable()
+        {
+            if (!FBSpeciesRepository.HasUpdateSpeciesList)
+            {
+                NSAPEntities.FBSpeciesViewModel.ExcelUpdateFileName = _excelUpdateFileName;
+                var updateList = await NSAPEntities.FBSpeciesViewModel.GetUpdateFBSpecies();
+                if (FBSpeciesRepository.ErrorMessage.Length == 0)
+                {
+                    if (updateList.Count > NSAPEntities.FBSpeciesViewModel.Count || NSAPEntities.FBSpeciesViewModel.FBSpeciesUpdateStatus != FBSpeciesUpdateStatus.FBSpeciesStatus_SettingsNotFound)
+                    {
+                        bool proceed = true;
+                        if (NSAPEntities.FBSpeciesViewModel.FBSpeciesUpdateSettings?.UpdateFileRowCount <= updateList.Count)
+                        {
+                            proceed = false;
+                        }
+                        if (proceed)
+                        {
+                            UpdateFBSpeciesOptionWindow uow = new UpdateFBSpeciesOptionWindow(this);
+                            if ((bool)uow.ShowDialog())
+                            {
+                                _fbSpeciesUpdateMode = uow.UpdateMode;
+                                if (await NSAPEntities.FBSpeciesViewModel.UpdateFBSpeciesTableAsync(_fbSpeciesUpdateMode) && NSAPEntities.FBSpeciesViewModel.SaveFBSpeciesUpdateSettings(updateList, _excelUpdateFileName, uow.UpdateMode))
+                                {
+                                    progressBar.Value = progressBar.Maximum;
+                                    progressLabel.Content = "Finished updating Fishbase species list";
+                                    if (_fbSpeciesUpdateMode == FBSpeciesUpdateMode.UpdateModeUpdateAndAdd)
+                                    {
+                                        UpdateNameControlsForSpecies();
+                                    }
+                                    MessageBox.Show(
+                                        "Fishbase species successfully updated",
+                                        "NSAP-ODK Database",
+                                        MessageBoxButton.OK,
+                                        MessageBoxImage.Information);
+                                }
+                            }
+                            else
+                            {
+                                Close();
+                            }
+                        }
+                        else
+                        {
+                            MessageBox.Show("Update file does not contain new items", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                            statusBar.Visibility = Visibility.Collapsed;
+                        }
+                    }
+                }
+            }
+            //return FBSpeciesRepository.HasUpdateSpeciesList;
+        }
+        private async void OnWindowActivated(object sender, EventArgs e)
         {
             //Title = $"nsapentity is {_nsapEntity.ToString()}";
 
@@ -96,9 +166,326 @@ namespace NSAP_ODK.Views
                 SetUpSubFormSource();
             }
 
+            if (_requireUpdateToFishBase && !_updatingFBSpecies)
+            {
+                _updatingFBSpecies = true;
+                statusBar.Visibility = Visibility.Visible;
+                //if (NSAPEntities.FBSpeciesViewModel == null)
+                //{
+                //    NSAPEntities.FBSpeciesViewModel = new FBSpeciesViewModel();
+                //}
+                NSAPEntities.FBSpeciesViewModel.FBSpeciesUpdateEvent += FBSpeciesViewModel_FBSpeciesUpdateEvent;
+                NSAPEntities.FBSpeciesViewModel.ObjectCreated();
+
+                if (NSAPEntities.FBSpeciesViewModel.FBSpeciesUpdateStatus == FBSpeciesUpdateStatus.FBSpeciesStatus_SettingsNotFound)
+                {
+
+                    //if (_showUpdateMessage && MessageBox.Show(
+                    if (MessageBox.Show(
+                    "It is recommended to update the Fishbase species list\r\nDo you wish to continue?",
+                    "NSAP-ODK Database",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question
+                    ) == MessageBoxResult.Yes)
+                    {
+                        await UpdateFbSpecies();
+                    }
+                    else
+                    {
+                        Close();
+                        //_showUpdateMessage = false;
+                    }
+
+                }
+                else
+                {
+                    buttonUpdate.Visibility = Visibility.Visible;
+                    statusBar.Visibility = Visibility.Collapsed;
+                }
+            }
+
+            //if (_requireUpdateToFishBase && !_updatingFBSpecies)
+            //{
+            //    statusBar.Visibility = Visibility.Visible;
+            //    _updatingFBSpecies = true;
 
 
+            //    if (NSAPEntities.FBSpeciesViewModel.FBSpeciesUpdateStatus == FBSpeciesUpdateStatus.FBSpeciesStatus_SettingsNotFound)
+            //    {
+
+            //        progressBar.IsIndeterminate = true;
+            //        progressLabel.Content = "Waiting to load update file of FishBase species list";
+            //        NSAPEntities.FBSpeciesViewModel.ObjectCreated();
+            //        NSAPEntities.FBSpeciesViewModel.FBSpeciesUpdateEvent += FBSpeciesViewModel_FBSpeciesUpdateEvent;
+            //        await UpdateFbSpecies();
+
+            //    }
+            //    else
+            //    {
+            //        statusBar.Visibility = Visibility.Collapsed;
+            //        buttonUpdate.Visibility = Visibility.Visible;
+            //    }
+            //    _updatingFBSpecies = false;
+            //}
         }
+
+        private void FBSpeciesViewModel_FBSpeciesUpdateEvent(object sender, FBSpeciesUpdateEventArgs e)
+        {
+            switch (e.UpdateType)
+            {
+                case FBSpeciesUpdateType.UpdateTypeFetchedFbSpeciesList:
+                    progressLabel.Dispatcher.BeginInvoke
+                    (
+                      DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                      {
+                          progressLabel.Content = "Finished loading FishBase species list";
+                          //do what you need to do on UI Thread
+                          return null;
+                      }
+                     ), null);
+
+                    break;
+                case FBSpeciesUpdateType.UpdateTypeReadingUpdateFile:
+                    progressBar.Dispatcher.BeginInvoke
+                    (
+                      DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                      {
+                          progressBar.IsIndeterminate = true;
+                          return null;
+                      }
+                     ), null);
+                    progressLabel.Dispatcher.BeginInvoke
+                    (
+                      DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                      {
+                          progressLabel.Content = "Reading update to FishBase species list";
+                          //do what you need to do on UI Thread
+                          return null;
+                      }
+                     ), null);
+
+                    break;
+                case FBSpeciesUpdateType.UpdateTypeCreatingUpdateList:
+                    _fbSpeciesUpdateListCount = e.RowCountInUpdateFile;
+                    progressLabel.Dispatcher.BeginInvoke
+                    (
+                      DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                      {
+                          progressLabel.Content = $"Finished reading update to Fishbase species list with {_fbSpeciesUpdateListCount} items ";
+                          //do what you need to do on UI Thread
+                          return null;
+                      }
+                     ), null);
+
+                    progressBar.Dispatcher.BeginInvoke
+                    (
+                      DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                      {
+
+                          progressBar.Maximum = _fbSpeciesUpdateListCount;
+                          progressBar.Value = 0;
+                          progressBar.IsIndeterminate = false;
+                          return null;
+                      }
+                     ), null);
+                    break;
+                case FBSpeciesUpdateType.UpdateTypeAddingSpecies:
+                    progressLabel.Dispatcher.BeginInvoke
+                    (
+                      DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                      {
+                          progressLabel.Content = $"Added item {e.FBSpeciesUpdateCount} of {_fbSpeciesUpdateListCount}: {e.CurrentSpecies.Genus} {e.CurrentSpecies.Species}";
+                          //do what you need to do on UI Thread
+                          return null;
+                      }
+                     ), null);
+
+                    progressBar.Dispatcher.BeginInvoke
+                    (
+                      DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                      {
+                          progressBar.Value++;
+                          return null;
+                      }
+                     ), null);
+
+                    break;
+                case FBSpeciesUpdateType.UpdateTypeUpdatingSpecies:
+                    var targetCount = _fbSpeciesUpdateListCount;
+                    if (_fbSpeciesUpdateMode == FBSpeciesUpdateMode.UpdateModeUpdateDoNotAdd)
+                    {
+                        targetCount = NSAPEntities.FBSpeciesViewModel.Count;
+                    }
+                    progressLabel.Dispatcher.BeginInvoke
+                    (
+                      DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                      {
+                          progressLabel.Content = $"Updated item {e.FBSpeciesUpdateCount} of {targetCount}: {e.CurrentSpecies.Genus} {e.CurrentSpecies.Species}";
+                          //do what you need to do on UI Thread
+                          return null;
+                      }
+                     ), null);
+
+                    progressBar.Dispatcher.BeginInvoke
+                    (
+                      DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                      {
+                          progressBar.Value++;
+                          return null;
+                      }
+                     ), null);
+
+                    break;
+                case FBSpeciesUpdateType.UpdateTypeFinishedUpdatingFBSpecies:
+                    break;
+            }
+        }
+
+        private bool CheckFishBaseSpeciesUpdateFile()
+        {
+            //bool success = false;
+            _excelUpdateFileName = "";
+            OpenFileDialog ofd = new OpenFileDialog
+            {
+                Title = "Open Excel file with updated fishbase data",
+                DefaultExt = ".xlsx",
+                Filter = "Microsoft Excel Spreadsheet (*.xlsx)|*.xlsx|All files|*.*"
+            };
+            if ((bool)ofd.ShowDialog())
+            {
+                _excelUpdateFileName = ofd.FileName;
+            }
+            return _excelUpdateFileName.Length > 0;
+        }
+        private async Task UpdateFbSpecies()
+        {
+            if (CheckFishBaseSpeciesUpdateFile())
+            {
+                await UpdateFBSpeciesTable();
+                if (!FBSpeciesRepository.HasUpdateSpeciesList && FBSpeciesRepository.ErrorMessage.Length > 0)
+                {
+                    if (FBSpeciesRepository.ErrorMessage == "The selected excel file is not valid for updating FishBase species list")
+                    {
+                        var r_message = MessageBox.Show(
+                            $"{FBSpeciesRepository.ErrorMessage}\r\nWould you like to try again",
+                            "NSAP-ODK Database",
+                            MessageBoxButton.YesNo,
+                            MessageBoxImage.Question);
+                        if (r_message == MessageBoxResult.Yes)
+                        {
+                            await UpdateFbSpecies();
+                        }
+                        else
+                        {
+                            Close();
+                        }
+
+                    }
+                    else
+                    {
+                        MessageBox.Show($"{FBSpeciesRepository.ErrorMessage}", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+            _requireUpdateToFishBase = false;
+        }
+        private void UpdateNameControlsForSpecies()
+        {
+            int comboAdded = 0;
+
+
+
+            foreach (PropertyItem prp in PropertyGrid.Properties)
+            {
+                if (prp.PropertyName == "GenericName" && _cboGenus.Items.Count == 0)
+                {
+                    foreach (var item in NSAPEntities.FBSpeciesViewModel.GetAllGenus().ToList())
+                    {
+                        _cboGenus.Items.Add(new KeyValuePair<string, string>(item, item));
+                    }
+                    prp.Editor = _cboGenus;
+                    _cboGenus.IsEditable = true;
+                    //_cboGenus.IsReadOnly = true;
+                    //_cboGenus.SelectionChanged += OnComboSelectionChanged;
+                    _cboGenus.GotFocus += OncboGotFocus;
+                    _cboGenus.LostFocus += OncboLostFocus;
+                    _cboGenus.DisplayMemberPath = "Value";
+                    _cboGenus.Tag = "FishGenus";
+                    comboAdded++;
+                }
+                else if (prp.PropertyName == "SpecificName")
+                {
+                    prp.Editor = _cboSpecies;
+                    _cboSpecies.IsEditable = true;
+                    _cboSpecies.IsReadOnly = true;
+                    _cboSpecies.DisplayMemberPath = "Value";
+                    _cboSpecies.Tag = "FishSpecies";
+                    _cboSpecies.SelectionChanged += OnComboSelectionChanged;
+                    _cboSpecies.GotFocus += OncboGotFocus;
+                    _cboSpecies.LostFocus += OncboLostFocus;
+                    comboAdded++;
+                }
+
+                if (comboAdded == 2)
+                {
+                    break;
+                }
+            }
+        }
+
+        private void OncboGotFocus(object sender, RoutedEventArgs e)
+        {
+            _cboGenusGotFocus = false;
+            _cboSpeciesGotFocus = false;
+            switch (((ComboBox)sender).Tag.ToString())
+            {
+                case "FishGenus":
+                    _cboGenusGotFocus = true;
+                    _cboSpecies.Items.Clear();
+                    break;
+                case "FishSpecies":
+                    _cboSpeciesGotFocus = true;
+                    break;
+            }
+        }
+
+        private void OncboLostFocus(object sender, RoutedEventArgs e)
+        {
+            if (_cboGenusGotFocus)
+            {
+                bool matchFound = false;
+                ComboBox cbo = (ComboBox)sender;
+                //test = cbo.Items.OfType<object>().Any(cbi => cbi.Equals(cbo.Text));
+                foreach (KeyValuePair<string, string> kv in cbo.Items)
+                {
+
+                    if (cbo.Text == kv.Value)
+                    {
+                        _newGenus = cbo.Text;
+                        matchFound = true;
+                        break;
+                    }
+                }
+
+                if (!matchFound && cbo.Text.Length > 0)
+                {
+                    _cboSpecies.Items.Clear();
+                    MessageBox.Show("No match found");
+
+                }
+                else
+                {
+                    FillSpeciesCombo(_newGenus);
+                }
+
+            }
+            else
+            {
+
+            }
+        }
+
+
 
         private void OnPropertyGridDoubleClick(object sender, MouseButtonEventArgs e)
         {
@@ -362,6 +749,8 @@ namespace NSAP_ODK.Views
             }
         }
 
+
+
         private void FillPropertyGrid()
         {
             _originalSource = _nsapObject;
@@ -561,6 +950,11 @@ namespace NSAP_ODK.Views
                     break;
 
                 case NSAPEntity.FishSpecies:
+                    //bool proceed = true;
+                    if (NSAPEntities.FBSpeciesViewModel == null)
+                    {
+                        NSAPEntities.FBSpeciesViewModel = new FBSpeciesViewModel();
+                    }
                     var fishSpeciesEdit = new FishSpeciesEdit();
                     this.Title = "Fish species";
                     LabelTop.Content = "New fish species";
@@ -578,19 +972,45 @@ namespace NSAP_ODK.Views
                     }
                     else
                     {
-                        fishSpeciesEdit.RowNumber = NSAPEntities.FishSpeciesViewModel.NextRecordNumber;
+                        //proceed = CheckFishBaseSpeciesUpdateFile();
                     }
-                    //PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "RowNumber", DisplayName = "Row #", DisplayOrder = 1, Description = "Identifier used in the database" });
-                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SpeciesCode", DisplayName = "Fishbase species ID", DisplayOrder = 2, Description = "Identifier of the species in FishBase" });
-                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "GenericName", DisplayName = "Genus", DisplayOrder = 3, Description = "Generic name of the species" });
-                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SpecificName", DisplayName = "Species", DisplayOrder = 4, Description = "Specific name of the species" });
-                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Family", DisplayName = "Family", DisplayOrder = 5, Description = "Family of the species" });
-                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LengthType", DisplayName = "Length type", DisplayOrder = 6, Description = "Length category of the species" });
-                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "MaxLength", DisplayName = "Max length", DisplayOrder = 7, Description = "Maximum length recorded for the species" });
-                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "CommonLength", DisplayName = "Common length", DisplayOrder = 8, Description = "Maximum length recorded for the species" });
-                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Importance", DisplayName = "Importance to fishery", DisplayOrder = 9, Description = "Importance of the species to the fishery" });
-                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "MainCatchingMethod", DisplayName = "Main catching method", DisplayOrder = 10, Description = "Main catching method" });
+
+
+                    if (_isNew)
+                    {
+                        panelButtonsLower.Visibility = Visibility.Collapsed;
+                        fishSpeciesEdit.RowNumber = NSAPEntities.FishSpeciesViewModel.NextRecordNumber;
+                        _requireUpdateToFishBase = true;
+                        PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "GenericName", DisplayName = "Genus", DisplayOrder = 3, Description = "Generic name of the species" });
+                        PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SpecificName", DisplayName = "Species", DisplayOrder = 4, Description = "Specific name of the species" });
+
+                        spgFishSpeciesPropertyGrid.AutoGenerateProperties = false;
+                        spgFishSpeciesPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "GenericName", DisplayName = "Genus", DisplayOrder = 1, Description = "Genus" });
+                        spgFishSpeciesPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SpecificName", DisplayName = "Species", DisplayOrder = 2, Description = "Genus" });
+                        spgFishSpeciesPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SpeciesCode", DisplayName = "Fishbase species ID", DisplayOrder = 3, Description = "Identifier of the species in FishBase" });
+                        spgFishSpeciesPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Family", DisplayName = "Family", DisplayOrder = 4, Description = "Family of the species" });
+                        spgFishSpeciesPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Importance", DisplayName = "Importance to fishery", DisplayOrder = 8, Description = "Importance of the species to the fishery" });
+                        spgFishSpeciesPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "MainCatchingMethod", DisplayName = "Main catching method", DisplayOrder = 9, Description = "Main catching method" });
+                        spgFishSpeciesPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LengthType", DisplayName = "Length type", DisplayOrder = 5, Description = "Length category of the species" });
+                        spgFishSpeciesPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LengthMax", DisplayName = "Max length", DisplayOrder = 6, Description = "Maximum length recorded for the species" });
+                        spgFishSpeciesPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LengthCommon", DisplayName = "Common length", DisplayOrder = 7, Description = "Maximum length recorded for the species" });
+                    }
+                    else
+                    {
+                        //PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "RowNumber", DisplayName = "Row #", DisplayOrder = 1, Description = "Identifier used in the database" });
+                        PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SpeciesCode", DisplayName = "Fishbase species ID", DisplayOrder = 2, Description = "Identifier of the species in FishBase" });
+                        PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "GenericName", DisplayName = "Genus", DisplayOrder = 3, Description = "Generic name of the species" });
+                        PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SpecificName", DisplayName = "Species", DisplayOrder = 4, Description = "Specific name of the species" });
+                        PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Family", DisplayName = "Family", DisplayOrder = 5, Description = "Family of the species" });
+                        PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LengthType", DisplayName = "Length type", DisplayOrder = 6, Description = "Length category of the species" });
+                        PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "MaxLength", DisplayName = "Max length", DisplayOrder = 7, Description = "Maximum length recorded for the species" });
+                        PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "CommonLength", DisplayName = "Common length", DisplayOrder = 8, Description = "Maximum length recorded for the species" });
+                        PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Importance", DisplayName = "Importance to fishery", DisplayOrder = 9, Description = "Importance of the species to the fishery" });
+                        PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "MainCatchingMethod", DisplayName = "Main catching method", DisplayOrder = 10, Description = "Main catching method" });
+                    }
                     PropertyGrid.SelectedObject = fishSpeciesEdit;
+                    UpdateNameControlsForSpecies();
+
                     break;
 
                 case NSAPEntity.NonFishSpecies:
@@ -921,6 +1341,10 @@ namespace NSAP_ODK.Views
             }
         }
 
+
+
+
+
         private void MakePropertyReadOnly(string propertyName)
         {
             foreach (PropertyItem prp in PropertyGrid.Properties)
@@ -942,6 +1366,9 @@ namespace NSAP_ODK.Views
             _rowDataGridHeight = rowDataGrid.Height;
             rowDataGrid.Height = new GridLength(0);
             rowBottomLabel.Height = new GridLength(0);
+
+            sfDataGrid.Visibility = Visibility.Collapsed;
+            spgFishSpeciesPropertyGrid.Visibility = Visibility.Collapsed;
             FillPropertyGrid();
             buttonEdit.IsEnabled = false;
             buttonDelete.IsEnabled = false;
@@ -1048,16 +1475,109 @@ namespace NSAP_ODK.Views
                         }
                     }
                     break;
+                case "FishGenus":
+                    foreach (PropertyItem prp in PropertyGrid.Properties)
+                    {
+                        if (prp.PropertyName == "GenericName")
+                        {
+                            try
+                            {
+                                _newGenus = ((KeyValuePair<string, string>)cbo.SelectedItem).Key;
+                                prp.Value = _newGenus;
+                                FillSpeciesCombo(_newGenus);
+                                return;
+                            }
+                            catch { }
+                        }
+                    }
+                    break;
+                case "FishSpecies":
+                    _speciesInFishSpeciesList = true;
+                    if (_cboSpecies.SelectedItem != null)
+                    {
+                        foreach (PropertyItem prp in PropertyGrid.Properties)
+                        {
+                            if (prp.PropertyName == "SpecificName")
+                            {
+                                _newSpecies = ((KeyValuePair<string, string>)cbo.SelectedItem).Key;
+                                prp.Value = _newSpecies;
+                                _selectedFishSpecies = NSAPEntities.FishSpeciesViewModel.GetSpecies($"{_newGenus} {_newSpecies}");
+                                if (_selectedFishSpecies == null)
+                                {
+                                    buttonAddToFB.IsEnabled = true;
+                                    labelFishSpecies.Content = "The selected species is not in the fish species list. ";
+                                    _speciesInFishSpeciesList = false;
+                                    FBSpecies fBSpecies = NSAPEntities.FBSpeciesViewModel.GetFBSpecies(_newGenus, _newSpecies);
+                                    _selectedFishSpecies = new FishSpecies
+                                    {
+                                        GenericName = fBSpecies.Genus,
+                                        SpecificName = fBSpecies.Species,
+                                        SpeciesCode = fBSpecies.SpCode,
+                                        Family = fBSpecies.Family,
+                                        Importance = fBSpecies.Importance,
+                                        MainCatchingMethod = fBSpecies.MainCatchingMethod,
+                                        LengthCommon = fBSpecies.LengthCommon,
+                                        LengthMax = fBSpecies.LengthMax,
+                                        LengthType = NSAPEntities.SizeTypeViewModel.GetSizeType(fBSpecies.LengthType),
+                                        RowNumber = NSAPEntities.FishSpeciesViewModel.NextRecordNumber
+                                    };
+                                }
+                                else
+                                {
+                                    labelFishSpecies.Content = "The selected species is in the fish species list. ";
+                                    buttonAddToFB.IsEnabled = false;
+                                }
+                                ShowSelectedFishSpeciesData();
+                                return;
+                            }
+                        }
+                    }
+                    break;
             }
         }
 
-        private void OnButtonClick(object sender, RoutedEventArgs e)
+        private void ShowSelectedFishSpeciesData()
+        {
+            rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
+            spgFishSpeciesPropertyGrid.Visibility = Visibility.Visible;
+            spgFishSpeciesPropertyGrid.SelectedObject = _selectedFishSpecies;
+
+
+
+        }
+        private void FillSpeciesCombo(string selectedGenus)
+        {
+            _cboSpecies.Items.Clear();
+            foreach (var item in NSAPEntities.FBSpeciesViewModel.GetSpeciesNameFromGenus(selectedGenus))
+            {
+                _cboSpecies.Items.Add(new KeyValuePair<string, string>(item, item));
+            }
+        }
+
+
+        private async void OnButtonClick(object sender, RoutedEventArgs e)
         {
             bool cancel = false;
             bool success = false;
             EditWindowEx ewx = null;
             switch (((Button)sender).Name)
             {
+                case "buttonAddToFB":
+                    if (_selectedFishSpecies != null && NSAPEntities.FishSpeciesViewModel.AddRecordToRepo(_selectedFishSpecies))
+                    {
+                        MessageBox.Show(
+                            $"{_selectedFishSpecies.GenericName} {_selectedFishSpecies.SpecificName} was added to the fish species list",
+                            "NSAP-ODK Database",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information
+                            );
+                    }
+                    break;
+                case "buttonUpdate":
+                    //progressLabel.Content = "Waiting for Fishbase species update file";
+                    //statusBar.Visibility = Visibility.Visible;
+                    await UpdateFbSpecies();
+                    break;
                 case "buttonDelete":
                     NSAPRegion nsr = NSAPEntities.NSAPRegionViewModel.CurrentEntity;
                     var entitiesRepository = NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(nsr);
@@ -1291,44 +1811,52 @@ namespace NSAP_ODK.Views
                             break;
 
                         case NSAPEntity.FishSpecies:
-                            var fse = (FishSpeciesEdit)PropertyGrid.SelectedObject;
-                            FishSpecies fishSpecies = new FishSpecies
+                            if (_isNew && !string.IsNullOrEmpty(_newGenus) && !string.IsNullOrEmpty(_newSpecies) && _selectedFishSpecies != null)
                             {
-                                GenericName = fse.GenericName,
-                                SpecificName = fse.SpecificName,
-                                RowNumber = fse.RowNumber,
-                                SpeciesCode = fse.SpeciesCode,
-                                Family = fse.Family,
-                                Importance = fse.Importance,
-                                MainCatchingMethod = fse.MainCatchingMethod,
-                                LengthMax = fse.MaxLength,
-                                LengthCommon = fse.CommonLength,
-                                LengthType = NSAPEntities.SizeTypeViewModel.GetSizeType(fse.LengthType)
-                            };
-                            validationResult = NSAPEntities.FishSpeciesViewModel.ValidateFishSpecies(fishSpecies, _isNew, _oldGenus, _oldSpecies);
-                            if (validationResult.ErrorMessage.Length > 0)
-                            {
-                                MessageBox.Show(validationResult.ErrorMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                                cancel = true;
+                                success = true;
+
                             }
-                            else if (validationResult.WarningMessage.Length > 0)
+                            else
                             {
-                                var dialogResult = MessageBox.Show(validationResult.WarningMessage + "\r\n\r\nDo you wish to continue?", "Warning", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                                if (dialogResult == MessageBoxResult.No)
+                                var fse = (FishSpeciesEdit)PropertyGrid.SelectedObject;
+                                FishSpecies fishSpecies = new FishSpecies
                                 {
+                                    GenericName = fse.GenericName,
+                                    SpecificName = fse.SpecificName,
+                                    RowNumber = fse.RowNumber,
+                                    SpeciesCode = fse.SpeciesCode,
+                                    Family = fse.Family,
+                                    Importance = fse.Importance,
+                                    MainCatchingMethod = fse.MainCatchingMethod,
+                                    LengthMax = fse.MaxLength,
+                                    LengthCommon = fse.CommonLength,
+                                    LengthType = NSAPEntities.SizeTypeViewModel.GetSizeType(fse.LengthType)
+                                };
+                                validationResult = NSAPEntities.FishSpeciesViewModel.ValidateFishSpecies(fishSpecies, _isNew, _oldGenus, _oldSpecies);
+                                if (validationResult.ErrorMessage.Length > 0)
+                                {
+                                    MessageBox.Show(validationResult.ErrorMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                                     cancel = true;
                                 }
-                            }
-
-                            if (!cancel)
-                            {
-                                if (_isNew)
+                                else if (validationResult.WarningMessage.Length > 0)
                                 {
-                                    success = NSAPEntities.FishSpeciesViewModel.AddRecordToRepo(fishSpecies);
+                                    var dialogResult = MessageBox.Show(validationResult.WarningMessage + "\r\n\r\nDo you wish to continue?", "Warning", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                                    if (dialogResult == MessageBoxResult.No)
+                                    {
+                                        cancel = true;
+                                    }
                                 }
-                                else
+
+                                if (!cancel)
                                 {
-                                    success = NSAPEntities.FishSpeciesViewModel.UpdateRecordInRepo(fishSpecies);
+                                    if (_isNew)
+                                    {
+                                        success = NSAPEntities.FishSpeciesViewModel.AddRecordToRepo(fishSpecies);
+                                    }
+                                    else
+                                    {
+                                        success = NSAPEntities.FishSpeciesViewModel.UpdateRecordInRepo(fishSpecies);
+                                    }
                                 }
                             }
                             break;
@@ -2079,6 +2607,7 @@ namespace NSAP_ODK.Views
         {
             buttonAdd.IsEnabled = true;
             rowDataGrid.Height = new GridLength(0);
+
             rowBottomLabel.Height = rowDataGrid.Height;
             var propertyItem = (PropertyItem)((PropertyGrid)e.Source).SelectedPropertyItem;
             if (propertyItem != null)
@@ -2088,65 +2617,68 @@ namespace NSAP_ODK.Views
             {
                 case "MunicipalityCount":
                     LabelBottom.Content = $"List of municipalities in {NSAPEntities.ProvinceViewModel.CurrentEntity}";
-                    rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
+                    //rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
                     rowBottomLabel.Height = new GridLength(40);
                     SetUpSubForm();
                     break;
 
                 case "EffortSpecifiers":
-                    rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
+                    //rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
                     rowBottomLabel.Height = new GridLength(40);
                     SetUpSubForm();
                     //LabelBottom.Content = $"List of effort specifiers for {NSAPEntities.GearViewModel.CurrentEntity}";
                     break;
                 case "BaseGearEffortSpecifiers":
-                    rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
+                    //rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
                     rowBottomLabel.Height = new GridLength(40);
                     SetUpSubForm();
                     buttonAdd.IsEnabled = false;
                     break;
                 case "LandingSiteCount":
                     LabelBottom.Content = $"List of landing sites in {(NSAPRegionFMAFishingGround)_nsapObject}";
-                    rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
+                    //rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
                     rowBottomLabel.Height = new GridLength(40);
                     SetUpSubForm();
                     break;
 
                 case "FishingGroundCount":
                     LabelBottom.Content = $"List of fishing grounds with landing sites in {((NSAPRegionFMA)_nsapObject)}";
-                    rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
+                    //rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
                     rowBottomLabel.Height = new GridLength(40);
                     SetUpSubForm();
                     break;
 
                 case "Gears":
                     LabelBottom.Content = $"List of gears in {NSAPEntities.NSAPRegionViewModel.CurrentEntity}";
-                    rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
+                    //rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
                     rowBottomLabel.Height = new GridLength(40);
                     SetUpSubForm();
                     break;
 
                 case "FMAs":
                     LabelBottom.Content = $"List of FMAs with fishing grounds in {NSAPEntities.NSAPRegionViewModel.CurrentEntity}";
-                    rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
+                    // rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
                     rowBottomLabel.Height = new GridLength(40);
                     SetUpSubForm();
                     break;
 
                 case "Vessels":
                     LabelBottom.Content = $"List of vessels in {NSAPEntities.NSAPRegionViewModel.CurrentEntity}";
-                    rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
+                    //rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
                     rowBottomLabel.Height = new GridLength(40);
                     SetUpSubForm();
                     break;
 
                 case "Enumerators":
                     LabelBottom.Content = $"List of enumerators in {NSAPEntities.NSAPRegionViewModel.CurrentEntity}";
-                    rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
+                    //rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
                     rowBottomLabel.Height = new GridLength(40);
                     SetUpSubForm();
                     break;
+                default:
+                    break;
             }
+
         }
 
         private void SetUpSubFormSource()
@@ -2244,6 +2776,8 @@ namespace NSAP_ODK.Views
 
         private void SetUpSubForm()
         {
+            sfDataGrid.Visibility = Visibility.Visible;
+            spgFishSpeciesPropertyGrid.Visibility = Visibility.Collapsed;
             sfDataGrid.Columns.Clear();
             //sfDataGrid.Items.Clear();
             SetUpSubFormSource();
@@ -2320,6 +2854,8 @@ namespace NSAP_ODK.Views
                     ((Binding)((DataGridTextColumn)c).Binding).StringFormat = "MMM-dd-yyyy";
                 }
             }
+
+            rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
         }
 
         private void OnPropertyValueChanged(object sender, PropertyValueChangedEventArgs e)
@@ -2331,6 +2867,28 @@ namespace NSAP_ODK.Views
             var currentProperty = (PropertyItem)e.OriginalSource;
             switch (currentProperty.PropertyName)
             {
+                case "SpecificName":
+                    //_speciesInFishSpeciesList = true;
+                    //FishSpecies selectedFishSpecies = NSAPEntities.FishSpeciesViewModel.GetSpecies($"{_newGenus} {_newSpecies}");
+                    //if (selectedFishSpecies == null)
+                    //{
+                    //    _speciesInFishSpeciesList = false;
+                    //    //FBSpecies fBSpecies = NSAPEntities.FBSpeciesViewModel.GetFBSpecies(_newGenus, _newSpecies);
+                    //    //selectedFishSpecies = new FishSpecies
+                    //    //{
+                    //    //    GenericName = fBSpecies.Genus,
+                    //    //    SpecificName = fBSpecies.Species,
+                    //    //    SpeciesCode = fBSpecies.SpCode,
+                    //    //    Family = fBSpecies.Family,
+                    //    //    Importance = fBSpecies.Importance,
+                    //    //    MainCatchingMethod = fBSpecies.MainCatchingMethod,
+                    //    //    LengthCommon = fBSpecies.LengthCommon,
+                    //    //    LengthMax = fBSpecies.LengthMax,
+                    //    //    LengthType = NSAPEntities.SizeTypeViewModel.GetSizeType(fBSpecies.LengthType)
+                    //    //};
+                    //}
+
+                    break;
                 case "Code":
                     switch (NSAPEntity.ToString())
                     {
@@ -2486,6 +3044,11 @@ namespace NSAP_ODK.Views
             {
                 Owner.IsEnabled = true;
                 Owner.Focus();
+            }
+            if (NSAPEntities.FBSpeciesViewModel != null)
+            {
+                NSAPEntities.FBSpeciesViewModel.FBSpeciesUpdateEvent -= FBSpeciesViewModel_FBSpeciesUpdateEvent;
+                _updatingFBSpecies = false;
             }
         }
     }

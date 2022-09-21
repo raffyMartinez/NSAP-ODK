@@ -176,6 +176,7 @@
     </ApplicationDefinition>
     <Compile Include="Entities\BuildOrphanedEntityEventArg.cs" />
     <Compile Include="Entities\Database\AccessColumn.cs" />
+    <Compile Include="Entities\Database\BoatLandingsFromServerRepository.cs" />
     <Compile Include="Entities\Database\BuildSummaryReportEventArg.cs" />
     <Compile Include="Entities\Database\CollectedUnrecognizedFG.cs" />
     <Compile Include="Entities\Database\CreateTablesInAccess.cs" />
@@ -183,12 +184,16 @@
     <Compile Include="Entities\Database\CrossTabLengthWeight.cs" />
     <Compile Include="Entities\Database\DownloadedJsonMetadata.cs" />
     <Compile Include="Entities\Database\FileInfoJSONMetadata.cs" />
+    <Compile Include="Entities\Database\GearAtLandingSiteDaysPerMonth.cs" />
+    <Compile Include="Entities\Database\GearAtLandingSiteDaysPerMonthRepository.cs" />
+    <Compile Include="Entities\Database\GearAtLandingSiteDaysPerMonthViewModel.cs" />
     <Compile Include="Entities\Database\GearUnloadComparer.cs" />
     <Compile Include="Entities\Database\Koboserver.cs" />
     <Compile Include="Entities\Database\KoboServerRepository.cs" />
     <Compile Include="Entities\Database\KoboServerViewModel.cs" />
     <Compile Include="Entities\Database\LastPrimaryKeys.cs" />
     <Compile Include="Entities\Database\OrphanedSpeciesNameRaw.cs" />
+    <Compile Include="Entities\Database\ServerUploadsByMonth.cs" />
     <Compile Include="Entities\Database\SQLDumpParsed.cs" />
     <Compile Include="Entities\Database\SummaryItem.cs" />
     <Compile Include="Entities\Database\SummaryItemViewModel.cs" />
@@ -247,9 +252,12 @@
     <Compile Include="Entities\Database\SpeciesTextToSpeciesConvert.cs" />
     <Compile Include="Entities\Database\SummaryItemRepository.cs" />
     <Compile Include="Entities\Database\SummaryResults.cs" />
+    <Compile Include="Entities\Database\TotalWtSpRepository.cs" />
+    <Compile Include="Entities\Database\TotalWtSpViewModel.cs" />
     <Compile Include="Entities\Database\TrackedLandingCentroid.cs" />
     <Compile Include="Entities\Database\TrackedLandingCentroidViewModel.cs" />
     <Compile Include="Entities\Database\TrackedOperationSummary.cs" />
+    <Compile Include="Entities\Database\TotalWtSp.cs" />
     <Compile Include="Entities\Database\UnloadChildrenSummary.cs" />
     <Compile Include="Entities\Database\UnloadMeasureSummaryForMonth.cs" />
     <Compile Include="Entities\Database\UnloadStatsLine.cs" />
@@ -269,9 +277,14 @@
     <Compile Include="Entities\EntityContext.cs" />
     <Compile Include="Entities\EntityLoadedEventArg.cs" />
     <Compile Include="Entities\EnumeratorFormVersion.cs" />
+    <Compile Include="Entities\FBSpeciesRepository.cs" />
+    <Compile Include="Entities\FBSpeciesUpdateEventArgs.cs" />
+    <Compile Include="Entities\FBSpeciesUpdateSettings.cs" />
     <Compile Include="Entities\FishBaseSpecies.cs" />
+    <Compile Include="Entities\FBSpeciesViewModel.cs" />
     <Compile Include="Entities\FishSpeciesForCSV.cs" />
     <Compile Include="Entities\ItemSources\DeviceTypeItemsSource.cs" />
+    <Compile Include="Entities\FBSpecies.cs" />
     <Compile Include="Entities\ItemSources\FishingGroundInRegionFMAItemsSource.cs" />
     <Compile Include="Entities\ItemSources\GearsInNSAPRegionItemsSource.cs" />
     <Compile Include="Entities\ItemSources\GPSItemsSource.cs" />
@@ -522,6 +535,9 @@
     <Compile Include="Views\QueryAPIWIndow.xaml.cs">
       <DependentUpon>QueryAPIWIndow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\RegionLandingSitesWindow.xaml.cs">
+      <DependentUpon>RegionLandingSitesWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\SelectColumnToUpdateWindow.xaml.cs">
       <DependentUpon>SelectColumnToUpdateWindow.xaml</DependentUpon>
     </Compile>
@@ -545,6 +561,9 @@
     </Compile>
     <Compile Include="Views\UnrecognizedFGsWindows.xaml.cs">
       <DependentUpon>UnrecognizedFGsWindows.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\UpdateFBSpeciesOptionWindow.xaml.cs">
+      <DependentUpon>UpdateFBSpeciesOptionWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\UploadJSONHistoryOptionsWindow.xaml.cs">
       <DependentUpon>UploadJSONHistoryOptionsWindow.xaml</DependentUpon>
@@ -670,6 +689,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\RegionLandingSitesWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\SelectColumnToUpdateWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -699,6 +722,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\UnrecognizedFGsWindows.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\UpdateFBSpeciesOptionWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

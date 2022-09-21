@@ -78,10 +78,16 @@ namespace NSAP_ODK.Entities
         }
         public LandingSite GetLandingSiteInRegion(string regionCode, int regionFMA, int regionFMAFishingGround, int fishingGroundLandingSite)
         {
-            return NSAPRegionCollection.Where(t => t.Code == regionCode).FirstOrDefault()
-                .FMAs.Where(t => t.RowID == regionFMA).FirstOrDefault()
-                .FishingGrounds.Where(t => t.RowID == regionFMAFishingGround).FirstOrDefault()
-                .LandingSites.Where(t => t.RowID == fishingGroundLandingSite).FirstOrDefault().LandingSite;
+            //var nsr = NSAPRegionCollection.Where(t => t.Code == regionCode).FirstOrDefault();
+            //var rf = nsr.FMAs.Where(t => t.RowID == regionFMA).FirstOrDefault();
+            //var fg = rf.FishingGrounds.Where(t => t.RowID == regionFMAFishingGround).FirstOrDefault();
+            //var ls = fg.LandingSites.Where(t => t.RowID == fishingGroundLandingSite).FirstOrDefault()?.LandingSite;
+
+            return NSAPRegionCollection.Where(t => t.Code == regionCode).FirstOrDefault()?.
+                FMAs.Where(t => t.RowID == regionFMA).FirstOrDefault()?.
+                FishingGrounds.Where(t => t.RowID == regionFMAFishingGround).FirstOrDefault()?.
+                LandingSites.Where(t => t.RowID == fishingGroundLandingSite).FirstOrDefault()?.LandingSite;
+            //return ls;
         }
         public FishingGround GetFishingGroundInRegion(string regionCode, int regionFMA, int regionFMAFishingGround)
         {

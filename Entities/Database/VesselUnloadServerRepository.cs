@@ -452,6 +452,10 @@ namespace NSAP_ODK.Entities.Database.FromJson
         [JsonProperty("catch_comp_group/catch_composition_repeat/speciesname_group/species_sample_wt")]
         public double? SpeciesSampleWt { get; set; }
 
+        //unit used when weighing individuals (kg or g)
+        [JsonProperty("catch_comp_group/catch_composition_repeat/speciesname_group/individual_wt_unit")]
+        public string IndividualWeightUnit{ get; set; }
+
         //weight of the species
         [JsonProperty("catch_comp_group/catch_composition_repeat/speciesname_group/species_wt")]
         public double? SpeciesWt { get; set; }
@@ -2138,7 +2142,8 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                         NSAPRegionID = landing.NSAPRegion.Code,
                                         LandingSiteText = landing.LandingSiteText == null ? landing.LandingSiteName2 : landing.LandingSiteText,
                                         FMAID = landing.NSAPRegionFMA.FMA.FMAID,
-                                        DelayedSave = DelayedSave
+                                        DelayedSave = DelayedSave,
+                                        HasFishingOperation = true
                                     };
 
                                     proceed = NSAPEntities.LandingSiteSamplingViewModel.AddRecordToRepo(landingSiteSampling);
@@ -2400,11 +2405,12 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                     VesselUnloadID = vu.PK,
                                                     SpeciesID = catchComp.CatchCompSpeciesID,
                                                     Catch_kg = catchComp.SpeciesWt,
-                                                    TWS = catchComp.TWS,
+                                                    //TWS = catchComp.TWS,
                                                     Sample_kg = catchComp.SpeciesSampleWt,
                                                     TaxaCode = catchComp.TaxaCode,
                                                     SpeciesText = catchComp.SpeciesNameOther,
-                                                    DelayedSave = DelayedSave
+                                                    DelayedSave = DelayedSave,
+                                                    WeighingUnit=catchComp.IndividualWeightUnit
                                                 };
 
 

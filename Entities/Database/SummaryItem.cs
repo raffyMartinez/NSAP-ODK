@@ -8,6 +8,7 @@ namespace NSAP_ODK.Entities.Database
 {
     public class SummaryItem
     {
+        public bool LandingSiteHasOperation { get; set; }
         public string UserName { get; set; }
         public string XFormIdentifier { get; set; }
         public string ODKRowID { get; set; }
@@ -56,6 +57,14 @@ namespace NSAP_ODK.Entities.Database
             get
             {
                 return new DateTime(SamplingDate.Year, SamplingDate.Month, 1);
+            }
+        }
+
+        public DateTime MonthSubmitted
+        {
+            get
+            {
+                return new DateTime(DateSubmitted.Year, DateSubmitted.Month, 1);
             }
         }
 
@@ -176,6 +185,8 @@ namespace NSAP_ODK.Entities.Database
                 _gearUnload = value;
             }
         }
+
+        public int? TWSpCount { get; set; }
         public int GearUnloadID { get; set; }
         public int VesselUnloadID { get; set; }
 

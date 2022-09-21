@@ -115,7 +115,11 @@ namespace NSAP_ODK.Entities.Database
         {
             _csv.Clear();
         }
-
+        //private void CheckTableColumns()
+        //{
+        //    var tableColumns = CreateTablesInAccess.GetColumnNames("dbo_vessel_catch", makeLowerCase: true);
+        //    if (tableColumns.Contains(""))
+        //}
         public VesselCatchViewModel(VesselUnload vu)
         {
             if (vu != null)
@@ -611,7 +615,7 @@ namespace NSAP_ODK.Entities.Database
         private static bool SetCSV(VesselCatch item)
         {
             string sp_id = item.SpeciesID == null ? "" : ((int)item.SpeciesID).ToString();
-            string tws = item.TWS == null ? "" : ((double)item.TWS).ToString();
+            //string tws = item.TWS == null ? "" : ((double)item.TWS).ToString();
             string catch_kg = item.Catch_kg == null ? "" : ((double)item.Catch_kg).ToString();
             string sample_kg = item.Sample_kg == null ? "" : ((double)item.Sample_kg).ToString();
 
@@ -632,16 +636,18 @@ namespace NSAP_ODK.Entities.Database
                     sp_id = @"\N";
                 }
 
-                if (item.TWS == null)
-                {
-                    tws = @"\N";
-                }
+                // if (item.TWS == null)
+                //{
+                //   tws = @"\N";
+                //}
 
-                _csv.AppendLine($"{item.PK},{item.Parent.PK},{sp_id},{catch_kg},{tws},{sample_kg},\"{item.TaxaCode}\",\"{item.SpeciesText}\"");
+                //_csv.AppendLine($"{item.PK},{item.Parent.PK},{sp_id},{catch_kg},{tws},{sample_kg},\"{item.TaxaCode}\",\"{item.SpeciesText}\"");
+                _csv.AppendLine($"{item.PK},{item.Parent.PK},{sp_id},{catch_kg},{sample_kg},\"{item.TaxaCode}\",\"{item.SpeciesText}\"");
             }
             else
             {
-                _csv.AppendLine($"{item.PK},{item.Parent.PK},{sp_id},{catch_kg},{sample_kg},\"{item.TaxaCode}\",\"{item.SpeciesText}\",{tws}");
+                //_csv.AppendLine($"{item.PK},{item.Parent.PK},{sp_id},{catch_kg},{sample_kg},\"{item.TaxaCode}\",\"{item.SpeciesText}\",{tws}");
+                _csv.AppendLine($"{item.PK},{item.Parent.PK},{sp_id},{catch_kg},{sample_kg},\"{item.TaxaCode}\",\"{item.SpeciesText}\",\"{item.WeighingUnit}\"");
             }
             return true;
         }

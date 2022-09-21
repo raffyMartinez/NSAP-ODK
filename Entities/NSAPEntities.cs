@@ -85,6 +85,10 @@ namespace NSAP_ODK.Entities
         public static ODKEformVersionViewModel ODKEformVersionViewModel;
         public static SummaryItemViewModel SummaryItemViewModel;
         public static KoboServerViewModel KoboServerViewModel;
+        public static GearAtLandingSiteDaysPerMonthViewModel GearAtLandingSiteDaysPerMonthViewModel;
+        public static FBSpeciesViewModel FishBaseViewModel;
+        public static FBSpeciesViewModel FBSpeciesViewModel;
+        //public static TotalWtSpViewModel TotalWtSpViewModel;
 
 
         static NSAPEntities()
@@ -124,14 +128,14 @@ namespace NSAP_ODK.Entities
         public static void ResetEntititesCurrentIDs()
         {
             CatchMaturityViewModel.CurrentIDNumber = 0;
-            CatchLengthViewModel.CurrentIDNumber=0;
-            CatchLengthWeightViewModel.CurrentIDNumber=0;
-            CatchLenFreqViewModel.CurrentIDNumber=0;
-            VesselCatchViewModel.CurrentIDNumber=0;
-            FishingGroundGridViewModel.CurrentIDNumber=0;
-            GearSoakViewModel.CurrentIDNumber=0;
-            VesselEffortViewModel.CurrentIDNumber=0;
-            VesselUnloadViewModel.CurrentIDNumber=0;
+            CatchLengthViewModel.CurrentIDNumber = 0;
+            CatchLengthWeightViewModel.CurrentIDNumber = 0;
+            CatchLenFreqViewModel.CurrentIDNumber = 0;
+            VesselCatchViewModel.CurrentIDNumber = 0;
+            FishingGroundGridViewModel.CurrentIDNumber = 0;
+            GearSoakViewModel.CurrentIDNumber = 0;
+            VesselEffortViewModel.CurrentIDNumber = 0;
+            VesselUnloadViewModel.CurrentIDNumber = 0;
         }
 
         /// <summary>
@@ -152,6 +156,7 @@ namespace NSAP_ODK.Entities
             GearSoakRepository.ClearTable(otherConnectionString);
             VesselEffortRepository.ClearTable(otherConnectionString);
             VesselUnloadRepository.ClearTable(otherConnectionString);
+            TotalWtSpRepository.ClearTable(otherConnectionString);
             GearUnloadRepository.ClearTable(otherConnectionString);
             if (LandingSiteSamplingRepository.ClearTable(otherConnectionString))
             {

@@ -14,19 +14,55 @@ namespace NSAP_ODK.Entities.Database
 {
     class LandingSiteSamplingRepository
     {
-        private string _dateFormat = "MMM-dd-yyyy";
+        private static int _maxRecordNumber;
+        private bool _addHasOperationColumn = false;
+        //private string _dateFormat = "MMM-dd-yyyy";
         public List<LandingSiteSampling> LandingSiteSamplings { get; set; }
 
+        public static bool UpdateColumns()
+        {
+            bool proceed = false;
+            //if (TotalWtSpRepository.CheckForTWSPTable() && GearAtLandingSiteDaysPerMonthRepository.CheckForGearLandingSiteTable())
+            if (TotalWtSpRepository.CheckForTWSPTable())// && GearAtLandingSiteDaysPerMonthRepository.CheckForGearLandingSiteTable())
+            {
+                var cols = CreateTablesInAccess.GetColumnNames("dbo_LC_FG_sample_day");
+                if (cols.Contains("has_fishing_operation") || UpdateTableDefinition("has_fishing_operation") &&
+                 UpdateHasFishingOperationField())
+                {
+                    cols = CreateTablesInAccess.GetColumnNames("dbo_gear_unload");
+                    if (cols.Contains("sp_twsp_count") || GearUnloadRepository.AddFieldToTable("sp_twsp_count"))
+                    {
+                        cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_catch");
+                        {
+                            if (cols.Contains("weighing_unit") || VesselCatchRepository.UpdateTableDefinition("weighing_unit"))
+                            {
+                                proceed = true;
+                            }
+                        }
+                    }
+                }
+            }
+            return proceed;
+        }
         public LandingSiteSamplingRepository()
         {
+
+
             LandingSiteSamplings = getLandingSiteSamplings();
+
+            //if(LandingSiteSamplings.Count==0 && _addHasOperationColumn && UpdateTableDefinition("has_fishing_operation") && UpdateHasFishingOperationField())
+            //{
+
+            //    LandingSiteSamplings = getLandingSiteSamplings();
+            //}
         }
 
         public int MaxRecordNumber()
         {
-            return NSAPEntities.SummaryItemViewModel.GetLandingSiteSamplingMaxRecordNumber();
+            //return NSAPEntities.SummaryItemViewModel.GetLandingSiteSamplingMaxRecordNumber();
+            return MaxRecordNumber_from_db();
         }
-        public int MaxRecordNumber_1()
+        public static int MaxRecordNumber_from_db()
         {
             int max_rec_no = 0;
             if (Global.Settings.UsemySQL)
@@ -80,31 +116,39 @@ namespace NSAP_ODK.Entities.Database
                                             ON lc.unload_day_id = lc1.unload_day_id";
 
                     MySqlDataReader dr = cmd.ExecuteReader();
-                    while (dr.Read())
+                    try
                     {
-                        LandingSiteSampling item = new LandingSiteSampling();
-                        item.PK = (int)dr["unload_day_id"];
-                        item.NSAPRegionID = dr["region_id"].ToString();
-                        item.SamplingDate = (DateTime)dr["sdate"];
-                        //item.LandingSiteID = string.IsNullOrEmpty( dr["land_ctr_id"].ToString())?null:(int?)dr["land_ctr_id"];
-                        item.LandingSiteID = dr["land_ctr_id"] == DBNull.Value ? null : (int?)dr["land_ctr_id"];
-                        item.FishingGroundID = dr["ground_id"].ToString();
-                        item.Remarks = dr["remarks"].ToString();
-                        item.IsSamplingDay = Convert.ToBoolean(dr["is_sample_day"]);
-                        item.LandingSiteText = dr["land_ctr_text"].ToString();
-                        item.FMAID = (int)dr["fma"];
-                        item.DateSubmitted = dr["datetime_submitted"] == DBNull.Value ? null : (DateTime?)dr["datetime_submitted"];
-                        item.UserName = dr["user_name"].ToString();
-                        item.DeviceID = dr["device_id"].ToString();
-                        item.XFormIdentifier = dr["xform_identifier"].ToString();
-                        item.DateAdded = dr["date_added"] == DBNull.Value ? null : (DateTime?)dr["date_added"];
-                        item.FromExcelDownload = dr["from_excel_download"] == DBNull.Value ? false : (bool)dr["from_excel_download"];
-                        item.FormVersion = dr["form_version"].ToString();
-                        item.RowID = dr["row_id"].ToString();
-                        item.EnumeratorID = dr["enumerator_id"] == DBNull.Value ? null : (int?)int.Parse(dr["enumerator_id"].ToString());
-                        item.EnumeratorText = dr["enumerator_text"].ToString();
-                        item.GearUnloadViewModel = new GearUnloadViewModel(item);
-                        thisList.Add(item);
+                        while (dr.Read())
+                        {
+                            LandingSiteSampling item = new LandingSiteSampling();
+                            item.PK = (int)dr["unload_day_id"];
+                            item.NSAPRegionID = dr["region_id"].ToString();
+                            item.SamplingDate = (DateTime)dr["sdate"];
+                            //item.LandingSiteID = string.IsNullOrEmpty( dr["land_ctr_id"].ToString())?null:(int?)dr["land_ctr_id"];
+                            item.LandingSiteID = dr["land_ctr_id"] == DBNull.Value ? null : (int?)dr["land_ctr_id"];
+                            item.FishingGroundID = dr["ground_id"].ToString();
+                            item.Remarks = dr["remarks"].ToString();
+                            item.IsSamplingDay = Convert.ToBoolean(dr["is_sample_day"]);
+                            item.LandingSiteText = dr["land_ctr_text"].ToString();
+                            item.HasFishingOperation = (bool)dr["has_fishing_operation"];
+                            item.FMAID = (int)dr["fma"];
+                            item.DateSubmitted = dr["datetime_submitted"] == DBNull.Value ? null : (DateTime?)dr["datetime_submitted"];
+                            item.UserName = dr["user_name"].ToString();
+                            item.DeviceID = dr["device_id"].ToString();
+                            item.XFormIdentifier = dr["xform_identifier"].ToString();
+                            item.DateAdded = dr["date_added"] == DBNull.Value ? null : (DateTime?)dr["date_added"];
+                            item.FromExcelDownload = dr["from_excel_download"] == DBNull.Value ? false : (bool)dr["from_excel_download"];
+                            item.FormVersion = dr["form_version"].ToString();
+                            item.RowID = dr["row_id"].ToString();
+                            item.EnumeratorID = dr["enumerator_id"] == DBNull.Value ? null : (int?)int.Parse(dr["enumerator_id"].ToString());
+                            item.EnumeratorText = dr["enumerator_text"].ToString();
+                            item.GearUnloadViewModel = new GearUnloadViewModel(item);
+                            thisList.Add(item);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+
                     }
                 }
             }
@@ -153,12 +197,12 @@ namespace NSAP_ODK.Entities.Database
                                 item.PK = (int)dr["unload_day_id"];
                                 item.NSAPRegionID = dr["region_id"].ToString();
                                 item.SamplingDate = (DateTime)dr["sdate"];
-                                //item.LandingSiteID = string.IsNullOrEmpty( dr["land_ctr_id"].ToString())?null:(int?)dr["land_ctr_id"];
                                 item.LandingSiteID = dr["land_ctr_id"] == DBNull.Value ? null : (int?)dr["land_ctr_id"];
                                 item.FishingGroundID = dr["ground_id"].ToString();
                                 item.Remarks = dr["remarks"].ToString();
                                 item.IsSamplingDay = (bool)dr["sampleday"];
                                 item.LandingSiteText = dr["land_ctr_text"].ToString();
+                                item.HasFishingOperation = (bool)dr["has_fishing_operation"];
                                 item.FMAID = (int)dr["fma"];
                                 item.DateSubmitted = dr["datetime_submitted"] == DBNull.Value ? null : (DateTime?)dr["datetime_submitted"];
                                 item.UserName = dr["user_name"].ToString();
@@ -175,14 +219,101 @@ namespace NSAP_ODK.Entities.Database
                             }
 
                         }
+                        catch (OleDbException olx)
+                        {
+
+                        }
                         catch (Exception ex)
                         {
-                            Logger.Log(ex);
+                            switch (ex.Message)
+                            {
+                                case "has_fishing_operation":
+                                    _addHasOperationColumn = true;
+                                    //conection.Close();
+                                    //if (UpdateTableDefinition(ex.Message) && UpdateHasFishingOperationField())
+                                    //{
+                                    //    //return getLandingSiteSamplings();
+                                    //    //LandingSiteSamplings = getLandingSiteSamplings();
+                                    //    _readAgain = true;
+                                    //    return null;
+                                    //}
+                                    break;
+                                default:
+                                    Logger.Log(ex);
+                                    break;
+
+                            }
+
                         }
                     }
                 }
             }
             return thisList;
+        }
+
+        private static bool UpdateHasFishingOperationField()
+        {
+            bool success = false;
+            string sql = $"Update dbo_LC_FG_sample_day SET has_fishing_operation=-1";
+            using (var conn = new OleDbConnection(Global.ConnectionString))
+            {
+                conn.Open();
+                OleDbCommand cmd = new OleDbCommand();
+                cmd.Connection = conn;
+                cmd.CommandText = sql;
+                try
+                {
+                    success = cmd.ExecuteNonQuery() > 0;
+
+                }
+                catch (Exception ex)
+                {
+
+                }
+                cmd.Connection.Close();
+                conn.Close();
+            }
+            return success;
+
+        }
+        private static bool UpdateTableDefinition(string colName)
+        {
+            bool success = false;
+            using (var conn = new OleDbConnection(Global.ConnectionString))
+            {
+                conn.Open();
+                var sql = "";
+                switch (colName)
+                {
+                    case "has_fishing_operation":
+
+                        sql = $@"ALTER TABLE dbo_LC_FG_sample_day ADD COLUMN {colName} YESNO";
+                        break;
+                    case "NumberOfFishers":
+                        //sql = $@"ALTER TABLE dbo_vessel_unload_1 ADD COLUMN {colName} INTEGER DEFAULT NULL";
+                        break;
+                }
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = sql;
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        success = true;
+
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+
+            }
+            return success;
         }
         private bool AddToMySQL(LandingSiteSampling item)
         {
@@ -224,11 +355,12 @@ namespace NSAP_ODK.Entities.Database
                         update.Parameters.Add("@landing_site_text", MySqlDbType.VarChar).Value = item.LandingSiteText;
                     }
                     update.Parameters.Add("@fma_id", MySqlDbType.Int32).Value = item.FMAID;
+                    update.Parameters.AddWithValue("@has_operations", item.HasFishingOperation);
 
                     update.CommandText = @"Insert into dbo_lc_fg_sample_day(
                                 unload_day_id, region_id,sdate, land_ctr_id,ground_id,
-                                remarks,is_sample_day,land_ctr_text,fma)
-                                Values (@pk,@nsap_region,@sampling_date,@landing_site_id,@fg,@remarks,@is_sampling_day,@landing_site_text,@fma_id)";
+                                remarks,is_sample_day,land_ctr_text,fma,has_fishing_operation)
+                                Values (@pk,@nsap_region,@sampling_date,@landing_site_id,@fg,@remarks,@is_sampling_day,@landing_site_text,@fma_id,@has_operations)";
                     try
                     {
                         conn.Open();
@@ -382,8 +514,8 @@ namespace NSAP_ODK.Entities.Database
 
                     var sql = @"Insert into dbo_LC_FG_sample_day(
                                 unload_day_id, region_id,sdate, land_ctr_id,ground_id,
-                                remarks,sampleday,land_ctr_text,fma)
-                           Values (?,?,?,?,?,?,?,?,?)";
+                                remarks,sampleday,land_ctr_text,fma,has_fishing_operation)
+                           Values (?,?,?,?,?,?,?,?,?,?)";
                     using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
                         try
@@ -422,7 +554,7 @@ namespace NSAP_ODK.Entities.Database
                                 update.Parameters.Add("@landing_site_text", OleDbType.VarChar).Value = item.LandingSiteText;
                             }
                             update.Parameters.Add("@fma_id", OleDbType.Integer).Value = item.FMAID;
-
+                            update.Parameters.Add("@has_operation", OleDbType.Boolean).Value = item.HasFishingOperation;
 
                             success = update.ExecuteNonQuery() > 0;
                             if (success)
@@ -601,6 +733,7 @@ namespace NSAP_ODK.Entities.Database
                     update.Parameters.Add("landing_site_text", MySqlDbType.VarChar).Value = item.LandingSiteText;
                     update.Parameters.Add("@fma", MySqlDbType.Int32).Value = item.FMAID;
                     update.Parameters.Add("@pk", MySqlDbType.Int32).Value = item.PK;
+                    update.Parameters.AddWithValue("@has_operations", item.HasFishingOperation);
 
                     update.CommandText = @"Update dbo_lc_fg_sample_day set
                                         region_id=@region_id,
@@ -610,7 +743,8 @@ namespace NSAP_ODK.Entities.Database
                                         remarks = @remarks,
                                         is_sample_day = @issampling_day,
                                         land_ctr_text = @landing_site_text,
-                                        fma = @fma
+                                        fma = @fma,     
+                                        has_fishing_operation = @has_operations
                                     WHERE unload_day_id = @pk";
 
                     try
@@ -712,7 +846,7 @@ namespace NSAP_ODK.Entities.Database
 
                     using (OleDbCommand update = conn.CreateCommand())
                     {
-                        update.Parameters.Add("@region_id", OleDbType.Integer).Value = item.NSAPRegionID;
+                        update.Parameters.Add("@region_id", OleDbType.VarChar).Value = item.NSAPRegionID;
                         update.Parameters.Add("@sdate", OleDbType.Date).Value = item.SamplingDate;
                         if (item.LandingSiteID == null)
                         {
@@ -723,24 +857,32 @@ namespace NSAP_ODK.Entities.Database
                             update.Parameters.Add("@landing_site_id", OleDbType.Integer).Value = item.LandingSiteID;
                         }
                         update.Parameters.Add("@ground_id", OleDbType.VarChar).Value = item.FishingGroundID;
-                        update.Parameters.Add("@remarks", OleDbType.VarChar).Value = item.Remarks;
+                        if (string.IsNullOrEmpty(item.Remarks))
+                        {
+                            update.Parameters.Add("@remarks", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@remarks", OleDbType.VarChar).Value = item.Remarks;
+                        }
                         update.Parameters.Add("@issampling_day", OleDbType.Boolean).Value = item.IsSamplingDay;
                         update.Parameters.Add("landing_site_text", OleDbType.VarChar).Value = item.LandingSiteText;
                         update.Parameters.Add("@fma", OleDbType.Integer).Value = item.FMAID;
+                        update.Parameters.Add("@has_operations", OleDbType.Boolean).Value = item.HasFishingOperation;
                         update.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
+
 
                         update.CommandText = @"Update dbo_LC_FG_sample_day set
                                         region_id=@region_id,
                                         sdate = @sdate,
-                                        land_ctr_id = @land_ctr_id,
+                                        land_ctr_id = @land_site_id,
                                         ground_id = @ground_id,
                                         remarks = @remarks,
                                         sampleday = @issampling_day,
                                         land_ctr_text = @landing_site_text,
-                                        fma = @fma
+                                        fma = @fma,
+                                        has_fishing_operation = @has_operations
                                     WHERE unload_day_id = @pk";
-
-
                         try
                         {
                             success = update.ExecuteNonQuery() > 0;
@@ -762,38 +904,38 @@ namespace NSAP_ODK.Entities.Database
                             {
                                 if (item.DateSubmitted == null)
                                 {
-                                    update.Parameters.Add("@submitted", OleDbType.Date).Value = DBNull.Value;
+                                    update1.Parameters.Add("@submitted", OleDbType.Date).Value = DBNull.Value;
                                 }
                                 else
                                 {
-                                    update.Parameters.Add("@submitted", OleDbType.Date).Value = item.DateSubmitted;
+                                    update1.Parameters.Add("@submitted", OleDbType.Date).Value = item.DateSubmitted;
                                 }
-                                update.Parameters.Add("@user", OleDbType.VarChar).Value = item.UserName;
-                                update.Parameters.Add("@device_id", OleDbType.VarChar).Value = item.DeviceID;
-                                update.Parameters.Add("@xform_id", OleDbType.VarChar).Value = item.XFormIdentifier;
+                                update1.Parameters.Add("@user", OleDbType.VarChar).Value = item.UserName;
+                                update1.Parameters.Add("@device_id", OleDbType.VarChar).Value = item.DeviceID;
+                                update1.Parameters.Add("@xform_id", OleDbType.VarChar).Value = item.XFormIdentifier;
                                 if (item.DateSubmitted == null)
                                 {
-                                    update.Parameters.Add("@added", OleDbType.Date).Value = DBNull.Value;
+                                    update1.Parameters.Add("@added", OleDbType.Date).Value = DBNull.Value;
                                 }
                                 else
                                 {
-                                    update.Parameters.Add("@added", OleDbType.Date).Value = item.DateAdded;
+                                    update1.Parameters.Add("@added", OleDbType.Date).Value = item.DateAdded;
                                 }
-                                update.Parameters.Add("@from_excel", OleDbType.Boolean).Value = item.FromExcelDownload;
-                                update.Parameters.Add("@form_version", OleDbType.VarChar).Value = item.FormVersion;
-                                update.Parameters.Add("@row_id", OleDbType.VarChar).Value = item.RowID;
+                                update1.Parameters.Add("@from_excel", OleDbType.Boolean).Value = item.FromExcelDownload;
+                                update1.Parameters.Add("@form_version", OleDbType.VarChar).Value = item.FormVersion;
+                                update1.Parameters.Add("@row_id", OleDbType.VarChar).Value = item.RowID;
                                 if (item.EnumeratorID == null)
                                 {
-                                    update.Parameters.Add("@enum_id", OleDbType.VarChar).Value = DBNull.Value;
+                                    update1.Parameters.Add("@enum_id", OleDbType.VarChar).Value = DBNull.Value;
                                 }
                                 else
                                 {
-                                    update.Parameters.Add("@enum_id", OleDbType.VarChar).Value = item.EnumeratorID;
+                                    update1.Parameters.Add("@enum_id", OleDbType.VarChar).Value = item.EnumeratorID;
                                 }
-                                update.Parameters.Add("@enum_text", OleDbType.VarChar).Value = item.EnumeratorText;
-                                update.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
+                                update1.Parameters.Add("@enum_text", OleDbType.VarChar).Value = item.EnumeratorText;
+                                update1.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
 
-                                update.CommandText = @"Update dbo_LC_FG_sample_day_1 set
+                                update1.CommandText = @"Update dbo_LC_FG_sample_day_1 set
                                                     datetime_submitted = @submitted,
                                                     user_name = @user,
                                                     device_id = @device_id,
@@ -829,7 +971,7 @@ namespace NSAP_ODK.Entities.Database
             return success;
         }
 
-        public static bool ClearTable(string otherConnectionString="")
+        public static bool ClearTable(string otherConnectionString = "")
         {
             bool success = false;
             string con_string = Global.ConnectionString;

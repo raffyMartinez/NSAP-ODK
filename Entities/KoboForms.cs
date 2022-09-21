@@ -161,7 +161,7 @@ namespace NSAP_ODK.Entities
             {
                 KoboFormType = KoboFormType.FormTypeCatchAndEffort;
             }
-            else if (Title == "Daily landings and catch estimate")
+            else if (Title == "Daily landings and catch estimate" || Title=="NSAP Fishing boats landed and TWSP")
             {
                 KoboFormType = KoboFormType.FormTypeVesselCountAndCatchEstimate;
             }

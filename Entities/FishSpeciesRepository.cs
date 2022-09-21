@@ -281,7 +281,14 @@ namespace NSAP_ODK.Entities
                         {
                             update.Parameters.Add("@importance", OleDbType.VarChar).Value = fishSpecies.Importance;
                         }
-                        update.Parameters.Add("@family", OleDbType.VarChar).Value = fishSpecies.Family;
+                        if (fishSpecies.Family == null)
+                        {
+                            update.Parameters.Add("@family", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@family", OleDbType.VarChar).Value = fishSpecies.Family;
+                        }
                         if (fishSpecies.MainCatchingMethod == null)
                         {
                             update.Parameters.Add("@catch_method", OleDbType.VarChar).Value = DBNull.Value;

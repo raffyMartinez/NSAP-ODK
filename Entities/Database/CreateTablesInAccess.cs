@@ -62,6 +62,7 @@ namespace NSAP_ODK.Entities.Database
                         cmd.ExecuteNonQuery();
                         AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_LC_FG_sample_day_1", CurrentTableCount = ++_importCSVCount });
 
+                        //add twsp count to csv
                         File.WriteAllText(csv_file, GearUnloadViewModel.CSV);
                         cmd.CommandText = $@"INSERT INTO dbo_gear_unload SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
                         cmd.ExecuteNonQuery();
@@ -73,6 +74,7 @@ namespace NSAP_ODK.Entities.Database
                         cmd.ExecuteNonQuery();
                         AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_vessel_unload", CurrentTableCount = ++_importCSVCount });
 
+                        //do not write enumerator text if enumerator id is not null
                         File.WriteAllText(csv_file, VesselUnloadViewModel.CSV_1);
                         cmd.CommandText = $@"INSERT INTO dbo_vessel_unload_1 SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
                         cmd.ExecuteNonQuery();

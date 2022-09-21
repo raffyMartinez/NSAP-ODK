@@ -8,13 +8,14 @@
         mc:Ignorable="d"
         Closing="ClosingTrigger"
         Closed="OnWindowClosed"
-        Title="Edit attributes" Height="450" Width="800">
-    <Grid>
+        Title="Edit attributes" Height="381" Width="800">
+    <Grid Margin="0,0,0,-6">
         <Grid.RowDefinitions>
             <RowDefinition Height="30" x:Name="rowTopLabel" />
-            <RowDefinition Height="Auto" x:Name="rowPropertyGrid" />
+            <RowDefinition Height="*" x:Name="rowPropertyGrid" />
             <RowDefinition Height="30" x:Name="rowBottomLabel" />
-            <RowDefinition  Height="Auto" x:Name="rowDataGrid" />
+            <RowDefinition  Height="*" x:Name="rowDataGrid" />
+            <RowDefinition  Height="30" x:Name="rowStatusBar" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition />
@@ -30,15 +31,17 @@
                             PropertyValueChanged="OnPropertyValueChanged" />
 
         <StackPanel Grid.Row="1" Grid.Column="1">
-            <Button Content="Ok" Height="30" Margin="10" x:Name="buttonOK" Click="OnButtonClick" />
-            <Button Content="Cancel" Height="30" Margin="10" x:Name="buttonCancel" Click="OnButtonClick" />
+            <Button Content="Ok" Height="30" Margin="10 5" x:Name="buttonOK" Click="OnButtonClick" />
+            <Button Content="Cancel" Height="30" Margin="10 5" x:Name="buttonCancel" Click="OnButtonClick" />
+            <Button Content="Update" Height="30" Margin="10 5" x:Name="buttonUpdate" Click="OnButtonClick" Visibility="Collapsed"/>
         </StackPanel>
 
         <Label Content="Bottom label" VerticalAlignment="Bottom" Grid.Row="2" Grid.Column="0" x:Name="LabelBottom" />
 
-        <DataGrid x:Name="sfDataGrid" AutoGenerateColumns="false" IsReadOnly="True"
-                  Grid.Row="3" Grid.Column="0" Height="Auto" VerticalAlignment="Top"
-                  MinHeight="150" Margin="10" MouseDoubleClick="OnDataGridMouseDoubleClick">
+
+        <DataGrid x:Name="sfDataGrid" AutoGenerateColumns="false" IsReadOnly="True" Grid.Row="3" Grid.Column="0"
+                  Height="Auto" VerticalAlignment="Top"
+                  MinHeight="150"  MouseDoubleClick="OnDataGridMouseDoubleClick" Margin="10" Visibility="Collapsed">
 
             <DataGrid.CellStyle>
                 <Style TargetType="DataGridCell">
@@ -56,10 +59,22 @@
             </DataGrid.CellStyle>
         </DataGrid>
 
-        <StackPanel Grid.Row="3" Grid.Column="1">
-            <Button Content="Add" Height="30" Margin="10" x:Name="buttonAdd" Click="OnButtonClick" />
-            <Button Content="Edit" Height="30" Margin="10" x:Name="buttonEdit" Click="OnButtonClick" />
-            <Button Content="Delete" Height="30" Margin="10" x:Name="buttonDelete" Click="OnButtonClick" />
+        <StackPanel Grid.Row="3" Grid.Column="0">
+            <xctk:PropertyGrid x:Name="spgFishSpeciesPropertyGrid" Visibility="Visible" VerticalAlignment="Top" ShowSearchBox="False" ShowSortOptions="False" ShowTitle="False" NameColumnWidth="250" Margin="10"  />
+            <Label Content="Species not found in fish species list. You can add using the button below" HorizontalAlignment="Center" x:Name="labelFishSpecies"/>
+            <Button x:Name="buttonAddToFB" Content="Add species" Click="OnButtonClick" HorizontalAlignment="Center" Width="80" Height="30"/>
         </StackPanel>
+
+        <StackPanel Grid.Row="3" Grid.Column="1" x:Name="panelButtonsLower">
+            <Button Content="Add" Height="30" Margin="10 5" x:Name="buttonAdd" Click="OnButtonClick" />
+            <Button Content="Edit" Height="30" Margin="10 5" x:Name="buttonEdit" Click="OnButtonClick" />
+            <Button Content="Delete" Height="30" Margin="10 5" x:Name="buttonDelete" Click="OnButtonClick" />
+        </StackPanel>
+
+        <!--status bar-->
+        <StatusBar Grid.Row="4" Grid.ColumnSpan="2"  x:Name="statusBar" Visibility="Collapsed" VerticalAlignment="Bottom" Height="32">
+            <ProgressBar x:Name="progressBar" Width="300" Height="20"/>
+            <Label x:Name="progressLabel" Content="progress label"/>
+        </StatusBar>
     </Grid>
 </Window>

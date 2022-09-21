@@ -8,6 +8,20 @@ namespace NSAP_ODK.Entities
 {
     public class LandingSite
     {
+        public List<NSAPRegionFMAFishingGround> FishingGrounds { get; set; } = new List<NSAPRegionFMAFishingGround>();
+
+        public string FishingGroundList
+        {
+            get
+            {
+                var ls_list = "";
+                foreach (var fg in FishingGrounds)
+                {
+                    ls_list += $"{fg.RegionFMA.FMA} - {fg.FishingGround}, ";
+                }
+                return ls_list.Trim(new char[] { ' ', ',' });
+            }
+        }
         public LandingSite() { }
 
         public LandingSite(int id, string landingSiteName, Municipality municipality)

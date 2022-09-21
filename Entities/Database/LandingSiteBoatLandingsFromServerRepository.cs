@@ -8,6 +8,39 @@ using System.Diagnostics;
 
 namespace NSAP_ODK.Entities.Database
 {
+    public class SpeciesRepeat
+    {
+        public LandingSiteBoatLandingFromServer Parent { get; set; }
+        [JsonProperty("species_repeat/species_group/taxa")]
+        public string SpeciesRepeatSpeciesGroupTaxa { get; set; }
+
+        [JsonProperty("species_repeat/species_group/select_spName")]
+        public string SpeciesRepeatSpeciesGroupSelectSpName { get; set; }
+
+        [JsonProperty("species_repeat/species_group/species_csv_source")]
+        public string SpeciesRepeatSpeciesGroupSpeciesCsvSource { get; set; }
+
+        [JsonProperty("species_repeat/species_group/search_species")]
+        public string SpeciesRepeatSpeciesGroupSearchSpecies { get; set; }
+
+        [JsonProperty("species_repeat/species_group/species")]
+        public string SpeciesRepeatSpeciesGroupSpecies { get; set; }
+
+        [JsonProperty("species_repeat/species_group/sp_id")]
+        public int SpeciesRepeatSpeciesGroupSpId { get; set; }
+
+        [JsonProperty("species_repeat/species_group/species_name_selected")]
+        public string SpeciesRepeatSpeciesGroupSpeciesNameSelected { get; set; }
+
+        [JsonProperty("species_repeat/species_group/twsp")]
+        public string SpeciesRepeatSpeciesGroupTwsp { get; set; }
+
+        [JsonProperty("species_repeat/species_group/repeat_title")]
+        public string SpeciesRepeatSpeciesGroupRepeatTitle { get; set; }
+
+        [JsonProperty("species_repeat/species_group/species_notfish")]
+        public int SpeciesRepeatSpeciesGroupSpeciesNotfish { get; set; }
+    }
     public class LandingsRepeat
     {
         private static int _pk;
@@ -58,8 +91,8 @@ namespace NSAP_ODK.Entities.Database
                 if (SavedInLocalDatabase)
                 {
                     _rowID = NSAPEntities.GearUnloadViewModel.GearUnloadCollection
-                        .Where(t=>t.GearUsedName==GearName &&
-                         t.Parent.PK==Parent.PK).FirstOrDefault().PK;
+                        .Where(t => t.GearUsedName == GearName &&
+                         t.Parent.PK == Parent.PK).FirstOrDefault().PK;
                 }
                 else
                 {
@@ -110,16 +143,22 @@ namespace NSAP_ODK.Entities.Database
         private static int _pk;
         private int _rowid;
         private List<LandingsRepeat> _landingsRepeat;
+        private List<SpeciesRepeat> _speciesesRepeat;
+
+        public string has_fishing_operation { get; set; }
+        public string reason_no_operation { get; set; }
+        public string include_twsp { get; set; }
 
         [JsonProperty("vessel_sampling/sampling_date")]
         public DateTime SamplingDate { get; set; }
         [JsonProperty("vessel_sampling/is_sampling_day")]
         public string IsSamplingDay { get; set; }
-        public bool SamplingConducted { 
+        public bool SamplingConducted
+        {
             get { return IsSamplingDay == "yes"; }
-            set 
+            set
             {
-                if(value)
+                if (value)
                 {
                     IsSamplingDay = "yes";
                 }
@@ -132,7 +171,7 @@ namespace NSAP_ODK.Entities.Database
         [JsonProperty("vessel_sampling/nsap_region")]
         public string NsapRegionCode { get; set; }
         public string NSAPRegionName { get { return Region.Name; } }
-        public NSAPRegion Region { get { return NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(NsapRegionCode); }  }
+        public NSAPRegion Region { get { return NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(NsapRegionCode); } }
         [JsonProperty("vessel_sampling/fma_in_region")]
         public int FmaInRegion { get; set; }
 
@@ -143,7 +182,9 @@ namespace NSAP_ODK.Entities.Database
         [JsonProperty("vessel_sampling/region_enumerator")]
         public int? RegionEnumerator { get; set; }
 
-        public NSAPEnumerator NSAPEnumerator { get 
+        public NSAPEnumerator NSAPEnumerator
+        {
+            get
             {
                 if (RegionEnumerator != null)
                 {
@@ -153,7 +194,7 @@ namespace NSAP_ODK.Entities.Database
                 {
                     return null;
                 }
-            } 
+            }
         }
         [JsonProperty("vessel_sampling/region_enumerator_text")]
         public string RegionEnumeratorText { get; set; }
@@ -162,7 +203,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if(RegionEnumerator==null)
+                if (RegionEnumerator == null)
                 {
                     return RegionEnumeratorText;
                 }
@@ -197,13 +238,13 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if(LandingSiteCode==null)
+                if (LandingSiteCode == null)
                 {
                     return null;
                 }
                 else
                 {
-                    return NSAPEntities.NSAPRegionViewModel.GetLandingSiteInRegion(NsapRegionCode, FmaInRegion,FishingGroundCode,(int)LandingSiteCode);
+                    return NSAPEntities.NSAPRegionViewModel.GetLandingSiteInRegion(NsapRegionCode, FmaInRegion, FishingGroundCode, (int)LandingSiteCode);
                 }
             }
         }
@@ -211,13 +252,13 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if(LandingSiteCode==null)
+                if (LandingSiteCode == null)
                 {
                     return LandingSiteText;
                 }
                 else
                 {
-                    return LandingSite.ToString();
+                    return LandingSite?.ToString();
                 }
             }
         }
@@ -232,7 +273,20 @@ namespace NSAP_ODK.Entities.Database
         [JsonProperty("meta/instanceID")]
         public string MetaInstanceID { get; set; }
         public DateTime start { get; set; }
-        public List<LandingsRepeat> Landings_repeat 
+
+        public List<SpeciesRepeat> Species_repeat 
+        {
+            get { return _speciesesRepeat; } 
+            set
+            {
+                _speciesesRepeat = value;
+                foreach(SpeciesRepeat item in _speciesesRepeat)
+                {
+                    item.Parent = this;
+                }
+            }
+        }
+        public List<LandingsRepeat> Landings_repeat
         {
             get { return _landingsRepeat; }
             set
@@ -343,7 +397,7 @@ namespace NSAP_ODK.Entities.Database
             List<LandingsRepeat> thisList = new List<LandingsRepeat>();
             if (_listLandingsRepeat == null)
             {
-                 LandingsRepeat.SetRowIDs();
+                LandingsRepeat.SetRowIDs();
                 foreach (var item in LandingSiteBoatLandings)
                 {
                     if (item.Landings_repeat != null)
@@ -376,7 +430,7 @@ namespace NSAP_ODK.Entities.Database
         {
             int savedCount = 0;
 
-            if(!LandingsRepeat.RowIDSet)
+            if (!LandingsRepeat.RowIDSet)
             {
                 LandingsRepeat.SetRowIDs();
             }
@@ -419,7 +473,7 @@ namespace NSAP_ODK.Entities.Database
                     }
                     else
                     {
- 
+
 
                         if (NSAPEntities.LandingSiteSamplingViewModel.AddRecordToRepo(ls))
                         {
@@ -438,7 +492,7 @@ namespace NSAP_ODK.Entities.Database
         public static bool SaveLandingRepeat(LandingSiteBoatLandingFromServer lsbl, LandingSiteSampling lss)
         {
             bool success = false;
-            if(lsbl.Landings_repeat!=null && lsbl.Landings_repeat.Count>0)
+            if (lsbl.Landings_repeat != null && lsbl.Landings_repeat.Count > 0)
             {
                 foreach (var landingRepeat in lsbl.Landings_repeat)
                 {
