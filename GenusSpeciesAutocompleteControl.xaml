@@ -1,0 +1,23 @@
+﻿<UserControl x:Class="NSAP_ODK.GenusSpeciesAutocompleteControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:behaviors="clr-namespace:WPFTextBoxAutoComplete;assembly=WPFTextBoxAutoComplete"
+             xmlns:local="clr-namespace:NSAP_ODK"
+             mc:Ignorable="d" d:DesignWidth="365" Height="72">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="35"/>
+            <RowDefinition Height="35"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="60"/>
+            <ColumnDefinition Width="300"/>
+        </Grid.ColumnDefinitions>
+        <Label Content="Genus" VerticalContentAlignment="Center"/>
+        <Label Content="Species" VerticalContentAlignment="Center" Grid.Row="1"/>
+        <TextBox x:Name="txtGenus" Grid.Column="1" behaviors:AutoCompleteBehavior.AutoCompleteItemsSource="{Binding GeneraItems}" Height="25" Margin="0 2.5"/>
+        <TextBox x:Name="txtSpecies" Grid.Column="1" Grid.Row="1" behaviors:AutoCompleteBehavior.AutoCompleteItemsSource="{Binding SpeciesItems}" Height="25" Margin="0 2.5"/>
+    </Grid>
+</UserControl>

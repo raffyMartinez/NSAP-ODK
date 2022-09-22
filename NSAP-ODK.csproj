@@ -150,6 +150,9 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="WPFTextBoxAutoComplete, Version=1.0.0.2, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\WPFTextBoxAutoComplete.1.0.5\lib\net40\WPFTextBoxAutoComplete.dll</HintPath>
+    </Reference>
     <Reference Include="Xceed.Wpf.AvalonDock, Version=4.0.0.0, Culture=neutral, PublicKeyToken=3e4669d2f30244f4, processorArchitecture=MSIL">
       <HintPath>packages\Extended.Wpf.Toolkit.4.0.1\lib\net40\Xceed.Wpf.AvalonDock.dll</HintPath>
     </Reference>
@@ -344,6 +347,9 @@
     <Compile Include="Entities\Database\TrackedOperationSummaryEventArgs.cs" />
     <Compile Include="Entities\Database\TrackedOperationSummaryViewModel.cs" />
     <Compile Include="Entities\VesselListingEventArgs.cs" />
+    <Compile Include="GenusSpeciesAutocompleteControl.xaml.cs">
+      <DependentUpon>GenusSpeciesAutocompleteControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ISO_Classes\Coordinate.cs" />
     <Compile Include="Entities\DateTimePickerEditor.cs" />
     <Compile Include="Entities\EffortSpecification.cs" />
@@ -574,6 +580,10 @@
     <Compile Include="Views\VesselUnloadWIndow.xaml.cs">
       <DependentUpon>VesselUnloadWIndow.xaml</DependentUpon>
     </Compile>
+    <Page Include="GenusSpeciesAutocompleteControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

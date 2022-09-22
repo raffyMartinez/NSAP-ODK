@@ -126,6 +126,7 @@ namespace NSAP_ODK.Entities
 
         public bool UpdateFBSpeciesTable(FBSpeciesUpdateMode updateMode)
         {
+            bool updateSuccess = false;
             int fbSpeciesCountBeforeUpdate = _parent.FBSpeciesCollection.Count;
             var addNewDuplicationErrorCount = 0;
             var editCount = 0;
@@ -137,6 +138,14 @@ namespace NSAP_ODK.Entities
                     var spToUpdate = _updateFBSpeciesList.FirstOrDefault(t => t.SpCode == fbSpecies.SpCode);
                     if (spToUpdate != null)
                     {
+                        if (spToUpdate.LengthMax != null)
+                        {
+                            spToUpdate.LengthMax = Math.Round((double)spToUpdate.LengthMax, 1);
+                        }
+                        if (spToUpdate.LengthCommon != null)
+                        {
+                            spToUpdate.LengthCommon = Math.Round((double)spToUpdate.LengthCommon, 1);
+                        }
                         if (_parent.UpdateRecordInRepo(spToUpdate))
                         {
                             //updateType = FBSpeciesUpdateType.UpdateTypeUpdatingSpecies;
@@ -144,7 +153,7 @@ namespace NSAP_ODK.Entities
                         }
                     }
                 }
-                return editCount > 0;
+                updateSuccess = editCount > 0;
             }
             else
             {
@@ -166,7 +175,17 @@ namespace NSAP_ODK.Entities
                     spToUpdate.Family = updateSpecies.Family;
                     spToUpdate.Importance = updateSpecies.Importance;
                     spToUpdate.MainCatchingMethod = updateSpecies.MainCatchingMethod;
-                    spToUpdate.LengthMax = updateSpecies.LengthMax;
+
+                    if (updateSpecies.LengthMax != null)
+                    {
+                        spToUpdate.LengthMax = Math.Round((double)updateSpecies.LengthMax, 1);
+                    }
+
+                    if (updateSpecies.LengthCommon != null)
+                    {
+                        spToUpdate.LengthCommon = Math.Round((double)updateSpecies.LengthCommon, 1);
+                    }
+
                     spToUpdate.LengthCommon = updateSpecies.LengthCommon;
                     spToUpdate.LengthType = updateSpecies.LengthType;
 
@@ -174,7 +193,6 @@ namespace NSAP_ODK.Entities
                     {
                         if (_parent.AddRecordToRepo(spToUpdate))
                         {
-                            //updateType = FBSpeciesUpdateType.UpdateTypeAddingSpecies;
                             editCount++;
                         }
                         else if (_parent.DuplicateErrorInAddNew)
@@ -185,14 +203,15 @@ namespace NSAP_ODK.Entities
                     }
                     else if (!newSpeciesFound && _parent.UpdateRecordInRepo(spToUpdate))
                     {
-                        //updateType = FBSpeciesUpdateType.UpdateTypeUpdatingSpecies;
                         editCount++;
                     }
 
                 }
-                return _parent.FBSpeciesCollection.Count > fbSpeciesCountBeforeUpdate;
+
+                updateSuccess = _parent.FBSpeciesCollection.Count > fbSpeciesCountBeforeUpdate;
             }
 
+            return updateSuccess;
         }
 
         public bool Update(FBSpecies sp)
@@ -615,7 +634,7 @@ namespace NSAP_ODK.Entities
                                 MainCatchingMethod = dr["MainCatchingMethod"].ToString(),
                                 LengthType = dr["LengthType"].ToString(),
                             };
-                            if(fb.Genus=="Lepidocybium")
+                            if (fb.Genus == "Lepidocybium")
                             {
 
                             }

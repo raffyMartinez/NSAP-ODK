@@ -41,7 +41,15 @@ namespace NSAP_ODK.Entities
         }
         public bool UpdateFBSpeciesTable(FBSpeciesUpdateMode updateMode)
         {
-            return FBSpecieses.UpdateFBSpeciesTable(updateMode);
+            if (FBSpecieses.UpdateFBSpeciesTable(updateMode))
+            {
+                //FBSpeciesUpdateEvent?.Invoke(null, new FBSpeciesUpdateEventArgs { UpdateType = FBSpeciesUpdateType.UpdateTypeFinishedUpdatingFBSpecies });
+                return true;
+            }
+            else
+            {
+                return false;
+            }
 
         }
         public bool AddRecordToRepo(FBSpecies sp)

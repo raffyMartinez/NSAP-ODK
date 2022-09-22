@@ -12,6 +12,7 @@ using Microsoft.Win32;
 using ClosedXML.Excel;
 using System.Threading.Tasks;
 using System.Windows.Threading;
+//using swf = System.Windows.Forms;
 //using wpftk= Xceed.Wpf.Toolkit;
 //using System.Windows.Forms;
 
@@ -51,11 +52,10 @@ namespace NSAP_ODK.Views
         private static bool _showUpdateMessage = true;
         private FBSpeciesUpdateMode _fbSpeciesUpdateMode;
         private bool _speciesInFishSpeciesList;
+        private DispatcherTimer _timer;
 
         private bool _cboGenusGotFocus = false;
         private bool _cboSpeciesGotFocus = false;
-
-
 
 
 
@@ -84,7 +84,8 @@ namespace NSAP_ODK.Views
                 var updateList = await NSAPEntities.FBSpeciesViewModel.GetUpdateFBSpecies();
                 if (FBSpeciesRepository.ErrorMessage.Length == 0)
                 {
-                    if (updateList.Count > NSAPEntities.FBSpeciesViewModel.Count || NSAPEntities.FBSpeciesViewModel.FBSpeciesUpdateStatus != FBSpeciesUpdateStatus.FBSpeciesStatus_SettingsNotFound)
+                    //if (updateList.Count > NSAPEntities.FBSpeciesViewModel.Count || NSAPEntities.FBSpeciesViewModel.FBSpeciesUpdateStatus != FBSpeciesUpdateStatus.FBSpeciesStatus_SettingsNotFound)
+                    if (updateList.Count > 0 || NSAPEntities.FBSpeciesViewModel.FBSpeciesUpdateStatus != FBSpeciesUpdateStatus.FBSpeciesStatus_SettingsNotFound)
                     {
                         bool proceed = true;
                         if (NSAPEntities.FBSpeciesViewModel.FBSpeciesUpdateSettings?.UpdateFileRowCount <= updateList.Count)
@@ -101,6 +102,10 @@ namespace NSAP_ODK.Views
                                 {
                                     progressBar.Value = progressBar.Maximum;
                                     progressLabel.Content = "Finished updating Fishbase species list";
+
+                                    _timer.Interval = TimeSpan.FromSeconds(3);
+                                    _timer.Start();
+
                                     if (_fbSpeciesUpdateMode == FBSpeciesUpdateMode.UpdateModeUpdateAndAdd)
                                     {
                                         UpdateNameControlsForSpecies();
@@ -337,6 +342,15 @@ namespace NSAP_ODK.Views
 
                     break;
                 case FBSpeciesUpdateType.UpdateTypeFinishedUpdatingFBSpecies:
+                    //_timer.Dispatcher.BeginInvoke
+                    //(
+                    //DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                    //{
+                    //    _timer.Interval = TimeSpan.FromSeconds(3);
+                    //    _timer.Start();
+                    //    return null;
+                    //}
+                    //), null);
                     break;
             }
         }
@@ -361,6 +375,8 @@ namespace NSAP_ODK.Views
         {
             if (CheckFishBaseSpeciesUpdateFile())
             {
+                statusBar.Visibility = Visibility.Visible;
+                FBSpeciesRepository.HasUpdateSpeciesList = false;
                 await UpdateFBSpeciesTable();
                 if (!FBSpeciesRepository.HasUpdateSpeciesList && FBSpeciesRepository.ErrorMessage.Length > 0)
                 {
@@ -389,10 +405,11 @@ namespace NSAP_ODK.Views
             }
             _requireUpdateToFishBase = false;
         }
+
+
         private void UpdateNameControlsForSpecies()
         {
             int comboAdded = 0;
-
 
 
             foreach (PropertyItem prp in PropertyGrid.Properties)
@@ -1009,7 +1026,19 @@ namespace NSAP_ODK.Views
                         PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "MainCatchingMethod", DisplayName = "Main catching method", DisplayOrder = 10, Description = "Main catching method" });
                     }
                     PropertyGrid.SelectedObject = fishSpeciesEdit;
-                    UpdateNameControlsForSpecies();
+                    if (_isNew)
+                    {
+                        UpdateNameControlsForSpecies();
+                    }
+                    else
+                    {
+
+                        MakePropertyReadOnly("SpeciesCode");
+                        MakePropertyReadOnly("GenericName");
+                        MakePropertyReadOnly("SpecificName");
+                        MakePropertyReadOnly("Family");
+
+                    }
 
                     break;
 
@@ -1372,6 +1401,15 @@ namespace NSAP_ODK.Views
             FillPropertyGrid();
             buttonEdit.IsEnabled = false;
             buttonDelete.IsEnabled = false;
+
+            _timer = new DispatcherTimer();
+            _timer.Tick += OnTimerTick;
+        }
+
+        private void OnTimerTick(object sender, EventArgs e)
+        {
+            _timer.Stop();
+            statusBar.Visibility = Visibility.Collapsed;
         }
 
         private void OnComboSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1565,12 +1603,15 @@ namespace NSAP_ODK.Views
                 case "buttonAddToFB":
                     if (_selectedFishSpecies != null && NSAPEntities.FishSpeciesViewModel.AddRecordToRepo(_selectedFishSpecies))
                     {
-                        MessageBox.Show(
-                            $"{_selectedFishSpecies.GenericName} {_selectedFishSpecies.SpecificName} was added to the fish species list",
-                            "NSAP-ODK Database",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Information
-                            );
+                        labelFishSpecies.Content = "The selected species is in the fish species list.";
+                        buttonAddToFB.IsEnabled = false;
+                        //MessageBox.Show(
+                        //    $"{_selectedFishSpecies.GenericName} {_selectedFishSpecies.SpecificName} was added to the fish species list",
+                        //    "NSAP-ODK Database",
+                        //    MessageBoxButton.OK,
+                        //    MessageBoxImage.Information
+                        //    );
+
                     }
                     break;
                 case "buttonUpdate":
