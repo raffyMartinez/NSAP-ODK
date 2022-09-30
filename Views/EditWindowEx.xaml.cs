@@ -1397,7 +1397,8 @@ namespace NSAP_ODK.Views
             rowBottomLabel.Height = new GridLength(0);
 
             sfDataGrid.Visibility = Visibility.Collapsed;
-            spgFishSpeciesPropertyGrid.Visibility = Visibility.Collapsed;
+            //spgFishSpeciesPropertyGrid.Visibility = Visibility.Collapsed;
+            panelForNewFishSpecies.Visibility = Visibility.Collapsed;
             FillPropertyGrid();
             buttonEdit.IsEnabled = false;
             buttonDelete.IsEnabled = false;
@@ -1577,7 +1578,8 @@ namespace NSAP_ODK.Views
         private void ShowSelectedFishSpeciesData()
         {
             rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
-            spgFishSpeciesPropertyGrid.Visibility = Visibility.Visible;
+            //spgFishSpeciesPropertyGrid.Visibility = Visibility.Visible;
+            panelForNewFishSpecies.Visibility = Visibility.Visible;
             spgFishSpeciesPropertyGrid.SelectedObject = _selectedFishSpecies;
 
 
@@ -1603,7 +1605,7 @@ namespace NSAP_ODK.Views
                 case "buttonAddToFB":
                     if (_selectedFishSpecies != null && NSAPEntities.FishSpeciesViewModel.AddRecordToRepo(_selectedFishSpecies))
                     {
-                        labelFishSpecies.Content = "The selected species is in the fish species list.";
+                        labelFishSpecies.Content = "The selected species has been added to the fish species list.";
                         buttonAddToFB.IsEnabled = false;
                         //MessageBox.Show(
                         //    $"{_selectedFishSpecies.GenericName} {_selectedFishSpecies.SpecificName} was added to the fish species list",
@@ -2818,7 +2820,8 @@ namespace NSAP_ODK.Views
         private void SetUpSubForm()
         {
             sfDataGrid.Visibility = Visibility.Visible;
-            spgFishSpeciesPropertyGrid.Visibility = Visibility.Collapsed;
+            //spgFishSpeciesPropertyGrid.Visibility = Visibility.Collapsed;
+            panelForNewFishSpecies.Visibility = Visibility.Collapsed;
             sfDataGrid.Columns.Clear();
             //sfDataGrid.Items.Clear();
             SetUpSubFormSource();

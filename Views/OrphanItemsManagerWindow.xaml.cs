@@ -36,6 +36,7 @@ namespace NSAP_ODK.Views
         private bool _isMultiline;
         private FishingVessel _fishingVessel;
         private bool _closingDeleteDone;
+        private bool _hasReplacedCellChecked;
         public OrphanItemsManagerWindow()
         {
             InitializeComponent();
@@ -112,6 +113,7 @@ namespace NSAP_ODK.Views
         }
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
+            buttonDelete.IsEnabled = false;
             checkMultipleSp.Visibility = Visibility.Collapsed;
             labelStatus.Content = "";
             RefreshItemsSource();
@@ -137,11 +139,13 @@ namespace NSAP_ODK.Views
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "Species name", Binding = new Binding("LandingSiteName"), IsReadOnly = true });
                     break;
                 case NSAPEntity.LandingSite:
+                    buttonDelete.IsEnabled = true;
                     labelTitle.Content = "Manage orphaned landing sites";
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site name", Binding = new Binding("LandingSiteName"), IsReadOnly = true });
 
                     break;
                 case NSAPEntity.Enumerator:
+                    buttonDelete.IsEnabled = true;
                     labelTitle.Content = "Manage orphaned enumerators";
 
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("Name"), IsReadOnly = true });
@@ -149,6 +153,7 @@ namespace NSAP_ODK.Views
 
                     break;
                 case NSAPEntity.FishingGear:
+                    buttonDelete.IsEnabled = true;
                     labelTitle.Content = "Manage orphaned fishing gears";
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "Gear name", Binding = new Binding("Name"), IsReadOnly = true });
                     break;
@@ -159,7 +164,8 @@ namespace NSAP_ODK.Views
                     break;
             }
 
-            dataGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "Replace", Binding = new Binding("ForReplacement") });
+
+            dataGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "Replace", Binding = new Binding("ForReplacement"), });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Region", Binding = new Binding("Region.ShortName"), IsReadOnly = true });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("FMA"), IsReadOnly = true });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("FishingGround"), IsReadOnly = true });
@@ -198,6 +204,8 @@ namespace NSAP_ODK.Views
             _timer = new DispatcherTimer();
             _timer.Tick += OnTimerTick;
         }
+
+
 
         private void OnTimerTick(object sender, EventArgs e)
         {
@@ -253,10 +261,10 @@ namespace NSAP_ODK.Views
         }
         private int FixMulitlineSpecies()
         {
-             _countReplaced = 0;
+            _countReplaced = 0;
             foreach (var item in dataGrid.Items)
             {
-               
+
                 var orphanedSpecies = (OrphanedSpeciesName)item;
                 if (orphanedSpecies.ForReplacement)
                 {
@@ -374,11 +382,11 @@ namespace NSAP_ODK.Views
                                     }
                                     foreach (VesselCatch vc in unload.ListVesselCatch)
                                     {
-                                        if (vc.SpeciesID == null )
+                                        if (vc.SpeciesID == null)
                                         {
 
                                         }
-                                        if (vc.SpeciesID == null && vc.SpeciesText != null && vc.SpeciesText.Trim(new char[] { '\n',' '}) == sp.Name)
+                                        if (vc.SpeciesID == null && vc.SpeciesText != null && vc.SpeciesText.Trim(new char[] { '\n', ' ' }) == sp.Name)
                                         {
                                             if (_replacementFishSpecies != null)
                                             {
@@ -550,7 +558,7 @@ namespace NSAP_ODK.Views
                                                 gu.Boats = null;
                                                 gu.Catch = null;
                                                 //if (NSAPEntities.GearUnloadViewModel.UpdateRecordInRepo(otherGearUnload))
-                                                if(landingSiteSampling.GearUnloadViewModel.UpdateRecordInRepo(otherGearUnload))
+                                                if (landingSiteSampling.GearUnloadViewModel.UpdateRecordInRepo(otherGearUnload))
                                                 {
                                                     landingSiteSampling.GearUnloadViewModel.UpdateRecordInRepo(gu);
                                                     //NSAPEntities.GearUnloadViewModel.UpdateRecordInRepo(gu);
@@ -628,9 +636,19 @@ namespace NSAP_ODK.Views
             labelStatus.Content = "";
             //progressBar.Value = 0;
             bool procced = false;
-
-            switch (((Button)sender).Name)
+            string btnName = ((Button)sender).Name;
+            switch (btnName)
             {
+                //case "buttonDelete":
+                //    if(_countForReplacement>0)
+                //    {
+
+                //    }
+                //    else
+                //    {
+                //        MessageBox.Show("Check at least one item in the table", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                //    }
+                //    break;
                 case "buttonReplace":
                     _countReplaced = 0;
                     await ReplaceOrphanedAsync();
@@ -648,6 +666,7 @@ namespace NSAP_ODK.Views
 
                     break;
                 case "buttonSelectReplacement":
+                case "buttonDelete":
                     int checkCount = 0;
                     string itemToReplace = "";
                     List<string> itemsToReplace = new List<string>();
@@ -761,60 +780,67 @@ namespace NSAP_ODK.Views
 
                     }
 
-
                     if (procced)
                     {
-                        if (checkCount == 1)
+                        if (btnName == "buttonDelete")
                         {
-                            switch (NSAPEntity)
-                            {
-                                case NSAPEntity.SpeciesName:
-                                    replacementWindow.ItemToReplace = itemToReplace;
-                                    break;
-                            }
-                        }
-                        else if (checkCount > 1)
-                        {
-                            switch (NSAPEntity)
-                            {
-                                case NSAPEntity.SpeciesName:
-                                case NSAPEntity.FishSpecies:
-                                    replacementWindow.ItemsToReplace = itemsToReplace;
-                                    break;
-                            }
-                        }
 
-                        progressBar.Maximum = _countForReplacement;
-
-                        replacementWindow.EntityContext = entityContext;
-                        replacementWindow.FillSelection();
-                        if (!(bool)replacementWindow.ShowDialog())
+                        }
+                        else
                         {
-                            foreach (var item in dataGrid.Items)
+                            if (checkCount == 1)
                             {
                                 switch (NSAPEntity)
                                 {
-                                    case NSAPEntity.FishingVessel:
-                                        ((OrphanedFishingVessel)item).ForReplacement = false;
-                                        break;
                                     case NSAPEntity.SpeciesName:
-                                        ((OrphanedSpeciesName)item).ForReplacement = false;
-                                        break;
-                                    case NSAPEntity.LandingSite:
-                                        ((OrphanedLandingSite)item).ForReplacement = false;
-                                        break;
-                                    case NSAPEntity.FishingGear:
-                                        ((OrphanedFishingGear)item).ForReplacement = false;
-                                        break;
-                                    case NSAPEntity.Enumerator:
-                                        ((OrphanedEnumerator)item).ForReplacement = false;
+                                        replacementWindow.ItemToReplace = itemToReplace;
                                         break;
                                 }
                             }
+                            else if (checkCount > 1)
+                            {
+                                switch (NSAPEntity)
+                                {
+                                    case NSAPEntity.SpeciesName:
+                                    case NSAPEntity.FishSpecies:
+                                        replacementWindow.ItemsToReplace = itemsToReplace;
+                                        break;
+                                }
+                            }
+
+                            progressBar.Maximum = _countForReplacement;
+
+                            replacementWindow.EntityContext = entityContext;
+                            replacementWindow.FillSelection();
+                            if (!(bool)replacementWindow.ShowDialog())
+                            {
+                                foreach (var item in dataGrid.Items)
+                                {
+                                    switch (NSAPEntity)
+                                    {
+                                        case NSAPEntity.FishingVessel:
+                                            ((OrphanedFishingVessel)item).ForReplacement = false;
+                                            break;
+                                        case NSAPEntity.SpeciesName:
+                                            ((OrphanedSpeciesName)item).ForReplacement = false;
+                                            break;
+                                        case NSAPEntity.LandingSite:
+                                            ((OrphanedLandingSite)item).ForReplacement = false;
+                                            break;
+                                        case NSAPEntity.FishingGear:
+                                            ((OrphanedFishingGear)item).ForReplacement = false;
+                                            break;
+                                        case NSAPEntity.Enumerator:
+                                            ((OrphanedEnumerator)item).ForReplacement = false;
+                                            break;
+                                    }
+                                }
+                            }
+                            dataGrid.Items.Refresh();
                         }
-                        dataGrid.Items.Refresh();
                     }
-                    else
+
+                    if (!procced)
                     {
                         MessageBox.Show("Check at least one item in the table", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
@@ -897,5 +923,7 @@ namespace NSAP_ODK.Views
                     break;
             }
         }
+
+
     }
 }

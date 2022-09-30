@@ -41,9 +41,16 @@ namespace NSAP_ODK.Utilities
             if (row == null)
             {
                 // May be virtualized, bring into view and try again.
-                grid.UpdateLayout();
-                grid.ScrollIntoView(grid.Items[index]);
-                row = (DataGridRow)grid.ItemContainerGenerator.ContainerFromIndex(index);
+                try
+                {
+                    grid.UpdateLayout();
+                    grid.ScrollIntoView(grid.Items[index]);
+                    row = (DataGridRow)grid.ItemContainerGenerator.ContainerFromIndex(index);
+                }
+                catch(Exception ex)
+                {
+
+                }
             }
             return row;
         }
@@ -61,6 +68,7 @@ namespace NSAP_ODK.Utilities
                 }
 
                 DataGridCell cell = (DataGridCell)presenter.ItemContainerGenerator.ContainerFromIndex(column);
+
                 return cell;
             }
             return null;

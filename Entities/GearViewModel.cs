@@ -107,6 +107,14 @@ namespace NSAP_ODK.Entities
         {
             foreach (Gear gear in GearCollection)
             {
+                if(gear.GearEffortSpecificationViewModel==null )
+                {
+                    gear.GearEffortSpecificationViewModel = new GearEffortSpecificationViewModel(gear);
+                    if (gear.Code == gear.BaseGear.Code && gear.BaseGear.IsGenericGear)
+                    {
+                        AddBaseGearSpecsToGear(gear);
+                    }
+                }
                 foreach (var gearEffort in gear.GearEffortSpecificationViewModel.GearEffortSpecificationCollection)
                 {
                     string key = $"{gear.Code}-{gearEffort.EffortSpecificationID}";
@@ -115,6 +123,10 @@ namespace NSAP_ODK.Entities
                 }
                 if (gear.BaseGear != null)
                 {
+                    if(gear.BaseGear.GearEffortSpecificationViewModel==null)
+                    {
+                        gear.BaseGear.GearEffortSpecificationViewModel = new GearEffortSpecificationViewModel(gear.BaseGear);
+                    }
                     foreach (var gearEffort in gear.BaseGear.GearEffortSpecificationViewModel.GearEffortSpecificationCollection)
                     {
                         string key = $"{gear.Code}-{gearEffort.EffortSpecificationID}";

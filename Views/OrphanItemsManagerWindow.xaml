@@ -44,12 +44,13 @@
             <RowDefinition x:Name="rowStatus" Height="35"/>
         </Grid.RowDefinitions>
         <Label Content="This is the title" x:Name="labelTitle" Grid.ColumnSpan="2" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16" FontWeight="Bold"/>
-        <DataGrid Grid.Row="1" Margin="10" ItemsSource="{Binding}" AutoGenerateColumns="False"  x:Name="dataGrid" CanUserAddRows="False" SelectionUnit="Cell"/>
+        <DataGrid  Grid.Row="1" Margin="10" ItemsSource="{Binding}" AutoGenerateColumns="False"  x:Name="dataGrid" CanUserAddRows="False" SelectionUnit="Cell" />
         <StackPanel Grid.Row="1" Grid.Column="1">
             <Button Content="Select replacement" Height="30" Width="120" Margin="10" x:Name="buttonSelectReplacement" Click="OnButtonClick"/>
             <Button Content="Cancel" Height="30" Width="120" Margin="10 0" x:Name="buttonCancel" Click="OnButtonClick"/>
             
             <Button Content="Replace" Height="30" Width="120" Margin="10 30 10 0" x:Name="buttonReplace" Click="OnButtonClick" IsEnabled="False"/>
+            <Button Content="Delete" Height="30" Width="120" Margin="10 " x:Name="buttonDelete" Click="OnButtonClick" IsEnabled="True"/>
             
             <CheckBox Content="Multiple species" Margin="10 30 10 0" Checked="OnCheckChanged" Unchecked="OnCheckChanged" x:Name="checkMultipleSp" Visibility="Visible"/>
 

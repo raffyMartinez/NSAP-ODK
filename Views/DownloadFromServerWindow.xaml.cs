@@ -1056,6 +1056,7 @@ namespace NSAP_ODK.Views
                     if (_jsonOption == "all_not_downloaded")
                     {
                         api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&sort={{\"_id\":1}}&start={_formSummary.NumberSavedToDatabase + (loop * (int)NumberToDownloadPerBatch) + 1}&limit={NumberToDownloadPerBatch}";
+                        //api_call = $"https://kf.kobotoolbox.org/api/v2/data/{_formID}?format=json&sort={{\"_id\":1}}&start={_formSummary.NumberSavedToDatabase + (loop * (int)NumberToDownloadPerBatch) + 1}&limit={NumberToDownloadPerBatch}";
                     }
                     if (!_downloadBatchCancel)
                     {

@@ -12,9 +12,9 @@
     <Grid Margin="0,0,0,-6">
         <Grid.RowDefinitions>
             <RowDefinition Height="30" x:Name="rowTopLabel" />
-            <RowDefinition Height="*" x:Name="rowPropertyGrid" />
+            <RowDefinition Height="auto" x:Name="rowPropertyGrid" />
             <RowDefinition Height="30" x:Name="rowBottomLabel" />
-            <RowDefinition  Height="*" x:Name="rowDataGrid" />
+            <RowDefinition  Height="auto" x:Name="rowDataGrid" />
             <RowDefinition  Height="30" x:Name="rowStatusBar" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
@@ -59,7 +59,7 @@
             </DataGrid.CellStyle>
         </DataGrid>
 
-        <StackPanel Grid.Row="3" Grid.Column="0">
+        <StackPanel Grid.Row="3" Grid.Column="0" x:Name="panelForNewFishSpecies">
             <xctk:PropertyGrid x:Name="spgFishSpeciesPropertyGrid" Visibility="Visible" VerticalAlignment="Top" ShowSearchBox="False" ShowSortOptions="False" ShowTitle="False" NameColumnWidth="250" Margin="10"  />
             <Label Content="Species not found in fish species list. You can add using the button below" HorizontalAlignment="Center" x:Name="labelFishSpecies"/>
             <Button x:Name="buttonAddToFB" Content="Add species" Click="OnButtonClick" HorizontalAlignment="Center" Width="80" Height="30"/>
