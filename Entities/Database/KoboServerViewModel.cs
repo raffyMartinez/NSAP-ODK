@@ -30,7 +30,16 @@ namespace NSAP_ODK.Entities.Database
         }
         public bool RemoveAllKoboserversOfOwner(Koboserver ks)
         {
-            return false;
+            var ksvs = KoboserverCollection.Where(t => t.Owner == ks.Owner).ToList();
+            int serverCount = ksvs.Count;
+            int deleteCount = 0;
+            foreach (Koboserver ksv in ksvs)
+            {
+                DeleteRecordFromRepo(ksv.ServerNumericID);
+                deleteCount++;
+            }
+
+            return serverCount == deleteCount;
         }
 
         public bool RemoveKoboserver(Koboserver ks)

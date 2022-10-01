@@ -2162,11 +2162,17 @@ namespace NSAP_ODK
             {
 
                 case "menuRemoveKoboserver":
-                    NSAPEntities.KoboServerViewModel.DeleteRecordFromRepo(_selectedKoboserver.ServerNumericID);
+                   if( NSAPEntities.KoboServerViewModel.DeleteRecordFromRepo(_selectedKoboserver.ServerNumericID))
+                    {
+                        dataGridEFormVersionStats.DataContext = NSAPEntities.KoboServerViewModel.KoboserverCollection.ToList();
+                    }
                     break;
 
                 case "menuRemoveAllKoboserversOfOwner":
-                    NSAPEntities.KoboServerViewModel.RemoveAllKoboserversOfOwner(_selectedKoboserver);
+                   if( NSAPEntities.KoboServerViewModel.RemoveAllKoboserversOfOwner(_selectedKoboserver))
+                    {
+                        dataGridEFormVersionStats.DataContext = NSAPEntities.KoboServerViewModel.KoboserverCollection.ToList();
+                    }
                     break;
 
                 case "menuFileSettings1":

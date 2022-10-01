@@ -632,6 +632,7 @@ namespace NSAP_ODK.Entities.Database
 
         public bool Delete(int numericID)
         {
+            bool success = false;
             if (Global.Settings.UsemySQL)
             {
 
@@ -642,11 +643,21 @@ namespace NSAP_ODK.Entities.Database
                 {
                     using (var cmd = con.CreateCommand())
                     {
-
+                        cmd.Parameters.AddWithValue("@id", numericID);
+                        cmd.CommandText = "DELETE * FROM kobo_servers WHERE server_numeric_id=@id ";
+                        try
+                        {
+                            con.Open();
+                            success = cmd.ExecuteNonQuery() > 0;
+                        }
+                        catch(Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
                     }
                 }
             }
-            return true;
+            return success;
         }
         private List<Koboserver> getKoboservers()
         {
