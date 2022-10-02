@@ -988,7 +988,9 @@ namespace NSAP_ODK.Views
                 }
                 catch (HttpRequestException)
                 {
-                    MessageBox.Show("Request time out\r\nYou may try again");
+                    //MessageBox.Show("Request time out\r\nYou may try again");
+                    //_downloadBatchCancel = true;
+                    _downloadTimeout = true;
                 }
                 catch (Exception ex)
                 {
@@ -1003,6 +1005,7 @@ namespace NSAP_ODK.Views
 
         private async void DownloadToJSONByBatch()
         {
+            int downloadSuccessCount = 0;
             string folderToSave;
             VistaFolderBrowserDialog vfbd = new VistaFolderBrowserDialog();
             vfbd.Description = "Select folder for saving downloaded JSON files";
@@ -1030,26 +1033,39 @@ namespace NSAP_ODK.Views
                 DateTime createdOn = DateTime.Now;
 
                 string fileName = $@"{folderToSave}\{_formSummary.Owner}_{_formSummary.Title}_{createdOn:dd-MMM-yyyy_HH_mm}";
-                using (FileStream fs = new FileStream($@"{fileName}_info.xml", FileMode.Create))
+                DownloadedJsonMetadata djmd = new DownloadedJsonMetadata
                 {
-                    XmlSerializer xSer = new XmlSerializer(typeof(DownloadedJsonMetadata));
-                    xSer.Serialize(
-                        fs,
-                        new DownloadedJsonMetadata
-                        {
-                            BatchSize = NumberToDownloadPerBatch,
-                            DownloadSize = downloadSize,
-                            NumberOfFiles = loops,
-                            DBOwner = _formSummary.Owner,
-                            FormName = _formSummary.Title,
-                            DateDownloaded = createdOn,
-                            DownloadType = _jsonOption,
-                            FormVersion = _formSummary.EFormVersion
-                        }
-                    );
-                }
+                    BatchSize = NumberToDownloadPerBatch,
+                    DownloadSize = downloadSize,
+                    NumberOfFiles = loops,
+                    DBOwner = _formSummary.Owner,
+                    FormName = _formSummary.Title,
+                    DateDownloaded = createdOn,
+                    DownloadType = _jsonOption,
+                    FormVersion = _formSummary.EFormVersion
+                };
+                //using (FileStream fs = new FileStream($@"{fileName}_info.xml", FileMode.Create))
+                //{
+                //    XmlSerializer xSer = new XmlSerializer(typeof(DownloadedJsonMetadata));
+                //    xSer.Serialize(
+                //        fs,
+                //        djmd
+                //    //new DownloadedJsonMetadata
+                //    //{
+                //    //    BatchSize = NumberToDownloadPerBatch,
+                //    //    DownloadSize = downloadSize,
+                //    //    NumberOfFiles = loops,
+                //    //    DBOwner = _formSummary.Owner,
+                //    //    FormName = _formSummary.Title,
+                //    //    DateDownloaded = createdOn,
+                //    //    DownloadType = _jsonOption,
+                //    //    FormVersion = _formSummary.EFormVersion
+                //    //}
+                //    );
+                //}
 
                 ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.SetNumberOfLoops, Loops = loops });
+                _downloadTimeout = false;
                 for (int loop = 0; loop < loops; loop++)
                 {
                     string api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&sort={{\"_id\":1}}&start={((int)NumberToDownloadPerBatch * loop) + 1}&limit={NumberToDownloadPerBatch}";
@@ -1058,9 +1074,13 @@ namespace NSAP_ODK.Views
                         api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&sort={{\"_id\":1}}&start={_formSummary.NumberSavedToDatabase + (loop * (int)NumberToDownloadPerBatch) + 1}&limit={NumberToDownloadPerBatch}";
                         //api_call = $"https://kf.kobotoolbox.org/api/v2/data/{_formID}?format=json&sort={{\"_id\":1}}&start={_formSummary.NumberSavedToDatabase + (loop * (int)NumberToDownloadPerBatch) + 1}&limit={NumberToDownloadPerBatch}";
                     }
-                    if (!_downloadBatchCancel)
+                    if (!_downloadTimeout && !_downloadBatchCancel)
                     {
                         await ProcessAPICall(api_call, loop, loops, $@"{fileName}_{loop + 1}.json");
+                        if (!_downloadTimeout && !_downloadBatchCancel)
+                        {
+                            downloadSuccessCount++;
+                        }
                     }
                     else
                     {
@@ -1068,10 +1088,57 @@ namespace NSAP_ODK.Views
                     }
                 }
 
+
                 string msg = "Downloading JSON done!";
-                if (_downloadBatchCancel)
+                if (_downloadTimeout)
                 {
-                    msg = "Batch downloading was cancelled because of downloading error";
+                    djmd.IsTimeOut = true;
+                    msg = "Timeout error. Batch downloading not finished\r\n";
+                    if (downloadSuccessCount > 0)
+                    {
+                        msg += $"Only {downloadSuccessCount} file(s) out of {loops} were downloaded.\r\n" +
+                             "Internet connectivity could be slow";
+                    }
+                    else
+                    {
+                        msg += "No files were successfully downloaded\r\nInternet connectivity could be slow";
+                    }
+
+                }
+                else if (_downloadBatchCancel)
+                {
+                    djmd.IsCancelled = true;
+                    msg = "Part of batch downloading was cancelled\r\n";
+                    if (downloadSuccessCount > 0)
+                    {
+                        msg += $"Only {downloadSuccessCount} file(s) out of {loops} were downloaded.\r\n" +
+                             "Internet connectivity could be slow";
+                    }
+                    else
+                    {
+                        msg += "No files were successfully downloaded\r\nInternet connectivity could be slow";
+                    }
+                }
+
+                djmd.NumberOfFilesDownloaded = downloadSuccessCount;
+                using (FileStream fs = new FileStream($@"{fileName}_info.xml", FileMode.Create))
+                {
+                    XmlSerializer xSer = new XmlSerializer(typeof(DownloadedJsonMetadata));
+                    xSer.Serialize(
+                        fs,
+                        djmd
+                    //new DownloadedJsonMetadata
+                    //{
+                    //    BatchSize = NumberToDownloadPerBatch,
+                    //    DownloadSize = downloadSize,
+                    //    NumberOfFiles = loops,
+                    //    DBOwner = _formSummary.Owner,
+                    //    FormName = _formSummary.Title,
+                    //    DateDownloaded = createdOn,
+                    //    DownloadType = _jsonOption,
+                    //    FormVersion = _formSummary.EFormVersion
+                    //}
+                    );
                 }
 
                 MessageBox.Show(msg, "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -1079,6 +1146,7 @@ namespace NSAP_ODK.Views
             }
         }
         private bool _downloadBatchCancel = false;
+        private bool _downloadTimeout = false;
         private int _updateCount;
         private int _updateRounds;
         private async Task ProcessDownloadForReviewEx(string field)

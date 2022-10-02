@@ -18,6 +18,11 @@ namespace NSAP_ODK.Entities.Database
         public string FormVersion { get; set; }
         public string DownloadType { get; set; }
 
+        public int NumberOfFilesDownloaded { get; set; }
         public string Notes { get; set; }
+
+        public bool IsCancelled { get; set; }
+
+        public bool IsTimeOut { get; set; }
     }
 }
