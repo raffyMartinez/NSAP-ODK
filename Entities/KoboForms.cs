@@ -161,7 +161,7 @@ namespace NSAP_ODK.Entities
             {
                 KoboFormType = KoboFormType.FormTypeCatchAndEffort;
             }
-            else if (Title == "Daily landings and catch estimate" || Title=="NSAP Fishing boats landed and TWSP")
+            else if (Title == "Daily landings and catch estimate" || Title == "NSAP Fishing boats landed and TWSP")
             {
                 KoboFormType = KoboFormType.FormTypeVesselCountAndCatchEstimate;
             }
@@ -355,6 +355,23 @@ namespace NSAP_ODK.Entities
             string base64authorization = "";
             HttpRequestMessage request;
             var api_call = $"https://kf.kobotoolbox.org/api/v2/assets/{kf.id_string}/?format=json";
+
+
+
+            switch (kf.title)
+            {
+                case "NSAP Fish Catch Monitoring e-Form":
+                    Global.Settings.NSAPFishCatchMonitoringKoboserverServerNumericID = kf.formid.ToString();
+                    break;
+                case "Fisheries landing survey":
+                    Global.Settings.FisheriesLandingSurveyNumericID = kf.formid.ToString();
+                    break;
+                case "NSAP Fishing boats landed and TWSP":
+                    Global.Settings.TBL_TWSPKoboserverServerNumericID = kf.formid.ToString();
+                    break;
+            }
+
+
             using (request = new HttpRequestMessage(new HttpMethod("GET"), api_call))
             {
                 base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{user_name}:{password}"));
@@ -379,10 +396,18 @@ namespace NSAP_ODK.Entities
                             XLSFormVersion = x.content.settings.version;
                             kf.xlsform_version = XLSFormVersion;
                             XLSForm_idString = x.content.settings.id_string;
-                            if (x.name == "NSAP Fish Catch Monitoring e-Form" || x.name == "Fisheries landing survey")
+                            switch (x.name)
                             {
-                                kf.eForm_version = x.content.survey.Where(t => t.name == "intronote").FirstOrDefault().@default.Replace("Version ", "");
+                                case "NSAP Fish Catch Monitoring e-Form":
+                                case "Fisheries landing survey":
+                                case "NSAP Fishing boats landed and TWSP":
+                                    kf.eForm_version = x.content.survey.Where(t => t.name == "intronote").FirstOrDefault().@default.Replace("Version ", "");
+                                    break;
                             }
+                            //if (x.name == "NSAP Fish Catch Monitoring e-Form" || x.name == "Fisheries landing survey")
+                            //{
+                            //    kf.eForm_version = x.content.survey.Where(t => t.name == "intronote").FirstOrDefault().@default.Replace("Version ", "");
+                            //}
 
                         }
                     }
@@ -392,7 +417,30 @@ namespace NSAP_ODK.Entities
                     }
                     catch (Exception ex)
                     {
-                        Logger.Log(ex);
+                        if (ex.Message.Contains("Cannot deserialize the current JSON array"))
+                        {
+                            string to_find = @"""name"":""intronote"",""type"":""note"",""$kuid"":""";
+                            var index = the_response.IndexOf(to_find) + to_find.Length;
+                            string version_text = "";
+                            for (int x = index; x < index + 40; x++)
+                            {
+                                version_text += the_response[x];
+                            }
+                            version_text = version_text.Replace("\\", string.Empty).Replace("\"", string.Empty);
+                            var arr1 = version_text.Split(new char[] { ' ', ':', ',' });
+                            switch (kf.title)
+                            {
+                                case "NSAP Fish Catch Monitoring e-Form":
+                                case "Fisheries landing survey":
+                                case "NSAP Fishing boats landed and TWSP":
+                                    kf.eForm_version = arr1[3];
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            Logger.Log(ex);
+                        }
                     }
                 }
             }

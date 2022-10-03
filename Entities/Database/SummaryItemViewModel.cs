@@ -510,7 +510,8 @@ namespace NSAP_ODK.Entities.Database
             List<VesselUnload> this_list = new List<VesselUnload>();
             foreach (var item in SummaryItemCollection.Where(t => t.EnumeratorID == null && t.EnumeratorText == enumeratorName && t.LandingSiteNameText == landingSiteName))
             {
-                this_list.Add(new VesselUnload { PK = item.VesselUnloadID, ODKRowID = item.ODKRowID });
+
+                this_list.Add(new VesselUnload { PK = item.VesselUnloadID, ODKRowID = item.ODKRowID, GearUnloadID = item.GearUnloadID });
                 //this_list.Add(item.VesselUnload);
             }
 
@@ -598,6 +599,7 @@ namespace NSAP_ODK.Entities.Database
                     FMA = item.FMA,
                     FishingGround = item.FishingGround,
                     LandingSiteName = item.LandingSiteName,
+                    SummaryItems = SummaryItemCollection.Where(t => t.EnumeratorID == null && t.EnumeratorText == item.EnumeratorName && t.LandingSiteNameText == item.LandingSiteName).ToList()
                 };
                 a_list.Add(orphan);
                 counter++;
@@ -827,19 +829,19 @@ namespace NSAP_ODK.Entities.Database
             }
             return list;
         }
-        public List<GearUnload>GetGearUnloadsFromTree(TreeViewModelControl.AllSamplingEntitiesEventHandler treeData)
+        public List<GearUnload> GetGearUnloadsFromTree(TreeViewModelControl.AllSamplingEntitiesEventHandler treeData)
         {
             List<GearUnload> unload_list = new List<GearUnload>();
             var items = SummaryItemCollection.Where(t => t.Region.Code == treeData.NSAPRegion.Code &&
                 t.FMA.FMAID == treeData.FMA.FMAID &&
                 t.FishingGround.Code == treeData.FishingGround.Code &&
-                t.LandingSite!=null &&
+                t.LandingSite != null &&
                 t.LandingSite.LandingSiteID == treeData.LandingSite.LandingSiteID &&
                 t.SamplingDate > (DateTime)treeData.MonthSampled && t.SamplingDate < ((DateTime)treeData.MonthSampled).AddMonths(1)).ToList()
 
                 .GroupBy(gu => gu.GearUnloadID).Select(x => x.First()).ToList();
 
-            foreach(var item in items)
+            foreach (var item in items)
             {
                 unload_list.Add(item.GearUnload);
             }
@@ -1248,6 +1250,10 @@ namespace NSAP_ODK.Entities.Database
             return gearUnloads;
         }
 
+        public GearUnload GetGearUnload(int gearUnloadID)
+        {
+            return SummaryItemCollection.FirstOrDefault(t => t.GearUnloadID == gearUnloadID)?.GearUnload;
+        }
         public GearUnload GetGearUnload(int landingSiteSamplingID, string gearName)
         {
             return SummaryItemCollection.FirstOrDefault(t => t.SamplingDayID == landingSiteSamplingID && t.GearUsedName == gearName)?.GearUnload;
@@ -1933,7 +1939,7 @@ namespace NSAP_ODK.Entities.Database
                 LengthRows = vu.CountLengthRows,
                 LenWtRows = vu.CountLenWtRows,
                 CatchMaturityRows = vu.CountMaturityRows,
-                LandingSiteHasOperation=vu.Parent.Parent.HasFishingOperation
+                LandingSiteHasOperation = vu.Parent.Parent.HasFishingOperation
 
             };
             if (vu.NSAPEnumeratorID != null)
@@ -1957,6 +1963,11 @@ namespace NSAP_ODK.Entities.Database
             SummaryItemCollection.Add(item);
             return _editSuccess;
         }
+
+        public bool DeleteUsingVesselUnloadID(int vuID)
+        {
+            return DeleteRecordFromRepo(SummaryItemCollection.FirstOrDefault(t => t.VesselUnloadID == vuID).ID);
+        }
         public bool DeleteRecordFromRepo(int id)
         {
             if (id == 0)
@@ -1975,7 +1986,28 @@ namespace NSAP_ODK.Entities.Database
             return _editSuccess;
         }
 
-
+        public bool DeleteOrphanedEnumeratorItems(string enumeratorName)
+        {
+            var orphanedItems = SummaryItemCollection.Where(t => t.EnumeratorID == null && t.EnumeratorNameToUse == enumeratorName).ToList();
+            int itemCount = orphanedItems.Count;
+            int deletedCount = 0;
+            foreach (var item in orphanedItems)
+            {
+                if (DeleteRecordFromRepo(item.ID))
+                {
+                    deletedCount++;
+                }
+            }
+            if( deletedCount == itemCount)
+            {
+                _orphanedEnumerators =  GetOrphanedEnumerators();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
         public bool UpdateRecordInRepo(SummaryItem item)
         {
             if (item.ID == 0)

@@ -812,7 +812,15 @@ namespace NSAP_ODK.Views
 
         private void CloseWindow()
         {
+
             Close();
+        }
+
+        private void ResetFormNumericIDs()
+        {
+            Global.Settings.NSAPFishCatchMonitoringKoboserverServerNumericID = "";
+            Global.Settings.FisheriesLandingSurveyNumericID = "";
+            Global.Settings.TBL_TWSPKoboserverServerNumericID = "";
         }
         private async Task<bool> SetupKoboforms(string base64authorization)
         {
@@ -842,7 +850,7 @@ namespace NSAP_ODK.Views
                             TextBoxPassword.Clear();
                             ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.GotJSONString, JSONString = the_response });
                             _koboForms = KoboForms.MakeFormObjects(the_response);
-
+                            ResetFormNumericIDs();
                             foreach (KoboForm kf in _koboForms)
                             {
                                 KoboForms.ResetVersion_and_ID();
@@ -1597,6 +1605,7 @@ namespace NSAP_ODK.Views
         private void OnFormClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             //_httpClient.Dispose();
+            Global.SaveGlobalSettings();
             this.SavePlacement();
         }
 

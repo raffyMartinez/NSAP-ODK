@@ -468,7 +468,7 @@ namespace NSAP_ODK.Entities.Database
             {
                 foreach (var soakvu in vu.ListGearSoak)
                 {
-                    if (NSAPEntities.GearSoakViewModel.DeleteRecordFromRepo(soakvu.PK))
+                    if (vu.GearSoakViewModel.DeleteRecordFromRepo(soakvu.PK))
                     {
                         counter++;
                     }
@@ -477,7 +477,7 @@ namespace NSAP_ODK.Entities.Database
 
                 foreach (var gridvu in vu.ListFishingGroundGrid)
                 {
-                    if (NSAPEntities.FishingGroundGridViewModel.DeleteRecordFromRepo(gridvu.PK))
+                    if (vu.FishingGroundGridViewModel.DeleteRecordFromRepo(gridvu.PK))
                     {
                         counter++;
                     }
@@ -485,13 +485,17 @@ namespace NSAP_ODK.Entities.Database
 
                 foreach (var effortvu in vu.ListVesselEffort)
                 {
-                    if (NSAPEntities.VesselEffortViewModel.DeleteRecordFromRepo(effortvu.PK))
+                    if (vu.VesselEffortViewModel.DeleteRecordFromRepo(effortvu.PK))
                     {
                         counter++;
                     }
                 }
 
-                NSAPEntities.VesselCatchViewModel.DeleteCatchFromUnload(vu);
+                if(vu.VesselCatchViewModel==null)
+                {
+                    vu.VesselCatchViewModel = new VesselCatchViewModel(vu);
+                }
+                vu.VesselCatchViewModel.DeleteCatchFromUnload(vu);
 
                 if (DeleteRecordFromRepo(vu.PK))
                 {
@@ -663,7 +667,7 @@ namespace NSAP_ODK.Entities.Database
             }
 
             string enum_text = string.Empty;
-            if(vu.NSAPEnumeratorID==null)
+            if (vu.NSAPEnumeratorID == null)
             {
                 enum_text = vu.EnumeratorText;
             }
@@ -959,7 +963,10 @@ namespace NSAP_ODK.Entities.Database
                 }
                 index++;
             }
+            if (EditSucceeded)
+            {
 
+            }
             return EditSucceeded;
         }
     }

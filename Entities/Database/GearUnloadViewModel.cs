@@ -21,6 +21,52 @@ namespace NSAP_ODK.Entities.Database
             GearUnloadCollection.CollectionChanged += GearUnloadCollection_CollectionChanged;
         }
 
+        public static async Task<bool> DeleteVesselUnloads(List<OrphanedEnumerator> ols)
+        {
+            int countDeleted = 0;
+            bool success = false;
+            //List<VesselUnload> vesselUnloads = new List<VesselUnload>();
+            foreach (var item in ols)
+            {
+                int deletedCount = 0;
+                //vesselUnloads.AddRange(item.SampledLandings);
+                
+                foreach (var vu in item.SampledLandings)
+                {
+                    if (vu.Parent == null)
+                    {
+                        vu.Parent = NSAPEntities.SummaryItemViewModel.GetGearUnload(vu.GearUnloadID);
+                    }
+                    GearUnload gu = vu.Parent;
+                    if (gu.VesselUnloadViewModel == null)
+                    {
+                        gu.VesselUnloadViewModel = new VesselUnloadViewModel(gu, updatesubViewModels: true);
+                    }
+                    List<VesselUnload> lvu = new List<VesselUnload>();
+                    lvu.Add(vu);
+                    var result = await gu.VesselUnloadViewModel.DeleteUnloadChildrenAsync(lvu);
+                    if (result.CountDeleted > 0)
+                    {
+
+                        if (gu.VesselUnloadViewModel.DeleteRecordFromRepo(vu.PK) && gu.VesselUnloadViewModel.Count == 0)
+                        {
+                            if (gu.Parent.GearUnloadViewModel.DeleteRecordFromRepo(gu.PK))
+                            {
+                                deletedCount++;
+                            }
+                        }
+                    }
+                }
+
+                if (deletedCount > 0 && NSAPEntities.SummaryItemViewModel.DeleteOrphanedEnumeratorItems(item.Name))
+                {
+                    countDeleted++;
+                }
+            }
+
+
+            return countDeleted > 0;
+        }
         public static GearUnload GearUnloadFromID(int unloadID)
         {
             foreach (LandingSiteSampling lss in NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection)
@@ -66,14 +112,14 @@ namespace NSAP_ODK.Entities.Database
                 catch_wt = ((double)item.Catch).ToString();
             }
 
-            if(Global.Settings.UsemySQL)
+            if (Global.Settings.UsemySQL)
             {
-                if(item.Boats==null)
+                if (item.Boats == null)
                 {
                     boat_ct = @"\N";
                 }
 
-                if(item.Catch==null)
+                if (item.Catch == null)
                 {
                     catch_wt = @"\N";
                 }
@@ -492,7 +538,7 @@ namespace NSAP_ODK.Entities.Database
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<GearUnload> tempListOfRemovedItems = e.OldItems.OfType<GearUnload>().ToList();
-                        GearUnloads.Delete(tempListOfRemovedItems[0].PK);
+                        EditSuccess = GearUnloads.Delete(tempListOfRemovedItems[0].PK);
                     }
                     break;
 
@@ -548,7 +594,7 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-        public void DeleteRecordFromRepo(int id)
+        public bool DeleteRecordFromRepo(int id)
         {
             if (id == 0)
                 throw new Exception("Record ID cannot be null");
@@ -563,6 +609,7 @@ namespace NSAP_ODK.Entities.Database
                 }
                 index++;
             }
+            return EditSuccess;
         }
     }
 }

@@ -650,7 +650,7 @@ namespace NSAP_ODK.Entities.Database
                             con.Open();
                             success = cmd.ExecuteNonQuery() > 0;
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             Logger.Log(ex);
                         }
@@ -721,6 +721,11 @@ namespace NSAP_ODK.Entities.Database
                             var dr = cmd.ExecuteReader();
                             while (dr.Read())
                             {
+                                DateTime? lastSubmission = null;
+                                if (dr["date_modified"] != DBNull.Value)
+                                {
+                                    lastSubmission = (DateTime)dr["date_modified"];
+                                }
                                 Koboserver ks = new Koboserver
                                 {
                                     ServerNumericID = (int)dr["server_numeric_id"],
@@ -731,7 +736,7 @@ namespace NSAP_ODK.Entities.Database
                                     eFormVersion = dr["e_form_version"].ToString(),
                                     DateCreated = DateTime.Parse(dr["date_created"].ToString()),
                                     DateModified = DateTime.Parse(dr["date_modified"].ToString()),
-                                    DateLastSubmission = DateTime.Parse(dr["date_last_submission"].ToString()),
+                                    DateLastSubmission = lastSubmission,
                                     SubmissionCount = (int)dr["submission_count"],
                                     UserCount = (int)dr["user_count"],
                                     DateLastAccessed = DateTime.Parse(dr["date_last_accessed"].ToString()),

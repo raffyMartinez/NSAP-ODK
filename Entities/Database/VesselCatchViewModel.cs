@@ -359,7 +359,7 @@ namespace NSAP_ODK.Entities.Database
                     {
                         foreach (var item in listMaturity)
                         {
-                            if (NSAPEntities.CatchMaturityViewModel.DeleteRecordFromRepo(item.PK))
+                            if (vc.CatchMaturityViewModel.DeleteRecordFromRepo(item.PK))
                             {
                                 counter++;
                             }
@@ -371,7 +371,7 @@ namespace NSAP_ODK.Entities.Database
                     {
                         foreach (var item in listLF)
                         {
-                            if (NSAPEntities.CatchLenFreqViewModel.DeleteRecordFromRepo(item.PK))
+                            if (vc.CatchLenFreqViewModel.DeleteRecordFromRepo(item.PK))
                             {
                                 counter++;
                             }
@@ -383,7 +383,7 @@ namespace NSAP_ODK.Entities.Database
                     {
                         foreach (var item in listLW)
                         {
-                            if (NSAPEntities.CatchLengthWeightViewModel.DeleteRecordFromRepo(item.PK))
+                            if (vc.CatchLengthWeightViewModel.DeleteRecordFromRepo(item.PK))
                             {
                                 counter++;
                             }
@@ -395,14 +395,14 @@ namespace NSAP_ODK.Entities.Database
                     {
                         foreach (var item in listL)
                         {
-                            if (NSAPEntities.CatchLengthViewModel.DeleteRecordFromRepo(item.PK))
+                            if (vc.CatchLengthViewModel.DeleteRecordFromRepo(item.PK))
                             {
                                 counter++;
                             }
                         }
                     }
 
-                    if (NSAPEntities.VesselCatchViewModel.DeleteRecordFromRepo(vc.PK))
+                    if (unload.VesselCatchViewModel.DeleteRecordFromRepo(vc.PK))
                     {
                         counter++;
                     }

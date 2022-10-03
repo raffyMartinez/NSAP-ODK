@@ -10,11 +10,15 @@ namespace NSAP_ODK.Utilities
 {
     public class Settings
     {
+        
         public static int DefaultCutoffUndesizedCW = 11;
         public static int DefaultDownloadSizeForBatchMode = 2000;
         public string MDBPath { get; set; }
         public string JSONFolder { get; set; }
 
+        public string FisheriesLandingSurveyNumericID { get; set; }
+        public string TBL_TWSPKoboserverServerNumericID { get; set; }
+        public string NSAPFishCatchMonitoringKoboserverServerNumericID { get; set; }
         public bool UsemySQL { get; set; }
 
         public string MySQLBackupFolder { get; set; }

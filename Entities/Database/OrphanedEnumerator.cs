@@ -8,6 +8,7 @@ namespace NSAP_ODK.Entities.Database
 {
     public class OrphanedEnumerator
     {
+        public List<SummaryItem> SummaryItems { get; set; }
         public GearUnload GearUnload { get; set; }
         public NSAPRegion Region { get; set; }
 
@@ -68,9 +69,9 @@ namespace NSAP_ODK.Entities.Database
 
         public bool ForReplacement { get; set; }
 
-        public int NumberOfVesselCountings 
+        public int NumberOfVesselCountings
         {
-            get 
+            get
             {
                 if (LandingSiteSamplings == null)
                 {
@@ -80,7 +81,7 @@ namespace NSAP_ODK.Entities.Database
                 {
                     return LandingSiteSamplings.Count;
                 }
-            } 
+            }
         }
         public int NumberOfLandings { get { return SampledLandings.Count; } }
 

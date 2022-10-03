@@ -784,7 +784,41 @@ namespace NSAP_ODK.Views
                     {
                         if (btnName == "buttonDelete")
                         {
+                            switch (NSAPEntity)
+                            {
+                                case NSAPEntity.LandingSite:
+                                    List<OrphanedLandingSite> orphanedLandingSites = new List<OrphanedLandingSite>();
+                                    foreach (var item in dataGrid.Items)
+                                    {
 
+                                        if (((OrphanedLandingSite)item).ForReplacement)
+                                        {
+                                            orphanedLandingSites.Add((OrphanedLandingSite)item);
+                                        }
+                                    }
+                                    NSAPEntities.LandingSiteSamplingViewModel.DeleteOrphanedOrphanedLandingSites(orphanedLandingSites);
+                                    break;
+                                case NSAPEntity.FishingGear:
+                                    break;
+                                case NSAPEntity.FishingGround:
+                                    break;
+                                case NSAPEntity.Enumerator:
+                                    List<OrphanedEnumerator> orphanedEnumerators = new List<OrphanedEnumerator>();
+                                    foreach (var item in dataGrid.Items)
+                                    {
+
+                                        if (((OrphanedEnumerator)item).ForReplacement)
+                                        {
+                                            orphanedEnumerators.Add((OrphanedEnumerator)item);
+                                        }
+                                    }
+                                    //NSAPEntities.LandingSiteSamplingViewModel.DeleteOrphanedEnumerators(orphanedEnumerators);
+                                    if(await GearUnloadViewModel.DeleteVesselUnloads(orphanedEnumerators))
+                                    {
+                                        dataGrid.DataContext = NSAPEntities.SummaryItemViewModel.OrphanedEnumerators.OrderBy(t => t.Name).ToList();
+                                    }
+                                    break;
+                            }
                         }
                         else
                         {

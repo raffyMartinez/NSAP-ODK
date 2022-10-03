@@ -2529,23 +2529,48 @@ namespace NSAP_ODK.Entities.Database
                         try
                         {
                             success = update.ExecuteNonQuery() > 0;
-
-                            using (OleDbCommand update1 = conn.CreateCommand())
+                            if (success)
                             {
-                                update1.Parameters.Add("@id", OleDbType.Integer).Value = id;
-                                update1.CommandText = "Delete * from dbo_vessel_unload where v_unload_id=@id";
-                                try
+                                success = false;
+                                using (OleDbCommand delStatsCommand = conn.CreateCommand())
                                 {
-                                    success = update1.ExecuteNonQuery() > 0;
+                                    delStatsCommand.Parameters.AddWithValue("@delStatID", id);
+                                    delStatsCommand.CommandText = "Delete * from dbo_vessel_unload_stats where v_unload_id=@delStatID";
+                                    try
+                                    {
+                                        success = delStatsCommand.ExecuteNonQuery() > 0;
 
+                                    }
+                                    catch (OleDbException odbex)
+                                    {
+                                        Logger.Log(odbex);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Logger.Log(ex);
+                                    }
                                 }
-                                catch (OleDbException odbex)
+                                if (success)
                                 {
-                                    Logger.Log(odbex);
-                                }
-                                catch (Exception ex)
-                                {
-                                    Logger.Log(ex);
+                                    success = false;
+                                    using (OleDbCommand update1 = conn.CreateCommand())
+                                    {
+                                        update1.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                                        update1.CommandText = "Delete * from dbo_vessel_unload where v_unload_id=@id";
+                                        try
+                                        {
+                                            success = update1.ExecuteNonQuery() > 0;
+
+                                        }
+                                        catch (OleDbException odbex)
+                                        {
+                                            Logger.Log(odbex);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Logger.Log(ex);
+                                        }
+                                    }
                                 }
                             }
                         }

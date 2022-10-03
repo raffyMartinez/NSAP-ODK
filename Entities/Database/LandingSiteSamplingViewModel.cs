@@ -11,6 +11,8 @@ namespace NSAP_ODK.Entities.Database
 {
     public class LandingSiteSamplingViewModel
     {
+        private List<LandingSiteSampling> _landingSiteSamplings;
+        private List<GearUnload> _gearUnloads;
         private static StringBuilder _csv = new StringBuilder();
         private static StringBuilder _csv_1 = new StringBuilder();
         public bool EditSuccess { get; set; }
@@ -25,8 +27,183 @@ namespace NSAP_ODK.Entities.Database
         {
             return LandingSiteSamplingCollection.Where(t => t.EnumeratorID == null && t.EnumeratorText == enumeratorText).ToList();
         }
+        public bool DeleteGearUnloads(List<GearUnload> gearUnloads, LandingSiteSampling parent = null)
+        {
+            foreach (var gu in gearUnloads)
+            {
+                if (gu.VesselUnloadViewModel == null)
+                {
+                    gu.VesselUnloadViewModel = new VesselUnloadViewModel(gu, updatesubViewModels: true);
+                }
+                foreach (var vu in gu.VesselUnloadViewModel.VesselUnloadCollection.ToList())
+                {
+                    foreach (var gs in vu.GearSoakViewModel.GearSoakCollection.ToList())
+                    {
+                        vu.GearSoakViewModel.DeleteRecordFromRepo(gs.PK);
+                    }
+                    foreach (var ve in vu.VesselEffortViewModel.VesselEffortCollection.ToList())
+                    {
+                        vu.VesselEffortViewModel.DeleteRecordFromRepo(ve.PK);
+                    }
+                    foreach (var fg in vu.FishingGroundGridViewModel.FishingGroundGridCollection.ToList())
+                    {
+                        vu.FishingGroundGridViewModel.DeleteRecordFromRepo(fg.PK);
+                    }
+                    foreach (var fc in vu.VesselCatchViewModel.VesselCatchCollection.ToList())
+                    {
+                        if (fc.CatchLenFreqViewModel == null)
+                        {
+                            fc.CatchLenFreqViewModel = new CatchLenFreqViewModel(fc);
+                        }
+                        foreach (var lf in fc.CatchLenFreqViewModel.CatchLenFreqCollection.ToList())
+                        {
+                            fc.CatchLenFreqViewModel.DeleteRecordFromRepo(lf.PK);
+                        }
+
+                        if (fc.CatchLengthWeightViewModel == null)
+                        {
+                            fc.CatchLengthWeightViewModel = new CatchLengthWeightViewModel(fc);
+                        }
+                        foreach (var lw in fc.CatchLengthWeightViewModel.CatchLengthWeightCollection.ToList())
+                        {
+                            fc.CatchLengthWeightViewModel.DeleteRecordFromRepo(lw.PK);
+                        }
+
+                        if (fc.CatchLengthViewModel == null)
+                        {
+                            fc.CatchLengthViewModel = new CatchLengthViewModel(fc);
+                        }
+                        foreach (var ll in fc.CatchLengthViewModel.CatchLengthCollection.ToList())
+                        {
+                            fc.CatchLengthViewModel.DeleteRecordFromRepo(ll.PK);
+                        }
+
+                        if (fc.CatchMaturityViewModel == null)
+                        {
+                            fc.CatchMaturityViewModel = new CatchMaturityViewModel(fc);
+                        }
+                        foreach (var cm in fc.CatchMaturityViewModel.CatchMaturityCollection.ToList())
+                        {
+                            fc.CatchMaturityViewModel.DeleteRecordFromRepo(cm.PK);
+                        }
+
+                        vu.VesselCatchViewModel.DeleteRecordFromRepo(fc.PK);
+
+                    }
+                    gu.VesselUnloadViewModel.DeleteRecordFromRepo(vu.PK);
+                }
+                parent.GearUnloadViewModel.DeleteRecordFromRepo(gu.PK);
+            }
+            return true;
+        }
+        public bool DeleteLandingSiteSamplings(List<LandingSiteSampling> landingSiteSamplings)
+        {
+            foreach (var lss in landingSiteSamplings)
+            {
+                DeleteGearUnloads(lss.GearUnloadViewModel.GearUnloadCollection.ToList(), lss);
 
 
+
+                //foreach (var gu in lss.GearUnloadViewModel.GearUnloadCollection.ToList())
+                //{
+                //    if (gu.VesselUnloadViewModel == null)
+                //    {
+                //        gu.VesselUnloadViewModel = new VesselUnloadViewModel(gu, updatesubViewModels: true);
+                //    }
+                //    foreach (var vu in gu.VesselUnloadViewModel.VesselUnloadCollection.ToList())
+                //    {
+                //        foreach (var gs in vu.GearSoakViewModel.GearSoakCollection.ToList())
+                //        {
+                //            vu.GearSoakViewModel.DeleteRecordFromRepo(gs.PK);
+                //        }
+                //        foreach (var ve in vu.VesselEffortViewModel.VesselEffortCollection.ToList())
+                //        {
+                //            vu.VesselEffortViewModel.DeleteRecordFromRepo(ve.PK);
+                //        }
+                //        foreach (var fg in vu.FishingGroundGridViewModel.FishingGroundGridCollection.ToList())
+                //        {
+                //            vu.FishingGroundGridViewModel.DeleteRecordFromRepo(fg.PK);
+                //        }
+                //        foreach (var fc in vu.VesselCatchViewModel.VesselCatchCollection.ToList())
+                //        {
+                //            if (fc.CatchLenFreqViewModel == null)
+                //            {
+                //                fc.CatchLenFreqViewModel = new CatchLenFreqViewModel(fc);
+                //            }
+                //            foreach (var lf in fc.CatchLenFreqViewModel.CatchLenFreqCollection.ToList())
+                //            {
+                //                fc.CatchLenFreqViewModel.DeleteRecordFromRepo(lf.PK);
+                //            }
+
+                //            if (fc.CatchLengthWeightViewModel == null)
+                //            {
+                //                fc.CatchLengthWeightViewModel = new CatchLengthWeightViewModel(fc);
+                //            }
+                //            foreach (var lw in fc.CatchLengthWeightViewModel.CatchLengthWeightCollection.ToList())
+                //            {
+                //                fc.CatchLengthWeightViewModel.DeleteRecordFromRepo(lw.PK);
+                //            }
+
+                //            if (fc.CatchLengthViewModel == null)
+                //            {
+                //                fc.CatchLengthViewModel = new CatchLengthViewModel(fc);
+                //            }
+                //            foreach (var ll in fc.CatchLengthViewModel.CatchLengthCollection.ToList())
+                //            {
+                //                fc.CatchLengthViewModel.DeleteRecordFromRepo(ll.PK);
+                //            }
+
+                //            if (fc.CatchMaturityViewModel == null)
+                //            {
+                //                fc.CatchMaturityViewModel = new CatchMaturityViewModel(fc);
+                //            }
+                //            foreach (var cm in fc.CatchMaturityViewModel.CatchMaturityCollection.ToList())
+                //            {
+                //                fc.CatchMaturityViewModel.DeleteRecordFromRepo(cm.PK);
+                //            }
+
+                //            vu.VesselCatchViewModel.DeleteRecordFromRepo(fc.PK);
+
+                //        }
+                //        gu.VesselUnloadViewModel.DeleteRecordFromRepo(vu.PK);
+                //    }
+
+                //    lss.GearUnloadViewModel.DeleteRecordFromRepo(gu.PK);
+                //}
+                NSAPEntities.LandingSiteSamplingViewModel.DeleteRecordFromRepo(lss);
+            }
+            return true;
+        }
+        public bool DeleteOrphanedOrphanedLandingSites(List<OrphanedLandingSite> orphanedLandingSites)
+        {
+            _landingSiteSamplings = new List<LandingSiteSampling>();
+            foreach (var ols in orphanedLandingSites)
+            {
+                _landingSiteSamplings.AddRange(ols.LandingSiteSamplings);
+            }
+            return DeleteLandingSiteSamplings(_landingSiteSamplings);
+
+        }
+
+        public bool DeleteOrphanedEnumerators(List<OrphanedEnumerator> orphanedEnumerators)
+        {
+            List<VesselUnload> vesselUnloads = new List<VesselUnload>();
+            foreach (var en in orphanedEnumerators)
+            {
+                vesselUnloads.AddRange(en.SampledLandings);
+            }
+            return DeleteLandingSiteSamplings(_landingSiteSamplings);
+        }
+
+        public bool DeleteOrphanedGears(List<OrphanedFishingGear> orphanedGears)
+        {
+            _gearUnloads = new List<GearUnload>();
+            foreach (var ols in orphanedGears)
+            {
+                _gearUnloads.AddRange(ols.GearUnloads);
+            }
+            return DeleteGearUnloads(_gearUnloads);
+        }
 
         public List<VesselUnload> GetVesselUnloads(List<GearUnload> gearUnloads)
         {
