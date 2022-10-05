@@ -1985,7 +1985,51 @@ namespace NSAP_ODK.Entities.Database
             }
             return _editSuccess;
         }
+        public bool DeleteOrphanedFishingGears(string gearName)
+        {
+            var orphanedItems = SummaryItemCollection.Where(t => string.IsNullOrEmpty(t.GearCode) && t.GearUsedName == gearName).ToList();
+            int itemCount = orphanedItems.Count;
+            int deletedCount = 0;
+            foreach (var item in orphanedItems)
+            {
+                if (DeleteRecordFromRepo(item.ID))
+                {
+                    deletedCount++;
+                }
+            }
+            if (deletedCount == itemCount)
+            {
+                _orphanedFishingGears = GetOrphanedFishingGears();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
+        public bool DeleteOrphanedLandingSite(string landingSiteName)
+        {
+            var orphanedItems = SummaryItemCollection.Where(t => t.LandingSiteID == null && t.LandingSiteNameText == landingSiteName).ToList();
+            int itemCount = orphanedItems.Count;
+            int deletedCount = 0;
+            foreach (var item in orphanedItems)
+            {
+                if (DeleteRecordFromRepo(item.ID))
+                {
+                    deletedCount++;
+                }
+            }
+            if (deletedCount == itemCount)
+            {
+                _orphanedLandingSites = GetOrphanedLandingSites();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
         public bool DeleteOrphanedEnumeratorItems(string enumeratorName)
         {
             var orphanedItems = SummaryItemCollection.Where(t => t.EnumeratorID == null && t.EnumeratorNameToUse == enumeratorName).ToList();

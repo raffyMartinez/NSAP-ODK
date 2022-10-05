@@ -203,15 +203,123 @@ namespace NSAP_ODK.Views
 
             _timer = new DispatcherTimer();
             _timer.Tick += OnTimerTick;
+
+            NSAPEntities.LandingSiteSamplingViewModel.DeleteVesselUnloadFromOrphanedItem += LandingSiteSamplingViewModel_DeleteVesselUnloadFromOrphanedItem;
+            GearUnloadViewModel.DeleteVesselUnloadFromOrphanedItem += GearUnloadViewModel_DeleteVesselUnloadFromOrphanedItem;
         }
 
+        private void GearUnloadViewModel_DeleteVesselUnloadFromOrphanedItem(object sender, DeleteVesselUnloadFromOrphanEventArg e)
+        {
+            switch (e.Intent)
+            {
+                case "searching":
+                    progressBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              progressBar.IsIndeterminate=true;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
 
+                    labelStatus.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              labelStatus.Content = $"Searching for matching records...";
+
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case "start":
+                    progressBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              progressBar.IsIndeterminate = false;
+                              progressBar.Maximum = e.VesselUnloadTotalCount;
+                              //switch(e.NSAPEntity)
+                              //{
+                              //    case NSAPEntity.FishingGear:
+                              //        break;
+                              //    case NSAPEntity.Enumerator:
+                              //        break;
+                              //}
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+
+                    labelStatus.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              labelStatus.Content = $"Starting to delete {e.VesselUnloadTotalCount} sampled fishing vessel landings";
+
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case "unload_deleted":
+                    progressBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              progressBar.Value = e.DeletedCount;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+
+                    labelStatus.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              labelStatus.Content = $"Deleted fishing vessel landing {e.DeletedCount} of {progressBar.Maximum}";
+
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case "done":
+                    progressBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              progressBar.Value = e.DeletedCount;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+
+                    labelStatus.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              labelStatus.Content = $"Finished deleting {progressBar.Maximum} landings";
+
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    _timer.Interval = TimeSpan.FromSeconds(3);
+                    _timer.Start();
+                    break;
+            }
+        }
 
         private void OnTimerTick(object sender, EventArgs e)
         {
             progressBar.Value = 0;
             labelStatus.Content = "";
             _timer.Stop();
+
+
         }
 
         private void OnWindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -247,7 +355,8 @@ namespace NSAP_ODK.Views
                 this.SavePlacement();
                 Closing -= OnWindowClosing;
             }
-
+            NSAPEntities.LandingSiteSamplingViewModel.DeleteVesselUnloadFromOrphanedItem -= LandingSiteSamplingViewModel_DeleteVesselUnloadFromOrphanedItem;
+            GearUnloadViewModel.DeleteVesselUnloadFromOrphanedItem -= GearUnloadViewModel_DeleteVesselUnloadFromOrphanedItem;
         }
         protected override void OnSourceInitialized(EventArgs e)
         {
@@ -787,6 +896,7 @@ namespace NSAP_ODK.Views
                             switch (NSAPEntity)
                             {
                                 case NSAPEntity.LandingSite:
+
                                     List<OrphanedLandingSite> orphanedLandingSites = new List<OrphanedLandingSite>();
                                     foreach (var item in dataGrid.Items)
                                     {
@@ -796,9 +906,27 @@ namespace NSAP_ODK.Views
                                             orphanedLandingSites.Add((OrphanedLandingSite)item);
                                         }
                                     }
-                                    NSAPEntities.LandingSiteSamplingViewModel.DeleteOrphanedOrphanedLandingSites(orphanedLandingSites);
+                                    if (await NSAPEntities.LandingSiteSamplingViewModel.DeleteOrphanedLandingSites(orphanedLandingSites))
+                                    {
+                                        dataGrid.DataContext = NSAPEntities.SummaryItemViewModel.OrphanedLandingSites.OrderBy(t => t.LandingSiteName).ToList();
+                                    }
+
                                     break;
                                 case NSAPEntity.FishingGear:
+                                    List<OrphanedFishingGear> orphanedFishingGears = new List<OrphanedFishingGear>();
+                                    foreach (var item in dataGrid.Items)
+                                    {
+
+                                        if (((OrphanedFishingGear)item).ForReplacement)
+                                        {
+                                            orphanedFishingGears.Add((OrphanedFishingGear)item);
+                                        }
+                                    }
+
+                                    if (await GearUnloadViewModel.DeleteVesselUnloads(orphanedFishingGears))
+                                    {
+                                        dataGrid.DataContext = NSAPEntities.SummaryItemViewModel.OrphanedFishingGears.OrderBy(t => t.Name).ToList();
+                                    }
                                     break;
                                 case NSAPEntity.FishingGround:
                                     break;
@@ -813,7 +941,7 @@ namespace NSAP_ODK.Views
                                         }
                                     }
                                     //NSAPEntities.LandingSiteSamplingViewModel.DeleteOrphanedEnumerators(orphanedEnumerators);
-                                    if(await GearUnloadViewModel.DeleteVesselUnloads(orphanedEnumerators))
+                                    if (await GearUnloadViewModel.DeleteVesselUnloads(orphanedEnumerators))
                                     {
                                         dataGrid.DataContext = NSAPEntities.SummaryItemViewModel.OrphanedEnumerators.OrderBy(t => t.Name).ToList();
                                     }
@@ -896,24 +1024,6 @@ namespace NSAP_ODK.Views
                         await FixMultiLineSpeciesAsync();
 
 
-                        //foreach (var item in dataGrid.Items)
-                        //{
-                        //    var orphanedSpecies = (OrphanedSpeciesName)item;
-                        //    if (orphanedSpecies.ForReplacement)
-                        //    {
-                        //        var list = SpeciesName_Weight.ParseMultiSpeciesRow(orphanedSpecies.Name);
-                        //        if(list.Count>1)
-                        //        {
-                        //            if( NSAPEntities.VesselCatchViewModel.ConvertToIindividualCatches(orphanedSpecies.Name,list)>0)
-                        //            {
-                        //                _countReplaced += orphanedSpecies.SampledLandings.Count;
-                        //                ShowProgressWhileReplacing(_countReplaced, $"Fixed multii-species row {_countReplaced} of {_countForReplacement}");
-                        //            }
-                        //        }
-                        //    }
-
-
-                        //}
                         _timer.Interval = TimeSpan.FromSeconds(3);
                         _timer.Start();
                         //dataGrid.DataContext = NSAPEntities.VesselCatchViewModel.OrphanedSpeciesNames(getMultiLine: (bool)checkMultipleSp.IsChecked);
@@ -922,6 +1032,81 @@ namespace NSAP_ODK.Views
                     break;
                 case "buttonCancel":
                     Close();
+                    break;
+            }
+        }
+
+        private void LandingSiteSamplingViewModel_DeleteVesselUnloadFromOrphanedItem(object sender, DeleteVesselUnloadFromOrphanEventArg e)
+        {
+            switch (e.Intent)
+            {
+                case "start":
+                    progressBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              progressBar.Maximum = e.VesselUnloadTotalCount;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+
+                    labelStatus.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              labelStatus.Content = $"Starting to delete {e.VesselUnloadTotalCount} sampled fishing vessel landings";
+
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case "unload_deleted":
+                    progressBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              progressBar.Value = e.DeletedCount;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+
+                    labelStatus.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              labelStatus.Content = $"Deleted fishing vessel landing {e.DeletedCount} of {progressBar.Maximum}";
+
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case "done":
+                    progressBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              progressBar.Value = e.DeletedCount;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+
+                    labelStatus.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              labelStatus.Content = $"Finished deleting {progressBar.Maximum} fishing vessel landings";
+
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    _timer.Interval = TimeSpan.FromSeconds(3);
+                    _timer.Start();
                     break;
             }
         }
@@ -958,6 +1143,142 @@ namespace NSAP_ODK.Views
             }
         }
 
+        private void OnDataGridContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+            var dg = (DataGrid)sender;
+            menuCheckState.IsEnabled = dg.SelectedCells.Count > 1;
+            if (dg.SelectedCells.Count > 1)
+            {
+                var sc = dg.SelectedCells[0];
+                switch (NSAPEntity)
+                {
+                    case NSAPEntity.SpeciesName:
+                        if (((OrphanedSpeciesName)sc.Item).ForReplacement)
+                        {
+                            menuCheckState.Header = "Uncheck selected";
+                        }
+                        else
+                        {
+                            menuCheckState.Header = "Check selected";
+                        }
+                        break;
+                    case NSAPEntity.Enumerator:
+                        if (((OrphanedEnumerator)sc.Item).ForReplacement)
+                        {
+                            menuCheckState.Header = "Uncheck selected";
+                        }
+                        else
+                        {
+                            menuCheckState.Header = "Check selected";
+                        }
+                        break;
+                    case NSAPEntity.LandingSite:
+                        if (((OrphanedLandingSite)sc.Item).ForReplacement)
+                        {
+                            menuCheckState.Header = "Uncheck selected";
+                        }
+                        else
+                        {
+                            menuCheckState.Header = "Check selected";
+                        }
+                        break;
+                    case NSAPEntity.FishingGear:
+                        if (((OrphanedFishingGear)sc.Item).ForReplacement)
+                        {
+                            menuCheckState.Header = "Uncheck selected";
+                        }
+                        else
+                        {
+                            menuCheckState.Header = "Check selected";
+                        }
+                        break;
+                    default:
+                        e.Handled = true;
+                        break;
+                }
+            }
+            else
+            {
+                e.Handled = true;
+            }
+        }
 
+        private void onContextMenuClicked(object sender, RoutedEventArgs e)
+        {
+            switch (((MenuItem)sender).Tag.ToString())
+            {
+                case "check_state":
+                    if (menuCheckState.Header.ToString() == "Check selected")
+                    {
+                        switch (NSAPEntity)
+                        {
+                            case NSAPEntity.SpeciesName:
+                                for (int x = 0; x < dataGrid.SelectedCells.Count; x++)
+                                {
+                                    var sc = dataGrid.SelectedCells[x];
+                                    ((OrphanedSpeciesName)sc.Item).ForReplacement = true;
+                                }
+                                break;
+                            case NSAPEntity.Enumerator:
+                                for (int x = 0; x < dataGrid.SelectedCells.Count; x++)
+                                {
+                                    var sc = dataGrid.SelectedCells[x];
+                                    ((OrphanedEnumerator)sc.Item).ForReplacement = true;
+                                }
+                                break;
+                            case NSAPEntity.LandingSite:
+                                for (int x = 0; x < dataGrid.SelectedCells.Count; x++)
+                                {
+                                    var sc = dataGrid.SelectedCells[x];
+                                    ((OrphanedLandingSite)sc.Item).ForReplacement = true;
+                                }
+                                break;
+                            case NSAPEntity.FishingGear:
+                                for (int x = 0; x < dataGrid.SelectedCells.Count; x++)
+                                {
+                                    var sc = dataGrid.SelectedCells[x];
+                                    ((OrphanedFishingGear)sc.Item).ForReplacement = true;
+                                }
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        switch (NSAPEntity)
+                        {
+                            case NSAPEntity.SpeciesName:
+                                for (int x = 0; x < dataGrid.SelectedCells.Count; x++)
+                                {
+                                    var sc = dataGrid.SelectedCells[x];
+                                    ((OrphanedSpeciesName)sc.Item).ForReplacement = false;
+                                }
+                                break;
+                            case NSAPEntity.Enumerator:
+                                for (int x = 0; x < dataGrid.SelectedCells.Count; x++)
+                                {
+                                    var sc = dataGrid.SelectedCells[x];
+                                    ((OrphanedEnumerator)sc.Item).ForReplacement = false;
+                                }
+                                break;
+                            case NSAPEntity.LandingSite:
+                                for (int x = 0; x < dataGrid.SelectedCells.Count; x++)
+                                {
+                                    var sc = dataGrid.SelectedCells[x];
+                                    ((OrphanedLandingSite)sc.Item).ForReplacement = false;
+                                }
+                                break;
+                            case NSAPEntity.FishingGear:
+                                for (int x = 0; x < dataGrid.SelectedCells.Count; x++)
+                                {
+                                    var sc = dataGrid.SelectedCells[x];
+                                    ((OrphanedFishingGear)sc.Item).ForReplacement = false;
+                                }
+                                break;
+                        }
+                    }
+                    break;
+            }
+            dataGrid.Items.Refresh();
+        }
     }
 }

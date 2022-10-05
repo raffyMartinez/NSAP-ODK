@@ -15,6 +15,8 @@ namespace NSAP_ODK.Entities.Database
         private static StringBuilder _csv = new StringBuilder();
         private static StringBuilder _csv_1 = new StringBuilder();
         private static StringBuilder _unloadStats_csv = new StringBuilder();
+        //private static int _deleted_vu_count;
+        //public static event EventHandler<DeleteVesselUnloadFromOrphanEventArg> DeleteVesselUnloadFromOrphanedItem;
         public int CountLandingWithCatchComposition()
         {
             return VesselUnloadCollection.Count(t => t.HasCatchComposition == true);
@@ -491,16 +493,19 @@ namespace NSAP_ODK.Entities.Database
                     }
                 }
 
-                if(vu.VesselCatchViewModel==null)
+                if (vu.VesselCatchViewModel == null)
                 {
                     vu.VesselCatchViewModel = new VesselCatchViewModel(vu);
                 }
-                vu.VesselCatchViewModel.DeleteCatchFromUnload(vu);
+                counter += vu.VesselCatchViewModel.DeleteCatchFromUnload(vu);
 
                 if (DeleteRecordFromRepo(vu.PK))
                 {
+                    counter++;
                     countUnloadDeleted++;
                     DeleteUnloadChildrenEvent?.Invoke(this, null);
+                    //_deleted_vu_count++;
+                    //DeleteVesselUnloadFromOrphanedItem?.Invoke(null, new DeleteVesselUnloadFromOrphanEventArg { Intent = "unload_deleted", DeletedCount = _deleted_vu_count });
                 }
 
             }
@@ -597,7 +602,10 @@ namespace NSAP_ODK.Entities.Database
         public VesselUnload getVesselUnload(int pk)
         {
             var vu = VesselUnloadCollection.FirstOrDefault(n => n.PK == pk);
-            vu.ContainerViewModel = this;
+            if (vu != null)
+            {
+                vu.ContainerViewModel = this;
+            }
             return vu;
         }
 

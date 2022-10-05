@@ -10,6 +10,8 @@ namespace NSAP_ODK.Entities.Database
 {
     public class GearUnloadViewModel
     {
+        private static int _deleted_vu_count = 0;
+        public static event EventHandler<DeleteVesselUnloadFromOrphanEventArg> DeleteVesselUnloadFromOrphanedItem;
         public bool EditSuccess;
         public ObservableCollection<GearUnload> GearUnloadCollection { get; set; }
         private GearUnloadRepository GearUnloads { get; set; }
@@ -21,16 +23,80 @@ namespace NSAP_ODK.Entities.Database
             GearUnloadCollection.CollectionChanged += GearUnloadCollection_CollectionChanged;
         }
 
+        public static async Task<bool> DeleteVesselUnloads(List<OrphanedFishingGear> ofg)
+        {
+            _deleted_vu_count = 0;
+            int landingsCount = 0;
+            //DeleteVesselUnloadFromOrphanedItem?.Invoke(null, new DeleteVesselUnloadFromOrphanEventArg { Intent = "searching" });
+            foreach (var item in ofg)
+            {
+                landingsCount += item.GearUnloads.Sum(t => t.ListVesselUnload.Count);
+                 //DeleteVesselUnloadFromOrphanedItem?.Invoke(null, new DeleteVesselUnloadFromOrphanEventArg { Intent = "searching" });
+            }
+
+            DeleteVesselUnloadFromOrphanedItem?.Invoke(null, new DeleteVesselUnloadFromOrphanEventArg { Intent = "start", VesselUnloadTotalCount = landingsCount,NSAPEntity=NSAPEntity.FishingGear });
+
+            int countDeleted = 0;
+            foreach (var item in ofg)
+            {
+                int deletedCount = 0;
+                foreach (var gu in item.GearUnloads)
+                {
+                    if (gu.VesselUnloadViewModel == null)
+                    {
+                        gu.VesselUnloadViewModel = new VesselUnloadViewModel(gu, updatesubViewModels: true);
+                    }
+                    foreach (var vu in gu.VesselUnloadViewModel.VesselUnloadCollection.ToList())
+                    {
+                        List<VesselUnload> lvu = new List<VesselUnload>();
+                        lvu.Add(vu);
+                        var result = await gu.VesselUnloadViewModel.DeleteUnloadChildrenAsync(lvu);
+                        if (result.CountDeleted > 0)
+                        {
+                            var getvu = gu.VesselUnloadViewModel.getVesselUnload(vu.PK);
+                            if (getvu == null || (getvu != null && gu.VesselUnloadViewModel.DeleteRecordFromRepo(vu.PK)))
+                            {
+                                if (getvu == null)
+                                {
+                                    deletedCount++;
+                                }
+                                else if (gu.Parent.GearUnloadViewModel.DeleteRecordFromRepo(gu.PK))
+                                {
+                                    deletedCount++;
+                                }
+                            }
+                            DeleteVesselUnloadFromOrphanedItem?.Invoke(null, new DeleteVesselUnloadFromOrphanEventArg { Intent = "unload_deleted", DeletedCount = ++_deleted_vu_count });
+                        }
+
+                    }
+
+                    if (deletedCount > 0 && NSAPEntities.SummaryItemViewModel.DeleteOrphanedFishingGears(item.Name))
+                    {
+                        countDeleted++;
+                    }
+                }
+            }
+            DeleteVesselUnloadFromOrphanedItem?.Invoke(null, new DeleteVesselUnloadFromOrphanEventArg { Intent = "done" });
+            return countDeleted > 0;
+        }
         public static async Task<bool> DeleteVesselUnloads(List<OrphanedEnumerator> ols)
         {
+            _deleted_vu_count = 0;
             int countDeleted = 0;
-            bool success = false;
+            int landingsCount = 0;
+            
+            foreach (var item in ols)
+            {
+                landingsCount += item.SampledLandings.Count;
+            }
+            DeleteVesselUnloadFromOrphanedItem?.Invoke(null, new DeleteVesselUnloadFromOrphanEventArg { Intent = "start", VesselUnloadTotalCount = landingsCount,NSAPEntity=NSAPEntity.Enumerator });
+
             //List<VesselUnload> vesselUnloads = new List<VesselUnload>();
             foreach (var item in ols)
             {
                 int deletedCount = 0;
                 //vesselUnloads.AddRange(item.SampledLandings);
-                
+
                 foreach (var vu in item.SampledLandings)
                 {
                     if (vu.Parent == null)
@@ -48,13 +114,21 @@ namespace NSAP_ODK.Entities.Database
                     if (result.CountDeleted > 0)
                     {
 
-                        if (gu.VesselUnloadViewModel.DeleteRecordFromRepo(vu.PK) && gu.VesselUnloadViewModel.Count == 0)
+                        //if ((gu.VesselUnloadViewModel.getVesselUnload(vu.PK) != null && gu.VesselUnloadViewModel.DeleteRecordFromRepo(vu.PK)) && gu.VesselUnloadViewModel.Count == 0)
+                        var getvu = gu.VesselUnloadViewModel.getVesselUnload(vu.PK);
+                        if (getvu == null || (getvu != null && gu.VesselUnloadViewModel.DeleteRecordFromRepo(vu.PK)))
                         {
-                            if (gu.Parent.GearUnloadViewModel.DeleteRecordFromRepo(gu.PK))
+                            if (getvu == null)
+                            {
+                                deletedCount++;
+                            }
+                            else if (gu.Parent.GearUnloadViewModel.DeleteRecordFromRepo(gu.PK))
                             {
                                 deletedCount++;
                             }
                         }
+
+                        DeleteVesselUnloadFromOrphanedItem?.Invoke(null, new DeleteVesselUnloadFromOrphanEventArg { Intent = "unload_deleted", DeletedCount = ++_deleted_vu_count });
                     }
                 }
 
@@ -64,7 +138,7 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
 
-
+            DeleteVesselUnloadFromOrphanedItem?.Invoke(null, new DeleteVesselUnloadFromOrphanEventArg { Intent = "done" });
             return countDeleted > 0;
         }
         public static GearUnload GearUnloadFromID(int unloadID)

@@ -392,7 +392,6 @@ namespace NSAP_ODK.Entities
 
                             var x = MakeXLSForm(the_response);
                             kf.Version_ID = x.version_id;
-                            //Version_ID = x.version_id;
                             XLSFormVersion = x.content.settings.version;
                             kf.xlsform_version = XLSFormVersion;
                             XLSForm_idString = x.content.settings.id_string;
@@ -404,11 +403,6 @@ namespace NSAP_ODK.Entities
                                     kf.eForm_version = x.content.survey.Where(t => t.name == "intronote").FirstOrDefault().@default.Replace("Version ", "");
                                     break;
                             }
-                            //if (x.name == "NSAP Fish Catch Monitoring e-Form" || x.name == "Fisheries landing survey")
-                            //{
-                            //    kf.eForm_version = x.content.survey.Where(t => t.name == "intronote").FirstOrDefault().@default.Replace("Version ", "");
-                            //}
-
                         }
                     }
                     catch (HttpRequestException)

@@ -11,10 +11,13 @@ namespace NSAP_ODK.Entities.Database
 {
     public class LandingSiteSamplingViewModel
     {
+        public event EventHandler<DeleteVesselUnloadFromOrphanEventArg> DeleteVesselUnloadFromOrphanedItem;
+
         private List<LandingSiteSampling> _landingSiteSamplings;
         private List<GearUnload> _gearUnloads;
         private static StringBuilder _csv = new StringBuilder();
         private static StringBuilder _csv_1 = new StringBuilder();
+        private int _deleted_vu_count = 0;
         public bool EditSuccess { get; set; }
         public ObservableCollection<LandingSiteSampling> LandingSiteSamplingCollection { get; set; }
         private LandingSiteSamplingRepository LandingSiteSamplings { get; set; }
@@ -29,6 +32,7 @@ namespace NSAP_ODK.Entities.Database
         }
         public bool DeleteGearUnloads(List<GearUnload> gearUnloads, LandingSiteSampling parent = null)
         {
+            
             foreach (var gu in gearUnloads)
             {
                 if (gu.VesselUnloadViewModel == null)
@@ -37,18 +41,28 @@ namespace NSAP_ODK.Entities.Database
                 }
                 foreach (var vu in gu.VesselUnloadViewModel.VesselUnloadCollection.ToList())
                 {
+
                     foreach (var gs in vu.GearSoakViewModel.GearSoakCollection.ToList())
                     {
                         vu.GearSoakViewModel.DeleteRecordFromRepo(gs.PK);
                     }
+
+
+
                     foreach (var ve in vu.VesselEffortViewModel.VesselEffortCollection.ToList())
                     {
                         vu.VesselEffortViewModel.DeleteRecordFromRepo(ve.PK);
                     }
+
+
+
                     foreach (var fg in vu.FishingGroundGridViewModel.FishingGroundGridCollection.ToList())
                     {
                         vu.FishingGroundGridViewModel.DeleteRecordFromRepo(fg.PK);
                     }
+
+
+
                     foreach (var fc in vu.VesselCatchViewModel.VesselCatchCollection.ToList())
                     {
                         if (fc.CatchLenFreqViewModel == null)
@@ -90,120 +104,69 @@ namespace NSAP_ODK.Entities.Database
                         vu.VesselCatchViewModel.DeleteRecordFromRepo(fc.PK);
 
                     }
-                    gu.VesselUnloadViewModel.DeleteRecordFromRepo(vu.PK);
+                    if (gu.VesselUnloadViewModel.DeleteRecordFromRepo(vu.PK))
+                    {
+                        _deleted_vu_count++;
+                        DeleteVesselUnloadFromOrphanedItem?.Invoke(null, new DeleteVesselUnloadFromOrphanEventArg { Intent = "unload_deleted", DeletedCount = _deleted_vu_count });
+                    }
                 }
                 parent.GearUnloadViewModel.DeleteRecordFromRepo(gu.PK);
             }
             return true;
         }
-        public bool DeleteLandingSiteSamplings(List<LandingSiteSampling> landingSiteSamplings)
+        private bool DeleteLandingSiteSamplings(List<LandingSiteSampling> landingSiteSamplings)
         {
             foreach (var lss in landingSiteSamplings)
             {
                 DeleteGearUnloads(lss.GearUnloadViewModel.GearUnloadCollection.ToList(), lss);
-
-
-
-                //foreach (var gu in lss.GearUnloadViewModel.GearUnloadCollection.ToList())
-                //{
-                //    if (gu.VesselUnloadViewModel == null)
-                //    {
-                //        gu.VesselUnloadViewModel = new VesselUnloadViewModel(gu, updatesubViewModels: true);
-                //    }
-                //    foreach (var vu in gu.VesselUnloadViewModel.VesselUnloadCollection.ToList())
-                //    {
-                //        foreach (var gs in vu.GearSoakViewModel.GearSoakCollection.ToList())
-                //        {
-                //            vu.GearSoakViewModel.DeleteRecordFromRepo(gs.PK);
-                //        }
-                //        foreach (var ve in vu.VesselEffortViewModel.VesselEffortCollection.ToList())
-                //        {
-                //            vu.VesselEffortViewModel.DeleteRecordFromRepo(ve.PK);
-                //        }
-                //        foreach (var fg in vu.FishingGroundGridViewModel.FishingGroundGridCollection.ToList())
-                //        {
-                //            vu.FishingGroundGridViewModel.DeleteRecordFromRepo(fg.PK);
-                //        }
-                //        foreach (var fc in vu.VesselCatchViewModel.VesselCatchCollection.ToList())
-                //        {
-                //            if (fc.CatchLenFreqViewModel == null)
-                //            {
-                //                fc.CatchLenFreqViewModel = new CatchLenFreqViewModel(fc);
-                //            }
-                //            foreach (var lf in fc.CatchLenFreqViewModel.CatchLenFreqCollection.ToList())
-                //            {
-                //                fc.CatchLenFreqViewModel.DeleteRecordFromRepo(lf.PK);
-                //            }
-
-                //            if (fc.CatchLengthWeightViewModel == null)
-                //            {
-                //                fc.CatchLengthWeightViewModel = new CatchLengthWeightViewModel(fc);
-                //            }
-                //            foreach (var lw in fc.CatchLengthWeightViewModel.CatchLengthWeightCollection.ToList())
-                //            {
-                //                fc.CatchLengthWeightViewModel.DeleteRecordFromRepo(lw.PK);
-                //            }
-
-                //            if (fc.CatchLengthViewModel == null)
-                //            {
-                //                fc.CatchLengthViewModel = new CatchLengthViewModel(fc);
-                //            }
-                //            foreach (var ll in fc.CatchLengthViewModel.CatchLengthCollection.ToList())
-                //            {
-                //                fc.CatchLengthViewModel.DeleteRecordFromRepo(ll.PK);
-                //            }
-
-                //            if (fc.CatchMaturityViewModel == null)
-                //            {
-                //                fc.CatchMaturityViewModel = new CatchMaturityViewModel(fc);
-                //            }
-                //            foreach (var cm in fc.CatchMaturityViewModel.CatchMaturityCollection.ToList())
-                //            {
-                //                fc.CatchMaturityViewModel.DeleteRecordFromRepo(cm.PK);
-                //            }
-
-                //            vu.VesselCatchViewModel.DeleteRecordFromRepo(fc.PK);
-
-                //        }
-                //        gu.VesselUnloadViewModel.DeleteRecordFromRepo(vu.PK);
-                //    }
-
-                //    lss.GearUnloadViewModel.DeleteRecordFromRepo(gu.PK);
-                //}
-                NSAPEntities.LandingSiteSamplingViewModel.DeleteRecordFromRepo(lss);
             }
             return true;
         }
-        public bool DeleteOrphanedOrphanedLandingSites(List<OrphanedLandingSite> orphanedLandingSites)
+
+        public Task<bool> DeleteLandingSiteSamplingsAsync(List<LandingSiteSampling> landingSiteSamplings)
         {
+
+            return Task.Run(() => DeleteLandingSiteSamplings(landingSiteSamplings));
+        }
+        public async Task<bool> DeleteOrphanedLandingSites(List<OrphanedLandingSite> orphanedLandingSites)
+        {
+            _deleted_vu_count = 0;
+            DeleteVesselUnloadFromOrphanedItem?.Invoke(
+                null,
+                new DeleteVesselUnloadFromOrphanEventArg { Intent = "start", VesselUnloadTotalCount = orphanedLandingSites.Sum(t => t.NumberOfLandings) }
+            );
+
+            int countDeleted = 0;
             _landingSiteSamplings = new List<LandingSiteSampling>();
             foreach (var ols in orphanedLandingSites)
             {
                 _landingSiteSamplings.AddRange(ols.LandingSiteSamplings);
+                if (await DeleteLandingSiteSamplingsAsync(_landingSiteSamplings))
+                {
+                    if (NSAPEntities.SummaryItemViewModel.DeleteOrphanedLandingSite(ols.LandingSiteName))
+                    {
+                        countDeleted++;
+                    }
+                }
+                _landingSiteSamplings.Clear();
             }
-            return DeleteLandingSiteSamplings(_landingSiteSamplings);
 
-        }
-
-        public bool DeleteOrphanedEnumerators(List<OrphanedEnumerator> orphanedEnumerators)
-        {
-            List<VesselUnload> vesselUnloads = new List<VesselUnload>();
-            foreach (var en in orphanedEnumerators)
+            if (countDeleted > 0)
             {
-                vesselUnloads.AddRange(en.SampledLandings);
+                DeleteVesselUnloadFromOrphanedItem?.Invoke(
+                    null,
+                    new DeleteVesselUnloadFromOrphanEventArg { Intent = "done" }
+                );
+                return true;
             }
-            return DeleteLandingSiteSamplings(_landingSiteSamplings);
+            else
+            {
+                return false;
+            }
+
         }
 
-        public bool DeleteOrphanedGears(List<OrphanedFishingGear> orphanedGears)
-        {
-            _gearUnloads = new List<GearUnload>();
-            foreach (var ols in orphanedGears)
-            {
-                _gearUnloads.AddRange(ols.GearUnloads);
-            }
-            return DeleteGearUnloads(_gearUnloads);
-        }
+
 
         public List<VesselUnload> GetVesselUnloads(List<GearUnload> gearUnloads)
         {
