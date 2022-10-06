@@ -33,10 +33,14 @@ namespace NSAP_ODK.Entities.Database
         {
             return Task.Run(() => UploadImportJsonResult());
         }
+        public static string TableWithUploadError { get; set; }
+        public static string UploadErrorMessage { get; set; }
+    
         public static bool UploadImportJsonResult()
         {
+            UploadErrorMessage = "";
             string currentTableName="";
-            Logger.Log($"In CreateTablesInAccess.UploadImportJsonResult");
+            //Logger.Log($"In CreateTablesInAccess.UploadImportJsonResult");
             bool success = false;
             string base_dir = AppDomain.CurrentDomain.BaseDirectory;
             string csv_file = $@"{base_dir}\temp.csv";
@@ -148,7 +152,9 @@ namespace NSAP_ODK.Entities.Database
                     }
                     catch (Exception ex)
                     {
-                        Logger.Log($"{ex.Message}\r\nTable uploaded is {currentTableName}\r\nWill attempt to roll back transaction");
+                        TableWithUploadError = currentTableName;
+                        UploadErrorMessage = ex.Message;
+                        Logger.Log($"{UploadErrorMessage}\r\nTable uploaded is {currentTableName}\r\nWill attempt to roll back transaction");
                         try
                         {
                             transaction.Rollback();

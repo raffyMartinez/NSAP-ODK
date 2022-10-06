@@ -631,6 +631,7 @@ namespace NSAP_ODK.Views
 
         private async Task ProcessJSONSNodes(bool updateXFormID = false, bool locateUnsavedFromServerDownload = false, bool updateLandingSites = false, bool locateMissingLSInfo = false)
         {
+            int nodeProcessedCount = 0;
             bool firstLoopDone = false;
             _jsonDateDownloadnode.IsExpanded = true;
             VesselUnloadServerRepository.CancelUpload = false;
@@ -666,15 +667,31 @@ namespace NSAP_ODK.Views
                         }
                         VesselUnloadServerRepository.DelayedSave = !Global.Settings.UsemySQL;
                         await Upload(verbose: !VesselUnloadServerRepository.DelayedSave);
-                        if (_downloadedJsonMetadata?.BatchSize != null && (int)_downloadedJsonMetadata.BatchSize <= VesselUnloadServerRepository.TotalUploadCount)
+                        //if (_downloadedJsonMetadata?.BatchSize != null && (int)_downloadedJsonMetadata.BatchSize <= VesselUnloadServerRepository.TotalUploadCount)
+                        //{
+                        //    await SaveUploadedJsonInLoop(isHistoryJson: false);
+                        //}
+                        //else if (VesselUnloadServerRepository.TotalUploadCount >= 5000)
+                        //{
+                        //    await SaveUploadedJsonInLoop(isHistoryJson: false);
+                        //}
+                        if (_downloadedJsonMetadata?.BatchSize != null )
                         {
-                            await SaveUploadedJsonInLoop(isHistoryJson: false);
+                            if ((int)_downloadedJsonMetadata.BatchSize <= VesselUnloadServerRepository.TotalUploadCount)
+                            {
+                                await SaveUploadedJsonInLoop(isHistoryJson: false);
+                            }
+                            //else if(VesselUnloadServerRepository.TotalUploadCount>0)
+                            //{
+                            //    NSAPEntities.SummaryItemViewModel.RefreshLastPrimaryLeys(!Global.Settings.UsemySQL);
+                            //}
                         }
                         else if (VesselUnloadServerRepository.TotalUploadCount >= 5000)
                         {
                             await SaveUploadedJsonInLoop(isHistoryJson: false);
                         }
                     }
+                    nodeProcessedCount++;
                 }
                 else
                 {
@@ -870,7 +887,8 @@ namespace NSAP_ODK.Views
 
                     break;
 
-                //when downloaded JSON of type download_all is selected
+                
+                    //when downloaded JSON of type download_all is selected
                 case "menuReuploadAll":
                     proceed = true;
                     ujhw = new UploadJSONHistoryOptionsWindow();
@@ -928,10 +946,10 @@ namespace NSAP_ODK.Views
                     if ((bool)ujhw.ShowDialog())
                     {
                         await ProcessJSONSNodes();
-                        await SaveUploadedJsonInLoop(closeWindow: true, verbose: true, isHistoryJson: false);
+                        await SaveUploadedJsonInLoop(closeWindow: true, verbose: true, isHistoryJson: false, allowDownloadAgain:true);
                     }
                     break;
-                case "menuUploadJson":
+                case "menuUploadJson": //when you want to upload json created in batch mode
                     ClearJSONTreeRootNodes();
                     _rootChildrenHeadersHashSet.Clear();
                     jsonFolder = GetJSONFolder(savedHistory: false);
@@ -1153,6 +1171,11 @@ namespace NSAP_ODK.Views
                             proceed = true;
 
                         }
+                        else if (CreateTablesInAccess.UploadErrorMessage.Length > 0)
+                        {
+                            string uploadError = $"{CreateTablesInAccess.TableWithUploadError}\r\n\r\n{CreateTablesInAccess.UploadErrorMessage}";
+                            MessageBox.Show(uploadError, "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                        }
                     }
                     if (proceed)
                     {
@@ -1174,7 +1197,7 @@ namespace NSAP_ODK.Views
                     }
                     if (allowDownloadAgain)
                     {
-                        msg += "\r\n\r\nDo you want to download again?";
+                        msg += "\r\n\r\nDo you want to upload again?";
                         MessageBoxResult r = MessageBox.Show(msg, "NSAP-ODK Database", MessageBoxButton.YesNo, MessageBoxImage.Information);
                         if (r == MessageBoxResult.No)
                         {

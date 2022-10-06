@@ -143,6 +143,10 @@ namespace NSAP_ODK.Entities.Database.FromJson
             //    _pk = NSAPEntities.CatchLengthViewModel.NextRecordNumber - 1;
             //}
             _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastLengthsPK;
+            if(_pk==0)
+            {
+
+            }
             RowIDSet = true;
         }
 
@@ -2246,6 +2250,10 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                     withCatchComp = landing.IncludeCatchComposition == "yes" ? true : false;
                                 }
 
+                                if(gear_unload.PK==29440 && landing.BoatUsedText=="1 Anna marie Garcia")
+                                {
+
+                                }
                                 VesselUnload vu = new VesselUnload
                                 {
                                     PK = landing.PK,

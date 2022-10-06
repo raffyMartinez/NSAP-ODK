@@ -264,6 +264,210 @@ namespace NSAP_ODK.Entities.Database
         }
         public bool DelayedSave { get; set; }
 
+        private LastPrimaryKeys RefreshFromDB(bool catchSubEntitiesOnly = false)
+        {
+            LastPrimaryKeys lpks = new LastPrimaryKeys();
+            if (Global.Settings.UsemySQL)
+            {
+                using (var con = new MySqlConnection(MySQLConnect.ConnectionString()))
+                {
+                    con.Open();
+                    if (!catchSubEntitiesOnly)
+                    {
+                        using (var cmd = con.CreateCommand())
+                        {
+                            cmd.CommandText = "SELECT max(v_unload_id) FROM dbo_vessel_unload;";
+                            try
+                            {
+                                lpks.LastVesselUnloadPK = (int)cmd.ExecuteScalar();
+                            }
+                            catch { }
+                        }
+
+                        using (var cmd = con.CreateCommand())
+                        {
+                            cmd.CommandText = "SELECT max(fg_grid_id) FROM dbo_fg_grid;";
+                            try
+                            {
+                                lpks.LastFishingGridsPK = (int)cmd.ExecuteScalar();
+                            }
+                            catch { }
+                        }
+
+                        using (var cmd = con.CreateCommand())
+                        {
+                            cmd.CommandText = "SELECT max(effort_row_id) FROM dbo_vessel_effort;";
+                            try
+                            {
+                                lpks.LastVesselEffortsPK = (int)cmd.ExecuteScalar();
+                            }
+                            catch { }
+                        }
+
+                        using (var cmd = con.CreateCommand())
+                        {
+                            cmd.CommandText = "SELECT max(gear_soak_id) FROM dbo_gear_soak;";
+                            try
+                            {
+                                lpks.LastGearSoaksPK = (int)cmd.ExecuteScalar();
+                            }
+                            catch { }
+                        }
+
+                        using (var cmd = con.CreateCommand())
+                        {
+                            cmd.CommandText = "SELECT max(catch_id) FROM dbo_vessel_catch;";
+                            try
+                            {
+                                lpks.LastVesselCatchPK = (int)cmd.ExecuteScalar();
+                            }
+                            catch { }
+                        }
+                    }
+
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = "SELECT max(catch_len_id) FROM dbo_catch_length;";
+                        try
+                        {
+                            lpks.LastLengthsPK = (int)cmd.ExecuteScalar();
+                        }
+                        catch { }
+                    }
+
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = "SELECT max(catch_maturity_id) FROM dbo_catch_maturity;";
+                        try
+                        {
+                            lpks.LastMaturityPK = (int)cmd.ExecuteScalar();
+                        }
+                        catch { }
+                    }
+
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = "SELECT max(catch_lf_id) FROM dbo_catch_len_freq;";
+                        try
+                        {
+                            lpks.LastLenFreqPK = (int)cmd.ExecuteScalar();
+                        }
+                        catch { }
+                    }
+
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = "SELECT max(catch_lw_id) FROM dbo_catch_len_wt;";
+                        try
+                        {
+                            lpks.LastLenWtPK = (int)cmd.ExecuteScalar();
+                        }
+                        catch { }
+                    }
+                }
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    con.Open();
+                    if (!catchSubEntitiesOnly)
+                    {
+                        using (var cmd = con.CreateCommand())
+                        {
+                            cmd.CommandText = "SELECT max(v_unload_id) FROM dbo_vessel_unload;";
+                            try
+                            {
+                                lpks.LastVesselUnloadPK = (int)cmd.ExecuteScalar();
+                            }
+                            catch { }
+                        }
+
+                        using (var cmd = con.CreateCommand())
+                        {
+                            cmd.CommandText = "SELECT max(fg_grid_id) FROM dbo_fg_grid;";
+                            try
+                            {
+                                lpks.LastFishingGridsPK = (int)cmd.ExecuteScalar();
+                            }
+                            catch { }
+                        }
+
+                        using (var cmd = con.CreateCommand())
+                        {
+                            cmd.CommandText = "SELECT max(effort_row_id) FROM dbo_vessel_effort;";
+                            try
+                            {
+                                lpks.LastVesselEffortsPK = (int)cmd.ExecuteScalar();
+                            }
+                            catch { }
+                        }
+
+                        using (var cmd = con.CreateCommand())
+                        {
+                            cmd.CommandText = "SELECT max(gear_soak_id) FROM dbo_gear_soak;";
+                            try
+                            {
+                                lpks.LastGearSoaksPK = (int)cmd.ExecuteScalar();
+                            }
+                            catch { }
+                        }
+
+                        using (var cmd = con.CreateCommand())
+                        {
+                            cmd.CommandText = "SELECT max(catch_id) FROM dbo_vessel_catch;";
+                            try
+                            {
+                                lpks.LastVesselCatchPK = (int)cmd.ExecuteScalar();
+                            }
+                            catch { }
+                        }
+                    }
+
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = "SELECT max(catch_len_id) FROM dbo_catch_len";
+                        try
+                        {
+                            lpks.LastLengthsPK = (int)cmd.ExecuteScalar();
+                        }
+                        catch { }
+                    }
+
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = "SELECT max(catch_maturity_id) FROM dbo_catch_maturity;";
+                        try
+                        {
+                            lpks.LastMaturityPK = (int)cmd.ExecuteScalar();
+                        }
+                        catch { }
+                    }
+
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = "SELECT max(catch_len_freq_id) FROM dbo_catch_len_freq;";
+                        try
+                        {
+                            lpks.LastLenFreqPK = (int)cmd.ExecuteScalar();
+                        }
+                        catch { }
+                    }
+
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = "SELECT max(catch_len_wt_id) FROM dbo_catch_len_wt;";
+                        try
+                        {
+                            lpks.LastLenWtPK = (int)cmd.ExecuteScalar();
+                        }
+                        catch { }
+                    }
+                }
+            }
+
+            return lpks;
+        }
         public LastPrimaryKeys GetLastPrimaryKeys(bool delayedSave = false)
         {
             LastPrimaryKeys lpks = new LastPrimaryKeys();
@@ -283,201 +487,211 @@ namespace NSAP_ODK.Entities.Database
                 {
                     lpks = GetLastPrimaryKeys();
                 }
+
+                if (lpks.LastLenFreqPK == 0 || lpks.LastLengthsPK == 0 || lpks.LastLenWtPK == 0 || lpks.LastMaturityPK == 0)
+                {
+                    var lpks1 = RefreshFromDB(catchSubEntitiesOnly: true);
+                    lpks.LastLenWtPK = lpks1.LastLenWtPK;
+                    lpks.LastLengthsPK = lpks1.LastLengthsPK;
+                    lpks.LastLenFreqPK = lpks1.LastLenFreqPK;
+                    lpks.LastMaturityPK = lpks1.LastMaturityPK;
+                }
             }
             else
             {
-                if (Global.Settings.UsemySQL)
-                {
-                    using (var con = new MySqlConnection(MySQLConnect.ConnectionString()))
-                    {
-                        con.Open();
-                        using (var cmd = con.CreateCommand())
-                        {
-                            cmd.CommandText = "SELECT max(v_unload_id) FROM dbo_vessel_unload;";
-                            try
-                            {
-                                lpks.LastVesselUnloadPK = (int)cmd.ExecuteScalar();
-                            }
-                            catch { }
-                        }
+                lpks = RefreshFromDB();
+                //if (Global.Settings.UsemySQL)
+                //{
+                //    using (var con = new MySqlConnection(MySQLConnect.ConnectionString()))
+                //    {
+                //        con.Open();
+                //        using (var cmd = con.CreateCommand())
+                //        {
+                //            cmd.CommandText = "SELECT max(v_unload_id) FROM dbo_vessel_unload;";
+                //            try
+                //            {
+                //                lpks.LastVesselUnloadPK = (int)cmd.ExecuteScalar();
+                //            }
+                //            catch { }
+                //        }
 
-                        using (var cmd = con.CreateCommand())
-                        {
-                            cmd.CommandText = "SELECT max(fg_grid_id) FROM dbo_fg_grid;";
-                            try
-                            {
-                                lpks.LastFishingGridsPK = (int)cmd.ExecuteScalar();
-                            }
-                            catch { }
-                        }
+                //        using (var cmd = con.CreateCommand())
+                //        {
+                //            cmd.CommandText = "SELECT max(fg_grid_id) FROM dbo_fg_grid;";
+                //            try
+                //            {
+                //                lpks.LastFishingGridsPK = (int)cmd.ExecuteScalar();
+                //            }
+                //            catch { }
+                //        }
 
-                        using (var cmd = con.CreateCommand())
-                        {
-                            cmd.CommandText = "SELECT max(effort_row_id) FROM dbo_vessel_effort;";
-                            try
-                            {
-                                lpks.LastVesselEffortsPK = (int)cmd.ExecuteScalar();
-                            }
-                            catch { }
-                        }
+                //        using (var cmd = con.CreateCommand())
+                //        {
+                //            cmd.CommandText = "SELECT max(effort_row_id) FROM dbo_vessel_effort;";
+                //            try
+                //            {
+                //                lpks.LastVesselEffortsPK = (int)cmd.ExecuteScalar();
+                //            }
+                //            catch { }
+                //        }
 
-                        using (var cmd = con.CreateCommand())
-                        {
-                            cmd.CommandText = "SELECT max(gear_soak_id) FROM dbo_gear_soak;";
-                            try
-                            {
-                                lpks.LastGearSoaksPK = (int)cmd.ExecuteScalar();
-                            }
-                            catch { }
-                        }
+                //        using (var cmd = con.CreateCommand())
+                //        {
+                //            cmd.CommandText = "SELECT max(gear_soak_id) FROM dbo_gear_soak;";
+                //            try
+                //            {
+                //                lpks.LastGearSoaksPK = (int)cmd.ExecuteScalar();
+                //            }
+                //            catch { }
+                //        }
 
-                        using (var cmd = con.CreateCommand())
-                        {
-                            cmd.CommandText = "SELECT max(catch_id) FROM dbo_vessel_catch;";
-                            try
-                            {
-                                lpks.LastVesselCatchPK = (int)cmd.ExecuteScalar();
-                            }
-                            catch { }
-                        }
+                //        using (var cmd = con.CreateCommand())
+                //        {
+                //            cmd.CommandText = "SELECT max(catch_id) FROM dbo_vessel_catch;";
+                //            try
+                //            {
+                //                lpks.LastVesselCatchPK = (int)cmd.ExecuteScalar();
+                //            }
+                //            catch { }
+                //        }
 
-                        using (var cmd = con.CreateCommand())
-                        {
-                            cmd.CommandText = "SELECT max(catch_len_id) FROM dbo_catch_length;";
-                            try
-                            {
-                                lpks.LastLengthsPK = (int)cmd.ExecuteScalar();
-                            }
-                            catch { }
-                        }
+                //        using (var cmd = con.CreateCommand())
+                //        {
+                //            cmd.CommandText = "SELECT max(catch_len_id) FROM dbo_catch_length;";
+                //            try
+                //            {
+                //                lpks.LastLengthsPK = (int)cmd.ExecuteScalar();
+                //            }
+                //            catch { }
+                //        }
 
-                        using (var cmd = con.CreateCommand())
-                        {
-                            cmd.CommandText = "SELECT max(catch_maturity_id) FROM dbo_catch_maturity;";
-                            try
-                            {
-                                lpks.LastMaturityPK = (int)cmd.ExecuteScalar();
-                            }
-                            catch { }
-                        }
+                //        using (var cmd = con.CreateCommand())
+                //        {
+                //            cmd.CommandText = "SELECT max(catch_maturity_id) FROM dbo_catch_maturity;";
+                //            try
+                //            {
+                //                lpks.LastMaturityPK = (int)cmd.ExecuteScalar();
+                //            }
+                //            catch { }
+                //        }
 
-                        using (var cmd = con.CreateCommand())
-                        {
-                            cmd.CommandText = "SELECT max(catch_lf_id) FROM dbo_catch_len_freq;";
-                            try
-                            {
-                                lpks.LastLenFreqPK = (int)cmd.ExecuteScalar();
-                            }
-                            catch { }
-                        }
+                //        using (var cmd = con.CreateCommand())
+                //        {
+                //            cmd.CommandText = "SELECT max(catch_lf_id) FROM dbo_catch_len_freq;";
+                //            try
+                //            {
+                //                lpks.LastLenFreqPK = (int)cmd.ExecuteScalar();
+                //            }
+                //            catch { }
+                //        }
 
-                        using (var cmd = con.CreateCommand())
-                        {
-                            cmd.CommandText = "SELECT max(catch_lw_id) FROM dbo_catch_len_wt;";
-                            try
-                            {
-                                lpks.LastLenWtPK = (int)cmd.ExecuteScalar();
-                            }
-                            catch { }
-                        }
-                    }
-                }
-                else
-                {
-                    using (var con = new OleDbConnection(Global.ConnectionString))
-                    {
-                        con.Open();
-                        using (var cmd = con.CreateCommand())
-                        {
-                            cmd.CommandText = "SELECT max(v_unload_id) FROM dbo_vessel_unload;";
-                            try
-                            {
-                                lpks.LastVesselUnloadPK = (int)cmd.ExecuteScalar();
-                            }
-                            catch { }
-                        }
+                //        using (var cmd = con.CreateCommand())
+                //        {
+                //            cmd.CommandText = "SELECT max(catch_lw_id) FROM dbo_catch_len_wt;";
+                //            try
+                //            {
+                //                lpks.LastLenWtPK = (int)cmd.ExecuteScalar();
+                //            }
+                //            catch { }
+                //        }
+                //    }
+                //}
+                //else
+                //{
+                //    using (var con = new OleDbConnection(Global.ConnectionString))
+                //    {
+                //        con.Open();
+                //        using (var cmd = con.CreateCommand())
+                //        {
+                //            cmd.CommandText = "SELECT max(v_unload_id) FROM dbo_vessel_unload;";
+                //            try
+                //            {
+                //                lpks.LastVesselUnloadPK = (int)cmd.ExecuteScalar();
+                //            }
+                //            catch { }
+                //        }
 
-                        using (var cmd = con.CreateCommand())
-                        {
-                            cmd.CommandText = "SELECT max(fg_grid_id) FROM dbo_fg_grid;";
-                            try
-                            {
-                                lpks.LastFishingGridsPK = (int)cmd.ExecuteScalar();
-                            }
-                            catch { }
-                        }
+                //        using (var cmd = con.CreateCommand())
+                //        {
+                //            cmd.CommandText = "SELECT max(fg_grid_id) FROM dbo_fg_grid;";
+                //            try
+                //            {
+                //                lpks.LastFishingGridsPK = (int)cmd.ExecuteScalar();
+                //            }
+                //            catch { }
+                //        }
 
-                        using (var cmd = con.CreateCommand())
-                        {
-                            cmd.CommandText = "SELECT max(effort_row_id) FROM dbo_vessel_effort;";
-                            try
-                            {
-                                lpks.LastVesselEffortsPK = (int)cmd.ExecuteScalar();
-                            }
-                            catch { }
-                        }
+                //        using (var cmd = con.CreateCommand())
+                //        {
+                //            cmd.CommandText = "SELECT max(effort_row_id) FROM dbo_vessel_effort;";
+                //            try
+                //            {
+                //                lpks.LastVesselEffortsPK = (int)cmd.ExecuteScalar();
+                //            }
+                //            catch { }
+                //        }
 
-                        using (var cmd = con.CreateCommand())
-                        {
-                            cmd.CommandText = "SELECT max(gear_soak_id) FROM dbo_gear_soak;";
-                            try
-                            {
-                                lpks.LastGearSoaksPK = (int)cmd.ExecuteScalar();
-                            }
-                            catch { }
-                        }
+                //        using (var cmd = con.CreateCommand())
+                //        {
+                //            cmd.CommandText = "SELECT max(gear_soak_id) FROM dbo_gear_soak;";
+                //            try
+                //            {
+                //                lpks.LastGearSoaksPK = (int)cmd.ExecuteScalar();
+                //            }
+                //            catch { }
+                //        }
 
-                        using (var cmd = con.CreateCommand())
-                        {
-                            cmd.CommandText = "SELECT max(catch_id) FROM dbo_vessel_catch;";
-                            try
-                            {
-                                lpks.LastVesselCatchPK = (int)cmd.ExecuteScalar();
-                            }
-                            catch { }
-                        }
+                //        using (var cmd = con.CreateCommand())
+                //        {
+                //            cmd.CommandText = "SELECT max(catch_id) FROM dbo_vessel_catch;";
+                //            try
+                //            {
+                //                lpks.LastVesselCatchPK = (int)cmd.ExecuteScalar();
+                //            }
+                //            catch { }
+                //        }
 
-                        using (var cmd = con.CreateCommand())
-                        {
-                            cmd.CommandText = "SELECT max(catch_len_id) FROM dbo_catch_len";
-                            try
-                            {
-                                lpks.LastLengthsPK = (int)cmd.ExecuteScalar();
-                            }
-                            catch { }
-                        }
+                //        using (var cmd = con.CreateCommand())
+                //        {
+                //            cmd.CommandText = "SELECT max(catch_len_id) FROM dbo_catch_len";
+                //            try
+                //            {
+                //                lpks.LastLengthsPK = (int)cmd.ExecuteScalar();
+                //            }
+                //            catch { }
+                //        }
 
-                        using (var cmd = con.CreateCommand())
-                        {
-                            cmd.CommandText = "SELECT max(catch_maturity_id) FROM dbo_catch_maturity;";
-                            try
-                            {
-                                lpks.LastMaturityPK = (int)cmd.ExecuteScalar();
-                            }
-                            catch { }
-                        }
+                //        using (var cmd = con.CreateCommand())
+                //        {
+                //            cmd.CommandText = "SELECT max(catch_maturity_id) FROM dbo_catch_maturity;";
+                //            try
+                //            {
+                //                lpks.LastMaturityPK = (int)cmd.ExecuteScalar();
+                //            }
+                //            catch { }
+                //        }
 
-                        using (var cmd = con.CreateCommand())
-                        {
-                            cmd.CommandText = "SELECT max(catch_len_freq_id) FROM dbo_catch_len_freq;";
-                            try
-                            {
-                                lpks.LastLenFreqPK = (int)cmd.ExecuteScalar();
-                            }
-                            catch { }
-                        }
+                //        using (var cmd = con.CreateCommand())
+                //        {
+                //            cmd.CommandText = "SELECT max(catch_len_freq_id) FROM dbo_catch_len_freq;";
+                //            try
+                //            {
+                //                lpks.LastLenFreqPK = (int)cmd.ExecuteScalar();
+                //            }
+                //            catch { }
+                //        }
 
-                        using (var cmd = con.CreateCommand())
-                        {
-                            cmd.CommandText = "SELECT max(catch_len_wt_id) FROM dbo_catch_len_wt;";
-                            try
-                            {
-                                lpks.LastLenWtPK = (int)cmd.ExecuteScalar();
-                            }
-                            catch { }
-                        }
-                    }
-                }
+                //        using (var cmd = con.CreateCommand())
+                //        {
+                //            cmd.CommandText = "SELECT max(catch_len_wt_id) FROM dbo_catch_len_wt;";
+                //            try
+                //            {
+                //                lpks.LastLenWtPK = (int)cmd.ExecuteScalar();
+                //            }
+                //            catch { }
+                //        }
+                //    }
+                //}
             }
             return lpks;
         }
@@ -902,7 +1116,7 @@ namespace NSAP_ODK.Entities.Database
                                 {
                                     gu_catch = (double)dr["catch"];
                                 }
-                                if(dr["sp_twsp_count"] != DBNull.Value)
+                                if (dr["sp_twsp_count"] != DBNull.Value)
                                 {
                                     count_twsp = (int)dr["sp_twsp_count"];
                                 }

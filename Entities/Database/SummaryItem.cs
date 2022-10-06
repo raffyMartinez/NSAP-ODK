@@ -276,14 +276,17 @@ namespace NSAP_ODK.Entities.Database
             get
             {
                 string code = "";
-                switch (SectorCode.ToLower())
+                if (SectorCode != null)
                 {
-                    case "m":
-                        code = "Municipal";
-                        break;
-                    case "c":
-                        code = "Commercial";
-                        break;
+                    switch (SectorCode.ToLower())
+                    {
+                        case "m":
+                            code = "Municipal";
+                            break;
+                        case "c":
+                            code = "Commercial";
+                            break;
+                    }
                 }
                 return code;
             }

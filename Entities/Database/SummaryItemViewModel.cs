@@ -1242,9 +1242,16 @@ namespace NSAP_ODK.Entities.Database
             foreach (var si in SummaryItemCollection.Where(t => t.GearText == gearUsedText && t.GearCode?.Length == 0).GroupBy(t => t.SamplingDayID))
             {
                 var lss = NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(si.Key);
-                foreach (GearUnload gu in lss.GearUnloadViewModel.getGearUnloads(gearUsedText))
+                if (lss != null)
                 {
-                    gearUnloads.Add(gu);
+                    if (lss.GearUnloadViewModel == null)
+                    {
+                        lss.GearUnloadViewModel = new GearUnloadViewModel(lss);
+                    }
+                    foreach (GearUnload gu in lss.GearUnloadViewModel.getGearUnloads(gearUsedText))
+                    {
+                        gearUnloads.Add(gu);
+                    }
                 }
             }
             return gearUnloads;
@@ -2042,9 +2049,9 @@ namespace NSAP_ODK.Entities.Database
                     deletedCount++;
                 }
             }
-            if( deletedCount == itemCount)
+            if (deletedCount == itemCount)
             {
-                _orphanedEnumerators =  GetOrphanedEnumerators();
+                _orphanedEnumerators = GetOrphanedEnumerators();
                 return true;
             }
             else

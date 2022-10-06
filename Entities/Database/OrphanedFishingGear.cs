@@ -25,7 +25,19 @@ namespace NSAP_ODK.Entities.Database
             } 
         }
 
-        public FMA FMA { get { return GearUnloads[0].Parent.FMA; } }
+        public FMA FMA { 
+            get 
+            {
+                if (GearUnloads.Count == 0)
+                {
+                    return null;
+                }
+                else
+                {
+                    return GearUnloads[0].Parent.FMA;
+                }
+            } 
+        }
 
         public FishingGround FishingGround { get { return GearUnloads[0].Parent.FishingGround; } }
 
