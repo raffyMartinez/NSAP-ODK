@@ -94,7 +94,7 @@ namespace NSAP_ODK.Entities.Database
 
         private static bool SetCSV(CatchLenFreq item)
         {
-            _csv.AppendLine($"{item.PK},{item.Parent.PK},{item.LengthClass},{item.Frequency}");
+            _csv.AppendLine($"{item.PK},{item.Parent.PK},{item.LengthClass},{item.Frequency},\"{item.Sex}\"");
             return true;
         }
 

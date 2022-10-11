@@ -36,6 +36,8 @@ namespace NSAP_ODK.Entities.Database
 
         public double LengthClass { get; set; }
         public int Frequency { get; set; }
+
+        public string Sex { get; set; }
         public VesselCatch Parent
         {
             set { _parent = value; }

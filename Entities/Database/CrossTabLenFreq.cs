@@ -11,5 +11,7 @@ namespace NSAP_ODK.Entities.Database
         public CrossTabCommon CrossTabCommon { get; set; }
         public double Length { get; set; }
         public int Freq { get; set; }
+
+        public string Sex { get; set; }
     }
 }

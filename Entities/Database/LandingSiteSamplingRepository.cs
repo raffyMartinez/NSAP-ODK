@@ -39,6 +39,26 @@ namespace NSAP_ODK.Entities.Database
                                 proceed = true;
                             }
 
+
+                            //check and and sex column for length table
+                            if(proceed)
+                            {
+                                cols = CreateTablesInAccess.GetColumnNames("dbo_catch_len");
+                                proceed = cols.Contains("sex") || CatchLengthRepository.AddFieldToTable("sex");
+                            }
+
+                            if(proceed)
+                            {
+                                cols = CreateTablesInAccess.GetColumnNames("dbo_catch_len_freq");
+                                proceed = cols.Contains("sex") || CatchLenFreqRepository.AddFieldToTable("sex");
+                            }
+
+                            if(proceed)
+                            {
+                                cols = CreateTablesInAccess.GetColumnNames("dbo_catch_len_wt");
+                                proceed = cols.Contains("sex") || CatchLenWeightRepository.AddFieldToTable("sex");
+                            }
+
                         }
                     }
                 }

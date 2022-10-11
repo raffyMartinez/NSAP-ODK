@@ -96,7 +96,7 @@ namespace NSAP_ODK.Views
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Species", Binding = new Binding("CrossTabCommon.SN") });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Species weight", Binding = new Binding("CrossTabCommon.SpeciesWeight") });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "TWS", Binding = new Binding("CrossTabCommon.TWS") });
-            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight unit", Binding = new Binding("CrossTabCommon.WeightUnit") });
+            //dataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight unit", Binding = new Binding("CrossTabCommon.WeightUnit") });
 
 
         }
@@ -155,23 +155,28 @@ namespace NSAP_ODK.Views
                         dataGrid.DataContext = CrossTabManager.CrossTabLenFreqs;
                         dataGrid.Columns.Add(new DataGridTextColumn { Header = "Length", Binding = new Binding("Length") });
                         dataGrid.Columns.Add(new DataGridTextColumn { Header = "Frequency", Binding = new Binding("Freq") });
+                        dataGrid.Columns.Add(new DataGridTextColumn { Header = "Sex", Binding = new Binding("Sex") });
                         mainLabel.Content = "Crosstab between length frequency of catch and fishing effort";
                         break;
                     case "len":
                         dataGrid.DataContext = CrossTabManager.CrossTabLengths;
                         dataGrid.Columns.Add(new DataGridTextColumn { Header = "Length", Binding = new Binding("Length") });
+                        dataGrid.Columns.Add(new DataGridTextColumn { Header = "Sex", Binding = new Binding("Sex") });
                         mainLabel.Content = "Crosstab between length of catch and fishing effort";
                         break;
                     case "len_wt":
                         dataGrid.DataContext = CrossTabManager.CrossTabLengthWeights;
                         dataGrid.Columns.Add(new DataGridTextColumn { Header = "Length", Binding = new Binding("Length") });
                         dataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("Weight") });
+                        dataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight unit", Binding = new Binding("CrossTabCommon.WeightUnit") });
+                        dataGrid.Columns.Add(new DataGridTextColumn { Header = "Sex", Binding = new Binding("Sex") });
                         mainLabel.Content = "Crosstab between length/weight of catch and fishing effort";
                         break;
                     case "maturity":
                         dataGrid.DataContext = CrossTabManager.CrossTabMaturities;
                         dataGrid.Columns.Add(new DataGridTextColumn { Header = "Length", Binding = new Binding("Length") });
                         dataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("Weight") });
+                        dataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight unit", Binding = new Binding("CrossTabCommon.WeightUnit") });
                         dataGrid.Columns.Add(new DataGridTextColumn { Header = "Sex", Binding = new Binding("Sex") });
                         dataGrid.Columns.Add(new DataGridTextColumn { Header = "Maturity", Binding = new Binding("MaturityStage") });
                         dataGrid.Columns.Add(new DataGridTextColumn { Header = "Gonad weight", Binding = new Binding("GonadWeight") });

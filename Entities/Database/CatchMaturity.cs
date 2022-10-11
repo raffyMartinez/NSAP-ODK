@@ -8,7 +8,7 @@ namespace NSAP_ODK.Entities.Database
 {
     public class CatchMaturityFlattened
     {
-        public  CatchMaturityFlattened(CatchMaturity cm)
+        public CatchMaturityFlattened(CatchMaturity cm)
         {
 
             ID = cm.PK;
@@ -32,6 +32,7 @@ namespace NSAP_ODK.Entities.Database
         public string Gear { get; set; }
         public double? Length { get; set; }
         public double? Weight { get; set; }
+
         public string Sex { get; set; }
 
         public string Maturity { get; set; }
@@ -57,21 +58,21 @@ namespace NSAP_ODK.Entities.Database
 
 
 
-        public string Sex 
+        public string Sex
         {
             get
             {
                 string sex;
-                switch(SexCode)
+                switch (SexCode)
                 {
                     case "m":
-                        sex =  "Male";
+                        sex = "Male";
                         break;
                     case "f":
                         sex = "Female";
                         break;
                     case "j":
-                        sex= "Juvenile";
+                        sex = "Juvenile";
                         break;
                     default:
                         sex = "";
@@ -99,18 +100,18 @@ namespace NSAP_ODK.Entities.Database
                     default:
                         gutContent = "";
                         break;
-                        
+
 
                 }
                 return gutContent;
             }
         }
-        public string Maturity 
+        public string Maturity
         {
             get
             {
                 string maturity;
-                switch(MaturityCode)
+                switch (MaturityCode)
                 {
                     case "pr":
                         maturity = "Premature";
@@ -148,7 +149,6 @@ namespace NSAP_ODK.Entities.Database
                 return maturity;
             }
         }
-
         public string GutContentCode { get; set; }
         public string MaturityCode { get; set; }
 

@@ -131,7 +131,7 @@ namespace NSAP_ODK.Entities.Database
                     foreach (var clf in vc.ListCatchLenFreq)
                     {
                         ctc = new CrossTabCommon(clf);
-                        _crossTabLenFreqs.Add(new CrossTabLenFreq { CrossTabCommon = ctc, Length = clf.LengthClass, Freq = clf.Frequency });
+                        _crossTabLenFreqs.Add(new CrossTabLenFreq { CrossTabCommon = ctc, Length = clf.LengthClass, Freq = clf.Frequency, Sex = clf.Sex });
                     }
 
                     foreach (var cm in vc.ListCatchMaturity)
@@ -142,6 +142,7 @@ namespace NSAP_ODK.Entities.Database
                             CrossTabCommon = ctc,
                             Length = cm.Length,
                             Weight = cm.Weight,
+                            //WeightUnit = ctc.WeightUnit,
                             Sex = cm.Sex,
                             MaturityStage = cm.Maturity,
                             GutContent = cm.GutContentClassification,
@@ -152,7 +153,7 @@ namespace NSAP_ODK.Entities.Database
                     foreach (var cl in vc.ListCatchLength)
                     {
                         ctc = new CrossTabCommon(cl);
-                        _crossTabLengths.Add(new CrossTabLength { CrossTabCommon = ctc, Length = cl.Length });
+                        _crossTabLengths.Add(new CrossTabLength { CrossTabCommon = ctc, Length = cl.Length, Sex = cl.Sex });
                     }
 
                     foreach (var clw in vc.ListCatchLengthWeight)
@@ -162,6 +163,8 @@ namespace NSAP_ODK.Entities.Database
                         {
                             Length = clw.Length,
                             Weight = clw.Weight,
+                            //WeightUnit = ctc.WeightUnit,
+                            Sex = clw.Sex,
                             CrossTabCommon = ctc,
                         });
                     }
@@ -681,9 +684,13 @@ namespace NSAP_ODK.Entities.Database
                     }
                     else
                     {
-                        table.Columns.Add(prop.Name, Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType);
+                        if (prop.Name != "WeightUnit")
+                        {
+                            table.Columns.Add(prop.Name, Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType);
+                        }
                     }
                 }
+
                 foreach (T item in data)
                 {
                     DataRow row = table.NewRow();
@@ -733,16 +740,19 @@ namespace NSAP_ODK.Entities.Database
                                         case "SpeciesWeight":
                                             row[ptd.Name] = ctc.SpeciesWeight;
                                             break;
-                                        //case "TWS":
-                                        //    if (ctc.TWS == null)
-                                        //    {
-                                        //        row[ptd.Name] = DBNull.Value;
-                                        //    }
-                                        //    else
-                                        //    {
-                                        //        row[ptd.Name] = (double)ctc.TWS;
-                                        //    }
-                                        //    break;
+                                        case "WeightUnit":
+                                            row[ptd.Name] = ctc.WeightUnit;
+                                            break;
+                                            //case "TWS":
+                                            //    if (ctc.TWS == null)
+                                            //    {
+                                            //        row[ptd.Name] = DBNull.Value;
+                                            //    }
+                                            //    else
+                                            //    {
+                                            //        row[ptd.Name] = (double)ctc.TWS;
+                                            //    }
+                                            //    break;
                                     }
                                 }
                             }
@@ -757,6 +767,10 @@ namespace NSAP_ODK.Entities.Database
                                     {
                                         row[prop.Name] = (item as CrossTabLength).Length;
                                     }
+                                    else if (prop.Name == "Sex")
+                                    {
+                                        row[prop.Name] = (item as CrossTabLength).Sex;
+                                    }
                                     break;
                                 case "CrossTabLengthWeight":
                                     switch (prop.Name)
@@ -766,6 +780,12 @@ namespace NSAP_ODK.Entities.Database
                                             break;
                                         case "Weight":
                                             row[prop.Name] = (item as CrossTabLengthWeight).Weight;
+                                            break;
+                                        //case "WeightUnit":
+                                        //    row[prop.Name] = (item as CrossTabLengthWeight).WeightUnit;
+                                        //    break;
+                                        case "Sex":
+                                            row[prop.Name] = (item as CrossTabLengthWeight).Sex;
                                             break;
                                     }
 
@@ -779,6 +799,9 @@ namespace NSAP_ODK.Entities.Database
                                         case "Frequency":
 
                                             row[prop.Name] = (item as CrossTabLenFreq).Freq;
+                                            break;
+                                        case "Sex":
+                                            row[prop.Name] = (item as CrossTabLenFreq).Sex;
                                             break;
                                     }
                                     break;
@@ -807,6 +830,9 @@ namespace NSAP_ODK.Entities.Database
                                                 row[prop.Name] = wt;
                                             }
                                             break;
+                                        //case "WeightUnit":
+                                        //    row[prop.Name] = (item as CrossTabLengthWeight).WeightUnit;
+                                        //    break;
                                         case "Sex":
                                             row[prop.Name] = (item as CrossTabMaturity)?.Sex;
                                             break;

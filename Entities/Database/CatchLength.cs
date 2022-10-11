@@ -28,6 +28,8 @@ namespace NSAP_ODK.Entities.Database
     public class CatchLength
     {
         private VesselCatch _parent;
+
+        public string Sex { get; set; }
         public int PK { get; set; }
 
         public bool DelayedSave { get; set; }

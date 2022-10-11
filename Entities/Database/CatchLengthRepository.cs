@@ -18,6 +18,36 @@ namespace NSAP_ODK.Entities.Database
         {
             CatchLengths = getCatchLengths(vc);
         }
+
+        public static bool AddFieldToTable(string fieldName)
+        {
+            bool success = false;
+            string sql = "";
+            switch (fieldName)
+            {
+                case "sex":
+                    sql = "ALTER TABLE dbo_catch_len ADD COLUMN sex varchar(2)";
+                    break;
+            }
+            using (var con = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    con.Open();
+                    cmd.CommandText = sql;
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        success = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
         public CatchLengthRepository(bool isNew=false)
         {
             if (!isNew)
@@ -117,6 +147,7 @@ namespace NSAP_ODK.Entities.Database
                                 item.PK = (int)dr["catch_len_id"];
                                 item.VesselCatchID = (int)dr["catch_id"];
                                 item.Length = (double)dr["length"];
+                                item.Sex = dr["sex"].ToString();
                                 thisList.Add(item);
                             }
 
@@ -172,12 +203,13 @@ namespace NSAP_ODK.Entities.Database
                 using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
                     conn.Open();
-                    var sql = "Insert into dbo_catch_len(catch_len_id, catch_id, length) Values (?,?,?)";
+                    var sql = "Insert into dbo_catch_len(catch_len_id, catch_id, length, sex) Values (?,?,?,?)";
                     using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
                         update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
                         update.Parameters.Add("@catch_id", OleDbType.Integer).Value = item.Parent.PK;
                         update.Parameters.Add("@length", OleDbType.Double).Value = item.Length;
+                        update.Parameters.Add("@sex", OleDbType.VarChar).Value = item.Sex;
                         try
                         {
                             success = update.ExecuteNonQuery() > 0;
@@ -247,11 +279,13 @@ namespace NSAP_ODK.Entities.Database
 
                         update.Parameters.Add("@catch_id", OleDbType.Integer).Value = item.Parent.PK;
                         update.Parameters.Add("@length", OleDbType.Double).Value = item.Length;
+                        update.Parameters.Add("@sex", OleDbType.VarChar).Value = item.Sex;
                         update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
 
                         update.CommandText = @"Update dbo_catch_len set
                                         catch_id=@catch_id,
-                                        length = @length
+                                        length = @length,
+                                        sex=@sex
                                         WHERE catch_len_id = @id";
 
                         try

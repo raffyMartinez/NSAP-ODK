@@ -67,6 +67,9 @@ namespace NSAP_ODK.Entities.Database.FromJson
         public double Weight { get; set; }
         [JsonProperty("catch_comp_group/catch_composition_repeat/len_wt_repeat/len_wt_group/len_lenwt")]
         public double Length { get; set; }
+
+        [JsonProperty("catch_comp_group/catch_composition_repeat/len_wt_repeat/len_wt_group/sex_lw")]
+        public string Sex { get; set; }
     }
 
     public class CatchCompGroupCatchCompositionRepeatLengthFreqRepeat
@@ -120,6 +123,9 @@ namespace NSAP_ODK.Entities.Database.FromJson
         public double LengthClass { get; set; }
         [JsonProperty("catch_comp_group/catch_composition_repeat/length_freq_repeat/group_LF/freq")]
         public int Frequency { get; set; }
+
+        [JsonProperty("catch_comp_group/catch_composition_repeat/length_freq_repeat/group_LF/sex_lf")]
+        public string Sex { get; set; }
     }
 
     public class CatchCompGroupCatchCompositionRepeatLengthListRepeat
@@ -174,6 +180,9 @@ namespace NSAP_ODK.Entities.Database.FromJson
         public int ParentID { get { return Parent.PK; } }
         [JsonProperty("catch_comp_group/catch_composition_repeat/length_list_repeat/length")]
         public double Length { get; set; }
+
+        [JsonProperty("catch_comp_group/catch_composition_repeat/length_list_repeat/sex_l")]
+        public string Sex { get; set; }
     }
     public class CatchCompGroupCatchCompositionRepeatGmsRepeatGroup
     {
@@ -2444,6 +2453,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                                 VesselCatchID = vc.PK,
                                                                 LengthClass = lf.LengthClass,
                                                                 Frequency = lf.Frequency,
+                                                                Sex=lf.Sex,    
                                                                 DelayedSave = DelayedSave
                                                             };
                                                             if (vc.CatchLenFreqViewModel.AddRecordToRepo(clf))
@@ -2472,6 +2482,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                                 VesselCatchID = vc.PK,
                                                                 Length = lw.Length,
                                                                 Weight = lw.Weight,
+                                                                Sex = lw.Sex,
                                                                 DelayedSave = DelayedSave
                                                             };
                                                             if (vc.CatchLengthWeightViewModel.AddRecordToRepo(clw))
@@ -2500,6 +2511,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                                 Parent = vc,
                                                                 VesselCatchID = vc.PK,
                                                                 Length = l.Length,
+                                                                Sex =l.Sex,
                                                                 DelayedSave = DelayedSave
 
                                                             };

@@ -6,10 +6,14 @@ using System.Threading.Tasks;
 
 namespace NSAP_ODK.Entities.Database
 {
-   public class CrossTabLengthWeight
+    public class CrossTabLengthWeight
     {
         public CrossTabCommon CrossTabCommon { get; set; }
         public double Length { get; set; }
         public double Weight { get; set; }
+
+        public string Sex { get; set; }
+
+        public string WeightUnit { get; set; }
     }
 }

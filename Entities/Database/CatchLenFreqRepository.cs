@@ -18,6 +18,36 @@ namespace NSAP_ODK.Entities.Database
         {
             CatchLenFreqs = getCatchLenFreqs(vc);
         }
+
+        public static bool AddFieldToTable(string fieldName)
+        {
+            bool success = false;
+            string sql = "";
+            switch (fieldName)
+            {
+                case "sex":
+                    sql = "ALTER TABLE dbo_catch_len_freq ADD COLUMN sex varchar(2)";
+                    break;
+            }
+            using (var con = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    con.Open();
+                    cmd.CommandText = sql;
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        success = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
         public CatchLenFreqRepository(bool isNew=false)
         {
             if (!isNew)
@@ -89,6 +119,7 @@ namespace NSAP_ODK.Entities.Database
                                 item.VesselCatchID = (int)dr["catch_id"];
                                 item.LengthClass = (double)dr["len_class"];
                                 item.Frequency = (int)dr["freq"];
+                                item.Sex = dr["sex"].ToString();
                                 thisList.Add(item);
                             }
 
@@ -115,8 +146,9 @@ namespace NSAP_ODK.Entities.Database
                     update.Parameters.Add("@catch_id", MySqlDbType.Int32).Value = item.Parent.PK;
                     update.Parameters.Add("@len_class", MySqlDbType.Double).Value = item.LengthClass;
                     update.Parameters.Add("@freq", MySqlDbType.Int32).Value = item.Frequency;
+                    update.Parameters.Add("@sex", MySqlDbType.VarChar).Value = item.Sex;
                     update.CommandText = @"Insert into dbo_catch_len_freq(catch_lf_id, catch_id, length,freq) 
-                                        Values (@id,@catch_id,@len_class,@freq)";
+                                        Values (@id,@catch_id,@len_class,@freq,@sex)";
                     try
                     {
                         conn.Open();
@@ -146,13 +178,14 @@ namespace NSAP_ODK.Entities.Database
                 using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
                     conn.Open();
-                    var sql = "Insert into dbo_catch_len_freq(catch_len_freq_id, catch_id, len_class,freq) Values (?,?,?,?)";
+                    var sql = "Insert into dbo_catch_len_freq(catch_len_freq_id, catch_id, len_class,freq,sex) Values (?,?,?,?,?)";
                     using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
                         update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
                         update.Parameters.Add("@catch_id", OleDbType.Integer).Value = item.Parent.PK;
                         update.Parameters.Add("@len_class", OleDbType.Double).Value = item.LengthClass;
                         update.Parameters.Add("@freq", OleDbType.Integer).Value = item.Frequency;
+                        update.Parameters.Add("@sex", OleDbType.VarChar).Value = item.Sex;
                         try
                         {
                             success = update.ExecuteNonQuery() > 0;
@@ -211,12 +244,14 @@ namespace NSAP_ODK.Entities.Database
                     update.Parameters.Add("@catch_id", MySqlDbType.Int32).Value = item.Parent.PK;
                     update.Parameters.Add("@len_class", MySqlDbType.Double).Value = item.LengthClass;
                     update.Parameters.Add("@freq", MySqlDbType.Int32).Value = item.Frequency;
+                    update.Parameters.Add("@sex", MySqlDbType.VarChar).Value = item.Sex;
                     update.Parameters.Add("@id", MySqlDbType.Int32).Value = item.PK;
 
                     update.CommandText = @"Update dbo_catch_len_freq set
                                         catch_id=@catch_id,
                                         length = @len_class,
-                                        freq = @freq
+                                        freq = @freq,
+                                        sex=@sex
                                         WHERE catch_lf_id = @id";
 
                     try
@@ -255,12 +290,14 @@ namespace NSAP_ODK.Entities.Database
                         update.Parameters.Add("@catch_id", OleDbType.Integer).Value = item.Parent.PK;
                         update.Parameters.Add("@len_class", OleDbType.Double).Value = item.LengthClass;
                         update.Parameters.Add("@freq", OleDbType.Integer).Value = item.Frequency;
+                        update.Parameters.Add("@sex", OleDbType.VarChar).Value = item.Sex;
                         update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
 
                         update.CommandText = @"Update dbo_catch_len_freq set
                                         catch_id=@catch_id,
                                         len_class = @len_class,
-                                        freq = @freq
+                                        freq = @freq,
+                                        sex = @sex
                                         WHERE catch_len_freq_id = @id";
 
                         try

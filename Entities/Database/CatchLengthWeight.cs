@@ -29,13 +29,16 @@ namespace NSAP_ODK.Entities.Database
     public class CatchLengthWeight
     {
         private VesselCatch _parent;
+
+        public string Sex { get; set; }
         public int PK { get; set; }
 
         public bool DelayedSave { get; set; }
         public int VesselCatchID { get; set; }
 
         public double Length { get; set; }
-        public double Weight{ get; set; }
+        public double Weight { get; set; }
+
         public VesselCatch Parent
         {
             set { _parent = value; }

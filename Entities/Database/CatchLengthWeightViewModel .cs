@@ -89,7 +89,7 @@ namespace NSAP_ODK.Entities.Database
 
         private static bool SetCSV(CatchLengthWeight item)
         {
-            _csv.AppendLine($"{item.PK},{item.Parent.PK},{item.Length},{item.Weight}");
+            _csv.AppendLine($"{item.PK},{item.Parent.PK},{item.Length},{item.Weight},\"{item.Sex}\"");
             return true;
         }
 
