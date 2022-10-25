@@ -22,6 +22,25 @@ namespace NSAP_ODK.Entities
 
         public List<Gear> Gears { get; set; }
 
+        public string NameToUse(bool addPrefix = true)
+        {
+            if (Name == null || Name.Length == 0)
+            {
+                return NameOfOwner;
+            }
+            else
+            {
+                if (addPrefix)
+                {
+                    return $"F/V {Name}";
+                }
+                else
+                {
+                    return Name;
+                }
+            }
+        }
+
         public override string ToString()
         {
             if (Name == null || Name.Length == 0)

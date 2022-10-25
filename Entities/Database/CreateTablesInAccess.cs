@@ -36,6 +36,11 @@ namespace NSAP_ODK.Entities.Database
         public static string TableWithUploadError { get; set; }
         public static string UploadErrorMessage { get; set; }
     
+
+        /// <summary>
+        /// inserts data into the database in batch mode
+        /// </summary>
+        /// <returns></returns>
         public static bool UploadImportJsonResult()
         {
             UploadErrorMessage = "";

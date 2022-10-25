@@ -33,7 +33,31 @@ namespace NSAP_ODK.Entities.Database
         //    }
         //}
 
+        public string GetSector()
+        {
+            if (VesselUnloadCollection.Count == 0)
+            {
+                return "n/a";
+            }
+            else
+            {
+                HashSet<string> sectors = new HashSet<string>();
+                foreach (var item in VesselUnloadCollection)
+                {
+                    sectors.Add(item.SectorCode);
+                }
+                if (sectors.Count == 1)
+                {
+                    return sectors.First();
+                }
+                else
+                {
+                    return "both";
+                }
+            }
 
+        }
+        public bool IgnoreCollectionChange { get; set; }
         public static int CurrentIDNumber { get; set; }
         public bool UpdateUnloadStats(VesselUnload vu)
         {
@@ -839,7 +863,10 @@ namespace NSAP_ODK.Entities.Database
 
         private void VesselUnloadCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            if (IgnoreCollectionChange) return;
+
             EditSucceeded = false;
+
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:

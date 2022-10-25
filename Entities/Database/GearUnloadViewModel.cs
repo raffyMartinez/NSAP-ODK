@@ -31,10 +31,10 @@ namespace NSAP_ODK.Entities.Database
             foreach (var item in ofg)
             {
                 landingsCount += item.GearUnloads.Sum(t => t.ListVesselUnload.Count);
-                 //DeleteVesselUnloadFromOrphanedItem?.Invoke(null, new DeleteVesselUnloadFromOrphanEventArg { Intent = "searching" });
+                //DeleteVesselUnloadFromOrphanedItem?.Invoke(null, new DeleteVesselUnloadFromOrphanEventArg { Intent = "searching" });
             }
 
-            DeleteVesselUnloadFromOrphanedItem?.Invoke(null, new DeleteVesselUnloadFromOrphanEventArg { Intent = "start", VesselUnloadTotalCount = landingsCount,NSAPEntity=NSAPEntity.FishingGear });
+            DeleteVesselUnloadFromOrphanedItem?.Invoke(null, new DeleteVesselUnloadFromOrphanEventArg { Intent = "start", VesselUnloadTotalCount = landingsCount, NSAPEntity = NSAPEntity.FishingGear });
 
             int countDeleted = 0;
             foreach (var item in ofg)
@@ -84,12 +84,12 @@ namespace NSAP_ODK.Entities.Database
             _deleted_vu_count = 0;
             int countDeleted = 0;
             int landingsCount = 0;
-            
+
             foreach (var item in ols)
             {
                 landingsCount += item.SampledLandings.Count;
             }
-            DeleteVesselUnloadFromOrphanedItem?.Invoke(null, new DeleteVesselUnloadFromOrphanEventArg { Intent = "start", VesselUnloadTotalCount = landingsCount,NSAPEntity=NSAPEntity.Enumerator });
+            DeleteVesselUnloadFromOrphanedItem?.Invoke(null, new DeleteVesselUnloadFromOrphanEventArg { Intent = "start", VesselUnloadTotalCount = landingsCount, NSAPEntity = NSAPEntity.Enumerator });
 
             //List<VesselUnload> vesselUnloads = new List<VesselUnload>();
             foreach (var item in ols)
@@ -199,7 +199,7 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
 
-            _csv.AppendLine($"{item.PK},{item.Parent.PK},{gr_id},{boat_ct},{catch_wt},\"{gr_text}\",\"{item.Remarks}\",{item.SpeciesWithTWSpCount}");
+            _csv.AppendLine($"{item.PK},{item.Parent.PK},{gr_id},{boat_ct},{catch_wt},\"{gr_text}\",\"{item.Remarks}\",{item.SpeciesWithTWSpCount},\"{item.SectorCode}\"");
 
             return true;
         }

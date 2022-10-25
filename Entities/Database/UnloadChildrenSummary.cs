@@ -16,7 +16,7 @@ namespace NSAP_ODK.Entities.Database
         }
         public UnloadChildrenSummary(SummaryItem item)
         {
-            _vesselUnload = new VesselUnload { PK = item.VesselUnloadID,OperationIsTracked = item.IsTracked};
+            _vesselUnload = new VesselUnload { PK = (int)item.VesselUnloadID,OperationIsTracked = item.IsTracked};
         }
 
         public VesselUnload VesselUnload { get { return _vesselUnload; } }

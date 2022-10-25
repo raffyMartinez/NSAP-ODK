@@ -187,7 +187,8 @@ namespace NSAP_ODK.Views
             set
             {
                 _gearUnloads = value;
-                VesselUnloads = VesselUnloadViewModel.GetVesselUnloads(_gearUnloads);
+                //VesselUnloads = VesselUnloadViewModel.GetVesselUnloads(_gearUnloads);
+                VesselUnloads = _gearUnloads[0].ListVesselUnload;
                 if (VesselUnloads.Count > 0)
                 {
                     GridVesselUnload.Visibility = Visibility.Visible;
@@ -292,10 +293,14 @@ namespace NSAP_ODK.Views
             switch (_listSource)
             {
                 case GearUnloadWindowListSource.ListSourceGearUnload:
-                    _vesselUnloads = VesselUnloadViewModel.GetVesselUnloads(_gearUnloads);
-                    GridVesselUnload.DataContext = _vesselUnloads;
-                    
-                    LabelTitle.Content = $"Vessel unloads from {_gearUnloads[0].Parent.LandingSite} using {_gearUnloads[0].GearUsedName} on {_gearUnloads[0].Parent.SamplingDate.ToString("MMM-dd-yyyy")}";
+                    //_vesselUnloads = VesselUnloadViewModel.GetVesselUnloads(_gearUnloads);
+                    if (_gearUnloads.Count > 0)
+                    {
+                        _vesselUnloads = _gearUnloads[0].ListVesselUnload;
+                        GridVesselUnload.DataContext = _vesselUnloads;
+
+                        LabelTitle.Content = $"Vessel unloads from {_gearUnloads[0].Parent.LandingSite} using {_gearUnloads[0].GearUsedName} on {_gearUnloads[0].Parent.SamplingDate.ToString("MMM-dd-yyyy")}";
+                    }
                     break;
                 case GearUnloadWindowListSource.listSourceVesselUnload:
                     LabelTitle.Content = "Vessel unloads from summary";
@@ -308,6 +313,7 @@ namespace NSAP_ODK.Views
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Date sampled", Binding = new Binding("DateTimeSampling") });
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("EnumeratorName") });
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Fishing gear", Binding = new Binding("GearUsed") });
+            GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Sector") });
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Vessel", Binding = new Binding("VesselName") });
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Number of fishers", Binding = new Binding("NumberOfFishers") });
             GridVesselUnload.Columns.Add(new DataGridCheckBoxColumn { Header = "Fishing trip success", Binding = new Binding("OperationIsSuccessful") });
@@ -329,6 +335,7 @@ namespace NSAP_ODK.Views
             dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
             dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Date sampled", Binding = new Binding("DateTimeSampling") });
             dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("EnumeratorName") });
+            dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Sector") });
             dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Fishing gear", Binding = new Binding("GearUsed") });
             dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Fishing grid count", Binding = new Binding("CountGrids") });
             dataGridUnloadSummary.Columns.Add(new DataGridTextColumn { Header = "Soak time count", Binding = new Binding("CountGearSoak") });

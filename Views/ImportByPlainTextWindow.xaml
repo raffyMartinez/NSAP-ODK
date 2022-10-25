@@ -5,13 +5,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NSAP_ODK.Views"
         mc:Ignorable="d"
-        Title="Import items" Height="618.618" Width="520.725" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Topmost="True">
+        Title="Import items" Height="620" Width="520.725" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Topmost="True">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="60"/>
             <RowDefinition Height="60"/>
             <RowDefinition/>
-            <RowDefinition Height="60"/>
+            <RowDefinition Height="70"/>
+            <RowDefinition Height="30"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="3*"/>
@@ -37,12 +38,17 @@
         </Border>
         <StackPanel Grid.Row="3" Margin="5" VerticalAlignment="Center" x:Name="panelSector">
             <CheckBox Content="Municipal fishing sector" x:Name="checkboxMunicipalSector" Margin="0 3" IsChecked="True"/>
-            <CheckBox Content="Importing names of owners" x:Name="checkboxImportOwnerName"/>
+            <CheckBox Content="Importing names of owners" x:Name="checkboxImportOwnerName" Margin="0 3"/>
+            <!--<CheckBox Content="Automatic prefix" x:Name="checkboxIncludePrefix"/>-->
         </StackPanel>
         <WrapPanel Grid.Row="3" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.ColumnSpan="2">
             <Button Content="Cancel" x:Name="buttonCancel" Click="onButtonClick" Height="30" Width="50" Margin="10 0"/>
             <Button Content="Ok" x:Name="buttonOk" Click="onButtonClick" Height="30" Width="50" Margin="10 0"/>
             
         </WrapPanel>
+        <StatusBar Grid.Row="4" Grid.ColumnSpan="2">
+            <ProgressBar x:Name="progressBar" Height="25" Width="150"/>
+            <Label x:Name="progressLabel" Content="this is a label"/>
+        </StatusBar>
     </Grid>
 </Window>

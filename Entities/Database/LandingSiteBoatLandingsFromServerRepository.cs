@@ -473,8 +473,6 @@ namespace NSAP_ODK.Entities.Database
                     }
                     else
                     {
-
-
                         if (NSAPEntities.LandingSiteSamplingViewModel.AddRecordToRepo(ls))
                         {
                             savedCount++;

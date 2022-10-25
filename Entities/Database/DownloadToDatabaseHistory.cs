@@ -6,22 +6,22 @@ using System.Threading.Tasks;
 
 namespace NSAP_ODK.Entities.Database
 {
-    public  class DownloadHistoryEntity
+    public class DownloadHistoryEntity
     {
         public static DateTime DownloadDate { get; set; }
         public static List<VesselUnload> VesselUnloads { get; set; }
         public static List<LandingSiteSampling> LandingSiteGearUnload { get; set; }
     }
-   public static class DownloadToDatabaseHistory
+    public static class DownloadToDatabaseHistory
     {
         //public static Dictionary<DateTime, List<VesselUnload>> DownloadToDatabaseHistoryDictionary 
-        public static Dictionary<DateTime, List<SummaryItem>> DownloadToDatabaseHistoryDictionary 
+        public static Dictionary<DateTime, List<SummaryItem>> DownloadToDatabaseHistoryDictionary
         {
-            get 
+            get
             {
                 return NSAPEntities.SummaryItemViewModel.SummaryItemCollection
                     .OrderByDescending(t => t.DateAdded)
-                    .GroupBy(t => t.DateAdded.Date)
+                    .GroupBy(t => ((DateTime)t.DateAdded).Date)
                     .ToDictionary(t => t.Key, t => t.ToList());
 
                 //return NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
@@ -29,10 +29,10 @@ namespace NSAP_ODK.Entities.Database
                 //    .GroupBy(t => ((DateTime)t.DateAddedToDatabase).Date)
                 //    .ToDictionary(t => t.Key, t => t.ToList());
             }
-            
+
         }
 
-        public static Dictionary<DateTime,DownloadHistoryEntity> DownloadToDatabaseHistoryDictionary1
+        public static Dictionary<DateTime, DownloadHistoryEntity> DownloadToDatabaseHistoryDictionary1
         {
             get
             {

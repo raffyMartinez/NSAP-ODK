@@ -207,15 +207,60 @@ namespace NSAP_ODK.Entities.Database
             bool success = false;
             return success;
         }
-        public bool Add(TotalWtSp twsp)
+        public bool Update(TotalWtSp twsp)
         {
             bool success = false;
             return success;
         }
 
-        public bool Update(TotalWtSp twsp)
+        public bool Add(TotalWtSp twsp)
         {
             bool success = false;
+            if (Utilities.Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Utilities.Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@gear_unload_id", twsp.Parent.PK);
+                        if (twsp.SpeciesID == null)
+                        {
+                            cmd.Parameters.AddWithValue("@sp_id", DBNull.Value);
+                        }
+                        else
+                        {
+                            cmd.Parameters.AddWithValue("@sp_id", (int)twsp.SpeciesID);
+                        }
+                        if (string.IsNullOrEmpty(twsp.SpeciesText))
+                        {
+                            cmd.Parameters.AddWithValue("@sp_text", DBNull.Value);
+                        }
+                        else
+                        {
+                            cmd.Parameters.AddWithValue("@sp_text", twsp.SpeciesText);
+                        }
+                        cmd.Parameters.AddWithValue("@taxa", twsp.Taxa.Code);
+                        cmd.Parameters.AddWithValue("@twsp", twsp.TWSP);
+                        cmd.Parameters.AddWithValue("@id", twsp.RowID);
+
+                        cmd.CommandText = @"INSERT INTO dbo_total_wt_sp (gear_unload, sp_id, sp_text,taxa,total_wt_sp,row_id)
+                                            values (@gear_unload_id,@sp_id,@sp_text,@taxa,@twsp,@id)";
+                        try
+                        {
+                            con.Open();
+                            success = cmd.ExecuteNonQuery() > 0;
+                        }
+                        catch(Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
             return success;
         }
         private List<TotalWtSp> getTotalWtSps(GearUnload parent = null)

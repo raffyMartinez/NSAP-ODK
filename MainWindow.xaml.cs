@@ -2162,14 +2162,14 @@ namespace NSAP_ODK
             {
 
                 case "menuRemoveKoboserver":
-                   if( NSAPEntities.KoboServerViewModel.DeleteRecordFromRepo(_selectedKoboserver.ServerNumericID))
+                    if (NSAPEntities.KoboServerViewModel.DeleteRecordFromRepo(_selectedKoboserver.ServerNumericID))
                     {
                         dataGridEFormVersionStats.DataContext = NSAPEntities.KoboServerViewModel.KoboserverCollection.ToList();
                     }
                     break;
 
                 case "menuRemoveAllKoboserversOfOwner":
-                   if( NSAPEntities.KoboServerViewModel.RemoveAllKoboserversOfOwner(_selectedKoboserver))
+                    if (NSAPEntities.KoboServerViewModel.RemoveAllKoboserversOfOwner(_selectedKoboserver))
                     {
                         dataGridEFormVersionStats.DataContext = NSAPEntities.KoboServerViewModel.KoboserverCollection.ToList();
                     }
@@ -2639,15 +2639,20 @@ namespace NSAP_ODK
                     if (_currentDisplayMode == DataDisplayMode.ODKData)
                     {
 
-                        if (_gearUnloads != null && _gearUnloadWindow == null)
+                        if (_gearUnloads != null  && _gearUnloads.Count>0 && _gearUnloadWindow == null)
                         {
                             _gearUnloadWindow = new GearUnloadWindow(_gearUnloads, _treeItemData, this);
                             _gearUnloadWindow.Owner = this;
+                            
                             _gearUnloadWindow.Show();
                         }
                         else
                         {
-
+                            if(_gearUnloadWindow!=null && !_gearUnloadWindow.IsLoaded)
+                            {
+                                _gearUnloadWindow.Close();
+                                _gearUnloadWindow = null;
+                            }
                         }
 
                     }
@@ -2825,7 +2830,8 @@ namespace NSAP_ODK
 
         private void MakeCalendar(TreeViewModelControl.AllSamplingEntitiesEventHandler e)
         {
-            var listGearUnload = NSAPEntities.SummaryItemViewModel.GearUnloadsByMonth((DateTime)e.MonthSampled);
+            var listGearUnload = NSAPEntities.SummaryItemViewModel.GearUnloadsByMonth((DateTime)e.MonthSampled, bySector: true);
+            //var listGearUnload = NSAPEntities.SummaryItemViewModel.GearUnloadsByMonth(e,bySector:true);
 
             if (listGearUnload.Count > 0)
             {
@@ -2904,7 +2910,7 @@ namespace NSAP_ODK
                         var item = GridNSAPData.Items[_gridRow] as DataRowView;
                         _gearName = (string)item.Row.ItemArray[0];
                         _gearCode = (string)item.Row.ItemArray[1];
-                        _monthYear = DateTime.Parse(item.Row.ItemArray[2].ToString());
+                        _monthYear = DateTime.Parse(item.Row.ItemArray[3].ToString());
 
                         if (_gridCol == 0)
                         {
@@ -2931,18 +2937,66 @@ namespace NSAP_ODK
                         {
 
                         }
-                        _gearUnloads = NSAPEntities.SummaryItemViewModel.GetGearUnloads(_gearName, _gridCol - 3);
+                        string sector = (string)item.Row.ItemArray[2];
+                        string sector_code = "";
+                        if (!string.IsNullOrEmpty(sector))
+                        {
+                            switch (sector)
+                            {
+                                case "Commercial":
+                                    sector_code = "c";
+                                    break;
+                                case "Municipal":
+                                    sector_code = "m";
+                                    break;
+                            }
+                        }
+                        _gearUnloads = new List<GearUnload>();
 
+                        GearUnload gear_unload_from_day = _fishingCalendarViewModel.FishingCalendarList.FirstOrDefault(t => t.GearName == _gearName && t.Sector == sector).GearUnloads[_gridCol - 4];
+
+                        if (gear_unload_from_day != null)
+                        {
+                            GearUnload unload_to_display = new GearUnload
+                            {
+
+                                GearID = gear_unload_from_day.GearID,
+                                GearUsedText = gear_unload_from_day.GearUsedText,
+                                PK = gear_unload_from_day.PK,
+                                Remarks = gear_unload_from_day.Remarks,
+                                LandingSiteSamplingID = gear_unload_from_day.LandingSiteSamplingID,
+                                SectorCode = gear_unload_from_day.SectorCode,
+                                VesselUnloadViewModel = new VesselUnloadViewModel(isNew: true),
+                                ListVesselUnload = gear_unload_from_day.ListVesselUnload.Where(t => t.SectorCode == sector_code).ToList(),
+                                Parent = gear_unload_from_day.Parent
+                            };
+
+                            _gearUnloads.Add(unload_to_display);
+                        }
+                        //_gearUnloads.Add(gear_unload_from_day);
+
+                        //_gearUnloads = NSAPEntities.SummaryItemViewModel.GetGearUnloads(_gearName, _gridCol - 4, sector_code);
                     }
 
-                    if (_gearUnloadWindow != null && _gearUnloads!=null)
+                    if (_gearUnloadWindow != null && _gearUnloads != null )
                     {
                         _gearUnloadWindow.TurnGridOff();
-                        if (_gearUnloads != null)
+                        if (_gearUnloads != null && _gearUnloads.Count>0)
                         {
                             //_gearUnloadWindow.GearUnload = _gearUnload;
                             _gearUnloadWindow.GearUnloads = _gearUnloads;
+                            try
+                            {
+                                _gearUnloadWindow.Visibility = Visibility.Visible;
+                            }
+                            catch { }
 
+                        }
+                        else
+                        {
+                            //_gearUnloadWindow.Close();
+                            //_gearUnloadWindow = null;
+                            _gearUnloadWindow.Visibility = Visibility.Collapsed;
                         }
                     }
                     break;

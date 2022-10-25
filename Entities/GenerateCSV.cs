@@ -270,7 +270,7 @@ namespace NSAP_ODK.Entities
                             .Where(t => t.FishingVessel.FisheriesSector == FisheriesSector.Municipal)
                             .OrderBy(t => t.FishingVessel.ToString()))
                         {
-                            sb.AppendLine($"{fv.FishingVessel.FisheriesSector.ToString().Substring(0, 1)},{fv.FishingVessel.ID},\"{fv.FishingVessel.ToString()}\",{reg.Code}");
+                            sb.AppendLine($"{fv.FishingVessel.FisheriesSector.ToString().Substring(0, 1)},{fv.FishingVessel.ID},\"{fv.FishingVessel.NameToUse(addPrefix: false)}\",{reg.Code}");
                             counter++;
                         }
                     }
@@ -287,7 +287,7 @@ namespace NSAP_ODK.Entities
                             .Where(t => t.FishingVessel.FisheriesSector == FisheriesSector.Commercial)
                             .OrderBy(t => t.FishingVessel.ToString()))
                         {
-                            sb.AppendLine($"{fv.FishingVessel.FisheriesSector.ToString().Substring(0, 1)},{fv.FishingVessel.ID},\"{fv.FishingVessel.ToString()}\",{reg.Code}");
+                            sb.AppendLine($"{fv.FishingVessel.FisheriesSector.ToString().Substring(0, 1)},{fv.FishingVessel.ID},\"{fv.FishingVessel.NameToUse(addPrefix: false)}\",{reg.Code}");
                             counter++;
                         }
                     }

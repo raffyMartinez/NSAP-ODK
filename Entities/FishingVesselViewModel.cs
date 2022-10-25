@@ -3,16 +3,65 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Threading.Tasks;
 using NSAP_ODK.Entities.Database;
 
 namespace NSAP_ODK.Entities
 {
     public class FishingVesselViewModel
     {
+        public event EventHandler<Database.EntityBulkImportEventArg> BulkImportFishingVessels;
         private bool _editSuccess;
         public ObservableCollection<FishingVessel> FishingVesselCollection { get; set; }
         private FishingVesselRepository FishingVessels { get; set; }
+        public static bool BulkSave { get; set; }
+        public Task<int> ImportVesselsAsync(string vesselNames, NSAPRegion region, FisheriesSector fs)
+        {
+            return Task.Run(() => ImportVessels(vesselNames, region, fs));
+        }
 
+        public List<EntityValidationMessage> EntityValidationMessages { get; set; }
+        private int ImportVessels(string vesselNames, NSAPRegion region, FisheriesSector fs)
+        {
+            EntityValidationMessages = new List<EntityValidationMessage>();
+            int importCount = 0;
+            List<EntityValidationMessage> entityMessages = new List<EntityValidationMessage>();
+            List<string> vesselsToImport = vesselNames.Split('\n').ToList();
+            BulkImportFishingVessels?.Invoke(null, new EntityBulkImportEventArg { Intent = "start", RecordsToImport = vesselsToImport.Count });
+            foreach (var item in vesselsToImport)
+            {
+                string to_import = string.Join(" ", item.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+                if (to_import.Length > 0)
+                {
+                    var fv = new FishingVessel { Name = item.Trim(), FisheriesSector = fs, ID = NSAPEntities.FishingVesselViewModel.NextRecordNumber };
+                    if (NSAPEntities.FishingVesselViewModel.EntityValidated(fv, out entityMessages, true))
+                    {
+                        if (NSAPEntities.FishingVesselViewModel.AddRecordToRepo(fv))
+                        {
+                            var nrfv = NSAPRegionWithEntitiesRepository.CreateRegionFishingVessel
+                            (
+                                fv: NSAPEntities.FishingVesselViewModel.CurrentEntity,
+                                region: region,
+                                added: DateTime.Now
+                            );
+
+                            var rvm = NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(region);
+                            if (rvm.AddFishingVessel(nrfv))
+                            {
+                                importCount++;
+                                BulkImportFishingVessels?.Invoke(null, new EntityBulkImportEventArg { Intent = "imported_entity", ImportedCount = importCount, ImportedEntityName = nrfv.FishingVessel.Name, NSAPEntity = NSAPEntity.FishingVessel });
+                            }
+                        }
+                    }
+                    else
+                    {
+                        EntityValidationMessages.AddRange(entityMessages);
+                    }
+                }
+            }
+            BulkImportFishingVessels?.Invoke(null, new EntityBulkImportEventArg { Intent = "import_done", NSAPEntity = NSAPEntity.FishingVessel });
+            return importCount;
+        }
         public FishingVesselViewModel()
         {
             FishingVessels = new FishingVesselRepository();
@@ -23,14 +72,14 @@ namespace NSAP_ODK.Entities
         public List<OrphanedFishingVessel> OrphanedFishingVesseks()
         {
             var itemsVesselSamplings = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
-                .Where(t => t.VesselID == null && t.VesselName!= null && t.VesselText.Length > 0)
-                .GroupBy(t => new { Sector = t.Sector, LandingSite = t.Parent.Parent.LandingSiteName, Name = t.VesselName  })
+                .Where(t => t.VesselID == null && t.VesselName != null && t.VesselText.Length > 0)
+                .GroupBy(t => new { Sector = t.Sector, LandingSite = t.Parent.Parent.LandingSiteName, Name = t.VesselName })
                 .Select(vessel => new
-                    {
-                        NameVessel = vessel.Key.Name,
-                        SectorVessel = vessel.Key.Sector,
-                        LandingSiteVessel = vessel.Key.LandingSite
-                    }
+                {
+                    NameVessel = vessel.Key.Name,
+                    SectorVessel = vessel.Key.Sector,
+                    LandingSiteVessel = vessel.Key.LandingSite
+                }
                 )
                 .ToList();
 
@@ -44,13 +93,13 @@ namespace NSAP_ODK.Entities
                 var orphan = new OrphanedFishingVessel
                 {
                     Name = item.NameVessel,
-                    VesselUnloads = NSAPEntities.VesselUnloadViewModel.GetSampledLandingsOfVessel(item.NameVessel,item.SectorVessel,item.LandingSiteVessel),
+                    VesselUnloads = NSAPEntities.VesselUnloadViewModel.GetSampledLandingsOfVessel(item.NameVessel, item.SectorVessel, item.LandingSiteVessel),
                 };
 
                 list.Add(orphan);
             }
 
-            List<OrphanedFishingVessel> sortedList = list.OrderBy(t=>t.Sector).ThenBy(t =>  t.Name).ThenBy(t=>t.LandingSiteName).ToList() ;
+            List<OrphanedFishingVessel> sortedList = list.OrderBy(t => t.Sector).ThenBy(t => t.Name).ThenBy(t => t.LandingSiteName).ToList();
             return sortedList;
 
         }
@@ -87,7 +136,11 @@ namespace NSAP_ODK.Entities
                     {
                         int newIndex = e.NewStartingIndex;
                         FishingVessel newVessel = FishingVesselCollection[newIndex];
-                        if(FishingVessels.Add(newVessel))
+                        if(BulkSave)
+                        {
+
+                        }
+                        else if (FishingVessels.Add(newVessel))
                         {
                             CurrentEntity = newVessel;
                             _editSuccess = true;
@@ -98,14 +151,14 @@ namespace NSAP_ODK.Entities
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<FishingVessel> tempListOfRemovedItems = e.OldItems.OfType<FishingVessel>().ToList();
-                       _editSuccess= FishingVessels.Delete(tempListOfRemovedItems[0].ID);
+                        _editSuccess = FishingVessels.Delete(tempListOfRemovedItems[0].ID);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<FishingVessel> tempList = e.NewItems.OfType<FishingVessel>().ToList();
-                       _editSuccess= FishingVessels.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        _editSuccess = FishingVessels.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }

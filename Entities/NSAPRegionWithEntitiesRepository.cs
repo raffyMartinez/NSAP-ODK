@@ -36,7 +36,7 @@ namespace NSAP_ODK.Entities
 
         public static FishingGround GetFishingGround(string region, string fma, string fishing_ground)
         {
-            FishingGround fg = null;  
+            FishingGround fg = null;
             if (Global.Settings.UsemySQL)
             {
                 using (var con = new MySqlConnection(MySQLConnect.ConnectionString()))
@@ -467,7 +467,7 @@ namespace NSAP_ODK.Entities
 
         public static bool EnumeratorFirstSamplingDateRequired { get; set; }
 
-        public  bool RefreshNSAPRegionEntities(NSAPRegion region)
+        public bool RefreshNSAPRegionEntities(NSAPRegion region)
         {
             NSAPRegion = region;
             GetGears();
@@ -838,7 +838,7 @@ namespace NSAP_ODK.Entities
                         {
                             //
                         }
-                        
+
                     }
                 }
             }
@@ -922,6 +922,27 @@ namespace NSAP_ODK.Entities
             return max_rec_no;
         }
 
+        public static NSAPRegionFishingVessel CreateRegionFishingVessel(FishingVessel fv, NSAPRegion region, DateTime added)
+        {
+            NSAPRegionFishingVessel nrfv = new NSAPRegionFishingVessel
+            {
+                FishingVessel = fv,
+                NSAPRegion = region,
+                DateStart = added,
+
+            };
+
+            if (region.FishingVessels.Count == 0)
+            {
+                nrfv.RowID = 1;
+            }
+            else
+            {
+                //nrfv.RowID = MaxRecordNumber_FishingVessel() + 1;
+                nrfv.RowID = region.FishingVessels.Max(t => t.RowID) + 1;
+            }
+            return nrfv;
+        }
 
         public static NSAPRegionEnumerator CreateRegionEnumerator(NSAPEnumerator enumerator, NSAPRegion region, DateTime added)
         {

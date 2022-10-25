@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Win32;
 using System.IO;
+using System.Windows.Threading;
 
 namespace NSAP_ODK.Views
 {
@@ -46,6 +47,8 @@ namespace NSAP_ODK.Views
 
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
+            progressLabel.Content = "";
+            progressBar.Value = 0;
             menuImportFile.IsEnabled = false;
             panelSector.Visibility = Visibility.Collapsed;
             switch (NSAPEntityType)
@@ -121,8 +124,9 @@ namespace NSAP_ODK.Views
             return count;
         }
         public NSAPEntity NSAPEntityType { get; set; }
-        private void onButtonClick(object sender, RoutedEventArgs e)
+        private async void onButtonClick(object sender, RoutedEventArgs e)
         {
+            NSAPRegion region = null;
             List<EntityValidationMessage> entityMessages = new List<EntityValidationMessage>();
             int importCount = 0;
             switch (((Button)sender).Name)
@@ -133,20 +137,41 @@ namespace NSAP_ODK.Views
                     {
                         switch (NSAPEntityType)
                         {
-                            case NSAPEntity.GPS:
-                                if (textBox.Text.Length > 0)
+                            case NSAPEntity.FishingVessel:
+                                //bool autoPrefix = (bool)checkboxIncludePrefix.IsChecked;
+                                FisheriesSector fs = FisheriesSector.Municipal;
+                                if (!(bool)checkboxMunicipalSector.IsChecked)
                                 {
-                                    NSAPEntities.GPSViewModel.ImportGPSCSV = textBox.Text;
-                                    msg = NSAPEntities.GPSViewModel.GPSImportErrorMessage;
-                                    if (NSAPEntities.GPSViewModel.GPSCSVImportSuccess)
-                                    {
-                                        if (NSAPEntities.GPSViewModel.GPSImportErrorMessage?.Length > 0)
-                                        {
-                                            msg = NSAPEntities.GPSViewModel.GPSImportErrorMessage;
-                                        }
-                                    }
-                                    importCount = NSAPEntities.GPSViewModel.ImportGPSCSVImportedCount;
+                                    fs = FisheriesSector.Commercial;
                                 }
+
+                                foreach (RadioButton rb in panelRegions.Children)
+                                {
+                                    if ((bool)rb.IsChecked)
+                                    {
+                                        region = (NSAPRegion)rb.Tag;
+                                        break;
+                                    }
+                                }
+
+                                NSAPEntities.FishingVesselViewModel.BulkImportFishingVessels += FishingVesselViewModel_BulkImportFishingVessels;
+                                importCount = await NSAPEntities.FishingVesselViewModel.ImportVesselsAsync(textBox.Text, region, fs);
+                                NSAPEntities.FishingVesselViewModel.BulkImportFishingVessels -= FishingVesselViewModel_BulkImportFishingVessels;
+
+                                break;
+                            case NSAPEntity.GPS:
+
+                                NSAPEntities.GPSViewModel.ImportGPSCSV = textBox.Text;
+                                msg = NSAPEntities.GPSViewModel.GPSImportErrorMessage;
+                                if (NSAPEntities.GPSViewModel.GPSCSVImportSuccess)
+                                {
+                                    if (NSAPEntities.GPSViewModel.GPSImportErrorMessage?.Length > 0)
+                                    {
+                                        msg = NSAPEntities.GPSViewModel.GPSImportErrorMessage;
+                                    }
+                                }
+                                importCount = NSAPEntities.GPSViewModel.ImportGPSCSVImportedCount;
+
 
                                 break;
                             case NSAPEntity.Enumerator:
@@ -155,13 +180,14 @@ namespace NSAP_ODK.Views
                                     var nse = new NSAPEnumerator { Name = item.Trim(), ID = NSAPEntities.NSAPEnumeratorViewModel.NextRecordNumber };
                                     if (NSAPEntities.NSAPEnumeratorViewModel.EntityValidated(nse, out entityMessages, true))
                                     {
-                                        if (NSAPEntities.NSAPEnumeratorViewModel.AddRecordToRepo(new NSAPEnumerator { Name = item.Trim(), ID = NSAPEntities.NSAPEnumeratorViewModel.NextRecordNumber }))
+                                        //if (NSAPEntities.NSAPEnumeratorViewModel.AddRecordToRepo(new NSAPEnumerator { Name = item.Trim(), ID = NSAPEntities.NSAPEnumeratorViewModel.NextRecordNumber }))
+                                        if (NSAPEntities.NSAPEnumeratorViewModel.AddRecordToRepo(nse))
                                         {
                                             foreach (CheckBox c in panelRegions.Children)
                                             {
                                                 if ((bool)c.IsChecked)
                                                 {
-                                                    var region = NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(c.Tag.ToString());
+                                                    region = NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(c.Tag.ToString());
                                                     var nre = NSAPRegionWithEntitiesRepository.CreateRegionEnumerator
                                                     (
                                                         enumerator: NSAPEntities.NSAPEnumeratorViewModel.CurrentEntity,
@@ -201,7 +227,7 @@ namespace NSAP_ODK.Views
                         {
                             if (msg?.Length > 0)
                             {
-                                MessageBox.Show(msg,"NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                                MessageBox.Show(msg, "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
                             }
                             else
                             {
@@ -220,6 +246,83 @@ namespace NSAP_ODK.Views
                     break;
             }
 
+        }
+
+        private void FishingVesselViewModel_BulkImportFishingVessels(object sender, Entities.Database.EntityBulkImportEventArg e)
+        {
+            switch (e.Intent)
+            {
+                case "start":
+                    progressBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              progressBar.Maximum = e.RecordsToImport;
+
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+                    progressLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              progressLabel.Content = "Getting items for importing";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case "imported_entity":
+                    progressBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              progressBar.Value = e.ImportedCount;
+
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+                    progressLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              string entityType = "";
+                              if (e.NSAPEntity == NSAPEntity.FishingVessel)
+                              {
+                                  entityType = "fishing vessel";
+                              }
+                              progressLabel.Content = $"Imported {entityType} {e.ImportedCount} of {progressBar.Maximum}: {e.ImportedEntityName}";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case "import_done":
+                    progressBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              progressBar.Value = 0;
+
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+                    progressLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              progressLabel.Content = $"Import done";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+            }
         }
 
         public string OpenCSVFile(string entityName)

@@ -221,6 +221,7 @@ namespace NSAP_ODK.Entities.Database
                                 item.SpeciesWithTWSpCount = string.IsNullOrEmpty(dr["sp_twsp_count"].ToString()) ? null : (int?)dr["sp_twsp_count"];
                                 item.GearUsedText = dr["gr_text"].ToString();
                                 item.Remarks = dr["remarks"].ToString();
+                                item.SectorCode = dr["sector"].ToString();
                                 item.TotalWtSpViewModel = new TotalWtSpViewModel(item);
                                 //item.VesselUnloadViewModel = new VesselUnloadViewModel(item);
                                 thisList.Add(item);
@@ -256,6 +257,9 @@ namespace NSAP_ODK.Entities.Database
             string sql = "";
             switch (fieldName)
             {
+                case "sector":
+                    sql = "ALTER TABLE dbo_gear_unload ADD COLUMN sector VARCHAR(1)";
+                    break;
                 case "sp_twsp_count":
                     sql = "ALTER TABLE dbo_gear_unload ADD COLUMN sp_twsp_count INT";
                     break;
@@ -369,7 +373,7 @@ namespace NSAP_ODK.Entities.Database
                     conn.Open();
 
 
-                    var sql = "Insert into dbo_gear_unload(unload_gr_id, unload_day_id, gr_id,boats,catch,gr_text,remarks) Values (?,?,?,?,?,?,?)";
+                    var sql = "Insert into dbo_gear_unload(unload_gr_id, unload_day_id, gr_id,boats,catch,gr_text,remarks,sector) Values (?,?,?,?,?,?,?,?)";
 
                     using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
@@ -422,6 +426,15 @@ namespace NSAP_ODK.Entities.Database
                         else
                         {
                             update.Parameters.Add("@remarks", OleDbType.VarChar).Value = item.Remarks;
+                        }
+
+                        if (string.IsNullOrEmpty( item.SectorCode))
+                        {
+                            update.Parameters.Add("@sector", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@sector", OleDbType.VarChar).Value = item.SectorCode;
                         }
 
 
@@ -588,6 +601,15 @@ namespace NSAP_ODK.Entities.Database
                             update.Parameters.Add("@gear_text", OleDbType.VarChar).Value = item.GearUsedText;
                         }
 
+                        if (string.IsNullOrEmpty( item.SectorCode))
+                        {
+                            update.Parameters.Add("@sector", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@sector", OleDbType.VarChar).Value = item.SectorCode;
+                        }
+
                         if (item.Remarks == null)
                         {
                             update.Parameters.Add("@remarks", OleDbType.VarChar).Value = DBNull.Value;
@@ -604,6 +626,7 @@ namespace NSAP_ODK.Entities.Database
                             boats = @boats,
                             catch = @catch,
                             gr_text = @gear_text,
+                            sector = @sector,
                             remarks = @remarks
                         WHERE unload_gr_id = @pk";
 

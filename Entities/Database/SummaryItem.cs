@@ -16,11 +16,11 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                return SamplingDate.ToString("MMM-dd-yyyy HH:mm");
+                return ((DateTime)SamplingDate).ToString("MMM-dd-yyyy HH:mm");
             }
         }
 
-        public DateTime DateSubmitted { get; set; }
+        public DateTime? DateSubmitted { get; set; }
         public string GPSNameToUse
         {
             get
@@ -48,23 +48,38 @@ namespace NSAP_ODK.Entities.Database
         {
             string ls = LandingSite == null ? LandingSiteText : LandingSite.ToString();
             string gr = Gear != null ? Gear.GearName : GearText;
-            return $"{ID}-{Region.ShortName}-{FMA.Name}-{FishingGround.Name}-{ls}-{gr}-{SamplingDate.ToString("MMM-dd-yyyy")}";
+            string s_date = SamplingDate == null ? "no sampling" : $"{(DateTime)SamplingDate:MMM-dd-yyyy}";
+            return $"{ID}-{Region.ShortName}-{FMA.Name}-{FishingGround.Name}-{ls}-{gr}-{s_date}-sector:{SectorCode}";
         }
 
         public string FormVersion { get; set; }
-        public DateTime MonthSampled
+        public DateTime? MonthSampled
         {
             get
             {
-                return new DateTime(SamplingDate.Year, SamplingDate.Month, 1);
+                if (SamplingDate == null)
+                {
+                    return null;
+                }
+                else
+                {
+                    return new DateTime(((DateTime)SamplingDate).Year, ((DateTime)SamplingDate).Month, 1);
+                }
             }
         }
 
-        public DateTime MonthSubmitted
+        public DateTime? MonthSubmitted
         {
             get
             {
-                return new DateTime(DateSubmitted.Year, DateSubmitted.Month, 1);
+                if (SamplingDate == null)
+                {
+                    return null;
+                }
+                else
+                {
+                    return new DateTime(((DateTime)DateSubmitted).Year, ((DateTime)DateSubmitted).Month, 1);
+                }
             }
         }
 
@@ -164,7 +179,7 @@ namespace NSAP_ODK.Entities.Database
                         LandingSite = LandingSite,
                         LandingSiteText = LandingSiteText,
                         FishingGround = FishingGround,
-                        SamplingDate = SamplingDate.Date
+                        SamplingDate = ((DateTime)SamplingDate).Date
                     };
 
                     _gearUnload = new GearUnload
@@ -175,7 +190,7 @@ namespace NSAP_ODK.Entities.Database
                         Catch = GearUnloadCatch,
                         GearUsedText = GearText,
                         Gear = Gear,
-                        PK = GearUnloadID
+                        PK = (int)GearUnloadID
                     };
                 }
                 return _gearUnload;
@@ -187,8 +202,8 @@ namespace NSAP_ODK.Entities.Database
         }
 
         public int? TWSpCount { get; set; }
-        public int GearUnloadID { get; set; }
-        public int VesselUnloadID { get; set; }
+        public int? GearUnloadID { get; set; }
+        public int? VesselUnloadID { get; set; }
 
         private VesselUnload _vesselUnload;
 
@@ -261,12 +276,12 @@ namespace NSAP_ODK.Entities.Database
         }
         public DateTime SamplingMonthYear()
         {
-            return new DateTime(SamplingDate.Year, SamplingDate.Month, 1);
+            return new DateTime(((DateTime)SamplingDate).Year, ((DateTime)SamplingDate).Month, 1);
         }
 
         public string EnumeratorText { get; set; }
-        public DateTime SamplingDate { get; set; }
-        public DateTime DateAdded { get; set; }
+        public DateTime? SamplingDate { get; set; }
+        public DateTime? DateAdded { get; set; }
         public bool IsSuccess { get; set; }
         public bool IsTracked { get; set; }
         public string SectorCode { get; set; }

@@ -535,11 +535,11 @@ namespace NSAP_ODK.Entities.Database
         {
             if (Parent.Parent == null)
             {
-                return $"[ID:{PK}] {VesselName}-{SamplingDate.ToString("MMM-dd-yyyy")}-Enumerator:{EnumeratorName}";
+                return $"[ID:{PK}] {VesselName}-{SamplingDate.ToString("MMM-dd-yyyy")}-Enumerator:{EnumeratorName}-Sector:{SectorCode}";
             }
             else
             {
-                return $"[ID:{PK}] {VesselName}-{Parent.Parent.LandingSiteName}-{SamplingDate.ToString("MMM-dd-yyyy")}-Enumerator:{EnumeratorName}";
+                return $"[ID:{PK}] {VesselName}-{Parent.Parent.LandingSiteName}-{SamplingDate.ToString("MMM-dd-yyyy")}-Enumerator:{EnumeratorName}-Sector:{SectorCode}";
             }
         }
 
@@ -712,7 +712,8 @@ namespace NSAP_ODK.Entities.Database
                 else
                 {
 
-                    return FishingVessel != null ? FishingVessel.ToString() : "";
+                    //return FishingVessel != null ? FishingVessel.ToString() : "";
+                    return FishingVessel != null ? FishingVessel.NameToUse(addPrefix:false): "";
                 }
             }
 

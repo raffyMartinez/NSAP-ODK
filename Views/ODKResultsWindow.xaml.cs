@@ -34,7 +34,7 @@ namespace NSAP_ODK.Views
         private TreeViewItem _jsonDateDownloadnode;
         private static ODKResultsWindow _instance;
         private List<VesselLanding> _mainSheets;
-        private List<BoatLandingsFromServer> _mainSheetsLanding;
+        private List<BoatLandings> _mainSheetsLanding;
         private string _excelDownloaded;
         private bool _isJSONData;
         private int _savedCount;
@@ -312,7 +312,7 @@ namespace NSAP_ODK.Views
             }
         }
 
-        public List<BoatLandingsFromServer> MainSheetsLanding
+        public List<BoatLandings> MainSheetsLanding
         {
             get { return _mainSheetsLanding; }
             set
@@ -675,7 +675,7 @@ namespace NSAP_ODK.Views
                         //{
                         //    await SaveUploadedJsonInLoop(isHistoryJson: false);
                         //}
-                        if (_downloadedJsonMetadata?.BatchSize != null )
+                        if (_downloadedJsonMetadata?.BatchSize != null)
                         {
                             if ((int)_downloadedJsonMetadata.BatchSize <= VesselUnloadServerRepository.TotalUploadCount)
                             {
@@ -887,8 +887,8 @@ namespace NSAP_ODK.Views
 
                     break;
 
-                
-                    //when downloaded JSON of type download_all is selected
+
+                //when downloaded JSON of type download_all is selected
                 case "menuReuploadAll":
                     proceed = true;
                     ujhw = new UploadJSONHistoryOptionsWindow();
@@ -946,7 +946,7 @@ namespace NSAP_ODK.Views
                     if ((bool)ujhw.ShowDialog())
                     {
                         await ProcessJSONSNodes();
-                        await SaveUploadedJsonInLoop(closeWindow: true, verbose: true, isHistoryJson: false, allowDownloadAgain:true);
+                        await SaveUploadedJsonInLoop(closeWindow: true, verbose: true, isHistoryJson: false, allowDownloadAgain: true);
                     }
                     break;
                 case "menuUploadJson": //when you want to upload json created in batch mode
@@ -1126,17 +1126,22 @@ namespace NSAP_ODK.Views
 
                 case "menuUpload":
                 case "menuUploadJsonFile":
-                    VesselUnloadServerRepository.CancelUpload = false;
-                    if (!Global.Settings.UsemySQL)
+                    if (MainSheets != null)
                     {
-                        NSAPEntities.ClearCSVData();
-                        VesselUnloadServerRepository.ResetTotalUploadCounter();
-                        VesselUnloadServerRepository.DelayedSave = true;
-                        VesselUnloadServerRepository.ResetGroupIDs(VesselUnloadServerRepository.DelayedSave);
-                    }
+                        VesselUnloadServerRepository.CancelUpload = false;
+                        if (!Global.Settings.UsemySQL)
+                        {
+                            NSAPEntities.ClearCSVData();
+                            VesselUnloadServerRepository.ResetTotalUploadCounter();
+                            VesselUnloadServerRepository.DelayedSave = true;
+                            VesselUnloadServerRepository.ResetGroupIDs(VesselUnloadServerRepository.DelayedSave);
+                        }
 
-                    await Upload();
-                    await SaveUploadedJsonInLoop(verbose: true, allowDownloadAgain: true, isHistoryJson: menuName == "menuUpload");
+                    }
+                        await Upload();
+                    
+                        await SaveUploadedJsonInLoop(verbose: true, allowDownloadAgain: true, isHistoryJson: menuName == "menuUpload");
+                    
 
 
                     break;
@@ -1410,29 +1415,37 @@ namespace NSAP_ODK.Views
             {
                 if (_isJSONData)
                 {
-                    if (await LandingSiteBoatLandingsFromServerRepository.UploadToDBAsync())
+                    if(await BoatLandingsFromServerRepository.UploadToDBAsync())
                     {
-                        dataGridExcel.ItemsSource = null;
-                        dataGridExcel.ItemsSource = LandingSiteBoatLandingsFromServerRepository.LandingSiteBoatLandings;
-                        int result = NSAPEntities.GearUnloadViewModel.FixGearUnload();
+                        _targetGrid.ItemsSource = null;
+                        _targetGrid.ItemsSource = BoatLandingsFromServerRepository.BoatLandings;
+                        _uploadToDBSuccess = true;
                         success = true;
-                        if (result > 0)
-                        {
-                            MessageBox.Show($"Finished uploading to database and fixed {result} gear unloads", "Upload done", MessageBoxButton.OK, MessageBoxImage.Information);
-                        }
-                        else
-                        {
-                            MessageBox.Show("Finished uploading to database", "Upload done", MessageBoxButton.OK, MessageBoxImage.Information);
-                        }
+
                     }
-                    else if (_savedCount == 0 && LandingSiteBoatLandingsFromServerRepository.LandingSiteBoatLandings.Count > 0)
-                    {
-                        MessageBox.Show("All records already saved to the database");
-                    }
-                    else
-                    {
-                        MessageBox.Show("No records were saved even though at least one should have been saved.\r\nPls contact developer");
-                    }
+                    //if (await LandingSiteBoatLandingsFromServerRepository.UploadToDBAsync())
+                    //{
+                    //    dataGridExcel.ItemsSource = null;
+                    //    dataGridExcel.ItemsSource = LandingSiteBoatLandingsFromServerRepository.LandingSiteBoatLandings;
+                    //    int result = NSAPEntities.GearUnloadViewModel.FixGearUnload();
+                    //    success = true;
+                    //    if (result > 0)
+                    //    {
+                    //        MessageBox.Show($"Finished uploading to database and fixed {result} gear unloads", "Upload done", MessageBoxButton.OK, MessageBoxImage.Information);
+                    //    }
+                    //    else
+                    //    {
+                    //        MessageBox.Show("Finished uploading to database", "Upload done", MessageBoxButton.OK, MessageBoxImage.Information);
+                    //    }
+                    //}
+                    //else if (_savedCount == 0 && LandingSiteBoatLandingsFromServerRepository.LandingSiteBoatLandings.Count > 0)
+                    //{
+                    //    MessageBox.Show("All records already saved to the database");
+                    //}
+                    //else
+                    //{
+                    //    MessageBox.Show("No records were saved even though at least one should have been saved.\r\nPls contact developer");
+                    //}
                 }
             }
 
@@ -1731,6 +1744,7 @@ namespace NSAP_ODK.Views
             switch (result)
             {
                 case "landingSiteSampling":
+                    _targetGrid.IsReadOnly = true;
                     _targetGrid.ItemsSource = BoatLandingsFromServerRepository.BoatLandings;
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "RowUUID", Binding = new Binding("_uuid"), Visibility = Visibility.Hidden });
 
@@ -1744,6 +1758,7 @@ namespace NSAP_ODK.Views
                     _targetGrid.Columns.Add(col);
 
                     _targetGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "Saved to database", Binding = new Binding("SavedInLocalDatabase") });
+                    _targetGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "Saved boat counts and TWSP", Binding = new Binding("IsUpdatedForBoatLandings") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Device ID", Binding = new Binding("device_id") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("user_name") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Form version", Binding = new Binding("eFormVersion") });
@@ -1789,10 +1804,11 @@ namespace NSAP_ODK.Views
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("Parent.FishingGround") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("Parent.LandingSiteName") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("GearName") });
+                    _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("SectorFull") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Vessels landed", Binding = new Binding("LandingsCount"), CellStyle = AlignRightStyle });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Total catch weight", Binding = new Binding("TotalCatchWt"), CellStyle = AlignRightStyle });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Notes", Binding = new Binding("Note") });
-                    _targetGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "Saved to database", Binding = new Binding("SavedInLocalDatabase") });
+                    //_targetGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "Saved to database", Binding = new Binding("SavedInLocalDatabase") });
                     //_targetGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSiteName") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Parent", Binding = new Binding("Parent.PK"), CellStyle = AlignRightStyle });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK"), CellStyle = AlignRightStyle });
@@ -1821,7 +1837,7 @@ namespace NSAP_ODK.Views
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Total catch weight", Binding = new Binding("Parent.TotalCatchWt"), CellStyle = AlignRightStyle });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Name of catch", Binding = new Binding("SpeciesNameSelected") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "TWSp", Binding = new Binding("Twsp"), CellStyle = AlignRightStyle });
-                    _targetGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "Saved to database", Binding = new Binding("SavedInLocalDatabase") });
+                    //_targetGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "Saved to database", Binding = new Binding("SavedInLocalDatabase") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Parent", Binding = new Binding("Parent.PK"), CellStyle = AlignRightStyle });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK"), CellStyle = AlignRightStyle });
                     break;

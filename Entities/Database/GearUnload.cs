@@ -54,8 +54,29 @@ namespace NSAP_ODK.Entities.Database
         public int? SpeciesWithTWSpCount { get; set; }
         public VesselUnloadViewModel VesselUnloadViewModel { get; set; }
 
-        public int NumberOfSampledLandingsEx { get; set; }
 
+        public int NumberOfSampledLandingsEx { get; set; }
+        public string SectorCode { get; set; }
+
+        public string Sector
+        {
+            get
+            {
+                switch (SectorCode)
+                {
+                    case "c":
+                        return "Commercial";
+                    case "m":
+                        return "Municipal";
+                    case "cm":
+                        return "Mixed";
+                    default:
+                        return "";
+                }
+                //return SectorCode == "c" ? "Commercial" :
+                //       SectorCode == "m" ? "Municipal" : "";
+            }
+        }
         public TotalWtSpViewModel TotalWtSpViewModel { get; set; }
         public int NumberOfSampledLandings
         {
@@ -75,6 +96,16 @@ namespace NSAP_ODK.Entities.Database
                 return VesselUnloadViewModel.VesselUnloadCollection.ToList();
 
             }
+            set
+            {
+                VesselUnloadViewModel.IgnoreCollectionChange = true;
+                VesselUnloadViewModel.VesselUnloadCollection.Clear();
+                foreach(var item in value)
+                {
+                    VesselUnloadViewModel.VesselUnloadCollection.Add(item);
+                }
+                VesselUnloadViewModel.IgnoreCollectionChange = false;
+            }
         }
 
         public string GearUsedText { get; set; }
@@ -91,7 +122,20 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-
+        public string GearAndSector
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(GearID))
+                {
+                    return $"{GearUsedText}_{SectorCode}";
+                }
+                else
+                {
+                    return $"{NSAPEntities.GearViewModel.GetGear(GearID).GearName}_{SectorCode}";
+                }
+            }
+        }
         public string GearUsedName
         {
             get
@@ -127,7 +171,8 @@ namespace NSAP_ODK.Entities.Database
             }
             else
             {
-                return $"{Parent.LandingSite.LandingSiteName} {GearUsedName} {Parent.SamplingDate.ToString("MMM-dd-yyyy")} - ({ListVesselUnload.Count})";
+                
+                return $"{Parent.LandingSite.LandingSiteName} {GearUsedName} {Parent.SamplingDate.ToString("MMM-dd-yyyy")} - ({ListVesselUnload.Count} - sector:{SectorCode})";
             }
         }
 

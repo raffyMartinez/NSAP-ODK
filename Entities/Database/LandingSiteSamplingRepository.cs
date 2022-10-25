@@ -32,33 +32,36 @@ namespace NSAP_ODK.Entities.Database
                     cols = CreateTablesInAccess.GetColumnNames("dbo_gear_unload");
                     if (cols.Contains("sp_twsp_count") || GearUnloadRepository.AddFieldToTable("sp_twsp_count"))
                     {
-                        cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_catch");
+                        if (cols.Contains("sector") || GearUnloadRepository.AddFieldToTable("sector"))
                         {
-                            if (cols.Contains("weighing_unit") || VesselCatchRepository.UpdateTableDefinition("weighing_unit"))
+                            cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_catch");
                             {
-                                proceed = true;
+                                if (cols.Contains("weighing_unit") || VesselCatchRepository.UpdateTableDefinition("weighing_unit"))
+                                {
+                                    proceed = true;
+                                }
+
+
+                                //check and and sex column for length table
+                                if (proceed)
+                                {
+                                    cols = CreateTablesInAccess.GetColumnNames("dbo_catch_len");
+                                    proceed = cols.Contains("sex") || CatchLengthRepository.AddFieldToTable("sex");
+                                }
+
+                                if (proceed)
+                                {
+                                    cols = CreateTablesInAccess.GetColumnNames("dbo_catch_len_freq");
+                                    proceed = cols.Contains("sex") || CatchLenFreqRepository.AddFieldToTable("sex");
+                                }
+
+                                if (proceed)
+                                {
+                                    cols = CreateTablesInAccess.GetColumnNames("dbo_catch_len_wt");
+                                    proceed = cols.Contains("sex") || CatchLenWeightRepository.AddFieldToTable("sex");
+                                }
+
                             }
-
-
-                            //check and and sex column for length table
-                            if(proceed)
-                            {
-                                cols = CreateTablesInAccess.GetColumnNames("dbo_catch_len");
-                                proceed = cols.Contains("sex") || CatchLengthRepository.AddFieldToTable("sex");
-                            }
-
-                            if(proceed)
-                            {
-                                cols = CreateTablesInAccess.GetColumnNames("dbo_catch_len_freq");
-                                proceed = cols.Contains("sex") || CatchLenFreqRepository.AddFieldToTable("sex");
-                            }
-
-                            if(proceed)
-                            {
-                                cols = CreateTablesInAccess.GetColumnNames("dbo_catch_len_wt");
-                                proceed = cols.Contains("sex") || CatchLenWeightRepository.AddFieldToTable("sex");
-                            }
-
                         }
                     }
                 }
@@ -887,7 +890,14 @@ namespace NSAP_ODK.Entities.Database
                             update.Parameters.Add("@remarks", OleDbType.VarChar).Value = item.Remarks;
                         }
                         update.Parameters.Add("@issampling_day", OleDbType.Boolean).Value = item.IsSamplingDay;
-                        update.Parameters.Add("landing_site_text", OleDbType.VarChar).Value = item.LandingSiteText;
+                        if (string.IsNullOrEmpty(item.LandingSiteText))
+                        {
+                            update.Parameters.Add("@landing_site_text", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@landing_site_text", OleDbType.VarChar).Value = item.LandingSiteText;
+                        }
                         update.Parameters.Add("@fma", OleDbType.Integer).Value = item.FMAID;
                         update.Parameters.Add("@has_operations", OleDbType.Boolean).Value = item.HasFishingOperation;
                         update.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
@@ -953,7 +963,14 @@ namespace NSAP_ODK.Entities.Database
                                 {
                                     update1.Parameters.Add("@enum_id", OleDbType.VarChar).Value = item.EnumeratorID;
                                 }
-                                update1.Parameters.Add("@enum_text", OleDbType.VarChar).Value = item.EnumeratorText;
+                                if (string.IsNullOrEmpty(item.EnumeratorText))
+                                {
+                                    update1.Parameters.Add("@enum_text", OleDbType.VarChar).Value = DBNull.Value;
+                                }
+                                else
+                                {
+                                    update1.Parameters.Add("@enum_text", OleDbType.VarChar).Value = item.EnumeratorText;
+                                }
                                 update1.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
 
                                 update1.CommandText = @"Update dbo_LC_FG_sample_day_1 set

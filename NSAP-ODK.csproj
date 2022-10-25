@@ -187,6 +187,7 @@
     <Compile Include="Entities\Database\CrossTabLengthWeight.cs" />
     <Compile Include="Entities\Database\DeleteVesselUnloadFromOrphanEventArg.cs" />
     <Compile Include="Entities\Database\DownloadedJsonMetadata.cs" />
+    <Compile Include="Entities\Database\EntityBulkImportEventArg.cs" />
     <Compile Include="Entities\Database\FileInfoJSONMetadata.cs" />
     <Compile Include="Entities\Database\GearAtLandingSiteDaysPerMonth.cs" />
     <Compile Include="Entities\Database\GearAtLandingSiteDaysPerMonthRepository.cs" />

@@ -9,6 +9,12 @@ using System.Threading.Tasks;
 
 namespace NSAP_ODK.Entities.Database
 {
+    public enum BoatLandingStatus
+    {
+        boatLandingStatusNew,
+        boatLandingStatusSavedForUpdate,
+        boatLandingStatusSavedUpdated
+    }
     public static class BoatLandingsFromServerRepository
     {
         private static List<GearRepeat> _gearRepeat;
@@ -19,14 +25,178 @@ namespace NSAP_ODK.Entities.Database
         {
 
             _gearRepeat = null;
-            BoatLandingsFromServer.SetRowIDs();
-            BoatLandings = JsonConvert.DeserializeObject<List<BoatLandingsFromServer>>(JSON);
+            global::BoatLandings.SetRowIDs();
+            BoatLandings = JsonConvert.DeserializeObject<List<BoatLandings>>(JSON);
             _gearRepeat = null;
             _speciesTWSPRepeat = null;
         }
 
-        public static List<BoatLandingsFromServer> BoatLandings { get; internal set; }
+        public static List<BoatLandings> BoatLandings { get; internal set; }
+        public static Task<bool> UploadToDBAsync()
+        {
+            return Task.Run(() => UploadToDatabase());
+        }
+        public static bool UploadToDatabase()
+        {
+            //List<BoatLandings> boatLandings;
+            if (BoatLandings.Count > 0)
+            {
+                foreach (var landingSiteLandings in BoatLandings)
+                {
+                    LandingSiteSampling ls = new LandingSiteSampling
+                    {
+                        PK = landingSiteLandings.PK,
+                        NSAPRegionID = landingSiteLandings.Region.Code,
+                        SamplingDate = landingSiteLandings.SamplingDate,
+                        LandingSiteID = landingSiteLandings.LandingSite == null ? null : (int?)landingSiteLandings.LandingSite.LandingSiteID,
+                        FishingGroundID = landingSiteLandings.FishingGround.Code,
+                        Remarks = landingSiteLandings.Notes,
+                        IsSamplingDay = landingSiteLandings.IsSamplingDay,
+                        LandingSiteText = landingSiteLandings.LandingSiteText,
+                        FMAID = landingSiteLandings.FMA.FMAID,
+                        HasFishingOperation = landingSiteLandings.HasFishingOperation,
+                        DateSubmitted = landingSiteLandings._submission_time,
+                        UserName = landingSiteLandings.user_name,
+                        DeviceID = landingSiteLandings.device_id,
+                        XFormIdentifier = landingSiteLandings._xform_id_string,
+                        DateAdded = DateTime.Now,
+                        FromExcelDownload = false,
+                        FormVersion = landingSiteLandings.intronote,
+                        RowID = landingSiteLandings._uuid,
+                        EnumeratorID = landingSiteLandings.RegionEnumerator,
+                        EnumeratorText = landingSiteLandings.EnumeratorText
+                    };
 
+
+                    BoatLandingStatus landingStatus = BoatLandingStatus.boatLandingStatusSavedUpdated;
+                    LandingSiteSampling lss = null; ;
+
+                    if (!landingSiteLandings.SavedInLocalDatabase)
+                    {
+                        landingStatus = BoatLandingStatus.boatLandingStatusNew;
+                    }
+                    else if (landingSiteLandings.SavedInLocalDatabase)
+                    {
+                        lss = NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(ls.PK);
+                        if (string.IsNullOrEmpty(lss.DeviceID))
+                        {
+                            landingStatus = BoatLandingStatus.boatLandingStatusSavedForUpdate;
+                        }
+                    }
+
+                    bool proceed = false;
+                    if (landingStatus == BoatLandingStatus.boatLandingStatusNew)
+                    {
+                        if (NSAPEntities.LandingSiteSamplingViewModel.AddRecordToRepo(ls))
+                        {
+                            landingSiteLandings.SavedInLocalDatabase = true;
+                            proceed = true;
+                        }
+                    }
+                    else if (landingStatus == BoatLandingStatus.boatLandingStatusSavedForUpdate)
+                    {
+                        proceed = NSAPEntities.LandingSiteSamplingViewModel.UpdateRecordInRepo(ls);
+                    }
+
+                    if (proceed)
+                    {
+                        if (lss != null)
+                        {
+                            foreach (GearUnload gu in lss.GearUnloadViewModel.GearUnloadCollection.ToList())
+                            {
+                                proceed = false;
+                                string sector = gu.SectorCode;
+
+                                if (string.IsNullOrEmpty(sector))
+                                {
+                                    if (gu.VesselUnloadViewModel == null)
+                                    {
+                                        gu.VesselUnloadViewModel = new VesselUnloadViewModel(gu);
+                                    }
+                                    sector = gu.VesselUnloadViewModel.GetSector();
+                                }
+
+                                if (sector == "m" || sector == "c")
+                                {
+                                    var gr = landingSiteLandings.gear_repeat.FirstOrDefault(t => t.GearName == gu.GearUsedName && t.SectorCode == sector);
+                                    if (gr != null)
+                                    {
+                                        gu.Boats = gr.LandingsCount;
+                                        gu.Catch = gr.TotalCatchWt;
+                                        gu.SectorCode = sector;
+                                        gr.GearUnload = gu;
+                                        proceed = lss.GearUnloadViewModel.UpdateRecordInRepo(gu);
+                                    }
+
+                                    //twsp for each gear
+                                    if (proceed && gr.SpeciesTWSpRepeat != null && gr.SpeciesTWSpRepeat.Count > 0)
+                                    {
+                                        ProcessTWSPForGear(gr);
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            ls.GearUnloadViewModel = new GearUnloadViewModel(ls);
+                            foreach (var gr in landingSiteLandings.gear_repeat)
+                            {
+                                proceed = false;
+                                GearUnload gu = new GearUnload
+                                {
+                                    PK = NSAPEntities.SummaryItemViewModel.GetGearUnloadMaxRecordNumber() + 1,
+                                    GearID = gr.GearCode,
+                                    GearUsedText = gr.GearUsedText,
+                                    Boats = gr.LandingsCount,
+                                    Catch = gr.TotalCatchWt,
+                                    SectorCode = gr.SectorCode,
+                                    Parent = ls,
+                                    LandingSiteSamplingID = ls.PK
+                                };
+                                if (ls.GearUnloadViewModel.AddRecordToRepo(gu))
+                                {
+                                    gr.GearUnload = gu;
+                                    proceed = NSAPEntities.SummaryItemViewModel.AddRecordToRepo(gu);
+                                }
+
+                                //twsp for each gear
+                                if (proceed && gr.SpeciesTWSpRepeat != null && gr.SpeciesTWSpRepeat.Count > 0)
+                                {
+                                    ProcessTWSPForGear(gr);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+
+        private static bool ProcessTWSPForGear(GearRepeat gr)
+        {
+            if (gr.GearUnload.TotalWtSpViewModel.Count() == 0)
+            {
+                foreach (var sr in gr.SpeciesTWSpRepeat)
+                {
+                    TotalWtSp tws = new TotalWtSp
+                    {
+                        RowID = (int)sr.PK,
+                        Parent = gr.GearUnload,
+                        Taxa = NSAPEntities.TaxaViewModel.GetTaxa(sr.Taxa),
+                        SpeciesID = sr.SpId,
+                        SpeciesText = sr.SpNameOther,
+                        TWSP = sr.Twsp
+                    };
+                    if (gr.GearUnload.TotalWtSpViewModel.AddRecordToRepo(tws))
+                    {
+
+                    }
+                }
+            }
+            return true;
+
+
+        }
         public static List<SpeciesTWSpRepeat> GetSpeciesTTWSpRepeats()
         {
             List<SpeciesTWSpRepeat> thisList = new List<SpeciesTWSpRepeat>();
@@ -87,6 +257,7 @@ public class GearRepeat
     private GearUnload _saveGearUnloadObject;
     private List<SpeciesTWSpRepeat> _speciesTWSpRepeat;
 
+    public GearUnload GearUnload { get; set; }
     public static bool RowIDSet
     {
         get { return _rowIDSet; }
@@ -118,6 +289,10 @@ public class GearRepeat
         {
             if (SavedInLocalDatabase)
             {
+                if (Parent.SavedLandingObject.GearUnloadViewModel == null)
+                {
+                    Parent.SavedLandingObject.GearUnloadViewModel = new GearUnloadViewModel(Parent.SavedLandingObject);
+                }
                 _rowID = Parent.SavedLandingObject.GearUnloadViewModel.GearUnloadCollection
                     .Where(t => t.GearUsedName == GearName &&
                             t.Parent.PK == Parent.PK).FirstOrDefault().PK;
@@ -164,7 +339,7 @@ public class GearRepeat
 
     [JsonProperty("gear_repeat/gear_group_1/gear_group_2/include_counts")]
     public string include_counts { get; set; }
-    
+
     public bool IncludeCounts
     {
         get
@@ -183,7 +358,7 @@ public class GearRepeat
             }
         }
     }
-    public BoatLandingsFromServer Parent { get; set; }
+    public BoatLandings Parent { get; set; }
 
     [JsonProperty("gear_repeat/gear_group_1/gear_group_2/gear_used_text")]
     public string GearUsedText { get; set; }
@@ -199,7 +374,27 @@ public class GearRepeat
     public string GearCode { get; set; }
 
     [JsonProperty("gear_repeat/gear_group_1/gear_group_2/gear_name")]
+
+
     public string GearName { get; set; }
+
+    [JsonProperty("gear_repeat/gear_group_1/gear_group_2/fish_sector")]
+    public string SectorCode { get; set; }
+
+    public string SectorFull
+    {
+        get
+        {
+            if (SectorCode == "m")
+            {
+                return "Municipality";
+            }
+            else
+            {
+                return "Commercial";
+            }
+        }
+    }
 
     [JsonProperty("gear_repeat/gear_group_1/gear_group_2/landings_count")]
     public int LandingsCount { get; set; }
@@ -415,7 +610,8 @@ public class SpeciesTWSpRepeat
     public string SpNameOther { get; set; }
 }
 
-public class BoatLandingsFromServer
+//public class BoatLandingsFromServer
+public class BoatLandings
 {
     private static bool _rowIDSet;
     private static int _pk;
@@ -632,19 +828,22 @@ public class BoatLandingsFromServer
     public string fishing_ground_name { get; set; }
     public string landing_site_name { get; set; }
 
-    public string has_fishing_operation { get; set; }
+    [JsonProperty("has_operation_group/has_fishing_operation")]
+    public string Has_fishing_operation { get; set; }
+    [JsonProperty("has_operation_group/reason_no_operation")]
+    public string Reason_no_operation { get; set; }
     public bool HasFishingOperation
     {
-        get { return has_fishing_operation == "yes"; }
+        get { return Has_fishing_operation == "yes"; }
         set
         {
             if (value)
             {
-                has_fishing_operation = "yes";
+                Has_fishing_operation = "yes";
             }
             else
             {
-                has_fishing_operation = "no";
+                Has_fishing_operation = "no";
             }
         }
     }
@@ -677,7 +876,29 @@ public class BoatLandingsFromServer
     public List<object> _notes { get; set; }
     //public ValidationStatus _validation_status { get; set; }
     public object _submitted_by { get; set; }
-    public string reason_no_operation { get; set; }
+
+    public bool IsUpdatedForBoatLandings
+    {
+        get
+        {
+            if (SavedLandingObject == null)
+            {
+                return false;
+            }
+            else if (string.IsNullOrEmpty(SavedLandingObject.DeviceID))
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+        set
+        {
+            //var b = value;
+        }
+    }
 
     public string NotesRemarks
     {
@@ -689,9 +910,9 @@ public class BoatLandingsFromServer
                 notesRemarks = $"{Notes}; ";
             }
 
-            if (!string.IsNullOrEmpty(reason_no_operation))
+            if (!string.IsNullOrEmpty(Reason_no_operation))
             {
-                notesRemarks += reason_no_operation;
+                notesRemarks += Reason_no_operation;
             }
             return notesRemarks.Trim(';');
         }

@@ -149,7 +149,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
             //    _pk = NSAPEntities.CatchLengthViewModel.NextRecordNumber - 1;
             //}
             _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastLengthsPK;
-            if(_pk==0)
+            if (_pk == 0)
             {
 
             }
@@ -467,7 +467,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
         //unit used when weighing individuals (kg or g)
         [JsonProperty("catch_comp_group/catch_composition_repeat/speciesname_group/individual_wt_unit")]
-        public string IndividualWeightUnit{ get; set; }
+        public string IndividualWeightUnit { get; set; }
 
         //weight of the species
         [JsonProperty("catch_comp_group/catch_composition_repeat/speciesname_group/species_wt")]
@@ -1412,11 +1412,11 @@ namespace NSAP_ODK.Entities.Database.FromJson
                     {
                         try
                         {
-                            _rowid = _savedVesselUnloadObject.VesselUnloadID;
+                            _rowid = (int)_savedVesselUnloadObject.VesselUnloadID;
                         }
                         catch
                         {
-                            _rowid = SavedVesselUnloadObject.VesselUnloadID;
+                            _rowid = (int)SavedVesselUnloadObject.VesselUnloadID;
                             _savedVesselUnloadObject = SavedVesselUnloadObject;
                             //_savedVesselUnloadObject = SavedVesselUnloadObject;
                             //_rowid = _savedVesselUnloadObject.VesselUnloadID;
@@ -1424,7 +1424,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                     }
                     else
                     {
-                        _rowid = _savedVesselUnloadObject.VesselUnloadID;
+                        _rowid = (int)_savedVesselUnloadObject.VesselUnloadID;
                     }
                 }
                 return _rowid;
@@ -2204,7 +2204,12 @@ namespace NSAP_ODK.Entities.Database.FromJson
                             {
                                 proceed = false;
 
-                                gear_unload = landingSiteSampling.GearUnloadViewModel.GetGearUnloads(landingSiteSampling).FirstOrDefault(t => t.GearUsedText == landing.GearUsedText || t.GearID == landing.GearCode);
+                                //Oct 21: added fisheries sector when making a new gear unload
+                                gear_unload = landingSiteSampling.GearUnloadViewModel.GetGearUnloads(landingSiteSampling).FirstOrDefault(t => (t.GearUsedText == landing.GearUsedText || t.GearID == landing.GearCode) && t.SectorCode == landing.SectorCode);
+
+                                //gear_unload = landingSiteSampling.GearUnloadViewModel.GetGearUnloads(landingSiteSampling).FirstOrDefault(t => t.GearUsedText == landing.GearUsedText || t.GearID == landing.GearCode);
+
+
                                 if (gear_unload == null)
                                 {
                                     if (landing.GearCode == "_OT")
@@ -2219,6 +2224,10 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                         LandingSiteSamplingID = landingSiteSampling.PK,
                                         GearID = NSAPEntities.GearViewModel.GearCodeExist(landing.GearCode) ? landing.GearCode : string.Empty,
                                         GearUsedText = landing.GearUsedText == null ? landing.GearName : landing.GearUsedText,
+                                        
+                                        //added on Oct 21 2022
+                                        SectorCode=landing.SectorCode,
+
                                         Remarks = "",
                                         DelayedSave = DelayedSave
                                     };
@@ -2259,7 +2268,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                     withCatchComp = landing.IncludeCatchComposition == "yes" ? true : false;
                                 }
 
-                                if(gear_unload.PK==29440 && landing.BoatUsedText=="1 Anna marie Garcia")
+                                if (gear_unload.PK == 29440 && landing.BoatUsedText == "1 Anna marie Garcia")
                                 {
 
                                 }
@@ -2427,7 +2436,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                     TaxaCode = catchComp.TaxaCode,
                                                     SpeciesText = catchComp.SpeciesNameOther,
                                                     DelayedSave = DelayedSave,
-                                                    WeighingUnit=catchComp.IndividualWeightUnit
+                                                    WeighingUnit = catchComp.IndividualWeightUnit
                                                 };
 
 
@@ -2453,7 +2462,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                                 VesselCatchID = vc.PK,
                                                                 LengthClass = lf.LengthClass,
                                                                 Frequency = lf.Frequency,
-                                                                Sex=lf.Sex,    
+                                                                Sex = lf.Sex,
                                                                 DelayedSave = DelayedSave
                                                             };
                                                             if (vc.CatchLenFreqViewModel.AddRecordToRepo(clf))
@@ -2511,7 +2520,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                                 Parent = vc,
                                                                 VesselCatchID = vc.PK,
                                                                 Length = l.Length,
-                                                                Sex =l.Sex,
+                                                                Sex = l.Sex,
                                                                 DelayedSave = DelayedSave
 
                                                             };

@@ -219,7 +219,7 @@ namespace NSAP_ODK.Entities.Database
 
         public VesselUnload GetVesselUnload(SummaryItem si)
         {
-            List<LandingSiteSampling> lss = LandingSiteSamplingCollection.Where(t => t.SamplingDate.Date == si.SamplingDate.Date).ToList();
+            List<LandingSiteSampling> lss = LandingSiteSamplingCollection.Where(t => t.SamplingDate.Date == ((DateTime)si.SamplingDate).Date).ToList();
             foreach (LandingSiteSampling ls in lss)
             {
                 List<GearUnload> gus = ls.GearUnloadViewModel.GearUnloadCollection.Where(t => t.GearUsedName == si.GearUsedName).ToList();
