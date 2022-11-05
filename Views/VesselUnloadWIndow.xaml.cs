@@ -86,7 +86,7 @@ namespace NSAP_ODK.Views
                         {
                             panelLowerButtons.Visibility = Visibility.Visible;
                         }
-                        
+
                     }
                     else
                     {
@@ -107,8 +107,25 @@ namespace NSAP_ODK.Views
             }
         }
 
+        private Style AlignRightStyle
+        {
+            get
+            {
+                Style alignRightCellStype = new Style(typeof(DataGridCell));
+
+                // Create a Setter object to set (get it? Setter) horizontal alignment.
+                Setter setAlign = new
+                    Setter(HorizontalAlignmentProperty,
+                    HorizontalAlignment.Right);
+
+                // Bind the Setter object above to the Style object
+                alignRightCellStype.Setters.Add(setAlign);
+                return alignRightCellStype;
+            }
+        }
         private void SetGridForEdit()
         {
+            DataGridTextColumn col;
             _unloadGridIsDirty = false;
             _catchGridIsDirty = false;
 
@@ -116,7 +133,7 @@ namespace NSAP_ODK.Views
             {
                 case "treeItemSoakTime":
                     gridVesselUnload.Columns.Clear();
-                    if(_vesselUnloadEdit.OperationIsTracked || !_editMode)
+                    if (_vesselUnloadEdit.OperationIsTracked || !_editMode)
                     {
                         gridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("PK") });
                         gridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Time at set", Binding = new Binding("TimeAtSet") });
@@ -127,7 +144,7 @@ namespace NSAP_ODK.Views
                     else
                     {
                         gridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("PK") });
-                        gridVesselUnload.Columns.Add(new DataGridTextColumn  { Header = "Time at set", Binding = new Binding("TimeAtSet") });
+                        gridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Time at set", Binding = new Binding("TimeAtSet") });
                         gridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Time at haul", Binding = new Binding("TimeAtHaul") });
                     }
                     break;
@@ -146,7 +163,7 @@ namespace NSAP_ODK.Views
                     {
                         var editedCatchItems = NSAPEntities.VesselCatchViewModel.GetVesselCatchEditedList(_vesselUnload);
                         gridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("PK") });
-                        
+
                         DataGridComboBoxColumn cboColumnTaxa = new DataGridComboBoxColumn();
                         cboColumnTaxa.Header = "Taxa";
                         cboColumnTaxa.ItemsSource = NSAPEntities.TaxaViewModel.AllTaxaTerms();
@@ -160,8 +177,26 @@ namespace NSAP_ODK.Views
                         //cboColumnGenus.SelectedItemBinding = new Binding("Genus");
                         //gridVesselUnload.Columns.Add(cboColumnGenus);
 
-                        gridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Other", Binding = new Binding("Catch_kg") });
-                        gridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("Catch_kg") });
+                        col = new DataGridTextColumn()
+                        {
+                            Binding = new Binding("Catch_kg"),
+                            Header = "Weight",
+                            CellStyle = AlignRightStyle
+                        };
+                        col.Binding.StringFormat = "0.00";
+                        gridVesselUnload.Columns.Add(col);
+
+                        col = new DataGridTextColumn()
+                        {
+                            Binding = new Binding("Sample_kg"),
+                            Header = "Weight of sample (TWS)",
+                            CellStyle = AlignRightStyle
+                        };
+                        col.Binding.StringFormat = "0.00";
+                        gridVesselUnload.Columns.Add(col);
+
+                        //gridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Other", Binding = new Binding("Catch_kg") });
+                        //gridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("Catch_kg") });
                         gridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Weight of sample", Binding = new Binding("Sample_kg") });
                         gridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "TWS", Binding = new Binding("TWS") });
 
@@ -180,8 +215,8 @@ namespace NSAP_ODK.Views
             }
 
 
-                gridVesselUnload.CanUserAddRows = _editMode; ;
-                gridVesselUnload.IsReadOnly = !_editMode;
+            gridVesselUnload.CanUserAddRows = _editMode; ;
+            gridVesselUnload.IsReadOnly = !_editMode;
 
         }
 
@@ -216,6 +251,7 @@ namespace NSAP_ODK.Views
 
         private void ConfigureGridColumns()
         {
+            DataGridTextColumn col;
             if (_selectedTreeItem == "treeItemLenFreq"
                 || _selectedTreeItem == "treeItemLenWeight"
                 || _selectedTreeItem == "treeItemLenList"
@@ -256,8 +292,28 @@ namespace NSAP_ODK.Views
                     gridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("PK") });
                     gridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Taxa", Binding = new Binding("Taxa") });
                     gridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Name", Binding = new Binding("CatchName") });
-                    gridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("Catch_kg") });
-                    gridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Weight of sample", Binding = new Binding("Sample_kg") });
+
+                    col = new DataGridTextColumn()
+                    {
+                        Binding = new Binding("Catch_kg"),
+                        Header = "Weight",
+                        CellStyle = AlignRightStyle
+                    };
+                    col.Binding.StringFormat = "0.00";
+                    gridVesselUnload.Columns.Add(col);
+
+                    col = new DataGridTextColumn()
+                    {
+                        Binding = new Binding("Sample_kg"),
+                        Header = "Weight of sample (TWS)",
+                        CellStyle = AlignRightStyle
+                    };
+                    col.Binding.StringFormat = "0.00";
+                    gridVesselUnload.Columns.Add(col);
+
+                    //gridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("Catch_kg") });
+                    //gridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Weight of sample", Binding = new Binding("Sample_kg") });
+                    gridVesselUnload.Columns.Add(new DataGridCheckBoxColumn { Header = "From total catch", Binding = new Binding("FromTotalCatch ") });
                     break;
                 case "treeItemLenFreq":
                     gridSelectedCatchProperty.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("PK") });
@@ -320,7 +376,46 @@ namespace NSAP_ODK.Views
             treeItemLenList.Visibility = visibility;
             treeItemMaturity.Visibility = visibility;
         }
+        private void ShowStatusCatchCOmposition()
+        {
+            Label lbl;
+            statusBar.Items.Clear();
+            if (_vesselUnload.VesselCatchViewModel?.Count > 0)
+            {
+                lbl = new Label { Content = $"Weight of catch: {((double)_vesselUnload.WeightOfCatch).ToString("0.00")}" };
+                statusBar.Items.Add(lbl);
 
+                string sample_wt = "0";
+                if (_vesselUnload.WeightOfCatchSample != null)
+                {
+                    sample_wt = ((double)_vesselUnload.WeightOfCatchSample).ToString("0.00");
+                }
+                lbl = new Label { Content = $"Weight of sample: {sample_wt}" };
+                lbl.Margin = new Thickness(5, 0, 0, 0);
+                statusBar.Items.Add(lbl);
+
+                string total_wt_catch_comp = "";
+                total_wt_catch_comp = _vesselUnload.VesselCatchViewModel.VesselCatchCollection.Sum(t => (double)t.Catch_kg).ToString("0.00");
+
+                lbl = new Label { Content = $"Total weight of catch composition: {total_wt_catch_comp}" };
+                lbl.Margin = new Thickness(5, 0, 0, 0);
+                statusBar.Items.Add(lbl);
+
+                string total_sample_wt_catch_comp = "";
+                total_sample_wt_catch_comp = _vesselUnload.VesselCatchViewModel.VesselCatchCollection
+                    .Where(t => t.FromTotalCatch == false && t.Sample_kg!=null)
+                    .Sum(t => (double)t.Sample_kg)
+                    .ToString("0.00");
+
+                lbl = new Label { Content = $"Total weight of sampled species: {total_sample_wt_catch_comp}" };
+                lbl.Margin = new Thickness(5, 0, 0, 0);
+                statusBar.Items.Add(lbl);
+            }
+            else
+            {
+                statusBar.Items.Add(new Label { Content = "Catch composition is empty" });
+            }
+        }
         private void ShowSelectedItemDetails()
         {
             panelLowerButtons.Visibility = Visibility.Collapsed;
@@ -374,6 +469,7 @@ namespace NSAP_ODK.Views
                         gridVesselUnload.DataContext = _vesselUnload.ListVesselEffort;
                         break;
                     case "treeItemCatchComposition":
+                        ShowStatusCatchCOmposition();
                         labelCurrentView.Content = "Catch composition";
                         gridVesselUnload.DataContext = _vesselUnload.ListVesselCatch;
                         break;
@@ -449,6 +545,7 @@ namespace NSAP_ODK.Views
         private void onTreeSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
 
         {
+            statusBar.Items.Clear();
             _selectedTreeItem = ((TreeViewItem)((TreeView)e.Source).SelectedValue).Name;
             ShowSelectedItemDetails();
 
@@ -459,7 +556,7 @@ namespace NSAP_ODK.Views
             switch (((DataGrid)sender).Name)
             {
                 case "gridVesselUnload":
-                    if (gridVesselUnload.Items.CurrentItem !=null &&   gridVesselUnload.Items.CurrentItem.GetType().Name == "VesselCatch")
+                    if (gridVesselUnload.Items.CurrentItem != null && gridVesselUnload.Items.CurrentItem.GetType().Name == "VesselCatch")
                     {
                         _selectedCatch = (VesselCatch)gridVesselUnload.SelectedItem;
                         if (_selectedCatch != null)

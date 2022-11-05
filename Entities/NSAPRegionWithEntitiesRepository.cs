@@ -915,13 +915,40 @@ namespace NSAP_ODK.Entities
                     const string sql = "SELECT Max(RowId) AS max_record_no FROM NSAPRegionVessel";
                     using (OleDbCommand getMax = new OleDbCommand(sql, conn))
                     {
-                        max_rec_no = (int)getMax.ExecuteScalar();
+                        max_rec_no = (int)getMax.ExecuteScalar()+1;
                     }
                 }
             }
             return max_rec_no;
         }
+        private static int GetLastRegionFishingVesselID()
+        {
+            int maxID = 0;
+            if (Global.Settings.UsemySQL)
+            {
 
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = "Select Max(RowID) from NSAPRegionVessel";
+                        try
+                        {
+                            con.Open();
+                            maxID = (int)cmd.ExecuteScalar();
+                        }
+                        catch(Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return maxID;
+        }
         public static NSAPRegionFishingVessel CreateRegionFishingVessel(FishingVessel fv, NSAPRegion region, DateTime added)
         {
             NSAPRegionFishingVessel nrfv = new NSAPRegionFishingVessel
@@ -934,12 +961,12 @@ namespace NSAP_ODK.Entities
 
             if (region.FishingVessels.Count == 0)
             {
-                nrfv.RowID = 1;
+                nrfv.RowID = GetLastRegionFishingVesselID()+1;
             }
             else
             {
                 //nrfv.RowID = MaxRecordNumber_FishingVessel() + 1;
-                nrfv.RowID = region.FishingVessels.Max(t => t.RowID) + 1;
+                nrfv.RowID = region.FishingVessels.Max(t => t.RowID);
             }
             return nrfv;
         }

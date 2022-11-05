@@ -19,6 +19,7 @@
             <RowDefinition Height="25"/>
             <RowDefinition Height="25"/>
             <RowDefinition/>
+            <RowDefinition Height="35"/>
         </Grid.RowDefinitions>
         <Label Content="Selected vessel unload" x:Name="labelTitle" Grid.ColumnSpan="2" Margin="10 0"/>
         <TreeView SelectedItemChanged="onTreeSelectedItemChanged" Grid.Row="1" Grid.RowSpan="2" Margin="10 10 0 10">
@@ -68,5 +69,6 @@
             <Button Content="Edit" x:Name="buttonEdit" Click="OnButtonClicked" Margin="10" Height="25" Width="70" Background="SkyBlue" Visibility="Collapsed"/>
 
         </StackPanel>
+        <StatusBar Grid.Row="3"  Grid.ColumnSpan="3" x:Name="statusBar"/>
     </Grid>
 </Window>

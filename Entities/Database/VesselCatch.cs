@@ -103,6 +103,8 @@ namespace NSAP_ODK.Entities.Database
         public int? SpeciesID { get; set; }
         public string TaxaCode { get; set; }
 
+        public bool FromTotalCatch { get; set; }
+
         private string FishSpeciesName(int speciesID)
         {
             var sp = NSAPEntities.FishSpeciesViewModel.GetSpecies((int)SpeciesID);

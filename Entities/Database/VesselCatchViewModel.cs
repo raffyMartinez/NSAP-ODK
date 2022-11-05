@@ -647,7 +647,7 @@ namespace NSAP_ODK.Entities.Database
             else
             {
                 //_csv.AppendLine($"{item.PK},{item.Parent.PK},{sp_id},{catch_kg},{sample_kg},\"{item.TaxaCode}\",\"{item.SpeciesText}\",{tws}");
-                _csv.AppendLine($"{item.PK},{item.Parent.PK},{sp_id},{catch_kg},{sample_kg},\"{item.TaxaCode}\",\"{item.SpeciesText}\",\"{item.WeighingUnit}\"");
+                _csv.AppendLine($"{item.PK},{item.Parent.PK},{sp_id},{catch_kg},{sample_kg},\"{item.TaxaCode}\",\"{item.SpeciesText}\",\"{item.WeighingUnit}\",{Convert.ToInt32(item.FromTotalCatch)}");
             }
             return true;
         }
@@ -705,7 +705,17 @@ namespace NSAP_ODK.Entities.Database
 
         public int Count
         {
-            get { return VesselCatchCollection.Count; }
+            get
+            {
+                if (VesselCatchCollection == null)
+                {
+                    return 0;
+                }
+                else
+                {
+                    return VesselCatchCollection.Count;
+                }
+            }
         }
 
         public bool AddRecordToRepo(VesselCatch item)

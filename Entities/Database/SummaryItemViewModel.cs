@@ -471,7 +471,7 @@ namespace NSAP_ODK.Entities.Database
         {
             int lastPK = SummaryItemCollection.Max(i => (int)i.VesselUnloadID);
             SummaryItem item = SummaryItemCollection.FirstOrDefault(t => t.VesselUnloadID == lastPK);
-            VesselUnload lastVU = null;
+            VesselUnload last_vessel_unload = null;
             foreach (var lss in NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection.Where(t => t.SamplingDate.Date == ((DateTime)item.SamplingDate).Date))
             {
                 foreach (var gu in lss.GearUnloadViewModel.GearUnloadCollection)
@@ -479,14 +479,14 @@ namespace NSAP_ODK.Entities.Database
                     if (gu.VesselUnloadViewModel == null)
                     {
                         gu.VesselUnloadViewModel = new VesselUnloadViewModel(gu, updatesubViewModels: true);
-                        lastVU = gu.VesselUnloadViewModel.VesselUnloadCollection.FirstOrDefault(t => t.PK == lastPK);
-                        if (lastVU != null) break;
+                        last_vessel_unload = gu.VesselUnloadViewModel.VesselUnloadCollection.FirstOrDefault(t => t.PK == lastPK);
+                        if (last_vessel_unload != null) break;
                     }
 
                 }
-                if (lastVU != null) break;
+                if (last_vessel_unload != null) break;
             }
-            return lastVU;
+            return last_vessel_unload;
         }
         public int CountByFormID(string xFormID)
         {
@@ -919,15 +919,43 @@ namespace NSAP_ODK.Entities.Database
         }
         public List<GearUnload> GetGearUnloadsFromTree(TreeViewModelControl.AllSamplingEntitiesEventHandler treeData)
         {
+            var landingSiteNameToUse = treeData.LandingSiteText;
+            if(treeData.LandingSite!=null)
+            {
+                landingSiteNameToUse = treeData.LandingSite.ToString();
+            }
             List<GearUnload> unload_list = new List<GearUnload>();
-            var items = SummaryItemCollection.Where(t => t.Region.Code == treeData.NSAPRegion.Code &&
-                t.FMA.FMAID == treeData.FMA.FMAID &&
-                t.FishingGround.Code == treeData.FishingGround.Code &&
-                t.LandingSite != null &&
-                t.LandingSite.LandingSiteID == treeData.LandingSite.LandingSiteID &&
-                t.SamplingDate > (DateTime)treeData.MonthSampled && t.SamplingDate < ((DateTime)treeData.MonthSampled).AddMonths(1)).ToList()
+            List<SummaryItem> items = new List<SummaryItem>();
+            if (treeData.TreeViewEntity == "tv_LandingSiteViewModel")
+            {
+                items = SummaryItemCollection.Where(t => t.Region.Code == treeData.NSAPRegion.Code &&
+                    t.FMA.FMAID == treeData.FMA.FMAID &&
+                    t.FishingGround.Code == treeData.FishingGround.Code &&
+                    t.LandingSite != null &&
+                    t.LandingSite.ToString() == landingSiteNameToUse).ToList()
 
-                .GroupBy(gu => gu.GearUnloadID).Select(x => x.First()).ToList();
+                    .GroupBy(gu => gu.GearUnloadID).Select(x => x.First()).ToList();
+            }
+            else if (treeData.TreeViewEntity == "tv_MonthViewModel")
+            {
+                items = SummaryItemCollection.Where(t => t.Region.Code == treeData.NSAPRegion.Code &&
+                    t.FMA.FMAID == treeData.FMA.FMAID &&
+                    t.FishingGround.Code == treeData.FishingGround.Code &&
+                    t.LandingSite != null &&
+                    t.LandingSite.ToString() == landingSiteNameToUse &&
+                    t.SamplingDate > (DateTime)treeData.MonthSampled && t.SamplingDate < ((DateTime)treeData.MonthSampled).AddMonths(1)).ToList()
+
+                    .GroupBy(gu => gu.GearUnloadID).Select(x => x.First()).ToList();
+            }
+            else if (treeData.TreeViewEntity=="tv_FishingGroundViewModel")
+            {
+                items = SummaryItemCollection.Where(t => t.Region.Code == treeData.NSAPRegion.Code &&
+                    t.SamplingDate!=null &&
+                    t.FMA.FMAID == treeData.FMA.FMAID &&
+                    t.FishingGround.Code == treeData.FishingGround.Code).ToList()
+
+                    .GroupBy(gu => gu.GearUnloadID).Select(x => x.First()).ToList();
+            }
 
             foreach (var item in items)
             {

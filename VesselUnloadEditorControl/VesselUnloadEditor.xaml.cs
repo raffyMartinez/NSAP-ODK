@@ -156,6 +156,7 @@ namespace NSAP_ODK.VesselUnloadEditorControl
 
         private void SetupDataGridsForDisplay(bool forCatchGrid = false)
         {
+            DataGridTextColumn col;
             if (!forCatchGrid)
             {
                 effortDataGrid.DataContext = null;
@@ -195,10 +196,29 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                     effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("PK") });
                     effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Taxa", Binding = new Binding("Taxa") });
                     effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Name", Binding = new Binding("CatchNameEx") });
-                    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("Catch_kg") });
-                    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight of sample", Binding = new Binding("Sample_kg") });
-                    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "TWS", Binding = new Binding("TWS") });
 
+                    col = new DataGridTextColumn()
+                    {
+                        Binding = new Binding("Catch_kg"),
+                        Header = "Weight",
+                        CellStyle = AlignRightStyle
+                    };
+                    col.Binding.StringFormat = "0.00";
+                    effortDataGrid.Columns.Add(col);
+
+                    col = new DataGridTextColumn()
+                    {
+                        Binding = new Binding("Sample_kg"),
+                        Header = "Weight of sample (TWS)",
+                        CellStyle = AlignRightStyle
+                    };
+                    col.Binding.StringFormat = "0.00";
+                    effortDataGrid.Columns.Add(col);
+
+                    //effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("Catch_kg") });
+                    //effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight of sample", Binding = new Binding("Sample_kg") });
+                    //effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "TWS", Binding = new Binding("TWS") });
+                    effortDataGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "From total catch", Binding = new Binding("FromTotalCatch") });
                     effortDataGrid.DataContext = _vesselUnload.ListVesselCatch;
                     break;
                 case "treeItemLenFreq":
@@ -237,7 +257,22 @@ namespace NSAP_ODK.VesselUnloadEditorControl
             //effortDataGrid.Items.Refresh();
             labelCatch.Content = $"{GetContextLabel()} {VesselCatch?.CatchName}";
         }
+        private Style AlignRightStyle
+        {
+            get
+            {
+                Style alignRightCellStype = new Style(typeof(DataGridCell));
 
+                // Create a Setter object to set (get it? Setter) horizontal alignment.
+                Setter setAlign = new
+                    Setter(HorizontalAlignmentProperty,
+                    HorizontalAlignment.Right);
+
+                // Bind the Setter object above to the Style object
+                alignRightCellStype.Setters.Add(setAlign);
+                return alignRightCellStype;
+            }
+        }
         private void SetupPropertyGridForDisplay()
         {
             if (propertyGrid.Properties.Count == 0)
@@ -354,11 +389,56 @@ namespace NSAP_ODK.VesselUnloadEditorControl
 
         }
 
+        private void ShowStatusCatchComposition()
+        {
+            statusBar.Items.Add(new Label { Content=VesselUnloadViewModel.StatusText(_vesselUnload)});
+        }
+        private void ShowStatusCatchCOmposition1()
+        {
+            Label lbl;
+            statusBar.Items.Clear();
+            if (_vesselUnload.VesselCatchViewModel?.Count > 0)
+            {
+                lbl = new Label { Content = $"Weight of catch: {((double)_vesselUnload.WeightOfCatch).ToString("0.00")}" };
+                statusBar.Items.Add(lbl);
+
+                string sample_wt = "0";
+                if (_vesselUnload.WeightOfCatchSample != null)
+                {
+                    sample_wt = ((double)_vesselUnload.WeightOfCatchSample).ToString("0.00");
+                }
+                lbl = new Label { Content = $"Weight of sample: {sample_wt}" };
+                lbl.Margin = new Thickness(5, 0, 0, 0);
+                statusBar.Items.Add(lbl);
+
+                string total_wt_catch_comp = "";
+                total_wt_catch_comp = _vesselUnload.VesselCatchViewModel.VesselCatchCollection.Sum(t => (double)t.Catch_kg).ToString("0.00");
+
+                lbl = new Label { Content = $"Total weight of catch composition: {total_wt_catch_comp}" };
+                lbl.Margin = new Thickness(5, 0, 0, 0);
+                statusBar.Items.Add(lbl);
+
+                string total_sample_wt_catch_comp = "";
+                total_sample_wt_catch_comp = _vesselUnload.VesselCatchViewModel.VesselCatchCollection
+                    .Where(t => t.FromTotalCatch == false && t.Sample_kg != null)
+                    .Sum(t => (double)t.Sample_kg)
+                    .ToString("0.00");
+
+                lbl = new Label { Content = $"Total weight of sampled species: {total_sample_wt_catch_comp}" };
+                lbl.Margin = new Thickness(5, 0, 0, 0);
+                statusBar.Items.Add(lbl);
+            }
+            else
+            {
+                statusBar.Items.Add(new Label { Content = "Catch composition is empty" });
+            }
+        }
         public string UnloadView
         {
             get { return _unloadView; }
             set
             {
+                statusBar.Items.Clear();
                 _unloadView = value;
                 SetupView();
                 switch (_unloadView)
@@ -394,6 +474,7 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                     case "treeItemCatchComposition":
                         labelEffort.Content = "Catch composition  of sampled landing";
                         SetupDataGridsForDisplay();
+                        ShowStatusCatchComposition();
                         break;
                     case "treeItemLenFreq":
                         SetupDataGridsForDisplay(forCatchGrid: true);

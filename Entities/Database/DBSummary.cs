@@ -95,6 +95,7 @@ namespace NSAP_ODK.Entities.Database
         public int CountLandingsWithOrphanedFishingGears { get; set; }
         public int CountLandingsWithOrphanedLandingSites { get; set; }
         public int CountLandingsWithOrphanedFishingVessels { get; set; }
+        public string Sector { get; set; }
         public string EnumeratorName { get; set; }
         [ReadOnly(true)]
         public int CountLandingsWithCatchComposition { get; set; }

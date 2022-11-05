@@ -35,33 +35,33 @@ namespace NSAP_ODK.Entities.Database
                         if (cols.Contains("sector") || GearUnloadRepository.AddFieldToTable("sector"))
                         {
                             cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_catch");
+
+                            if (cols.Contains("weighing_unit") || VesselCatchRepository.UpdateTableDefinition("weighing_unit"))
                             {
-                                if (cols.Contains("weighing_unit") || VesselCatchRepository.UpdateTableDefinition("weighing_unit"))
-                                {
+                                if (cols.Contains("from_total_catch") || VesselCatchRepository.UpdateTableDefinition("from_total_catch"))
                                     proceed = true;
-                                }
-
-
-                                //check and and sex column for length table
-                                if (proceed)
-                                {
-                                    cols = CreateTablesInAccess.GetColumnNames("dbo_catch_len");
-                                    proceed = cols.Contains("sex") || CatchLengthRepository.AddFieldToTable("sex");
-                                }
-
-                                if (proceed)
-                                {
-                                    cols = CreateTablesInAccess.GetColumnNames("dbo_catch_len_freq");
-                                    proceed = cols.Contains("sex") || CatchLenFreqRepository.AddFieldToTable("sex");
-                                }
-
-                                if (proceed)
-                                {
-                                    cols = CreateTablesInAccess.GetColumnNames("dbo_catch_len_wt");
-                                    proceed = cols.Contains("sex") || CatchLenWeightRepository.AddFieldToTable("sex");
-                                }
-
                             }
+
+
+                            //check and and sex column for length table
+                            if (proceed)
+                            {
+                                cols = CreateTablesInAccess.GetColumnNames("dbo_catch_len");
+                                proceed = cols.Contains("sex") || CatchLengthRepository.AddFieldToTable("sex");
+                            }
+
+                            if (proceed)
+                            {
+                                cols = CreateTablesInAccess.GetColumnNames("dbo_catch_len_freq");
+                                proceed = cols.Contains("sex") || CatchLenFreqRepository.AddFieldToTable("sex");
+                            }
+
+                            if (proceed)
+                            {
+                                cols = CreateTablesInAccess.GetColumnNames("dbo_catch_len_wt");
+                                proceed = cols.Contains("sex") || CatchLenWeightRepository.AddFieldToTable("sex");
+                            }
+
                         }
                     }
                 }

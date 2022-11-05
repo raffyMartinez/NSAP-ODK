@@ -16,6 +16,7 @@
             <RowDefinition x:Name="rowPropertyGrid"/>
             <RowDefinition x:Name="rowDataGrid" Height="0"/>
             <RowDefinition Height="50" x:Name="rowButton"/>
+            <RowDefinition Height="30" x:Name="rowStatus"/>
         </Grid.RowDefinitions>
 
         <Label x:Name="labelEffort" Grid.Row="0" Grid.Column="0" Content="Label for effort grid" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14"/>
@@ -35,5 +36,6 @@
             <Button x:Name="buttonEdit" Content="Edit" Height="30" Width="60" Click="OnButtonClicked" Margin="10 0" Visibility="Collapsed" IsEnabled="False"/>
             <Button x:Name="buttonAdd" Content="Add" Height="30" Width="60" Click="OnButtonClicked" Margin="10 0" Visibility="Collapsed"/>
         </WrapPanel>
+        <StatusBar Grid.Row="4" Grid.ColumnSpan="2" x:Name="statusBar" Margin="10 0"/>
     </Grid>
 </UserControl>

@@ -371,6 +371,7 @@ namespace NSAP_ODK.Entities.Database
                                 item.CatchLengthWeightViewModel = new CatchLengthWeightViewModel(item);
                                 item.CatchMaturityViewModel = new CatchMaturityViewModel(item);
                                 item.WeighingUnit = dr["weighing_unit"].ToString();
+                                item.FromTotalCatch = (bool)dr["from_total_catch"];
                                 thisList.Add(item);
                             }
 
@@ -413,6 +414,9 @@ namespace NSAP_ODK.Entities.Database
                     case "tws":
 
                         sql = $@"ALTER TABLE dbo_vessel_catch ADD COLUMN {colName} FLOAT";
+                        break;
+                    case "from_total_catch":
+                        sql = $@"ALTER TABLE dbo_vessel_catch ADD COLUMN {colName} BIT";
                         break;
 
                 }
@@ -490,6 +494,7 @@ namespace NSAP_ODK.Entities.Database
                         update.Parameters.Add("@species_text", MySqlDbType.VarChar).Value = item.SpeciesText;
                     }
 
+
                     //if (item.TWS == null)
                     //{
                     //    update.Parameters.Add("@tws", MySqlDbType.VarChar).Value = DBNull.Value;
@@ -531,8 +536,8 @@ namespace NSAP_ODK.Entities.Database
                 {
                     conn.Open();
 
-                    var sql = @"Insert into dbo_vessel_catch(catch_id, v_unload_id, species_id, catch_kg, samp_kg, taxa, species_text, weighing_unit)
-                            Values (?, ?, ?, ?, ?, ?, ?, ?)";
+                    var sql = @"Insert into dbo_vessel_catch(catch_id, v_unload_id, species_id, catch_kg, samp_kg, taxa, species_text, weighing_unit,from_total_catch)
+                            Values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
                     using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
                         update.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
@@ -573,6 +578,8 @@ namespace NSAP_ODK.Entities.Database
                             update.Parameters.Add("@species_text", OleDbType.VarChar).Value = item.SpeciesText;
                         }
                         update.Parameters.Add("@wt_unit", OleDbType.VarChar).Value = item.WeighingUnit;
+
+                        update.Parameters.Add("@from_total", OleDbType.Boolean).Value = item.FromTotalCatch;
 
                         //if(item.TWS==null)
                         //{
@@ -740,8 +747,9 @@ namespace NSAP_ODK.Entities.Database
                         cmd.Parameters.Add("@taxa", OleDbType.VarChar).Value = item.TaxaCode;
                         cmd.Parameters.Add("@species_text", OleDbType.VarChar).Value = item.SpeciesText;
                         cmd.Parameters.Add("@wt_unit", OleDbType.VarChar).Value = item.WeighingUnit;
+                        cmd.Parameters.Add("@from_total", OleDbType.Boolean).Value = item.FromTotalCatch;
                         cmd.Parameters.Add("@catch_id", OleDbType.Integer).Value = item.PK;
-                        
+
 
                         cmd.CommandText = @"Update dbo_vessel_catch set
                                 v_unload_id=@v_unload_id,
@@ -751,6 +759,7 @@ namespace NSAP_ODK.Entities.Database
                                 taxa = @taxa,
                                 species_text = @species_text,
                                 weighing_unit = @wt_unit
+                                from_total_catch = @from_total,
                             WHERE catch_id = @catch_id";
                         try
                         {

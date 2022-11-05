@@ -81,7 +81,7 @@ namespace NSAP_ODK.Views
 
             dataGridGearUnload.DataContext = _gearUnloads;
 
-            dataGridGearUnload.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("Parent.LandingSiteName"), IsReadOnly = true });
+            dataGridGearUnload.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("Parent.LandingSite"), IsReadOnly = true });
             dataGridGearUnload.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("GearUsedName"), IsReadOnly = true });
             var col = new DataGridTextColumn()
             {
@@ -94,6 +94,7 @@ namespace NSAP_ODK.Views
 
             dataGridGearUnload.Columns.Add(new DataGridTextColumn { Header = "Number of boats landed", Binding = new Binding("Boats"), IsReadOnly = false });
             dataGridGearUnload.Columns.Add(new DataGridTextColumn { Header = "Weight total catch landed", Binding = new Binding("Catch"), IsReadOnly = false });
+            dataGridGearUnload.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Sector"), IsReadOnly = false });
         }
 
         private void OnWindowClosing(object sender, System.ComponentModel.CancelEventArgs e)

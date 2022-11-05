@@ -457,6 +457,15 @@ namespace NSAP_ODK.Entities.Database.FromJson
         [JsonProperty("catch_comp_group/catch_composition_repeat/speciesname_group/species")]
         public int? Species { get; set; }
 
+        public bool FromTotalCatch
+        {
+            get
+            {
+                return From_total_catch == "yes";
+            }
+        }
+        [JsonProperty("catch_comp_group/catch_composition_repeat/speciesname_group/from_total_catch")]
+        public string From_total_catch { get; set; }
         //this is species name other
         [JsonProperty("catch_comp_group/catch_composition_repeat/speciesname_group/spName_other")]
         public string SpeciesNameOther { get; set; }
@@ -1356,6 +1365,14 @@ namespace NSAP_ODK.Entities.Database.FromJson
         public List<object> _notes { get; set; }
         public DateTime today { get; set; }
         public string intronote { get; set; }
+
+        public string Form_version
+        {
+            get
+            {
+                return intronote.Replace("Version ", "");
+            }
+        }
         public string _bamboo_dataset_id { get; set; }
         public List<object> _tags { get; set; }
         public string _xform_id_string { get; set; }
@@ -2104,6 +2121,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
         public static string CurrentJSONFileName { get; set; }
         public static bool UploadToDatabase(List<VesselLanding> resolvedLandings = null)
         {
+            bool isVersion643 = false;
             DelayedSave = true;
             UploadInProgress = true;
             int savedCount = 0;
@@ -2224,9 +2242,9 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                         LandingSiteSamplingID = landingSiteSampling.PK,
                                         GearID = NSAPEntities.GearViewModel.GearCodeExist(landing.GearCode) ? landing.GearCode : string.Empty,
                                         GearUsedText = landing.GearUsedText == null ? landing.GearName : landing.GearUsedText,
-                                        
+
                                         //added on Oct 21 2022
-                                        SectorCode=landing.SectorCode,
+                                        SectorCode = landing.SectorCode,
 
                                         Remarks = "",
                                         DelayedSave = DelayedSave
@@ -2267,11 +2285,15 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                 {
                                     withCatchComp = landing.IncludeCatchComposition == "yes" ? true : false;
                                 }
-
-                                if (gear_unload.PK == 29440 && landing.BoatUsedText == "1 Anna marie Garcia")
+                                isVersion643 = false;
+                                if (!string.IsNullOrEmpty(landing.Form_version))
                                 {
-
+                                    if (double.TryParse(landing.Form_version, out double form_version))
+                                    {
+                                        isVersion643 = form_version >= 6.43;
+                                    }
                                 }
+
                                 VesselUnload vu = new VesselUnload
                                 {
                                     PK = landing.PK,
@@ -2297,7 +2319,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                     UserName = landing.user_name,
                                     DeviceID = landing.device_id,
                                     DateTimeSubmitted = landing._submission_time,
-                                    FormVersion = landing.intronote,
+                                    FormVersion = landing.Form_version,
                                     GPSCode = gpscode,
                                     SamplingDate = landing.SamplingDate,
                                     Notes = landing.Remarks,
@@ -2424,6 +2446,25 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
                                             if (catchComp.SpeciesID != null || !string.IsNullOrEmpty(catchComp.SpeciesNameOther))
                                             {
+                                                bool fromTotal = false;
+
+                                                if (isVersion643)
+                                                {
+                                                    if (vu.WeightOfCatchSample == null)
+                                                    {
+                                                        fromTotal = true;
+                                                    }
+                                                    else
+                                                    {
+                                                        fromTotal = catchComp.FromTotalCatch;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    fromTotal = false;
+                                                }
+
+
                                                 VesselCatch vc = new VesselCatch
                                                 {
                                                     PK = catchComp.PK,
@@ -2436,7 +2477,8 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                     TaxaCode = catchComp.TaxaCode,
                                                     SpeciesText = catchComp.SpeciesNameOther,
                                                     DelayedSave = DelayedSave,
-                                                    WeighingUnit = catchComp.IndividualWeightUnit
+                                                    WeighingUnit = catchComp.IndividualWeightUnit,
+                                                    FromTotalCatch = fromTotal
                                                 };
 
 

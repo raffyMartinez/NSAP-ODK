@@ -21,6 +21,30 @@ namespace NSAP_ODK.Entities.Database
         {
             return VesselUnloadCollection.Count(t => t.HasCatchComposition == true);
         }
+
+        public static string StatusText(VesselUnload vu)
+        {
+            if (vu.VesselCatchViewModel?.Count > 0)
+            {
+                string catch_wt = ((double)vu.WeightOfCatch).ToString("0.00");
+                string sample_wt = "0";
+                if (vu.WeightOfCatchSample != null)
+                {
+                    sample_wt = ((double)vu.WeightOfCatchSample).ToString("0.00");
+                }
+                var catch_composition_wt = vu.VesselCatchViewModel.VesselCatchCollection.Sum(t => (double)t.Catch_kg).ToString("0.00");
+                var total_sample_wt_catch_comp = vu.VesselCatchViewModel.VesselCatchCollection
+                    .Where(t => t.FromTotalCatch == false && t.Sample_kg != null)
+                    .Sum(t => (double)t.Sample_kg)
+                    .ToString("0.00");
+                return $"Weight of catch: {catch_wt}    Weight of sample: {sample_wt}    Total weight of catch composition: {catch_composition_wt}    Total weight of sampled species: {total_sample_wt_catch_comp}";
+                
+            }
+            else
+            {
+                return "Catch composition is empty";
+            }
+        }
         public ObservableCollection<VesselUnload> VesselUnloadCollection { get; set; }
         private VesselUnloadRepository VesselUnloads { get; set; }
 
