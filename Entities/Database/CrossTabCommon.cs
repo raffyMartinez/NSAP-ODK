@@ -53,6 +53,7 @@ namespace NSAP_ODK.Entities.Database
 
         public int DataID { get { return _vesselUnload.PK; } }
 
+        public string RefNo { get { return _vesselUnload.RefNo; } }
         public string Enumerator { get { return _vesselUnload.EnumeratorName; } }
         public DateTime MonthSampled { get { return new DateTime(_samplingDate.Year, _samplingDate.Month, 1); } }
 
@@ -60,7 +61,7 @@ namespace NSAP_ODK.Entities.Database
         public int? NumberOfFishers { get { return _vesselUnload.NumberOfFishers; } }
         public string Month { get { return _samplingDate.ToString("MMMM"); } }
         public DateTime SamplingDate { get { return _samplingDate; } }
-
+        public string Notes { get { return _vesselUnload.Notes; } }
         public bool SamplingDay { get { return _landingSiteSampling.IsSamplingDay; } set { SamplingDay = value; } }
 
         public string Region { get { return _landingSiteSampling.NSAPRegion.ShortName; } }

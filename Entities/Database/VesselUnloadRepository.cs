@@ -15,7 +15,35 @@ namespace NSAP_ODK.Entities.Database
         private string _dateFormat = "MMM-dd-yyyy HH:mm";
         public List<VesselUnload> VesselUnloads { get; set; }
 
-
+        public static bool AddFieldToTable1(string fieldName)
+        {
+            bool success = false;
+            string sql = "";
+            switch (fieldName)
+            {
+                case "ref_no":
+                    sql = "ALTER TABLE dbo_vessel_unload_1 ADD COLUMN ref_no varchar(25)";
+                    break;
+            }
+            using (var con = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    con.Open();
+                    cmd.CommandText = sql;
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        success = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
         public VesselUnloadRepository(GearUnload gu)
         {
             VesselUnloads = getVesselUnloads(gu);
@@ -995,7 +1023,7 @@ namespace NSAP_ODK.Entities.Database
                                 item.DateAddedToDatabase = dr["DateAdded"] == DBNull.Value ? null : (DateTime?)dr["DateAdded"];
                                 item.FromExcelDownload = (bool)dr["FromExcelDownload"];
                                 item.HasCatchComposition = (bool)dr["HasCatchComposition"];
-
+                                item.RefNo = dr["ref_no"].ToString();
 
 
                                 if (dr["count_catch_composition"] != DBNull.Value)
@@ -2277,6 +2305,8 @@ namespace NSAP_ODK.Entities.Database
                                     cmd_1.Parameters.Add("@num_fisher", OleDbType.Integer).Value = item.NumberOfFishers;
                                 }
 
+                                cmd_1.Parameters.Add("@ref_no", OleDbType.VarWChar).Value = item.RefNo;
+
                                 cmd_1.Parameters.Add("@Vessel_unload_id", OleDbType.Integer).Value = item.PK;
 
                                 cmd_1.CommandText = $@"UPDATE dbo_vessel_unload_1 SET
@@ -2301,7 +2331,8 @@ namespace NSAP_ODK.Entities.Database
                                         sector_code = @Sector_code,
                                         FromExcelDownload =  @From_excel,
                                         HasCatchComposition = @has_catch_composition,
-                                        NumberOfFishers = @num_fisher
+                                        NumberOfFishers = @num_fisher,
+                                        ref_no = @ref_no
                                         WHERE v_unload_id =@Vessel_unload_id";
 
 

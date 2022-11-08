@@ -3186,6 +3186,7 @@ namespace NSAP_ODK
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Fishing ground ", Binding = new Binding("FishingGround.Name") });
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Landing site ", Binding = new Binding("LandingSiteNameText") });
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Gear ", Binding = new Binding("GearUsedName") });
+                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Ref # ", Binding = new Binding("RefNo") });
 
                         var col = new DataGridTextColumn()
                         {
@@ -3251,6 +3252,7 @@ namespace NSAP_ODK
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("FishingGround") });
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSiteNameText") });
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("GearUsedName") });
+                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Ref #", Binding = new Binding("RefNo") });
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("EnumeratorNameToUse") });
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Fishing grid count", Binding = new Binding("FishingGridRows") });
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Soak time count", Binding = new Binding("GearSoakRows") });

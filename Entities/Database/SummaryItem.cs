@@ -200,7 +200,7 @@ namespace NSAP_ODK.Entities.Database
                 _gearUnload = value;
             }
         }
-
+        public string RefNo { get; set; }
         public int? TWSpCount { get; set; }
         public int? GearUnloadID { get; set; }
         public int? VesselUnloadID { get; set; }

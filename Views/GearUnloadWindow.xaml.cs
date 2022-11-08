@@ -313,6 +313,7 @@ namespace NSAP_ODK.Views
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Date sampled", Binding = new Binding("DateTimeSampling") });
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("EnumeratorName") });
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Fishing gear", Binding = new Binding("GearUsed") });
+            GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Ref #", Binding = new Binding("RefNo") });
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Sector") });
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Vessel", Binding = new Binding("VesselName") });
             GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Number of fishers", Binding = new Binding("NumberOfFishers") });

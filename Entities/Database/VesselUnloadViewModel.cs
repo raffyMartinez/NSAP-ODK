@@ -38,7 +38,7 @@ namespace NSAP_ODK.Entities.Database
                     .Sum(t => (double)t.Sample_kg)
                     .ToString("0.00");
                 return $"Weight of catch: {catch_wt}    Weight of sample: {sample_wt}    Total weight of catch composition: {catch_composition_wt}    Total weight of sampled species: {total_sample_wt_catch_comp}";
-                
+
             }
             else
             {
@@ -823,7 +823,7 @@ namespace NSAP_ODK.Entities.Database
 
 
             _csv.AppendLine($"{vu.Parent.PK},{vu.PK},{boat_id},{catch_wt},{sample_wt},{boxes_total},{boxes_sampled},\"{vu.VesselText}\",{Convert.ToInt32(vu.IsBoatUsed)},{raising_factor}");
-            _csv_1.AppendLine($"{vu.PK},{Convert.ToInt32(vu.OperationIsSuccessful)},{Convert.ToInt32(vu.OperationIsTracked)},{departure},{arrival},\"{vu.SectorCode}\",\"{vu.ODKRowID}\",\"{vu.XFormIdentifier}\",{xFormDate},\"{vu.UserName}\",\"{vu.DeviceID}\",{date_submitted},\"{vu.FormVersion}\",\"{vu.GPSCode}\",{date_sampled},\"{vu.Notes}\",{enum_id},\"{enum_text}\",{date_added},{Convert.ToInt32(vu.FromExcelDownload)},{Convert.ToInt32(vu.FishingTripIsCompleted)},{Convert.ToInt32(vu.HasCatchComposition)},{no_fishers}");
+            _csv_1.AppendLine($"{vu.PK},{Convert.ToInt32(vu.OperationIsSuccessful)},{Convert.ToInt32(vu.OperationIsTracked)},{departure},{arrival},\"{vu.SectorCode}\",\"{vu.ODKRowID}\",\"{vu.XFormIdentifier}\",{xFormDate},\"{vu.UserName}\",\"{vu.DeviceID}\",{date_submitted},\"{vu.FormVersion}\",\"{vu.GPSCode}\",{date_sampled},\"{vu.Notes}\",{enum_id},\"{enum_text}\",{date_added},{Convert.ToInt32(vu.FromExcelDownload)},{Convert.ToInt32(vu.FishingTripIsCompleted)},{Convert.ToInt32(vu.HasCatchComposition)},{no_fishers},\"{vu.RefNo}\"");
 
 
 

@@ -286,6 +286,7 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "FishingGround", DisplayName = "Fishing ground", DisplayOrder = 3, Description = "Fishing ground", Category = "Header" });
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LandingSite", DisplayName = "Landing site", DisplayOrder = 4, Description = "Landing site", Category = "Header" });
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "FishingGear", DisplayName = "Fishing gear", DisplayOrder = 5, Description = "Fishing gear", Category = "Header" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "RefNo", DisplayName = "Ref #", DisplayOrder = 6, Description = "Reference number", Category = "Header" });
 
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Identifier", DisplayName = "Database identifier", DisplayOrder = 1, Description = "Database identifier", Category = "Effort" });
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SamplingDate", DisplayName = "Sampling date", DisplayOrder = 2, Description = "Date of sampling", Category = "Effort" });

@@ -241,6 +241,9 @@ namespace NSAP_ODK.Entities.Database
             dc = new DataColumn { ColumnName = "Gear" };
             _effortCrostabDataTable.Columns.Add(dc);
 
+            dc = new DataColumn { ColumnName = "Ref #" };
+            _effortCrostabDataTable.Columns.Add(dc);
+
             dc = new DataColumn { ColumnName = "Fishing vessel" };
             _effortCrostabDataTable.Columns.Add(dc);
 
@@ -260,6 +263,9 @@ namespace NSAP_ODK.Entities.Database
             _effortCrostabDataTable.Columns.Add(dc);
 
             dc = new DataColumn { ColumnName = "Total weight of catch", DataType = typeof(double) };
+            _effortCrostabDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Notes", DataType = typeof(string) };
             _effortCrostabDataTable.Columns.Add(dc);
 
             foreach (var spec in NSAPEntities.EffortSpecificationViewModel.EffortSpecCollection.OrderBy(t => t.Name))
@@ -318,6 +324,7 @@ namespace NSAP_ODK.Entities.Database
 
 
                 row["Gear"] = ctcp.Gear;
+                row["Ref #"] = ctcp.RefNo;
                 row["Fishing vessel"] = ctcp.FBName;
 
                 if (ctcp.NumberOfFishers == null)
@@ -348,6 +355,7 @@ namespace NSAP_ODK.Entities.Database
                 {
                     row["Total weight of catch"] = ctcp.TotalWeight;
                 }
+                row["Notes"] = ctcp.Notes;
 
                 foreach (var ve in ctcp.VesselUnload.ListVesselEffort)
                 {
@@ -446,6 +454,9 @@ namespace NSAP_ODK.Entities.Database
             dc = new DataColumn { ColumnName = "Gear" };
             _effortSpeciesCrostabDataTable.Columns.Add(dc);
 
+            dc = new DataColumn { ColumnName = "Ref #" };
+            _effortSpeciesCrostabDataTable.Columns.Add(dc);
+
             dc = new DataColumn { ColumnName = "Fishing vessel" };
             _effortSpeciesCrostabDataTable.Columns.Add(dc);
 
@@ -461,6 +472,9 @@ namespace NSAP_ODK.Entities.Database
 
 
             dc = new DataColumn { ColumnName = "Total weight of catch", DataType = typeof(double) };
+            _effortSpeciesCrostabDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Notes", DataType = typeof(string) };
             _effortSpeciesCrostabDataTable.Columns.Add(dc);
 
             dc = new DataColumn { ColumnName = "Family" };
@@ -531,6 +545,9 @@ namespace NSAP_ODK.Entities.Database
                 }
 
                 row["Gear"] = ctcp.Gear;
+
+                row["Ref #"] = ctcp.RefNo;
+
                 row["Fishing vessel"] = ctcp.FBName;
 
                 if (ctcp.NumberOfFishers == null)
@@ -556,6 +573,7 @@ namespace NSAP_ODK.Entities.Database
                 row["Family"] = item.CrossTabCommon.Family;
                 row["Species"] = item.CrossTabCommon.SN;
                 row["Total weight of catch"] = ctcp.TotalWeight;
+                row["Notes"] = ctcp.Notes;
                 row["Weight of species"] = item.CrossTabCommon.SpeciesWeight;
                 row["TWS"] = item.CrossTabCommon.TWS;
                 row["Weight unit"] = item.CrossTabCommon.WeightUnit;

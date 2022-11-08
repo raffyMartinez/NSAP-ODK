@@ -1361,6 +1361,8 @@ namespace NSAP_ODK.Entities.Database.FromJson
         [JsonProperty("formhub/uuid")]
         public string formhub_uuid { get; set; }
         public int _id { get; set; }
+        [JsonProperty("catch_comp_group/group_final_tally/ref_no")]
+        public string ref_no { get; set; }
         public string device_id { get; set; }
         public List<object> _notes { get; set; }
         public DateTime today { get; set; }
@@ -2330,7 +2332,8 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                     TimeStart = landing.start,
                                     HasCatchComposition = withCatchComp,
                                     XFormIdentifier = landing._xform_id_string,
-                                    DelayedSave = DelayedSave
+                                    DelayedSave = DelayedSave,
+                                    RefNo = landing.ref_no
                                 };
 
                                 if (JSONFileCreationTime != null)

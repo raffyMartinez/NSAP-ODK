@@ -1138,10 +1138,10 @@ namespace NSAP_ODK.Views
                         }
 
                     }
-                        await Upload();
-                    
-                        await SaveUploadedJsonInLoop(verbose: true, allowDownloadAgain: true, isHistoryJson: menuName == "menuUpload");
-                    
+                    await Upload();
+
+                    await SaveUploadedJsonInLoop(verbose: true, allowDownloadAgain: true, isHistoryJson: menuName == "menuUpload");
+
 
 
                     break;
@@ -1415,7 +1415,7 @@ namespace NSAP_ODK.Views
             {
                 if (_isJSONData)
                 {
-                    if(await BoatLandingsFromServerRepository.UploadToDBAsync())
+                    if (await BoatLandingsFromServerRepository.UploadToDBAsync())
                     {
                         _targetGrid.ItemsSource = null;
                         _targetGrid.ItemsSource = BoatLandingsFromServerRepository.BoatLandings;
@@ -1875,6 +1875,7 @@ namespace NSAP_ODK.Views
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("FishingGround.Name") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSiteName") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing gear", Binding = new Binding("GearName") });
+                    _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Ref#", Binding = new Binding("ref_no") });
                     _targetGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "Fishing boat is used", Binding = new Binding("IsBoatUsed") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("FishingVesselName") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Sector") });

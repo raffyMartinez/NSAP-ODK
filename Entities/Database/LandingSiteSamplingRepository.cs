@@ -42,6 +42,11 @@ namespace NSAP_ODK.Entities.Database
                                     proceed = true;
                             }
 
+                            if(proceed)
+                            {
+                                cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_unload_1");
+                                proceed = cols.Contains("ref_no") || VesselUnloadRepository.AddFieldToTable1("ref_no");
+                            }
 
                             //check and and sex column for length table
                             if (proceed)

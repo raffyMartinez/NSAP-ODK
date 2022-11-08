@@ -403,7 +403,7 @@ namespace NSAP_ODK.Views
 
                 string total_sample_wt_catch_comp = "";
                 total_sample_wt_catch_comp = _vesselUnload.VesselCatchViewModel.VesselCatchCollection
-                    .Where(t => t.FromTotalCatch == false && t.Sample_kg!=null)
+                    .Where(t => t.FromTotalCatch == false && t.Sample_kg != null)
                     .Sum(t => (double)t.Sample_kg)
                     .ToString("0.00");
 
@@ -503,6 +503,7 @@ namespace NSAP_ODK.Views
                     propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "FishingGround", DisplayName = "Fishing ground", DisplayOrder = 3, Description = "Fishing ground", Category = "Header" });
                     propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LandingSite", DisplayName = "Landing site", DisplayOrder = 4, Description = "Landing site", Category = "Header" });
                     propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Gear", DisplayName = "Fishing gear", DisplayOrder = 5, Description = "Fishing gear", Category = "Header" });
+                    propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "RefNo", DisplayName = "Ref #", DisplayOrder = 6, Description = "Reference number", Category = "Header" });
 
                     propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Identifier", DisplayName = "Database identifier", DisplayOrder = 1, Description = "Database identifier", Category = "Effort" });
                     propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SamplingDate", DisplayName = "Sampling date", DisplayOrder = 2, Description = "Date of sampling", Category = "Effort" });
