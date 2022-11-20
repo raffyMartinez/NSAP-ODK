@@ -70,6 +70,8 @@ namespace NSAP_ODK.Views
                 OpenServerWindow(refreshDBSummary: true);
             }
         }
+
+        public bool DownloadCSVFromServer { get; set; }
         public void OpenLogInWindow(bool isOpen = false)
         {
             _openLogInWindow = isOpen;
@@ -123,11 +125,22 @@ namespace NSAP_ODK.Views
                 _timer.Tick -= OnTimerTick;
             }
             _instance = null;
-            if (_uploadToDBSuccess || _savedCount > 0)
+
+            try
             {
-                ((MainWindow)Owner).RefreshSummary();
+                if (_uploadToDBSuccess || _savedCount > 0)
+                {
+                    ((MainWindow)Owner).RefreshSummary();
+                }
+
+
+                ((MainWindow)Owner).Focus();
+
             }
-            ((MainWindow)Owner).Focus();
+            catch
+            {
+                //ignore
+            }
 
             CreateTablesInAccess.AccessTableEvent -= CreateTablesInAccess_AccessTableEvent;
             NSAPMysql.MySQLConnect.AccessTableEvent -= CreateTablesInAccess_AccessTableEvent;
@@ -1239,6 +1252,17 @@ namespace NSAP_ODK.Views
                 menuDownloadFromServerOtherUser.Visibility = Visibility.Collapsed;
             }
         }
+
+        public void CSVFileDownloaded()
+        {
+            if (DownloadCSVFromServer && Owner.GetType().Name == "MainWindow")
+            {
+                //((EditWindowEx)Owner).Focus();
+                DialogResult = true;
+                Close();
+
+            }
+        }
         private void OpenServerWindow(bool refreshDBSummary = false, bool logInAsOtherUser = false)
         {
             var serverForm = new DownloadFromServerWindow(this);
@@ -1247,7 +1271,9 @@ namespace NSAP_ODK.Views
             rowGrid.Height = new GridLength(1, GridUnitType.Star);
             VesselUnloadServerRepository.ResetLists();
             serverForm.Owner = this;
+
             serverForm.RefreshDatabaseSummry = refreshDBSummary;
+            serverForm.DownloadCSVFromServer = DownloadCSVFromServer;
             serverForm.LogInAsAnotherUser = logInAsOtherUser;
             serverForm.ShowDialog();
         }

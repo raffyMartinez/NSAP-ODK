@@ -34,6 +34,7 @@
             <Button Content="Ok" Height="30" Margin="10 5" x:Name="buttonOK" Click="OnButtonClick" />
             <Button Content="Cancel" Height="30" Margin="10 5" x:Name="buttonCancel" Click="OnButtonClick" />
             <Button Content="Update" Height="30" Margin="10 5" x:Name="buttonUpdate" Click="OnButtonClick" Visibility="Collapsed"/>
+            
         </StackPanel>
 
         <Label Content="Bottom label" VerticalAlignment="Bottom" Grid.Row="2" Grid.Column="0" x:Name="LabelBottom" />
@@ -69,6 +70,7 @@
             <Button Content="Add" Height="30" Margin="10 5" x:Name="buttonAdd" Click="OnButtonClick" />
             <Button Content="Edit" Height="30" Margin="10 5" x:Name="buttonEdit" Click="OnButtonClick" />
             <Button Content="Delete" Height="30" Margin="10 5" x:Name="buttonDelete" Click="OnButtonClick" />
+            <Button Content="Validate" Height="30" Margin="10 5" x:Name="buttonValidate" Click="OnButtonClick" Visibility="Collapsed"/>
         </StackPanel>
 
         <!--status bar-->

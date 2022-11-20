@@ -45,7 +45,14 @@ namespace NSAP_ODK.Entities
         {
             get
             {
-                return ((DateTime)DateFirstSampling).ToString("MMM-dd-yyyy");
+                if (DateFirstSampling == null)
+                {
+                    return string.Empty;
+                }
+                else
+                {
+                    return ((DateTime)DateFirstSampling).ToString("MMM-dd-yyyy");
+                }
             }
         }
 

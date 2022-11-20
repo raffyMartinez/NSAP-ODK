@@ -111,6 +111,7 @@
                 </MenuItem>
                 <Separator />
                 <MenuItem Header="Import GPX" x:Name="menuImportGPX" Click="OnMenuClicked"/>
+                <MenuItem Header="Download CSV from server" x:Name="menuDownloadCSV" Click="OnMenuClicked"/>
                 <Separator/>
                 <MenuItem Header="Backup MySQL Database" x:Name="menuBackupMySQL" Click="OnMenuClicked" Visibility="Collapsed"/>
                 <MenuItem Header="Setup MysQL tables" x:Name="menuSetupMySQLTables" Click="OnMenuClicked" Visibility="Collapsed"/>

@@ -203,6 +203,7 @@ namespace NSAP_ODK.Entities.Database
             foreach (var item in orphanedLandingSites)
             {
                 //var landingSiteSamplings = new List<LandingSiteSampling>();
+                var lss = GetLandingSiteSamplings(item.Enumerator, item.LandingSiteName);
                 var orphan = new OrphanedLandingSite
                 {
                     EnumeratorName = item.Enumerator,
@@ -210,13 +211,12 @@ namespace NSAP_ODK.Entities.Database
                     Region = item.Region,
                     FMA = item.FMA,
                     FishingGround = item.FishingGround,
-                    LandingSiteSamplings = GetLandingSiteSamplings(item.Enumerator, item.LandingSiteName)
+                    //LandingSiteSamplings = GetLandingSiteSamplings(item.Enumerator, item.LandingSiteName),
+                    LandingSiteSamplings = lss,
+                    CanBeDeletedNow = OrphanLandingSiteCanBeDeleted(lss)
+
                 };
-                //foreach (var sd in item)
-                //{
-                //    landingSiteSamplings.Add(NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection.FirstOrDefault(t => t.PK == sd.SamplingDayID));
-                //}
-                //orphan.LandingSiteSamplings = landingSiteSamplings;
+
                 thisList.Add(orphan);
                 counter++;
                 ProceessBuildOrphanedEntitiesEvent(status: BuildOrphanedEntityStatus.StatusBuildFetchedRow, currentRow: counter);
@@ -224,6 +224,20 @@ namespace NSAP_ODK.Entities.Database
 
             ProceessBuildOrphanedEntitiesEvent(status: BuildOrphanedEntityStatus.StatusBuildEnd, totalRowsFetched: counter);
             return thisList;
+        }
+
+        private bool OrphanLandingSiteCanBeDeleted(List<LandingSiteSampling> lss)
+        {
+            bool canBeDeletedNow = true;
+            foreach (var item in lss)
+            {
+                if (item.GearUnloadViewModel.Count > 0)
+                {
+                    canBeDeletedNow = false;
+                    break;
+                }
+            }
+            return canBeDeletedNow;
         }
 
         public List<LandingSiteSampling> GetLandingSiteSamplings(string enumerator, string landingSiteName)
@@ -920,7 +934,7 @@ namespace NSAP_ODK.Entities.Database
         public List<GearUnload> GetGearUnloadsFromTree(TreeViewModelControl.AllSamplingEntitiesEventHandler treeData)
         {
             var landingSiteNameToUse = treeData.LandingSiteText;
-            if(treeData.LandingSite!=null)
+            if (treeData.LandingSite != null)
             {
                 landingSiteNameToUse = treeData.LandingSite.ToString();
             }
@@ -947,10 +961,10 @@ namespace NSAP_ODK.Entities.Database
 
                     .GroupBy(gu => gu.GearUnloadID).Select(x => x.First()).ToList();
             }
-            else if (treeData.TreeViewEntity=="tv_FishingGroundViewModel")
+            else if (treeData.TreeViewEntity == "tv_FishingGroundViewModel")
             {
                 items = SummaryItemCollection.Where(t => t.Region.Code == treeData.NSAPRegion.Code &&
-                    t.SamplingDate!=null &&
+                    t.SamplingDate != null &&
                     t.FMA.FMAID == treeData.FMA.FMAID &&
                     t.FishingGround.Code == treeData.FishingGround.Code).ToList()
 
@@ -2081,6 +2095,7 @@ namespace NSAP_ODK.Entities.Database
                 GearUnloadCatch = vu.Parent.Catch,
                 GearCode = vu.Parent.GearID,
                 GearText = vu.Parent.GearUsedText,
+                RefNo = vu.RefNo,
                 //GearName = vu.Parent.Gear.GearName,
 
                 VesselUnloadID = vu.PK,
@@ -2179,7 +2194,10 @@ namespace NSAP_ODK.Entities.Database
                 return false;
             }
         }
-
+        public Task<bool> DeleteOrphanedLandingSiteAsync(string landingSiteName)
+        {
+            return Task.Run(() => DeleteOrphanedLandingSite(landingSiteName));
+        }
         public bool DeleteOrphanedLandingSite(string landingSiteName)
         {
             var orphanedItems = SummaryItemCollection.Where(t => t.LandingSiteID == null && t.LandingSiteNameText == landingSiteName).ToList();
@@ -2194,7 +2212,7 @@ namespace NSAP_ODK.Entities.Database
             }
             if (deletedCount == itemCount)
             {
-                _orphanedLandingSites = GetOrphanedLandingSites();
+                //_orphanedLandingSites = GetOrphanedLandingSites();
                 return true;
             }
             else

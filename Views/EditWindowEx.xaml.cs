@@ -12,6 +12,7 @@ using Microsoft.Win32;
 using ClosedXML.Excel;
 using System.Threading.Tasks;
 using System.Windows.Threading;
+using Ookii.Dialogs.Wpf;
 //using swf = System.Windows.Forms;
 //using wpftk= Xceed.Wpf.Toolkit;
 //using System.Windows.Forms;
@@ -208,6 +209,8 @@ namespace NSAP_ODK.Views
                     statusBar.Visibility = Visibility.Collapsed;
                 }
             }
+
+            //buttonValidate.Visibility = Visibility.Collapsed;
 
             //if (_requireUpdateToFishBase && !_updatingFBSpecies)
             //{
@@ -1405,6 +1408,7 @@ namespace NSAP_ODK.Views
 
             _timer = new DispatcherTimer();
             _timer.Tick += OnTimerTick;
+            buttonValidate.Visibility = Visibility.Collapsed;
         }
 
         private void OnTimerTick(object sender, EventArgs e)
@@ -1594,6 +1598,101 @@ namespace NSAP_ODK.Views
             }
         }
 
+        private bool GetCSVSaveLocationFromSaveAsDialog()
+        {
+            VistaFolderBrowserDialog fbd = new VistaFolderBrowserDialog();
+            fbd.UseDescriptionForTitle = true;
+            fbd.Description = "Locate folder where CSV media files are saved";
+
+
+            if ((bool)fbd.ShowDialog() && fbd.SelectedPath.Length > 0)
+            {
+                Global.CSVMediaSaveFolder = fbd.SelectedPath;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        private bool DownloadCSVFromServer()
+        {
+            DownloadFromServerWindow dsw = new DownloadFromServerWindow();
+            dsw.Owner = this;
+            dsw.DownloadCSVFromServer = true;
+            //var r = dsw.ShowDialog();
+            return (bool)dsw.ShowDialog();
+            //return (bool)r;
+
+        }
+
+        //private bool DownloadCSVFromServer()
+        //{
+        //    ODKResultsWindow window = new ODKResultsWindow();
+        //    window.Owner = this;
+        //    window.DownloadCSVFromServer = true;
+        //    window.OpenLogInWindow(isOpen: true);
+        //    return (bool)window.ShowDialog();
+        //}
+        private void ValidateRegionCSV()
+        {
+            bool proceed = false;
+            if (string.IsNullOrEmpty(Global.CSVMediaSaveFolder))
+            {
+                var r = MessageBox.Show("CSV files not found. Do you want to specify a folder or download the files\r\n\r\n" +
+                    "Select Yes if you want to specify a folder containing csv files,\r\n" +
+                    "No, if you want to download the files,\r\n" +
+                    "Cancel, to cancel this operation", "NSAP-ODK Database,",
+                    MessageBoxButton.YesNoCancel,
+                    MessageBoxImage.Question);
+                switch (r)
+                {
+                    case MessageBoxResult.Yes:
+                        proceed = GetCSVSaveLocationFromSaveAsDialog();
+
+                        break;
+                    case MessageBoxResult.No:
+                        proceed = DownloadCSVFromServer();
+                        break;
+                    case MessageBoxResult.Cancel:
+                        return;
+
+                }
+            }
+            else
+            {
+                proceed = true;
+            }
+
+            if (proceed)
+            {
+                switch (_selectedProperty)
+                {
+                    case "LandingSiteCount":
+                    case "FishingGroundCount":
+                    case "Gears":
+                    case "Vessels":
+                    case "Enumerators":
+                    case "FMAs":
+                        VerifyCSVWindow vcw = VerifyCSVWindow.GetInstance();
+                        vcw.SelectedProperty = _selectedProperty;
+                        vcw.Owner = this;
+                        if (vcw.Visibility == Visibility.Visible)
+                        {
+                            vcw.BringIntoView();
+                        }
+                        else
+                        {
+                            vcw.Show();
+                        }
+                        
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
 
         private async void OnButtonClick(object sender, RoutedEventArgs e)
         {
@@ -1602,6 +1701,9 @@ namespace NSAP_ODK.Views
             EditWindowEx ewx = null;
             switch (((Button)sender).Name)
             {
+                case "buttonValidate":
+                    ValidateRegionCSV();
+                    break;
                 case "buttonAddToFB":
                     if (_selectedFishSpecies != null && NSAPEntities.FishSpeciesViewModel.AddRecordToRepo(_selectedFishSpecies))
                     {
@@ -2648,6 +2750,7 @@ namespace NSAP_ODK.Views
 
         private void OnSelectedPropertyItemChanged(object sender, RoutedPropertyChangedEventArgs<PropertyItemBase> e)
         {
+            buttonValidate.Visibility = Visibility.Collapsed;
             buttonAdd.IsEnabled = true;
             rowDataGrid.Height = new GridLength(0);
 
@@ -2682,6 +2785,7 @@ namespace NSAP_ODK.Views
                     //rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
                     rowBottomLabel.Height = new GridLength(40);
                     SetUpSubForm();
+                    buttonValidate.Visibility = Visibility.Visible;
                     break;
 
                 case "FishingGroundCount":
@@ -2689,6 +2793,7 @@ namespace NSAP_ODK.Views
                     //rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
                     rowBottomLabel.Height = new GridLength(40);
                     SetUpSubForm();
+                    buttonValidate.Visibility = Visibility.Visible;
                     break;
 
                 case "Gears":
@@ -2696,6 +2801,7 @@ namespace NSAP_ODK.Views
                     //rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
                     rowBottomLabel.Height = new GridLength(40);
                     SetUpSubForm();
+                    buttonValidate.Visibility = Visibility.Visible;
                     break;
 
                 case "FMAs":
@@ -2703,6 +2809,7 @@ namespace NSAP_ODK.Views
                     // rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
                     rowBottomLabel.Height = new GridLength(40);
                     SetUpSubForm();
+                    buttonValidate.Visibility = Visibility.Visible;
                     break;
 
                 case "Vessels":
@@ -2710,6 +2817,7 @@ namespace NSAP_ODK.Views
                     //rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
                     rowBottomLabel.Height = new GridLength(40);
                     SetUpSubForm();
+                    buttonValidate.Visibility = Visibility.Visible;
                     break;
 
                 case "Enumerators":
@@ -2717,6 +2825,7 @@ namespace NSAP_ODK.Views
                     //rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
                     rowBottomLabel.Height = new GridLength(40);
                     SetUpSubForm();
+                    buttonValidate.Visibility = Visibility.Visible;
                     break;
                 default:
                     break;
@@ -3080,6 +3189,10 @@ namespace NSAP_ODK.Views
 
         private void OnWindowClosed(object sender, EventArgs e)
         {
+            if (VerifyCSVWindow.HasInstance())
+            {
+                VerifyCSVWindow.CloseInstance();
+            }
             //if (Owner != null && Owner.GetType().Name == "MainWindow")
             //{
             //    ((MainWindow)Owner).Focus();

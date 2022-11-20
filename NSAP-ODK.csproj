@@ -185,7 +185,9 @@
     <Compile Include="Entities\Database\CreateTablesInAccess.cs" />
     <Compile Include="Entities\Database\CreateTablesInAccessEventArgs.cs" />
     <Compile Include="Entities\Database\CrossTabLengthWeight.cs" />
+    <Compile Include="Entities\Database\DeleteLandingSiteSamplingFromOrphanEventArg.cs" />
     <Compile Include="Entities\Database\DeleteVesselUnloadFromOrphanEventArg.cs" />
+    <Compile Include="Entities\Database\DownloadMediaFromServerEventArgs.cs" />
     <Compile Include="Entities\Database\DownloadedJsonMetadata.cs" />
     <Compile Include="Entities\Database\EntityBulkImportEventArg.cs" />
     <Compile Include="Entities\Database\FileInfoJSONMetadata.cs" />
@@ -336,6 +338,25 @@
     <Compile Include="Entities\KoboForms.cs" />
     <Compile Include="Entities\Koboform_files.cs" />
     <Compile Include="Entities\MDBTablesRowCount.cs" />
+    <Compile Include="Entities\Media_csv\Analysis.cs" />
+    <Compile Include="Entities\Media_csv\EnumeratorSelect.cs" />
+    <Compile Include="Entities\Media_csv\EnumeratorSelectRepository.cs" />
+    <Compile Include="Entities\Media_csv\EnumeratorSelectViewModel.cs" />
+    <Compile Include="Entities\Media_csv\FishingGroundSelect.cs" />
+    <Compile Include="Entities\Media_csv\FishingGroundSelectRepository.cs" />
+    <Compile Include="Entities\Media_csv\FishingGroundSelectViewModel.cs" />
+    <Compile Include="Entities\Media_csv\FMASelect.cs" />
+    <Compile Include="Entities\Media_csv\FMASelectRepository.cs" />
+    <Compile Include="Entities\Media_csv\FMASelectViewModel.cs" />
+    <Compile Include="Entities\Media_csv\GearSelect.cs" />
+    <Compile Include="Entities\Media_csv\GearSelectRepository.cs" />
+    <Compile Include="Entities\Media_csv\GearSelectViewModel.cs" />
+    <Compile Include="Entities\Media_csv\LSSelectRepository.cs" />
+    <Compile Include="Entities\Media_csv\LSSelectViewModel.cs" />
+    <Compile Include="Entities\Media_csv\LSSelect.cs" />
+    <Compile Include="Entities\Media_csv\VesselSelect.cs" />
+    <Compile Include="Entities\Media_csv\VesselSelectRepository.cs" />
+    <Compile Include="Entities\Media_csv\VesselSelectViewModel.cs" />
     <Compile Include="Entities\MySQLConnectEventArgs.cs" />
     <Compile Include="Entities\SummaryAtLevel.cs" />
     <Compile Include="Entities\MajorGridFMA.cs" />
@@ -576,6 +597,9 @@
     <Compile Include="Views\UploadJSONHistoryOptionsWindow.xaml.cs">
       <DependentUpon>UploadJSONHistoryOptionsWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\VerifyCSVWindow.xaml.cs">
+      <DependentUpon>VerifyCSVWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\VesselUnloadEditWindow.xaml.cs">
       <DependentUpon>VesselUnloadEditWindow.xaml</DependentUpon>
     </Compile>
@@ -742,6 +766,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\UploadJSONHistoryOptionsWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\VerifyCSVWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

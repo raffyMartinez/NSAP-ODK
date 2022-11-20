@@ -85,7 +85,14 @@ namespace NSAP_ODK
             ShowStatusRow(false);
 
         }
-
+        private bool DownloadCSVFromServer()
+        {
+            ODKResultsWindow window = new ODKResultsWindow();
+            window.Owner = this;
+            window.DownloadCSVFromServer = true;
+            window.OpenLogInWindow(isOpen: true);
+            return (bool)window.ShowDialog();
+        }
         public void CloseAppilication()
         {
             Close();
@@ -2160,7 +2167,12 @@ namespace NSAP_ODK
 
             switch (itemName)
             {
+                case "menuDownloadCSV":
+                    if(DownloadCSVFromServer())
+                    {
 
+                    }
+                    break;
                 case "menuRemoveKoboserver":
                     if (NSAPEntities.KoboServerViewModel.DeleteRecordFromRepo(_selectedKoboserver.ServerNumericID))
                     {

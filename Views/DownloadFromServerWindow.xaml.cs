@@ -33,7 +33,9 @@ namespace NSAP_ODK.Views
     public enum ServerIntent
     {
         IntentDownloadData,
-        IntentUploadMedia
+        IntentUploadMedia,
+        IntentDownloadCSVMedia
+
     }
 
     /// <summary>
@@ -43,6 +45,7 @@ namespace NSAP_ODK.Views
     public partial class DownloadFromServerWindow : Window
     {
         public static event Action RefreshDatabaseSummaryTable;
+        public event EventHandler<DownloadMediaFromServerEventArgs> DownloadMediaFromServerEvent;
 
 
         //private int _numberOfSubmissions;
@@ -57,6 +60,7 @@ namespace NSAP_ODK.Views
         private string _downloadType;
         private DateTime? _lastSubmittedDate;
         private string _csvSaveToFolder;
+        private string _downloadedMediaSaveFolder;
         private List<Metadata> _metadataFilesForReplacement = new List<Metadata>();
         private bool _updateCancelled;
         private DispatcherTimer _timer;
@@ -76,14 +80,22 @@ namespace NSAP_ODK.Views
             _parentWindow = parentWindow;
             ServerIntent = ServerIntent.IntentDownloadData;
         }
+        public DownloadFromServerWindow()
+        {
+            InitializeComponent();
+            ServerIntent = ServerIntent.IntentDownloadCSVMedia;
+        }
 
         public ServerIntent ServerIntent { get; set; }
+
+
 
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
             this.ApplyPlacement();
         }
+        public bool DownloadCSVFromServer { get; set; }
         public bool LogInAsAnotherUser { get; set; }
         public bool RefreshDatabaseSummry { get; set; }
         private void AddFormIDToTree()
@@ -105,6 +117,8 @@ namespace NSAP_ODK.Views
                         case ServerIntent.IntentUploadMedia:
                             ((TreeViewItem)treeForms.Items[item]).Items.Add(new TreeViewItem { Header = "Upload", Tag = "upload_media" });
                             break;
+                        case ServerIntent.IntentDownloadCSVMedia:
+                            break;
                     }
                 }
 
@@ -120,28 +134,41 @@ namespace NSAP_ODK.Views
 
 
 
-        private bool GetCSVSaveLocationFromSaveAsDialog()
+        private bool GetSaveLocationFromSaveAsDialog(string option)
         {
+            bool returnValue = false;
             VistaFolderBrowserDialog fbd = new VistaFolderBrowserDialog();
             fbd.UseDescriptionForTitle = true;
-            fbd.Description = "Locate folder containing csv files";
+
 
             if (_csvSaveToFolder != null && _csvSaveToFolder.Length > 0)
             {
                 fbd.SelectedPath = _csvSaveToFolder;
             }
 
+            switch (option)
+            {
+                case "csv location":
+                    fbd.Description = "Locate folder containing csv files";
+                    if ((bool)fbd.ShowDialog() && fbd.SelectedPath.Length > 0)
+                    {
+                        _csvSaveToFolder = fbd.SelectedPath;
+                        GenerateCSV.FolderSaveLocation = _csvSaveToFolder;
+                        returnValue = true;
+                    }
 
-            if ((bool)fbd.ShowDialog() && fbd.SelectedPath.Length > 0)
-            {
-                _csvSaveToFolder = fbd.SelectedPath;
-                GenerateCSV.FolderSaveLocation = _csvSaveToFolder;
-                return true;
+                    break;
+                case "media download":
+                    fbd.Description = "Locate where media files are to be saved";
+                    if ((bool)fbd.ShowDialog() && fbd.SelectedPath.Length > 0)
+                    {
+                        _downloadedMediaSaveFolder = fbd.SelectedPath;
+                        returnValue = true;
+                    }
+
+                    break;
             }
-            else
-            {
-                return false;
-            }
+            return returnValue;
         }
 
         /// <summary>
@@ -155,7 +182,7 @@ namespace NSAP_ODK.Views
             _updateCancelled = false;
             int replacedCount = 0;
             string baseURL = $"https://kf.kobotoolbox.org/api/v2/assets/{assetID}";
-            if (GetCSVSaveLocationFromSaveAsDialog())
+            if (GetSaveLocationFromSaveAsDialog(option: "csv location"))
             {
                 ProgressBar.IsIndeterminate = true;
                 ProgressBar.Value = 0;
@@ -307,12 +334,62 @@ namespace NSAP_ODK.Views
             }
         }
         public RadioButton ButtonSelectedColumn { get; set; }
+
+        private async Task<bool> DownloadFormMedia()
+        {
+            int countDownloaded = 0;
+            ProgressBar.Value = 0;
+            if (GetSaveLocationFromSaveAsDialog(option: "media download"))
+            {
+                var kf = _koboForms.FirstOrDefault(t => t.formid == _formSummary.FormID);
+                ProgressBar.Maximum = kf.metadata.Count;
+                labelProgress.Content = "Starting to download media files from server";
+                //DownloadMediaFromServerEvent?.Invoke(null, new DownloadMediaFromServerEventArgs { Intent = "start", MediaFileCount = kf.metadata.Count });
+                foreach (var media in kf.metadata)
+                {
+                    //using (var client = new HttpClient())
+                    //{
+                    using (var s = await _httpClient.GetStreamAsync(media.data_file))
+                    {
+                        var fileName = $@"{_downloadedMediaSaveFolder }\{media.data_value}";
+                        using (var fs = new FileStream(fileName, FileMode.OpenOrCreate))
+                        {
+                            await s.CopyToAsync(fs);
+                            countDownloaded++;
+                            ProgressBar.Value = countDownloaded;
+                            labelProgress.Content = $"Downloaded media file {countDownloaded} of {ProgressBar.Maximum} to {fileName}";
+                            //DownloadMediaFromServerEvent?.Invoke(null, new DownloadMediaFromServerEventArgs { MediaFileName = fileName, Intent = "downloading", MediaFileDownloadedCount = countDownloaded });
+                        }
+                    }
+                    //}
+                }
+            }
+            //DownloadMediaFromServerEvent?.Invoke(null, new DownloadMediaFromServerEventArgs { Intent = "done" });
+            labelProgress.Content = "Finished downloading media files";
+            _timer.Interval = TimeSpan.FromSeconds(3);
+            _timer.Start();
+            return countDownloaded > 0;
+        }
+
+        private void wc_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
+        {
+            ProgressBar.Value = e.ProgressPercentage;
+        }
+
         private async void OnButtonClick(object sender, RoutedEventArgs e)
         {
             _downloadType = "";
             string api_call = "";
             switch (((Button)sender).Name)
             {
+                case "buttonDownloadMedia":
+                    if (DownloadCSVFromServer && this.Owner.GetType().Name == "EditWindowEx" && await DownloadFormMedia())
+                    {
+                        Global.CSVMediaSaveFolder = _downloadedMediaSaveFolder;
+                        DialogResult = true;
+                        //((ODKResultsWindow)Owner).CSVFileDownloaded();
+                    }
+                    break;
                 case "ButtonLogout":
                     _userNameStatic = "";
                     _passwordStatic = "";
@@ -781,7 +858,10 @@ namespace NSAP_ODK.Views
                                     _tokenStatic = arr[1].Trim('"');
                                     _userNameStatic = TextBoxUserName.Text;
                                     _passwordStatic = TextBoxPassword.Password;
-                                    ((ODKResultsWindow)Owner).EnableLoginFromADifferentUser();
+                                    if (Owner.GetType().Name == "ODKResultsWindow")
+                                    {
+                                        ((ODKResultsWindow)Owner).EnableLoginFromADifferentUser();
+                                    }
                                     if (await SetupKoboforms(base64authorization))
                                     {
                                         ButtonLogout.IsEnabled = true;
@@ -1484,7 +1564,10 @@ namespace NSAP_ODK.Views
                         _versionID = _formSummary.KoboForm.Version_ID;
                         // _numberOfSubmissions = _formSummary.NumberOfSubmissions;
                         //_xlsFormVersion = _formSummary.XLSForm_Version;
-                        SetODKServerDownloadType(_formSummary);
+                        if (_parentWindow != null)
+                        {
+                            SetODKServerDownloadType(_formSummary);
+                        }
                         SetDownloadOptionsVisibility();
 
                         propertyGrid.SelectedObject = _formSummary;
@@ -1661,6 +1744,11 @@ namespace NSAP_ODK.Views
                     AddFormIDToTree();
                     ButtonLogout.IsEnabled = true;
                 }
+            }
+
+            if (ServerIntent != ServerIntent.IntentDownloadCSVMedia)
+            {
+                buttonDownloadMedia.Visibility = Visibility.Collapsed;
             }
 
         }

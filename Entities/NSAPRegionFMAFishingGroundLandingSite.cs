@@ -22,7 +22,7 @@ namespace NSAP_ODK.Entities
 
         public override string ToString()
         {
-            return LandingSite.ToString();
+            return $"{LandingSite} - {NSAPRegionFMAFishingGround.FishingGround} - {NSAPRegionFMAFishingGround.RegionFMA.FMA}";
         }
     }
 }

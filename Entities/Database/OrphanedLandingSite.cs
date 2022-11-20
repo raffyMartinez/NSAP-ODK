@@ -8,6 +8,7 @@ namespace NSAP_ODK.Entities.Database
 {
     public class OrphanedLandingSite
     {
+        public bool CanBeDeletedNow { get; set; }
         public string LandingSiteName { get; set; }
         public List<LandingSiteSampling> LandingSiteSamplings { get; set; }
         public NSAPRegion Region { get; set; }

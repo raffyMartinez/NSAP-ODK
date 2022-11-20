@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using NSAP_ODK.Entities.Database;
 using System.Threading;
 using System.Threading.Tasks;
+using NSAP_ODK.Entities.Media_csv;
 
 namespace NSAP_ODK.Entities
 {
@@ -88,6 +89,13 @@ namespace NSAP_ODK.Entities
         public static GearAtLandingSiteDaysPerMonthViewModel GearAtLandingSiteDaysPerMonthViewModel;
         public static FBSpeciesViewModel FishBaseViewModel;
         public static FBSpeciesViewModel FBSpeciesViewModel;
+
+        public static LSSelectViewModel LSSelectViewModel;
+        public static EnumeratorSelectViewModel EnumeratorSelectViewModel;
+        public static GearSelectViewModel GearSelectViewModel;
+        public static FishingGroundSelectViewModel FishingGroundSelectViewModel;
+        public static VesselSelectViewModel VesselSelectViewModel;
+        public static FMASelectViewModel FMASelectViewModel;
         //public static TotalWtSpViewModel TotalWtSpViewModel;
 
 

@@ -11,8 +11,11 @@ namespace NSAP_ODK.Entities.Database
 {
     public class LandingSiteSamplingViewModel
     {
+        public event EventHandler<DeleteLandingSiteSamplingFromOrphanEventArg> DeleteOrphanedLandingSiteFromOrphanedItem;
         public event EventHandler<DeleteVesselUnloadFromOrphanEventArg> DeleteVesselUnloadFromOrphanedItem;
 
+        private int _countLandingSiteSamplingsInOrphanedLandingSiteForDelete;
+        private int _landingSiteSamplingsInOrphanedLandingSiteForDeleteCounter;
         private List<LandingSiteSampling> _landingSiteSamplings;
         private List<GearUnload> _gearUnloads;
         private static StringBuilder _csv = new StringBuilder();
@@ -22,6 +25,22 @@ namespace NSAP_ODK.Entities.Database
         public ObservableCollection<LandingSiteSampling> LandingSiteSamplingCollection { get; set; }
         private LandingSiteSamplingRepository LandingSiteSamplings { get; set; }
 
+        public int CountLandingSiteSamplingsInOrphanedLandingSiteForDelete
+        {
+            get { return _countLandingSiteSamplingsInOrphanedLandingSiteForDelete; }
+            set
+            {
+                _landingSiteSamplingsInOrphanedLandingSiteForDeleteCounter = 0;
+                _countLandingSiteSamplingsInOrphanedLandingSiteForDelete = value;
+                DeleteOrphanedLandingSiteFromOrphanedItem?.Invoke(
+                    null,
+                    new DeleteLandingSiteSamplingFromOrphanEventArg
+                    {
+                        LandinggSiteSamplingToDeleteTotalCount = _countLandingSiteSamplingsInOrphanedLandingSiteForDelete,
+                        Intent = "start"
+                    });
+            }
+        }
         public List<LandingSiteSampling> GetSampledLandings(string enumeratorText, string landingSiteName)
         {
             return LandingSiteSamplingCollection.Where(t => t.EnumeratorID == null && t.EnumeratorText == enumeratorText && t.LandingSiteName == landingSiteName).ToList();
@@ -32,7 +51,7 @@ namespace NSAP_ODK.Entities.Database
         }
         public bool DeleteGearUnloads(List<GearUnload> gearUnloads, LandingSiteSampling parent = null)
         {
-            
+
             foreach (var gu in gearUnloads)
             {
                 if (gu.VesselUnloadViewModel == null)
@@ -111,6 +130,10 @@ namespace NSAP_ODK.Entities.Database
                     }
                 }
                 parent.GearUnloadViewModel.DeleteRecordFromRepo(gu.PK);
+                if(parent.GearUnloadViewModel.Count==0)
+                {
+                    NSAPEntities.LandingSiteSamplingViewModel.DeleteRecordFromRepo(parent);
+                }
             }
             return true;
         }
@@ -524,7 +547,7 @@ namespace NSAP_ODK.Entities.Database
 
         public LandingSiteSampling getLandingSiteSampling(int pk)
         {
-            return LandingSiteSamplingCollection.FirstOrDefault(n => n.PK == pk);
+            return LandingSiteSamplingCollection.ToList().FirstOrDefault(n => n.PK == pk);
         }
 
 
@@ -728,7 +751,10 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
         }
-
+        public Task<bool> DeleteRecordFromRepoAsync(LandingSiteSampling s)
+        {
+            return Task.Run(() => DeleteRecordFromRepo(s));
+        }
         public bool DeleteRecordFromRepo(LandingSiteSampling s)
         {
             if (s == null)
@@ -744,7 +770,28 @@ namespace NSAP_ODK.Entities.Database
                 }
                 index++;
             }
+            if (EditSuccess)
+            {
+                DeleteOrphanedLandingSiteFromOrphanedItem?.Invoke(
+                        null,
+                        new DeleteLandingSiteSamplingFromOrphanEventArg
+                        {
+                            CountDeleted = ++_landingSiteSamplingsInOrphanedLandingSiteForDeleteCounter,
+                            SamplingDeleted = s.ToString(),
+                            Intent = "deleted orphaned landingSiteSampling"
+                        });
 
+
+                if (_countLandingSiteSamplingsInOrphanedLandingSiteForDelete == _landingSiteSamplingsInOrphanedLandingSiteForDeleteCounter)
+                {
+                    DeleteOrphanedLandingSiteFromOrphanedItem?.Invoke(
+                            null,
+                            new DeleteLandingSiteSamplingFromOrphanEventArg
+                            {
+                                Intent = "finished deleting"
+                            });
+                }
+            }
             return EditSuccess;
         }
     }

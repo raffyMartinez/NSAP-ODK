@@ -320,15 +320,18 @@ namespace NSAP_ODK.Views
                     title = "Get replacement species name";
                     break;
                 case Entities.NSAPEntity.LandingSite:
-                    foreach (var item in LandingSiteSampling.NSAPRegion.FMAs
-                     .FirstOrDefault(t => t.FMAID == LandingSiteSampling.FMAID).FishingGrounds
-                     .FirstOrDefault(t => t.FishingGroundCode == LandingSiteSampling.FishingGroundID).LandingSites
-                     .OrderBy(t => t.LandingSite.LandingSiteName))
+                    if (LandingSiteSampling != null)
                     {
-                        var rb = new RadioButton { Content = item.LandingSite.ToString(), Tag = item.LandingSite };
-                        rb.Checked += OnButtonChecked;
-                        rb.Margin = new Thickness(10, 10, 0, 0);
-                        panelButtons.Children.Add(rb);
+                        foreach (var item in LandingSiteSampling.NSAPRegion.FMAs
+                         .FirstOrDefault(t => t.FMAID == LandingSiteSampling.FMAID).FishingGrounds
+                         .FirstOrDefault(t => t.FishingGroundCode == LandingSiteSampling.FishingGroundID).LandingSites
+                         .OrderBy(t => t.LandingSite.LandingSiteName))
+                        {
+                            var rb = new RadioButton { Content = item.LandingSite.ToString(), Tag = item.LandingSite };
+                            rb.Checked += OnButtonChecked;
+                            rb.Margin = new Thickness(10, 10, 0, 0);
+                            panelButtons.Children.Add(rb);
+                        }
                     }
                     title = "Get replacement landing site";
 

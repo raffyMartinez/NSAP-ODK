@@ -74,6 +74,19 @@ namespace NSAP_ODK.Entities.Database
                     {
                         countDeleted++;
                     }
+
+                    if(gu.VesselUnloadViewModel.Count==0)
+                    {
+                        if (gu.Parent.GearUnloadViewModel.DeleteRecordFromRepo(gu.PK))
+                        {
+                            deletedCount++;
+                        }
+                    }
+
+                    if(gu.Parent.GearUnloadViewModel.Count==0)
+                    {
+
+                    }
                 }
             }
             DeleteVesselUnloadFromOrphanedItem?.Invoke(null, new DeleteVesselUnloadFromOrphanEventArg { Intent = "done" });
@@ -136,6 +149,9 @@ namespace NSAP_ODK.Entities.Database
                 {
                     countDeleted++;
                 }
+                
+
+
             }
 
             DeleteVesselUnloadFromOrphanedItem?.Invoke(null, new DeleteVesselUnloadFromOrphanEventArg { Intent = "done" });

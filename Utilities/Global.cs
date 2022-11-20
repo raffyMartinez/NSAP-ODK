@@ -43,6 +43,8 @@ namespace NSAP_ODK.Utilities
         //    stream.Position = 0;
         //    return stream;
         //}
+
+        public static string CSVMediaSaveFolder { get; set; }
         public static bool HasInternet { get; private set; }
         public static bool HasInternetConnection()
         {
@@ -129,6 +131,95 @@ namespace NSAP_ODK.Utilities
         {
             MDBPath = Settings.MDBPath;
             ConnectionString = "Provider=Microsoft.JET.OLEDB.4.0;data source=" + MDBPath;
+        }
+
+
+        /// <summary>
+        /// Returns a collection of strings that are derived by splitting the given source string at
+        /// characters given by the 'delimiter' parameter.  However, a substring may be enclosed between
+        /// pairs of the 'qualifier' character so that instances of the delimiter can be taken as literal
+        /// parts of the substring.  The method was originally developed to split comma-separated text
+        /// where quotes could be used to qualify text that contains commas that are to be taken as literal
+        /// parts of the substring.  For example, the following source:
+        ///     A, B, "C, D", E, "F, G"
+        /// would be split into 5 substrings:
+        ///     A
+        ///     B
+        ///     C, D
+        ///     E
+        ///     F, G
+        /// When enclosed inside of qualifiers, the literal for the qualifier character may be represented
+        /// by two consecutive qualifiers.  The two consecutive qualifiers are distinguished from a closing
+        /// qualifier character.  For example, the following source:
+        ///     A, "B, ""C"""
+        /// would be split into 2 substrings:
+        ///     A
+        ///     B, "C"
+        /// </summary>
+        /// <remarks>Originally based on: https://stackoverflow.com/a/43284485/2998072</remarks>
+        /// <param name="source">The string that is to be split</param>
+        /// <param name="delimiter">The character that separates the substrings</param>
+        /// <param name="qualifier">The character that is used (in pairs) to enclose a substring</param>
+        /// <param name="toTrim">If true, then whitespace is removed from the beginning and end of each
+        /// substring.  If false, then whitespace is preserved at the beginning and end of each substring.
+        /// </param>
+        public static List<String> SplitQualified(this String source, Char delimiter, Char qualifier,
+                                    Boolean toTrim)
+        {
+            // Avoid throwing exception if the source is null
+            if (String.IsNullOrEmpty(source))
+                return new List<String> { "" };
+
+            var results = new List<String>();
+            var result = new StringBuilder();
+            Boolean inQualifier = false;
+
+            // The algorithm is designed to expect a delimiter at the end of each substring, but the
+            // expectation of the caller is that the final substring is not terminated by delimiter.
+            // Therefore, we add an artificial delimiter at the end before looping through the source string.
+            String sourceX = source + delimiter;
+
+            // Loop through each character of the source
+            for (var idx = 0; idx < sourceX.Length; idx++)
+            {
+                // If current character is a delimiter
+                // (except if we're inside of qualifiers, we ignore the delimiter)
+                if (sourceX[idx] == delimiter && inQualifier == false)
+                {
+                    // Terminate the current substring by adding it to the collection
+                    // (trim if specified by the method parameter)
+                    results.Add(toTrim ? result.ToString().Trim() : result.ToString());
+                    result.Clear();
+                }
+                // If current character is a qualifier
+                else if (sourceX[idx] == qualifier)
+                {
+                    // ...and we're already inside of qualifier
+                    if (inQualifier)
+                    {
+                        // check for double-qualifiers, which is escape code for a single
+                        // literal qualifier character.
+                        if (idx + 1 < sourceX.Length && sourceX[idx + 1] == qualifier)
+                        {
+                            idx++;
+                            result.Append(sourceX[idx]);
+                            continue;
+                        }
+                        // Since we found only a single qualifier, that means that we've
+                        // found the end of the enclosing qualifiers.
+                        inQualifier = false;
+                        continue;
+                    }
+                    else
+                        // ...we found an opening qualifier
+                        inQualifier = true;
+                }
+                // If current character is neither qualifier nor delimiter
+                else
+                    result.Append(sourceX[idx]);
+            }
+
+            return results;
         }
 
         public static void LoadEntities()

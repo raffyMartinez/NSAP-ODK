@@ -37,6 +37,12 @@ namespace NSAP_ODK.Views
         private FishingVessel _fishingVessel;
         private bool _closingDeleteDone;
         private bool _hasReplacedCellChecked;
+        private List<OrphanedLandingSite> _olsForDeletion = new List<OrphanedLandingSite>();
+
+        private string _itemToReplace;
+        private List<string> _itemsToReplace = new List<string>();
+        private int _checkCount = 0;
+        private EntityContext _entityContext = new EntityContext();
         public OrphanItemsManagerWindow()
         {
             InitializeComponent();
@@ -188,6 +194,7 @@ namespace NSAP_ODK.Views
                 case NSAPEntity.LandingSite:
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("EnumeratorName"), IsReadOnly = true });
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of landings", Binding = new Binding("NumberOfLandings"), IsReadOnly = true });
+                    dataGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "Can be deleted", Binding = new Binding("CanBeDeletedNow"), IsReadOnly = true });
                     break;
                 case NSAPEntity.SpeciesName:
                     ((DataGridTextColumn)dataGrid.Columns.FirstOrDefault(t => t.Header.ToString() == "Region")).Binding = new Binding("Region");
@@ -204,8 +211,87 @@ namespace NSAP_ODK.Views
             _timer = new DispatcherTimer();
             _timer.Tick += OnTimerTick;
 
+            NSAPEntities.LandingSiteSamplingViewModel.DeleteOrphanedLandingSiteFromOrphanedItem += LandingSiteSamplingViewModel_DeleteOrphanedLandingSiteFromOrphanedItem;
             NSAPEntities.LandingSiteSamplingViewModel.DeleteVesselUnloadFromOrphanedItem += LandingSiteSamplingViewModel_DeleteVesselUnloadFromOrphanedItem;
             GearUnloadViewModel.DeleteVesselUnloadFromOrphanedItem += GearUnloadViewModel_DeleteVesselUnloadFromOrphanedItem;
+        }
+
+        private void LandingSiteSamplingViewModel_DeleteOrphanedLandingSiteFromOrphanedItem(object sender, DeleteLandingSiteSamplingFromOrphanEventArg e)
+        {
+            switch (e.Intent)
+            {
+                case "start":
+                    progressBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              progressBar.Maximum = e.LandinggSiteSamplingToDeleteTotalCount;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+
+                    labelStatus.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              labelStatus.Content = $"Preparing to delete {e.LandinggSiteSamplingToDeleteTotalCount} items";
+
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case "deleted orphaned landingSiteSampling":
+                    progressBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              progressBar.Value = e.CountDeleted;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+
+                    labelStatus.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              labelStatus.Content = $"Deleted record {e.CountDeleted} of {progressBar.Maximum} - {e.SamplingDeleted}";
+
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case "finished deleting":
+                    progressBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              progressBar.Value = 0;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+
+                    labelStatus.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              labelStatus.Content = $"Finished deleting landing site samplings in orphaned landing sites ";
+
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+
+                    _timer.Interval = TimeSpan.FromSeconds(3);
+                    _timer.Start();
+
+                    break;
+
+            }
         }
 
         private void GearUnloadViewModel_DeleteVesselUnloadFromOrphanedItem(object sender, DeleteVesselUnloadFromOrphanEventArg e)
@@ -217,7 +303,7 @@ namespace NSAP_ODK.Views
                         (
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
-                              progressBar.IsIndeterminate=true;
+                              progressBar.IsIndeterminate = true;
                               //do what you need to do on UI Thread
                               return null;
                           }
@@ -322,31 +408,24 @@ namespace NSAP_ODK.Views
 
         }
 
-        private void OnWindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
+        private async void OnWindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (!_closingDeleteDone && _countReplaced > 0 && NSAPEntity == NSAPEntity.LandingSite && dataGrid.Items.Count > 0)
+            if (NSAPEntity == NSAPEntity.LandingSite && !_closingDeleteDone && _olsForDeletion.Count > 0)
             {
-                if (MessageBox.Show("Remaining orphaned landing sites can be safely deleted from the database\r\n\r\n" +
-                                   "Select Yes to safely delete items", "NSAP-ODK Database",
-                                   MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.Yes)
+                var result = MessageBox.Show("Delete landing site samplings in orphaned landing sites?", "NSAP-ODK Database", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (result == MessageBoxResult.Yes)
                 {
-                    foreach (OrphanedLandingSite item in dataGrid.Items)
-                    {
-                        foreach (var sampling in item.LandingSiteSamplings)
-                        {
-                            if (sampling.GearUnloadViewModel.GetGearUnloads(sampling).Count == 0)
-                            {
-                                if (NSAPEntities.LandingSiteSamplingViewModel.DeleteRecordFromRepo(sampling))
-                                {
-
-                                }
-                            }
-                        }
-                    }
-
-                    RefreshItemsSource();
                     e.Cancel = true;
+                    await DeleteOrphanedLandingSitesBeforeCLosing(verbose: false);
                     _closingDeleteDone = true;
+                    try
+                    {
+                        Close();
+                    }
+                    catch
+                    {
+                        //ignore
+                    }
                 }
             }
             if (!e.Cancel)
@@ -355,6 +434,7 @@ namespace NSAP_ODK.Views
                 this.SavePlacement();
                 Closing -= OnWindowClosing;
             }
+            NSAPEntities.LandingSiteSamplingViewModel.DeleteOrphanedLandingSiteFromOrphanedItem -= LandingSiteSamplingViewModel_DeleteOrphanedLandingSiteFromOrphanedItem;
             NSAPEntities.LandingSiteSamplingViewModel.DeleteVesselUnloadFromOrphanedItem -= LandingSiteSamplingViewModel_DeleteVesselUnloadFromOrphanedItem;
             GearUnloadViewModel.DeleteVesselUnloadFromOrphanedItem -= GearUnloadViewModel_DeleteVesselUnloadFromOrphanedItem;
         }
@@ -619,8 +699,6 @@ namespace NSAP_ODK.Views
 
                                 if (landingSiteSampling != null)
                                 {
-                                    //if(sampling.UserName!=null && sampling.UserName.Length==0)
-                                    //{
                                     landingSiteSampling.UserName = samplingWithOrphanedLandingSite.UserName;
                                     landingSiteSampling.DeviceID = samplingWithOrphanedLandingSite.DeviceID;
                                     landingSiteSampling.DateSubmitted = samplingWithOrphanedLandingSite.DateSubmitted;
@@ -650,7 +728,6 @@ namespace NSAP_ODK.Views
                                         }
                                     }
 
-                                    //}
 
                                     foreach (GearUnload gu in samplingWithOrphanedLandingSite.GearUnloadViewModel.GetGearUnloads())
                                     {
@@ -693,7 +770,7 @@ namespace NSAP_ODK.Views
 
                                 NSAPEntities.SummaryItemViewModel.UpdateRecordsInRepo(selectedOrphanedLandingSite.LandingSiteName, ReplacementLandingSite.LandingSiteID);
                             }
-
+                            _olsForDeletion.Add(selectedOrphanedLandingSite);
                         }
                     }
                     break;
@@ -738,13 +815,122 @@ namespace NSAP_ODK.Views
 
         }
 
+        private bool GetEntityContext(SelectionToReplaceOrpanWIndow replacementWindow = null)
+        {
+            //EntityContext entityContext = new EntityContext();
+            bool proceed = false;
+            foreach (var item in dataGrid.Items)
+            {
+                switch (NSAPEntity)
+                {
 
+                    case NSAPEntity.FishingVessel:
+                        if (((OrphanedFishingVessel)item).ForReplacement)
+                        {
+                            if (!proceed)
+                            {
+                                proceed = true;
+                                if (replacementWindow != null && ((OrphanedFishingVessel)item).VesselUnloads.Count > 0)
+                                {
+                                    replacementWindow.VesselUnload = ((OrphanedFishingVessel)item).VesselUnloads[0];
+                                }
+                            }
+                            _countForReplacement += ((OrphanedFishingVessel)item).VesselUnloads.Count;
+                        }
+                        break;
+                    case NSAPEntity.SpeciesName:
+                        if (((OrphanedSpeciesName)item).ForReplacement)
+                        {
+
+                            _itemToReplace = ((OrphanedSpeciesName)item).Name;
+                            _itemsToReplace.Add(_itemToReplace);
+                            _checkCount++;
+                            proceed = true;
+
+                            _countForReplacement += ((OrphanedSpeciesName)item).SampledLandings.Count;
+                        }
+                        break;
+                    case NSAPEntity.LandingSite:
+                        if (((OrphanedLandingSite)item).ForReplacement)
+                        {
+                            if (!proceed)
+                            {
+                                proceed = true;
+                                if (replacementWindow != null)
+                                {
+                                    replacementWindow.LandingSiteSampling = ((OrphanedLandingSite)item).LandingSiteSamplings[0];
+                                }
+
+                                _entityContext.Region = ((OrphanedLandingSite)item).Region;
+                                _entityContext.FMA = ((OrphanedLandingSite)item).FMA;
+                                _entityContext.FishingGround = ((OrphanedLandingSite)item).FishingGround;
+                                _entityContext.NSAPEntity = NSAPEntity.NSAPRegionFMAFishingGround;
+                            }
+                            _countForReplacement += ((OrphanedLandingSite)item).LandingSiteSamplings.Count;
+
+                            //_entityContext.Region = ((OrphanedLandingSite)item).Region;
+                            //_entityContext.FMA = ((OrphanedLandingSite)item).FMA;
+                            //_entityContext.FishingGround = ((OrphanedLandingSite)item).FishingGround;
+                            //_entityContext.NSAPEntity = NSAPEntity.NSAPRegionFMAFishingGround;
+                        }
+                        break;
+                    case NSAPEntity.FishingGear:
+
+                        if (((OrphanedFishingGear)item).ForReplacement)
+                        {
+                            if (!proceed)
+                            {
+                                proceed = true;
+                                if (replacementWindow != null)
+                                {
+                                    replacementWindow.GearUnload = ((OrphanedFishingGear)item).GearUnloads[0];
+                                }
+                            }
+                            _countForReplacement += ((OrphanedFishingGear)item).GearUnloads.Count;
+
+                            _entityContext.Region = ((OrphanedFishingGear)item).Region;
+                            _entityContext.FMA = ((OrphanedFishingGear)item).FMA;
+                            _entityContext.FishingGround = ((OrphanedFishingGear)item).FishingGround;
+                            _entityContext.NSAPEntity = NSAPEntity.NSAPRegion;
+                        }
+                        break;
+                    case NSAPEntity.Enumerator:
+                        if (((OrphanedEnumerator)item).ForReplacement)
+                        {
+                            if (!proceed)
+                            {
+                                proceed = true;
+                                if (replacementWindow != null && ((OrphanedEnumerator)item).SampledLandings.Count > 0)
+                                {
+                                    replacementWindow.NSAPRegion = ((OrphanedEnumerator)item).Region;
+                                }
+                            }
+                            _countForReplacement += ((OrphanedEnumerator)item).SampledLandings.Count;
+                            if (((OrphanedEnumerator)item).LandingSiteSamplings != null)
+                            {
+                                _countForReplacement += ((OrphanedEnumerator)item).LandingSiteSamplings.Count;
+                            }
+
+                            _entityContext.Region = ((OrphanedEnumerator)item).Region;
+                            _entityContext.FMA = ((OrphanedEnumerator)item).FMA;
+                            _entityContext.FishingGround = ((OrphanedEnumerator)item).FishingGround;
+                            _entityContext.NSAPEntity = NSAPEntity.NSAPRegion;
+
+                        }
+                        break;
+
+                }
+            }
+            return proceed;
+
+        }
 
         private async void OnButtonClick(object sender, RoutedEventArgs e)
         {
+            _itemsToReplace = new List<string>();
             labelStatus.Content = "";
             //progressBar.Value = 0;
-            bool procced = false;
+            bool proceed = false;
             string btnName = ((Button)sender).Name;
             switch (btnName)
             {
@@ -765,6 +951,7 @@ namespace NSAP_ODK.Views
                     buttonReplace.IsEnabled = false;
                     //DoTheReplacement();
                     //dataGrid.Items.Refresh();
+
                     await NSAPEntities.SummaryItemViewModel.SetOrphanedEntityAsync(NSAPEntity);
                     RefreshItemsSource();
 
@@ -774,124 +961,44 @@ namespace NSAP_ODK.Views
                     _timer.Start();
 
                     break;
-                case "buttonSelectReplacement":
                 case "buttonDelete":
-                    int checkCount = 0;
-                    string itemToReplace = "";
-                    List<string> itemsToReplace = new List<string>();
-                    _countForReplacement = 0;
-
-                    var replacementWindow = new SelectionToReplaceOrpanWIndow();
-                    replacementWindow.Owner = this;
-                    replacementWindow.NSAPEntity = NSAPEntity;
-
-                    EntityContext entityContext = new EntityContext();
-
-                    foreach (var item in dataGrid.Items)
+                    int deletedCount = 0;
+                    int countLandingSiteSamplingsInOrphanedLandingSite = 0;
+                    if (NSAPEntity == NSAPEntity.LandingSite && !GridHasSeletedCheckedItems() && OrphanLandingSiteGridHasCanDeleteItems())
                     {
 
-                        switch (NSAPEntity)
+                        var result = MessageBox.Show("Delete orphaned landing sites marked \"Can be deleted\"?", "NSAP-ODK Database", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                        if (result == MessageBoxResult.Yes)
                         {
-
-                            case NSAPEntity.FishingVessel:
-                                if (((OrphanedFishingVessel)item).ForReplacement)
+                            List<OrphanedLandingSite> orphanedLandingSites = new List<OrphanedLandingSite>();
+                            foreach (var item in dataGrid.Items)
+                            {
+                                if (((OrphanedLandingSite)item).CanBeDeletedNow)
                                 {
-                                    if (!procced)
-                                    {
-                                        procced = true;
-                                        if (((OrphanedFishingVessel)item).VesselUnloads.Count > 0)
-                                        {
-                                            replacementWindow.VesselUnload = ((OrphanedFishingVessel)item).VesselUnloads[0];
-                                        }
-                                    }
-                                    _countForReplacement += ((OrphanedFishingVessel)item).VesselUnloads.Count;
+                                    orphanedLandingSites.Add((OrphanedLandingSite)item);
+                                    countLandingSiteSamplingsInOrphanedLandingSite += ((OrphanedLandingSite)item).LandingSiteSamplings.Count;
                                 }
-                                break;
-                            case NSAPEntity.SpeciesName:
-                                if (((OrphanedSpeciesName)item).ForReplacement)
+                            }
+
+                            NSAPEntities.LandingSiteSamplingViewModel.CountLandingSiteSamplingsInOrphanedLandingSiteForDelete = countLandingSiteSamplingsInOrphanedLandingSite;
+                            foreach (OrphanedLandingSite item in orphanedLandingSites)
+                            {
+                                foreach (var sampling in item.LandingSiteSamplings)
                                 {
-
-                                    itemToReplace = ((OrphanedSpeciesName)item).Name;
-                                    itemsToReplace.Add(itemToReplace);
-                                    checkCount++;
-                                    procced = true;
-
-                                    _countForReplacement += ((OrphanedSpeciesName)item).SampledLandings.Count;
-                                }
-
-                                break;
-                            case NSAPEntity.LandingSite:
-                                if (((OrphanedLandingSite)item).ForReplacement)
-                                {
-                                    if (!procced)
+                                    if (await NSAPEntities.LandingSiteSamplingViewModel.DeleteRecordFromRepoAsync(sampling))
                                     {
-                                        procced = true;
-                                        replacementWindow.LandingSiteSampling = ((OrphanedLandingSite)item).LandingSiteSamplings[0];
+                                        await NSAPEntities.SummaryItemViewModel.DeleteOrphanedLandingSiteAsync(sampling.LandingSiteName);
+                                        deletedCount++;
                                     }
-                                    _countForReplacement += ((OrphanedLandingSite)item).LandingSiteSamplings.Count;
-
-                                    entityContext.Region = ((OrphanedLandingSite)item).Region;
-                                    entityContext.FMA = ((OrphanedLandingSite)item).FMA;
-                                    entityContext.FishingGround = ((OrphanedLandingSite)item).FishingGround;
-                                    entityContext.NSAPEntity = NSAPEntity.NSAPRegionFMAFishingGround;
                                 }
-                                break;
-                            case NSAPEntity.FishingGear:
-
-                                if (((OrphanedFishingGear)item).ForReplacement)
-                                {
-                                    if (!procced)
-                                    {
-                                        procced = true;
-                                        replacementWindow.GearUnload = ((OrphanedFishingGear)item).GearUnloads[0];
-                                    }
-                                    _countForReplacement += ((OrphanedFishingGear)item).GearUnloads.Count;
-
-                                    entityContext.Region = ((OrphanedFishingGear)item).Region;
-                                    entityContext.FMA = ((OrphanedFishingGear)item).FMA;
-                                    entityContext.FishingGround = ((OrphanedFishingGear)item).FishingGround;
-                                    entityContext.NSAPEntity = NSAPEntity.NSAPRegion;
-                                }
-                                break;
-                            case NSAPEntity.Enumerator:
-                                if (((OrphanedEnumerator)item).ForReplacement)
-                                {
-                                    if (!procced)
-                                    {
-                                        procced = true;
-                                        //if (((OrphanedEnumerator)item).SampledLandings.Count > 0)
-                                        //{
-                                        //    replacementWindow.LandingSiteSampling = ((OrphanedEnumerator)item).SampledLandings[0].Parent.Parent;
-                                        //}
-                                        if (((OrphanedEnumerator)item).SampledLandings.Count > 0)
-                                        {
-                                            replacementWindow.NSAPRegion = ((OrphanedEnumerator)item).Region;
-                                        }
-                                    }
-                                    _countForReplacement += ((OrphanedEnumerator)item).SampledLandings.Count;
-                                    if (((OrphanedEnumerator)item).LandingSiteSamplings != null)
-                                    {
-                                        _countForReplacement += ((OrphanedEnumerator)item).LandingSiteSamplings.Count;
-                                    }
-
-                                    entityContext.Region = ((OrphanedEnumerator)item).Region;
-                                    entityContext.FMA = ((OrphanedEnumerator)item).FMA;
-                                    entityContext.FishingGround = ((OrphanedEnumerator)item).FishingGround;
-                                    entityContext.NSAPEntity = NSAPEntity.NSAPRegion;
-
-                                }
-                                break;
-
+                            }
+                            await NSAPEntities.SummaryItemViewModel.SetOrphanedEntityAsync(NSAPEntity.LandingSite);
+                            dataGrid.DataContext = NSAPEntities.SummaryItemViewModel.OrphanedLandingSites.OrderBy(t => t.LandingSiteName).ToList();
                         }
-
-
-
-
                     }
-
-                    if (procced)
+                    else
                     {
-                        if (btnName == "buttonDelete")
+                        if (GetEntityContext())
                         {
                             switch (NSAPEntity)
                             {
@@ -900,15 +1007,18 @@ namespace NSAP_ODK.Views
                                     List<OrphanedLandingSite> orphanedLandingSites = new List<OrphanedLandingSite>();
                                     foreach (var item in dataGrid.Items)
                                     {
-
                                         if (((OrphanedLandingSite)item).ForReplacement)
                                         {
                                             orphanedLandingSites.Add((OrphanedLandingSite)item);
                                         }
                                     }
-                                    if (await NSAPEntities.LandingSiteSamplingViewModel.DeleteOrphanedLandingSites(orphanedLandingSites))
+                                    if (orphanedLandingSites.Count > 0 &&
+                                        MessageBox.Show("Delete selected orphaned landing sites?", "NSAP-ODK Database", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes &&
+                                        await NSAPEntities.LandingSiteSamplingViewModel.DeleteOrphanedLandingSites(orphanedLandingSites))
                                     {
+
                                         dataGrid.DataContext = NSAPEntities.SummaryItemViewModel.OrphanedLandingSites.OrderBy(t => t.LandingSiteName).ToList();
+
                                     }
 
                                     break;
@@ -923,7 +1033,9 @@ namespace NSAP_ODK.Views
                                         }
                                     }
 
-                                    if (await GearUnloadViewModel.DeleteVesselUnloads(orphanedFishingGears))
+                                    if (orphanedFishingGears.Count > 0 &&
+                                        MessageBox.Show("Delete selected orphaned fishing gears?", "NSAP-ODK Database", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes &&
+                                        await GearUnloadViewModel.DeleteVesselUnloads(orphanedFishingGears))
                                     {
                                         dataGrid.DataContext = NSAPEntities.SummaryItemViewModel.OrphanedFishingGears.OrderBy(t => t.Name).ToList();
                                     }
@@ -934,75 +1046,252 @@ namespace NSAP_ODK.Views
                                     List<OrphanedEnumerator> orphanedEnumerators = new List<OrphanedEnumerator>();
                                     foreach (var item in dataGrid.Items)
                                     {
-
                                         if (((OrphanedEnumerator)item).ForReplacement)
                                         {
                                             orphanedEnumerators.Add((OrphanedEnumerator)item);
                                         }
                                     }
                                     //NSAPEntities.LandingSiteSamplingViewModel.DeleteOrphanedEnumerators(orphanedEnumerators);
-                                    if (await GearUnloadViewModel.DeleteVesselUnloads(orphanedEnumerators))
+
+                                    if (orphanedEnumerators.Count > 0 &&
+                                        MessageBox.Show("Delete selected orphaned enumerators?", "NSAP-ODK Database", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes &&
+                                        await GearUnloadViewModel.DeleteVesselUnloads(orphanedEnumerators))
                                     {
                                         dataGrid.DataContext = NSAPEntities.SummaryItemViewModel.OrphanedEnumerators.OrderBy(t => t.Name).ToList();
                                     }
                                     break;
                             }
+
                         }
                         else
                         {
-                            if (checkCount == 1)
-                            {
-                                switch (NSAPEntity)
-                                {
-                                    case NSAPEntity.SpeciesName:
-                                        replacementWindow.ItemToReplace = itemToReplace;
-                                        break;
-                                }
-                            }
-                            else if (checkCount > 1)
-                            {
-                                switch (NSAPEntity)
-                                {
-                                    case NSAPEntity.SpeciesName:
-                                    case NSAPEntity.FishSpecies:
-                                        replacementWindow.ItemsToReplace = itemsToReplace;
-                                        break;
-                                }
-                            }
-
-                            progressBar.Maximum = _countForReplacement;
-
-                            replacementWindow.EntityContext = entityContext;
-                            replacementWindow.FillSelection();
-                            if (!(bool)replacementWindow.ShowDialog())
-                            {
-                                foreach (var item in dataGrid.Items)
-                                {
-                                    switch (NSAPEntity)
-                                    {
-                                        case NSAPEntity.FishingVessel:
-                                            ((OrphanedFishingVessel)item).ForReplacement = false;
-                                            break;
-                                        case NSAPEntity.SpeciesName:
-                                            ((OrphanedSpeciesName)item).ForReplacement = false;
-                                            break;
-                                        case NSAPEntity.LandingSite:
-                                            ((OrphanedLandingSite)item).ForReplacement = false;
-                                            break;
-                                        case NSAPEntity.FishingGear:
-                                            ((OrphanedFishingGear)item).ForReplacement = false;
-                                            break;
-                                        case NSAPEntity.Enumerator:
-                                            ((OrphanedEnumerator)item).ForReplacement = false;
-                                            break;
-                                    }
-                                }
-                            }
-                            dataGrid.Items.Refresh();
+                            MessageBox.Show("Check at least one item in the table", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
                         }
                     }
+                    break;
+                case "buttonSelectReplacement":
+                    //case "buttonDelete":
+                    int checkCount = 0;
+                    //string itemToReplace = "";
+                    //List<string> itemsToReplace = new List<string>();
+                    _countForReplacement = 0;
 
-                    if (!procced)
+                    var replacementWindow = new SelectionToReplaceOrpanWIndow();
+                    replacementWindow.Owner = this;
+                    replacementWindow.NSAPEntity = NSAPEntity;
+
+                    //EntityContext entityContext = new EntityContext();
+
+                    proceed = GetEntityContext(replacementWindow);
+                    //foreach (var item in dataGrid.Items)
+                    //{
+
+                    //    switch (NSAPEntity)
+                    //    {
+
+                    //        case NSAPEntity.FishingVessel:
+                    //            if (((OrphanedFishingVessel)item).ForReplacement)
+                    //            {
+                    //                if (!procced)
+                    //                {
+                    //                    procced = true;
+                    //                    if (((OrphanedFishingVessel)item).VesselUnloads.Count > 0)
+                    //                    {
+                    //                        replacementWindow.VesselUnload = ((OrphanedFishingVessel)item).VesselUnloads[0];
+                    //                    }
+                    //                }
+                    //                _countForReplacement += ((OrphanedFishingVessel)item).VesselUnloads.Count;
+                    //            }
+                    //            break;
+                    //        case NSAPEntity.SpeciesName:
+                    //            if (((OrphanedSpeciesName)item).ForReplacement)
+                    //            {
+
+                    //                itemToReplace = ((OrphanedSpeciesName)item).Name;
+                    //                itemsToReplace.Add(itemToReplace);
+                    //                checkCount++;
+                    //                procced = true;
+
+                    //                _countForReplacement += ((OrphanedSpeciesName)item).SampledLandings.Count;
+                    //            }
+                    //            break;
+                    //        case NSAPEntity.LandingSite:
+                    //            if (((OrphanedLandingSite)item).ForReplacement)
+                    //            {
+                    //                if (!procced)
+                    //                {
+                    //                    procced = true;
+                    //                    replacementWindow.LandingSiteSampling = ((OrphanedLandingSite)item).LandingSiteSamplings[0];
+                    //                }
+                    //                _countForReplacement += ((OrphanedLandingSite)item).LandingSiteSamplings.Count;
+
+                    //                entityContext.Region = ((OrphanedLandingSite)item).Region;
+                    //                entityContext.FMA = ((OrphanedLandingSite)item).FMA;
+                    //                entityContext.FishingGround = ((OrphanedLandingSite)item).FishingGround;
+                    //                entityContext.NSAPEntity = NSAPEntity.NSAPRegionFMAFishingGround;
+                    //            }
+                    //            break;
+                    //        case NSAPEntity.FishingGear:
+
+                    //            if (((OrphanedFishingGear)item).ForReplacement)
+                    //            {
+                    //                if (!procced)
+                    //                {
+                    //                    procced = true;
+                    //                    replacementWindow.GearUnload = ((OrphanedFishingGear)item).GearUnloads[0];
+                    //                }
+                    //                _countForReplacement += ((OrphanedFishingGear)item).GearUnloads.Count;
+
+                    //                entityContext.Region = ((OrphanedFishingGear)item).Region;
+                    //                entityContext.FMA = ((OrphanedFishingGear)item).FMA;
+                    //                entityContext.FishingGround = ((OrphanedFishingGear)item).FishingGround;
+                    //                entityContext.NSAPEntity = NSAPEntity.NSAPRegion;
+                    //            }
+                    //            break;
+                    //        case NSAPEntity.Enumerator:
+                    //            if (((OrphanedEnumerator)item).ForReplacement)
+                    //            {
+                    //                if (!procced)
+                    //                {
+                    //                    procced = true;
+                    //                    if (((OrphanedEnumerator)item).SampledLandings.Count > 0)
+                    //                    {
+                    //                        replacementWindow.NSAPRegion = ((OrphanedEnumerator)item).Region;
+                    //                    }
+                    //                }
+                    //                _countForReplacement += ((OrphanedEnumerator)item).SampledLandings.Count;
+                    //                if (((OrphanedEnumerator)item).LandingSiteSamplings != null)
+                    //                {
+                    //                    _countForReplacement += ((OrphanedEnumerator)item).LandingSiteSamplings.Count;
+                    //                }
+
+                    //                entityContext.Region = ((OrphanedEnumerator)item).Region;
+                    //                entityContext.FMA = ((OrphanedEnumerator)item).FMA;
+                    //                entityContext.FishingGround = ((OrphanedEnumerator)item).FishingGround;
+                    //                entityContext.NSAPEntity = NSAPEntity.NSAPRegion;
+
+                    //            }
+                    //            break;
+
+                    //    }
+                    //}
+
+                    if (proceed)
+                    {
+                        //if (btnName == "buttonDelete")
+                        //{
+
+                        //    switch (NSAPEntity)
+                        //    {
+                        //        case NSAPEntity.LandingSite:
+
+                        //            List<OrphanedLandingSite> orphanedLandingSites = new List<OrphanedLandingSite>();
+                        //            foreach (var item in dataGrid.Items)
+                        //            {
+
+                        //                if (((OrphanedLandingSite)item).ForReplacement)
+                        //                {
+                        //                    orphanedLandingSites.Add((OrphanedLandingSite)item);
+                        //                }
+                        //            }
+                        //            if (await NSAPEntities.LandingSiteSamplingViewModel.DeleteOrphanedLandingSites(orphanedLandingSites))
+                        //            {
+                        //                dataGrid.DataContext = NSAPEntities.SummaryItemViewModel.OrphanedLandingSites.OrderBy(t => t.LandingSiteName).ToList();
+                        //            }
+
+                        //            break;
+                        //        case NSAPEntity.FishingGear:
+                        //            List<OrphanedFishingGear> orphanedFishingGears = new List<OrphanedFishingGear>();
+                        //            foreach (var item in dataGrid.Items)
+                        //            {
+
+                        //                if (((OrphanedFishingGear)item).ForReplacement)
+                        //                {
+                        //                    orphanedFishingGears.Add((OrphanedFishingGear)item);
+                        //                }
+                        //            }
+
+                        //            if (await GearUnloadViewModel.DeleteVesselUnloads(orphanedFishingGears))
+                        //            {
+                        //                dataGrid.DataContext = NSAPEntities.SummaryItemViewModel.OrphanedFishingGears.OrderBy(t => t.Name).ToList();
+                        //            }
+                        //            break;
+                        //        case NSAPEntity.FishingGround:
+                        //            break;
+                        //        case NSAPEntity.Enumerator:
+                        //            List<OrphanedEnumerator> orphanedEnumerators = new List<OrphanedEnumerator>();
+                        //            foreach (var item in dataGrid.Items)
+                        //            {
+
+                        //                if (((OrphanedEnumerator)item).ForReplacement)
+                        //                {
+                        //                    orphanedEnumerators.Add((OrphanedEnumerator)item);
+                        //                }
+                        //            }
+                        //            //NSAPEntities.LandingSiteSamplingViewModel.DeleteOrphanedEnumerators(orphanedEnumerators);
+                        //            if (await GearUnloadViewModel.DeleteVesselUnloads(orphanedEnumerators))
+                        //            {
+                        //                dataGrid.DataContext = NSAPEntities.SummaryItemViewModel.OrphanedEnumerators.OrderBy(t => t.Name).ToList();
+                        //            }
+                        //            break;
+                        //    }
+
+                        //}
+                        //else
+                        //{
+                        if (checkCount == 1)
+                        {
+                            switch (NSAPEntity)
+                            {
+                                case NSAPEntity.SpeciesName:
+                                    replacementWindow.ItemToReplace = _itemToReplace;
+                                    break;
+                            }
+                        }
+                        else if (checkCount > 1)
+                        {
+                            switch (NSAPEntity)
+                            {
+                                case NSAPEntity.SpeciesName:
+                                case NSAPEntity.FishSpecies:
+                                    replacementWindow.ItemsToReplace = _itemsToReplace;
+                                    break;
+                            }
+                        }
+
+                        progressBar.Maximum = _countForReplacement;
+
+                        replacementWindow.EntityContext = _entityContext;
+                        replacementWindow.FillSelection();
+                        if (!(bool)replacementWindow.ShowDialog())
+                        {
+                            foreach (var item in dataGrid.Items)
+                            {
+                                switch (NSAPEntity)
+                                {
+                                    case NSAPEntity.FishingVessel:
+                                        ((OrphanedFishingVessel)item).ForReplacement = false;
+                                        break;
+                                    case NSAPEntity.SpeciesName:
+                                        ((OrphanedSpeciesName)item).ForReplacement = false;
+                                        break;
+                                    case NSAPEntity.LandingSite:
+                                        ((OrphanedLandingSite)item).ForReplacement = false;
+                                        break;
+                                    case NSAPEntity.FishingGear:
+                                        ((OrphanedFishingGear)item).ForReplacement = false;
+                                        break;
+                                    case NSAPEntity.Enumerator:
+                                        ((OrphanedEnumerator)item).ForReplacement = false;
+                                        break;
+                                }
+                            }
+                        }
+                        dataGrid.Items.Refresh();
+                    }
+                    //}
+
+                    if (!proceed)
                     {
                         MessageBox.Show("Check at least one item in the table", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
@@ -1031,11 +1320,96 @@ namespace NSAP_ODK.Views
                     }
                     break;
                 case "buttonCancel":
+                    await DeleteOrphanedLandingSitesBeforeCLosing();
                     Close();
                     break;
             }
         }
+        private async Task DeleteOrphanedLandingSitesBeforeCLosing(bool verbose = true)
+        {
+            bool proceed = false;
+            int deletedCount = 0;
+            int forDeletionCount = 0;
+            if (!_closingDeleteDone && _countReplaced > 0 && NSAPEntity == NSAPEntity.LandingSite && _olsForDeletion.Count > 0)
+            {
+                if (verbose && MessageBox.Show("Remaining orphaned landing sites can be safely deleted from the database\r\n\r\n" +
+                                   "Select Yes to safely delete items", "NSAP-ODK Database",
+                                   MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.Yes)
+                {
+                    proceed = true;
+                }
+                else
+                {
+                    proceed = !verbose;
+                }
+            }
 
+            if (proceed)
+            {
+                forDeletionCount = _olsForDeletion.Sum(t => t.LandingSiteSamplings.Count);
+                NSAPEntities.LandingSiteSamplingViewModel.CountLandingSiteSamplingsInOrphanedLandingSiteForDelete = forDeletionCount;
+                foreach (OrphanedLandingSite item in _olsForDeletion)
+                {
+                    foreach (var sampling in item.LandingSiteSamplings)
+                    {
+                        if (sampling.GearUnloadViewModel.GetGearUnloads(sampling).Count == 0)
+                        {
+                            if (await NSAPEntities.LandingSiteSamplingViewModel.DeleteRecordFromRepoAsync(sampling))
+                            {
+                                deletedCount++;
+                            }
+                        }
+                    }
+                }
+
+                RefreshItemsSource();
+                _closingDeleteDone = true;
+                if (deletedCount > 0 && verbose)
+                {
+                    MessageBox.Show($"Succesfully deleteted {deletedCount} sampling days with orphaned landing sites", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                }
+            }
+
+
+        }
+
+        private bool OrphanLandingSiteGridHasCanDeleteItems()
+        {
+            bool hasCanDeleteOrphan = false;
+            foreach (var item in dataGrid.Items)
+            {
+                switch (NSAPEntity)
+                {
+                    case NSAPEntity.LandingSite:
+                        if (((OrphanedLandingSite)item).CanBeDeletedNow)
+                        {
+                            hasCanDeleteOrphan = true;
+                            break;
+                        }
+                        break;
+                }
+            }
+            return hasCanDeleteOrphan;
+        }
+        private bool GridHasSeletedCheckedItems()
+        {
+            bool hasSelectedItem = false;
+            foreach (var item in dataGrid.Items)
+            {
+                switch (NSAPEntity)
+                {
+                    case NSAPEntity.LandingSite:
+                        if (((OrphanedLandingSite)item).ForReplacement)
+                        {
+                            hasSelectedItem = true;
+                            break;
+                        }
+                        break;
+                }
+            }
+            return hasSelectedItem;
+        }
         private void LandingSiteSamplingViewModel_DeleteVesselUnloadFromOrphanedItem(object sender, DeleteVesselUnloadFromOrphanEventArg e)
         {
             switch (e.Intent)
