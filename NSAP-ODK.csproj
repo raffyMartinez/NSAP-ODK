@@ -338,7 +338,7 @@
     <Compile Include="Entities\KoboForms.cs" />
     <Compile Include="Entities\Koboform_files.cs" />
     <Compile Include="Entities\MDBTablesRowCount.cs" />
-    <Compile Include="Entities\Media_csv\Analysis.cs" />
+    <Compile Include="Entities\Media_csv\CSVMediaAnalysis.cs" />
     <Compile Include="Entities\Media_csv\EnumeratorSelect.cs" />
     <Compile Include="Entities\Media_csv\EnumeratorSelectRepository.cs" />
     <Compile Include="Entities\Media_csv\EnumeratorSelectViewModel.cs" />

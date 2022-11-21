@@ -45,7 +45,7 @@
             </Grid.RowDefinitions>
             <Label Content="Datagrid label" x:Name="labelDataGrid"/>
             <DataGrid Grid.Row="1" x:Name="dataGrid" ItemsSource="{Binding}" LoadingRow="Grid_LoadingRow" AutoGenerateColumns="False" Visibility="Visible" IsReadOnly="True"/>
-            <xctk:PropertyGrid Grid.Row="1" x:Name="propertyGrid" Margin="10" IsReadOnly="True"  ShowTitle="false" 
+            <xctk:PropertyGrid Grid.Row="1" x:Name="propertyGrid" Margin="10" IsReadOnly="True"  ShowTitle="false" NameColumnWidth="250"
                             ShowAdvancedOptions="False" ShowSearchBox="False" ShowSortOptions="False" Visibility="Collapsed"/>
         </Grid>
         <WrapPanel Grid.Row="3" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="10 0" Grid.ColumnSpan="2">
