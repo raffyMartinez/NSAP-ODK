@@ -213,8 +213,8 @@ namespace NSAP_ODK.Entities.Database
                     FishingGround = item.FishingGround,
                     //LandingSiteSamplings = GetLandingSiteSamplings(item.Enumerator, item.LandingSiteName),
                     LandingSiteSamplings = lss,
-                    CanBeDeletedNow = OrphanLandingSiteCanBeDeleted(lss)
-
+                    CanBeDeletedNow = OrphanLandingSiteCanBeDeleted(lss),
+                    NumberOfVesselLandings = SummaryItemCollection.Where(t => t.LandingSiteID == null && t.VesselUnloadID != null && t.LandingSiteText == item.LandingSiteName && t.EnumeratorNameToUse == item.Enumerator).Count()
                 };
 
                 thisList.Add(orphan);

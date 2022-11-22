@@ -193,7 +193,7 @@ namespace NSAP_ODK.Views
 
                 case NSAPEntity.LandingSite:
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("EnumeratorName"), IsReadOnly = true });
-                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of landings", Binding = new Binding("NumberOfLandings"), IsReadOnly = true });
+                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of landings", Binding = new Binding("NumberOfVesselLandings"), IsReadOnly = true });
                     dataGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "Can be deleted", Binding = new Binding("CanBeDeletedNow"), IsReadOnly = true });
                     break;
                 case NSAPEntity.SpeciesName:

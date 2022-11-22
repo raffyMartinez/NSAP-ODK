@@ -66,5 +66,7 @@ namespace NSAP_ODK.Entities.Database
 
         public bool ForReplacement { get; set; }
 
+        public int NumberOfVesselLandings { get; set; }
+
     }
 }
