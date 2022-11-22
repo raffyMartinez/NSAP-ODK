@@ -39,8 +39,6 @@ namespace NSAP_ODK.Views
         {
             if (Utilities.Global.Settings != null)
             {
-
-
                 textBackenDB.Text = Utilities.Global.Settings.MDBPath;
                 textJsonFolder.Text = Utilities.Global.Settings.JSONFolder;
                 textmySQLBackupFolder.Text = Utilities.Global.Settings.MySQLBackupFolder;
@@ -64,6 +62,11 @@ namespace NSAP_ODK.Views
                 {
                     textCutoffWidth.Text = ((int)Utilities.Global.Settings.DownloadSizeForBatchMode).ToString();
                 }
+            }
+            else
+            {
+                textDownloadSizeForBatchMode.Text = "2000";
+                textCutoffWidth.Text = "11";
             }
 
         }
