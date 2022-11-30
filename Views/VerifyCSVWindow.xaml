@@ -14,13 +14,15 @@
             <RowDefinition Height="30"/>
             <RowDefinition/>
             <RowDefinition Height="40"/>
+            <RowDefinition Height="30"/>
+            
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="200" />
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
-        <Menu Grid.ColumnSpan="2" VerticalAlignment="Center">
-            <MenuItem Header="Select CSV">
+        <Menu Grid.ColumnSpan="2" VerticalContentAlignment="Center" Height="28" >
+            <MenuItem Header="Select CSV" Margin="0 5 0 0">
                 <MenuItem Header="FMAs" Click="OnMenuClick"/>
                 <MenuItem Header="Fishing grounds" Click="OnMenuClick"/>
                 <MenuItem Header="Landing sites" Click="OnMenuClick"/>
@@ -28,6 +30,8 @@
                 <MenuItem Header="Enumerators" Click="OnMenuClick"/>
                 <MenuItem Header="Municipal fishing vessels" Click="OnMenuClick"/>
                 <MenuItem Header="Commercial fishing vessels" Click="OnMenuClick"/>
+                <!--<Separator />
+                <MenuItem Header="CSV file" Click="OnMenuClick"/>-->
                 <Separator />
                 <MenuItem Header="Close" Click="OnMenuClick"/>
             </MenuItem>
@@ -53,5 +57,8 @@
             <Button Content="Cancel" Height="30" Width="50" Visibility="Collapsed"/>
             <Button Content="Close" Height="30" Width="50" Margin="10 0" Click="OnButtonClick" x:Name="buttonClose"/>
         </WrapPanel>
+        <StatusBar Grid.Row="4" Grid.ColumnSpan="2" VerticalAlignment="Center" Height="28">
+            <Label x:Name="statusbarlabelCurrentEntity" Margin="10 0" Content="this is content" Height="25"/>
+        </StatusBar>
     </Grid>
 </Window>

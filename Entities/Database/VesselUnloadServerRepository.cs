@@ -1546,12 +1546,20 @@ namespace NSAP_ODK.Entities.Database.FromJson
         {
             return VesselLandings.OrderBy(t => t.SamplingDate).FirstOrDefault().SamplingDate;
         }
-
+        public static List<string>GetLandingIdentifiers()
+        {
+            List<string> ids = new List<string>();
+            foreach(var item in VesselLandings)
+            {
+                ids.Add(item._uuid);
+            }
+            return ids;
+        }
         public static DateTime DownloadedLandingsLatestLandingDate()
         {
             return VesselLandings.OrderByDescending(t => t.SamplingDate).FirstOrDefault().SamplingDate;
         }
-
+        
         public static int DownloadedLandingsCount()
         {
             return VesselLandings.Count;

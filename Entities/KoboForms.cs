@@ -391,17 +391,34 @@ namespace NSAP_ODK.Entities
                         {
 
                             var x = MakeXLSForm(the_response);
-                            kf.Version_ID = x.version_id;
-                            XLSFormVersion = x.content.settings.version;
-                            kf.xlsform_version = XLSFormVersion;
-                            XLSForm_idString = x.content.settings.id_string;
-                            switch (x.name)
+                            if (x != null)
                             {
-                                case "NSAP Fish Catch Monitoring e-Form":
-                                case "Fisheries landing survey":
-                                case "NSAP Fishing boats landed and TWSP":
-                                    kf.eForm_version = x.content.survey.Where(t => t.name == "intronote").FirstOrDefault().@default.Replace("Version ", "");
-                                    break;
+                                kf.Version_ID = x.version_id;
+                                XLSFormVersion = x.content.settings.version;
+                                kf.xlsform_version = XLSFormVersion;
+                                XLSForm_idString = x.content.settings.id_string;
+                                switch (x.name)
+                                {
+                                    case "NSAP Fish Catch Monitoring e-Form":
+                                    case "Fisheries landing survey":
+                                    case "NSAP Fishing boats landed and TWSP":
+                                        kf.eForm_version = x.content.survey.Where(t => t.name == "intronote").FirstOrDefault().@default.Replace("Version ", "");
+                                        break;
+                                }
+                            }
+                            else
+                            {
+                                var search_string = "\"name\":\"intronote\"";
+                                var idx = the_response.IndexOf(search_string);
+                                //var arr = the_response.Substring(idx, 200).Replace("\"", "").Split(new char[] { ',',':'}).FirstOrDefault(t=>t.Contains("Version"));
+                                //kf.eForm_version = the_response.Substring(idx+search_string.Length, 20).Replace("\"","") .Split(',')[0];
+                                kf.eForm_version =the_response.Substring(idx, 200).Replace("\"", "").Split(new char[] { ',',':'}).FirstOrDefault(t=>t.Contains("Version")).Replace("Version ",""); 
+
+                                search_string = "\"version\":";
+                                idx = the_response.IndexOf(search_string);
+                                //var arr = the_response.Substring(idx + search_string.Length,20).Replace("\"","").Split(new char[] {',', })[0];
+                                XLSFormVersion = the_response.Substring(idx + search_string.Length,20).Replace("\"","").Split(',')[0];
+                                kf.xlsform_version = XLSFormVersion;
                             }
                         }
                     }
@@ -483,7 +500,16 @@ namespace NSAP_ODK.Entities
 
         public static Database.XLSForm MakeXLSForm(string json)
         {
-            return JsonConvert.DeserializeObject<Database.XLSForm>(json);
+            try
+            {
+                return JsonConvert.DeserializeObject<Database.XLSForm>(json);
+            }
+            catch(Exception ex)
+            {
+                //var xform = JsonConvert.DeserializeObject<Database.XLSForm2.Root>(json);
+                Logger.Log(ex);
+                return null;
+            }
         }
 
         public static Koboform_files GetFilesFromKoboform(string json)

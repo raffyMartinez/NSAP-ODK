@@ -425,6 +425,7 @@ namespace NSAP_ODK.Views
             _jsonFile.Earliest = VesselUnloadServerRepository.DownloadedLandingsEarliestLandingDate();
             _jsonFile.Latest = VesselUnloadServerRepository.DownloadedLandingsLatestLandingDate();
             _jsonFile.Count = VesselUnloadServerRepository.DownloadedLandingsCount();
+            _jsonFile.LandingIdentifiers = VesselUnloadServerRepository.GetLandingIdentifiers();
             _jsonFile.DateAdded = DateTime.Now;
             _jsonFile.FileName = $@"{Global.Settings.JSONFolder}\{NSAPEntities.JSONFileViewModel.CreateFileName(_jsonFile)}";
 

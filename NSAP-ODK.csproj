@@ -280,6 +280,7 @@
     <Compile Include="Entities\Database\UpdateXFormIdentifierRepo.cs" />
     <Compile Include="Entities\Database\VesselUnloadServerRepository.cs" />
     <Compile Include="Entities\Database\XLSForm.cs" />
+    <Compile Include="Entities\Database\XLSForm2.cs" />
     <Compile Include="Entities\Download summary.cs" />
     <Compile Include="Entities\EntityContext.cs" />
     <Compile Include="Entities\EntityLoadedEventArg.cs" />

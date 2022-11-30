@@ -17,7 +17,7 @@ namespace NSAP_ODK.Entities.Database
                 MD5 = Utilities.MD5.CreateMD5(_jsonText);
             } 
         }
-
+        public List<string> LandingIdentifiers { get; set; }
         public string FileName { get; set; }
 
         public  int Count { get; set; }

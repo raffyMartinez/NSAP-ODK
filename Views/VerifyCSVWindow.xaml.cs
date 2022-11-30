@@ -23,6 +23,8 @@ namespace NSAP_ODK.Views
     /// </summary>
     public partial class VerifyCSVWindow : Window
     {
+        private string _csvPath = "";
+        private string _entityName = "";
         private static VerifyCSVWindow _instance;
         private string _selectedProperty;
         private NSAPRegion _currentRegion;
@@ -86,12 +88,14 @@ namespace NSAP_ODK.Views
 
         private void FillEntityLists()
         {
+
             switch (_selectedProperty)
             {
                 case "FMAs":
+                    _csvPath = $@"{Utilities.Global.CSVMediaSaveFolder}\fma_select.csv";
                     if (NSAPEntities.FMASelectViewModel == null)
                     {
-                        NSAPEntities.FMASelectViewModel = new FMASelectViewModel($@"{Utilities.Global.CSVMediaSaveFolder}\fma_select.csv");
+                        NSAPEntities.FMASelectViewModel = new FMASelectViewModel(_csvPath);
                     }
                     _fmaSelects = new List<FMASelect>();
                     _fmaSelects = NSAPEntities.FMASelectViewModel.FMASelectCollection.ToList();
@@ -103,9 +107,10 @@ namespace NSAP_ODK.Views
                     }
                     break;
                 case "LandingSiteCount":
+                    _csvPath = $@"{Utilities.Global.CSVMediaSaveFolder}\ls_select.csv";
                     if (NSAPEntities.LSSelectViewModel == null)
                     {
-                        NSAPEntities.LSSelectViewModel = new LSSelectViewModel($@"{Utilities.Global.CSVMediaSaveFolder}\ls_select.csv");
+                        NSAPEntities.LSSelectViewModel = new LSSelectViewModel(_csvPath);
                     }
                     _lSSelects = new List<LSSelect>();
                     _lSSelects = NSAPEntities.LSSelectViewModel.LSSelectCollection.ToList();
@@ -124,9 +129,10 @@ namespace NSAP_ODK.Views
 
                     break;
                 case "FishingGroundCount":
+                    _csvPath = $@"{Utilities.Global.CSVMediaSaveFolder}\fg_select.csv";
                     if (NSAPEntities.FishingGroundSelectViewModel == null)
                     {
-                        NSAPEntities.FishingGroundSelectViewModel = new FishingGroundSelectViewModel($@"{Utilities.Global.CSVMediaSaveFolder}\fg_select.csv");
+                        NSAPEntities.FishingGroundSelectViewModel = new FishingGroundSelectViewModel(_csvPath);
                     }
                     _fishingGroundSelects = new List<FishingGroundSelect>();
                     _fishingGroundSelects = NSAPEntities.FishingGroundSelectViewModel.FishingGroundSelectCollection.ToList();
@@ -141,9 +147,10 @@ namespace NSAP_ODK.Views
                     }
                     break;
                 case "Gears":
+                    _csvPath = $@"{Utilities.Global.CSVMediaSaveFolder}\gear_select.csv";
                     if (NSAPEntities.GearSelectViewModel == null)
                     {
-                        NSAPEntities.GearSelectViewModel = new GearSelectViewModel($@"{Utilities.Global.CSVMediaSaveFolder}\gear_select.csv");
+                        NSAPEntities.GearSelectViewModel = new GearSelectViewModel(_csvPath);
                     }
                     _gearSelects = new List<GearSelect>();
                     _gearSelects = NSAPEntities.GearSelectViewModel.GearSelectCollection.ToList();
@@ -155,7 +162,8 @@ namespace NSAP_ODK.Views
                     }
                     break;
                 case "Vessels":
-                    NSAPEntities.VesselSelectViewModel = new VesselSelectViewModel($@"{Utilities.Global.CSVMediaSaveFolder}\vessel_name_municipal.csv", FisheriesSector.Municipal);
+                    _csvPath = $@"{Utilities.Global.CSVMediaSaveFolder}\vessel_name_municipal.csv";
+                    NSAPEntities.VesselSelectViewModel = new VesselSelectViewModel(_csvPath, FisheriesSector.Municipal);
 
                     _vesselSelects = new List<VesselSelect>();
                     _vesselSelects = NSAPEntities.VesselSelectViewModel.VesselSelectCollection.ToList();
@@ -163,17 +171,18 @@ namespace NSAP_ODK.Views
                     _vesselsInRegion = _currentRegion.FishingVessels.Where(t => t.FishingVessel.FisheriesSector == FisheriesSector.Municipal).ToList();
                     break;
                 case "VesselsCommercial":
-
-                    NSAPEntities.VesselSelectViewModel = new VesselSelectViewModel($@"{Utilities.Global.CSVMediaSaveFolder}\vessel_name_commercial.csv", FisheriesSector.Commercial);
+                    _csvPath = $@"{Utilities.Global.CSVMediaSaveFolder}\vessel_name_commercial.csv";
+                    NSAPEntities.VesselSelectViewModel = new VesselSelectViewModel(_csvPath, FisheriesSector.Commercial);
 
                     _vesselSelects = new List<VesselSelect>();
                     _vesselSelects = NSAPEntities.VesselSelectViewModel.VesselSelectCollection.ToList();
                     _vesselsInRegion = _currentRegion.FishingVessels.Where(t => t.FishingVessel.FisheriesSector == FisheriesSector.Commercial).ToList();
                     break;
                 case "Enumerators":
+                    _csvPath = $@"{Utilities.Global.CSVMediaSaveFolder}\enumerator_select.csv";
                     if (NSAPEntities.EnumeratorSelectViewModel == null)
                     {
-                        NSAPEntities.EnumeratorSelectViewModel = new EnumeratorSelectViewModel($@"{Utilities.Global.CSVMediaSaveFolder}\enumerator_select.csv");
+                        NSAPEntities.EnumeratorSelectViewModel = new EnumeratorSelectViewModel(_csvPath);
                     }
                     _enumeratorSelects = new List<EnumeratorSelect>();
                     _enumeratorSelects = NSAPEntities.EnumeratorSelectViewModel.EnumeratorSelectCollection.ToList();
@@ -196,36 +205,44 @@ namespace NSAP_ODK.Views
                 switch (_selectedProperty)
                 {
                     case "FMAs":
+                        _entityName = "FMAs";
                         Title = "FMA";
                         labelHeader.Content = $"FMAs {_currentRegion.Name}";
                         break;
                     case "LandingSiteCount":
+                        _entityName = "Landing sites";
                         Title = "Landing site";
                         labelHeader.Content = $"Landing sites in {_currentRegion.Name}";
                         break;
                     case "FishingGroundCount":
+                        _entityName = "Fishing grounds";
                         Title = "Fishing ground";
                         labelHeader.Content = $"Fishing grounds in {_currentRegion.Name}";
                         break;
                     case "Gears":
+                        _entityName = "Fishing gears";
                         Title = "Fishing gears";
                         labelHeader.Content = $"Fishing gears in {_currentRegion.Name}";
                         break;
                     case "Vessels":
+                        _entityName = "Municipal fishing vessels";
                         Title = "Municipal fishing vessels";
                         labelHeader.Content = $"Municipal fishing vessels in {_currentRegion.Name}";
                         break;
                     case "VesselsCommercial":
+                        _entityName = "Commercial fishing vessels";
                         Title = "Commercial fishing vessels";
                         labelHeader.Content = $"Commercial fishing vessels in {_currentRegion.Name}";
                         break;
                     case "Enumerators":
+                        _entityName = "Enumerators";
                         Title = "Enumerators";
                         labelHeader.Content = $"Enumerators in {_currentRegion.Name}";
                         break;
                 }
                 FillEntityLists();
                 tviCSV.IsSelected = true;
+                statusbarlabelCurrentEntity.Content = _csvPath;
             }
         }
 
@@ -254,37 +271,45 @@ namespace NSAP_ODK.Views
                     switch (_selectedProperty)
                     {
                         case "FMAs":
+                            
                             dataGrid.DataContext = _fmaSelects.OrderBy(t => t.RowID);
                             labelDataGrid.Content = $"Content of csv file for FMAs in {currentRegionName}";
                             break;
                         case "LandingSiteCount":
+                            
                             dataGrid.DataContext = _lSSelects.OrderBy(t => t.RowID);
                             labelDataGrid.Content = $"Content of csv file for landing sites in {currentRegionName}";
                             break;
                         case "Enumerators":
+                            
                             dataGrid.DataContext = _enumeratorSelects.OrderBy(t => t.RowID);
                             labelDataGrid.Content = $"Content of csv file for enumerators in {currentRegionName}";
                             break;
                         case "Gears":
+                            
                             dataGrid.DataContext = _gearSelects.OrderBy(t => t.RowID);
                             labelDataGrid.Content = $"Content of csv file for fishing gears in {currentRegionName}";
                             break;
                         case "FishingGroundCount":
+                            
                             dataGrid.DataContext = _fishingGroundSelects.OrderBy(t => t.RowID);
                             labelDataGrid.Content = $"Content of csv file for fishing grounds in {currentRegionName}";
                             break;
                         case "Vessels":
                         case "VesselsCommercial":
+                           
                             dataGrid.DataContext = _vesselSelects.OrderBy(t => t.RowID);
                             labelDataGrid.Content = $"Content of csv file for municipal fishing vessels in {currentRegionName}";
                             if (_selectedProperty == "VesselsCommercial")
                             {
+                                
                                 labelDataGrid.Content = $"Content of csv file for commercial fishing vessels in {currentRegionName}";
                             }
                             break;
                     }
                     ConfigureDataGrid(fromCSV: true);
                     dataGrid.Visibility = Visibility.Visible;
+
                     break;
                 case "Database":
                     switch (_selectedProperty)
@@ -326,16 +351,17 @@ namespace NSAP_ODK.Views
                     propertyGrid.Visibility = Visibility.Visible;
                     CSVMediaAnalysis cma = new CSVMediaAnalysis();
 
-                    List<int> databaseItemsNotInCSV = new List<int>();
-                    List<int> csvItemsNotInDatabase = new List<int>();
+                    //List<int> databaseItemsNotInCSV = new List<int>();
+                    //List<int> csvItemsNotInDatabase = new List<int>();
+                    List<string> databaseItemsNotInCSV = new List<string>();
+                    List<string> csvItemsNotInDatabase = new List<string>();
                     int csvItemsCount = 0;
                     int dbItemsCount = 0;
-                    string entityName = "";
 
                     switch (_selectedProperty)
                     {
                         case "FMAs":
-                            entityName = "FMA";
+
                             csvItemsCount = _fmaSelects.Count;
                             dbItemsCount = _fmasInRegion.Count;
                             labelDataGrid.Content = $"Analysis of comparison of content of csv and database for FMAs in {currentRegionName}";
@@ -344,7 +370,8 @@ namespace NSAP_ODK.Views
                             {
                                 if (_fmasInRegion.FirstOrDefault(t => t.RowID == fma.RowID && t.FMA.Name == fma.Name && t.NSAPRegion.Code == fma.NSAPRegion.Code) == null)
                                 {
-                                    csvItemsNotInDatabase.Add(fma.RowID);
+                                    //csvItemsNotInDatabase.Add(fma.RowID);
+                                    csvItemsNotInDatabase.Add($"{fma.RowID}-{fma.Name}-{fma.NSAPRegion}");
                                 }
                             }
 
@@ -352,13 +379,14 @@ namespace NSAP_ODK.Views
                             {
                                 if (_fmaSelects.FirstOrDefault(t => t.RowID == fma_db.RowID && t.Name == fma_db.FMA.Name && t.NSAPRegion.Code == fma_db.NSAPRegion.Code) == null)
                                 {
-                                    databaseItemsNotInCSV.Add(fma_db.RowID);
+                                    //databaseItemsNotInCSV.Add(fma_db.RowID);
+                                    csvItemsNotInDatabase.Add($"{fma_db.RowID}-{fma_db.FMA}-{fma_db.NSAPRegion}");
                                 }
                             }
 
                             break;
                         case "LandingSiteCount":
-                            entityName = "Landing site";
+
                             csvItemsCount = _lSSelects.Count;
                             dbItemsCount = _landingSitesInRegion.Count;
                             labelDataGrid.Content = $"Analysis of comparison of content of csv and database for landing sites in {currentRegionName}";
@@ -367,7 +395,8 @@ namespace NSAP_ODK.Views
                             {
                                 if (_landingSitesInRegion.FirstOrDefault(t => t.RowID == ls.RowID && t.LandingSite.ToString() == ls.Name && t.NSAPRegionFMAFishingGround.RowID == ls.NSAPRegionFMAFishingGround.RowID) == null)
                                 {
-                                    csvItemsNotInDatabase.Add(ls.RowID);
+                                    //csvItemsNotInDatabase.Add(ls.RowID);
+                                    csvItemsNotInDatabase.Add($"{ls.RowID}-{ls.Name}-{ls.NSAPRegionFMAFishingGround}");
                                 }
                             }
 
@@ -375,12 +404,13 @@ namespace NSAP_ODK.Views
                             {
                                 if (_lSSelects.FirstOrDefault(t => t.RowID == ls_db.RowID && t.Name == ls_db.LandingSite.ToString() && t.NSAPRegionFMAFishingGround.RowID == ls_db.NSAPRegionFMAFishingGround.RowID) == null)
                                 {
-                                    databaseItemsNotInCSV.Add(ls_db.RowID);
+                                    //databaseItemsNotInCSV.Add(ls_db.RowID);
+                                    csvItemsNotInDatabase.Add($"{ls_db.RowID}-{ls_db.LandingSite}-{ls_db.NSAPRegionFMAFishingGround}");
                                 }
                             }
                             break;
                         case "Enumerators":
-                            entityName = "Enumerator";
+
                             csvItemsCount = _enumeratorSelects.Count;
                             dbItemsCount = _enumeratorsInRegion.Count;
                             labelDataGrid.Content = $"Analysis of comparison of content of csv and database for enumerators in {currentRegionName}";
@@ -389,7 +419,8 @@ namespace NSAP_ODK.Views
                             {
                                 if (_enumeratorsInRegion.FirstOrDefault(t => t.RowID == en.RowID && t.Enumerator.ToString() == en.Name && t.NSAPRegion.Code == en.NSAPRegion.Code) == null)
                                 {
-                                    csvItemsNotInDatabase.Add(en.RowID);
+                                    //csvItemsNotInDatabase.Add(en.RowID);
+                                    csvItemsNotInDatabase.Add($"{en.RowID}-{en.Name}-{en.NSAPRegion}");
                                 }
                             }
 
@@ -397,12 +428,12 @@ namespace NSAP_ODK.Views
                             {
                                 if (_enumeratorSelects.FirstOrDefault(t => t.RowID == en_db.RowID && t.Name == en_db.Enumerator.ToString() && t.NSAPRegion.Code == en_db.NSAPRegion.Code) == null)
                                 {
-                                    databaseItemsNotInCSV.Add(en_db.RowID);
+                                    databaseItemsNotInCSV.Add($"{en_db.RowID}-{en_db.Enumerator}-{en_db.NSAPRegion}");
                                 }
                             }
                             break;
                         case "Gears":
-                            entityName = "Gears";
+
                             csvItemsCount = _gearSelects.Count;
                             dbItemsCount = _gearsInRegion.Count;
                             labelDataGrid.Content = $"Analysis of comparison of content of csv and database for fishing gears in {currentRegionName}";
@@ -411,7 +442,8 @@ namespace NSAP_ODK.Views
                             {
                                 if (_gearsInRegion.FirstOrDefault(t => t.RowID == g.RowID && t.Gear.ToString() == g.Name && t.NSAPRegion.Code == g.NSAPRegion.Code) == null)
                                 {
-                                    csvItemsNotInDatabase.Add(g.RowID);
+                                    //csvItemsNotInDatabase.Add(g.RowID);
+                                    csvItemsNotInDatabase.Add($"{g.RowID}-{g.Name}-{g.NSAPRegion}");
                                 }
                             }
 
@@ -419,12 +451,13 @@ namespace NSAP_ODK.Views
                             {
                                 if (_gearSelects.FirstOrDefault(t => t.RowID == g_db.RowID && t.Name == g_db.Gear.ToString() && t.NSAPRegion.Code == g_db.NSAPRegion.Code) == null)
                                 {
-                                    databaseItemsNotInCSV.Add(g_db.RowID);
+                                    //databaseItemsNotInCSV.Add(g_db.RowID);
+                                    csvItemsNotInDatabase.Add($"{g_db.RowID}-{g_db.Gear}-{g_db.NSAPRegion}");
                                 }
                             }
                             break;
                         case "FishingGroundCount":
-                            entityName = "Fishing ground";
+
                             csvItemsCount = _fishingGroundSelects.Count;
                             dbItemsCount = _fishingGroundsInRegion.Count;
                             labelDataGrid.Content = $"Analysis of comparison of content of csv and database for fishing grounds in {currentRegionName}";
@@ -433,7 +466,8 @@ namespace NSAP_ODK.Views
                             {
                                 if (_fishingGroundsInRegion.FirstOrDefault(t => t.RowID == g.RowID && t.FishingGround.ToString() == g.Name && t.RegionFMA.RowID == g.NSAPRegionFMA.RowID) == null)
                                 {
-                                    csvItemsNotInDatabase.Add(g.RowID);
+                                    //csvItemsNotInDatabase.Add(g.RowID);
+                                    csvItemsNotInDatabase.Add($"{g.RowID}-{g.Name}-{g.NSAPRegionFMA}");
                                 }
                             }
 
@@ -441,17 +475,13 @@ namespace NSAP_ODK.Views
                             {
                                 if (_fishingGroundSelects.FirstOrDefault(t => t.RowID == g_db.RowID && t.Name == g_db.FishingGround.ToString() && t.NSAPRegionFMA.RowID == g_db.RegionFMA.RowID) == null)
                                 {
-                                    databaseItemsNotInCSV.Add(g_db.RowID);
+                                    //databaseItemsNotInCSV.Add(g_db.RowID);
+                                    csvItemsNotInDatabase.Add($"{g_db.RowID}-{g_db.FishingGround}-{g_db.RegionFMA}");
                                 }
                             }
                             break;
                         case "Vessels":
                         case "VesselsCommercial":
-                            entityName = "Municipal fishing vessel";
-                            if (_selectedProperty == "VesselsCommercial")
-                            {
-                                entityName = "Commercial fishing vessel";
-                            }
                             csvItemsCount = _vesselSelects.Count;
                             dbItemsCount = _vesselsInRegion.Count;
                             labelDataGrid.Content = $"Analysis of comparison of content of csv and database for municipal fishing vessels in {currentRegionName}";
@@ -464,7 +494,8 @@ namespace NSAP_ODK.Views
                             {
                                 if (_vesselsInRegion.FirstOrDefault(t => t.RowID == v.RowID && t.FishingVessel.ToString() == v.Name && t.NSAPRegion.Code == v.NSAPRegion.Code) == null)
                                 {
-                                    csvItemsNotInDatabase.Add(v.RowID);
+                                    //csvItemsNotInDatabase.Add(v.RowID);
+                                    csvItemsNotInDatabase.Add($"{v.RowID}-{v.Name}-{v.NSAPRegion}");
                                 }
                             }
 
@@ -472,25 +503,30 @@ namespace NSAP_ODK.Views
                             {
                                 if (_vesselSelects.FirstOrDefault(t => t.RowID == v_db.RowID && t.Name == v_db.FishingVessel.ToString() && t.NSAPRegion.Code == v_db.NSAPRegion.Code) == null)
                                 {
-                                    databaseItemsNotInCSV.Add(v_db.RowID);
+                                    //databaseItemsNotInCSV.Add(v_db.RowID);
+                                    csvItemsNotInDatabase.Add($"{v_db.RowID}-{v_db.FishingVessel}-{v_db.NSAPRegion}");
                                 }
                             }
                             break;
                     }
 
+
+
                     cma.IsSimilarData = csvItemsCount == dbItemsCount && csvItemsNotInDatabase.Count == 0 && databaseItemsNotInCSV.Count == 0;
-                    cma.EntityName = entityName;
+                    cma.EntityName = _entityName;
                     cma.CSVRecordCount = csvItemsCount;
                     cma.DatabaseRecordCount = dbItemsCount;
                     cma.CSVItemsNotInDatabase = csvItemsNotInDatabase;
                     cma.DatabaseItemsNotInCSV = databaseItemsNotInCSV;
 
+                    propertyGrid.PropertyDefinitions.Clear();
+
                     propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "EntityName", DisplayName = "Entity", DisplayOrder = 1, Description = "Name of entity" });
                     propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "IsSimilarData", DisplayName = "CSV and database are similar", DisplayOrder = 2, Description = "Content of csv and database are similar" });
-                    propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "CSVRecordCount", DisplayName = "Number of items in csv", DisplayOrder = 3, Description = "Number of items in csv" });
-                    propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DatabaseRecordCount", DisplayName = "Number of items in database", DisplayOrder = 4, Description = "Number of items in database" });
-                    propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "CSVItemsNotInDatabase", DisplayName = "Identifiers in csv not in database", DisplayOrder = 5, Description = "Identifiers (Row IDs) of items in csv that are not found in the database" });
-                    propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DatabaseItemsNotInCSV", DisplayName = "Identifiers in database not in csv", DisplayOrder = 6, Description = "Identifiers (Row IDs) of items in database that are not found in the csv" });
+                    propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "CSVRecordCount", DisplayName = $"Number of {(_entityName == "FMAs" ? _entityName : _entityName.ToLower())} in csv", DisplayOrder = 3, Description = "Number of items in csv" });
+                    propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DatabaseRecordCount", DisplayName = $"Number of {(_entityName == "FMAs" ? _entityName : _entityName.ToLower())} in database", DisplayOrder = 4, Description = "Number of items in database" });
+                    propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "CSVItemsNotInDatabase", DisplayName = $"{_entityName} in csv not in database", DisplayOrder = 5, Description = "Identifiers (Row IDs) of items in csv that are not found in the database" });
+                    propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DatabaseItemsNotInCSV", DisplayName = $"{_entityName} in database not in csv", DisplayOrder = 6, Description = "Identifiers (Row IDs) of items in database that are not found in the csv" });
 
                     propertyGrid.SelectedObject = cma;
                     break;
@@ -507,6 +543,7 @@ namespace NSAP_ODK.Views
             bool proceed = true;
             switch (((MenuItem)sender).Header.ToString())
             {
+
                 case "FMAs":
                     SelectedProperty = "FMAs";
                     break;
@@ -527,6 +564,10 @@ namespace NSAP_ODK.Views
                     break;
                 case "Commercial fishing vessels":
                     SelectedProperty = "VesselsCommercial";
+                    break;
+                case "CSV file":
+                    proceed = false;
+                    MessageBox.Show($"CSV file is\r\n\r\n{_csvPath}", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
                     break;
                 case "Close":
                     proceed = false;
