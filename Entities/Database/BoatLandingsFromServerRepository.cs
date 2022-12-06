@@ -50,7 +50,8 @@ namespace NSAP_ODK.Entities.Database
                         SamplingDate = landingSiteLandings.SamplingDate,
                         LandingSiteID = landingSiteLandings.LandingSite == null ? null : (int?)landingSiteLandings.LandingSite.LandingSiteID,
                         FishingGroundID = landingSiteLandings.FishingGround.Code,
-                        Remarks = landingSiteLandings.Notes,
+                        //Remarks = landingSiteLandings.Notes,
+                        Remarks = landingSiteLandings.NotesRemarks,
                         IsSamplingDay = landingSiteLandings.IsSamplingDay,
                         LandingSiteText = landingSiteLandings.LandingSiteText,
                         FMAID = landingSiteLandings.FMA.FMAID,
@@ -139,31 +140,38 @@ namespace NSAP_ODK.Entities.Database
                         else
                         {
                             ls.GearUnloadViewModel = new GearUnloadViewModel(ls);
-                            foreach (var gr in landingSiteLandings.gear_repeat)
+                            if (landingSiteLandings.gear_repeat != null)
                             {
-                                proceed = false;
-                                GearUnload gu = new GearUnload
+                                foreach (var gr in landingSiteLandings.gear_repeat)
                                 {
-                                    PK = NSAPEntities.SummaryItemViewModel.GetGearUnloadMaxRecordNumber() + 1,
-                                    GearID = gr.GearCode,
-                                    GearUsedText = gr.GearUsedText,
-                                    Boats = gr.LandingsCount,
-                                    Catch = gr.TotalCatchWt,
-                                    SectorCode = gr.SectorCode,
-                                    Parent = ls,
-                                    LandingSiteSamplingID = ls.PK
-                                };
-                                if (ls.GearUnloadViewModel.AddRecordToRepo(gu))
-                                {
-                                    gr.GearUnload = gu;
-                                    proceed = NSAPEntities.SummaryItemViewModel.AddRecordToRepo(gu);
-                                }
+                                    proceed = false;
+                                    GearUnload gu = new GearUnload
+                                    {
+                                        PK = NSAPEntities.SummaryItemViewModel.GetGearUnloadMaxRecordNumber() + 1,
+                                        GearID = gr.GearCode,
+                                        GearUsedText = gr.GearUsedText,
+                                        Boats = gr.LandingsCount,
+                                        Catch = gr.TotalCatchWt,
+                                        SectorCode = gr.SectorCode,
+                                        Parent = ls,
+                                        LandingSiteSamplingID = ls.PK
+                                    };
+                                    if (ls.GearUnloadViewModel.AddRecordToRepo(gu))
+                                    {
+                                        gr.GearUnload = gu;
+                                        proceed = NSAPEntities.SummaryItemViewModel.AddRecordToRepo(gu);
+                                    }
 
-                                //twsp for each gear
-                                if (proceed && gr.SpeciesTWSpRepeat != null && gr.SpeciesTWSpRepeat.Count > 0)
-                                {
-                                    ProcessTWSPForGear(gr);
+                                    //twsp for each gear
+                                    if (proceed && gr.SpeciesTWSpRepeat != null && gr.SpeciesTWSpRepeat.Count > 0)
+                                    {
+                                        ProcessTWSPForGear(gr);
+                                    }
                                 }
+                            }
+                            else
+                            {
+                                proceed = NSAPEntities.SummaryItemViewModel.AddRecordToRepo(ls);
                             }
                         }
                     }

@@ -2051,7 +2051,26 @@ namespace NSAP_ODK.Entities.Database
             LastPrimaryKeys.Reset();
 
         }
+        public bool AddRecordToRepo(LandingSiteSampling ls)
+        {
+            SummaryItem si = new SummaryItem
+            {
+                ID = SummaryItemCollection.Count + 1,
 
+                SamplingDayID = ls.PK,
+                LandingSiteID = ls.LandingSiteID,
+                LandingSiteText = ls.LandingSiteText,
+                FMAId = ls.FMAID,
+                RegionSequence = ls.NSAPRegion.Sequence,
+                RegionID = ls.NSAPRegionID,
+                FishingGroundID = ls.FishingGroundID,
+                DateAdded = ls.DateAdded,
+            };
+
+            SummaryItemCollection.Add(si);
+            return _editSuccess;
+            
+        }
         public bool AddRecordToRepo(GearUnload gu)
         {
             SummaryItem si = new SummaryItem
@@ -2065,6 +2084,7 @@ namespace NSAP_ODK.Entities.Database
                 RegionSequence = gu.Parent.NSAPRegion.Sequence,
                 RegionID = gu.Parent.NSAPRegionID,
                 FishingGroundID = gu.Parent.FishingGroundID,
+                DateAdded = gu.Parent.DateAdded,
 
                 GearUnloadID = gu.PK,
                 GearUnloadBoats = gu.Boats,
