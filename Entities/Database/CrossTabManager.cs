@@ -244,6 +244,9 @@ namespace NSAP_ODK.Entities.Database
             dc = new DataColumn { ColumnName = "Ref #" };
             _effortCrostabDataTable.Columns.Add(dc);
 
+            dc = new DataColumn { ColumnName = "Is a fishing boat used", DataType = typeof(bool) };
+            _effortCrostabDataTable.Columns.Add(dc);
+
             dc = new DataColumn { ColumnName = "Fishing vessel" };
             _effortCrostabDataTable.Columns.Add(dc);
 
@@ -263,6 +266,11 @@ namespace NSAP_ODK.Entities.Database
             _effortCrostabDataTable.Columns.Add(dc);
 
             dc = new DataColumn { ColumnName = "Total weight of catch", DataType = typeof(double) };
+            _effortCrostabDataTable.Columns.Add(dc);
+
+
+
+            dc = new DataColumn { ColumnName = "Is the catch sold", DataType = typeof(bool) };
             _effortCrostabDataTable.Columns.Add(dc);
 
             dc = new DataColumn { ColumnName = "Notes", DataType = typeof(string) };
@@ -325,6 +333,7 @@ namespace NSAP_ODK.Entities.Database
 
                 row["Gear"] = ctcp.Gear;
                 row["Ref #"] = ctcp.RefNo;
+                row["Is a fishing boat used"] = ctcp.IsBoatUsed;
                 row["Fishing vessel"] = ctcp.FBName;
 
                 if (ctcp.NumberOfFishers == null)
@@ -355,6 +364,8 @@ namespace NSAP_ODK.Entities.Database
                 {
                     row["Total weight of catch"] = ctcp.TotalWeight;
                 }
+
+                row["Is the catch sold"] = ctcp.IsCatchSold;
                 row["Notes"] = ctcp.Notes;
 
                 foreach (var ve in ctcp.VesselUnload.ListVesselEffort)
@@ -457,6 +468,9 @@ namespace NSAP_ODK.Entities.Database
             dc = new DataColumn { ColumnName = "Ref #" };
             _effortSpeciesCrostabDataTable.Columns.Add(dc);
 
+            dc = new DataColumn { ColumnName = "Is a fishing boat used", DataType = typeof(bool) };
+            _effortSpeciesCrostabDataTable.Columns.Add(dc);
+
             dc = new DataColumn { ColumnName = "Fishing vessel" };
             _effortSpeciesCrostabDataTable.Columns.Add(dc);
 
@@ -472,6 +486,9 @@ namespace NSAP_ODK.Entities.Database
 
 
             dc = new DataColumn { ColumnName = "Total weight of catch", DataType = typeof(double) };
+            _effortSpeciesCrostabDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Is the catch sold", DataType = typeof(bool) };
             _effortSpeciesCrostabDataTable.Columns.Add(dc);
 
             dc = new DataColumn { ColumnName = "Notes", DataType = typeof(string) };
@@ -490,6 +507,12 @@ namespace NSAP_ODK.Entities.Database
             _effortSpeciesCrostabDataTable.Columns.Add(dc);
 
             dc = new DataColumn { ColumnName = "Weight unit" };
+            _effortSpeciesCrostabDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Price" };
+            _effortSpeciesCrostabDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Unit" };
             _effortSpeciesCrostabDataTable.Columns.Add(dc);
 
 
@@ -547,7 +570,7 @@ namespace NSAP_ODK.Entities.Database
                 row["Gear"] = ctcp.Gear;
 
                 row["Ref #"] = ctcp.RefNo;
-
+                row["Is a fishing boat used"] = ctcp.IsBoatUsed;
                 row["Fishing vessel"] = ctcp.FBName;
 
                 if (ctcp.NumberOfFishers == null)
@@ -573,10 +596,13 @@ namespace NSAP_ODK.Entities.Database
                 row["Family"] = item.CrossTabCommon.Family;
                 row["Species"] = item.CrossTabCommon.SN;
                 row["Total weight of catch"] = ctcp.TotalWeight;
+                row["Is the catch sold"] = ctcp.IsCatchSold;
                 row["Notes"] = ctcp.Notes;
                 row["Weight of species"] = item.CrossTabCommon.SpeciesWeight;
                 row["TWS"] = item.CrossTabCommon.TWS;
                 row["Weight unit"] = item.CrossTabCommon.WeightUnit;
+                row["Price"] = item.CrossTabCommon.Price;
+                row["Unit"] = item.CrossTabCommon.Unit;
 
                 foreach (var ve in ctcp.VesselUnload.ListVesselEffort)
                 {

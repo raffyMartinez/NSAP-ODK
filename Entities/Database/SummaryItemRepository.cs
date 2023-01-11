@@ -1069,9 +1069,87 @@ namespace NSAP_ODK.Entities.Database
                         //                                    ON nr.Code = sd.region_id
                         //                    ORDER BY 
                         //                        vu1.SamplingDate";
-                        cmd.CommandText = @"SELECT sd.unload_day_id, dbo_LC_FG_sample_day_1.device_id, ls.LandingSiteID AS landing_site_id, ls.LandingSiteName AS landing_site_name, sd.land_ctr_text AS landing_site_text, nr.Sequence AS reg_seq, nr.ShortName AS reg_shortname, nr.RegionName AS reg_name, nr.Code AS reg_code, sd.fma AS fma_id, sd.ground_id AS fishing_ground_code, sd.has_fishing_operation, sd.remarks, gu.unload_gr_id, gr.GearCode AS gear_code, gr.GearName AS gear_name, gu.gr_text AS gear_text, gu.boats, gu.catch, gu.sp_twsp_count, vu.v_unload_id, fv.VesselName AS vessel_name, fv.VesselID AS vessel_id, vu1.SamplingDate AS sampling_date, vu.boat_text AS vessel_text, vu1.user_name, vu1.Success AS is_success, vu1.Tracked AS is_tracked, vu1.GPS, vu1.sector_code, vu1.datetime_submitted, vu1.form_version, vu1.RowID, vu1.XFormIdentifier AS xform_identifier, vu1.datetime_submitted, en.EnumeratorID AS enumerator_id, vu1.EnumeratorText AS enumerator_text, en.EnumeratorName AS enumerator_name, vu1.DateAdded AS date_added, vu1.HasCatchComposition AS has_catch_composition, vu1.ref_no, vu1.trip_is_completed, vu1.NumberOfFishers AS no_fishers, vu_st.count_effort, vu_st.count_grid, vu_st.count_soak, vu_st.count_catch_composition, vu_st.count_lengths, vu_st.count_lenfreq, vu_st.count_lenwt, vu_st.count_maturity
-                        FROM (nsapRegion AS nr INNER JOIN (landingSite AS ls RIGHT JOIN (gear AS gr RIGHT JOIN ((fishingVessel AS fv RIGHT JOIN ((dbo_LC_FG_sample_day AS sd LEFT JOIN (dbo_gear_unload AS gu LEFT JOIN dbo_vessel_unload AS vu ON gu.unload_gr_id = vu.unload_gr_id) ON sd.unload_day_id = gu.unload_day_id) LEFT JOIN (NSAPEnumerator AS en RIGHT JOIN dbo_vessel_unload_1 AS vu1 ON en.EnumeratorID = vu1.EnumeratorID) ON vu.v_unload_id = vu1.v_unload_id) ON fv.VesselID = vu.boat_id) LEFT JOIN dbo_vessel_unload_stats AS vu_st ON vu.v_unload_id = vu_st.v_unload_id) ON gr.GearCode = gu.gr_id) ON ls.LandingSiteID = sd.land_ctr_id) ON nr.Code = sd.region_id) INNER JOIN dbo_LC_FG_sample_day_1 ON sd.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id
-                        ORDER BY vu1.SamplingDate";
+
+                        //cmd.CommandText = @"SELECT sd.unload_day_id, dbo_LC_FG_sample_day_1.device_id, ls.LandingSiteID AS landing_site_id, ls.LandingSiteName AS landing_site_name, sd.land_ctr_text AS landing_site_text, nr.Sequence AS reg_seq, nr.ShortName AS reg_shortname, nr.RegionName AS reg_name, nr.Code AS reg_code, sd.fma AS fma_id, sd.ground_id AS fishing_ground_code, sd.has_fishing_operation, sd.remarks, gu.unload_gr_id, gr.GearCode AS gear_code, gr.GearName AS gear_name, gu.gr_text AS gear_text, gu.boats, gu.catch, gu.sp_twsp_count, vu.v_unload_id, fv.VesselName AS vessel_name, fv.VesselID AS vessel_id, vu1.SamplingDate AS sampling_date, vu.boat_text AS vessel_text, vu1.user_name, vu1.Success AS is_success, vu1.Tracked AS is_tracked, vu1.GPS, vu1.sector_code, vu1.datetime_submitted, vu1.form_version, vu1.RowID, vu1.XFormIdentifier AS xform_identifier, vu1.datetime_submitted, en.EnumeratorID AS enumerator_id, vu1.EnumeratorText AS enumerator_text, en.EnumeratorName AS enumerator_name, vu1.DateAdded AS date_added, vu1.HasCatchComposition AS has_catch_composition, vu1.ref_no, vu1.trip_is_completed, vu1.NumberOfFishers AS no_fishers, vu_st.count_effort, vu_st.count_grid, vu_st.count_soak, vu_st.count_catch_composition, vu_st.count_lengths, vu_st.count_lenfreq, vu_st.count_lenwt, vu_st.count_maturity
+                        //FROM (nsapRegion AS nr INNER JOIN (landingSite AS ls RIGHT JOIN (gear AS gr RIGHT JOIN ((fishingVessel AS fv RIGHT JOIN ((dbo_LC_FG_sample_day AS sd LEFT JOIN (dbo_gear_unload AS gu LEFT JOIN dbo_vessel_unload AS vu ON gu.unload_gr_id = vu.unload_gr_id) ON sd.unload_day_id = gu.unload_day_id) LEFT JOIN (NSAPEnumerator AS en RIGHT JOIN dbo_vessel_unload_1 AS vu1 ON en.EnumeratorID = vu1.EnumeratorID) ON vu.v_unload_id = vu1.v_unload_id) ON fv.VesselID = vu.boat_id) LEFT JOIN dbo_vessel_unload_stats AS vu_st ON vu.v_unload_id = vu_st.v_unload_id) ON gr.GearCode = gu.gr_id) ON ls.LandingSiteID = sd.land_ctr_id) ON nr.Code = sd.region_id) INNER JOIN dbo_LC_FG_sample_day_1 ON sd.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id
+                        //ORDER BY vu1.SamplingDate";
+
+                        cmd.CommandText = @"SELECT 
+                                                sd.unload_day_id,
+                                                dbo_LC_FG_sample_day_1.device_id,
+                                                ls.LandingSiteID AS landing_site_id,
+                                                ls.LandingSiteName AS landing_site_name,
+                                                sd.land_ctr_text AS landing_site_text,
+                                                nr.Sequence AS reg_seq,
+                                                nr.ShortName AS reg_shortname,
+                                                nr.RegionName AS reg_name,
+                                                nr.Code AS reg_code,
+                                                sd.fma AS fma_id,
+                                                sd.ground_id AS fishing_ground_code,
+                                                sd.has_fishing_operation,
+                                                sd.remarks,
+                                                gu.unload_gr_id,
+                                                gr.GearCode AS gear_code,
+                                                gr.GearName AS gear_name,
+                                                gu.gr_text AS gear_text,
+                                                gu.boats,
+                                                gu.catch,
+                                                gu.sp_twsp_count,
+                                                vu.v_unload_id,
+                                                vu.catch_total,
+                                                vu.catch_samp,
+                                                fv.VesselName AS vessel_name,
+                                                fv.VesselID AS vessel_id,
+                                                vu1.SamplingDate AS sampling_date,
+                                                vu.boat_text AS vessel_text,
+                                                vu1.user_name,
+                                                vu1.Success AS is_success,
+                                                vu1.Tracked AS is_tracked,
+                                                vu1.GPS,
+                                                vu1.sector_code,
+                                                vu1.datetime_submitted,
+                                                vu1.form_version,
+                                                vu1.RowID,
+                                                vu1.XFormIdentifier AS xform_identifier,
+                                                vu1.datetime_submitted,
+                                                en.EnumeratorID AS enumerator_id,
+                                                vu1.EnumeratorText AS enumerator_text,
+                                                en.EnumeratorName AS enumerator_name,
+                                                vu1.DateAdded AS date_added,
+                                                vu1.HasCatchComposition AS has_catch_composition,
+                                                vu1.ref_no,
+                                                vu1.trip_is_completed,
+                                                vu1.NumberOfFishers AS no_fishers,
+                                                vu_st.count_effort,
+                                                vu_st.count_grid,
+                                                vu_st.count_soak,
+                                                vu_st.count_catch_composition,
+                                                vu_st.count_lengths,
+                                                vu_st.count_lenfreq,
+                                                vu_st.count_lenwt,
+                                                vu_st.count_maturity,
+                                                vu_wv.total_wt_catch_composition,
+                                                vu_wv.total_wt_sampled_species,
+                                                vu_wv.validity_flag,
+                                                vu_wv.type_of_sampling_flag,
+                                                vu_wv.weight_difference,
+                                                vu_wv.raising_factor
+                                            FROM (
+                                                nsapRegion AS nr 
+                                                INNER JOIN (landingSite AS ls 
+                                                RIGHT JOIN (gear AS gr 
+                                                RIGHT JOIN ((fishingVessel AS fv 
+                                                RIGHT JOIN (((dbo_LC_FG_sample_day AS sd 
+                                                LEFT JOIN (dbo_gear_unload AS gu 
+                                                LEFT JOIN dbo_vessel_unload AS vu ON gu.unload_gr_id = vu.unload_gr_id) ON sd.unload_day_id = gu.unload_day_id) 
+                                                INNER JOIN dbo_LC_FG_sample_day_1 ON sd.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id) 
+                                                LEFT JOIN (NSAPEnumerator AS en 
+                                                RIGHT JOIN dbo_vessel_unload_1 AS vu1 ON en.EnumeratorID = vu1.EnumeratorID) ON vu.v_unload_id = vu1.v_unload_id) ON fv.VesselID = vu.boat_id) 
+                                                LEFT JOIN dbo_vessel_unload_stats AS vu_st ON vu.v_unload_id = vu_st.v_unload_id) ON gr.GearCode = gu.gr_id) ON ls.LandingSiteID = sd.land_ctr_id) ON nr.Code = sd.region_id) 
+                                                LEFT JOIN dbo_vessel_unload_weight_validation AS vu_wv ON vu.v_unload_id = vu_wv.v_unload_id
+                                                WHERE vu.v_unload_id Is Not Null                                                
+                                                ORDER BY vu1.SamplingDate;";
+
                         try
                         {
                             con.Open();
@@ -1098,7 +1176,21 @@ namespace NSAP_ODK.Entities.Database
                                 int? count_maturity = null;
                                 int? count_twsp = null;
 
+                                double? weight_catch = null;
+                                double? weight_catch_sample = null;
 
+                                double? total_catch_comp_wt = null;
+                                double? total_catch_comp_sample_wt = null;
+
+                                if(dr["catch_total"]!=DBNull.Value)
+                                {
+                                    weight_catch = (double)dr["catch_total"];
+                                }
+
+                                if (dr["catch_samp"] != DBNull.Value)
+                                {
+                                    weight_catch_sample = (double)dr["catch_samp"];
+                                }
 
                                 if (dr["landing_site_id"] != DBNull.Value)
                                 {
@@ -1170,6 +1262,18 @@ namespace NSAP_ODK.Entities.Database
                                 {
                                     count_maturity = (int)dr["count_maturity"];
                                 }
+
+                                if(dr["total_wt_catch_composition"] != DBNull.Value)
+                                {
+                                    total_catch_comp_wt = (double)dr["total_wt_catch_composition"];
+                                }
+
+                                if (dr["total_wt_sampled_species"] != DBNull.Value)
+                                {
+                                    total_catch_comp_sample_wt = (double)dr["total_wt_sampled_species"];
+                                }
+
+
                                 SummaryItem si = new SummaryItem();
                                 si.ID = ++id;
                                 si.ODKRowID = dr["RowID"].ToString();
@@ -1184,6 +1288,32 @@ namespace NSAP_ODK.Entities.Database
                                 if (dr["v_unload_id"] != DBNull.Value)
                                 {
                                     si.VesselUnloadID = (int)dr["v_unload_id"];
+                                }
+
+                                if (dr["type_of_sampling_flag"] != DBNull.Value)
+                                {
+                                    si.SamplingTypeFlag = (FromJson.SamplingTypeFlag)(int)dr["type_of_sampling_flag"];
+                                }
+
+                                if(dr["validity_flag"]!=DBNull.Value)
+                                {
+                                    si.WeightValidationFlag = (FromJson.WeightValidationFlag)(int)dr["validity_flag"];
+                                }
+
+                                si.WeightOfCatch = weight_catch;
+                                si.WeightOfCatchSample = weight_catch_sample;
+                                //si.SumOfCatchCompositionWeight = (double)total_catch_comp_wt;
+                                //si.SumOfCatchCompositionSampleWeight = (double)total_catch_comp_sample_wt;
+
+                                si.SumOfCatchCompositionWeight = total_catch_comp_wt;
+                                si.SumOfCatchCompositionSampleWeight = total_catch_comp_sample_wt;
+                                if (dr["weight_difference"] != DBNull.Value)
+                                {
+                                    si.DifferenceCatchWtandSumCatchCompWeight = (double)dr["weight_difference"];
+                                }
+                                if (dr["raising_factor"] != DBNull.Value)
+                                {
+                                    si.RaisingFactor = (double)dr["raising_factor"];
                                 }
 
                                 si.RegionID = dr["reg_code"].ToString();

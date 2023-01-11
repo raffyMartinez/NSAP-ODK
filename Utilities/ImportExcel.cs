@@ -116,7 +116,7 @@ namespace NSAP_ODK.Utilities
                         WeightOfCatchSample = item.CatchWeightSampled,
                         Boxes = item.BoxesTotal,
                         BoxesSampled = item.BoxesSampled,
-                        RaisingFactor = item.RaisingFactor,
+                        //RaisingFactor = item.RaisingFactor,
                         OperationIsSuccessful = item.TripIsSuccess,
                         OperationIsTracked = item.TripIsTracked,
                         DepartureFromLandingSite = item.DateTimeDepartLandingSite,

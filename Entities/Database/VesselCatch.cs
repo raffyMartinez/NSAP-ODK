@@ -92,6 +92,10 @@ namespace NSAP_ODK.Entities.Database
     {
 
         private VesselUnload _parent;
+
+        public double? PriceOfSpecies { get; set; }
+
+        public string PriceUnit { get; set; }
         public bool DelayedSave { get; set; }
         public CatchLenFreqViewModel CatchLenFreqViewModel { get; set; }
         public CatchLengthViewModel CatchLengthViewModel { get; set; }

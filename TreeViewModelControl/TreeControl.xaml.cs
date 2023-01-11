@@ -40,10 +40,10 @@ namespace NSAP_ODK.TreeViewModelControl
 
         public void ReadDatabase()
         {
-            if (NSAPEntities.NSAPRegionViewModel != null 
+            if (NSAPEntities.NSAPRegionViewModel != null
                 && NSAPEntities.NSAPRegionViewModel.Count > 0
-                && NSAPEntities.FMAViewModel.Count>0 
-                && NSAPEntities.FishSpeciesViewModel.Count>0 )
+                && NSAPEntities.FMAViewModel.Count > 0
+                && NSAPEntities.FishSpeciesViewModel.Count > 0)
             {
                 List<NSAPRegion> listRegions = NSAPEntities.NSAPRegionViewModel.GetAllNSAPRegions().ToList();
                 _nsapViewModel = new tv_NSAPViewModel(listRegions, this);
@@ -58,7 +58,7 @@ namespace NSAP_ODK.TreeViewModelControl
         private void Tree_Loaded(object sender, System.Windows.RoutedEventArgs e)
         {
 
-            if (LicenseManager.UsageMode == LicenseUsageMode.Runtime && NSAPEntities.NSAPRegionViewModel!=null)
+            if (LicenseManager.UsageMode == LicenseUsageMode.Runtime && NSAPEntities.NSAPRegionViewModel != null)
             {
                 ReadDatabase();
             }
@@ -100,17 +100,18 @@ namespace NSAP_ODK.TreeViewModelControl
                     args.FishingGround = ((tv_LandingSiteViewModel)tvi)._fishingGround;
                     args.FMA = ((tv_LandingSiteViewModel)tvi)._fma;
                     args.NSAPRegion = ((tv_LandingSiteViewModel)tvi)._region;
-                    args.LandingSiteText= ((tv_LandingSiteViewModel)tvi)._landingSiteText;
+                    args.LandingSiteText = ((tv_LandingSiteViewModel)tvi)._landingSiteText;
                     //tv_CurrentEntities.CurrentLandingSite = args.LandingSite;
                     break;
 
                 case "tv_MonthViewModel":
                     args.MonthSampled = DateTime.Parse(((tv_MonthViewModel)tvi)._month);
                     args.LandingSite = ((tv_MonthViewModel)tvi)._landingSite;
-                    args.LandingSiteText= ((tv_MonthViewModel)tvi)._landingSiteName;
+                    args.LandingSiteText = ((tv_MonthViewModel)tvi)._landingSiteName;
                     args.FishingGround = ((tv_MonthViewModel)tvi)._fishingGround;
                     args.FMA = ((tv_MonthViewModel)tvi)._fma;
                     args.NSAPRegion = ((tv_MonthViewModel)tvi)._nsapRegion;
+                    
                     //tv_CurrentEntities.CurrentMonth = args.MonthSampled;
                     break;
 
@@ -139,7 +140,7 @@ namespace NSAP_ODK.TreeViewModelControl
                     args.LandingSiteText = ((tv_LandingSiteViewModel)_selectedItem)._landingSiteText;
                     args.FishingGround = ((tv_LandingSiteViewModel)_selectedItem)._fishingGround;
                     args.FMA = ((tv_LandingSiteViewModel)_selectedItem)._fma;
-                    args.NSAPRegion = ((tv_LandingSiteViewModel)_selectedItem)._region  ;
+                    args.NSAPRegion = ((tv_LandingSiteViewModel)_selectedItem)._region;
                     //switch (menuName)
                     //{
                     //    case "contextMenuCrosstabLandingSite":
@@ -153,7 +154,7 @@ namespace NSAP_ODK.TreeViewModelControl
 
                 case "contextMenuCrosstabMonth":
                 case "contextMenuGearUnloadMonth":
-                    args.LandingSite=((tv_MonthViewModel)_selectedItem)._landingSite;
+                    args.LandingSite = ((tv_MonthViewModel)_selectedItem)._landingSite;
                     args.LandingSiteText = ((tv_MonthViewModel)_selectedItem)._landingSiteName;
                     args.FishingGround = ((tv_MonthViewModel)_selectedItem)._fishingGround;
                     args.FMA = ((tv_MonthViewModel)_selectedItem)._fma;
@@ -169,11 +170,10 @@ namespace NSAP_ODK.TreeViewModelControl
                     //        args.ContextMenuTopic = "editGearGearUnloadByMonth";
                     //        break;
                     //}
-                    
                     break;
             }
             args.ContextMenuTopic = menuName;
-            
+
 
             TreeContextMenu?.Invoke(this, args);
         }

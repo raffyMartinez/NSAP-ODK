@@ -966,7 +966,7 @@ namespace NSAP_ODK.Entities
             else
             {
                 //nrfv.RowID = MaxRecordNumber_FishingVessel() + 1;
-                nrfv.RowID = region.FishingVessels.Max(t => t.RowID);
+                nrfv.RowID = region.FishingVessels.Max(t => t.RowID)+1;
             }
             return nrfv;
         }

@@ -24,6 +24,9 @@ namespace NSAP_ODK.Entities.Database
                 case "ref_no":
                     sql = "ALTER TABLE dbo_vessel_unload_1 ADD COLUMN ref_no varchar(25)";
                     break;
+                case "is_catch_sold":
+                    sql = "ALTER TABLE dbo_vessel_unload_1 ADD COLUMN is_catch_sold YESNO";
+                    break;
             }
             using (var con = new OleDbConnection(Global.ConnectionString))
             {
@@ -55,7 +58,107 @@ namespace NSAP_ODK.Entities.Database
                 VesselUnloads = getVesselUnloads();
             }
         }
+        public static bool UpdateUnloadWeightValidation(VesselUnload vu)
+        {
+            bool success = false;
+            bool in_try_update = false;
+            if (Global.Settings.UsemySQL)
+            {
 
+            }
+            else
+            {
+                using (var conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = conn.CreateCommand())
+                    {
+
+                        cmd.Parameters.AddWithValue("@sum_catch_comp_wt", vu.SumOfCatchCompositionWeights);
+                        //cmd.Parameters.AddWithValue("@sum_catch_sample_wt", vu.SumOfSampleWeights);
+                        if (vu.SumOfSampleWeights == null)
+                        {
+                            cmd.Parameters.Add("@sum_catch_sample_wt", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            cmd.Parameters.Add("@sum_catch_sample_wt", OleDbType.Double).Value = vu.SumOfSampleWeights;
+                        }
+                        cmd.Parameters.AddWithValue("@validation_flag", (int)vu.WeightValidationFlag);
+                        cmd.Parameters.AddWithValue("@sampling_type_flag", (int)vu.SamplingTypeFlag);
+                        if (vu.RaisingFactor == null)
+                        {
+                            cmd.Parameters.Add("@rf", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            cmd.Parameters.AddWithValue("@rf", (double)vu.RaisingFactor);
+                        }
+                        if (vu.DifferenceCatchWtAndSumCatchCompWt == null)
+                        {
+                            cmd.Parameters.Add("@wt_diff", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            cmd.Parameters.AddWithValue("@wt_diff", (double)vu.DifferenceCatchWtAndSumCatchCompWt);
+                        }
+                        cmd.Parameters.AddWithValue("@fv", vu.FormVersionCleaned);
+                        cmd.Parameters.AddWithValue("@vu_id", vu.PK);
+
+                        cmd.CommandText = @"UPDATE dbo_vessel_unload_weight_validation SET
+                                                total_wt_catch_composition = @sum_catch_comp_wt,
+                                                total_wt_sampled_species = @sum_catch_sample_wt,
+                                                validity_flag = @validation_flag,
+                                                type_of_sampling_flag = @sampling_type_flag,
+                                                raising_factor = @rf,
+                                                weight_difference = @wt_diff,
+                                                form_version = @fv
+                                                WHERE v_unload_id = @vu_id";
+
+                        try
+                        {
+                            conn.Open();
+                            in_try_update = true;
+                            success = cmd.ExecuteNonQuery() > 0;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+
+                        if (in_try_update && !success)
+                        {
+                            cmd.CommandText = @"INSERT INTO dbo_vessel_unload_weight_validation (
+                                                    total_wt_catch_composition,
+                                                    total_wt_sampled_species,
+                                                    validity_flag,
+                                                    type_of_sampling_flag,
+                                                    raising_factor,
+                                                    weight_difference,
+                                                    form_version,
+                                                    v_unload_id)
+                                                VALUES(
+                                                    @sum_catch_comp_wt,
+                                                    @sum_catch_sample_wt,
+                                                    @validation_flag,
+                                                    @sampling_type_flag,
+                                                    @rf,
+                                                    @wt_diff,
+                                                    @fv,
+                                                    @vu_id )";
+                            try
+                            {
+                                success = cmd.ExecuteNonQuery() > 0;
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Log(ex);
+                            }
+                        }
+                    }
+                }
+            }
+            return success;
+        }
         public static int VesselUnloadCount(bool isTracked = false)
         {
             int count = 0;
@@ -491,6 +594,12 @@ namespace NSAP_ODK.Entities.Database
 
             return success;
         }
+
+        public bool AddWeightValidation(VesselUnload vu)
+        {
+            bool success = false;
+            return success;
+        }
         public bool AddUnloadStats(VesselUnload vu)
         {
             bool success = false;
@@ -584,8 +693,81 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
+        public static bool CheckForWtValidationTable()
+        {
+            bool tableExists = false;
+            using (var conn = new OleDbConnection(Utilities.Global.ConnectionString))
+            {
+                conn.Open();
+                var schema = conn.GetOleDbSchemaTable(OleDbSchemaGuid.Tables, new object[] { null, null, null, "TABLE" });
+                if (schema.Rows
+                    .OfType<DataRow>()
+                    .Any(r => r.ItemArray[2].ToString().ToLower() == "dbo_vessel_unload_weight_validation"))
+                {
+                    tableExists = true;
+                }
 
-        private bool CreateTable(string tableName)
+                if (!tableExists)
+                {
+                    tableExists = CreateTable("dbo_vessel_unload_weight_validation");
+                }
+
+                return tableExists;
+            }
+        }
+        public static int? WeightValidationTableMaxID()
+        {
+            int? result = null;
+            using (var conn = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT Max(v_unload_id) AS max_id FROM dbo_vessel_unload_weight_validation";
+                    try
+                    {
+                        conn.Open();
+                        result = (int)cmd.ExecuteScalar();
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex.Message != "Specified cast is not valid.")
+                        {
+                            Logger.Log(ex);
+                        }
+                        //ignore
+                    }
+                }
+            }
+            return result;
+        }
+        public static bool BulkUpdateWeightValidationUsingCSV(StringBuilder csv)
+        {
+            bool success = false;
+            string base_dir = AppDomain.CurrentDomain.BaseDirectory;
+            string csv_file = $@"{base_dir}\temp.csv";
+
+            System.IO.File.WriteAllText(csv_file, CreateTablesInAccess.GetColumnNamesCSV("dbo_vessel_unload_weight_validation") + "\r\n" + csv.ToString());
+
+            using (OleDbConnection connection = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = connection.CreateCommand())
+                {
+                    cmd.CommandText = $@"INSERT INTO dbo_vessel_unload_weight_validation SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
+                    try
+                    {
+                        connection.Open();
+                        cmd.ExecuteNonQuery();
+                        success = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+                return success;
+            }
+        }
+        public static bool CreateTable(string tableName)
         {
             bool success = false;
             using (var conn = new OleDbConnection(Global.ConnectionString))
@@ -594,6 +776,22 @@ namespace NSAP_ODK.Entities.Database
                 {
                     switch (tableName)
                     {
+                        case "dbo_vessel_unload_weight_validation":
+                            cmd.CommandText = @"CREATE TABLE dbo_vessel_unload_weight_validation (
+                                                v_unload_id INTEGER, 
+                                                total_wt_catch_composition DOUBLE,
+                                                total_wt_sampled_species DOUBLE,
+                                                validity_flag INTEGER,
+                                                type_of_sampling_flag INTEGER,
+                                                weight_difference DOUBLE,
+                                                form_version VARCHAR(10),
+                                                raising_factor DOUBLE,
+                                                CONSTRAINT PrimaryKey PRIMARY KEY (v_unload_id),
+                                                CONSTRAINT FK_validation_stats
+                                                    FOREIGN KEY (v_unload_id) REFERENCES
+                                                    dbo_vessel_unload (v_unload_id)
+                                                )";
+                            break;
                         case "dbo_vessel_unload_stats":
                             cmd.CommandText = @"CREATE TABLE dbo_vessel_unload_stats (
                                                 v_unload_id INTEGER,
@@ -678,7 +876,7 @@ namespace NSAP_ODK.Entities.Database
                             item.WeightOfCatchSample = string.IsNullOrEmpty(dr["catch_samp"].ToString()) ? null : (double?)dr["catch_samp"];
                             item.Boxes = string.IsNullOrEmpty(dr["boxes_total"].ToString()) ? null : (int?)dr["boxes_total"];
                             item.BoxesSampled = string.IsNullOrEmpty(dr["boxes_samp"].ToString()) ? null : (int?)dr["boxes_samp"];
-                            item.RaisingFactor = dr["raising_factor"] == DBNull.Value ? null : (double?)dr["raising_factor"];
+                            //item.RaisingFactor = dr["raising_factor"] == DBNull.Value ? null : (double?)dr["raising_factor"];
                             item.NSAPEnumeratorID = string.IsNullOrEmpty(dr["enumerator_id"].ToString()) ? null : (int?)dr["enumerator_id"];
                             item.EnumeratorText = dr["enumerator_text"].ToString();
                             item.FishingTripIsCompleted = (bool)dr["trip_is_completed"];
@@ -963,22 +1161,21 @@ namespace NSAP_ODK.Entities.Database
                         try
                         {
                             conection.Open();
-                            cmd.CommandText = @"SELECT t1.*, t2.*, t3.* FROM (dbo_vessel_unload as t1
-                                INNER JOIN dbo_vessel_unload_1 as t2 ON t1.v_unload_id = t2.v_unload_id)
-                                LEFT JOIN dbo_vessel_unload_stats as t3 ON t1.v_unload_id = t3.v_unload_id";
+                            cmd.CommandText = @"SELECT t1.*, t2.*, t3.*, t4.*
+                                                FROM ((dbo_vessel_unload AS t1 INNER JOIN 
+                                                       dbo_vessel_unload_1 AS t2 ON t1.v_unload_id = t2.v_unload_id) LEFT JOIN 
+                                                       dbo_vessel_unload_stats AS t3 ON t1.v_unload_id = t3.v_unload_id) LEFT JOIN 
+                                                       dbo_vessel_unload_weight_validation AS t4 ON t1.v_unload_id = t4.v_unload_id";
 
                             if (gu != null)
                             {
                                 cmd.Parameters.AddWithValue("@parentID", gu.PK);
-                                cmd.CommandText = @"SELECT t1.*, t2.*, t3.*
-                                    FROM(
-                                        dbo_vessel_unload AS t1 
-                                        INNER JOIN 
-                                            dbo_vessel_unload_1 AS t2 ON t1.v_unload_id = t2.v_unload_id)
-                                        LEFT JOIN 
-                                            dbo_vessel_unload_stats AS t3 ON t1.v_unload_id = t3.v_unload_id
-                                    WHERE
-                                        t1.unload_gr_id = @parentID";
+                                cmd.CommandText = @"SELECT t1.*, t2.*, t3.*, t4.*
+                                                    FROM ((dbo_vessel_unload AS t1 INNER JOIN 
+                                                           dbo_vessel_unload_1 AS t2 ON t1.v_unload_id = t2.v_unload_id) LEFT JOIN 
+                                                           dbo_vessel_unload_stats AS t3 ON t1.v_unload_id = t3.v_unload_id) LEFT JOIN 
+                                                           dbo_vessel_unload_weight_validation AS t4 ON t1.v_unload_id = t4.v_unload_id
+                                                    WHERE t1.unload_gr_id=@parentID";
                             }
 
                             thisList.Clear();
@@ -1001,7 +1198,7 @@ namespace NSAP_ODK.Entities.Database
                                 item.WeightOfCatchSample = string.IsNullOrEmpty(dr["catch_samp"].ToString()) ? null : (double?)dr["catch_samp"];
                                 item.Boxes = string.IsNullOrEmpty(dr["boxes_total"].ToString()) ? null : (int?)dr["boxes_total"];
                                 item.BoxesSampled = string.IsNullOrEmpty(dr["boxes_samp"].ToString()) ? null : (int?)dr["boxes_samp"];
-                                item.RaisingFactor = dr["raising_factor"] == DBNull.Value ? null : (double?)dr["raising_factor"];
+                                item.RaisingFactor = dr["t4.raising_factor"] == DBNull.Value ? null : (double?)dr["t4.raising_factor"];
                                 item.NSAPEnumeratorID = string.IsNullOrEmpty(dr["EnumeratorID"].ToString()) ? null : (int?)dr["EnumeratorID"];
                                 item.EnumeratorText = dr["EnumeratorText"].ToString();
 
@@ -1016,7 +1213,7 @@ namespace NSAP_ODK.Entities.Database
                                 item.UserName = dr["user_name"].ToString();
                                 item.DeviceID = dr["device_id"].ToString();
                                 item.DateTimeSubmitted = (DateTime)dr["datetime_submitted"];
-                                item.FormVersion = dr["form_version"].ToString();
+                                item.FormVersion = dr["t2.form_version"].ToString();
                                 item.GPSCode = dr["GPS"].ToString();
                                 item.SamplingDate = (DateTime)dr["SamplingDate"];
                                 item.Notes = dr["Notes"].ToString();
@@ -1024,6 +1221,7 @@ namespace NSAP_ODK.Entities.Database
                                 item.FromExcelDownload = (bool)dr["FromExcelDownload"];
                                 item.HasCatchComposition = (bool)dr["HasCatchComposition"];
                                 item.RefNo = dr["ref_no"].ToString();
+                                item.IsCatchSold = (bool)dr["is_catch_sold"];
 
 
                                 if (dr["count_catch_composition"] != DBNull.Value)
@@ -1038,6 +1236,29 @@ namespace NSAP_ODK.Entities.Database
                                     item.CountMaturityRows = (int)dr["count_maturity"];
                                 }
 
+                                if (dr["total_wt_catch_composition"] != DBNull.Value)
+                                {
+                                    item.SumOfSampleWeights = dr["total_wt_sampled_species"]==DBNull.Value?0: (double)dr["total_wt_sampled_species"];
+                                    item.SumOfCatchCompositionWeights = (double)dr["total_wt_catch_composition"];
+                                    item.WeightValidationFlag = (FromJson.WeightValidationFlag)(int)dr["validity_flag"];
+                                    item.SamplingTypeFlag = (FromJson.SamplingTypeFlag)(int)dr["type_of_sampling_flag"];
+                                    if(dr["weight_difference"]==DBNull.Value)
+                                    {
+                                        item.DifferenceCatchWtAndSumCatchCompWt = null;
+                                    }
+                                    else
+                                    {
+                                        item.DifferenceCatchWtAndSumCatchCompWt = (double)dr["weight_difference"];
+                                    }
+                                    
+                                }
+
+                                //double? rf = null;
+                                //if (dr["t4.raising_factor"] != DBNull.Value)
+                                //{
+                                //    rf = (double)dr["t4.raising_factor"];
+                                //}
+                                //item.RaisingFactor = rf;
                                 //item.VesselCatchViewModel = new VesselCatchViewModel(null);
                                 //item.FishingGroundGridViewModel = new FishingGroundGridViewModel(item);
                                 //item.GearSoakViewModel = new GearSoakViewModel(item);
@@ -1491,8 +1712,8 @@ namespace NSAP_ODK.Entities.Database
                                                 (v_unload_id, Success, Tracked, trip_is_completed, DepartureLandingSite, ArrivalLandingSite, 
                                                 RowID, XFormIdentifier, XFormDate, SamplingDate,
                                                 user_name,device_id,datetime_submitted,form_version,
-                                                GPS,Notes,EnumeratorID,EnumeratorText,DateAdded,sector_code,FromExcelDownload,HasCatchComposition,NumberOfFishers)
-                                    Values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                                                GPS,Notes,EnumeratorID,EnumeratorText,DateAdded,sector_code,FromExcelDownload,HasCatchComposition,NumberOfFishers,ref_no,is_catch_sold)
+                                    Values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
                                 using (OleDbCommand update1 = new OleDbCommand(sql, conn))
                                 {
@@ -1585,6 +1806,8 @@ namespace NSAP_ODK.Entities.Database
                                     {
                                         update1.Parameters.Add("@num_fishers", OleDbType.Integer).Value = item.NumberOfFishers;
                                     }
+                                    update1.Parameters.Add("@ref_no", OleDbType.VarChar).Value = item.RefNo;
+                                    update1.Parameters.Add("@is_catch_sold", OleDbType.Boolean).Value = item.IsCatchSold;
 
                                     try
                                     {
@@ -2307,6 +2530,8 @@ namespace NSAP_ODK.Entities.Database
 
                                 cmd_1.Parameters.Add("@ref_no", OleDbType.VarWChar).Value = item.RefNo;
 
+                                cmd_1.Parameters.Add("@is_catch_sold", OleDbType.Boolean).Value = item.IsCatchSold;
+
                                 cmd_1.Parameters.Add("@Vessel_unload_id", OleDbType.Integer).Value = item.PK;
 
                                 cmd_1.CommandText = $@"UPDATE dbo_vessel_unload_1 SET
@@ -2332,7 +2557,8 @@ namespace NSAP_ODK.Entities.Database
                                         FromExcelDownload =  @From_excel,
                                         HasCatchComposition = @has_catch_composition,
                                         NumberOfFishers = @num_fisher,
-                                        ref_no = @ref_no
+                                        ref_no = @ref_no,
+                                        is_catch_sold = @is_catch_sold,
                                         WHERE v_unload_id =@Vessel_unload_id";
 
 
@@ -2421,6 +2647,27 @@ namespace NSAP_ODK.Entities.Database
                     }
                 }
 
+                if (success)
+                {
+                    success = false;
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = $"Delete * from dbo_vessel_unload_weight_validation";
+                        try
+                        {
+                            cmd.ExecuteNonQuery();
+                            success = true;
+                        }
+                        catch (OleDbException olx)
+                        {
+                            Logger.Log(olx);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
 
                 if (success)
                 {

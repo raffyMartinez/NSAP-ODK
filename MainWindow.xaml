@@ -37,6 +37,8 @@
 
     <!--main grid container-->
     <Grid x:Name="GridMain">
+        
+        <!--column and row definitions-->
         <Grid.RowDefinitions>
             <RowDefinition Height="20" x:Name="rowMenu" />
             <RowDefinition Height="34" x:Name="rowToolbar" />
@@ -112,6 +114,7 @@
                 <Separator />
                 <MenuItem Header="Import GPX" x:Name="menuImportGPX" Click="OnMenuClicked"/>
                 <MenuItem Header="Download CSV from server" x:Name="menuDownloadCSV" Click="OnMenuClicked"/>
+                <MenuItem Header="Update weight validation summary" x:Name="menuUpdateWeightValidation" Click="OnMenuClicked"/>
                 <Separator/>
                 <MenuItem Header="Backup MySQL Database" x:Name="menuBackupMySQL" Click="OnMenuClicked" Visibility="Collapsed"/>
                 <MenuItem Header="Setup MysQL tables" x:Name="menuSetupMySQLTables" Click="OnMenuClicked" Visibility="Collapsed"/>
@@ -230,7 +233,7 @@
 
                 <DataGrid Margin="5" x:Name="GridNSAPData"  SelectionUnit="FullRow" LoadingRow="Grid_LoadingRow" Visibility="Collapsed"
                       ItemsSource="{Binding}" MouseDoubleClick="OnGridDoubleClick" IsReadOnly="True" 
-                      SelectedCellsChanged="OnSelectedCellsChanged" SelectionMode="Single" CellEditEnding="OnCellEditEnding"
+                      SelectedCellsChanged="OnSelectedCellsChanged" SelectionMode="Single" CellEditEnding="OnCellEditEnding" SelectionChanged="OnDataGridSelectionChanged"
                       AutoGeneratingColumn="OnGeneratingColumn" MouseRightButtonUp="OnMenuRightClick">
 
                 </DataGrid>

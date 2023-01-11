@@ -54,7 +54,7 @@ namespace NSAP_ODK.Views
                     textCutoffWidth.Text = ((int)Utilities.Global.Settings.CutOFFUndersizedCW).ToString();
                 }
 
-                if(Utilities.Global.Settings.DownloadSizeForBatchMode==null)
+                if (Utilities.Global.Settings.DownloadSizeForBatchMode == null)
                 {
                     textDownloadSizeForBatchMode.Text = Utilities.Settings.DefaultDownloadSizeForBatchMode.ToString();
                 }
@@ -62,11 +62,14 @@ namespace NSAP_ODK.Views
                 {
                     textCutoffWidth.Text = ((int)Utilities.Global.Settings.DownloadSizeForBatchMode).ToString();
                 }
+
+                textAcceptableDiff.Text = ((int)Utilities.Global.Settings.AcceptableWeightsDifferencePercent).ToString();
             }
             else
             {
                 textDownloadSizeForBatchMode.Text = "2000";
                 textCutoffWidth.Text = "11";
+                textAcceptableDiff.Text = "10";
             }
 
         }
@@ -83,6 +86,7 @@ namespace NSAP_ODK.Views
             string msg1 = "Path to backend BD cannot be empty";
             string msg2 = "Name of folder for saving backup JSON files cannot be empyy";
             string msg3 = "Name of folder of NSAP-ODK Databse for MySQL cannot be empyy";
+            string msg4 = "Values must be a positive, whole number greater than zero";
             string msg = "";
 
             if (textBackenDB.Text.Length > 0)
@@ -99,12 +103,29 @@ namespace NSAP_ODK.Views
             {
                 msg3 = "";
             }
-            else if((bool)chkUsemySQL.IsChecked==false)
+            else if ((bool)chkUsemySQL.IsChecked == false)
             {
                 msg3 = "";
             }
 
-            if (msg1.Length == 0 && msg2.Length == 0 && msg3.Length==0)
+            if (textCutoffWidth.Text.Length > 0 && textDownloadSizeForBatchMode.Text.Length > 0 && textAcceptableDiff.Text.Length > 0)
+            {
+                if (int.TryParse(textAcceptableDiff.Text, out int v))
+                {
+                    if (int.TryParse(textCutoffWidth.Text, out v))
+                    {
+                        if (int.TryParse(textDownloadSizeForBatchMode.Text, out v))
+                        {
+                            msg4 = "";
+                        }
+                    }
+                }
+            }
+
+
+
+
+            if (msg1.Length > 0 && msg2.Length > 0 && msg3.Length > 0 && msg4.Length > 0)
             {
                 msg = "Expected value cannot be empty and must be a whole number";
                 string cutoff = textCutoffWidth.Text;
@@ -127,7 +148,7 @@ namespace NSAP_ODK.Views
                     }
                 }
             }
-            if (msg.Length > 0 || msg1.Length > 0 || msg2.Length > 0 || msg3.Length > 0)
+            if (msg.Length > 0 || msg1.Length > 0 || msg2.Length > 0 || msg3.Length > 0 || msg4.Length > 0)
             {
 
                 if (msg1.Length > 0)
@@ -155,6 +176,19 @@ namespace NSAP_ODK.Views
                     else
                     {
                         allMessages = msg3;
+                    }
+
+                }
+
+                if (msg4.Length > 0)
+                {
+                    if (allMessages.Length > 0)
+                    {
+                        allMessages += msg4 + "\r\n";
+                    }
+                    else
+                    {
+                        allMessages = msg4;
                     }
 
                 }
@@ -237,6 +271,7 @@ namespace NSAP_ODK.Views
                         Utilities.Global.Settings.CutOFFUndersizedCW = int.Parse(textCutoffWidth.Text);
                         Utilities.Global.Settings.UsemySQL = (bool)chkUsemySQL.IsChecked;
                         Utilities.Global.Settings.MySQLBackupFolder = textmySQLBackupFolder.Text;
+                        Utilities.Global.Settings.AcceptableWeightsDifferencePercent = int.Parse(textAcceptableDiff.Text);
                         Utilities.Global.SaveGlobalSettings();
 
 
@@ -250,8 +285,9 @@ namespace NSAP_ODK.Views
                             ((MainWindow)Owner).SetMenuAndOtherToolbarButtonsVisibility(Visibility.Visible);
                             ((MainWindow)Owner).Focus();
                         }
+                        Close();
                     }
-                    Close();
+
                     break;
                 case "buttonCancel":
                     Close();

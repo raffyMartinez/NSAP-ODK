@@ -24,13 +24,14 @@ namespace NSAP_ODK.Entities
         private int ImportVessels(string vesselNames, NSAPRegion region, FisheriesSector fs)
         {
             EntityValidationMessages = new List<EntityValidationMessage>();
+            var rvm = NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(region);
             int importCount = 0;
             List<EntityValidationMessage> entityMessages = new List<EntityValidationMessage>();
             List<string> vesselsToImport = vesselNames.Split('\n').ToList();
             BulkImportFishingVessels?.Invoke(null, new EntityBulkImportEventArg { Intent = "start", RecordsToImport = vesselsToImport.Count });
             foreach (var item in vesselsToImport)
             {
-                string to_import = string.Join(" ", item.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+                string to_import = string.Join(" ", item.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)).Trim('\r');
                 if (to_import.Length > 0)
                 {
                     var fv = new FishingVessel { Name = item.Trim(), FisheriesSector = fs, ID = NSAPEntities.FishingVesselViewModel.NextRecordNumber };
@@ -45,7 +46,7 @@ namespace NSAP_ODK.Entities
                                 added: DateTime.Now
                             );
 
-                            var rvm = NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(region);
+                            
                             if (rvm.AddFishingVessel(nrfv))
                             {
                                 importCount++;
@@ -71,7 +72,8 @@ namespace NSAP_ODK.Entities
 
         public List<OrphanedFishingVessel> OrphanedFishingVesseks()
         {
-            var itemsVesselSamplings = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
+            
+            var itemsVesselSamplings = NSAPEntities.VesselUnloadViewModel?.VesselUnloadCollection
                 .Where(t => t.VesselID == null && t.VesselName != null && t.VesselText.Length > 0)
                 .GroupBy(t => new { Sector = t.Sector, LandingSite = t.Parent.Parent.LandingSiteName, Name = t.VesselName })
                 .Select(vessel => new
@@ -86,21 +88,28 @@ namespace NSAP_ODK.Entities
             var list = new List<OrphanedFishingVessel>();
             //var listNames = new List<string>();
 
-
-            foreach (var item in itemsVesselSamplings)
+            if (itemsVesselSamplings != null && itemsVesselSamplings.Count > 0)
             {
-                //listNames.Add(item.NameVessel);
-                var orphan = new OrphanedFishingVessel
+                foreach (var item in itemsVesselSamplings)
                 {
-                    Name = item.NameVessel,
-                    VesselUnloads = NSAPEntities.VesselUnloadViewModel.GetSampledLandingsOfVessel(item.NameVessel, item.SectorVessel, item.LandingSiteVessel),
-                };
+                    //listNames.Add(item.NameVessel);
+                    var orphan = new OrphanedFishingVessel
+                    {
+                        Name = item.NameVessel,
+                        VesselUnloads = NSAPEntities.VesselUnloadViewModel.GetSampledLandingsOfVessel(item.NameVessel, item.SectorVessel, item.LandingSiteVessel),
+                    };
 
-                list.Add(orphan);
+                    list.Add(orphan);
+                }
+
+                List<OrphanedFishingVessel> sortedList = list.OrderBy(t => t.Sector).ThenBy(t => t.Name).ThenBy(t => t.LandingSiteName).ToList();
+
+                return sortedList;
             }
-
-            List<OrphanedFishingVessel> sortedList = list.OrderBy(t => t.Sector).ThenBy(t => t.Name).ThenBy(t => t.LandingSiteName).ToList();
-            return sortedList;
+            else
+            {
+                return null;
+            }
 
         }
         public List<FishingVessel> GetAllGears()

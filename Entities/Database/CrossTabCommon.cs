@@ -90,6 +90,10 @@ namespace NSAP_ODK.Entities.Database
 
         public double? TotalWeight { get { return _vesselUnload.WeightOfCatch; } }
 
+        public bool IsCatchSold { get { return _vesselUnload.IsCatchSold; } }
+
+        public bool IsBoatUsed { get { return _vesselUnload.IsBoatUsed; } }
+
     }
     public class CrossTabCommon
     {
@@ -241,7 +245,15 @@ namespace NSAP_ODK.Entities.Database
                 return _vesselCatch.Catch_kg;
             }
         }
+        public double? Price
+        {
+            get { return _vesselCatch.PriceOfSpecies; }
+        }
 
+        public string Unit
+        {
+            get { return _vesselCatch.PriceUnit; }
+        }
         public string WeightUnit
         {
             get

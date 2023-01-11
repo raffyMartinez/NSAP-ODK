@@ -3,11 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NSAP_ODK.Entities.Database.FromJson;
 
 namespace NSAP_ODK.Entities.Database
 {
     public class SummaryItem
     {
+
+        public List<VesselCatchWV> ListOfCatch { get; set; }
+        public double RaisingFactor { get; set; }
+        public double? SumOfCatchCompositionWeight { get; set; }
+        public double? SumOfCatchCompositionSampleWeight { get; set; }
+        public SamplingTypeFlag SamplingTypeFlag { get; set; }
+        public WeightValidationFlag WeightValidationFlag { get; set; }
+
+        public double? DifferenceCatchWtandSumCatchCompWeight { get; set; }
         public bool LandingSiteHasOperation { get; set; }
         public string UserName { get; set; }
         public string XFormIdentifier { get; set; }
@@ -52,6 +62,78 @@ namespace NSAP_ODK.Entities.Database
             return $"{ID}-{Region.ShortName}-{FMA.Name}-{FishingGround.Name}-{ls}-{gr}-{s_date}-sector:{SectorCode}";
         }
 
+        public double FormVersionNumeric
+        {
+            get
+            {
+                var ver = FormVersion.Replace("Version", "").Trim();
+                int? first_number = null;
+                if (double.TryParse(ver, out double v))
+                {
+                    return v;
+                }
+                else
+                {
+                    var arr = ver.Split('.');
+                    string vers = "";
+                    bool proceed = true;
+                    for (int x = 0; x <= arr.Length; x++)
+                    {
+                        if (proceed && x < 2)
+                        {
+                            if (x == 0)
+                            {
+                                vers = arr[x];
+                            }
+                            else
+                            {
+                                vers += $".{arr[x]}";
+                            }
+                            if (double.TryParse(vers, out double vv))
+                            {
+                                proceed = true;
+                                if (x == 0)
+                                {
+                                    first_number = (int)vv;
+                                }
+                            }
+                            else
+                            {
+                                proceed = false;
+                                break;
+                            }
+                        }
+                        else if (x == 2)
+                        {
+                            break;
+                        }
+                    }
+                    if (proceed)
+                    {
+                        return double.Parse(vers);
+                    }
+                    else if (first_number != null)
+                    {
+
+                        return (int)first_number;
+                    }
+                    else
+                    {
+                        return 0;
+                    }
+
+                }
+
+            }
+        }
+
+        public string FormVersionCleaned
+        {
+            get
+            {
+                return FormVersion.Replace("Version", "").Trim();
+            }
+        }
         public string FormVersion { get; set; }
         public DateTime? MonthSampled
         {
@@ -306,6 +388,8 @@ namespace NSAP_ODK.Entities.Database
                 return code;
             }
         }
+        public double? WeightOfCatch { get; set; }
+        public double? WeightOfCatchSample { get; set; }
         public bool HasCatchComposition { get; set; }
 
         public bool IsTripCompleted { get; set; }

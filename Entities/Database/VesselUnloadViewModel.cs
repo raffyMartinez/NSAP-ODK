@@ -15,6 +15,7 @@ namespace NSAP_ODK.Entities.Database
         private static StringBuilder _csv = new StringBuilder();
         private static StringBuilder _csv_1 = new StringBuilder();
         private static StringBuilder _unloadStats_csv = new StringBuilder();
+        private static StringBuilder _weight_validataion_csv = new StringBuilder();
         //private static int _deleted_vu_count;
         //public static event EventHandler<DeleteVesselUnloadFromOrphanEventArg> DeleteVesselUnloadFromOrphanedItem;
         public int CountLandingWithCatchComposition()
@@ -83,6 +84,26 @@ namespace NSAP_ODK.Entities.Database
         }
         public bool IgnoreCollectionChange { get; set; }
         public static int CurrentIDNumber { get; set; }
+
+        public bool UpdateWeightValidation(NSAP_ODK.Entities.Database.FromJson.VesselLanding vl, VesselUnload vu)
+        {
+            if(vu.DelayedSave)
+            {
+                vu.SumOfSampleWeights = vl.SumOfCatchCompWeight;
+                vu.SumOfCatchCompositionWeights = vl.SumOfCatchCompSampleWeight;
+                vu.DifferenceCatchWtAndSumCatchCompWt = vl.DifferenceInWeight;
+                vu.SamplingTypeFlag = vl.SamplingTypeFlag;
+                vu.WeightValidationFlag = vl.WeightValidationFlag;
+                vu.RaisingFactor = vl.RaisingFactorComputed;
+
+                _weight_validataion_csv.AppendLine($"{vu.PK},{vl.SumOfCatchCompWeight},{vl.SumOfCatchCompSampleWeight},{(int)vl.WeightValidationFlag},{(int)vl.SamplingTypeFlag},{vl.DifferenceInWeight},{vl.FormVersion},{vl.RaisingFactorComputed}");
+                return true;
+            }
+            else
+            {
+                return VesselUnloads.AddWeightValidation(vu);
+            }
+        }
         public bool UpdateUnloadStats(VesselUnload vu)
         {
             if (vu.DelayedSave)
@@ -203,6 +224,7 @@ namespace NSAP_ODK.Entities.Database
             _csv.Clear();
             _csv_1.Clear();
             _unloadStats_csv.Clear();
+            _weight_validataion_csv.Clear();
         }
 
         //public static VesselUnloadSummary GetSummary()
@@ -823,13 +845,26 @@ namespace NSAP_ODK.Entities.Database
 
 
             _csv.AppendLine($"{vu.Parent.PK},{vu.PK},{boat_id},{catch_wt},{sample_wt},{boxes_total},{boxes_sampled},\"{vu.VesselText}\",{Convert.ToInt32(vu.IsBoatUsed)},{raising_factor}");
-            _csv_1.AppendLine($"{vu.PK},{Convert.ToInt32(vu.OperationIsSuccessful)},{Convert.ToInt32(vu.OperationIsTracked)},{departure},{arrival},\"{vu.SectorCode}\",\"{vu.ODKRowID}\",\"{vu.XFormIdentifier}\",{xFormDate},\"{vu.UserName}\",\"{vu.DeviceID}\",{date_submitted},\"{vu.FormVersion}\",\"{vu.GPSCode}\",{date_sampled},\"{vu.Notes}\",{enum_id},\"{enum_text}\",{date_added},{Convert.ToInt32(vu.FromExcelDownload)},{Convert.ToInt32(vu.FishingTripIsCompleted)},{Convert.ToInt32(vu.HasCatchComposition)},{no_fishers},\"{vu.RefNo}\"");
+            _csv_1.AppendLine($"{vu.PK},{Convert.ToInt32(vu.OperationIsSuccessful)},{Convert.ToInt32(vu.OperationIsTracked)},{departure},{arrival},\"{vu.SectorCode}\",\"{vu.ODKRowID}\",\"{vu.XFormIdentifier}\",{xFormDate},\"{vu.UserName}\",\"{vu.DeviceID}\",{date_submitted},\"{vu.FormVersion}\",\"{vu.GPSCode}\",{date_sampled},\"{vu.Notes}\",{enum_id},\"{enum_text}\",{date_added},{Convert.ToInt32(vu.FromExcelDownload)},{Convert.ToInt32(vu.FishingTripIsCompleted)},{Convert.ToInt32(vu.HasCatchComposition)},{no_fishers},\"{vu.RefNo}\", {Convert.ToInt32(vu.IsCatchSold)}");
 
 
 
             return true;
         }
-
+        public static string WeightValidationCSV
+        {
+            get
+            {
+                if (Utilities.Global.Settings.UsemySQL)
+                {
+                    return "";
+                }
+                else
+                {
+                    return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_vessel_unload_weight_validation")}\r\n{_weight_validataion_csv}";
+                }
+            }
+        }
         public static string UnloadStatsCSV
         {
             get

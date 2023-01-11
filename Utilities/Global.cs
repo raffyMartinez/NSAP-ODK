@@ -44,6 +44,10 @@ namespace NSAP_ODK.Utilities
         //    return stream;
         //}
 
+        public static double? Add(this double? num1, double? num2)
+        {
+            return num1.GetValueOrDefault() + num2.GetValueOrDefault();
+        }
         public static string CSVMediaSaveFolder { get; set; }
         public static bool HasInternet { get; private set; }
         public static bool HasInternetConnection()

@@ -10,9 +10,12 @@ namespace NSAP_ODK.Utilities
 {
     public class Settings
     {
-        
+
         public static int DefaultCutoffUndesizedCW = 11;
         public static int DefaultDownloadSizeForBatchMode = 2000;
+        public static int DefaultWeigthDiffPercent = 10;
+
+        private static int? _acceptableWeightsDifferencePercent;
         public string MDBPath { get; set; }
         public string JSONFolder { get; set; }
 
@@ -21,9 +24,23 @@ namespace NSAP_ODK.Utilities
         public string NSAPFishCatchMonitoringKoboserverServerNumericID { get; set; }
         public bool UsemySQL { get; set; }
 
+        public int? AcceptableWeightsDifferencePercent
+        {
+            get
+            {
+                if (_acceptableWeightsDifferencePercent == null)
+                {
+                    _acceptableWeightsDifferencePercent = DefaultWeigthDiffPercent;
+                }
+                return _acceptableWeightsDifferencePercent;
+            }
+            set { _acceptableWeightsDifferencePercent = value; }
+        }
+
         public string MySQLBackupFolder { get; set; }
 
         public int? CutOFFUndersizedCW { get; set; }
+
 
         public int? DownloadSizeForBatchMode { get; set; }
 

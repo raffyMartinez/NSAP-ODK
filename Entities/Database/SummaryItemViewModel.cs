@@ -24,6 +24,10 @@ namespace NSAP_ODK.Entities.Database
         public event EventHandler<BuildSummaryReportEventArg> BuildingSummaryTable;
         public event EventHandler<BuildOrphanedEntityEventArg> BuildingOrphanedEntity;
 
+        public SummaryItem GetItem(VesselUnload vu)
+        {
+            return SummaryItemCollection.ToList().FirstOrDefault(t => t.VesselUnloadID == vu.PK);
+        }
         public SummaryItem GetItem(string odkROWID)
         {
             return SummaryItemCollection.ToList().FirstOrDefault(t => t.ODKRowID == odkROWID);
@@ -883,9 +887,21 @@ namespace NSAP_ODK.Entities.Database
         }
         public VesselUnload GetVesselUnload(SummaryItem si)
         {
-            return NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(si.SamplingDayID)
-                .GearUnloadViewModel.getGearUnload((int)si.GearUnloadID, loadVesselViewModel: true).
-                VesselUnloadViewModel.getVesselUnload((int)si.VesselUnloadID);
+            if (si.GearUnloadID != null && si.VesselUnloadID != null)
+            {
+                //var ls = NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(si.SamplingDayID);
+                //var gu = ls.GearUnloadViewModel.getGearUnload((int)si.GearUnloadID,loadVesselViewModel:true);
+                //var vu = NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(si.SamplingDayID)
+                //    .GearUnloadViewModel.getGearUnload((int)si.GearUnloadID, loadVesselViewModel: true).
+                //    VesselUnloadViewModel.getVesselUnload((int)si.VesselUnloadID);
+                return NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(si.SamplingDayID)
+                    .GearUnloadViewModel.getGearUnload((int)si.GearUnloadID, loadVesselViewModel: true).
+                    VesselUnloadViewModel.getVesselUnload((int)si.VesselUnloadID);
+            }
+            else
+            {
+                return null;
+            }
         }
         public List<DateTime> GetMonthsSampledByEnumerator(NSAPEnumerator en)
         {
@@ -1958,13 +1974,87 @@ namespace NSAP_ODK.Entities.Database
             return SummaryItemCollection.Count(t => t.HasCatchComposition == true);
         }
 
-        public Task<List<SummaryItem>> GetDownloadDetailsByDateAsync(DateTime date_download, bool? isTracked = null)
+
+
+
+        public async Task<List<SummaryItem>> GetValidateLandedCatchWeightsAsync(DateTime date_download)
+        {
+            return  await GetDownloadDetailsByDateAsync(date_download, forWeightValidation: true);
+            //List<ValidateLandedCatchWeight> vlcws = new List<ValidateLandedCatchWeight>();
+            //foreach (var item in items)
+            //{
+            //    ValidateLandedCatchWeight vlcw = new ValidateLandedCatchWeight
+            //    {
+            //        SummaryItem = item
+            //    };
+            //    vlcws.Add(vlcw);
+            //}
+            //return vlcws;
+        }
+        public Task<List<SummaryItem>> GetDownloadDetailsByDateAsync(DateTime date_download, bool? isTracked = null, bool forWeightValidation = false)
         {
             return Task.Run(() => GetDownloadDetailsByDate(date_download, isTracked));
         }
-        public List<SummaryItem> GetDownloadDetailsByDate(DateTime date_download, bool? isTracked = null)
+
+
+        public Task<List<SummaryItem>> GetDownloadDetailsByCalendarTreeSelectionTaskAsync(TreeViewModelControl.AllSamplingEntitiesEventHandler e, bool monthInTreeView = false)
+        {
+            return Task.Run(() => GetDownloadDetailsByCalendarTreeSelectionTask(e, monthInTreeView));
+        }
+
+        public List<SummaryItem> GetDownloadDetailsByCalendarTreeSelectionTask(TreeViewModelControl.AllSamplingEntitiesEventHandler e, bool monthInTreeView = false)
         {
             ProcessBuildEvent(status: BuildSummaryReportStatus.StatusBuildStart, isIndeterminate: true);
+            List<SummaryItem> thisList = new List<SummaryItem>();
+            if (e.TreeViewEntity == "tv_LandingSiteViewModel" || monthInTreeView)
+            {
+                thisList = SummaryItemCollection
+                    .Where(
+                        t => t.SamplingDate != null &&
+                        t.SamplingDate >= (DateTime)e.MonthSampled &&
+                        t.SamplingDate < ((DateTime)e.MonthSampled).AddMonths(1) &&
+                        t.Region.Code == e.NSAPRegion.Code &&
+                        t.FMAId == e.FMA.FMAID &&
+                        t.FishingGroundID == e.FishingGround.Code &&
+                        t.LandingSiteID == e.LandingSite.LandingSiteID
+                        )
+                    .ToList();
+            }
+            else
+            {
+                thisList = SummaryItemCollection
+                    .Where(
+                        t => t.SamplingDate != null &&
+                        t.SamplingDate >= (DateTime)e.MonthSampled &&
+                        t.SamplingDate < ((DateTime)e.MonthSampled).AddMonths(1) &&
+                        t.Region.Code == e.NSAPRegion.Code &&
+                        t.FMAId == e.FMA.FMAID &&
+                        t.FishingGroundID == e.FishingGround.Code &&
+                        t.LandingSiteID == e.LandingSite.LandingSiteID &&
+                        t.GearName == e.GearUsed
+                        )
+                    .ToList();
+            }
+            //List<ValidateLandedCatchWeight> vlcws = new List<ValidateLandedCatchWeight>();
+            //foreach (var item in thisList)
+            //{
+            //    ValidateLandedCatchWeight vlcw = new ValidateLandedCatchWeight
+            //    {
+            //        SummaryItem = item
+            //    };
+            //    vlcws.Add(vlcw);
+            //}
+            ProcessBuildEvent(status: BuildSummaryReportStatus.StatusBuildEnd, totalRowsFetched: thisList.Count);
+            return thisList;
+            //return vlcws;
+        }
+
+        public List<SummaryItem> GetDownloadDetailsByDate(DateTime date_download, bool? isTracked = null, bool forWeightValidation = false)
+        {
+            if (!forWeightValidation)
+            {
+                ProcessBuildEvent(status: BuildSummaryReportStatus.StatusBuildStart, isIndeterminate: true);
+            }
             List<SummaryItem> thisList = new List<SummaryItem>();
             if (isTracked == null)
             {
@@ -1983,8 +2073,13 @@ namespace NSAP_ODK.Entities.Database
                     .ToList();
             }
 
-            ProcessBuildEvent(status: BuildSummaryReportStatus.StatusBuildStart, totalRows: thisList.Count);
-            ProcessBuildEvent(status: BuildSummaryReportStatus.StatusBuildEnd, totalRowsFetched: thisList.Count);
+
+            if (!forWeightValidation)
+            {
+                ProcessBuildEvent(status: BuildSummaryReportStatus.StatusBuildStart, totalRows: thisList.Count);
+                ProcessBuildEvent(status: BuildSummaryReportStatus.StatusBuildEnd, totalRowsFetched: thisList.Count);
+            }
+
             return thisList;
         }
 
@@ -2069,7 +2164,7 @@ namespace NSAP_ODK.Entities.Database
 
             SummaryItemCollection.Add(si);
             return _editSuccess;
-            
+
         }
         public bool AddRecordToRepo(GearUnload gu)
         {

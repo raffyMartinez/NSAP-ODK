@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NSAP_ODK.Views"
         mc:Ignorable="d"
-        Title="Settings window" Height="324.685" Width="776" WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+        Title="Settings window" Height="407" Width="853" WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="40"/>
@@ -19,23 +19,28 @@
         <Label Content="NSAP-ODK Database Settings" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="14" FontWeight="Bold"/>
         <StackPanel Grid.Row="1" Grid.Column="0">
             <WrapPanel Margin="10 2">
-                <Label Content="Backend database" Width="180" HorizontalContentAlignment="Right"/>
+                <Label Content="Backend database" Width="205" HorizontalContentAlignment="Right"/>
                 <TextBox x:Name="textBackenDB" Width="400" Margin="10 0" IsReadOnly="True"/>
                 <Button x:Name="buttonLocateBackendDB" Content="Locate" Click="OnButtonClick" Width="50" Height="25"/>
             </WrapPanel>
             <WrapPanel Margin="10 2">
-                <Label Content="Saved JSON files folder" Width="180" HorizontalContentAlignment="Right"/>
+                <Label Content="Saved JSON files folder" Width="205" HorizontalContentAlignment="Right"/>
                 <TextBox x:Name="textJsonFolder" Width="400" Margin="10 0" IsReadOnly="True"/>
                 <Button x:Name="buttonLocateJsonFolder" Content="Locate" Click="OnButtonClick" Width="50" Height="25"/>
             </WrapPanel>
             <WrapPanel Margin="10 2">
-                <Label Content="Cut-off CW for undersized crabs" Width="180" HorizontalContentAlignment="Right"/>
+                <Label Content="Cut-off CW for undersized crabs" Width="205" HorizontalContentAlignment="Right"/>
                 <TextBox x:Name="textCutoffWidth" Width="60" Margin="10 0" HorizontalContentAlignment="Right"/>
             </WrapPanel>
 
             <WrapPanel Margin="10 2">
-                <Label Content="Enable batch mode if DL > than" Width="180" HorizontalContentAlignment="Right"/>
+                <Label Content="Enable batch mode if DL > than" Width="205" HorizontalContentAlignment="Right"/>
                 <TextBox x:Name="textDownloadSizeForBatchMode" Width="60" Margin="10 0" HorizontalContentAlignment="Right"/>
+            </WrapPanel>
+
+            <WrapPanel Margin="10 2">
+                <Label Content="Acceptable difference in weights (%)" Width="205" HorizontalContentAlignment="Right"/>
+                <TextBox x:Name="textAcceptableDiff" Width="60" Margin="10 0" HorizontalContentAlignment="Right"/>
             </WrapPanel>
 
             <StackPanel>

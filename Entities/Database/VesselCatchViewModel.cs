@@ -618,6 +618,7 @@ namespace NSAP_ODK.Entities.Database
             //string tws = item.TWS == null ? "" : ((double)item.TWS).ToString();
             string catch_kg = item.Catch_kg == null ? "" : ((double)item.Catch_kg).ToString();
             string sample_kg = item.Sample_kg == null ? "" : ((double)item.Sample_kg).ToString();
+            string price_sp = item.PriceOfSpecies == null ? "" : ((double)item.PriceOfSpecies).ToString();
 
             if (Utilities.Global.Settings.UsemySQL)
             {
@@ -636,6 +637,11 @@ namespace NSAP_ODK.Entities.Database
                     sp_id = @"\N";
                 }
 
+                if (item.PriceOfSpecies == null)
+                {
+                    price_sp = @"\N";
+                }
+
                 // if (item.TWS == null)
                 //{
                 //   tws = @"\N";
@@ -647,7 +653,7 @@ namespace NSAP_ODK.Entities.Database
             else
             {
                 //_csv.AppendLine($"{item.PK},{item.Parent.PK},{sp_id},{catch_kg},{sample_kg},\"{item.TaxaCode}\",\"{item.SpeciesText}\",{tws}");
-                _csv.AppendLine($"{item.PK},{item.Parent.PK},{sp_id},{catch_kg},{sample_kg},\"{item.TaxaCode}\",\"{item.SpeciesText}\",\"{item.WeighingUnit}\",{Convert.ToInt32(item.FromTotalCatch)}");
+                _csv.AppendLine($"{item.PK},{item.Parent.PK},{sp_id},{catch_kg},{sample_kg},\"{item.TaxaCode}\",\"{item.SpeciesText}\",\"{item.WeighingUnit}\",{Convert.ToInt32(item.FromTotalCatch)},{price_sp},\"{item.PriceUnit}\"");
             }
             return true;
         }

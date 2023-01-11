@@ -1,0 +1,73 @@
+﻿<Window x:Class="NSAP_ODK.Views.WeightValidationTallyWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NSAP_ODK.Views"
+        mc:Ignorable="d"
+        Title="Weight validation tally" Height="469" Width="460" WindowStyle="ThreeDBorderWindow" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
+    <Grid x:Name="gridMain">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="120"/>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="120"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="27"/>
+            <RowDefinition Height="27"/>
+            <RowDefinition Height="27"/>
+            <RowDefinition Height="27"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="27"/>
+            <RowDefinition Height="27"/>
+            <RowDefinition Height="27"/>
+            <RowDefinition Height="27"/>
+            <RowDefinition Height="27"/>
+            <RowDefinition Height="45"/>
+            <RowDefinition Height="37"/>
+        </Grid.RowDefinitions>
+
+        <Label Content="Validity of weights" Grid.ColumnSpan="3" HorizontalAlignment="Left" Grid.Row="1" FontWeight="Bold"/>
+        <Label Content="Parameter" Grid.Row="0" FontWeight="Bold"/>
+        <Label Content="Count" Grid.Column="1" Grid.Row="0" FontWeight="Bold"/>
+        <Label Content="Filter" Grid.Column="2" Grid.Row="0" FontWeight="Bold" HorizontalAlignment="Center"/>
+
+        <Label Content="Valid weight" Grid.Row="2"/>
+        <Label Content="Not valid weight" Grid.Row="3"/>
+        <Label Content="Not applicable" Grid.Row="4"/>
+        <Label Content="Not validated" Grid.Row="5"/>
+        <Label Content="Type of sampling" Grid.Row="7" FontWeight="Bold"/>
+        <Label Content="Total enumeration" Grid.Row="8"/>
+        <Label Content="Mixed" Grid.Row="9"/>
+        <Label Content="Sample of catch" Grid.Row="10"/>
+        <Label Content="Not sampled" Grid.Row="11"/>
+
+        <Label Grid.Row="2" Grid.Column="1" Content="value label 1" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" Margin="2" x:Name="labelValidationValid" Tag="count label"/>
+        <Label Grid.Row="3" Grid.Column="1" Content="value label 2" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" Margin="2" x:Name="labelValidationNotValid" Tag="count label"/>
+        <Label Grid.Row="4" Grid.Column="1" Content="value label 3" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" Margin="2" x:Name="labelValidationNotApplicable" Tag="count label"/>
+        <Label Grid.Row="5" Grid.Column="1" Content="value label 4" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" Margin="2" x:Name="labelValidationNotValidated" Tag="count label"/>
+
+
+        <Label Grid.Row="8" Grid.Column="1" Content="value label 5" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" Margin="2" x:Name="labelSamplingTotalEnumeration" Tag="count label"/>
+        <Label Grid.Row="9" Grid.Column="1" Content="value label 6" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" Margin="2"  x:Name="labelSamplingMixed" Tag="count label"/>
+        <Label Grid.Row="10" Grid.Column="1" Content="value label 7" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" Margin="2" x:Name="labelSamplingSampling" Tag="count label"/>
+        <Label Grid.Row="11" Grid.Column="1" Content="value label 7" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" Margin="2" x:Name="labelSamplingNotSampled" Tag="count label"/>
+
+        <Button Grid.Column="2" Grid.Row="2" Width="70" Height="20" Content="Filter" x:Name="buttonFilterValidationValid" Click="onButtonClicked"/>
+        <Button Grid.Column="2" Grid.Row="3" Width="70" Height="20" Content="Filter" x:Name="buttonFilterValidationNotValid" Click="onButtonClicked"/>
+        <Button Grid.Column="2" Grid.Row="4" Width="70" Height="20" Content="Filter" x:Name="buttonFilterValidationNotApplicable" Click="onButtonClicked"/>
+        <Button Grid.Column="2" Grid.Row="5" Width="70" Height="20" Content="Filter" x:Name="buttonFilterValidationNotValidated" Click="onButtonClicked"/>
+        
+        <Button Grid.Column="2" Grid.Row="8" Width="70" Height="20" Content="Filter" x:Name="buttonSamplingTotalEnumeration" Click="onButtonClicked"/>
+        <Button Grid.Column="2" Grid.Row="9" Width="70" Height="20" Content="Filter" x:Name="buttonSamplingMixed" Click="onButtonClicked"/>
+        <Button Grid.Column="2" Grid.Row="10" Width="70" Height="20" Content="Filter" x:Name="buttonSamplingSampling" Click="onButtonClicked"/>
+        <Button Grid.Column="2" Grid.Row="11" Width="70" Height="20" Content="Filter" x:Name="buttonSamplingNotSampled" Click="onButtonClicked"/>
+        <Button Grid.Column="2" Grid.Row="12" Width="70" Height="25" Content="Reset" x:Name="buttonResetFilter" Click="onButtonClicked" Margin=" 0 10"/>
+        
+        <Button Grid.Column="2" Grid.Row="13" Width="70" Height="25" Content="Close" x:Name="buttonClose" Click="onButtonClicked" Margin="0 10 0 0"/>
+
+    </Grid>
+</Window>

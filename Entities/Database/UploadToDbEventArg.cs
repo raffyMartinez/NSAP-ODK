@@ -18,13 +18,18 @@ namespace NSAP_ODK.Entities.Database
         EndOfUpdate,
         Cancelled,
         UnloadFound,
-        Searching
+        Searching,
+        SummaryItemProcessed,
+        WeightValidationUpdated,
+        BatchCSVUploaded
 
     }
     public class UploadToDbEventArg:EventArgs
     {
+        public int VesselUnloadWeightValidationUpdateCount { get; set; }
         public string EntitySaved { get; set; }
         public int VesselUnloadSavedCount { get; set; }
+        public int SummaryItemProcessedCount { get; set; }
 
         public int VesselUnloadUpdatedCount { get; set; }
         public int VesselUnloadToSaveCount { get; set; }

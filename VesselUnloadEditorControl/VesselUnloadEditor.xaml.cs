@@ -215,6 +215,9 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                     col.Binding.StringFormat = "0.00";
                     effortDataGrid.Columns.Add(col);
 
+                    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Price", Binding = new Binding("PriceOfSpecies") });
+                    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Unit", Binding = new Binding("PriceUnit") });
+
                     //effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("Catch_kg") });
                     //effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight of sample", Binding = new Binding("Sample_kg") });
                     //effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "TWS", Binding = new Binding("TWS") });
@@ -304,7 +307,8 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "BoxesSampled", DisplayName = "Number of boxes sampled", DisplayOrder = 16, Description = "Number of boxes sampled", Category = "Effort" });
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "RaisingFactor", DisplayName = "Raising factor", DisplayOrder = 17, Description = "Raising factor", Category = "Effort" });
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "HasCatchComposition", DisplayName = "Catch composition is included", DisplayOrder = 18, Description = "Whether or not catch composition of the landing was included", Category = "Effort" });
-                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Notes", DisplayName = "Notes", DisplayOrder = 19, Description = "Notes", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "IsCatchSold", DisplayName = "Was the catch sold at the landing site", DisplayOrder = 19, Description = "Notes", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Notes", DisplayName = "Notes", DisplayOrder = 20, Description = "Notes", Category = "Effort" });
 
 
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "OperationIsTracked", DisplayName = "This operation is tracked", DisplayOrder = 11, Description = "Is this fishing operation tracked", Category = "Tracking" });

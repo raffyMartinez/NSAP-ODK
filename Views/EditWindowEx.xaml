@@ -70,6 +70,7 @@
             <Button Content="Add" Height="30" Margin="10 5" x:Name="buttonAdd" Click="OnButtonClick" />
             <Button Content="Edit" Height="30" Margin="10 5" x:Name="buttonEdit" Click="OnButtonClick" />
             <Button Content="Delete" Height="30" Margin="10 5" x:Name="buttonDelete" Click="OnButtonClick" />
+            <Button Content="Cleanup" Height="30" Margin="10 5" x:Name="buttonCleanup" Click="OnButtonClick" />
             <Button Content="Validate" Height="30" Margin="10 5" x:Name="buttonValidate" Click="OnButtonClick" Visibility="Collapsed"/>
         </StackPanel>
 

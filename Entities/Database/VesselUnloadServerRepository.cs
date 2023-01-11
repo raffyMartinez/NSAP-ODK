@@ -14,7 +14,21 @@ using NPOI.OpenXmlFormats.Wordprocessing;
 namespace NSAP_ODK.Entities.Database.FromJson
 {
 
+    public enum WeightValidationFlag
+    {
+        WeightValidationNotValidated,
+        WeightValidationValid,
+        WeightValidationInValid,
+        WeightValidationNotApplicable
+    }
 
+    public enum SamplingTypeFlag
+    {
+        SamplingTypeNone,
+        SamplingTypeMixed,
+        SamplingTypeTotalEnumeration,
+        SamplingTypeSampled
+    }
     public class CatchCompGroupCatchCompositionRepeatLenWtRepeat
     {
         private static int _pk;
@@ -26,6 +40,8 @@ namespace NSAP_ODK.Entities.Database.FromJson
         {
             RowIDSet = false;
         }
+
+
         public static void SetRowIDs()
         {
             //if (NSAPEntities.CatchLengthWeightViewModel.CatchLengthWeightCollection.Count == 0)
@@ -393,6 +409,35 @@ namespace NSAP_ODK.Entities.Database.FromJson
 
         [JsonProperty("catch_comp_group/catch_composition_repeat/speciesname_group/taxa")]
         public string TaxaCode { get; set; }
+
+        [JsonProperty("catch_comp_group/catch_composition_repeat/speciesname_group/price_of_species")]
+        public double? PriceOfSpecies { get; set; }
+
+        [JsonProperty("catch_comp_group/catch_composition_repeat/speciesname_group/pricing_unit")]
+        public string PriceUnit { get; set; }
+
+        [JsonProperty("catch_comp_group/catch_composition_repeat/speciesname_group/other_pricing_unit")]
+        public string OtherPriceUnit { get; set; }
+
+
+        public string PriceUnitText
+        {
+            get
+            {
+                if (OtherPriceUnit != null && OtherPriceUnit.Length > 0)
+                {
+                    return OtherPriceUnit;
+                }
+                else if (PriceUnit != null && PriceUnit.Length > 0)
+                {
+                    return PriceUnit;
+                }
+                else
+                {
+                    return string.Empty;
+                }
+            }
+        }
 
         public Taxa Taxa { get { return NSAPEntities.TaxaViewModel.GetTaxa(TaxaCode); } }
 
@@ -804,7 +849,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
             CatchSampleWt = vl.CatchSampleWt;
             BoxesTotal = vl.BoxesTotal;
             BoxesSampled = vl.BoxesSampled;
-            RasingFactor = vl.RaisingFactor;
+            RaisingFactor = vl.RaisingFactor;
             Remarks = vl.Remarks;
             IncludeTracking = vl.IncludeTracking;
             UTMZone = vl.UTMZone;
@@ -845,7 +890,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
         public int? BoxesTotal { get; set; }
         public int? BoxesSampled { get; set; }
 
-        public double? RasingFactor { get; set; }
+        public double? RaisingFactor { get; set; }
         public string Remarks { get; set; }
         public bool IncludeTracking { get; set; }
         public string UTMZone { get; set; }
@@ -876,7 +921,11 @@ namespace NSAP_ODK.Entities.Database.FromJson
         private List<EffortsGroupEffortRepeat> _effortSpecs;
         private List<SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat> _gearSoakTimes;
         private List<CatchCompGroupCatchCompositionRepeat> _catchComps;
+        private string _includeCatchComposition;
 
+        public SamplingTypeFlag SamplingTypeFlag { get; internal set; }
+
+        public WeightValidationFlag WeightValidationFlag { get; internal set; }
         public GearUnload GearUnload { get; set; }
         public List<CatchCompGroupCatchCompositionRepeat> GetDuplicatedCatchComposition()
         {
@@ -937,18 +986,135 @@ namespace NSAP_ODK.Entities.Database.FromJson
             }
             return thisList;
         }
+        public double SumOfCatchCompSampleWeight { get; internal set; }
+        public double RaisingFactorComputed { get; set; }
+        public double SumOfCatchCompWeight { get; internal set; }
 
+        public double DifferenceInWeight { get; internal set; }
         [JsonProperty("catch_comp_group/catch_composition_repeat")]
         public List<CatchCompGroupCatchCompositionRepeat> CatchComposition
         {
             get { return _catchComps; }
             set
             {
+                int countTotalEnum = 0;
+                int countFromSample = 0;
                 _catchComps = value;
-                foreach (CatchCompGroupCatchCompositionRepeat item in _catchComps)
+                bool computeForRaisedValue = false;
+
+                if (CatchTotalWt != null && CatchSampleWt != null && CatchTotalWt > 0 && CatchSampleWt > 0)
                 {
-                    item.Parent = this;
+                    computeForRaisedValue = true;
+                    double from_total_sum = 0;
+
+                    if (FormVersion >= 6.43)
+                    {
+                        foreach (CatchCompGroupCatchCompositionRepeat item in _catchComps)
+                        {
+                            item.Parent = this;
+                            if (item.FromTotalCatch)
+                            {
+                                from_total_sum += (double)item.SpeciesWt;
+                                countTotalEnum++;
+                            }
+                            else if (item.SpeciesSampleWt != null)
+                            {
+                                SumOfCatchCompSampleWeight += (double)item.SpeciesSampleWt;
+                                countFromSample++;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        foreach (CatchCompGroupCatchCompositionRepeat item in _catchComps)
+                        {
+                            item.Parent = this;
+                            if (item.SpeciesSampleWt == null)
+                            {
+                                from_total_sum += (double)item.SpeciesWt;
+                                countTotalEnum++;
+                            }
+                            else
+                            {
+                                SumOfCatchCompSampleWeight += (double)item.SpeciesSampleWt;
+                                countFromSample++;
+                            }
+                        }
+                    }
+                    RaisingFactorComputed = ((double)CatchTotalWt - from_total_sum) / (double)CatchSampleWt;
                 }
+
+                else
+                {
+                    foreach (CatchCompGroupCatchCompositionRepeat item in _catchComps)
+                    {
+                        item.Parent = this;
+                        SumOfCatchCompWeight += (double)item.SpeciesWt;
+
+                        if (item.SpeciesSampleWt != null)
+                        {
+                            countFromSample++;
+                        }
+                        else if (item.WeightOfCatch != null && item.SpeciesSampleWt == null)
+                        {
+                            countTotalEnum++;
+                        }
+                    }
+
+
+                }
+
+                if (computeForRaisedValue)
+                {
+                    foreach (CatchCompGroupCatchCompositionRepeat item in _catchComps)
+                    {
+                        if (item.FromTotalCatch || item.SpeciesSampleWt == null)
+                        {
+                            SumOfCatchCompWeight += (double)item.WeightOfCatch;
+                        }
+                        else
+                        {
+                            SumOfCatchCompWeight += ((double)item.SpeciesSampleWt * RaisingFactorComputed);
+                        }
+                    }
+
+                }
+
+                if (SumOfCatchCompWeight > 0)
+                {
+                    DifferenceInWeight = Math.Abs((double)CatchTotalWt - (double)SumOfCatchCompWeight) / (double)CatchTotalWt * 100;
+                    if (DifferenceInWeight <= (int)Utilities.Global.Settings.AcceptableWeightsDifferencePercent)
+                    {
+                        WeightValidationFlag = WeightValidationFlag.WeightValidationValid;
+                    }
+                    else
+                    {
+                        WeightValidationFlag = WeightValidationFlag.WeightValidationInValid;
+                    }
+                }
+
+
+
+                if (FormVersion < 6.43)
+                {
+                    if (CatchTotalWt != null && CatchTotalWt > 0 && CatchSampleWt == null)
+                    {
+                        SamplingTypeFlag = SamplingTypeFlag.SamplingTypeTotalEnumeration;
+                    }
+                }
+                else if (countFromSample > 0 && countTotalEnum > 0)
+                {
+                    SamplingTypeFlag = SamplingTypeFlag.SamplingTypeMixed;
+                }
+                else if (countFromSample > 0)
+                {
+                    SamplingTypeFlag = SamplingTypeFlag.SamplingTypeSampled;
+                }
+                else if (countTotalEnum > 0)
+                {
+                    SamplingTypeFlag = SamplingTypeFlag.SamplingTypeTotalEnumeration;
+                }
+
             }
         }
         [JsonProperty("grid_coord_group/bingo_repeat")]
@@ -1215,7 +1381,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
         public int? BoxesSampled { get; set; }
         [JsonProperty("vessel_catch/boxes_total")]
         public int? BoxesTotal { get; set; }
-        [JsonProperty("vessel_catch/raising_factor")]
+        [JsonProperty("catch_comp_group/raising_factor")]
         public double? RaisingFactor { get; set; }
 
 
@@ -1303,7 +1469,34 @@ namespace NSAP_ODK.Entities.Database.FromJson
         [JsonProperty("fishing_vessel_group/is_boat_used")]
         public string IsBoatUsedYesNo { get; set; }
         [JsonProperty("catch_comp_group/include_catchcomp")]
-        public string IncludeCatchComposition { get; set; }
+        public string IncludeCatchComposition
+        {
+            get { return _includeCatchComposition; }
+            set
+            {
+                _includeCatchComposition = value;
+            }
+        }
+
+        [JsonProperty("vessel_catch/is_catch_sold")]
+        public string IsCatchSoldYesNo { get; set; }
+
+
+        public bool IsCatchSold
+        {
+            get
+            {
+                if (IsCatchSoldYesNo == "yes")
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
         public bool IsBoatUsed
         {
             get
@@ -1367,7 +1560,13 @@ namespace NSAP_ODK.Entities.Database.FromJson
         public List<object> _notes { get; set; }
         public DateTime today { get; set; }
         public string intronote { get; set; }
-
+        public double FormVersion
+        {
+            get
+            {
+                return double.Parse(Form_version);
+            }
+        }
         public string Form_version
         {
             get
@@ -1546,10 +1745,10 @@ namespace NSAP_ODK.Entities.Database.FromJson
         {
             return VesselLandings.OrderBy(t => t.SamplingDate).FirstOrDefault().SamplingDate;
         }
-        public static List<string>GetLandingIdentifiers()
+        public static List<string> GetLandingIdentifiers()
         {
             List<string> ids = new List<string>();
-            foreach(var item in VesselLandings)
+            foreach (var item in VesselLandings)
             {
                 ids.Add(item._uuid);
             }
@@ -1559,7 +1758,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
         {
             return VesselLandings.OrderByDescending(t => t.SamplingDate).FirstOrDefault().SamplingDate;
         }
-        
+
         public static int DownloadedLandingsCount()
         {
             return VesselLandings.Count;
@@ -2319,7 +2518,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                     WeightOfCatchSample = landing.CatchSampleWt,
                                     Boxes = landing.BoxesTotal,
                                     BoxesSampled = landing.BoxesSampled,
-                                    RaisingFactor = landing.RaisingFactor,
+                                    //RaisingFactor = landing.RaisingFactor,
                                     OperationIsSuccessful = landing.TripIsSuccess,
                                     OperationIsTracked = landing.IncludeTracking,
                                     FishingTripIsCompleted = landing.TripIsCompleted,
@@ -2341,7 +2540,11 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                     HasCatchComposition = withCatchComp,
                                     XFormIdentifier = landing._xform_id_string,
                                     DelayedSave = DelayedSave,
-                                    RefNo = landing.ref_no
+                                    RefNo = landing.ref_no,
+                                    IsCatchSold = landing.IsCatchSold,
+
+                                    
+                                    
                                 };
 
                                 if (JSONFileCreationTime != null)
@@ -2489,7 +2692,9 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                                     SpeciesText = catchComp.SpeciesNameOther,
                                                     DelayedSave = DelayedSave,
                                                     WeighingUnit = catchComp.IndividualWeightUnit,
-                                                    FromTotalCatch = fromTotal
+                                                    FromTotalCatch = fromTotal,
+                                                    PriceOfSpecies = catchComp.PriceOfSpecies,
+                                                    PriceUnit = catchComp.PriceUnitText
                                                 };
 
 
@@ -2639,7 +2844,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                     }
 
 
-                                    if (gear_unload.VesselUnloadViewModel.UpdateUnloadStats(vu) && NSAPEntities.SummaryItemViewModel.AddRecordToRepo(vu))
+                                    if (gear_unload.VesselUnloadViewModel.UpdateUnloadStats(vu) && gear_unload.VesselUnloadViewModel.UpdateWeightValidation(landing, vu) && NSAPEntities.SummaryItemViewModel.AddRecordToRepo(vu))
                                     {
                                         savedCount++;
                                         landing.SavedInLocalDatabase = true;

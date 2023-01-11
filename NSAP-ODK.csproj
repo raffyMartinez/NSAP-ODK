@@ -278,7 +278,9 @@
     <Compile Include="Entities\Database\UpdateUnloadStatistics.cs" />
     <Compile Include="Entities\Database\UpdateXFormIdentifier.cs" />
     <Compile Include="Entities\Database\UpdateXFormIdentifierRepo.cs" />
+    <Compile Include="Entities\Database\VesselCatchWV.cs" />
     <Compile Include="Entities\Database\VesselUnloadServerRepository.cs" />
+    <Compile Include="Entities\Database\WeightValidationUpdater.cs" />
     <Compile Include="Entities\Database\XLSForm.cs" />
     <Compile Include="Entities\Database\XLSForm2.cs" />
     <Compile Include="Entities\Download summary.cs" />
@@ -595,6 +597,9 @@
     <Compile Include="Views\UpdateFBSpeciesOptionWindow.xaml.cs">
       <DependentUpon>UpdateFBSpeciesOptionWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\UpdateWeightValidationTableWindow.xaml.cs">
+      <DependentUpon>UpdateWeightValidationTableWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\UploadJSONHistoryOptionsWindow.xaml.cs">
       <DependentUpon>UploadJSONHistoryOptionsWindow.xaml</DependentUpon>
     </Compile>
@@ -606,6 +611,9 @@
     </Compile>
     <Compile Include="Views\VesselUnloadWIndow.xaml.cs">
       <DependentUpon>VesselUnloadWIndow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\WeightValidationTallyWindow.xaml.cs">
+      <DependentUpon>WeightValidationTallyWindow.xaml</DependentUpon>
     </Compile>
     <Page Include="GenusSpeciesAutocompleteControl.xaml">
       <SubType>Designer</SubType>
@@ -766,6 +774,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\UpdateWeightValidationTableWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\UploadJSONHistoryOptionsWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -779,6 +791,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\VesselUnloadWIndow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\WeightValidationTallyWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -39,6 +39,7 @@ namespace NSAP_ODK.Views
         private string _entityID;
         private bool _saveButtonClicked;
         private string _selectedProperty;
+        private string _propertyFriendlyName;
         private bool _oldIsForAllTypesFishing;
         private object _originalSource;
         private bool _textDBIdentifierValid;
@@ -1409,6 +1410,7 @@ namespace NSAP_ODK.Views
             _timer = new DispatcherTimer();
             _timer.Tick += OnTimerTick;
             buttonValidate.Visibility = Visibility.Collapsed;
+            buttonCleanup.Visibility = Visibility.Collapsed;
         }
 
         private void OnTimerTick(object sender, EventArgs e)
@@ -1701,6 +1703,28 @@ namespace NSAP_ODK.Views
             EditWindowEx ewx = null;
             switch (((Button)sender).Name)
             {
+                case "buttonCleanup":
+                    
+                    var msg_cleanup = $"Cleaning up removes {_propertyFriendlyName} in the database that do not belong to the selected region\r\nIs this what you want to do?";
+                    var result = MessageBox.Show(msg_cleanup, "NSAP-ODK Database", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        switch (_selectedProperty)
+                        {
+                            case "LandingSiteCount":
+
+                                break;
+                            case "Vessels":
+
+                                break;
+                            case "Enumerators":
+
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    break;
                 case "buttonValidate":
                     ValidateRegionCSV();
                     break;
@@ -2751,6 +2775,7 @@ namespace NSAP_ODK.Views
         private void OnSelectedPropertyItemChanged(object sender, RoutedPropertyChangedEventArgs<PropertyItemBase> e)
         {
             buttonValidate.Visibility = Visibility.Collapsed;
+            buttonCleanup.Visibility = Visibility.Collapsed;
             buttonAdd.IsEnabled = true;
             rowDataGrid.Height = new GridLength(0);
 
@@ -2786,6 +2811,8 @@ namespace NSAP_ODK.Views
                     rowBottomLabel.Height = new GridLength(40);
                     SetUpSubForm();
                     buttonValidate.Visibility = Visibility.Visible;
+                    buttonCleanup.Visibility = sfDataGrid.Items.Count>0?Visibility.Visible:Visibility.Collapsed;
+                    _propertyFriendlyName = "landing sites";
                     break;
 
                 case "FishingGroundCount":
@@ -2802,6 +2829,7 @@ namespace NSAP_ODK.Views
                     rowBottomLabel.Height = new GridLength(40);
                     SetUpSubForm();
                     buttonValidate.Visibility = Visibility.Visible;
+                    _propertyFriendlyName = "fishing gears";
                     break;
 
                 case "FMAs":
@@ -2818,6 +2846,8 @@ namespace NSAP_ODK.Views
                     rowBottomLabel.Height = new GridLength(40);
                     SetUpSubForm();
                     buttonValidate.Visibility = Visibility.Visible;
+                    buttonCleanup.Visibility = sfDataGrid.Items.Count>0?Visibility.Visible:Visibility.Collapsed;
+                    _propertyFriendlyName = "fishing vessels";
                     break;
 
                 case "Enumerators":
@@ -2826,6 +2856,8 @@ namespace NSAP_ODK.Views
                     rowBottomLabel.Height = new GridLength(40);
                     SetUpSubForm();
                     buttonValidate.Visibility = Visibility.Visible;
+                    buttonCleanup.Visibility = sfDataGrid.Items.Count>0?Visibility.Visible:Visibility.Collapsed;
+                    _propertyFriendlyName = "landing site enumerators";
                     break;
                 default:
                     break;

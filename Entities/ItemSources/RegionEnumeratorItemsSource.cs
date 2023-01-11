@@ -12,12 +12,19 @@ namespace NSAP_ODK.Entities.ItemSources
         public ItemCollection GetValues()
         {
             ItemCollection enumerators = new ItemCollection();
-            foreach (var en in NSAPEntities.NSAPRegion.NSAPEnumerators
-                .OrderBy(t => t.Enumerator.Name))
+            if (NSAPEntities.NSAPRegion == null)
             {
-                enumerators.Add(en.Enumerator.ID, en.Enumerator.Name);
+                return null;
             }
-            return enumerators;
+            else
+            {
+                foreach (var en in NSAPEntities.NSAPRegion.NSAPEnumerators
+                    .OrderBy(t => t.Enumerator.Name))
+                {
+                    enumerators.Add(en.Enumerator.ID, en.Enumerator.Name);
+                }
+                return enumerators;
+            }
 
         }
     }

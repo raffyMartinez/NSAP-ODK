@@ -93,6 +93,7 @@ namespace NSAP_ODK.Entities.Database
                 DateAddedToDatabase = vesselUnload.DateAddedToDatabase == null ? DateTime.Now.ToString("MMM-dd-yyyy HH:mm") : ((DateTime)vesselUnload.DateAddedToDatabase).ToString("MMM-dd-yyyy HH:mm");
                 SectorCode = vesselUnload.SectorCode;
                 FromExcelDownload = vesselUnload.FromExcelDownload;
+                IsCatchSold = vesselUnload.IsCatchSold;
             }
 
         }
@@ -113,7 +114,7 @@ namespace NSAP_ODK.Entities.Database
         public int FMAID { get; set; }
 
         public FishingGround FishingGround { get; set; }
-
+        public bool IsCatchSold { get; set; }
         public int? NumberOfFishers { get; set; }
 
         [ReadOnly(true)]
@@ -372,6 +373,7 @@ namespace NSAP_ODK.Entities.Database
             Boxes = vesselUnload.Boxes;
             BoxesSampled = vesselUnload.BoxesSampled;
             RaisingFactor = vesselUnload.RaisingFactor;
+            IsCatchSold = vesselUnload.IsCatchSold;
             Notes = vesselUnload.Notes;
 
             OperationIsTracked = vesselUnload.OperationIsTracked;
@@ -391,6 +393,8 @@ namespace NSAP_ODK.Entities.Database
             HasCatchComposition = vesselUnload.HasCatchComposition;
             NumberOfFishers = vesselUnload.NumberOfFishers;
         }
+
+        public bool IsCatchSold { get; private set; }
         public string Region { get; private set; }
         public string FMA { get; private set; }
         public string FishingGround { get; private set; }
@@ -520,13 +524,29 @@ namespace NSAP_ODK.Entities.Database
         public bool FromExcelDownload { get; set; }
         public bool HasCatchComposition { get; set; }
     }
+    public enum LandedCatchValidationResult
+    {
+        ValidationResultNotApplicable,
+        ValidationResultNoValidationDone,
+        ValidationResultNoCatchComposition,
+        ValidationResultCatchWeightIsInvalid,
+        ValidationResultCatchWeightIsValid,
+    }
     public class VesselUnload
     {
+        private LandedCatchValidationResult _landedCatchValidationResult;
         private GPS _gps;
         private GearUnload _parent;
         private FishingVessel _fishingVessel;
         private NSAPEnumerator _nsapEnumerator;
+        private double _runningSum = 0;
+        private bool _speciesWeightIsZero;
+        public LandedCatchValidationResult LandedCatchValidationResult
+        {
+            get { return _landedCatchValidationResult; }
+        }
 
+        public bool IsCatchSold { get; set; }
         public bool DelayedSave { get; set; }
         public VesselUnloadViewModel ContainerViewModel { get; set; }
         public VesselCatchViewModel VesselCatchViewModel { get; set; }
@@ -604,6 +624,300 @@ namespace NSAP_ODK.Entities.Database
 
         public int? NSAPEnumeratorID { get; set; }
 
+        public string RaisingFactorText
+        {
+            get
+            {
+                if (RaisingFactor == null)
+                {
+                    return "";
+                }
+                else
+                {
+                    return ((double)RaisingFactor).ToString("N1");
+                }
+            }
+        }
+        public double? RaisingFactor { get; set; }
+        //{
+        //    get
+        //    {
+        //        if (WeightOfCatch == null || WeightOfCatchSample == null)
+        //        {
+        //            return null;
+        //        }
+        //        else
+        //        {
+        //            if (FormVersionNumeric >= 6.43 && ListVesselCatch.Count > 0)
+        //            {
+        //                double from_total_sum = ListVesselCatch.Where(t => t.FromTotalCatch).Sum(t => (double)t.Catch_kg);
+        //                //double from_total_sum = 0;
+        //                //foreach (var item in ListVesselCatch.OrderByDescending(t => t.FromTotalCatch))
+        //                //{
+        //                //    if (item.FromTotalCatch)
+        //                //    {
+        //                //        from_total_sum += (double)item.Catch_kg;
+        //                //    }
+        //                //    else
+        //                //    {
+        //                //        break;
+        //                //    }
+        //                //}
+        //                return ((double)WeightOfCatch - from_total_sum) / WeightOfCatchSample;
+        //            }
+        //            else
+        //            {
+        //                return (double)WeightOfCatch / (double)WeightOfCatchSample;
+        //            }
+        //        }
+        //    }
+        //}
+
+        public double SumOfSampleWeights { get; set; }
+        //{
+        //    get
+        //    {
+        //        if (ListVesselCatch.Count > 0)
+        //        {
+        //            double runningSum = 0;
+        //            foreach (var item in ListVesselCatch)
+        //            {
+        //                if (item.Sample_kg != null)
+        //                {
+        //                    runningSum += (double)item.Sample_kg;
+        //                }
+        //            }
+        //            return runningSum;
+        //        }
+        //        else
+        //        {
+        //            return null;
+        //        }
+        //    }
+        //}
+
+        public double? PrecisionOfWeights
+        {
+            get
+            {
+                //return ((double)WeightOfCatch/ Math.Abs((double)WeightOfCatch - _runningSum)) * 100;
+                if (WeightOfCatch == null)
+                {
+                    return null;
+                }
+                else
+                {
+                    return Math.Abs((double)WeightOfCatch - _runningSum) / (double)WeightOfCatch * 100;
+                }
+            }
+        }
+
+        public string PrecisionOfWeightsText
+        {
+            get
+            {
+                if (PrecisionOfWeights == null)
+                {
+                    return "";
+                }
+                else
+                {
+                    return ((double)PrecisionOfWeights).ToString("N1");
+                }
+            }
+        }
+        public string ValidationResult
+        {
+            get
+            {
+                switch (_landedCatchValidationResult)
+                {
+                    case LandedCatchValidationResult.ValidationResultCatchWeightIsInvalid:
+                        return "Not valid";
+                    case LandedCatchValidationResult.ValidationResultNotApplicable:
+                        return "Not applicable";
+                    case LandedCatchValidationResult.ValidationResultCatchWeightIsValid:
+                        return "Valid";
+                    default:
+                        if (ListVesselCatch.Count == 0)
+                        {
+                            return "Not applicable - No catch composition";
+                        }
+                        else
+                        {
+                            return "Else case";
+                        }
+
+                }
+            }
+        }
+
+        public bool SpeciesWeightIsZero
+        {
+            get { return _speciesWeightIsZero; }
+        }
+        public string WeightValidationFlagText
+        {
+            get
+            {
+                switch (WeightValidationFlag)
+                {
+                    case FromJson.WeightValidationFlag.WeightValidationInValid:
+                        return "Not valid";
+                    case FromJson.WeightValidationFlag.WeightValidationNotApplicable:
+                        return "Not applicable";
+                    case FromJson.WeightValidationFlag.WeightValidationValid:
+                        return "Valid";
+                    case FromJson.WeightValidationFlag.WeightValidationNotValidated:
+                        return "Not validated";
+                    default:
+                        return "";
+                }
+            }
+        }
+
+        public string SamplingTypeFlagText
+        {
+            get
+            {
+                switch (SamplingTypeFlag)
+                {
+                    case FromJson.SamplingTypeFlag.SamplingTypeMixed:
+                        return "Mixed";
+                    case FromJson.SamplingTypeFlag.SamplingTypeNone:
+                        return "None";
+                    case FromJson.SamplingTypeFlag.SamplingTypeSampled:
+                        return "Sample of catch";
+                    case FromJson.SamplingTypeFlag.SamplingTypeTotalEnumeration:
+                        return "Total enumeration";
+                    default:
+                        return "";
+                }
+            }
+        }
+        public NSAP_ODK.Entities.Database.FromJson.WeightValidationFlag WeightValidationFlag { get; set; }
+        public NSAP_ODK.Entities.Database.FromJson.SamplingTypeFlag SamplingTypeFlag { get; set; }
+
+        public double? DifferenceCatchWtAndSumCatchCompWt { get; set; }
+        public string DifferenceCatchWtAndSumCatchCompWtText
+        {
+            get
+            {
+                if (DifferenceCatchWtAndSumCatchCompWt == null) return "";
+                else
+                {
+                    if ((double)DifferenceCatchWtAndSumCatchCompWt == 0 || (double)DifferenceCatchWtAndSumCatchCompWt<0.1)
+                    {
+                        return "0";
+                    }
+                    else
+                    {
+                        return ((double)DifferenceCatchWtAndSumCatchCompWt).ToString("N1");
+                    }
+                }
+            }
+        }
+        public double SumOfCatchCompositionWeights { get; set; }
+        //public double? SumOfCatchCompositionWeights { get; set; }
+        //{
+        //    get
+        //    {
+        //        _speciesWeightIsZero = false;
+        //        _runningSum = 0;
+
+        //        //if (FormVersionNumeric >= 6.43 && ListVesselCatch.Count > 0 && RaisingFactor != null && WeightOfCatchSample!=null)
+        //        if (FormVersionNumeric >= 6.43 && ListVesselCatch.Count > 0 && WeightOfCatchSample != null)
+        //        {
+        //            double? rf = null;
+        //            double wt_of_from_total = 0;
+        //            //var g = ListVesselCatch.OrderByDescending(t => t.FromTotalCatch).ToList();
+        //            foreach (var sp in ListVesselCatch.OrderByDescending(t => t.FromTotalCatch).ToList())
+        //            {
+        //                if (sp.FromTotalCatch)
+        //                {
+        //                    _runningSum += (double)sp.Catch_kg;
+        //                    wt_of_from_total += (double)sp.Catch_kg;
+        //                }
+        //                else if (sp.Sample_kg != null)
+        //                {
+        //                    if (rf == null)
+        //                    {
+        //                        rf = ((double)WeightOfCatch - wt_of_from_total) / (double)WeightOfCatchSample;
+        //                    }
+        //                    _runningSum += (double)sp.Sample_kg * (double)rf;
+        //                }
+        //            }
+        //        }
+        //        else if (ListVesselCatch.Count > 0 && RaisingFactor != null)
+        //        {
+        //            double? rf = (double)RaisingFactor;
+        //            //double runningSum = 0;
+
+        //            if (WeightOfCatchSample != null)
+        //            {
+        //                foreach (var item in ListVesselCatch)
+        //                {
+        //                    if (item.Catch_kg == 0 && !_speciesWeightIsZero)
+        //                    {
+        //                        _speciesWeightIsZero = true;
+        //                    }
+
+        //                    if (item.Sample_kg != null && item.Sample_kg < WeightOfCatchSample)
+        //                    {
+        //                        _runningSum += (double)item.Sample_kg * (double)rf;
+        //                    }
+        //                    else
+        //                    {
+        //                        _runningSum += (double)item.Catch_kg;
+        //                    }
+        //                }
+        //            }
+        //            else
+        //            {
+        //                foreach (var item in ListVesselCatch)
+        //                {
+        //                    if (item.Catch_kg == 0 && !_speciesWeightIsZero)
+        //                    {
+        //                        _speciesWeightIsZero = true;
+        //                    }
+        //                    _runningSum += (double)item.Catch_kg;
+        //                }
+        //            }
+
+        //        }
+        //        else if (ListVesselCatch.Count > 0)
+        //        {
+        //            foreach (var item in ListVesselCatch)
+        //            {
+        //                _runningSum += (double)item.Catch_kg;
+
+        //            }
+        //            //return _runningSum;
+        //        }
+        //        else
+        //        {
+        //            _landedCatchValidationResult = LandedCatchValidationResult.ValidationResultNoCatchComposition;
+        //            return null;
+        //        }
+        //        if (_speciesWeightIsZero)
+        //        {
+        //            _landedCatchValidationResult = LandedCatchValidationResult.ValidationResultCatchWeightIsInvalid;
+        //        }
+        //        else
+        //        {
+        //            if (PrecisionOfWeights <= Utilities.Global.Settings.AcceptableWeightsDifferencePercent)
+        //            {
+        //                _landedCatchValidationResult = LandedCatchValidationResult.ValidationResultCatchWeightIsValid;
+        //            }
+        //            else
+        //            {
+        //                _landedCatchValidationResult = LandedCatchValidationResult.ValidationResultCatchWeightIsInvalid;
+        //            }
+        //        }
+
+        //        return _runningSum;
+        //    }
+        //}
         public NSAPEnumerator NSAPEnumerator
         {
             get
@@ -671,9 +985,24 @@ namespace NSAP_ODK.Entities.Database
                 return OperationIsSuccessful ? ((Double)WeightOfCatch).ToString("N1") : "";
             }
         }
+
+        public string WeightOfCatchSampleText
+        {
+            get
+            {
+                if (WeightOfCatchSample == null)
+                {
+                    return "";
+                }
+                else
+                {
+                    return ((double)WeightOfCatchSample).ToString("N1");
+                }
+            }
+        }
         public double? WeightOfCatchSample { get; set; }
         public int? Boxes { get; set; }
-        public double? RaisingFactor { get; set; }
+        //public double? RaisingFactor { get; set; }
         public string Sector
         {
             get
@@ -854,6 +1183,78 @@ namespace NSAP_ODK.Entities.Database
         public string DeviceID { get; set; }
         public DateTime DateTimeSubmitted { get; set; }
         public string FormVersion { get; set; }
+
+        public string FormVersionCleaned
+        {
+            get
+            {
+                return FormVersion.Replace("Version", "").Trim();
+            }
+        }
+        public double FormVersionNumeric
+        {
+            get
+            {
+                var ver = FormVersion.Replace("Version", "").Trim();
+                int? first_number = null;
+                if (double.TryParse(ver, out double v))
+                {
+                    return v;
+                }
+                else
+                {
+                    var arr = ver.Split('.');
+                    string vers = "";
+                    bool proceed = true;
+                    for (int x = 0; x <= arr.Length; x++)
+                    {
+                        if (proceed && x < 2)
+                        {
+                            if (x == 0)
+                            {
+                                vers = arr[x];
+                            }
+                            else
+                            {
+                                vers += $".{arr[x]}";
+                            }
+                            if (double.TryParse(vers, out double vv))
+                            {
+                                proceed = true;
+                                if (x == 0)
+                                {
+                                    first_number = (int)vv;
+                                }
+                            }
+                            else
+                            {
+                                proceed = false;
+                                break;
+                            }
+                        }
+                        else if (x == 2)
+                        {
+                            break;
+                        }
+                    }
+                    if (proceed)
+                    {
+                        return double.Parse(vers);
+                    }
+                    else if (first_number != null)
+                    {
+
+                        return (int)first_number;
+                    }
+                    else
+                    {
+                        return 0;
+                    }
+
+                }
+
+            }
+        }
         public string GPSCode { get; set; }
         public string Notes { get; set; }
         public DateTime SamplingDate { get; set; }

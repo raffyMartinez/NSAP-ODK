@@ -71,6 +71,7 @@
                             <ContextMenu>
                                 <MenuItem Header="Crosstab report" Click="OnContextMenuClick" x:Name="contextMenuCrosstabLandingSite"/>
                                 <MenuItem Header="Edit gear unload" Click="OnContextMenuClick" x:Name="contextMenuGearUnloadLandingSite"/>
+
                             </ContextMenu>
                         </StackPanel.ContextMenu>
                         <!-- <Image Width="16" Height="16" Margin="3,0" Source="Images\Region.png" /> -->
@@ -81,11 +82,13 @@
                 <DataTemplate 
                     DataType="{x:Type local:tv_MonthViewModel}">
 
-                    <StackPanel Orientation="Horizontal">
+                    <StackPanel Orientation="Horizontal" x:Name="panelMonthView">
                         <StackPanel.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="Crosstab report" Click="OnContextMenuClick" x:Name="contextMenuCrosstabMonth"/>
                                 <MenuItem Header="Edit gear unload" Click="OnContextMenuClick" x:Name="contextMenuGearUnloadMonth"/>
+                                <Separator/>
+                                <MenuItem Header="Weight and weight validation for landings" Click="OnContextMenuClick" x:Name="contextMenuWeightValidation"/>
                             </ContextMenu>
                         </StackPanel.ContextMenu>
                         <!-- <Image Width="16" Height="16" Margin="3,0" Source="Images\Region.png" /> -->

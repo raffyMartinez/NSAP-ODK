@@ -8,8 +8,8 @@
         Closing="OnWindowClosing"
         Closed="OnWindowClosed"
         Title="GearUnloadWindow" Height="450" Width="800">
-    
-        <Window.Resources>
+
+    <Window.Resources>
         <Style TargetType="{x:Type DataGridRowHeader}">
             <Setter Property="Control.Padding" Value="2 0 5 0"/>
             <Setter Property="Control.Background" Value="#FFEEEEEE"/>
@@ -36,6 +36,7 @@
 
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="25" x:Name="rowMenu"  />
             <RowDefinition Height="30"/>
             <RowDefinition/>
             <RowDefinition Height="20"/>
@@ -44,12 +45,19 @@
             <ColumnDefinition/>
             <ColumnDefinition Width="100"/>
         </Grid.ColumnDefinitions>
+        <Menu x:Name="menuBar" Margin="0 5 0 0" >
+            <MenuItem Header="Filter" VerticalContentAlignment="Center">
+                <MenuItem Header="Tally" x:Name="menuTallyValidity" Click="onMenuClicked"/>
+                <MenuItem Header="Reset filter" x:Name="menuTallyReset" Click="onMenuClicked"/>
+                <Separator/>
+                <MenuItem Header="Close" x:Name="menuExit" Click="onMenuClicked"/>
+            </MenuItem>
+        </Menu>
+        <Label x:Name="LabelTitle" Content="Label titie" HorizontalAlignment="Left" Margin="5 0" Grid.Row="1"/>
 
-        <Label x:Name="LabelTitle" Content="Label titie" HorizontalAlignment="Left" Margin="5 0"/>
 
-
-        <TabControl Grid.Row="1" x:Name="TabControl" Margin="10" SelectionChanged="OnTabSelectionChanged" >
-            <TabItem Header="Vessel unload">
+        <TabControl Grid.Row="2" x:Name="TabControl" Margin="10" SelectionChanged="OnTabSelectionChanged" >
+            <TabItem Header="Vessel unload" x:Name="tabItemVessleUnload">
                 <Grid>
                     <DataGrid  x:Name="GridVesselUnload" IsReadOnly="True" ItemsSource="{Binding}" LoadingRow="Grid_LoadingRow"
                   AutoGenerateColumns="False" MouseDoubleClick="OnGridDoubleClick" SelectionChanged="OnGridSelectionChanged" SelectionUnit="FullRow" FrozenColumnCount="1"/>
@@ -57,9 +65,19 @@
                 </Grid>
             </TabItem>
 
+            <TabItem Header="Weights and weight validation" x:Name="tabItemWeights">
+                <Grid Margin="5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Label x:Name="labelWeights" Content="Weights and validation of weights for sampled gears" HorizontalAlignment="Center"/>
+                    <DataGrid Grid.Row="1" x:Name="dataGridWeights" IsReadOnly="True" ItemsSource="{Binding}"  MouseDoubleClick="OnGridDoubleClick" LoadingRow="Grid_LoadingRow" SelectionChanged="OnGridSelectionChanged" SelectionUnit="FullRow"/>
+                </Grid>
 
+            </TabItem>
 
-            <TabItem Header="Unload entities summary">
+            <TabItem Header="Unload entities summary" x:Name="tabItemSummary">
                 <Grid Margin="5">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="30"/>
@@ -71,7 +89,7 @@
                 </Grid>
             </TabItem>
 
-            <TabItem Header="Number of boats and sum of catch" x:Name="tabPageBoatCount">
+            <TabItem Header="Number of boats and sum of catch" x:Name="tabItemPageBoatCount">
                 <Grid x:Name="gridGearUnloadNumbers">
                     <Grid.RowDefinitions>
 
@@ -100,9 +118,9 @@
 
 
 
-        <StackPanel Grid.Column="1" Grid.Row="1">
-                <Button Content="Close" Margin="20 20 20 10 " Height="30" Click="OnButtonCLick" x:Name="ButtonClose"/>
-            </StackPanel>
+        <StackPanel Grid.Column="1" Grid.Row="2">
+            <Button Content="Close" Margin="20 20 20 10 " Height="30" Click="OnButtonCLick" x:Name="ButtonClose"/>
+        </StackPanel>
 
     </Grid>
 </Window>

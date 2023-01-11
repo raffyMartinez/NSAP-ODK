@@ -311,6 +311,9 @@ namespace NSAP_ODK.Views
                     col.Binding.StringFormat = "0.00";
                     gridVesselUnload.Columns.Add(col);
 
+                    gridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Price", Binding = new Binding("PriceOfSpecies") });
+                    gridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Unit", Binding = new Binding("PriceUnit") });
+
                     //gridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("Catch_kg") });
                     //gridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Weight of sample", Binding = new Binding("Sample_kg") });
                     gridVesselUnload.Columns.Add(new DataGridCheckBoxColumn { Header = "From total catch", Binding = new Binding("FromTotalCatch ") });
@@ -376,10 +379,19 @@ namespace NSAP_ODK.Views
             treeItemLenList.Visibility = visibility;
             treeItemMaturity.Visibility = visibility;
         }
+
+        private void ShowStatusCatchCOmposition1()
+        {
+
+        }
         private void ShowStatusCatchCOmposition()
         {
             Label lbl;
             statusBar.Items.Clear();
+           if(_vesselUnload.VesselCatchViewModel==null)
+            {
+                _vesselUnload.VesselCatchViewModel = new VesselCatchViewModel(_vesselUnload);
+            }
             if (_vesselUnload.VesselCatchViewModel?.Count > 0)
             {
                 lbl = new Label { Content = $"Weight of catch: {((double)_vesselUnload.WeightOfCatch).ToString("0.00")}" };
@@ -408,6 +420,10 @@ namespace NSAP_ODK.Views
                     .ToString("0.00");
 
                 lbl = new Label { Content = $"Total weight of sampled species: {total_sample_wt_catch_comp}" };
+                lbl.Margin = new Thickness(5, 0, 0, 0);
+                statusBar.Items.Add(lbl);
+
+                lbl = new Label { Content = $"Raising factor: {((double)_vesselUnload.RaisingFactor).ToString("N2")}" };
                 lbl.Margin = new Thickness(5, 0, 0, 0);
                 statusBar.Items.Add(lbl);
             }
@@ -523,7 +539,8 @@ namespace NSAP_ODK.Views
                     propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "BoxesSampled", DisplayName = "Number of boxes sampled", DisplayOrder = 15, Description = "Number of boxes sampled", Category = "Effort" });
                     propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "RaisingFactor", DisplayName = "Raising factor", DisplayOrder = 16, Description = "Raising factor", Category = "Effort" });
                     propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "HasCatchComposition", DisplayName = "Catch composition included", DisplayOrder = 17, Description = "Whether or not catch composition is included in the sampled landing", Category = "Effort" });
-                    propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Notes", DisplayName = "Notes", DisplayOrder = 18, Description = "Notes", Category = "Effort" });
+                    propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "IsCatchSold", DisplayName = "Is the catch sold at landing site", DisplayOrder = 18, Description = "Notes", Category = "Effort" });
+                    propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Notes", DisplayName = "Notes", DisplayOrder = 19, Description = "Notes", Category = "Effort" });
 
 
                     propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "OperationIsTracked", DisplayName = "This operation is tracked", DisplayOrder = 11, Description = "Is this fishing operation tracked", Category = "Tracking" });

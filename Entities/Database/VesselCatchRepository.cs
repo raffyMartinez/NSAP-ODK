@@ -328,6 +328,47 @@ namespace NSAP_ODK.Entities.Database
             }
             return thisList;
         }
+
+        public static List<VesselCatchWV> GetVesselCatchForWV()
+        {
+            List<VesselCatchWV> thisList = new List<VesselCatchWV>();
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var conection = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = conection.CreateCommand())
+                    {
+                        cmd.CommandText = "Select catch_id, v_unload_id, catch_kg, samp_kg, from_total_catch from dbo_vessel_catch order by v_unload_id";
+                        try
+                        {
+                            conection.Open();
+                            var dr = cmd.ExecuteReader();
+                            while(dr.Read())
+                            {
+                                VesselCatchWV vcwv = new VesselCatchWV
+                                {
+                                    PK = (int)dr["catch_id"],
+                                    VesselUnloadID=(int)dr["v_unload_id"],
+                                    Species_kg=dr["catch_kg"]==DBNull.Value?null:(double?)dr["catch_kg"],
+                                    Species_sample_kg=dr["samp_kg"]==DBNull.Value?null:(double?)dr["samp_kg"],
+                                    FromTotalCatch=(bool)dr["from_total_catch"]
+                                };
+                                thisList.Add(vcwv);
+                            }
+                        }
+                        catch(Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return thisList;
+        }
         private List<VesselCatch> getVesselCatches(VesselUnload vu = null)
         {
             List<VesselCatch> thisList = new List<VesselCatch>();
@@ -372,6 +413,8 @@ namespace NSAP_ODK.Entities.Database
                                 item.CatchMaturityViewModel = new CatchMaturityViewModel(item);
                                 item.WeighingUnit = dr["weighing_unit"].ToString();
                                 item.FromTotalCatch = (bool)dr["from_total_catch"];
+                                item.PriceOfSpecies = string.IsNullOrEmpty(dr["price_of_species"].ToString()) ? null : (double?)dr["price_of_species"];
+                                item.PriceUnit = dr["price_unit"].ToString();
                                 thisList.Add(item);
                             }
 
@@ -536,8 +579,8 @@ namespace NSAP_ODK.Entities.Database
                 {
                     conn.Open();
 
-                    var sql = @"Insert into dbo_vessel_catch(catch_id, v_unload_id, species_id, catch_kg, samp_kg, taxa, species_text, weighing_unit,from_total_catch)
-                            Values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    var sql = @"Insert into dbo_vessel_catch(catch_id, v_unload_id, species_id, catch_kg, samp_kg, taxa, species_text, weighing_unit,from_total_catch,price_of_species,price_unit)
+                            Values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                     using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
                         update.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
@@ -580,6 +623,16 @@ namespace NSAP_ODK.Entities.Database
                         update.Parameters.Add("@wt_unit", OleDbType.VarChar).Value = item.WeighingUnit;
 
                         update.Parameters.Add("@from_total", OleDbType.Boolean).Value = item.FromTotalCatch;
+
+                        if (item.PriceOfSpecies == null)
+                        {
+                            update.Parameters.Add("@price", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@price", OleDbType.Double).Value = item.PriceOfSpecies;
+                        }
+                        update.Parameters.Add("@price_unit", OleDbType.VarChar).Value = item.PriceUnit;
 
                         //if(item.TWS==null)
                         //{
@@ -748,6 +801,19 @@ namespace NSAP_ODK.Entities.Database
                         cmd.Parameters.Add("@species_text", OleDbType.VarChar).Value = item.SpeciesText;
                         cmd.Parameters.Add("@wt_unit", OleDbType.VarChar).Value = item.WeighingUnit;
                         cmd.Parameters.Add("@from_total", OleDbType.Boolean).Value = item.FromTotalCatch;
+
+                        if (item.PriceOfSpecies == null)
+                        {
+                            cmd.Parameters.Add("@price", OleDbType.Double).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            cmd.Parameters.Add("@price", OleDbType.Double).Value = item.PriceOfSpecies;
+                        }
+
+                        cmd.Parameters.Add("@price_unit", OleDbType.VarChar).Value = item.PriceUnit;
+
+
                         cmd.Parameters.Add("@catch_id", OleDbType.Integer).Value = item.PK;
 
 
@@ -758,8 +824,10 @@ namespace NSAP_ODK.Entities.Database
                                 samp_kg = @sample_kg,
                                 taxa = @taxa,
                                 species_text = @species_text,
-                                weighing_unit = @wt_unit
+                                weighing_unit = @wt_unit,
                                 from_total_catch = @from_total,
+                                price_of_species = @price,
+                                price_unit = @price_unit,
                             WHERE catch_id = @catch_id";
                         try
                         {
@@ -774,6 +842,39 @@ namespace NSAP_ODK.Entities.Database
                         {
                             Logger.Log(ex);
                         }
+                    }
+                }
+            }
+            return success;
+        }
+
+        public static bool AddFieldToTable(string fieldName)
+        {
+            bool success = false;
+            string sql = "";
+            switch (fieldName)
+            {
+                case "price_of_species":
+                    sql = "ALTER TABLE dbo_vessel_catch ADD COLUMN price_of_species double";
+                    break;
+                case "price_unit":
+                    sql = "ALTER TABLE dbo_vessel_catch ADD COLUMN price_unit text(10)";
+                    break;
+            }
+            using (var con = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    con.Open();
+                    cmd.CommandText = sql;
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        success = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
                     }
                 }
             }

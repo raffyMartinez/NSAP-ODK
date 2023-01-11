@@ -45,8 +45,10 @@ namespace NSAP_ODK
         private int _gridRow;
         private string _gearCode;
         private string _gearName;
+        private string _fish_sector;
         private DateTime _monthYear;
         private TreeViewModelControl.AllSamplingEntitiesEventHandler _treeItemData;
+        private string _calendarTreeSelectedEntity;
         private GearUnload _gearUnload;
         private List<GearUnload> _gearUnloads;
         private GearUnloadWindow _gearUnloadWindow;
@@ -903,6 +905,7 @@ namespace NSAP_ODK
 
 
                         tvItem.Items.Add(new TreeViewItem { Header = "All fishing effort", Tag = "effort" });
+                        tvItem.Items.Add(new TreeViewItem { Header = "Weights", Tag = "weights" });
                         tvItem.Items.Add(new TreeViewItem { Header = "Tracked fishing effort", Tag = "tracked" });
                         tvItem.Items.Add(new TreeViewItem { Header = "Gear unload", Tag = "gearUnload" });
                         tvItem.Items.Add(new TreeViewItem { Header = "Unload summary", Tag = "unloadSummary" });
@@ -1217,6 +1220,18 @@ namespace NSAP_ODK
         {
             switch (((DataGrid)sender).Name)
             {
+                case "GridNSAPData":
+                    if (_calendarTreeSelectedEntity == "tv_LandingSiteViewModel")
+                    {
+                        SummaryResults item = (SummaryResults)GridNSAPData.SelectedItem;
+
+                        //var item = GridNSAPData.Items[_gridRow] as DataRowView;
+                        if (item != null)
+                        {
+                            _monthYear = DateTime.Parse(item.DBSummary.MonthSampled);
+                        }
+                    }
+                    break;
                 case "dataGridEFormVersionStats":
                     if (dataGridEFormVersionStats.SelectedItem != null)
                     {
@@ -2167,8 +2182,28 @@ namespace NSAP_ODK
 
             switch (itemName)
             {
+                case "menuUpdateWeightValidation":
+                    UpdateWeightValidationTableWindow uwvw = UpdateWeightValidationTableWindow.GetInstance();
+                    uwvw.Owner = this;
+                    if(uwvw.Visibility==Visibility.Visible)
+                    {
+                        uwvw.BringIntoView();
+                    }
+                    else
+                    {
+                        uwvw.Show();
+                    }
+                    //ShowStatusRow();
+                    //WeightValidationUpdater.UploadSubmissionToDB += WeightValidationUpdater_UploadSubmissionToDB;
+                    //WeightValidationUpdater.SummaryItems = NSAPEntities.SummaryItemViewModel.SummaryItemCollection.ToList();
+                    //if (await WeightValidationUpdater.UpdateDatabaseAsync())
+                    //{
+                    //    MessageBox.Show("Updated weight validation table", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                    //}
+                    //WeightValidationUpdater.UploadSubmissionToDB -= WeightValidationUpdater_UploadSubmissionToDB;
+                    break;
                 case "menuDownloadCSV":
-                    if(DownloadCSVFromServer())
+                    if (DownloadCSVFromServer())
                     {
 
                     }
@@ -2222,6 +2257,32 @@ namespace NSAP_ODK
                     rlsw.NSAPRegion = (NSAPRegion)dataGridEntities.SelectedItem;
                     rlsw.ShowDialog();
 
+                    break;
+                case "menuWeights":
+                    switch (_calendarTreeSelectedEntity)
+                    {
+                        case "tv_MonthViewModel":
+                        case "tv_LandingSiteViewModel":
+                            ShowStatusRow();
+                            ((ContextMenu)((MenuItem)e.OriginalSource).Parent).IsOpen = false;
+                            //await GearUnloadWindowWithWeightValidation();
+                            _treeItemData.MonthSampled = _monthYear;
+                            if (_calendarTreeSelectedEntity == "tv_MonthViewModel")
+                            {
+                                _treeItemData.GearUsed = _gearName;
+                            }
+                            //var items = await NSAPEntities.SummaryItemViewModel.GetValidateLandedCatchWeightsByCalendarTreeSelectionAsync(_treeItemData);
+
+                            var items = await NSAPEntities.SummaryItemViewModel.GetDownloadDetailsByCalendarTreeSelectionTaskAsync(_treeItemData);
+                            GearUnloadWindow guw = new GearUnloadWindow(items, _treeItemData);
+                            guw.Owner = this;
+                            guw.ShowDialog();
+
+                            break;
+                        default:
+                            //ignore
+                            break;
+                    }
                     break;
                 case "menuCopyText":
                     if (_dataGrid != null)
@@ -2410,6 +2471,98 @@ namespace NSAP_ODK
 
         }
 
+        private void WeightValidationUpdater_UploadSubmissionToDB(object sender, UploadToDbEventArg e)
+        {
+
+            switch (e.Intent)
+            {
+                case UploadToDBIntent.StartOfUpdate:
+                    mainStatusBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              mainStatusBar.IsIndeterminate = false;
+                              mainStatusBar.Maximum = e.VesselUnloadToUpdateCount;
+                              mainStatusBar.Value = 0;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+                    mainStatusLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusLabel.Content = "Updating weight validation summary. Please wait...";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+
+                    break;
+                case UploadToDBIntent.SummaryItemProcessed:
+                    mainStatusBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              mainStatusBar.Value = e.SummaryItemProcessedCount;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+                    mainStatusLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusLabel.Content = $"Finished updating record {e.SummaryItemProcessedCount} of {mainStatusBar.Maximum}";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case UploadToDBIntent.WeightValidationUpdated:
+                    mainStatusLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusLabel.Content = $"Updated validation record #{e.VesselUnloadWeightValidationUpdateCount}";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case UploadToDBIntent.EndOfUpdate:
+                    mainStatusBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              mainStatusBar.Value = 0;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+                    
+                    _timer.Interval = TimeSpan.FromSeconds(3);
+                    _timer.Start();
+                    break;
+            }
+        }
+
+
+        //private async Task GearUnloadWindowWithWeightValidation()
+        //{
+        //    _treeItemData.MonthSampled = _monthYear;
+        //    if (_calendarTreeSelectedEntity == "tv_MonthViewModel")
+        //    {
+        //        _treeItemData.GearUsed = _gearName;
+        //    }
+        //    var items = await NSAPEntities.SummaryItemViewModel.GetValidateLandedCatchWeightsByCalendarTreeSelectionAsync(_treeItemData);
+        //    GearUnloadWindow guw = new GearUnloadWindow(items);
+        //    guw.Owner = this;
+        //    guw.ShowDialog();
+        //}
+
         private int _rowsForUpdating;
         private void VesselUnloadViewModel_DatabaseUpdatedEvent(object sender, EventArgs e)
         {
@@ -2428,8 +2581,8 @@ namespace NSAP_ODK
                               mainStatusBar.Value = 0;
                               mainStatusBar.Maximum = _rowsForUpdating;
                               mainStatusBar.IsIndeterminate = true;
-                              //do what you need to do on UI Thread
-                              return null;
+                          //do what you need to do on UI Thread
+                          return null;
                           }
                          ), null);
 
@@ -2438,8 +2591,8 @@ namespace NSAP_ODK
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
                               mainStatusLabel.Content = $"Starting to update database {_rowsForUpdating} rows for landing statistics";
-                              //do what you need to do on UI Thread
-                              return null;
+                          //do what you need to do on UI Thread
+                          return null;
                           }
                          ), null);
                     break;
@@ -2449,8 +2602,8 @@ namespace NSAP_ODK
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
                               mainStatusBar.IsIndeterminate = false;
-                              //do what you need to do on UI Thread
-                              return null;
+                          //do what you need to do on UI Thread
+                          return null;
                           }
                         ), null);
                     break;
@@ -2460,8 +2613,8 @@ namespace NSAP_ODK
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
                               mainStatusLabel.Content = $" Updated row {ev.RunningCount} of {_rowsForUpdating}";
-                              //do what you need to do on UI Thread
-                              return null;
+                          //do what you need to do on UI Thread
+                          return null;
                           }
                          ), null);
 
@@ -2470,8 +2623,8 @@ namespace NSAP_ODK
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
                               mainStatusBar.Value++;
-                              //do what you need to do on UI Thread
-                              return null;
+                          //do what you need to do on UI Thread
+                          return null;
                           }
                          ), null);
                     break;
@@ -2481,8 +2634,8 @@ namespace NSAP_ODK
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
                               mainStatusLabel.Content = $"Finished updating {_rowsForUpdating} rows";
-                              //do what you need to do on UI Thread
-                              return null;
+                          //do what you need to do on UI Thread
+                          return null;
                           }
                          ), null);
 
@@ -2651,16 +2804,16 @@ namespace NSAP_ODK
                     if (_currentDisplayMode == DataDisplayMode.ODKData)
                     {
 
-                        if (_gearUnloads != null  && _gearUnloads.Count>0 && _gearUnloadWindow == null)
+                        if (_gearUnloads != null && _gearUnloads.Count > 0 && _gearUnloadWindow == null)
                         {
                             _gearUnloadWindow = new GearUnloadWindow(_gearUnloads, _treeItemData, this);
                             _gearUnloadWindow.Owner = this;
-                            
+
                             _gearUnloadWindow.Show();
                         }
                         else
                         {
-                            if(_gearUnloadWindow!=null && !_gearUnloadWindow.IsLoaded)
+                            if (_gearUnloadWindow != null && !_gearUnloadWindow.IsLoaded)
                             {
                                 _gearUnloadWindow.Close();
                                 _gearUnloadWindow = null;
@@ -2687,6 +2840,10 @@ namespace NSAP_ODK
                                     return;
                                 case "tracked":
                                 case "effort":
+
+                                    unload = NSAPEntities.SummaryItemViewModel.GetVesselUnload((SummaryItem)GridNSAPData.SelectedItem);
+                                    break;
+                                case "weights":
                                     unload = NSAPEntities.SummaryItemViewModel.GetVesselUnload((SummaryItem)GridNSAPData.SelectedItem);
                                     break;
                                 default:
@@ -2860,7 +3017,10 @@ namespace NSAP_ODK
             NSAPEntities.SummaryItemViewModel.TreeViewData = e;
             string labelContent = "";
             GridNSAPData.SelectionUnit = DataGridSelectionUnit.FullRow;
-            switch (e.TreeViewEntity)
+            _calendarTreeSelectedEntity = e.TreeViewEntity;
+            _treeItemData = e;
+            //switch (e.TreeViewEntity)
+            switch (_calendarTreeSelectedEntity)
             {
                 case "tv_NSAPRegionViewModel":
                     labelContent = $"Summary of database content for {e.NSAPRegion.Name}";
@@ -2888,10 +3048,14 @@ namespace NSAP_ODK
                     PropertyGrid.Visibility = Visibility.Collapsed;
                     NSAPEntities.NSAPRegion = e.NSAPRegion;
                     MakeCalendar(e);
+
+
+
                     break;
             }
 
-            if (e.TreeViewEntity != "tv_MonthViewModel")
+            //if (e.TreeViewEntity != "tv_MonthViewModel")
+            if (_calendarTreeSelectedEntity != "tv_MonthViewModel")
             {
                 MonthLabel.Content = labelContent;
                 MonthSubLabel.Visibility = Visibility.Collapsed;
@@ -2949,11 +3113,11 @@ namespace NSAP_ODK
                         {
 
                         }
-                        string sector = (string)item.Row.ItemArray[2];
+                        _fish_sector = (string)item.Row.ItemArray[2];
                         string sector_code = "";
-                        if (!string.IsNullOrEmpty(sector))
+                        if (!string.IsNullOrEmpty(_fish_sector))
                         {
-                            switch (sector)
+                            switch (_fish_sector)
                             {
                                 case "Commercial":
                                     sector_code = "c";
@@ -2965,35 +3129,42 @@ namespace NSAP_ODK
                         }
                         _gearUnloads = new List<GearUnload>();
 
-                        GearUnload gear_unload_from_day = _fishingCalendarViewModel.FishingCalendarList.FirstOrDefault(t => t.GearName == _gearName && t.Sector == sector).GearUnloads[_gridCol - 4];
-
-                        if (gear_unload_from_day != null)
+                        if (_gridCol == 0)
                         {
-                            GearUnload unload_to_display = new GearUnload
+
+                        }
+                        else if (_gridCol >= 4)
+                        {
+                            GearUnload gear_unload_from_day = _fishingCalendarViewModel.FishingCalendarList.FirstOrDefault(t => t.GearName == _gearName && t.Sector == _fish_sector).GearUnloads[_gridCol - 4];
+
+                            if (gear_unload_from_day != null)
                             {
+                                GearUnload unload_to_display = new GearUnload
+                                {
 
-                                GearID = gear_unload_from_day.GearID,
-                                GearUsedText = gear_unload_from_day.GearUsedText,
-                                PK = gear_unload_from_day.PK,
-                                Remarks = gear_unload_from_day.Remarks,
-                                LandingSiteSamplingID = gear_unload_from_day.LandingSiteSamplingID,
-                                SectorCode = gear_unload_from_day.SectorCode,
-                                VesselUnloadViewModel = new VesselUnloadViewModel(isNew: true),
-                                ListVesselUnload = gear_unload_from_day.ListVesselUnload.Where(t => t.SectorCode == sector_code).ToList(),
-                                Parent = gear_unload_from_day.Parent
-                            };
+                                    GearID = gear_unload_from_day.GearID,
+                                    GearUsedText = gear_unload_from_day.GearUsedText,
+                                    PK = gear_unload_from_day.PK,
+                                    Remarks = gear_unload_from_day.Remarks,
+                                    LandingSiteSamplingID = gear_unload_from_day.LandingSiteSamplingID,
+                                    SectorCode = gear_unload_from_day.SectorCode,
+                                    VesselUnloadViewModel = new VesselUnloadViewModel(isNew: true),
+                                    ListVesselUnload = gear_unload_from_day.ListVesselUnload.Where(t => t.SectorCode == sector_code).ToList(),
+                                    Parent = gear_unload_from_day.Parent
+                                };
 
-                            _gearUnloads.Add(unload_to_display);
+                                _gearUnloads.Add(unload_to_display);
+                            }
                         }
                         //_gearUnloads.Add(gear_unload_from_day);
 
                         //_gearUnloads = NSAPEntities.SummaryItemViewModel.GetGearUnloads(_gearName, _gridCol - 4, sector_code);
                     }
 
-                    if (_gearUnloadWindow != null && _gearUnloads != null )
+                    if (_gearUnloadWindow != null && _gearUnloads != null)
                     {
                         _gearUnloadWindow.TurnGridOff();
-                        if (_gearUnloads != null && _gearUnloads.Count>0)
+                        if (_gearUnloads != null && _gearUnloads.Count > 0)
                         {
                             //_gearUnloadWindow.GearUnload = _gearUnload;
                             _gearUnloadWindow.GearUnloads = _gearUnloads;
@@ -3043,6 +3214,13 @@ namespace NSAP_ODK
                     ShowStatusRow();
                     await CrossTabManager.GearByMonthYearAsync(_allSamplingEntitiesEventHandler);
                     ShowCrossTabWIndow();
+                    break;
+                case "contextMenuWeightValidation":
+                    ShowStatusRow();
+                    var items = await NSAPEntities.SummaryItemViewModel.GetDownloadDetailsByCalendarTreeSelectionTaskAsync(_treeItemData, monthInTreeView: true);
+                    GearUnloadWindow guw = new GearUnloadWindow(items, _treeItemData);
+                    guw.Owner = this;
+                    guw.ShowDialog();
                     break;
             }
         }
@@ -3125,6 +3303,9 @@ namespace NSAP_ODK
             labelRowCount.Visibility = Visibility.Visible;
             MonthLabel.Visibility = Visibility.Visible;
             MonthLabel.Content = $"Vessel unload by date of download";
+
+            var col = new DataGridTextColumn();
+
             var dt = DateTime.Now;
             if (e.NewValue != null)
             {
@@ -3159,6 +3340,7 @@ namespace NSAP_ODK
                         //newStyle.Setters.Add(bold);
                         //row.Style = newStyle;
                         break;
+                    case "weights":
                     case "effort":
                     case "tracked":
                         //if (!_saveChangesToGearUnload &&
@@ -3169,18 +3351,23 @@ namespace NSAP_ODK
                         //    UndoChangesToGearUnload(refresh: false);
                         //}
 
-
+                        dt = DateTime.Parse(((TreeViewItem)tvItem.Parent).Header.ToString()).Date;
                         if (tvItem.Tag.ToString() == "effort")
                         {
-                            dt = DateTime.Parse(((TreeViewItem)tvItem.Parent).Header.ToString()).Date;
+
                             GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetDownloadDetailsByDateAsync(dt);
                             //RefreshDownloadedItemsGrid(dt);
                         }
                         else if (tvItem.Tag.ToString() == "tracked")
                         {
-                            dt = DateTime.Parse(((TreeViewItem)tvItem.Parent).Header.ToString()).Date;
+                            //dt = DateTime.Parse(((TreeViewItem)tvItem.Parent).Header.ToString()).Date;
                             GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetDownloadDetailsByDateAsync(dt, isTracked: true);
                             //GridNSAPData.DataContext = _vesselDownloadHistory[dt].Where(t => t.IsTracked == true);
+                        }
+                        else
+                        {
+                            //GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetValidateLandedCatchWeightsAsync(dt);
+                            GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetDownloadDetailsByDateAsync(dt);
                         }
                         GridNSAPData.AutoGenerateColumns = false;
                         GridNSAPData.Columns.Clear();
@@ -3188,37 +3375,73 @@ namespace NSAP_ODK
                         GearUnload_ButtonsPanel.Visibility = Visibility.Collapsed;
 
 
-
-
-
-                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("VesselUnloadID") });
-                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("EnumeratorNameToUse") });
-                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Region", Binding = new Binding("Region.Name") });
-                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("FMA.Name") });
-                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Fishing ground ", Binding = new Binding("FishingGround.Name") });
-                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Landing site ", Binding = new Binding("LandingSiteNameText") });
-                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Gear ", Binding = new Binding("GearUsedName") });
-                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Ref # ", Binding = new Binding("RefNo") });
-
-                        var col = new DataGridTextColumn()
+                        if (tvItem.Tag.ToString() == "weights")
                         {
-                            Binding = new Binding("SamplingDate"),
-                            Header = "Sampling date"
-                        };
-                        col.Binding.StringFormat = "MMM-dd-yyyy HH:mm";
-                        GridNSAPData.Columns.Add(col);
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("VesselUnloadID") });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("EnumeratorNameToUse") });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Region", Binding = new Binding("Region.Name") });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("FMA.Name") });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Fishing ground ", Binding = new Binding("FishingGround.Name") });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Landing site ", Binding = new Binding("LandingSiteNameText") });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Gear ", Binding = new Binding("GearUsedName") });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Ref # ", Binding = new Binding("RefNo") });
 
-                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Sector") });
-                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("VesselNameToUse") });
-                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Number of fishers", Binding = new Binding("NumberOfFishers") });
+                            col = new DataGridTextColumn()
+                            {
+                                Binding = new Binding("SamplingDate"),
+                                Header = "Sampling date"
+                            };
 
-                        if (tvItem.Tag.ToString() == "tracked")
-                        {
-                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "GPS ", Binding = new Binding("GPSNameToUse") });
+                            col.Binding.StringFormat = "MMM-dd-yyyy HH:mm";
+                            GridNSAPData.Columns.Add(col);
+
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Weight of catch ", Binding = new Binding("VesselUnload.WeightOfCatch") });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Weight of sample from catch", Binding = new Binding("VesselUnload.WeightOfCatchSample") });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Number of species in catch", Binding = new Binding("VesselUnload.CountCatchCompositionItems") });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Raising factor ", Binding = new Binding("VesselUnload.RaisingFactor") });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Weight of catch composition", Binding = new Binding("VesselUnload.SumOfCatchCompositionWeights") });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Weight of catch composition from sample ", Binding = new Binding("VesselUnload.SumOfSampleWeights") });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Type of sampling", Binding = new Binding("VesselUnload.SamplingTypeFlagText") });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Validity of weights ", Binding = new Binding("VesselUnload.WeightValidationFlagText") });
                         }
+                        else
+                        {
 
-                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Excel download ", Binding = new Binding("FromExcelDownload") });
-                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Form version ", Binding = new Binding("FormVersion") });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("VesselUnloadID") });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "User name", Binding = new Binding("EnumeratorNameToUse") });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Region", Binding = new Binding("Region.Name") });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("FMA.Name") });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Fishing ground ", Binding = new Binding("FishingGround.Name") });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Landing site ", Binding = new Binding("LandingSiteNameText") });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Gear ", Binding = new Binding("GearUsedName") });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Ref # ", Binding = new Binding("RefNo") });
+
+                            col = new DataGridTextColumn()
+                            {
+                                Binding = new Binding("SamplingDate"),
+                                Header = "Sampling date"
+                            };
+                            col.Binding.StringFormat = "MMM-dd-yyyy HH:mm";
+                            GridNSAPData.Columns.Add(col);
+
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Sector") });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("VesselNameToUse") });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Number of fishers", Binding = new Binding("NumberOfFishers") });
+
+                            if (tvItem.Tag.ToString() == "tracked")
+                            {
+                                GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "GPS ", Binding = new Binding("GPSNameToUse") });
+                            }
+                            else if (tvItem.Tag.ToString() == "weights")
+                            {
+
+                            }
+                            else
+                            {
+                                GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Excel download ", Binding = new Binding("FromExcelDownload") });
+                                GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Form version ", Binding = new Binding("FormVersion") });
+                            }
+                        }
                         break;
                     case "gearUnload":
                         dt = DateTime.Parse(((TreeViewItem)tvItem.Parent).Header.ToString()).Date;
@@ -3795,7 +4018,7 @@ namespace NSAP_ODK
         private void OnGridGotFocus(object sender, RoutedEventArgs e)
         {
             _dataGrid = (DataGrid)sender;
-            Title = _dataGrid.Name;
+            //Title = _dataGrid.Name;
         }
 
         private void OnMenuRightClick(object sender, MouseButtonEventArgs e)
@@ -3807,6 +4030,39 @@ namespace NSAP_ODK
             m = new MenuItem { Header = "Copy text", Name = "menuCopyText" };
             m.Click += OnMenuClicked;
             cm.Items.Add(m);
+
+            switch (_dataGrid.Name)
+            {
+                case "GridNSAPData":
+                    switch (_calendarTreeSelectedEntity)
+                    {
+                        case "tv_LandingSiteViewModel":
+                        case "tv_MonthViewModel":
+                            m = new MenuItem { Header = "Weights and weight validation", Name = "menuWeights" };
+                            m.Click += OnMenuClicked;
+                            cm.Items.Add(m);
+
+                            if (_calendarTreeSelectedEntity == "tv_MonthViewModel")
+                            {
+                                m.IsEnabled = false;
+                                if (_gridCol == 0)
+                                {
+                                    m.IsEnabled = true;
+                                    m.Header += $" for {_gearName} ({_fish_sector})";
+                                }
+
+                            }
+                            else
+                            {
+                                m.Header += $" for landings sampled on {_monthYear.ToString("MMMM, yyyy")}";
+                            }
+                            break;
+                        default:
+                            //ignore for now
+                            break;
+                    }
+                    break;
+            }
 
 
             if (_nsapEntity == NSAPEntity.NSAPRegion)

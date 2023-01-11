@@ -23,7 +23,7 @@ namespace NSAP_ODK.Entities.Database
         {
             bool proceed = false;
             //if (TotalWtSpRepository.CheckForTWSPTable() && GearAtLandingSiteDaysPerMonthRepository.CheckForGearLandingSiteTable())
-            if (TotalWtSpRepository.CheckForTWSPTable())// && GearAtLandingSiteDaysPerMonthRepository.CheckForGearLandingSiteTable())
+            if (TotalWtSpRepository.CheckForTWSPTable() && VesselUnloadRepository.CheckForWtValidationTable())// && GearAtLandingSiteDaysPerMonthRepository.CheckForGearLandingSiteTable())
             {
                 var cols = CreateTablesInAccess.GetColumnNames("dbo_LC_FG_sample_day");
                 if (cols.Contains("has_fishing_operation") || UpdateTableDefinition("has_fishing_operation") &&
@@ -46,6 +46,21 @@ namespace NSAP_ODK.Entities.Database
                             {
                                 cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_unload_1");
                                 proceed = cols.Contains("ref_no") || VesselUnloadRepository.AddFieldToTable1("ref_no");
+                                if(proceed)
+                                {
+                                    proceed = cols.Contains("is_catch_sold") || VesselUnloadRepository.AddFieldToTable1("is_catch_sold");
+                                }
+                            }
+
+
+                            //check for pricing columns in catch composition table
+                            if(proceed)
+                            {
+                                cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_catch");
+                                if( cols.Contains("price_of_species") || VesselCatchRepository.AddFieldToTable("price_of_species"))
+                                {
+                                    proceed = cols.Contains("price_unit") || VesselCatchRepository.AddFieldToTable("price_unit");
+                                }
                             }
 
                             //check and and sex column for length table
@@ -66,6 +81,8 @@ namespace NSAP_ODK.Entities.Database
                                 cols = CreateTablesInAccess.GetColumnNames("dbo_catch_len_wt");
                                 proceed = cols.Contains("sex") || CatchLenWeightRepository.AddFieldToTable("sex");
                             }
+
+
 
                         }
                     }
