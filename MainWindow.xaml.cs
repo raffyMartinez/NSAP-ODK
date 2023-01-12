@@ -38,6 +38,7 @@ namespace NSAP_ODK
     /// </summary>
     public partial class MainWindow : Window
     {
+        WeightValidationTallyWindow _wvtw;
         private NSAPEntity _nsapEntity;
         private string _csvSaveToFolder = "";
         private FishingCalendarViewModel _fishingCalendarViewModel;
@@ -54,7 +55,8 @@ namespace NSAP_ODK
         private GearUnloadWindow _gearUnloadWindow;
         private Dictionary<DateTime, List<SummaryItem>> _vesselDownloadHistory;
         private DataDisplayMode _currentDisplayMode;
-        private VesselUnloadWIndow _vesselUnloadWindow;
+        //private VesselUnloadWIndow _vesselUnloadWindow;
+        private VesselUnloadEditWindow _vesselUnloadEditWindow;
         private List<GearUnload> _gearUnloadList;
         private bool _saveChangesToGearUnload;
         private PropertyItem _selectedPropertyItem;
@@ -1231,6 +1233,13 @@ namespace NSAP_ODK
                             _monthYear = DateTime.Parse(item.DBSummary.MonthSampled);
                         }
                     }
+                    else if(GridNSAPData.SelectedItem!=null && GridNSAPData.SelectedItem.GetType().Name=="SummaryItem" )
+                    {
+                        if(_vesselUnloadEditWindow!=null)
+                        {
+                            _vesselUnloadEditWindow.VesselUnload = ((SummaryItem)GridNSAPData.SelectedItem).VesselUnload;
+                        }
+                    }
                     break;
                 case "dataGridEFormVersionStats":
                     if (dataGridEFormVersionStats.SelectedItem != null)
@@ -2180,12 +2189,31 @@ namespace NSAP_ODK
                 UncheckEditMenuItems();
             }
 
+            if(!itemName.Contains("menuWeightValidationTally"))
+            {
+                CloseTallyWindow();
+            }
+
             switch (itemName)
             {
+                case "menuWeightValidationTally":
+                case "menuWeightValidationTally_context":
+                    _wvtw = WeightValidationTallyWindow.GetInstance((List<SummaryItem>)GridNSAPData.DataContext);
+                    _wvtw.Owner = this;
+                    _wvtw.DataGrid = GridNSAPData;
+                    if (_wvtw.Visibility == Visibility.Visible)
+                    {
+                        _wvtw.BringIntoView();
+                    }
+                    else
+                    {
+                        _wvtw.Show();
+                    }
+                    break;
                 case "menuUpdateWeightValidation":
                     UpdateWeightValidationTableWindow uwvw = UpdateWeightValidationTableWindow.GetInstance();
                     uwvw.Owner = this;
-                    if(uwvw.Visibility==Visibility.Visible)
+                    if (uwvw.Visibility == Visibility.Visible)
                     {
                         uwvw.BringIntoView();
                     }
@@ -2193,14 +2221,6 @@ namespace NSAP_ODK
                     {
                         uwvw.Show();
                     }
-                    //ShowStatusRow();
-                    //WeightValidationUpdater.UploadSubmissionToDB += WeightValidationUpdater_UploadSubmissionToDB;
-                    //WeightValidationUpdater.SummaryItems = NSAPEntities.SummaryItemViewModel.SummaryItemCollection.ToList();
-                    //if (await WeightValidationUpdater.UpdateDatabaseAsync())
-                    //{
-                    //    MessageBox.Show("Updated weight validation table", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
-                    //}
-                    //WeightValidationUpdater.UploadSubmissionToDB -= WeightValidationUpdater_UploadSubmissionToDB;
                     break;
                 case "menuDownloadCSV":
                     if (DownloadCSVFromServer())
@@ -2542,7 +2562,7 @@ namespace NSAP_ODK
                               //do what you need to do on UI Thread
                               return null;
                           }), null);
-                    
+
                     _timer.Interval = TimeSpan.FromSeconds(3);
                     _timer.Start();
                     break;
@@ -2581,8 +2601,8 @@ namespace NSAP_ODK
                               mainStatusBar.Value = 0;
                               mainStatusBar.Maximum = _rowsForUpdating;
                               mainStatusBar.IsIndeterminate = true;
-                          //do what you need to do on UI Thread
-                          return null;
+                              //do what you need to do on UI Thread
+                              return null;
                           }
                          ), null);
 
@@ -2591,8 +2611,8 @@ namespace NSAP_ODK
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
                               mainStatusLabel.Content = $"Starting to update database {_rowsForUpdating} rows for landing statistics";
-                          //do what you need to do on UI Thread
-                          return null;
+                              //do what you need to do on UI Thread
+                              return null;
                           }
                          ), null);
                     break;
@@ -2602,8 +2622,8 @@ namespace NSAP_ODK
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
                               mainStatusBar.IsIndeterminate = false;
-                          //do what you need to do on UI Thread
-                          return null;
+                              //do what you need to do on UI Thread
+                              return null;
                           }
                         ), null);
                     break;
@@ -2613,8 +2633,8 @@ namespace NSAP_ODK
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
                               mainStatusLabel.Content = $" Updated row {ev.RunningCount} of {_rowsForUpdating}";
-                          //do what you need to do on UI Thread
-                          return null;
+                              //do what you need to do on UI Thread
+                              return null;
                           }
                          ), null);
 
@@ -2623,8 +2643,8 @@ namespace NSAP_ODK
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
                               mainStatusBar.Value++;
-                          //do what you need to do on UI Thread
-                          return null;
+                              //do what you need to do on UI Thread
+                              return null;
                           }
                          ), null);
                     break;
@@ -2634,8 +2654,8 @@ namespace NSAP_ODK
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
                               mainStatusLabel.Content = $"Finished updating {_rowsForUpdating} rows";
-                          //do what you need to do on UI Thread
-                          return null;
+                              //do what you need to do on UI Thread
+                              return null;
                           }
                          ), null);
 
@@ -2850,18 +2870,19 @@ namespace NSAP_ODK
                                     return;
                             }
 
-                            var unloadEditWindow = VesselUnloadEditWindow.GetInstance();
+                             _vesselUnloadEditWindow = VesselUnloadEditWindow.GetInstance(this);
 
-                            if (unloadEditWindow.Visibility == Visibility.Visible)
+                            if (_vesselUnloadEditWindow.Visibility == Visibility.Visible)
                             {
-                                unloadEditWindow.BringIntoView();
+                                _vesselUnloadEditWindow.BringIntoView();
                             }
                             else
                             {
-                                unloadEditWindow.Owner = this;
-                                unloadEditWindow.Show();
+                                _vesselUnloadEditWindow.Show();
                             }
-                            unloadEditWindow.VesselUnload = unload;
+                            _vesselUnloadEditWindow.VesselUnload = unload;
+                            _vesselUnloadEditWindow.Owner = this;
+                            //unloadEditWindow.OwnerSet();
                         }
 
                     }
@@ -2994,7 +3015,7 @@ namespace NSAP_ODK
         }
         public void VesselWindowClosed()
         {
-            _vesselUnloadWindow = null;
+            _vesselUnloadEditWindow = null;
         }
 
         private void MakeCalendar(TreeViewModelControl.AllSamplingEntitiesEventHandler e)
@@ -3294,6 +3315,14 @@ namespace NSAP_ODK
             }
         }
 
+        private void CloseTallyWindow()
+        {
+            if ( _wvtw != null)
+            {
+                _wvtw.Close();
+                _wvtw = null;
+            }
+        }
         private async void OnHistoryTreeItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             ShowStatusRow();
@@ -3303,6 +3332,8 @@ namespace NSAP_ODK
             labelRowCount.Visibility = Visibility.Visible;
             MonthLabel.Visibility = Visibility.Visible;
             MonthLabel.Content = $"Vessel unload by date of download";
+            menuWeightValidationTally.IsEnabled = false;
+
 
             var col = new DataGridTextColumn();
 
@@ -3310,8 +3341,13 @@ namespace NSAP_ODK
             if (e.NewValue != null)
             {
                 var tvItem = (TreeViewItem)e.NewValue;
+                string itemTag = tvItem.Tag.ToString();
+                if (itemTag != "weights")
+                {
+                    CloseTallyWindow();
+                }
 
-                switch (tvItem.Tag.ToString())
+                switch (itemTag)
                 {
                     case "downloadDate":
                         dt = DateTime.Parse(tvItem.Header.ToString()).Date;
@@ -3368,6 +3404,7 @@ namespace NSAP_ODK
                         {
                             //GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetValidateLandedCatchWeightsAsync(dt);
                             GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetDownloadDetailsByDateAsync(dt);
+                            menuWeightValidationTally.IsEnabled = true;
                         }
                         GridNSAPData.AutoGenerateColumns = false;
                         GridNSAPData.Columns.Clear();
@@ -3948,6 +3985,7 @@ namespace NSAP_ODK
         }
         private async void OnToolbarButtonClick(object sender, RoutedEventArgs e)
         {
+            CloseTallyWindow();
             bool showStatus = false;
             menuDatabaseSummary.IsChecked = false;
             switch (((Button)sender).Name)
@@ -3991,6 +4029,14 @@ namespace NSAP_ODK
             MenuItem m = null;
             switch (((TreeView)sender).Name)
             {
+                case "treeViewDownloadHistory":
+                    if (((TreeViewItem)((TreeView)sender).SelectedItem).Tag.ToString() == "weights")
+                    {
+                        m = new MenuItem { Header = "Tally weight validation flags", Name = "menuWeightValidationTally_context" };
+                        m.Click += OnMenuClicked;
+                        cm.Items.Add(m);
+                    }
+                    break;
                 case "treeViewSummary":
                     if (((TreeViewItem)((TreeView)sender).SelectedItem).Tag.GetType().Name == "FishingGround")
                     {

@@ -35,7 +35,8 @@ namespace NSAP_ODK.Views
         private List<GearUnload> _gearUnloads;
         private TreeViewModelControl.AllSamplingEntitiesEventHandler _treeItemData;
         private VesselUnload _selectedVesselUnload;
-        private VesselUnloadWIndow _vesselUnloadWindow;
+        //private VesselUnloadWIndow _vesselUnloadWindow;
+        private VesselUnloadEditWindow _vesselUnloadWindow;
         private MainWindow _parentWindow;
         private bool _changeFromGridClick;
         private List<VesselUnload> _vesselUnloads;
@@ -303,14 +304,16 @@ namespace NSAP_ODK.Views
                     {
                         NSAPEntities.NSAPRegion = _selectedVesselUnload.Parent.Parent.NSAPRegion;
                     }
-                    _vesselUnloadWindow = new VesselUnloadWIndow(_selectedVesselUnload, this);
+                    //_vesselUnloadWindow = new VesselUnloadWIndow(_selectedVesselUnload, this);
+                    _vesselUnloadWindow = new VesselUnloadEditWindow(this);
                     _vesselUnloadWindow.Owner = this;
                     _vesselUnloadWindow.Show();
                 }
-                else
-                {
-                    _vesselUnloadWindow.VesselUnload = _selectedVesselUnload;
-                }
+                _vesselUnloadWindow.VesselUnload = _selectedVesselUnload;
+                //else
+                //{
+                //    _vesselUnloadWindow.VesselUnload = _selectedVesselUnload;
+                //}
             }
 
         }
@@ -535,20 +538,29 @@ namespace NSAP_ODK.Views
             if (_selectedVesselUnload != null)
             {
                 //Title = "has selected unload in ShowSelectedInVesselUnloadWindow";
-                if (NSAPEntities.NSAPRegion == null)
+                //if (NSAPEntities.NSAPRegion == null)
+                //{
+                //    NSAPEntities.NSAPRegion = _selectedVesselUnload.Parent.Parent.NSAPRegion;
+                //}
+                //if (_vesselUnloadWindow == null)
+                //{
+                //    _vesselUnloadWindow = new VesselUnloadEditWindow(this);
+                //    _vesselUnloadWindow.Owner = this;
+                //    _vesselUnloadWindow.Show();
+                //}
+                //_vesselUnloadWindow.VesselUnload = _selectedVesselUnload;
+                _vesselUnloadWindow = VesselUnloadEditWindow.GetInstance(this);
+                if(_vesselUnloadWindow.Visibility==Visibility.Visible)
                 {
-                    NSAPEntities.NSAPRegion = _selectedVesselUnload.Parent.Parent.NSAPRegion;
-                }
-                if (_vesselUnloadWindow == null)
-                {
-                    _vesselUnloadWindow = new VesselUnloadWIndow(_selectedVesselUnload, this);
-                    _vesselUnloadWindow.Owner = this;
-                    _vesselUnloadWindow.Show();
+                    _vesselUnloadWindow.BringIntoView();
                 }
                 else
                 {
-                    _vesselUnloadWindow.VesselUnload = _selectedVesselUnload;
+                    _vesselUnloadWindow.Show();
                 }
+                _vesselUnloadWindow.Owner = this;
+                _vesselUnloadWindow.VesselUnload = _selectedVesselUnload;
+
             }
         }
         private void OnDataGridWeights_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -648,6 +660,7 @@ namespace NSAP_ODK.Views
                 case "menuTallyValidity":
                     WeightValidationTallyWindow wvtw = WeightValidationTallyWindow.GetInstance(_summaryItems);
                     wvtw.Owner = this;
+                    wvtw.DataGrid = dataGridWeights;
                     if (wvtw.Visibility == Visibility.Visible)
                     {
                         wvtw.BringIntoView();

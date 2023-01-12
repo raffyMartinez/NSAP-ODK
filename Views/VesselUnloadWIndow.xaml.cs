@@ -229,7 +229,7 @@ namespace NSAP_ODK.Views
             }
             else if (_parentMainWindow != null)
             {
-                _parentMainWindow.VesselWindowClosed();
+                //_parentMainWindow.VesselWindowClosed();
             }
         }
 

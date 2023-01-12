@@ -37,7 +37,7 @@
 
     <!--main grid container-->
     <Grid x:Name="GridMain">
-        
+
         <!--column and row definitions-->
         <Grid.RowDefinitions>
             <RowDefinition Height="20" x:Name="rowMenu" />
@@ -114,7 +114,10 @@
                 <Separator />
                 <MenuItem Header="Import GPX" x:Name="menuImportGPX" Click="OnMenuClicked"/>
                 <MenuItem Header="Download CSV from server" x:Name="menuDownloadCSV" Click="OnMenuClicked"/>
-                <MenuItem Header="Update weight validation summary" x:Name="menuUpdateWeightValidation" Click="OnMenuClicked"/>
+                <MenuItem Header="Weight validation">
+                    <MenuItem Header="Update weight validation summary" x:Name="menuUpdateWeightValidation" Click="OnMenuClicked"/>
+                    <MenuItem Header="Tally" x:Name="menuWeightValidationTally" Click="OnMenuClicked" IsEnabled="False"/>
+                </MenuItem>
                 <Separator/>
                 <MenuItem Header="Backup MySQL Database" x:Name="menuBackupMySQL" Click="OnMenuClicked" Visibility="Collapsed"/>
                 <MenuItem Header="Setup MysQL tables" x:Name="menuSetupMySQLTables" Click="OnMenuClicked" Visibility="Collapsed"/>
@@ -222,7 +225,7 @@
             <treeViewControl:TreeControl Grid.Column="0" Grid.RowSpan="2" x:Name="samplingTree" 
                     TreeViewItemSelected="OnTreeViewItemSelected" TreeContextMenu="OnTreeContextMenu"/>
 
-            <TreeView x:Name="treeViewDownloadHistory" Grid.Column="0" Grid.RowSpan="2" SelectedItemChanged="OnHistoryTreeItemChanged" />
+            <TreeView x:Name="treeViewDownloadHistory" Grid.Column="0" Grid.RowSpan="2" SelectedItemChanged="OnHistoryTreeItemChanged" MouseRightButtonDown="OnTreeMouseRightButtonDown" />
 
 
             <Grid x:Name="GridContainer_NSAPData" Grid.Column="1" Grid.Row="1">

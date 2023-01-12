@@ -26,18 +26,31 @@ namespace NSAP_ODK.Views
         private static VesselUnloadEditWindow _instance;
         private VesselUnload _vesselUnload;
         private bool _editMode;
-        public VesselUnloadEditWindow()
+        public VesselUnloadEditWindow(Window parent)
         {
             InitializeComponent();
             Closing += OnWindowClosing;
             unloadEditor.ButtonClicked += OnUnloadEditorButtonClicked;
             Loaded += OnWindowLoaded;
+            switch (parent.GetType().Name)
+            {
+                case "MainWindow":
+                    MainWindowParent = (MainWindow)parent;
+                    break;
+                case "GearUnloadWindow":
+                    GearUnloadWindowParent = (GearUnloadWindow)parent;
+                    break;
+            }
         }
 
+
+
+        public GearUnloadWindow GearUnloadWindowParent { get; set; }
+        public MainWindow MainWindowParent { get; set; }
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
             buttonEdit.Visibility = Visibility.Collapsed;
-            if(Debugger.IsAttached)
+            if (Debugger.IsAttached)
             {
                 buttonEdit.Visibility = Visibility.Visible;
             }
@@ -45,29 +58,29 @@ namespace NSAP_ODK.Views
 
         private void OnUnloadEditorButtonClicked(object sender, VesselUnloadEditorControl.UnloadEditorEventArgs e)
         {
-            switch(e.ButtonPressed)
+            switch (e.ButtonPressed)
             {
                 case "buttonDelete":
-                    if(MessageBox.Show("Are you sure you want to delete?",
+                    if (MessageBox.Show("Are you sure you want to delete?",
                         "NSAP-ODK Database",
                         MessageBoxButton.YesNo,
-                        MessageBoxImage.Question)==MessageBoxResult.Yes    )
+                        MessageBoxImage.Question) == MessageBoxResult.Yes)
                     {
                         e.Proceed = true;
                     }
                     break;
                 case "buttonEdit":
-                    if(treeItemCatchComposition.IsSelected)
+                    if (treeItemCatchComposition.IsSelected)
                     {
 
                     }
                     break;
                 case "buttonAdd":
-                    if(treeItemCatchComposition.IsSelected)
+                    if (treeItemCatchComposition.IsSelected)
                     {
                         EditVesselCatchCompWindow evccw = EditVesselCatchCompWindow.GetInstance();
-                        
-                        if(evccw.Visibility==Visibility.Visible)
+
+                        if (evccw.Visibility == Visibility.Visible)
                         {
                             evccw.BringIntoView();
                         }
@@ -85,36 +98,61 @@ namespace NSAP_ODK.Views
         {
             get { return _vesselUnload; }
             set
-            {                
+            {
                 _vesselUnload = value;
                 if (_vesselUnload != null)
                 {
                     NSAPEntities.NSAPRegion = _vesselUnload.Parent.Parent.NSAPRegion;
-                    NSAPEntities.NSAPRegionFMA = NSAPEntities.NSAPRegion.FMAs.Where(t => t.FMAID == _vesselUnload.Parent.Parent.FMAID).FirstOrDefault();
-                    NSAPEntities.NSAPRegionFMAFishingGround = NSAPEntities.NSAPRegionFMA.FishingGrounds.Where(t => t.FishingGroundCode == _vesselUnload.Parent.Parent.FishingGroundID).FirstOrDefault();
+                    //NSAPEntities.NSAPRegionFMA = NSAPEntities.NSAPRegion.FMAs.Where(t => t.FMAID == _vesselUnload.Parent.Parent.FMAID).FirstOrDefault();
+                    NSAPEntities.NSAPRegionFMA = NSAPEntities.NSAPRegion.FMAs.Where(t => t.FMAID == _vesselUnload.Parent.Parent.FMA.FMAID).FirstOrDefault();
+                    //NSAPEntities.NSAPRegionFMAFishingGround = NSAPEntities.NSAPRegionFMA.FishingGrounds.Where(t => t.FishingGroundCode == _vesselUnload.Parent.Parent.FishingGroundID).FirstOrDefault();
+                    NSAPEntities.NSAPRegionFMAFishingGround = NSAPEntities.NSAPRegionFMA.FishingGrounds.Where(t => t.FishingGroundCode == _vesselUnload.Parent.Parent.FishingGround.Code).FirstOrDefault();
                     unloadEditor.Owner = this;
                     unloadEditor.VesselUnload = _vesselUnload;
-                    treeItemVesselUnload.IsSelected = true;
+                    //treeItemVesselUnload.IsSelected = true;
+
+                    if (unloadEditor.UnloadView != "treeItemVesselUnload")
+                    {
+                        treeItemVesselUnload.IsSelected = true;
+                    }
+                    else
+                    {
+                        unloadEditor.UnloadView = "treeItemVesselUnload";
+                    }
+
+
+
                 }
 
             }
         }
 
-        public static VesselUnloadEditWindow  Instance()
+        public static VesselUnloadEditWindow Instance()
         {
             return _instance;
         }
-        public static VesselUnloadEditWindow GetInstance()
+        public static VesselUnloadEditWindow GetInstance(Window parent)
         {
             if (_instance == null)
             {
-                _instance = new VesselUnloadEditWindow();
+                _instance = new VesselUnloadEditWindow(parent);
             }
             return _instance;
         }
         private void OnWindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            _instance = null; 
+            if (GearUnloadWindowParent != null)
+            {
+                GearUnloadWindowParent.VesselWindowClosed();
+            }
+            else if (MainWindowParent != null)
+            {
+                MainWindowParent.VesselWindowClosed();
+            }
+
+            GearUnloadWindowParent = null;
+            MainWindowParent = null;
+            _instance = null;
             this.SavePlacement();
         }
 

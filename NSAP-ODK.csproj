@@ -609,9 +609,6 @@
     <Compile Include="Views\VesselUnloadEditWindow.xaml.cs">
       <DependentUpon>VesselUnloadEditWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\VesselUnloadWIndow.xaml.cs">
-      <DependentUpon>VesselUnloadWIndow.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Views\WeightValidationTallyWindow.xaml.cs">
       <DependentUpon>WeightValidationTallyWindow.xaml</DependentUpon>
     </Compile>
@@ -787,10 +784,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\VesselUnloadEditWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\VesselUnloadWIndow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

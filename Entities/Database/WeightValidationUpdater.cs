@@ -47,7 +47,7 @@ namespace NSAP_ODK.Entities.Database
                 itemList = NSAPEntities.SummaryItemViewModel.SummaryItemCollection.OrderBy(t => t.VesselUnloadID).ToList();
             }
 
-            //itemList = NSAPEntities.SummaryItemViewModel.SummaryItemCollection.Where(t => t.VesselUnloadID == 147340).ToList();
+            //itemList = NSAPEntities.SummaryItemViewModel.SummaryItemCollection.Where(t => t.VesselUnloadID == 15014).ToList();
             UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.StartOfUpdate, VesselUnloadToUpdateCount = itemList.Count });
             foreach (SummaryItem item in itemList)
             {
@@ -63,6 +63,7 @@ namespace NSAP_ODK.Entities.Database
                 bool computeForRaisedValue = false;
                 double sumOfCatchCompositionSampleWeight = 0;
                 double sumOfCatchCompositionWeight = 0;
+                double sumOfCatchCompositionWeight_earlyVersion = 0;
                 if (item.WeightOfCatch != null && item.WeightOfCatchSample != null && item.WeightOfCatch > 0 && item.WeightOfCatchSample > 0)
                 {
                     computeForRaisedValue = true;
@@ -98,6 +99,10 @@ namespace NSAP_ODK.Entities.Database
                             
                             foreach (VesselCatchWV vc in item.ListOfCatch)
                             {
+                                if (vc.Species_kg != null)
+                                {
+                                    sumOfCatchCompositionWeight_earlyVersion += (double)vc.Species_kg;
+                                }
                                 if (!hasSpeciesWtOfZero && vc.Species_kg == 0)
                                 {
                                     hasSpeciesWtOfZero = true;
@@ -175,6 +180,10 @@ namespace NSAP_ODK.Entities.Database
                     else
                     {
                         item.WeightValidationFlag = WeightValidationFlag.WeightValidationInValid;
+                        if(version<6.43 && Math.Abs( sumOfCatchCompositionWeight_earlyVersion-(double)item.WeightOfCatch)<.1)
+                        {
+                            item.WeightValidationFlag = WeightValidationFlag.WeightValidationValid;
+                        }
                     }
                 }
                 else if(hasSpeciesWtOfZero)
