@@ -182,6 +182,7 @@
     <Compile Include="Entities\Database\BoatLandingsFromServerRepository.cs" />
     <Compile Include="Entities\Database\BuildSummaryReportEventArg.cs" />
     <Compile Include="Entities\Database\CollectedUnrecognizedFG.cs" />
+    <Compile Include="Entities\Database\CopyTextFromDataGrid.cs" />
     <Compile Include="Entities\Database\CreateTablesInAccess.cs" />
     <Compile Include="Entities\Database\CreateTablesInAccessEventArgs.cs" />
     <Compile Include="Entities\Database\CrossTabLengthWeight.cs" />
@@ -504,6 +505,9 @@
     <Compile Include="Views\backupMySQLWindow.xaml.cs">
       <DependentUpon>backupMySQLWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\CopyTextDialogWindow.xaml.cs">
+      <DependentUpon>CopyTextDialogWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\CrossTabReportWindow.xaml.cs">
       <DependentUpon>CrossTabReportWindow.xaml</DependentUpon>
     </Compile>
@@ -644,6 +648,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\backupMySQLWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\CopyTextDialogWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

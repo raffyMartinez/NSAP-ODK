@@ -2307,6 +2307,21 @@ namespace NSAP_ODK
                 case "menuCopyText":
                     if (_dataGrid != null)
                     {
+                        //CopyTextDialogWindow ctdw = CopyTextDialogWindow.GetInstance();
+                        //ctdw.DataGridDataContext = _dataGrid.DataContext;
+                        //ctdw.DataContextType = typeof(_dataGrid.DataContext);
+                        //ctdw.DataGrid = _dataGrid;
+                        //if(ctdw.Visibility==Visibility.Visible)
+                        //{
+                        //    ctdw.BringIntoView();
+                        //}
+                        //else
+                        //{
+                        //    ctdw.Show();
+                        //    ctdw.Owner = this;
+                        //}
+
+
                         var smode = _dataGrid.SelectionMode;
                         _dataGrid.SelectionMode = DataGridSelectionMode.Extended;
                         _dataGrid.SelectAllCells();
@@ -3332,7 +3347,6 @@ namespace NSAP_ODK
             labelRowCount.Visibility = Visibility.Visible;
             MonthLabel.Visibility = Visibility.Visible;
             MonthLabel.Content = $"Vessel unload by date of download";
-            menuWeightValidationTally.IsEnabled = false;
 
 
             var col = new DataGridTextColumn();
@@ -3404,7 +3418,6 @@ namespace NSAP_ODK
                         {
                             //GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetValidateLandedCatchWeightsAsync(dt);
                             GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetDownloadDetailsByDateAsync(dt);
-                            menuWeightValidationTally.IsEnabled = true;
                         }
                         GridNSAPData.AutoGenerateColumns = false;
                         GridNSAPData.Columns.Clear();

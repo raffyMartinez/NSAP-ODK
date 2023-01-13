@@ -114,10 +114,7 @@
                 <Separator />
                 <MenuItem Header="Import GPX" x:Name="menuImportGPX" Click="OnMenuClicked"/>
                 <MenuItem Header="Download CSV from server" x:Name="menuDownloadCSV" Click="OnMenuClicked"/>
-                <MenuItem Header="Weight validation">
-                    <MenuItem Header="Update weight validation summary" x:Name="menuUpdateWeightValidation" Click="OnMenuClicked"/>
-                    <MenuItem Header="Tally" x:Name="menuWeightValidationTally" Click="OnMenuClicked" IsEnabled="False"/>
-                </MenuItem>
+                <MenuItem Header="Update weight validation summary" x:Name="menuUpdateWeightValidation" Click="OnMenuClicked"/>
                 <Separator/>
                 <MenuItem Header="Backup MySQL Database" x:Name="menuBackupMySQL" Click="OnMenuClicked" Visibility="Collapsed"/>
                 <MenuItem Header="Setup MysQL tables" x:Name="menuSetupMySQLTables" Click="OnMenuClicked" Visibility="Collapsed"/>

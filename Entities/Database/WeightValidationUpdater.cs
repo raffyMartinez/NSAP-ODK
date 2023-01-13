@@ -47,7 +47,7 @@ namespace NSAP_ODK.Entities.Database
                 itemList = NSAPEntities.SummaryItemViewModel.SummaryItemCollection.OrderBy(t => t.VesselUnloadID).ToList();
             }
 
-            //itemList = NSAPEntities.SummaryItemViewModel.SummaryItemCollection.Where(t => t.VesselUnloadID == 15014).ToList();
+            itemList = NSAPEntities.SummaryItemViewModel.SummaryItemCollection.Where(t => t.VesselUnloadID == 85655).ToList();
             UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.StartOfUpdate, VesselUnloadToUpdateCount = itemList.Count });
             foreach (SummaryItem item in itemList)
             {
@@ -64,14 +64,18 @@ namespace NSAP_ODK.Entities.Database
                 double sumOfCatchCompositionSampleWeight = 0;
                 double sumOfCatchCompositionWeight = 0;
                 double sumOfCatchCompositionWeight_earlyVersion = 0;
+
+                item.ListOfCatch = vcwvs.Where(t => t.VesselUnloadID == item.VesselUnloadID).ToList();
+
                 if (item.WeightOfCatch != null && item.WeightOfCatchSample != null && item.WeightOfCatch > 0 && item.WeightOfCatchSample > 0)
                 {
                     computeForRaisedValue = true;
                     double from_total_sum = 0;
-                    
+                    //item.ListOfCatch = vcwvs.Where(t => t.VesselUnloadID == item.VesselUnloadID).ToList();
+
                     if (item.CatchCompositionRows != null && item.CatchCompositionRows > 0)
                     {
-                        item.ListOfCatch = vcwvs.Where(t => t.VesselUnloadID == item.VesselUnloadID).ToList();
+                        //item.ListOfCatch = vcwvs.Where(t => t.VesselUnloadID == item.VesselUnloadID).ToList();
                         if (version >= 6.43)
                         {
                             foreach (VesselCatchWV vc in item.ListOfCatch)
@@ -126,7 +130,7 @@ namespace NSAP_ODK.Entities.Database
                 }
                 else
                 {
-                    item.ListOfCatch = vcwvs.Where(t => t.VesselUnloadID == item.VesselUnloadID).ToList();
+                    //item.ListOfCatch = vcwvs.Where(t => t.VesselUnloadID == item.VesselUnloadID).ToList();
                     if (item.ListOfCatch != null)
                     {
                         foreach (VesselCatchWV vc in item.ListOfCatch)
@@ -183,10 +187,16 @@ namespace NSAP_ODK.Entities.Database
                         if(version<6.43 && Math.Abs( sumOfCatchCompositionWeight_earlyVersion-(double)item.WeightOfCatch)<.1)
                         {
                             item.WeightValidationFlag = WeightValidationFlag.WeightValidationValid;
+                            item.SumOfCatchCompositionWeight = sumOfCatchCompositionWeight_earlyVersion;
+                            item.DifferenceCatchWtandSumCatchCompWeight = Math.Abs((double)item.WeightOfCatch - (double)item.SumOfCatchCompositionWeight) / (double)item.WeightOfCatch * 100;
                         }
                     }
                 }
                 else if(hasSpeciesWtOfZero)
+                {
+                    item.WeightValidationFlag = WeightValidationFlag.WeightValidationInValid;
+                }
+                else if(item.SumOfCatchCompositionSampleWeight>item.WeightOfCatchSample)
                 {
                     item.WeightValidationFlag = WeightValidationFlag.WeightValidationInValid;
                 }

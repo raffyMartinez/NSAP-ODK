@@ -1,0 +1,31 @@
+﻿<Window x:Class="NSAP_ODK.Views.CopyTextDialogWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NSAP_ODK.Views"
+        mc:Ignorable="d"
+        Title="CopyTextDialogWindow" Height="232" Width="456">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="35"/>
+            <RowDefinition/>
+            <RowDefinition Height="50"/>
+        </Grid.RowDefinitions>
+        <Label Content="Copy text of table" HorizontalAlignment="Center" FontWeight="Bold"/>
+        <StackPanel Grid.Row="1">
+            <Label HorizontalAlignment="Center" x:Name="labelTitle">
+                <TextBlock>Do you want to copy the content of the table?<LineBreak/>This operation might take a while for large tables</TextBlock>
+            </Label>
+            <WrapPanel HorizontalAlignment="Center">
+                <Button Content="Yes" Height="25" Width="50" Margin="10" Click="OnButtonClicked" x:Name="buttonYes"/>
+                <Button Content="No" Height="25" Width="50" Margin="10" Click="OnButtonClicked" x:Name="buttonNo"/>
+            </WrapPanel>
+            <StackPanel>
+                <ProgressBar Width="200" Height="15" x:Name="statusBar"/>
+                <Label Content="This is a progress label" HorizontalAlignment="Center" x:Name="statusLabel"/>
+            </StackPanel>
+        </StackPanel>
+        <Button Grid.Row="2" Width="50" Content="Cancel" Height="25" HorizontalAlignment="Right" Margin="10 0" Click="OnButtonClicked" x:Name="buttonCancel"/>
+    </Grid>
+</Window>
