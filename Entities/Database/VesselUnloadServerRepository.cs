@@ -2543,8 +2543,8 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                     RefNo = landing.ref_no,
                                     IsCatchSold = landing.IsCatchSold,
 
-                                    
-                                    
+
+
                                 };
 
                                 if (JSONFileCreationTime != null)
@@ -2840,16 +2840,27 @@ namespace NSAP_ODK.Entities.Database.FromJson
                                         {
                                             Utilities.Logger.LogMissingCatchInfo($@"""{vu.ODKRowID}"",{missingCatchInfoCounter}, ""{vu.XFormIdentifier}"",""{vu.FormVersion}"",""{vu.Parent.GearUsedName}"",""{vu.EnumeratorName}"",""{vu.Parent.Parent.LandingSiteName}"",{vu.SamplingDate},""{System.IO.Path.GetFileName(CurrentJSONFileName)}"",{DateTime.Now}");
                                         }
-                                        vu.VesselCatchViewModel.Dispose();
+                                        //vu.VesselCatchViewModel.Dispose();
                                     }
 
 
-                                    if (gear_unload.VesselUnloadViewModel.UpdateUnloadStats(vu) && gear_unload.VesselUnloadViewModel.UpdateWeightValidation(landing, vu) && NSAPEntities.SummaryItemViewModel.AddRecordToRepo(vu))
+                                    //if (gear_unload.VesselUnloadViewModel.UpdateUnloadStats(vu) && gear_unload.VesselUnloadViewModel.UpdateWeightValidation(landing, vu) && NSAPEntities.SummaryItemViewModel.AddRecordToRepo(vu))
+                                    //{
+                                    //    savedCount++;
+                                    //    landing.SavedInLocalDatabase = true;
+                                    //    UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadSavedCount = savedCount, Intent = UploadToDBIntent.Uploading });
+                                    //    TotalUploadCount++;
+                                    //}
+                                    if (gear_unload.VesselUnloadViewModel.UpdateUnloadStats(vu) && NSAPEntities.SummaryItemViewModel.AddRecordToRepo(vu))
                                     {
-                                        savedCount++;
-                                        landing.SavedInLocalDatabase = true;
-                                        UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadSavedCount = savedCount, Intent = UploadToDBIntent.Uploading });
-                                        TotalUploadCount++;
+                                        if (gear_unload.VesselUnloadViewModel.UpdateWeightValidation(NSAPEntities.SummaryItemViewModel.CurrentEntity, vu))
+                                        {
+                                            vu.VesselCatchViewModel.Dispose();
+                                            savedCount++;
+                                            landing.SavedInLocalDatabase = true;
+                                            UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadSavedCount = savedCount, Intent = UploadToDBIntent.Uploading });
+                                            TotalUploadCount++;
+                                        }
                                     }
                                 }
                             }

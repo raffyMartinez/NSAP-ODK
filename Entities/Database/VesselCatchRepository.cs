@@ -827,7 +827,7 @@ namespace NSAP_ODK.Entities.Database
                                 weighing_unit = @wt_unit,
                                 from_total_catch = @from_total,
                                 price_of_species = @price,
-                                price_unit = @price_unit,
+                                price_unit = @price_unit
                             WHERE catch_id = @catch_id";
                         try
                         {

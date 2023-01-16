@@ -85,6 +85,21 @@ namespace NSAP_ODK.Entities.Database
         public bool IgnoreCollectionChange { get; set; }
         public static int CurrentIDNumber { get; set; }
 
+        public bool UpdateWeightValidation(SummaryItem si, VesselUnload vu)
+        {
+
+            WeightValidationUpdater.VesselCatches = vu.VesselCatchViewModel.VesselCatchCollection.ToList();
+            WeightValidationUpdater.SummaryItem = si;
+            if(WeightValidationUpdater.UpdateDatabase())
+            {
+                if (WeightValidationUpdater.CSV.Length > 0)
+                {
+                    _weight_validataion_csv.AppendLine(WeightValidationUpdater.CSV);
+                    return true;
+                }
+            }
+            return false;
+        }
         public bool UpdateWeightValidation(NSAP_ODK.Entities.Database.FromJson.VesselLanding vl, VesselUnload vu)
         {
             if(vu.DelayedSave)

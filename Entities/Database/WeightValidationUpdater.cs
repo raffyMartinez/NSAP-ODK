@@ -12,11 +12,17 @@ namespace NSAP_ODK.Entities.Database
     {
         public static event EventHandler<UploadToDbEventArg> UploadSubmissionToDB;
         public static List<SummaryItem> SummaryItems { get; set; }
+        public static SummaryItem SummaryItem { get; set; }
 
+
+
+
+        public static string CSV { get; private set; }
         public static Task<bool> UpdateDatabaseAsync()
         {
             return Task.Run(() => UpdateDatabase());
         }
+        public static List<VesselCatch> VesselCatches { get; set; }
 
         public static bool Cancel { get; set; }
 
@@ -33,21 +39,33 @@ namespace NSAP_ODK.Entities.Database
             {
                 csv_loop = (int)looper;
             }
-            List<VesselCatchWV> vcwvs = VesselCatchRepository.GetVesselCatchForWV();
-
-            var maxID = VesselUnloadRepository.WeightValidationTableMaxID();
 
             List<SummaryItem> itemList = new List<SummaryItem>();
-            if (maxID != null)
+            List<VesselCatchWV> vcwvs = new List<VesselCatchWV>();
+
+            if (SummaryItem != null)
             {
-                itemList = NSAPEntities.SummaryItemViewModel.SummaryItemCollection.OrderBy(t => t.VesselUnloadID).Where(t => t.VesselUnloadID > (int)maxID).ToList();
+                itemList.Add(SummaryItem);
+                CSV = "";
             }
             else
             {
-                itemList = NSAPEntities.SummaryItemViewModel.SummaryItemCollection.OrderBy(t => t.VesselUnloadID).ToList();
+                vcwvs = VesselCatchRepository.GetVesselCatchForWV();
+
+                var maxID = VesselUnloadRepository.WeightValidationTableMaxID();
+
+
+                if (maxID != null)
+                {
+                    itemList = NSAPEntities.SummaryItemViewModel.SummaryItemCollection.OrderBy(t => t.VesselUnloadID).Where(t => t.VesselUnloadID > (int)maxID).ToList();
+                }
+                else
+                {
+                    itemList = NSAPEntities.SummaryItemViewModel.SummaryItemCollection.OrderBy(t => t.VesselUnloadID).ToList();
+                }
             }
 
-            itemList = NSAPEntities.SummaryItemViewModel.SummaryItemCollection.Where(t => t.VesselUnloadID == 85655).ToList();
+            //itemList = NSAPEntities.SummaryItemViewModel.SummaryItemCollection.Where(t => t.VesselUnloadID == 85655).ToList();
             UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.StartOfUpdate, VesselUnloadToUpdateCount = itemList.Count });
             foreach (SummaryItem item in itemList)
             {
@@ -65,17 +83,35 @@ namespace NSAP_ODK.Entities.Database
                 double sumOfCatchCompositionWeight = 0;
                 double sumOfCatchCompositionWeight_earlyVersion = 0;
 
-                item.ListOfCatch = vcwvs.Where(t => t.VesselUnloadID == item.VesselUnloadID).ToList();
+
+                if (SummaryItem == null)
+                {
+                    item.ListOfCatch = vcwvs.Where(t => t.VesselUnloadID == item.VesselUnloadID).ToList();
+                }
+                else
+                {
+                    item.ListOfCatch = new List<VesselCatchWV>();
+                    foreach (var c in VesselCatches)
+                    {
+                        VesselCatchWV vesselCatchWV = new VesselCatchWV
+                        {
+                            PK = c.VesselUnloadID,
+                            FromTotalCatch = c.FromTotalCatch,
+                            Species_kg = c.Catch_kg,
+                            Species_sample_kg = c.Sample_kg
+                        };
+                        item.ListOfCatch.Add(vesselCatchWV);
+                    }
+                }
+
 
                 if (item.WeightOfCatch != null && item.WeightOfCatchSample != null && item.WeightOfCatch > 0 && item.WeightOfCatchSample > 0)
                 {
                     computeForRaisedValue = true;
                     double from_total_sum = 0;
-                    //item.ListOfCatch = vcwvs.Where(t => t.VesselUnloadID == item.VesselUnloadID).ToList();
 
                     if (item.CatchCompositionRows != null && item.CatchCompositionRows > 0)
                     {
-                        //item.ListOfCatch = vcwvs.Where(t => t.VesselUnloadID == item.VesselUnloadID).ToList();
                         if (version >= 6.43)
                         {
                             foreach (VesselCatchWV vc in item.ListOfCatch)
@@ -100,7 +136,7 @@ namespace NSAP_ODK.Entities.Database
                         }
                         else
                         {
-                            
+
                             foreach (VesselCatchWV vc in item.ListOfCatch)
                             {
                                 if (vc.Species_kg != null)
@@ -111,7 +147,7 @@ namespace NSAP_ODK.Entities.Database
                                 {
                                     hasSpeciesWtOfZero = true;
                                 }
-                                if (vc.Species_sample_kg == null || vc.Species_sample_kg==0)
+                                if (vc.Species_sample_kg == null || vc.Species_sample_kg == 0)
                                 {
 
                                     from_total_sum += (double)vc.Species_kg;
@@ -130,7 +166,6 @@ namespace NSAP_ODK.Entities.Database
                 }
                 else
                 {
-                    //item.ListOfCatch = vcwvs.Where(t => t.VesselUnloadID == item.VesselUnloadID).ToList();
                     if (item.ListOfCatch != null)
                     {
                         foreach (VesselCatchWV vc in item.ListOfCatch)
@@ -158,7 +193,7 @@ namespace NSAP_ODK.Entities.Database
                 {
                     foreach (VesselCatchWV vc in item.ListOfCatch)
                     {
-                        if (vc.FromTotalCatch || vc.Species_sample_kg == null || vc.Species_sample_kg==0)
+                        if (vc.FromTotalCatch || vc.Species_sample_kg == null || vc.Species_sample_kg == 0)
                         {
                             sumOfCatchCompositionWeight += (double)vc.Species_kg;
                         }
@@ -173,7 +208,7 @@ namespace NSAP_ODK.Entities.Database
                 if (item.SumOfCatchCompositionWeight > 0)
                 {
                     item.DifferenceCatchWtandSumCatchCompWeight = Math.Abs((double)item.WeightOfCatch - (double)item.SumOfCatchCompositionWeight) / (double)item.WeightOfCatch * 100;
-                    if(hasSpeciesWtOfZero)
+                    if (hasSpeciesWtOfZero)
                     {
                         item.WeightValidationFlag = WeightValidationFlag.WeightValidationInValid;
                     }
@@ -184,7 +219,7 @@ namespace NSAP_ODK.Entities.Database
                     else
                     {
                         item.WeightValidationFlag = WeightValidationFlag.WeightValidationInValid;
-                        if(version<6.43 && Math.Abs( sumOfCatchCompositionWeight_earlyVersion-(double)item.WeightOfCatch)<.1)
+                        if (version < 6.43 && Math.Abs(sumOfCatchCompositionWeight_earlyVersion - (double)item.WeightOfCatch) < .1)
                         {
                             item.WeightValidationFlag = WeightValidationFlag.WeightValidationValid;
                             item.SumOfCatchCompositionWeight = sumOfCatchCompositionWeight_earlyVersion;
@@ -192,11 +227,11 @@ namespace NSAP_ODK.Entities.Database
                         }
                     }
                 }
-                else if(hasSpeciesWtOfZero)
+                else if (hasSpeciesWtOfZero)
                 {
                     item.WeightValidationFlag = WeightValidationFlag.WeightValidationInValid;
                 }
-                else if(item.SumOfCatchCompositionSampleWeight>item.WeightOfCatchSample)
+                else if (item.SumOfCatchCompositionSampleWeight > item.WeightOfCatchSample)
                 {
                     item.WeightValidationFlag = WeightValidationFlag.WeightValidationInValid;
                 }
@@ -228,24 +263,33 @@ namespace NSAP_ODK.Entities.Database
                     item.SamplingTypeFlag = SamplingTypeFlag.SamplingTypeTotalEnumeration;
                 }
                 UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.UpdateFound });
-                csv.AppendLine(MakeUnloadCSVLine(item));
-                double q = (double)loopCount / (double)csv_loop;
-                if (loopCount > 0 && q == (int)q)
+
+                if (SummaryItem == null)
                 {
-                    csv_update_counter += csv_loop;
-                    if (VesselUnloadRepository.BulkUpdateWeightValidationUsingCSV(csv))
+                    csv.AppendLine(MakeUnloadCSVLine(item));
+                    double q = (double)loopCount / (double)csv_loop;
+                    if (loopCount > 0 && q == (int)q)
                     {
-                        UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.BatchCSVUploaded, VesselUnloadWeightValidationUpdateCount = csv_update_counter });
-                        csv.Clear();
+                        csv_update_counter += csv_loop;
+                        if (VesselUnloadRepository.BulkUpdateWeightValidationUsingCSV(csv))
+                        {
+                            UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.BatchCSVUploaded, VesselUnloadWeightValidationUpdateCount = csv_update_counter });
+                            csv.Clear();
+                        }
                     }
+                    else
+                    {
+
+                    }
+
+                    loopCount++;
+                    UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.SummaryItemProcessed, SummaryItemProcessedCount = loopCount });
                 }
                 else
                 {
-
+                    CSV = MakeUnloadCSVLine(item);
+                    return CSV.Length > 0;
                 }
-
-                loopCount++;
-                UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.SummaryItemProcessed, SummaryItemProcessedCount = loopCount });
             }
             UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.EndOfUpdate });
 
@@ -257,27 +301,11 @@ namespace NSAP_ODK.Entities.Database
 
             return !Cancel;
 
-            //if (!Cancel)
-            //{
-            //    if( csv.ToString().Length>0)
-            //    {
-            //        VesselUnloadRepository.BulkUpdateWeightValidationUsingCSV(csv);
-            //        csv.Clear();
-            //    }
-            //    return true;
-            //}
-            //else
-            //{
-            //    VesselUnloadRepository.BulkUpdateWeightValidationUsingCSV(csv);
-            //    csv.Clear();
-            //    Cancel = false;
-            //    return false;
-            //}
         }
         private static string MakeUnloadCSVLine(SummaryItem item)
         {
             var diff = "";
-            if(item.DifferenceCatchWtandSumCatchCompWeight!=null)
+            if (item.DifferenceCatchWtandSumCatchCompWeight != null)
             {
                 if (item.DifferenceCatchWtandSumCatchCompWeight == 0 || item.DifferenceCatchWtandSumCatchCompWeight < 0.01)
                 {

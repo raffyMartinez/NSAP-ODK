@@ -12,6 +12,7 @@ namespace NSAP_ODK.Entities.Database
     {
         //private readonly object collectionLock = new object();
 
+
         private bool _editSuccess;
         private TreeViewModelControl.AllSamplingEntitiesEventHandler _treeViewData;
         private NSAPEntity _orphanedEntity;
@@ -24,6 +25,7 @@ namespace NSAP_ODK.Entities.Database
         public event EventHandler<BuildSummaryReportEventArg> BuildingSummaryTable;
         public event EventHandler<BuildOrphanedEntityEventArg> BuildingOrphanedEntity;
 
+        public SummaryItem CurrentEntity { get; private set; }
         public SummaryItem GetItem(VesselUnload vu)
         {
             return SummaryItemCollection.ToList().FirstOrDefault(t => t.VesselUnloadID == vu.PK);
@@ -2241,7 +2243,9 @@ namespace NSAP_ODK.Entities.Database
                 LengthRows = vu.CountLengthRows,
                 LenWtRows = vu.CountLenWtRows,
                 CatchMaturityRows = vu.CountMaturityRows,
-                LandingSiteHasOperation = vu.Parent.Parent.HasFishingOperation
+                LandingSiteHasOperation = vu.Parent.Parent.HasFishingOperation,
+                WeightOfCatch=vu.WeightOfCatch,
+                WeightOfCatchSample=vu.WeightOfCatchSample
 
             };
             if (vu.NSAPEnumeratorID != null)
@@ -2256,6 +2260,7 @@ namespace NSAP_ODK.Entities.Database
 
 
             SummaryItemCollection.Add(si);
+            CurrentEntity = si;
             return _editSuccess;
         }
         public bool AddRecordToRepo(SummaryItem item)
