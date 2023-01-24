@@ -48,7 +48,7 @@ namespace NSAP_ODK.Entities.Database
         public string boat_used { get; set; }
 
         [JsonProperty("repeat_vessel_unload/fishing_vessel_data/fishing_vessel_group/number_of_fishers")]
-        public string number_of_fishers { get; set; }
+        public int? number_of_fishers { get; set; }
 
         [JsonProperty("repeat_vessel_unload/fishing_vessel_data/fishing_vessel_group/is_gps_used")]
         public string is_gps_used { get; set; }
@@ -66,7 +66,7 @@ namespace NSAP_ODK.Entities.Database
         public string trip_isSuccess { get; set; }
 
         [JsonProperty("repeat_vessel_unload/fishing_vessel_data/vessel_catch/catch_total")]
-        public string catch_total { get; set; }
+        public double? catch_total { get; set; }
 
         [JsonProperty("repeat_vessel_unload/fishing_vessel_data/vessel_catch/is_catch_sampled")]
         public string is_catch_sampled { get; set; }
