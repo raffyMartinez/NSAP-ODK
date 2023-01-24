@@ -866,6 +866,8 @@ namespace NSAP_ODK.NSAPMysql
                                         `catch` DOUBLE NULL,
                                         `gr_text` VARCHAR(60) NULL,
                                         `remarks` VARCHAR(80) NULL,
+                                        `sp_twsp_count` INT NULL,
+                                        `sector` VARCHAR(2) NULL,
                                         PRIMARY KEY (`unload_gr_id`),
                                         INDEX `unload_day_id_gu_fk_idx` (`unload_day_id` ASC) VISIBLE,
                                         INDEX `gr_id_gu_fk_idx` (`gr_id` ASC) VISIBLE,
@@ -965,6 +967,8 @@ namespace NSAP_ODK.NSAPMysql
                                         `from_excel_download` TINYINT(1),
                                         `has_catch_composition` TINYINT(1),
                                         `number_of_fishers` INT NULL,
+                                        `ref_no` VARCHAR(20) NULL,
+                                        `is_catch_sold` TINYINT(1),
                                         PRIMARY KEY (`v_unload_id`),
                                         UNIQUE INDEX `row_id_UNIQUE` (`row_id` ASC) VISIBLE,
                                         INDEX `gps_vu1_fk_idx` (`gps` ASC) VISIBLE,
@@ -1108,6 +1112,10 @@ namespace NSAP_ODK.NSAPMysql
                                         `samp_kg` DOUBLE NULL,
                                         `taxa` VARCHAR(6) NULL,
                                         `species_text` VARCHAR(200) NULL,
+                                        `weighing_unit` VARCHAR(2) NULL,
+                                        `from_total_catch` TINYINT(1),
+                                        `price_of_species` DOUBLE NULL,
+                                        `price_unit` VARCHAR(25),
                                         PRIMARY KEY (`catch_id`),
                                         INDEX `v_unload_id_vc_fk_idx` (`v_unload_id` ASC) VISIBLE,
                                         INDEX `species_id_vc_idx` (`species_id` ASC) VISIBLE,
@@ -1145,6 +1153,7 @@ namespace NSAP_ODK.NSAPMysql
                                     `catch_len_id` INT NOT NULL,
                                     `catch_id` INT NOT NULL,
                                     `length` DOUBLE NOT NULL,
+                                    `sex` VARCHAR(2) NULL,
                                     PRIMARY KEY (`catch_len_id`),
                                     INDEX `catch_id_cl_fk_idx` (`catch_id` ASC) VISIBLE,
                                     CONSTRAINT `catch_id_cl_fk`
@@ -1212,6 +1221,7 @@ namespace NSAP_ODK.NSAPMysql
                                         `catch_id` INT NOT NULL,
                                         `length` DOUBLE NOT NULL,
                                         `freq` INT NOT NULL,
+                                        `sex` VARCHAR(2) NULL,
                                         PRIMARY KEY (`catch_lf_id`),
                                         INDEX `catch_id_clf_fk_idx`(`catch_id` ASC) VISIBLE,
                                         CONSTRAINT `catch_id_clf_fk`
@@ -1243,6 +1253,7 @@ namespace NSAP_ODK.NSAPMysql
                                         `catch_id` INT NOT NULL,
                                         `length` DOUBLE NOT NULL,
                                         `weight` DOUBLE NOT NULL,
+                                        `sex` VARCHAR(2),
                                         PRIMARY KEY (`catch_lw_id`),
                                         INDEX `catch_id_clw_fk_idx`(`catch_id` ASC) VISIBLE,
                                         CONSTRAINT `catch_id_clw_fk`
@@ -1329,6 +1340,26 @@ namespace NSAP_ODK.NSAPMysql
                     {
                         Logger.Log(ex);
                     }
+                    #endregion
+
+                    #region WeightValidation
+                    cmd.CommandText = @"CREATE TABLE IF NOT EXISTS dbo_vessel_unload_weight_validation (
+                                        `v_unload_id` INT NOT NULL,
+                                        `total_wt_catch_composition` DOUBLE  NOT NULL,
+                                        `total_wt_sampled_species` DOUBLE  NULL,
+                                        `validity_flag` INT  NOT NULL,
+                                        `type_of_sampling_flag` INT NOT NULL,
+                                        `weight_difference` DOUBLE NOT NULL,
+                                        `form_version` VARCHAR(10) NULL,
+                                        `raising_factor` DOUBLE NULL,
+                                        PRIMARY KEY (`v_unload_id`),
+                                        CONSTRAINT `v_unload_id_vu3_fk` 
+                                          FOREIGN KEY (`v_unload_id`)
+                                          REFERENCES `dbo_vessel_unload` (`v_unload_id`)
+                                          ON DELETE NO ACTION
+                                          ON UPDATE NO ACTION )
+                                        COMMENT='Summary of validity of weights and type of sampling of a sampled landing'
+                                        ENGINE=InnoDB";
                     #endregion
 
                     #region koboservers

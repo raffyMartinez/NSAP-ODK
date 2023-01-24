@@ -740,6 +740,31 @@ namespace NSAP_ODK.Entities.Database
             }
             return result;
         }
+
+        public static int? GetWeightValidationTableRecordCount()
+        {
+            int? result = null;
+            using (var conn = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT Count(v_unload_id) AS max_id FROM dbo_vessel_unload_weight_validation";
+                    try
+                    {
+                        conn.Open();
+                        result = (int)cmd.ExecuteScalar();
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex.Message != "Specified cast is not valid.")
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return result;
+        }
         public static bool BulkUpdateWeightValidationUsingCSV(StringBuilder csv)
         {
             bool success = false;
@@ -2595,6 +2620,39 @@ namespace NSAP_ODK.Entities.Database
             return success;
         }
 
+
+        public static bool ClearWeightValidationTable(string otherConnectionString = "")
+        {
+            bool success = false;
+            string con_string = Global.ConnectionString;
+            if (otherConnectionString.Length > 0)
+            {
+                con_string = otherConnectionString;
+            }
+            using (OleDbConnection conn = new OleDbConnection(con_string))
+            {
+                conn.Open();
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = $"Delete * from dbo_vessel_unload_weight_validation";
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        success = true;
+                    }
+                    catch (OleDbException olx)
+                    {
+                        Logger.Log(olx);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+
+            return success;
+        }
         public static bool ClearTable(string otherConnectionString = "")
         {
             bool success = false;
@@ -2650,23 +2708,24 @@ namespace NSAP_ODK.Entities.Database
                 if (success)
                 {
                     success = false;
-                    using (var cmd = conn.CreateCommand())
-                    {
-                        cmd.CommandText = $"Delete * from dbo_vessel_unload_weight_validation";
-                        try
-                        {
-                            cmd.ExecuteNonQuery();
-                            success = true;
-                        }
-                        catch (OleDbException olx)
-                        {
-                            Logger.Log(olx);
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Log(ex);
-                        }
-                    }
+                    success = ClearWeightValidationTable(con_string);
+                    //using (var cmd = conn.CreateCommand())
+                    //{
+                    //    cmd.CommandText = $"Delete * from dbo_vessel_unload_weight_validation";
+                    //    try
+                    //    {
+                    //        cmd.ExecuteNonQuery();
+                    //        success = true;
+                    //    }
+                    //    catch (OleDbException olx)
+                    //    {
+                    //        Logger.Log(olx);
+                    //    }
+                    //    catch (Exception ex)
+                    //    {
+                    //        Logger.Log(ex);
+                    //    }
+                    //}
                 }
 
                 if (success)

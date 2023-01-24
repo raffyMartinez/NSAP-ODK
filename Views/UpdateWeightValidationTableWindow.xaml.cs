@@ -24,7 +24,8 @@ namespace NSAP_ODK.Views
     {
         private DispatcherTimer _timer;
         private bool _cancel = false;
-        bool updateSucceeded = false;
+        private bool _clearTableFirst = false;
+        bool _updateSucceeded = false;
         private static UpdateWeightValidationTableWindow _instance;
 
         public static UpdateWeightValidationTableWindow GetInstance()
@@ -54,6 +55,18 @@ namespace NSAP_ODK.Views
             _timer = new DispatcherTimer();
             _timer.Tick += OnTimerTick;
 
+            var weightValidationRecordCount = VesselUnloadRepository.GetWeightValidationTableRecordCount();
+            var summaryItemCount = NSAP_ODK.Entities.NSAPEntities.SummaryItemViewModel.Count;
+            if (weightValidationRecordCount == summaryItemCount)
+            {
+                labelTitle.Content = "Weight validation table is updated\r\nDo you still want to continue?";
+                _clearTableFirst = true;
+                buttonCancel.Content = "Close";
+            }
+            else if (weightValidationRecordCount > 0 && summaryItemCount > weightValidationRecordCount)
+            {
+                _clearTableFirst = true;
+            }
         }
 
         private void OnTimerTick(object sender, EventArgs e)
@@ -67,10 +80,10 @@ namespace NSAP_ODK.Views
             buttonYes.IsEnabled = false;
             buttonNo.IsEnabled = false;
             WeightValidationUpdater.UploadSubmissionToDB += WeightValidationUpdater_UploadSubmissionToDB;
-            if(await WeightValidationUpdater.UpdateDatabaseAsync())
+            if (await WeightValidationUpdater.UpdateDatabaseAsync())
             {
                 labelTitle.Content = "Updating weight validation table succeeded!";
-                updateSucceeded = true;
+                _updateSucceeded = true;
                 buttonCancel.Content = "Close";
             }
             WeightValidationUpdater.UploadSubmissionToDB -= WeightValidationUpdater_UploadSubmissionToDB;
@@ -171,9 +184,13 @@ namespace NSAP_ODK.Views
 
         private async void OnButtonClick(object sender, RoutedEventArgs e)
         {
-            switch(((Button)sender).Name)
+            switch (((Button)sender).Name)
             {
                 case "buttonYes":
+                    if (_clearTableFirst)
+                    {
+                        VesselUnloadRepository.ClearWeightValidationTable();
+                    }
                     ShowStatusRow();
                     await StartUpdate();
                     break;
@@ -182,7 +199,7 @@ namespace NSAP_ODK.Views
                     break;
                 case "buttonCancel":
                     _cancel = true;
-                    if(!updateSucceeded)
+                    if (!_updateSucceeded)
                     {
                         WeightValidationUpdater.Cancel = true;
                     }
