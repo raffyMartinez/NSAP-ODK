@@ -532,6 +532,78 @@ namespace NSAP_ODK.Entities.Database
         ValidationResultCatchWeightIsInvalid,
         ValidationResultCatchWeightIsValid,
     }
+
+    public class VesselUnloadWeights
+    {
+        private VesselUnload _vesselUnload;
+        private string _raisingFactor = "";
+        private string _catchWeight = "";
+        private string _catchSampleWeight = "";
+        private string _sumCatchCompositonWeight = "";
+        private string _sumCatchCompositionWeightFromSample = "";
+        private string _differenceInWeights = "";
+        public VesselUnloadWeights(VesselUnload vu)
+        {
+            _vesselUnload = vu;
+            if (_vesselUnload.RaisingFactor != null && _vesselUnload.RaisingFactor>0)
+            {
+                _raisingFactor = ((double)_vesselUnload.RaisingFactor).ToString("N2");
+            }
+            if (_vesselUnload.DifferenceCatchWtAndSumCatchCompWt != null && _vesselUnload.WeightOfCatchSample!=null)
+            {
+                _differenceInWeights = ((double)_vesselUnload.DifferenceCatchWtAndSumCatchCompWt).ToString("N2");
+            }
+            if (_vesselUnload.SumOfCatchCompositionWeights != 0)
+            {
+                _sumCatchCompositonWeight = _vesselUnload.SumOfCatchCompositionWeights.ToString("N2");
+            }
+            if (_vesselUnload.WeightOfCatch != null)
+            {
+                _catchWeight = ((double)_vesselUnload.WeightOfCatch).ToString("N2");
+            }
+            if (_vesselUnload.WeightOfCatchSample != null)
+            {
+                _catchSampleWeight = ((double)_vesselUnload.WeightOfCatchSample).ToString("N2");
+            }
+            if(_vesselUnload.SumOfSampleWeights!=0)
+            {
+                _sumCatchCompositionWeightFromSample = _vesselUnload.SumOfSampleWeights.ToString("N2");
+            }
+        }
+
+        public string SumOfCatchCompositionFromSampleWeight
+        {
+            get { return _sumCatchCompositionWeightFromSample; }
+        }
+        public string DifferenceInWeights
+        {
+            get { return _differenceInWeights; }
+        }
+        public string SumOfCatchCompositionWeights
+        {
+            get { return _sumCatchCompositonWeight; }
+        }
+        public string CatchWeight
+        {
+            get
+            {
+                return _catchWeight;
+            }
+        }
+
+        public string CatchSampleWeight
+        {
+            get
+            {
+                return _catchSampleWeight;
+            }
+        }
+        public string RaisingFactor
+        {
+            get { return _raisingFactor; }
+        }
+    }
+
     public class VesselUnload
     {
         private LandedCatchValidationResult _landedCatchValidationResult;
@@ -545,7 +617,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get { return _landedCatchValidationResult; }
         }
-
+        public VesselUnloadWeights VesselUnloadWeights { get; set; }
         public bool IsCatchSold { get; set; }
         public bool DelayedSave { get; set; }
         public VesselUnloadViewModel ContainerViewModel { get; set; }
@@ -806,7 +878,7 @@ namespace NSAP_ODK.Entities.Database
                 if (DifferenceCatchWtAndSumCatchCompWt == null) return "";
                 else
                 {
-                    if ((double)DifferenceCatchWtAndSumCatchCompWt == 0 || (double)DifferenceCatchWtAndSumCatchCompWt<0.1)
+                    if ((double)DifferenceCatchWtAndSumCatchCompWt == 0 || (double)DifferenceCatchWtAndSumCatchCompWt < 0.1)
                     {
                         return "0";
                     }

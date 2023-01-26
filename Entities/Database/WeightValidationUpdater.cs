@@ -176,13 +176,28 @@ namespace NSAP_ODK.Entities.Database
                             }
                             sumOfCatchCompositionWeight += (double)vc.Species_kg;
 
-                            if (vc.Species_sample_kg != null)
+                            if (version >= 6.43)
                             {
-                                countFromSample++;
+                                if (vc.FromTotalCatch)
+                                {
+                                    countTotalEnum++;
+                                }
+                                else if (vc.Species_sample_kg != null)
+                                {
+                                    countFromSample++;
+                                }
+
                             }
-                            else if (vc.Species_kg != null && vc.Species_sample_kg == null)
+                            else
                             {
-                                countTotalEnum++;
+                                if (vc.Species_sample_kg != null)
+                                {
+                                    countFromSample++;
+                                }
+                                else if (vc.Species_kg != null && vc.Species_sample_kg == null)
+                                {
+                                    countTotalEnum++;
+                                }
                             }
                         }
                         item.SumOfCatchCompositionWeight = sumOfCatchCompositionWeight;

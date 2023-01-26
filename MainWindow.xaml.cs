@@ -1233,9 +1233,9 @@ namespace NSAP_ODK
                             _monthYear = DateTime.Parse(item.DBSummary.MonthSampled);
                         }
                     }
-                    else if(GridNSAPData.SelectedItem!=null && GridNSAPData.SelectedItem.GetType().Name=="SummaryItem" )
+                    else if (GridNSAPData.SelectedItem != null && GridNSAPData.SelectedItem.GetType().Name == "SummaryItem")
                     {
-                        if(_vesselUnloadEditWindow!=null)
+                        if (_vesselUnloadEditWindow != null)
                         {
                             _vesselUnloadEditWindow.VesselUnload = ((SummaryItem)GridNSAPData.SelectedItem).VesselUnload;
                         }
@@ -2189,7 +2189,7 @@ namespace NSAP_ODK
                 UncheckEditMenuItems();
             }
 
-            if(!itemName.Contains("menuWeightValidationTally"))
+            if (!itemName.Contains("menuWeightValidationTally"))
             {
                 CloseTallyWindow();
             }
@@ -2885,7 +2885,7 @@ namespace NSAP_ODK
                                     return;
                             }
 
-                             _vesselUnloadEditWindow = VesselUnloadEditWindow.GetInstance(this);
+                            _vesselUnloadEditWindow = VesselUnloadEditWindow.GetInstance(this);
 
                             if (_vesselUnloadEditWindow.Visibility == Visibility.Visible)
                             {
@@ -3332,12 +3332,14 @@ namespace NSAP_ODK
 
         private void CloseTallyWindow()
         {
-            if ( _wvtw != null)
+            if (_wvtw != null)
             {
                 _wvtw.Close();
                 _wvtw = null;
             }
         }
+
+
         private async void OnHistoryTreeItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             ShowStatusRow();
@@ -3372,51 +3374,24 @@ namespace NSAP_ODK
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Date of first sampling", Binding = new Binding("DBSummary.FirstLandingFormattedDate") });
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Date of last sampling", Binding = new Binding("DBSummary.LastLandingFormattedDate") });
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Date downloaded", Binding = new Binding("DBSummary.LatestDownloadFormattedDate") });
-                        //GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Landing site ", Binding = new Binding("Parent.Parent.LandingSiteName") });
-                        //GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Gear ", Binding = new Binding("Parent.GearUsedName") });
-                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "# landings", Binding = new Binding("DBSummary.VesselUnloadCount") });
-                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "# landings with catch composition", Binding = new Binding("DBSummary.CountLandingsWithCatchComposition") });
-                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "# tracked fishing operations", Binding = new Binding("DBSummary.TrackedOperationsCount") });
+                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "# landings", Binding = new Binding("DBSummary.VesselUnloadCount"), CellStyle = AlignRightStyle });
+                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "# landings with catch composition", Binding = new Binding("DBSummary.CountLandingsWithCatchComposition"), CellStyle = AlignRightStyle });
+                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "# tracked fishing operations", Binding = new Binding("DBSummary.TrackedOperationsCount"), CellStyle = AlignRightStyle });
 
-                        //var unloads = _vesselDownloadHistory[dt];
-                        //GridNSAPData.DataContext = NSAPEntities.VesselUnloadViewModel.GetDownlodaSummary(unloads, dt); ;
                         GridNSAPData.AutoGenerateColumns = false;
 
-                        //Setter bold = new Setter(TextBlock.FontWeightProperty, FontWeights.Bold, null);
-                        //GridNSAPData.Items.Refresh();
-                        //DataGridRow row = (DataGridRow)GridNSAPData.ItemContainerGenerator.ContainerFromIndex(GridNSAPData.Items.Count - 1);
-                        //Style newStyle = new Style(row.GetType());
-
-                        //newStyle.Setters.Add(bold);
-                        //row.Style = newStyle;
                         break;
                     case "weights":
                     case "effort":
                     case "tracked":
-                        //if (!_saveChangesToGearUnload &&
-                        //    NSAPEntities.GearUnloadViewModel.CopyOfGearUnloadList != null &&
-                        //    NSAPEntities.GearUnloadViewModel.CopyOfGearUnloadList.Count > 0
-                        //    )
-                        //{
-                        //    UndoChangesToGearUnload(refresh: false);
-                        //}
 
                         dt = DateTime.Parse(((TreeViewItem)tvItem.Parent).Header.ToString()).Date;
-                        if (tvItem.Tag.ToString() == "effort")
+                        if (tvItem.Tag.ToString() == "tracked")
                         {
-
-                            GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetDownloadDetailsByDateAsync(dt);
-                            //RefreshDownloadedItemsGrid(dt);
-                        }
-                        else if (tvItem.Tag.ToString() == "tracked")
-                        {
-                            //dt = DateTime.Parse(((TreeViewItem)tvItem.Parent).Header.ToString()).Date;
                             GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetDownloadDetailsByDateAsync(dt, isTracked: true);
-                            //GridNSAPData.DataContext = _vesselDownloadHistory[dt].Where(t => t.IsTracked == true);
                         }
                         else
                         {
-                            //GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetValidateLandedCatchWeightsAsync(dt);
                             GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetDownloadDetailsByDateAsync(dt);
                         }
                         GridNSAPData.AutoGenerateColumns = false;
@@ -3435,6 +3410,7 @@ namespace NSAP_ODK
                             GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Landing site ", Binding = new Binding("LandingSiteNameText") });
                             GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Gear ", Binding = new Binding("GearUsedName") });
                             GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Ref # ", Binding = new Binding("RefNo") });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Form version ", Binding = new Binding("FormVersion") });
 
                             col = new DataGridTextColumn()
                             {
@@ -3445,12 +3421,12 @@ namespace NSAP_ODK
                             col.Binding.StringFormat = "MMM-dd-yyyy HH:mm";
                             GridNSAPData.Columns.Add(col);
 
-                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Weight of catch ", Binding = new Binding("VesselUnload.WeightOfCatch") });
-                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Weight of sample from catch", Binding = new Binding("VesselUnload.WeightOfCatchSample") });
-                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Number of species in catch", Binding = new Binding("VesselUnload.CountCatchCompositionItems") });
-                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Raising factor ", Binding = new Binding("VesselUnload.RaisingFactor") });
-                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Weight of catch composition", Binding = new Binding("VesselUnload.SumOfCatchCompositionWeights") });
-                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Weight of catch composition from sample ", Binding = new Binding("VesselUnload.SumOfSampleWeights") });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Weight of catch ", Binding = new Binding("VesselUnload.VesselUnloadWeights.CatchWeight"), CellStyle = AlignRightStyle });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Weight of sample\r\nfrom catch", Binding = new Binding("VesselUnload.VesselUnloadWeights.CatchSampleWeight"), CellStyle = AlignRightStyle });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Number of species\r\nin catch", Binding = new Binding("VesselUnload.CountCatchCompositionItems"), CellStyle = AlignRightStyle });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Raising factor ", Binding = new Binding("VesselUnload.VesselUnloadWeights.RaisingFactor"), CellStyle = AlignRightStyle });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Weight of catch\r\ncomposition", Binding = new Binding("VesselUnload.VesselUnloadWeights.SumOfCatchCompositionWeights"), CellStyle = AlignRightStyle });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Weight of catch\r\ncomposition from sample ", Binding = new Binding("VesselUnload.VesselUnloadWeights.SumOfCatchCompositionFromSampleWeight"), CellStyle = AlignRightStyle });
                             GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Type of sampling", Binding = new Binding("VesselUnload.SamplingTypeFlagText") });
                             GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Validity of weights ", Binding = new Binding("VesselUnload.WeightValidationFlagText") });
                         }
@@ -3476,7 +3452,7 @@ namespace NSAP_ODK
 
                             GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Sector") });
                             GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("VesselNameToUse") });
-                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Number of fishers", Binding = new Binding("NumberOfFishers") });
+                            GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Number of fishers", Binding = new Binding("NumberOfFishers"), CellStyle = AlignRightStyle });
 
                             if (tvItem.Tag.ToString() == "tracked")
                             {
@@ -3522,8 +3498,8 @@ namespace NSAP_ODK
 
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("GearUsedName"), IsReadOnly = true });
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "# of sampled landings", Binding = new Binding("NumberOfSampledLandings"), IsReadOnly = true });
-                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Boats", Binding = new Binding("Boats"), IsReadOnly = false });
-                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Catch", Binding = new Binding("Catch"), IsReadOnly = false });
+                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Boats", Binding = new Binding("Boats"), IsReadOnly = false, CellStyle = AlignRightStyle });
+                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Catch", Binding = new Binding("Catch"), IsReadOnly = false, CellStyle = AlignRightStyle });
 
                         break;
                     case "unloadSummary":
@@ -3539,15 +3515,15 @@ namespace NSAP_ODK
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("GearUsedName") });
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Ref #", Binding = new Binding("RefNo") });
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("EnumeratorNameToUse") });
-                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Fishing grid count", Binding = new Binding("FishingGridRows") });
-                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Soak time count", Binding = new Binding("GearSoakRows") });
-                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Effort indicator count", Binding = new Binding("VesselEffortRows") });
-                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Catch composition count", Binding = new Binding("CatchCompositionRows") });
+                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Fishing grid count", Binding = new Binding("FishingGridRows"), CellStyle = AlignRightStyle });
+                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Soak time count", Binding = new Binding("GearSoakRows"), CellStyle = AlignRightStyle });
+                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Effort indicator count", Binding = new Binding("VesselEffortRows"), CellStyle = AlignRightStyle });
+                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Catch composition count", Binding = new Binding("CatchCompositionRows"), CellStyle = AlignRightStyle });
 
-                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Length freq count", Binding = new Binding("LenFreqRows") });
-                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Length count", Binding = new Binding("LengthRows") });
-                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Length weight count", Binding = new Binding("LenWtRows") });
-                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Maturity count", Binding = new Binding("CatchMaturityRows") });
+                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Length freq count", Binding = new Binding("LenFreqRows"), CellStyle = AlignRightStyle });
+                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Length count", Binding = new Binding("LengthRows"), CellStyle = AlignRightStyle });
+                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Length weight count", Binding = new Binding("LenWtRows"), CellStyle = AlignRightStyle });
+                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Maturity count", Binding = new Binding("CatchMaturityRows"), CellStyle = AlignRightStyle });
 
                         break;
                 }

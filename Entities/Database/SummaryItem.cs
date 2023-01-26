@@ -300,6 +300,8 @@ namespace NSAP_ODK.Entities.Database
                         GearUnload.VesselUnloadViewModel = new VesselUnloadViewModel(GearUnload);
                     }
                     _vesselUnload = GearUnload.VesselUnloadViewModel.VesselUnloadCollection.FirstOrDefault(t => t.PK == VesselUnloadID);
+                    _vesselUnload.VesselUnloadWeights = new VesselUnloadWeights(_vesselUnload);
+
                 }
                 return _vesselUnload;
             }
