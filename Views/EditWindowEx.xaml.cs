@@ -3077,7 +3077,23 @@ namespace NSAP_ODK.Views
                 case "Code":
                     switch (NSAPEntity.ToString())
                     {
+                        case "FishingGear":
                         case "FishingGround":
+                            string entityName = "Fishing ground";
+                            if(NSAPEntity.ToString()=="FishingGear")
+                            {
+                                entityName = "Fishing gear";
+                            }
+                            if(!Global.StringIsOnlyASCIILettersAndDigits(currentProperty.Value.ToString()))
+                            {
+                                MessageBox.Show($"{entityName} code must contain only upper case letters and numbers",
+                                    "NSAP-ODK Database",
+                                    MessageBoxButton.OK,
+                                    MessageBoxImage.Information
+                                    );
+
+                                currentProperty.Value = string.Empty;
+                            }
                             //if(currentProperty.DisplayName=="Database identifier")
                             //{
                             //    _textDBIdentifierValid = !NSAPEntities.FishingGroundViewModel.FishingGroundCodeExists(currentProperty.Value.ToString());

@@ -8,554 +8,626 @@ using System.Threading.Tasks;
 namespace NSAP_ODK.Entities.Database
 {
     // Root myDeserializedClass = JsonConvert.DeserializeObject<List<Root>>(myJsonResponse);
-    public class RepeatVesselUnload
+    public class EForm7LSS
     {
-        public SamplingAtLandingSite Parent { get; set; }
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/fishing_vessel_group/sampling_time")]
-        public string sampling_time { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/fishing_vessel_group/sampling_date")]
-        public DateTime sampling_date { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/fishing_vessel_group/is_boat_used")]
-        public string is_boat_used { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/fishing_vessel_group/select_vessel")]
-        public string select_vessel { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/fishing_vessel_group/fish_sector")]
-        public string fish_sector { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/fishing_vessel_group/vessel_csv_source")]
-        public string vessel_csv_source { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/fishing_vessel_group/search_or_showall")]
-        public string search_or_showall { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/fishing_vessel_group/search_mode")]
-        public string search_mode { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/fishing_vessel_group/search_column")]
-        public string search_column { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/fishing_vessel_group/search_vessel")]
-        public string search_vessel { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/fishing_vessel_group/search_value")]
-        public string search_value { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/fishing_vessel_group/boat_used")]
-        public string boat_used { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/fishing_vessel_group/number_of_fishers")]
-        public int? number_of_fishers { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/fishing_vessel_group/is_gps_used")]
-        public string is_gps_used { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/fishing_vessel_group/decimal_sampling_date")]
-        public string decimal_sampling_date { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/fishing_vessel_group/sampling_date_string")]
-        public string sampling_date_string { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/fishing_vessel_group/boat_name")]
-        public string boat_name { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/vessel_catch/trip_isSuccess")]
-        public string trip_isSuccess { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/vessel_catch/catch_total")]
-        public double? catch_total { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/vessel_catch/is_catch_sampled")]
-        public string is_catch_sampled { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/vessel_catch/catch_sampled")]
-        public string catch_sampled { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/vessel_catch/is_catch_sold")]
-        public string is_catch_sold { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/vessel_catch/sample_wt_text")]
-        public string sample_wt_text { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/grid_coord_group/include_bingo")]
-        public string include_bingo { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/grid_coord_group/utmZone")]
-        public string utmZone { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/grid_coord_group/majorgrid_csv")]
-        public string majorgrid_csv { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/grid_coord_group/inlandgrid_csv")]
-        public string inlandgrid_csv { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/grid_coord_group/bingo_repeat")]
-        public List<BingoRepeat> bingo_repeat { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/soak_time_group/include_soak_time")]
-        public string include_soak_time { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/soak_time_group/soak_time_repeat")]
-        public List<SoakTimeRepeat> soak_time_repeat { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/efforts_group/include_effort")]
-        public string include_effort { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/efforts_group/effort_repeat")]
-        public List<FishingEffortRepeat> effort_repeat { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/select_length_group/include_catchcomp")]
-        public string include_catchcomp { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/select_length_group/length_type")]
-        public string length_type { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/select_length_group/has_gms")]
-        public string has_gms { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/count_catch_comp")]
-        public string count_catch_comp { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat")]
-        public List<CatchCompositionRepeat> catch_composition_repeat { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/sum_total")]
-        public string sum_total { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/raising_factor")]
-        public string raising_factor { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/raising_factor_text")]
-        public string raising_factor_text { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/sum_sample")]
-        public string sum_sample { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/sum_species_weight")]
-        public string sum_species_weight { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/sum_species_weight_coalesce")]
-        public string sum_species_weight_coalesce { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/group_final_tally/ref_no")]
-        public string group_final_tallyref_no { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/fishing_vessel_group/boat_used_text")]
-        public string boat_used_text { get; set; }
-    }
-
-    public class CatchCompositionRepeat
-    {
-        public RepeatVesselUnload Parent { get; set; }
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/show_taxa_image")]
-        public string show_taxa_image { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/taxa_no_im")]
-        public string taxa_no_im { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/taxa")]
-        public string taxa { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/select_spName")]
-        public string select_spName { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/species_csv_source")]
-        public string species_csv_source { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/species_notfish")]
-        public string species_notfish { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/sp_id")]
-        public string sp_id { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/len_max_1")]
-        public string len_max_1 { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/len_max")]
-        public string len_max { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/species_name_selected")]
-        public string species_name_selected { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/size_type_name")]
-        public string size_type_name { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/input_total_species_first")]
-        public string input_total_species_first { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/from_total_catch")]
-        public string from_total_catch { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/species_sample_wt_sampled")]
-        public string species_sample_wt_sampled { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/species_wt_raised")]
-        public string species_wt_raised { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/species_wt")]
-        public string species_wt { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/species_wt_rounded")]
-        public string species_wt_rounded { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/measure_len_and_gms")]
-        public string measure_len_and_gms { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/type_of_measure")]
-        public string type_of_measure { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/what_is_measured")]
-        public string what_is_measured { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/max_len_hint")]
-        public string max_len_hint { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/enforce_maxlen")]
-        public string enforce_maxlen { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/species_sample_wt")]
-        public string species_sample_wt { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/species_sample_wt_from_sample")]
-        public string species_sample_wt_from_sample { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/from_total_catch_code")]
-        public string from_total_catch_code { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/len_max_hint")]
-        public string len_max_hint { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/individual_wt_unit")]
-        public string individual_wt_unit { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/wt_unit_name")]
-        public string wt_unit_name { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/is_species_sold")]
-        public string is_species_sold { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/price_of_species")]
-        public string price_of_species { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/pricing_unit")]
-        public string pricing_unit { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/from_sample_status")]
-        public string from_sample_status { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/max_size_hint")]
-        public string max_size_hint { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/species_wt_check")]
-        public string species_wt_check { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/overwt_prompt")]
-        public string overwt_prompt { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/sum_wt_from_lenwt")]
-        public string sum_wt_from_lenwt { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/sum_wt_from_lenwt_coalesce")]
-        public string sum_wt_from_lenwt_coalesce { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/gms_repeat_group")]
-        public List<GmsRepeatGroup> gms_repeat_group { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/sum_wt_from_gms")]
-        public string sum_wt_from_gms { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/sum_wt_from_gms_coalesce")]
-        public string sum_wt_from_gms_coalesce { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/repeat_title")]
-        public string repeat_title { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/search_species")]
-        public string search_species { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/species")]
-        public string species { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/include_sex_for_length")]
-        public string include_sex_for_length { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/length_list_repeat")]
-        public List<LengthListRepeat> length_list_repeat { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/species_wt_1")]
-        public string species_wt_1 { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/has_measurement")]
-        public string has_measurement { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/species_data_group/species_sample_wt_total")]
-        public string species_sample_wt_total { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/len_wt_repeat")]
-        public List<LenWtRepeat> len_wt_repeat { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/length_freq_repeat")]
-        public List<LenFreqRepeat> len_freq_repeat { get; set; }
-    }
-
-    public class GmsRepeatGroup
-    {
-        public CatchCompositionRepeat Parent { get; set; }
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/individual_length")]
-        public string individual_length { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/individual_weight")]
-        public string individual_weight { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/sex")]
-        public string sex { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/gms_repeat")]
-        public string gms_repeat { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/combined_gms_fields")]
-        public string combined_gms_fields { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/individual_weight_kg")]
-        public string individual_weight_kg { get; set; }
-    }
-
-    public class LenFreqRepeat
-    {
-        public CatchCompositionRepeat Parent { get; set; }
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/length_freq_repeat/group_LF/length_class")]
-        public double length_class { get; set; }
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/length_freq_repeat/group_LF/freq")]
-        public int freq { get; set; }
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/length_freq_repeat/group_LF/sex_lf")]
-        public string sex_lf { get; set; }
-    }
-    public class LengthListRepeat
-    {
-        public CatchCompositionRepeat Parent { get; set; }
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/length_list_repeat/length_list_group/length")]
-        public string length { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/length_list_repeat/length_list_group/sex_l")]
-        public string sex_l { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/length_list_repeat/length_list_group/ll_grp_title")]
-        public string ll_grp_title { get; set; }
-    }
-
-    public class LenWtRepeat
-    {
-        public CatchCompositionRepeat Parent { get; set; }
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/len_wt_repeat/len_wt_group/len_lenwt")]
-        public string len_lenwt { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/len_wt_repeat/len_wt_group/wt_lenwt")]
-        public string wt_lenwt { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/len_wt_repeat/len_wt_group/lw_grp_title")]
-        public string lw_grp_title { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/catch_comp_group/catch_composition_repeat/speciesname_group/len_wt_repeat/len_wt_group/wt_lenwt_kg")]
-        public string wt_lenwt_kg { get; set; }
-    }
-
-    public class FishingEffortRepeat
-    {
-        public RepeatVesselUnload Parent { get; set; }
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/efforts_group/effort_repeat/group_effort/effort_type")]
-        public string effort_type { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/efforts_group/effort_repeat/group_effort/response_type")]
-        public string response_type { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/efforts_group/effort_repeat/group_effort/effort_spec_name")]
-        public string effort_spec_name { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/efforts_group/effort_repeat/group_effort/effort_intensity")]
-        public string effort_intensity { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/efforts_group/effort_repeat/group_effort/selected_effort_measure")]
-        public string selected_effort_measure { get; set; }
-    }
-
-    public class BingoRepeat
-    {
-        public RepeatVesselUnload Parent { get; set; }
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/grid_coord_group/bingo_repeat/bingo_group/major_grid")]
-        public string major_grid { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/grid_coord_group/bingo_repeat/bingo_group/col_name")]
-        public string col_name { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/grid_coord_group/bingo_repeat/bingo_group/row_name")]
-        public string row_name { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/grid_coord_group/bingo_repeat/bingo_group/bingo_complete")]
-        public string bingo_complete { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/grid_coord_group/bingo_repeat/bingo_group/is_inland")]
-        public string is_inland { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/grid_coord_group/bingo_repeat/bingo_group/group_label")]
-        public string group_label { get; set; }
-    }
-
-    public class SoakTimeRepeat
-    {
-        public RepeatVesselUnload Parent { get; set; }
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/soak_time_group/soak_time_repeat/soaktime_tracking_group/calculate_set_hint")]
-        public string calculate_set_hint { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/soak_time_group/soak_time_repeat/soaktime_tracking_group/set_time")]
-        public DateTime set_time { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/soak_time_group/soak_time_repeat/soaktime_tracking_group/decimal_set_time")]
-        public string decimal_set_time { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/soak_time_group/soak_time_repeat/soaktime_tracking_group/time_set_string")]
-        public string time_set_string { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/soak_time_group/soak_time_repeat/soaktime_tracking_group/calculate_haul_hint")]
-        public string calculate_haul_hint { get; set; }
-
-        [JsonProperty("repeat_vessel_unload/fishing_vessel_data/soak_time_group/soak_time_repeat/soaktime_tracking_group/haul_time")]
-        public DateTime haul_time { get; set; }
-    }
-
-    public class SamplingAtLandingSite
-    {
+        public int PK { get; set; }
         [JsonProperty("_id")]
-        public int _id { get; set; }
+        public int? Id { get; set; }
 
         [JsonProperty("formhub/uuid")]
-        public string formhubuuid { get; set; }
+        public string FormhubUuid { get; set; }
 
         [JsonProperty("start")]
-        public DateTime start { get; set; }
+        public DateTime? Start { get; set; }
 
         [JsonProperty("today")]
-        public string today { get; set; }
+        public string Today { get; set; }
 
         [JsonProperty("device_id")]
-        public string device_id { get; set; }
+        public string DeviceId { get; set; }
 
         [JsonProperty("user_name")]
-        public string user_name { get; set; }
+        public string UserName { get; set; }
 
         [JsonProperty("email")]
-        public string email { get; set; }
+        public string Email { get; set; }
 
         [JsonProperty("intronote")]
-        public string intronote { get; set; }
+        public string Intronote { get; set; }
 
-        [JsonProperty("landing_site_sampling/landing_date")]
-        public string landing_date { get; set; }
+        [JsonProperty("g_lss/landing_date")]
+        public DateTime LandingDate { get; set; }
 
-        [JsonProperty("landing_site_sampling/landing_date_string")]
-        public string landing_date_string { get; set; }
+        //[JsonProperty("g_lss/landing_date_string")]
+        //public string LandingDateString { get; set; }
 
-        [JsonProperty("landing_site_sampling/is_sampling_day")]
-        public string is_sampling_day { get; set; }
+        [JsonProperty("g_lss/is_sampling_day")]
+        public string IsSamplingDay { get; set; }
 
-        [JsonProperty("landing_site_sampling/are_fishing_boats_landing")]
-        public string are_fishing_boats_landing { get; set; }
+        [JsonProperty("g_lss/are_fishing_boats_landing")]
+        public string AreFishingBoatsLanding { get; set; }
 
-        [JsonProperty("landing_site_sampling/nsap_region")]
-        public string nsap_region { get; set; }
+        [JsonProperty("g_lss/nsap_region")]
+        public string NsapRegion { get; set; }
 
-        [JsonProperty("landing_site_sampling/select_enumerator")]
-        public string select_enumerator { get; set; }
+        [JsonProperty("g_lss/select_enumerator")]
+        public string SelectEnumerator { get; set; }
 
-        [JsonProperty("landing_site_sampling/region_enumerator")]
-        public string region_enumerator { get; set; }
+        [JsonProperty("g_lss/region_enumerator")]
+        public int? RegionEnumerator { get; set; }
 
-        [JsonProperty("landing_site_sampling/fma_in_region")]
-        public string fma_in_region { get; set; }
+        [JsonProperty("g_lss/region_enumerator_text")]
+        public string EnumeratorText { get; set; }
 
-        [JsonProperty("landing_site_sampling/fishing_ground")]
-        public string fishing_ground { get; set; }
 
-        [JsonProperty("landing_site_sampling/select_landingsite")]
-        public string select_landingsite { get; set; }
+        [JsonProperty("g_lss/fma_in_region")]
+        public int FmaInRegion { get; set; }
 
-        [JsonProperty("landing_site_sampling/landing_site")]
-        public string landing_site { get; set; }
+        [JsonProperty("g_lss/fishing_ground")]
+        public string FishingGround { get; set; }
 
-        [JsonProperty("landing_site_sampling/select_gear")]
-        public string select_gear { get; set; }
+        [JsonProperty("g_lss/select_landingsite")]
+        public string SelectLandingsite { get; set; }
 
-        [JsonProperty("landing_site_sampling/gear_used")]
-        public string gear_used { get; set; }
+        [JsonProperty("g_lss/landing_site")]
+        public string LandingSite { get; set; }
 
-        [JsonProperty("landing_site_sampling/gear_code")]
-        public string gear_code { get; set; }
+        [JsonProperty("g_lss/select_gear")]
+        public string SelectGear { get; set; }
 
-        [JsonProperty("landing_site_sampling/gear_name")]
-        public string gear_name { get; set; }
+        [JsonProperty("g_lss/gear_used")]
+        public string GearUsed { get; set; }
+
+        [JsonProperty("g_lss/gear_code")]
+        public string GearCode { get; set; }
+
+        [JsonProperty("g_lss/gear_name")]
+        public string GearName { get; set; }
 
         [JsonProperty("fma_number")]
-        public string fma_number { get; set; }
+        public string FmaNumber { get; set; }
 
         [JsonProperty("fishing_ground_name")]
-        public string fishing_ground_name { get; set; }
+        public string FishingGroundName { get; set; }
 
         [JsonProperty("landing_site_name")]
-        public string landing_site_name { get; set; }
+        public string LandingSiteName { get; set; }
 
-        [JsonProperty("group_vessel_landing_counts/count_total_landing")]
-        public string count_total_landing { get; set; }
+        [JsonProperty("g_counts/count_total_landing")]
+        public int? CountTotalLanding { get; set; }
 
-        [JsonProperty("group_vessel_landing_counts/count_total_sampled")]
-        public string count_total_sampled { get; set; }
+        [JsonProperty("g_counts/count_total_sampled")]
+        public int? CountTotalSampled { get; set; }
 
-        [JsonProperty("group_vessel_landing_counts/total_weight_landing")]
-        public string total_weight_landing { get; set; }
+        [JsonProperty("g_counts/total_weight_landing")]
+        public string TotalWeightLanding { get; set; }
 
-        [JsonProperty("repeat_vessel_unload")]
-        public List<RepeatVesselUnload> repeat_vessel_unload { get; set; }
+        [JsonProperty("r_vu_count")]
+        public string RVuCount { get; set; }
+
+        [JsonProperty("r_vu")]
+        public List<EForm7VU> VU_Repeat { get; set; }
 
         [JsonProperty("__version__")]
-        public string __version__ { get; set; }
+        public string Version { get; set; }
 
         [JsonProperty("meta/instanceID")]
-        public string metainstanceID { get; set; }
+        public string MetaInstanceID { get; set; }
 
         [JsonProperty("meta/instanceName")]
-        public string metainstanceName { get; set; }
+        public string MetaInstanceName { get; set; }
 
         [JsonProperty("_xform_id_string")]
-        public string _xform_id_string { get; set; }
+        public string XformIdString { get; set; }
 
         [JsonProperty("_uuid")]
-        public string _uuid { get; set; }
+        public string Uuid { get; set; }
 
         [JsonProperty("_attachments")]
-        public List<object> _attachments { get; set; }
+        public List<object> Attachments { get; set; }
 
         [JsonProperty("_status")]
-        public string _status { get; set; }
+        public string Status { get; set; }
 
         [JsonProperty("_geolocation")]
-        public List<object> _geolocation { get; set; }
+        public List<object> Geolocation { get; set; }
 
         [JsonProperty("_submission_time")]
-        public DateTime _submission_time { get; set; }
+        public DateTime? SubmissionTime { get; set; }
 
         [JsonProperty("_tags")]
-        public List<object> _tags { get; set; }
+        public List<object> Tags { get; set; }
 
         [JsonProperty("_notes")]
-        public List<object> _notes { get; set; }
+        public List<object> Notes { get; set; }
 
         [JsonProperty("_validation_status")]
-        public ValidationStatus _validation_status { get; set; }
+        public ValidationStatus ValidationStatus { get; set; }
 
         [JsonProperty("_submitted_by")]
-        public object _submitted_by { get; set; }
+        public object SubmittedBy { get; set; }
     }
+
+    public class EForm7VU
+    {
+        [JsonProperty("r_vu/g_fv/g_fv1/sampling_time")]
+        public string SamplingTime { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_fv1/sampling_date")]
+        public DateTime? SamplingDate { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_fv1/is_boat_used")]
+        public string IsBoatUsed { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_fv1/select_vessel")]
+        public string SelectVessel { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_fv1/fish_sector")]
+        public string FishSector { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_fv1/vessel_csv_source")]
+        public string VesselCsvSource { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_fv1/search_or_showall")]
+        public string SearchOrShowall { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_fv1/search_mode")]
+        public string SearchMode { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_fv1/search_column")]
+        public string SearchColumn { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_fv1/search_vessel")]
+        public string SearchVessel { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_fv1/search_value")]
+        public string SearchValue { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_fv1/boat_used")]
+        public string BoatUsed { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_fv1/number_of_fishers")]
+        public string NumberOfFishers { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_fv1/is_gps_used")]
+        public string IsGpsUsed { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_fv1/decimal_sampling_date")]
+        public string DecimalSamplingDate { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_fv1/sampling_date_string")]
+        public string SamplingDateString { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_fv1/boat_name")]
+        public string BoatName { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_catch/trip_isSuccess")]
+        public string TripIsSuccess { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_catch/catch_total")]
+        public string CatchTotal { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_catch/boxes_total")]
+        public string BoxesTotal { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_catch/is_catch_sampled")]
+        public string IsCatchSampled { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_catch/catch_sampled")]
+        public string CatchSampled { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_catch/boxes_sampled")]
+        public string BoxesSampled { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_catch/is_catch_sold")]
+        public string IsCatchSold { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_catch/remarks_normal_operation")]
+        public string RemarksNormalOperation { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_catch/remarks")]
+        public string Remarks { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_catch/sample_wt_text")]
+        public string SampleWtText { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_coord/include_bingo")]
+        public string IncludeBingo { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_coord/utmZone")]
+        public string UtmZone { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_coord/majorgrid_csv")]
+        public string MajorgridCsv { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_coord/inlandgrid_csv")]
+        public string InlandgridCsv { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_coord/r_coord")]
+        public List<EForm7Coord> Coord_Repeat { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_soaking/include_soak_time")]
+        public string IncludeSoakTime { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_soaking/r_soaking")]
+        public List<EForm7Soak> Soaking_Repeat { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_effort/include_effort")]
+        public string IncludeEffort { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_effort/r_effort")]
+        public List<EForm7Effort> Effort_Repeat { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/g_measure/include_catchcomp")]
+        public string IncludeCatchcomp { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/g_measure/species_count")]
+        public string SpeciesCount { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/g_measure/length_type")]
+        public string LengthType { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/g_measure/has_gms")]
+        public string HasGms { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/count_catch_comp")]
+        public string CountCatchComp { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc_count")]
+        public string RCcCount { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc")]
+        public List<EForm7CC> CC_Repeat { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/sum_total")]
+        public string SumTotal { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/raising_factor")]
+        public string RaisingFactor { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/raising_factor_text")]
+        public string RaisingFactorText { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/sum_sample")]
+        public string SumSample { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/sum_species_weight")]
+        public string SumSpeciesWeight { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/sum_species_weight_coalesce")]
+        public string SumSpeciesWeightCoalesce { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/g_summary/ref_no")]
+        public string GSummaryRefNo { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_fv1/boat_used_text")]
+        public string BoatUsedText { get; set; }
+    }
+
+    public class EForm7CC
+    {
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/show_taxa_image")]
+        public string ShowTaxaImage { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/taxa_no_im")]
+        public string TaxaNoIm { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/taxa")]
+        public string Taxa { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/select_spName")]
+        public string SelectSpName { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/species_csv_source")]
+        public string SpeciesCsvSource { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/search_species")]
+        public string SearchSpecies { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/species")]
+        public string Species { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/sp_id")]
+        public string SpId { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/len_max_1")]
+        public string LenMax1 { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/len_max")]
+        public string LenMax { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/species_name_selected")]
+        public string SpeciesNameSelected { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/size_type_name")]
+        public string SizeTypeName { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/input_total_species_first")]
+        public string InputTotalSpeciesFirst { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/from_total_catch")]
+        public string FromTotalCatch { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/species_sample_wt_sampled")]
+        public string SpeciesSampleWtSampled { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/species_wt_raised")]
+        public string SpeciesWtRaised { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/species_wt")]
+        public string SpeciesWt { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/species_wt_rounded")]
+        public string SpeciesWtRounded { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/measure_len_and_gms")]
+        public string MeasureLenAndGms { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/type_of_measure")]
+        public string TypeOfMeasure { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/what_is_measured")]
+        public string WhatIsMeasured { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/max_len_hint")]
+        public string MaxLenHint { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/enforce_maxlen")]
+        public string EnforceMaxlen { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/species_sample_wt")]
+        public string SpeciesSampleWt { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/species_sample_wt_from_sample")]
+        public string SpeciesSampleWtFromSample { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/from_total_catch_code")]
+        public string FromTotalCatchCode { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/include_sex_for_length")]
+        public string IncludeSexForLength { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/len_max_hint")]
+        public string LenMaxHint { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/wt_unit_name")]
+        public string WtUnitName { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/is_species_sold")]
+        public string IsSpeciesSold { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/price_of_species")]
+        public string PriceOfSpecies { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/pricing_unit")]
+        public string PricingUnit { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/other_pricing_unit")]
+        public string OtherPricingUnit { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/from_sample_status")]
+        public string FromSampleStatus { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/max_size_hint")]
+        public string MaxSizeHint { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/species_wt_check")]
+        public string SpeciesWtCheck { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/overwt_prompt")]
+        public string OverwtPrompt { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/r_ll")]
+        public List<EForm7SpeciesLL> LL_Repeat { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/sum_wt_from_lenwt")]
+        public string SumWtFromLenwt { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/sum_wt_from_lenwt_coalesce")]
+        public string SumWtFromLenwtCoalesce { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/sum_wt_from_gms")]
+        public string SumWtFromGms { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/sum_wt_from_gms_coalesce")]
+        public string SumWtFromGmsCoalesce { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/repeat_title")]
+        public string RepeatTitle { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/species_notfish")]
+        public string SpeciesNotfish { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/species_wt_1")]
+        public string SpeciesWt1 { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/species_wt_total")]
+        public string SpeciesWtTotal { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/species_sample_wt_total")]
+        public string SpeciesSampleWtTotal { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/individual_wt_unit")]
+        public string IndividualWtUnit { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/r_gms")]
+        public List<EForm7SpeciesGMS> GMS_Repeat { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/spName_other")]
+        public string SpNameOther { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/g_species_id/has_measurement")]
+        public string HasMeasurement { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/r_lw")]
+        public List<EForm7SpeciesLW> LW_Repeat { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/r_lf")]
+        public List<EForm7SpeciesLF> LF_Repeat { get; set; }
+    }
+
+    public class EForm7SpeciesGMS
+    {
+        public EForm7CC Parent { get; set; }
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/r_gms/g_gms/individual_length")]
+        public double? IndividualLength { get; set; }
+
+        //[JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/r_gms/g_gms/individual_weight")]
+        //public double? IndividualWeight { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/r_gms/g_gms/sex")]
+        public string Sex { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/r_gms/g_gms/gms_repeat")]
+        public string GMS { get; set; }
+
+        //[JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/r_gms/g_gms/combined_gms_fields")]
+        //public string CombinedGmsFields { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/r_gms/g_gms/individual_weight_kg")]
+        public double? IndividualWeightKg { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/r_gms/g_gms/gonad_wt")]
+        public double? GonadWt { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/r_gms/g_gms/stomach_content_wt")]
+        public double? StomachContentWt { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/r_gms/g_gms/gut_content_category")]
+        public string GutContentCategory { get; set; }
+    }
+
+    public class EForm7SpeciesLF
+    {
+        public int PK { get; set; }
+        public EForm7CC Parent { get; set; }
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/r_lf/g_lf/length_class")]
+        public double LengthClass { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/r_lf/g_lf/freq")]
+        public int Freq { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/r_lf/g_lf/sex_lf")]
+        public string Sex { get; set; }
+
+        //[JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/r_lf/g_lf/lf_grp_title")]
+        //public string LfGrpTitle { get; set; }
+    }
+
+    public class EForm7SpeciesLL
+    {
+        public int PK { get; set; }
+        public EForm7CC Parent { get; set; }
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/r_ll/g_ll/length")]
+        public double Length { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/r_ll/g_ll/sex_l")]
+        public string Sex { get; set; }
+
+        //[JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/r_ll/g_ll/ll_grp_title")]
+        //public string LlGrpTitle { get; set; }
+    }
+
+    public class EForm7SpeciesLW
+    {
+        public int PK { get; set; }
+        public EForm7CC Parent { get; set; }
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/r_lw/g_lw/len_lenwt")]
+        public double Length { get; set; }
+
+        //[JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/r_lw/g_lw/wt_lenwt")]
+        //public string Weight { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/r_lw/g_lw/sex_lw")]
+        public string Sex { get; set; }
+
+        //[JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/r_lw/g_lw/lw_grp_title")]
+        //public string LwGrpTitle { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_cc/r_cc/g_species/r_lw/g_lw/wt_lenwt_kg")]
+        public double WeightKg { get; set; }
+    }
+
+    public class EForm7Coord
+    {
+        public int PK { get; set; }
+        public EForm7VU Parent { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_coord/r_coord/g_coord1/bingo_complete")]
+        public string BingoComplete { get; set; }
+        [JsonProperty("r_vu/g_fv/g_coord/r_coord/g_coord1/is_inland")]
+        public string IsInland { get; set; }
+        //[JsonProperty("r_vu/g_fv/g_coord/r_coord/g_coord1/major_grid")]
+        //public string MajorGrid { get; set; }
+
+        //[JsonProperty("r_vu/g_fv/g_coord/r_coord/g_coord1/col_name")]
+        //public string ColName { get; set; }
+
+        //[JsonProperty("r_vu/g_fv/g_coord/r_coord/g_coord1/row_name")]
+        //public string RowName { get; set; }
+
+        //[JsonProperty("r_vu/g_fv/g_coord/r_coord/g_coord1/group_label")]
+        //public string GroupLabel { get; set; }
+    }
+
+    public class EForm7Effort
+    {
+        public int PK { get; set; }
+        public EForm7VU Parent { get; set; }
+        [JsonProperty("r_vu/g_fv/g_effort/r_effort/g_effort1/effort_type")]
+        public int EffortType { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_effort/r_effort/g_effort1/response_type")]
+        public string ResponseType { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_effort/r_effort/g_effort1/effort_spec_name")]
+        public string EffortSpecName { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_effort/r_effort/g_effort1/effort_intensity")]
+        public double? EffortIntensity { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_effort/r_effort/g_effort1/effort_desc")]
+        public string EffortDescrription { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_effort/r_effort/g_effort1/effort_bool")]
+        public string EffortYesNo { get; set; }
+
+        [JsonProperty("r_vu/g_fv/g_effort/r_effort/g_effort1/selected_effort_measure")]
+        public string SelectedEffortMeasure { get; set; }
+    }
+
+    public class EForm7Soak
+    {
+        public int PK { get; set; }
+        public EForm7VU Parent { get; set; }
+        [JsonProperty("r_vu/g_fv/g_soaking/r_soaking/g_soaking1/set_time")]
+        public DateTime? SetTime { get; set; }
+        [JsonProperty("r_vu/g_fv/g_soaking/r_soaking/g_soaking1/haul_time")]
+        public DateTime? HaulTime { get; set; }
+        //[JsonProperty("r_vu/g_fv/g_soaking/r_soaking/g_soaking1/calculate_set_hint")]
+        //public string RVuGFvGSoakingRSoakingGSoaking1CalculateSetHint { get; set; }
+        //[JsonProperty("r_vu/g_fv/g_soaking/r_soaking/g_soaking1/decimal_set_time")]
+        //public string RVuGFvGSoakingRSoakingGSoaking1DecimalSetTime { get; set; }
+
+        //[JsonProperty("r_vu/g_fv/g_soaking/r_soaking/g_soaking1/time_set_string")]
+        //public string RVuGFvGSoakingRSoakingGSoaking1TimeSetString { get; set; }
+
+        //[JsonProperty("r_vu/g_fv/g_soaking/r_soaking/g_soaking1/calculate_haul_hint")]
+        //public string RVuGFvGSoakingRSoakingGSoaking1CalculateHaulHint { get; set; }
+
+
+
+        //[JsonProperty("r_vu/g_fv/g_soaking/r_soaking/g_soaking1/time_haul_string")]
+        //public string RVuGFvGSoakingRSoakingGSoaking1TimeHaulString { get; set; }
+
+        //[JsonProperty("r_vu/g_fv/g_soaking/r_soaking/g_soaking1/soaking_label")]
+        //public string RVuGFvGSoakingRSoakingGSoaking1SoakingLabel { get; set; }
+    }
+
+
+
+
+
 
 
 
@@ -563,7 +635,7 @@ namespace NSAP_ODK.Entities.Database
     class VesselUnload7ServerRepository
     {
         public static string JSON { get; set; }
-        public static List<SamplingAtLandingSite> LandingSiteSamplings { get; internal set; }
+        public static List<EForm7LSS> LandingSiteSamplings { get; internal set; }
 
         public static void CreateLandingSiteSamplingsFromJSON()
         {
@@ -573,7 +645,7 @@ namespace NSAP_ODK.Entities.Database
             //VesselLanding.SetRowIDs();
             try
             {
-                LandingSiteSamplings = JsonConvert.DeserializeObject<List<SamplingAtLandingSite>>(JSON);
+                LandingSiteSamplings = JsonConvert.DeserializeObject<List<EForm7LSS>>(JSON);
             }
             catch (Exception ex)
             {

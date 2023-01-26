@@ -3565,16 +3565,19 @@ namespace NSAP_ODK
 
         private void OnPropertyGridDblClick(object sender, MouseButtonEventArgs e)
         {
-            switch (_selectedPropertyItem.PropertyName)
+            if (_selectedPropertyItem != null)
             {
-                case "DBPath":
-                    System.Diagnostics.Process.Start($"{Path.GetDirectoryName(_selectedPropertyItem.Value.ToString())}");
-                    break;
-                case "SavedJSONFolder":
-                    System.Diagnostics.Process.Start($"{_selectedPropertyItem.Value.ToString()}");
-                    break;
-                default:
-                    break;
+                switch (_selectedPropertyItem.PropertyName)
+                {
+                    case "DBPath":
+                        System.Diagnostics.Process.Start($"{Path.GetDirectoryName(_selectedPropertyItem.Value.ToString())}");
+                        break;
+                    case "SavedJSONFolder":
+                        System.Diagnostics.Process.Start($"{_selectedPropertyItem.Value.ToString()}");
+                        break;
+                    default:
+                        break;
+                }
             }
         }
 

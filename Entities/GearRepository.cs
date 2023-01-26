@@ -65,9 +65,9 @@ namespace NSAP_ODK.Entities
                             {
                                 Gear g = new Gear();
                                 g.GearName = dr["GearName"].ToString();
-                                g.CodeOfBaseGear = dr["GenericCode"].ToString();
+                                g.CodeOfBaseGear = dr["GenericCode"].ToString().ToUpper();
                                 g.IsGenericGear = (bool)dr["IsGeneric"];
-                                g.Code = dr["GearCode"].ToString();
+                                g.Code = dr["GearCode"].ToString().ToUpper();
                                 listGears.Add(g);
                             }
                         }

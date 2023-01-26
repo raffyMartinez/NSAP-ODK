@@ -333,7 +333,10 @@ namespace NSAP_ODK.Utilities
             }
         }
 
-
+        public static bool StringIsOnlyASCIILettersAndDigits(string s)
+        {
+            return  s.All(c =>  (c >= 'A' && c <= 'Z') || (c >='0' && c<='9'));
+        }
         public static bool MySQLLogInCancelled { get; set; }
         public static void DoAppProceed()
         {

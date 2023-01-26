@@ -238,7 +238,7 @@ namespace NSAP_ODK.Entities
                 {
                     if (fg.FishingGroundCode == fishingGround.FishingGroundCode)
                     {
-                        if (isNew || fishingGround.FishingGroundCode != oldFishingGround.FishingGround.Code)
+                        if (isNew || fishingGround.FishingGroundCode.ToUpper() != oldFishingGround.FishingGround.Code.ToUpper())
                         {
                             msg = new EntityValidationMessage("Fishing ground already listed in the FMA");
                             evr.AddMessage(msg);
@@ -291,7 +291,7 @@ namespace NSAP_ODK.Entities
             {
                 foreach (var g in gear.NSAPRegion.Gears)
                 {
-                    if (g.GearCode == gear.GearCode)
+                    if (g.GearCode.ToUpper() == gear.GearCode.ToUpper())
                     {
                         if (isNew || gear.GearCode != oldGear.GearCode)
                         {
@@ -555,7 +555,7 @@ namespace NSAP_ODK.Entities
                                 NSAPRegionGear nrg = new NSAPRegionGear();
                                 nrg.RowID = Convert.ToInt32(dr["RowID"]);
                                 nrg.NSAPRegion = NSAPRegion;
-                                nrg.Gear = NSAPEntities.GearViewModel.GetGear(dr["GearCode"].ToString());
+                                nrg.Gear = NSAPEntities.GearViewModel.GetGear(dr["GearCode"].ToString().ToUpper());
                                 nrg.DateStart = (DateTime)dr["DateStart"];
                                 if (DateTime.TryParse(dr["DateEnd"].ToString(), out DateTime v))
                                 {
@@ -571,6 +571,7 @@ namespace NSAP_ODK.Entities
                         Logger.Log(ex);
                     }
                 }
+
             }
         }
 
@@ -915,7 +916,7 @@ namespace NSAP_ODK.Entities
                     const string sql = "SELECT Max(RowId) AS max_record_no FROM NSAPRegionVessel";
                     using (OleDbCommand getMax = new OleDbCommand(sql, conn))
                     {
-                        max_rec_no = (int)getMax.ExecuteScalar()+1;
+                        max_rec_no = (int)getMax.ExecuteScalar() + 1;
                     }
                 }
             }
@@ -940,7 +941,7 @@ namespace NSAP_ODK.Entities
                             con.Open();
                             maxID = (int)cmd.ExecuteScalar();
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             Logger.Log(ex);
                         }
@@ -961,12 +962,12 @@ namespace NSAP_ODK.Entities
 
             if (region.FishingVessels.Count == 0)
             {
-                nrfv.RowID = GetLastRegionFishingVesselID()+1;
+                nrfv.RowID = GetLastRegionFishingVesselID() + 1;
             }
             else
             {
                 //nrfv.RowID = MaxRecordNumber_FishingVessel() + 1;
-                nrfv.RowID = region.FishingVessels.Max(t => t.RowID)+1;
+                nrfv.RowID = region.FishingVessels.Max(t => t.RowID) + 1;
             }
             return nrfv;
         }

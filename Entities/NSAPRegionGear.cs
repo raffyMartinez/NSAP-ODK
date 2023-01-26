@@ -30,8 +30,15 @@ namespace NSAP_ODK.Entities
             get { return _gear; }
             set
             {
-                _gear = value;
-                GearCode = _gear.Code;
+                try
+                {
+                    _gear = value;
+                    GearCode = _gear.Code;
+                }
+                catch(Exception ex)
+                {
+                    Utilities.Logger.Log("Gear retrieved from ");
+                }
             }
         }
 
