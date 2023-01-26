@@ -17,6 +17,8 @@ namespace NSAP_ODK.Entities
             return Name;
         }
 
+
+
         public List<NSAPRegionFMA> FMAs { get; set; }
 
         public List<NSAPRegionGear> Gears { get; set; }

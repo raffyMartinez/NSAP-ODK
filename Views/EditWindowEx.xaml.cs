@@ -1688,7 +1688,7 @@ namespace NSAP_ODK.Views
                         {
                             vcw.Show();
                         }
-                        
+
                         break;
                     default:
                         break;
@@ -1704,7 +1704,7 @@ namespace NSAP_ODK.Views
             switch (((Button)sender).Name)
             {
                 case "buttonCleanup":
-                    
+
                     var msg_cleanup = $"Cleaning up removes {_propertyFriendlyName} in the database that do not belong to the selected region\r\nIs this what you want to do?";
                     var result = MessageBox.Show(msg_cleanup, "NSAP-ODK Database", MessageBoxButton.YesNo, MessageBoxImage.Question);
                     if (result == MessageBoxResult.Yes)
@@ -1798,10 +1798,41 @@ namespace NSAP_ODK.Views
                                     case "Gears":
 
                                         NSAPRegionGear regionGear = (NSAPRegionGear)sfDataGrid.SelectedItem;
-                                        if (entitiesRepository.DeleteGear(regionGear.RowID))
+                                        var duplicateGears = nsr.Gears.Where(t => t.GearCode == regionGear.GearCode).ToList();
+                                        bool deleteSelectedOnly = true;
+                                        if (duplicateGears.Count > 1)
+                                        {
+                                            var res = MessageBox.Show($"{regionGear.Gear.GearName} is duplicated\r\nWould you like to delete the duplicated items?\r\n\r\nSelect Yes to remove all duplicates\r\n" +
+                                                                      "Select No to delete the selected item\r\nSelect Cancel to cancel and ignore", "NSAP-ODK Database", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+
+                                            switch (res)
+                                            {
+                                                case MessageBoxResult.Yes:
+                                                    deleteSelectedOnly = false;
+                                                    success = true;
+                                                    int loopCount = 1;
+                                                    while (loopCount < duplicateGears.Count)
+                                                    {
+                                                        if (success)
+                                                        {
+                                                            success = entitiesRepository.DeleteGear(duplicateGears[loopCount].RowID) && nsr.Gears.Remove(duplicateGears[loopCount]);
+                                                        }
+
+                                                        loopCount++;
+                                                    }
+                                                    break;
+                                                case MessageBoxResult.No:
+                                                    break;
+                                                default:
+                                                    return;
+                                            }
+                                        }
+
+                                        if (deleteSelectedOnly && entitiesRepository.DeleteGear(regionGear.RowID))
                                         {
                                             success = nsr.Gears.Remove(regionGear);
                                         }
+
                                         break;
                                     case "Vessels":
                                         NSAPRegionFishingVessel regionVessel = (NSAPRegionFishingVessel)sfDataGrid.SelectedItem;
@@ -1824,6 +1855,8 @@ namespace NSAP_ODK.Views
 
                     if (success)
                     {
+
+                        ((NSAPRegionEdit)PropertyGrid.SelectedObject).Refresh();
                         SetUpSubFormSource();
                         PropertyGrid.Update();
                     }
@@ -2811,7 +2844,7 @@ namespace NSAP_ODK.Views
                     rowBottomLabel.Height = new GridLength(40);
                     SetUpSubForm();
                     buttonValidate.Visibility = Visibility.Visible;
-                    buttonCleanup.Visibility = sfDataGrid.Items.Count>0?Visibility.Visible:Visibility.Collapsed;
+                    buttonCleanup.Visibility = sfDataGrid.Items.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
                     _propertyFriendlyName = "landing sites";
                     break;
 
@@ -2846,7 +2879,7 @@ namespace NSAP_ODK.Views
                     rowBottomLabel.Height = new GridLength(40);
                     SetUpSubForm();
                     buttonValidate.Visibility = Visibility.Visible;
-                    buttonCleanup.Visibility = sfDataGrid.Items.Count>0?Visibility.Visible:Visibility.Collapsed;
+                    buttonCleanup.Visibility = sfDataGrid.Items.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
                     _propertyFriendlyName = "fishing vessels";
                     break;
 
@@ -2856,7 +2889,7 @@ namespace NSAP_ODK.Views
                     rowBottomLabel.Height = new GridLength(40);
                     SetUpSubForm();
                     buttonValidate.Visibility = Visibility.Visible;
-                    buttonCleanup.Visibility = sfDataGrid.Items.Count>0?Visibility.Visible:Visibility.Collapsed;
+                    buttonCleanup.Visibility = sfDataGrid.Items.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
                     _propertyFriendlyName = "landing site enumerators";
                     break;
                 default:
@@ -3080,11 +3113,11 @@ namespace NSAP_ODK.Views
                         case "FishingGear":
                         case "FishingGround":
                             string entityName = "Fishing ground";
-                            if(NSAPEntity.ToString()=="FishingGear")
+                            if (NSAPEntity.ToString() == "FishingGear")
                             {
                                 entityName = "Fishing gear";
                             }
-                            if(!Global.StringIsOnlyASCIILettersAndDigits(currentProperty.Value.ToString()))
+                            if (!Global.StringIsOnlyASCIILettersAndDigits(currentProperty.Value.ToString()))
                             {
                                 MessageBox.Show($"{entityName} code must contain only upper case letters and numbers",
                                     "NSAP-ODK Database",
