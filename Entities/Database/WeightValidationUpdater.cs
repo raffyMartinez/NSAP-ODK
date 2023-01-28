@@ -53,7 +53,7 @@ namespace NSAP_ODK.Entities.Database
                 vcwvs = VesselCatchRepository.GetVesselCatchForWV();
 
                 var maxID = VesselUnloadRepository.WeightValidationTableMaxID();
-
+                maxID = null;
 
                 if (maxID != null)
                 {
@@ -65,7 +65,7 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
 
-            //itemList = NSAPEntities.SummaryItemViewModel.SummaryItemCollection.Where(t => t.VesselUnloadID == 85655).ToList();
+            //itemList = NSAPEntities.SummaryItemViewModel.SummaryItemCollection.Where(t => t.VesselUnloadID >= 792).OrderBy(t => t.VesselUnloadID).ToList();
             UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.StartOfUpdate, VesselUnloadToUpdateCount = itemList.Count });
             foreach (SummaryItem item in itemList)
             {
@@ -161,6 +161,7 @@ namespace NSAP_ODK.Entities.Database
                             }
                             item.SumOfCatchCompositionSampleWeight = sumOfCatchCompositionSampleWeight;
                         }
+
                         item.RaisingFactor = ((double)item.WeightOfCatch - from_total_sum) / (double)item.WeightOfCatchSample;
                     }
                 }
@@ -332,13 +333,15 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
             string rv = item.VesselUnloadID.ToString();
-            rv += $",{item.SumOfCatchCompositionWeight}";
-            rv += $",{item.SumOfCatchCompositionSampleWeight}";
+            //it turns out when a value has decimal point, there are cases where only the whole number part is saved
+            //that is why the values (sum of catch comp wt, sum of catch comp sample wt) are in quotes
+            rv += $",\"{item.SumOfCatchCompositionWeight}\"";
+            rv += $",\"{item.SumOfCatchCompositionSampleWeight}\"";
             rv += $",{(int)item.WeightValidationFlag}";
             rv += $",{(int)item.SamplingTypeFlag}";
-            rv += $",{diff}";
+            rv += $",\"{diff}\"";
             rv += $",\"{item.FormVersionCleaned}\"";
-            rv += $",{item.RaisingFactor}";
+            rv += $",\"{item.RaisingFactor}\"";
             return rv;
         }
     }
