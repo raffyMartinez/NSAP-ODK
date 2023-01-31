@@ -39,7 +39,19 @@ namespace NSAP_ODK.Entities.Database
             } 
         }
 
-        public FishingGround FishingGround { get { return GearUnloads[0].Parent.FishingGround; } }
+        public FishingGround FishingGround {
+            get 
+            {
+                if (GearUnloads.Count > 0)
+                {
+                    return GearUnloads[0].Parent.FishingGround;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
 
         public int NumberOfUnload { get { return GearUnloads.Count; } }
 

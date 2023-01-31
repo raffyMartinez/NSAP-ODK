@@ -50,7 +50,7 @@ namespace NSAP_ODK.Entities.Database
             EnumeratorCount = NSAPEntities.NSAPEnumeratorViewModel.Count;
             FishingVesselCount = NSAPEntities.FishingVesselViewModel.Count;
             GPSCount = NSAPEntities.GPSViewModel.Count;
-            TrackedOperationsCount = VesselUnloadViewModel.CountVesselUnload(isTracked:true);
+            TrackedOperationsCount = VesselUnloadViewModel.CountVesselUnload(isTracked: true);
             if (VesselUnloadCount > 0)
             {
                 //VesselUnloadSummary vs = VesselUnloadViewModel.GetSummary();
@@ -71,7 +71,7 @@ namespace NSAP_ODK.Entities.Database
                 //LastSampledLandingDate = NSAPEntities.VesselUnloadViewModel.DateOfLastSampledLanding;
                 LastSampledLandingDate = vs.LastSamplingDate;
                 //CountCompleteGearUnload = NSAPEntities.GearUnloadViewModel.CountCompletedGearUnload;
-                CountCompleteGearUnload = GearUnloadViewModel.GearUnloadCount(isCompleted:true);
+                CountCompleteGearUnload = GearUnloadViewModel.GearUnloadCount(isCompleted: true);
                 //DateLastDownload = NSAPEntities.VesselUnloadViewModel.DateLatestDownload;
                 DateLastDownload = vs.LatestDownloadDate;
                 SavedJSONFolder = Global.Settings.JSONFolder;
@@ -148,6 +148,14 @@ namespace NSAP_ODK.Entities.Database
 
         public int GearSpecificationCount { get; set; }
 
+        [ReadOnly(true)]
+        public List<int> VesselUnloadIDs { get; set; }
+        [ReadOnly(true)]
+
+        public List<int> SamplingDayIDs { get; set; }
+        [ReadOnly(true)]
+
+        public List<VesselUnload> VesselUnloads { get; set; }
         [ReadOnly(true)]
         public int VesselUnloadCount { get; set; }
 

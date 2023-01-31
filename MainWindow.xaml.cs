@@ -59,6 +59,7 @@ namespace NSAP_ODK
         private VesselUnloadEditWindow _vesselUnloadEditWindow;
         private List<GearUnload> _gearUnloadList;
         private bool _saveChangesToGearUnload;
+        private FishingGround _fishingGroundMoveDestination;
         private PropertyItem _selectedPropertyItem;
         private TreeViewItem _selectedTreeNode;
         private TreeViewModelControl.AllSamplingEntitiesEventHandler _allSamplingEntitiesEventHandler;
@@ -1010,11 +1011,21 @@ namespace NSAP_ODK
                             }
                             break;
                         case "Regions":
-                            foreach (var fg in NSAPEntities.NSAPRegionViewModel.GetFishingGrounds((NSAPRegion)node.Tag))
+                            foreach (var fma in ((NSAPRegion)node.Tag).FMAs)
                             {
-                                TreeViewItem fgNode = new TreeViewItem { Header = fg.Name, Tag = fg };
-                                node.Items.Add(fgNode);
+                                TreeViewItem fmaNode = new TreeViewItem { Header = fma.FMA.Name, Tag = fma };
+                                node.Items.Add(fmaNode);
+                                foreach (var fg in fma.FishingGrounds)
+                                {
+                                    fmaNode.Items.Add(new TreeViewItem { Header = fg.FishingGround.Name, Tag = fg });
+                                }
+
                             }
+                            //foreach (var fg in NSAPEntities.NSAPRegionViewModel.GetFishingGrounds((NSAPRegion)node.Tag))
+                            //{
+                            //    TreeViewItem fgNode = new TreeViewItem { Header = fg.Name, Tag = fg };
+                            //    node.Items.Add(fgNode);
+                            //}
                             break;
                         default:
                             NSAPEnumerator en = (NSAPEnumerator)node.Tag;
@@ -1061,7 +1072,8 @@ namespace NSAP_ODK
         private void ShowDatabaseNotFoundView()
         {
             rowTopLabel.Height = new GridLength(300);
-            labelTitle.Content = "Backend database file not found\r\nMake sure that the correct database is found in the application folder\r\n" +
+            labelTitle.Content = "Backend database file not found.\r\n\r\nMake sure that the correct database is found in the application folder\r\n" +
+                                  "or in the folder used for saving NSAP data.\r\n" +
                                   "The application folder is the folder where you installed this software\r\n\r\n" +
                                   "Click on the Settings button in the toolbar to setup the database";
             //if (CSVFIleManager.XMLError.Length > 0 && Global.MDBPath.Length > 0)
@@ -2178,6 +2190,7 @@ namespace NSAP_ODK
                 MessageBox.Show("Selected region and fishing ground does not contain maturity data", "NSAP ODK Database");
             }
         }
+
         private async void OnMenuClicked(object sender, RoutedEventArgs e)
         {
             string fileName = "";
@@ -2196,6 +2209,30 @@ namespace NSAP_ODK
 
             switch (itemName)
             {
+                case "menuMoveToFishingGround":
+
+                    var nrf = (NSAPRegionFMAFishingGround)((TreeViewItem)treeViewSummary.SelectedItem).Tag;
+                    MoveLandingSitesToFishingGroundWindow mlsw = new MoveLandingSitesToFishingGroundWindow();
+                    mlsw.NSAPRegionFMAFishingGround = nrf;
+                    mlsw.Owner = this;
+                    if ((bool)mlsw.ShowDialog())
+                    {
+                        _fishingGroundMoveDestination = mlsw.FishingGround;
+                        ShowStatusRow();
+                        VesselUnloadRepository.ChangeFishingGroundOFUnloadEvent += VesselUnloadRepository_ChangeFishingGroundOFUnloadEvent;
+
+                        List<DBSummary> sumarries = new List<DBSummary>();
+                        int totalUnloads = 0;
+                        foreach (SummaryResults item in dataGridSummary.SelectedItems)
+                        {
+                            sumarries.Add(item.DBSummary);
+                        }
+                        int result = await VesselUnloadRepository.SetFishingGroundsOfVesselUnloadsAsync(sumarries, _fishingGroundMoveDestination);
+                        VesselUnloadRepository.ChangeFishingGroundOFUnloadEvent -= VesselUnloadRepository_ChangeFishingGroundOFUnloadEvent;
+                        dataGridSummary.DataContext= await NSAPEntities.SummaryItemViewModel.GetRegionFishingGroundSummaryAsync(nrf.RegionFMA.NSAPRegion, nrf.FishingGround, nrf.RegionFMA.FMA);
+                    }
+
+                    break;
                 case "menuWeightValidationTally":
                 case "menuWeightValidationTally_context":
                     _wvtw = WeightValidationTallyWindow.GetInstance((List<SummaryItem>)GridNSAPData.DataContext);
@@ -2505,6 +2542,83 @@ namespace NSAP_ODK
             }
 
         }
+
+        private void VesselUnloadRepository_ChangeFishingGroundOFUnloadEvent(object sender, SetFishingGroundOfUnloadEventArg e)
+        {
+            switch (e.Intent)
+            {
+                case "start":
+                    mainStatusBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              mainStatusBar.IsIndeterminate = false;
+                              mainStatusBar.Maximum = e.TotalVesselUnloads;
+                              mainStatusBar.Value = 0;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+                    mainStatusLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusLabel.Content = "Updating fishing ground of selected samplings. Please wait...";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+
+                    break;
+                case "fg changed":
+                    mainStatusBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              mainStatusBar.Value = e.CountFishingGroundChanged;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+                    
+                    mainStatusLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusLabel.Content = $"Finished updating record {e.CountFishingGroundChanged} of {mainStatusBar.Maximum}";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case "finished":
+
+                    mainStatusBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              mainStatusBar.Value = 0;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+                    mainStatusLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusLabel.Content = $"Finished updating records";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    _timer.Interval = TimeSpan.FromSeconds(3);
+                    _timer.Start();
+                    break;
+            }
+        }
+
+
 
         private void WeightValidationUpdater_UploadSubmissionToDB(object sender, UploadToDbEventArg e)
         {
@@ -3627,6 +3741,7 @@ namespace NSAP_ODK
                         targetGrid.DataContext = await NSAPEntities.SummaryItemViewModel.GetRegionSummaryAsync(region);
                     }
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("DBSummary.FMA") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("DBSummary.FishingGround.Name") });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of gear unload", Binding = new Binding("DBSummary.GearUnloadCount"), CellStyle = AlignRightStyle });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of complete gear unload", Binding = new Binding("DBSummary.CountCompleteGearUnload"), CellStyle = AlignRightStyle });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of vessel unload", Binding = new Binding("DBSummary.VesselUnloadCount"), CellStyle = AlignRightStyle });
@@ -3655,7 +3770,7 @@ namespace NSAP_ODK
                     }
                     else
                     {
-                        targetGrid.DataContext = await NSAPEntities.SummaryItemViewModel.GetRegionFishingGroundSummaryAsync(region, fg);
+                        targetGrid.DataContext = await NSAPEntities.SummaryItemViewModel.GetRegionFishingGroundSummaryAsync(region, fg, fma);
                     }
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("DBSummary.LandingSiteName") });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of gear unload", Binding = new Binding("DBSummary.GearUnloadCount"), CellStyle = AlignRightStyle });
@@ -3708,6 +3823,8 @@ namespace NSAP_ODK
                     break;
                 case SummaryLevelType.Enumerator:
                     targetGrid.DataContext = await NSAPEntities.SummaryItemViewModel.GetEnumeratorSummaryAsync(region, enumeratorName);
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("DBSummary.FMA.Name") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("DBSummary.FishingGround.Name") });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("DBSummary.LandingSiteName") });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("DBSummary.GearName") });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Number of landings sampled", Binding = new Binding("DBSummary.VesselUnloadCount"), CellStyle = AlignRightStyle });
@@ -3720,7 +3837,9 @@ namespace NSAP_ODK
                     break;
                 case SummaryLevelType.EnumeratedMonth:
 
-                    targetGrid.DataContext = await NSAPEntities.SummaryItemViewModel.GetEnumeratorSummaryByMonthAsync(en, (DateTime)monthEnumerated);
+                    targetGrid.DataContext = await NSAPEntities.SummaryItemViewModel.GetEnumeratorSummaryByMonthAsync(region, en, (DateTime)monthEnumerated);
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("DBSummary.FMA.Name") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("DBSummary.FishingGround.Name") });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("DBSummary.LandingSiteName") });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("DBSummary.GearName") });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Number of landings sampled", Binding = new Binding("DBSummary.VesselUnloadCount"), CellStyle = AlignRightStyle });
@@ -3763,7 +3882,7 @@ namespace NSAP_ODK
                     break;
                 case SummaryLevelType.FishingGround:
                     labelContent = $"Summary of selected fishing ground: {fg.Name}, {region}";
-                    SetUpSummaryGrid(SummaryLevelType.FishingGround, dataGridSummary, region: region, fg: fg);
+                    SetUpSummaryGrid(SummaryLevelType.FishingGround, dataGridSummary, region: region, fma: fma, fg: fg);
                     break;
                 case SummaryLevelType.SummaryOfEnumerators:
                     labelContent = "Summary of all enumerators in the region";
@@ -3778,6 +3897,7 @@ namespace NSAP_ODK
                     SetUpSummaryGrid(
                         summaryType,
                         dataGridSummary,
+                        region: region,
                         en: en,
                         enumeratorName: enumeratorName,
                         monthEnumerated: monthEnumerated);
@@ -3850,7 +3970,10 @@ namespace NSAP_ODK
                             }
                             break;
                         case "FishingGround":
-                            ShowSummaryAtLevel(summaryType: SummaryLevelType.FishingGround, region: (NSAPRegion)((TreeViewItem)tvItem.Parent).Tag, fg: (FishingGround)tvItem.Tag);
+                        case "NSAPRegionFMAFishingGround":
+                            //ShowSummaryAtLevel(summaryType: SummaryLevelType.FishingGround, region: (NSAPRegion)((TreeViewItem)tvItem.Parent).Tag, fg: (FishingGround)tvItem.Tag);
+                            var nrf = (NSAPRegionFMA)((TreeViewItem)tvItem.Parent).Tag;
+                            ShowSummaryAtLevel(summaryType: SummaryLevelType.FishingGround, region: nrf.NSAPRegion, fma: nrf.FMA, fg: ((NSAPRegionFMAFishingGround)tvItem.Tag).FishingGround);
                             _summaryLevelType = SummaryLevelType.FishingGround;
                             break;
                         case "NSAPEnumerator":
@@ -3868,6 +3991,7 @@ namespace NSAP_ODK
                         case "DateTime":
                             ShowSummaryAtLevel(
                                 SummaryLevelType.EnumeratedMonth,
+                                region: (NSAPRegion)((TreeViewItem)((TreeViewItem)tvItem.Parent).Parent).Tag,
                                 en: (NSAPEnumerator)((TreeViewItem)tvItem.Parent).Tag,
                                 enumeratorName: ((TreeViewItem)tvItem.Parent).Header.ToString(),
                                 monthEnumerated: (DateTime)tvItem.Tag);
@@ -4108,6 +4232,15 @@ namespace NSAP_ODK
                 m = new MenuItem { Header = "Landing sites", Name = "menuRegionLandingSites" };
                 m.Click += OnMenuClicked;
                 cm.Items.Add(m);
+            }
+            else if (_nsapEntity == NSAPEntity.DBSummary)
+            {
+                if (_summaryLevelType == SummaryLevelType.FishingGround)
+                {
+                    m = new MenuItem { Header = "Move to another fishing ground", Name = "menuMoveToFishingGround" };
+                    m.Click += OnMenuClicked;
+                    cm.Items.Add(m);
+                }
             }
 
             cm.IsOpen = true;

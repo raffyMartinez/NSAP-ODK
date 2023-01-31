@@ -202,6 +202,7 @@
     <Compile Include="Entities\Database\LastPrimaryKeys.cs" />
     <Compile Include="Entities\Database\OrphanedSpeciesNameRaw.cs" />
     <Compile Include="Entities\Database\ServerUploadsByMonth.cs" />
+    <Compile Include="Entities\Database\SetFishingGroundOfUnloadEventArg.cs" />
     <Compile Include="Entities\Database\SQLDumpParsed.cs" />
     <Compile Include="Entities\Database\SummaryItem.cs" />
     <Compile Include="Entities\Database\SummaryItemViewModel.cs" />
@@ -554,6 +555,9 @@
     <Compile Include="Views\LogInMySQLWindow.xaml.cs">
       <DependentUpon>LogInMySQLWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\MoveLandingSitesToFishingGroundWindow.xaml.cs">
+      <DependentUpon>MoveLandingSitesToFishingGroundWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\MySQLDataStatisticsWindow.xaml.cs">
       <DependentUpon>MySQLDataStatisticsWindow.xaml</DependentUpon>
     </Compile>
@@ -713,6 +717,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\LogInMySQLWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\MoveLandingSitesToFishingGroundWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -1,0 +1,25 @@
+﻿<Window x:Class="NSAP_ODK.Views.MoveLandingSitesToFishingGroundWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NSAP_ODK.Views"
+        mc:Ignorable="d"
+        Title="Move landing sites to another fishing ground" Height="450" Width="356">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition/>
+            <RowDefinition Height="50"/>
+        </Grid.RowDefinitions>
+        <Label Content="Select fishing ground " HorizontalContentAlignment="Center" FontWeight="Bold"/>
+        <StackPanel Grid.Row="1" x:Name="panelCheckBoxes">
+            
+        </StackPanel>
+        <WrapPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="10 0">
+
+            <Button Content="Cancel" Width="50" Height="25" Click="onButtonClick"/>
+            <Button Content="Ok" Width="50" Margin="10 0 0 0" Height="25" Click="onButtonClick"/>
+        </WrapPanel>
+    </Grid>
+</Window>

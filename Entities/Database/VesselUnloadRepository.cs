@@ -12,9 +12,119 @@ namespace NSAP_ODK.Entities.Database
 {
     class VesselUnloadRepository
     {
+        public static event EventHandler<SetFishingGroundOfUnloadEventArg> ChangeFishingGroundOFUnloadEvent;
         private string _dateFormat = "MMM-dd-yyyy HH:mm";
         public List<VesselUnload> VesselUnloads { get; set; }
 
+        public static Task<int> SetFishingGroundsOfVesselUnloadsAsync(List<DBSummary> dbSummaries, FishingGround fg)
+        {
+            return Task.Run(() => SetFishingGroundsOfVesselUnloads(dbSummaries, fg));
+        }
+        public static int SetFishingGroundsOfVesselUnloads(List<DBSummary> dbSummaries, FishingGround fg)
+        {
+            int samplingDayCount = 0;
+            foreach (DBSummary item in dbSummaries)
+            {
+                samplingDayCount += item.SamplingDayIDs.Count;
+            }
+
+            ChangeFishingGroundOFUnloadEvent?.Invoke(null, new SetFishingGroundOfUnloadEventArg { Intent = "start", TotalVesselUnloads = samplingDayCount });
+
+            int loopCount = 0;
+            foreach (DBSummary s in dbSummaries)
+            {
+                foreach (int s_id in s.SamplingDayIDs)
+                {
+                    if (ChangeFishingGround(s_id, fg.Code) && NSAPEntities.SummaryItemViewModel.SetFishingGroundOfSamplingDay(s_id, fg.Code) > 0)
+                    {
+                        loopCount++;
+                        ChangeFishingGroundOFUnloadEvent?.Invoke(null, new SetFishingGroundOfUnloadEventArg { Intent = "fg changed", CountFishingGroundChanged = loopCount });
+                    }
+                }
+            }
+            ChangeFishingGroundOFUnloadEvent?.Invoke(null, new SetFishingGroundOfUnloadEventArg { Intent = "finished" });
+            return loopCount;
+        }
+
+        private static bool ChangeFishingGround(int samplingDayID, string fishingGroundCode)
+        {
+            bool success = false;
+            using (var con = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    cmd.Parameters.AddWithValue("@fg_code", fishingGroundCode);
+                    cmd.Parameters.AddWithValue("@lss_id", samplingDayID);
+                    cmd.CommandText = "UPDATE dbo_LC_FG_sample_day set ground_id=@fg_code WHERE unload_day_id=@lss_id";
+                    try
+                    {
+                        con.Open();
+                        success = cmd.ExecuteNonQuery() > 0;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
+        public static int SetFishingGroundsOfVesselUnloads1(List<DBSummary> dbSummaries, FishingGround fg)
+        {
+            int unloadCount = 0;
+            foreach (DBSummary item in dbSummaries)
+            {
+                unloadCount += item.VesselUnloadCount;
+            }
+
+            ChangeFishingGroundOFUnloadEvent?.Invoke(null, new SetFishingGroundOfUnloadEventArg { Intent = "start", TotalVesselUnloads = unloadCount });
+
+            int count = 0;
+            using (var con = new OleDbConnection(Global.ConnectionString))
+            {
+
+                using (var cmd = con.CreateCommand())
+                {
+                    foreach (DBSummary s in dbSummaries)
+                    {
+
+
+                        foreach (int s_id in s.SamplingDayIDs)
+                        {
+                            cmd.Parameters.AddWithValue("@fg_code", fg.Code);
+                            cmd.Parameters.AddWithValue("@lss_id", s_id);
+                            //cmd.CommandText = @"UPDATE dbo_LC_FG_sample_day 
+                            //                    INNER JOIN (dbo_gear_unload 
+                            //                    INNER JOIN dbo_vessel_unload ON dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) 
+                            //                    ON dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id 
+                            //                    SET dbo_LC_FG_sample_day.ground_id = @fg_code
+                            //                    WHERE dbo_vessel_unload.v_unload_id = @vu_id";
+                            cmd.CommandText = "UPDATE dbo_LC_FG_sample_day set ground_id=@fg_code WHERE unload_day_id=@lss_id";
+                            try
+                            {
+                                con.Open();
+                                if (cmd.ExecuteNonQuery() > 0 && NSAPEntities.SummaryItemViewModel.SetFishingGroundOfSamplingDay(s_id, fg.Code) > 0)
+                                {
+                                    count++;
+                                    ChangeFishingGroundOFUnloadEvent?.Invoke(null, new SetFishingGroundOfUnloadEventArg { Intent = "fg changed", CountFishingGroundChanged = count });
+                                    con.Close();
+                                }
+                                else
+                                {
+
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Log(ex);
+                            }
+                        }
+                    }
+                }
+            }
+            ChangeFishingGroundOFUnloadEvent?.Invoke(null, new SetFishingGroundOfUnloadEventArg { Intent = "finished" });
+            return count;
+        }
         public static bool AddFieldToTable1(string fieldName)
         {
             bool success = false;
@@ -1263,11 +1373,11 @@ namespace NSAP_ODK.Entities.Database
 
                                 if (dr["total_wt_catch_composition"] != DBNull.Value)
                                 {
-                                    item.SumOfSampleWeights = dr["total_wt_sampled_species"]==DBNull.Value?0: (double)dr["total_wt_sampled_species"];
+                                    item.SumOfSampleWeights = dr["total_wt_sampled_species"] == DBNull.Value ? 0 : (double)dr["total_wt_sampled_species"];
                                     item.SumOfCatchCompositionWeights = (double)dr["total_wt_catch_composition"];
                                     item.WeightValidationFlag = (FromJson.WeightValidationFlag)(int)dr["validity_flag"];
                                     item.SamplingTypeFlag = (FromJson.SamplingTypeFlag)(int)dr["type_of_sampling_flag"];
-                                    if(dr["weight_difference"]==DBNull.Value)
+                                    if (dr["weight_difference"] == DBNull.Value)
                                     {
                                         item.DifferenceCatchWtAndSumCatchCompWt = null;
                                     }
@@ -1275,7 +1385,7 @@ namespace NSAP_ODK.Entities.Database
                                     {
                                         item.DifferenceCatchWtAndSumCatchCompWt = (double)dr["weight_difference"];
                                     }
-                                    
+
                                 }
 
                                 //double? rf = null;
