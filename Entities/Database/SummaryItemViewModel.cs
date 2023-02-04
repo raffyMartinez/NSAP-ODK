@@ -1471,6 +1471,53 @@ namespace NSAP_ODK.Entities.Database
             ProcessBuildEvent(status: BuildSummaryReportStatus.StatusBuildEnd, totalRowsFetched: resuts.Count);
             return resuts.OrderBy(t => t.DBSummary.LandingSiteName).ToList();
         }
+
+        public Task<List<SummaryResults>> GetFMASummaryAsync(NSAPRegion region, FMA fma)
+        {
+            return Task.Run(() => GetFMASummary(region,fma));
+        }
+
+        public List<SummaryResults> GetFMASummary(NSAPRegion region,FMA fma)
+        {
+            ProcessBuildEvent(status: BuildSummaryReportStatus.StatusBuildStart, isIndeterminate: true);
+            List<SummaryResults> resuts = new List<SummaryResults>();
+            int seq = 0;
+            foreach (var fgData in SummaryItemCollection.Where(t => t.SamplingDate != null && t.DateAdded != null && t.RegionID == region.Code && t.FMAId==fma.FMAID)
+                .OrderBy(t => t.SamplingDate)
+                .GroupBy(t => t.FishingGroundID))
+            {
+                SummaryItem fg = fgData.First();
+                DBSummary summ = new DBSummary
+                {
+                    FishingGround = NSAPEntities.FishingGroundViewModel.GetFishingGround(fgData.Key),
+                    FMA = fg.FMA,
+                    GearUnloadCount = fgData.GroupBy(t => t.GearUnloadID).Count(),
+                    CountCompleteGearUnload = fgData.Where(t => t.GearUnloadCatch != null && t.GearUnloadBoats != null).Count(),
+                    VesselUnloadCount = fgData.Count(),
+                    CountLandingsWithCatchComposition = fgData.Count(t => t.HasCatchComposition == true),
+                    TrackedOperationsCount = fgData.Count(t => t.IsTracked == true),
+                    FirstLandingFormattedDate = fgData.Min(t => (DateTime)t.SamplingDate).ToString("MMM-dd-yyyy HH:mm"),
+                    LastLandingFormattedDate = fgData.Max(t => (DateTime)t.SamplingDate).ToString("MMM-dd-yyyy HH:mm"),
+                    LatestDownloadFormattedDate = fgData.Max(t => (DateTime)t.DateAdded).ToString("MMM-dd-yyyy HH:mm"),
+                    LatestEformVersion = fgData.Last().FormVersion
+                };
+                resuts.Add(
+
+                    new SummaryResults
+                    {
+                        Sequence = ++seq,
+                        DBSummary = summ,
+                        SummaryLevelType = SummaryLevelType.FMA
+                    }
+                );
+
+
+
+            }
+
+            ProcessBuildEvent(status: BuildSummaryReportStatus.StatusBuildEnd, totalRowsFetched: resuts.Count);
+            return resuts.OrderBy(t => t.DBSummary.FishingGround.Name).ToList();
+        }
         public Task<List<SummaryResults>> GetRegionSummaryAsync(NSAPRegion region)
         {
             return Task.Run(() => GetRegionSummary(region));

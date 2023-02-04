@@ -64,7 +64,7 @@ namespace NSAP_ODK.Views
                         }
                         else
                         {
-                            MessageBox.Show("Delimeter must be exactly one character long only", "Invalid delimeter", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                            MessageBox.Show("Delimeter must be exactly one character long only", Utilities.Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Exclamation);
                         }
                     }
                         break;

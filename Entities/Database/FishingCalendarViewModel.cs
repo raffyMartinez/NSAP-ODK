@@ -10,7 +10,7 @@ using System.Diagnostics;
 namespace NSAP_ODK.Entities.Database
 {
 
-    class FishingCalendarDay
+    public class FishingCalendarDay
     {
         public List<bool> IsProcessed { get; set; }
         public Gear Gear { get; set; }
@@ -30,7 +30,7 @@ namespace NSAP_ODK.Entities.Database
             return $"{GearName} - Sector {Sector} - {GearUnloads.Where(t => t != null).Count()} days";
         }
     }
-    class FishingCalendarViewModel : INotifyPropertyChanged
+    public class FishingCalendarViewModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -50,7 +50,7 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
         }
-
+        public int CountVesselUnloads { get; set; }
         public DataTable DataTable { get; set; }
 
         public void BuildCalendar(string view = "numberOfSampledLandings")
@@ -85,16 +85,30 @@ namespace NSAP_ODK.Entities.Database
                         {
                             if (day != null)
                             {
-
+                                CountVesselUnloads += (int)day;
+                                row[counter.ToString()] = day.ToString();
                             }
-                            row[counter.ToString()] = day == null ? "" : day.ToString();
+                            else
+                            {
+                                row[counter.ToString()] = "";
+                            }
+                            //row[counter.ToString()] = day == null ? "" : day.ToString();
                             counter++;
                         }
                         break;
                     case "numberOfBoatsLanded":
                         foreach (var day in item.NumberOfBoatsPerDay)
                         {
-                            row[counter.ToString()] = day == null ? "" : day.ToString();
+                            if (day != null)
+                            {
+                                CountVesselUnloads += (int)day;
+                                row[counter.ToString()] = day.ToString();
+                            }
+                            else
+                            {
+                                row[counter.ToString()] = "";
+                            }
+                            //row[counter.ToString()] = day == null ? "" : day.ToString();
                             counter++;
                         }
                         break;
@@ -130,7 +144,7 @@ namespace NSAP_ODK.Entities.Database
 
 
                 FishingCalendarDay calendarDay = null;
-                foreach (var item in UnloadList.OrderBy(t => t.GearUsedName).ThenBy(t=>t.SectorCode) .ThenBy(t => t.Parent.SamplingDate))
+                foreach (var item in UnloadList.OrderBy(t => t.GearUsedName).ThenBy(t => t.SectorCode).ThenBy(t => t.Parent.SamplingDate))
                 {
 
                     //if (!gearNames.Contains(item.GearUsedName))
@@ -198,24 +212,16 @@ namespace NSAP_ODK.Entities.Database
                     else
                     {
                         int day = item.Parent.SamplingDate.Day - 1;
-                        //if (calendarDay.Sector == item.Sector)
-                        //{
+                        if (!calendarDay.IsProcessed[day])
+                        {
+                            calendarDay.GearUnloads[day] = item;
+                            calendarDay.NumberOfBoatsPerDay[day] = item.Boats;
+                            calendarDay.TotalCatchPerDay[day] = item.Catch;
+                            calendarDay.NumberOfSampledLandings[day] = item.ListVesselUnload.Count;
+                            //calendarDay.NumberOfSampledLandings[day] = VesselUnloadCount(day + 1, item.GearUsedName);
+                            calendarDay.IsProcessed[day] = true;
+                        }
 
-                        //}
-                        //else
-                        //{
-                            
-                            //int day = item.Parent.SamplingDate.Day;
-                            if (!calendarDay.IsProcessed[day])
-                            {
-                                calendarDay.GearUnloads[day] = item;
-                                calendarDay.NumberOfBoatsPerDay[day] = item.Boats;
-                                calendarDay.TotalCatchPerDay[day] = item.Catch;
-                                calendarDay.NumberOfSampledLandings[day] = item.ListVesselUnload.Count;
-                                //calendarDay.NumberOfSampledLandings[day] = VesselUnloadCount(day + 1, item.GearUsedName);
-                                calendarDay.IsProcessed[day] = true;
-                            }
-                        //}
                     }
                 }
 

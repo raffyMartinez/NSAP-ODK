@@ -114,7 +114,7 @@ namespace NSAP_ODK.Views
                                     }
                                     MessageBox.Show(
                                         "Fishbase species successfully updated",
-                                        "NSAP-ODK Database",
+                                        Utilities.Global.MessageBoxCaption,
                                         MessageBoxButton.OK,
                                         MessageBoxImage.Information);
                                 }
@@ -126,7 +126,7 @@ namespace NSAP_ODK.Views
                         }
                         else
                         {
-                            MessageBox.Show("Update file does not contain new items", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                            MessageBox.Show("Update file does not contain new items", Utilities.Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
                             statusBar.Visibility = Visibility.Collapsed;
                         }
                     }
@@ -190,7 +190,7 @@ namespace NSAP_ODK.Views
                     //if (_showUpdateMessage && MessageBox.Show(
                     if (MessageBox.Show(
                     "It is recommended to update the Fishbase species list\r\nDo you wish to continue?",
-                    "NSAP-ODK Database",
+                    Utilities.Global.MessageBoxCaption,
                     MessageBoxButton.YesNo,
                     MessageBoxImage.Question
                     ) == MessageBoxResult.Yes)
@@ -388,7 +388,7 @@ namespace NSAP_ODK.Views
                     {
                         var r_message = MessageBox.Show(
                             $"{FBSpeciesRepository.ErrorMessage}\r\nWould you like to try again",
-                            "NSAP-ODK Database",
+                            Utilities.Global.MessageBoxCaption,
                             MessageBoxButton.YesNo,
                             MessageBoxImage.Question);
                         if (r_message == MessageBoxResult.Yes)
@@ -403,7 +403,7 @@ namespace NSAP_ODK.Views
                     }
                     else
                     {
-                        MessageBox.Show($"{FBSpeciesRepository.ErrorMessage}", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show($"{FBSpeciesRepository.ErrorMessage}", Utilities.Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
             }
@@ -1706,7 +1706,7 @@ namespace NSAP_ODK.Views
                 case "buttonCleanup":
 
                     var msg_cleanup = $"Cleaning up removes {_propertyFriendlyName} in the database that do not belong to the selected region\r\nIs this what you want to do?";
-                    var result = MessageBox.Show(msg_cleanup, "NSAP-ODK Database", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                    var result = MessageBox.Show(msg_cleanup, Utilities.Global.MessageBoxCaption, MessageBoxButton.YesNo, MessageBoxImage.Question);
                     if (result == MessageBoxResult.Yes)
                     {
                         switch (_selectedProperty)
@@ -1761,7 +1761,7 @@ namespace NSAP_ODK.Views
                             }
                             else
                             {
-                                MessageBox.Show("Cannot delete a universal effort specification", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                                MessageBox.Show("Cannot delete a universal effort specification", Utilities.Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
                             }
                             break;
                         case NSAPEntity.NSAPRegionFMAFishingGround:
@@ -1803,7 +1803,7 @@ namespace NSAP_ODK.Views
                                         if (duplicateGears.Count > 1)
                                         {
                                             var res = MessageBox.Show($"{regionGear.Gear.GearName} is duplicated\r\nWould you like to delete the duplicated items?\r\n\r\nSelect Yes to remove all duplicates\r\n" +
-                                                                      "Select No to delete the selected item\r\nSelect Cancel to cancel and ignore", "NSAP-ODK Database", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+                                                                      "Select No to delete the selected item\r\nSelect Cancel to cancel and ignore", Utilities.Global.MessageBoxCaption, MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
 
                                             switch (res)
                                             {
@@ -2642,7 +2642,7 @@ namespace NSAP_ODK.Views
         {
             if (_selectedProperty == "EffortSpecifiers" && ((GearEffortSpecification)sfDataGrid.SelectedItem).EffortSpecification.IsForAllTypesFishing)
             {
-                MessageBox.Show("Cannot edit a universal effort specification", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Cannot edit a universal effort specification", Utilities.Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
             }
             else
             {
@@ -3120,7 +3120,7 @@ namespace NSAP_ODK.Views
                             if (!Global.StringIsOnlyASCIILettersAndDigits(currentProperty.Value.ToString()))
                             {
                                 MessageBox.Show($"{entityName} code must contain only upper case letters and numbers",
-                                    "NSAP-ODK Database",
+                                    Utilities.Global.MessageBoxCaption,
                                     MessageBoxButton.OK,
                                     MessageBoxImage.Information
                                     );

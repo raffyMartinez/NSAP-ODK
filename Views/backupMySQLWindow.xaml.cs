@@ -249,7 +249,7 @@ namespace NSAP_ODK.Views
                         }
                         catch (IOException iox)
                         {
-                            MessageBox.Show(iox.Message, "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                            MessageBox.Show(iox.Message, Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
                         }
                         catch (Exception ex)
                         {
@@ -376,7 +376,7 @@ namespace NSAP_ODK.Views
             }
             if (msg.Length > 0)
             {
-                MessageBox.Show(msg, "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(msg, Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
             }
 
             if (success)

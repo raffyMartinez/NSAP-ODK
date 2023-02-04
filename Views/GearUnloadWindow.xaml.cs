@@ -624,7 +624,7 @@ namespace NSAP_ODK.Views
                     {
                         if (textBoxCatch.Text.Length > 0 || textBoxBoats.Text.Length > 0)
                         {
-                            MessageBox.Show("Number of boats and total catch are both required", "Validation error", MessageBoxButton.OK, MessageBoxImage.Information);
+                            MessageBox.Show("Number of boats and total catch are both required", Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
                         }
                     }
                     break;

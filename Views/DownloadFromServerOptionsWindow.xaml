@@ -15,7 +15,7 @@
             <RowDefinition Height="40"/>
         </Grid.RowDefinitions>
         <Label Content="Options for downloading from the server" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
-        <Label Content="No of items for downloading:" x:Name="labelNumberOfItemsToDownload" Grid.Row="1"/>
+        <Label Content="Number of items for downloading:" x:Name="labelNumberOfItemsToDownload" Grid.Row="1"/>
         <StackPanel Grid.Row="2" Margin="10" VerticalAlignment="Center">
             <RadioButton Content="Download all" Margin="0 3" x:Name="rbDownloadAll" Checked="OnRBChecked"/>
             <RadioButton Content="Download by batch" Margin="0 3" x:Name="rbDownloadByBatch" Checked="OnRBChecked"/>

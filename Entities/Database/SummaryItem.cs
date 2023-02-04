@@ -9,7 +9,55 @@ namespace NSAP_ODK.Entities.Database
 {
     public class SummaryItem
     {
+        public override bool Equals(object obj)
+        {
+            SummaryItem other = obj as SummaryItem;
+            return other != null &&
+                this.VesselUnloadID != null &&
+                other.SamplingDayDate == this.SamplingDayDate &&
+                other.GearUsedName == this.GearUsedName &&
+                other.RegionID == this.RegionID &&
+                other.FMAId == this.FMAId &&
+                other.FishingGroundID == this.FishingGroundID &&
+                other.LandingSiteNameText == this.LandingSiteNameText && 
+                other.EnumeratorNameToUse==this.EnumeratorNameToUse;
 
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked // Overflow is fine, just wrap
+            {
+                int hash = (int)2166136261;
+                // Suitable nullity checks etc, of course :)
+                hash = (hash * 16777619) ^ SamplingDayDate.GetHashCode();
+                hash = (hash * 16777619) ^ GearUsedName.GetHashCode();
+                hash = (hash * 16777619) ^ RegionID.GetHashCode();
+                hash = (hash * 16777619) ^ FMAId.GetHashCode();
+                hash = (hash * 16777619) ^ FishingGroundID.GetHashCode();
+                hash = (hash * 16777619) ^ LandingSiteNameText.GetHashCode();
+                hash = (hash * 16777619) ^ EnumeratorNameToUse.GetHashCode();
+                return hash;
+            }
+        }
+        public int? Grouping { get; set; }
+
+        public string GroupingString
+        {
+            get
+            {
+                if (Grouping == null)
+                {
+                    return "";
+                }
+                else
+                {
+                    return $"[{((int)Grouping).ToString()}]";
+                }
+            }
+        }
+        public DateTime SamplingDayDate { get; set; }
+        public string SamplingDayDateString { get { return SamplingDayDate.ToString("MMM-dd-yyyy"); } }
         public List<VesselCatchWV> ListOfCatch { get; set; }
         public double RaisingFactor { get; set; }
         public double? SumOfCatchCompositionWeight { get; set; }
@@ -52,14 +100,38 @@ namespace NSAP_ODK.Entities.Database
                 return NSAPEntities.GPSViewModel.GetGPS(GPSCode);
             }
         }
+
+        public int? RowId { get; set; }
+        public int RowType
+        {
+            get
+            {
+                if (Grouping == null)
+                {
+                    return 1;
+                }
+                else
+                {
+                    if (((int)Grouping) % 2 == 0)
+                    {
+                        return 2;
+                    }
+                    else
+                    {
+                        return 3;
+                    }
+                }
+            }
+        }
         public string GPSCode { get; set; }
         public int? NumberOfFishers { get; set; }
         public override string ToString()
         {
             string ls = LandingSite == null ? LandingSiteText : LandingSite.ToString();
             string gr = Gear != null ? Gear.GearName : GearText;
+            string gu_id = $"gu_ID:{GearUnloadID}";
             string s_date = SamplingDate == null ? "no sampling" : $"{(DateTime)SamplingDate:MMM-dd-yyyy}";
-            return $"{ID}-{Region.ShortName}-{FMA.Name}-{FishingGround.Name}-{ls}-{gr}-{s_date}-sector:{SectorCode}";
+            return $"{GroupingString} {ID}-{Region.ShortName}-{FMA.Name}-{FishingGround.Name}-{ls}-{gr}-{gu_id}-{s_date}-sector:{SectorCode}";
         }
 
         public double FormVersionNumeric
@@ -261,7 +333,8 @@ namespace NSAP_ODK.Entities.Database
                         LandingSite = LandingSite,
                         LandingSiteText = LandingSiteText,
                         FishingGround = FishingGround,
-                        SamplingDate = ((DateTime)SamplingDate).Date
+                        SamplingDate = ((DateTime)SamplingDate).Date,
+                        PK = SamplingDayID
                     };
 
                     _gearUnload = new GearUnload
@@ -284,6 +357,13 @@ namespace NSAP_ODK.Entities.Database
         }
         public string RefNo { get; set; }
         public int? TWSpCount { get; set; }
+
+        public bool ChangeGearUnloadID(int newUnloadID)
+        {
+            GearUnloadID = newUnloadID;
+            GearUnload.PK = newUnloadID;
+            return true;
+        }
         public int? GearUnloadID { get; set; }
         public int? VesselUnloadID { get; set; }
 

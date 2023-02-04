@@ -16,6 +16,29 @@ namespace NSAP_ODK.Entities.Database
         private string _dateFormat = "MMM-dd-yyyy HH:mm";
         public List<VesselUnload> VesselUnloads { get; set; }
 
+        public static bool ChangeGearUnloadIDOfLanding(int vesselUnloadID, int newGearUnloadID)
+        {
+            bool success = false;
+            using (var con = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    cmd.Parameters.AddWithValue("@gu", newGearUnloadID);
+                    cmd.Parameters.AddWithValue("@vu", vesselUnloadID);
+                    cmd.CommandText = "UPDATE dbo_vessel_unload SET unload_gr_id = @gu WHERE v_unload_id = @vu";
+                    try
+                    {
+                        con.Open();
+                        success = cmd.ExecuteNonQuery() > 0;
+                    }
+                    catch(Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
         public static Task<int> SetFishingGroundsOfVesselUnloadsAsync(List<DBSummary> dbSummaries, FishingGround fg)
         {
             return Task.Run(() => SetFishingGroundsOfVesselUnloads(dbSummaries, fg));
@@ -68,62 +91,6 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
             return success;
-        }
-        public static int SetFishingGroundsOfVesselUnloads1(List<DBSummary> dbSummaries, FishingGround fg)
-        {
-            int unloadCount = 0;
-            foreach (DBSummary item in dbSummaries)
-            {
-                unloadCount += item.VesselUnloadCount;
-            }
-
-            ChangeFishingGroundOFUnloadEvent?.Invoke(null, new SetFishingGroundOfUnloadEventArg { Intent = "start", TotalVesselUnloads = unloadCount });
-
-            int count = 0;
-            using (var con = new OleDbConnection(Global.ConnectionString))
-            {
-
-                using (var cmd = con.CreateCommand())
-                {
-                    foreach (DBSummary s in dbSummaries)
-                    {
-
-
-                        foreach (int s_id in s.SamplingDayIDs)
-                        {
-                            cmd.Parameters.AddWithValue("@fg_code", fg.Code);
-                            cmd.Parameters.AddWithValue("@lss_id", s_id);
-                            //cmd.CommandText = @"UPDATE dbo_LC_FG_sample_day 
-                            //                    INNER JOIN (dbo_gear_unload 
-                            //                    INNER JOIN dbo_vessel_unload ON dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) 
-                            //                    ON dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id 
-                            //                    SET dbo_LC_FG_sample_day.ground_id = @fg_code
-                            //                    WHERE dbo_vessel_unload.v_unload_id = @vu_id";
-                            cmd.CommandText = "UPDATE dbo_LC_FG_sample_day set ground_id=@fg_code WHERE unload_day_id=@lss_id";
-                            try
-                            {
-                                con.Open();
-                                if (cmd.ExecuteNonQuery() > 0 && NSAPEntities.SummaryItemViewModel.SetFishingGroundOfSamplingDay(s_id, fg.Code) > 0)
-                                {
-                                    count++;
-                                    ChangeFishingGroundOFUnloadEvent?.Invoke(null, new SetFishingGroundOfUnloadEventArg { Intent = "fg changed", CountFishingGroundChanged = count });
-                                    con.Close();
-                                }
-                                else
-                                {
-
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Logger.Log(ex);
-                            }
-                        }
-                    }
-                }
-            }
-            ChangeFishingGroundOFUnloadEvent?.Invoke(null, new SetFishingGroundOfUnloadEventArg { Intent = "finished" });
-            return count;
         }
         public static bool AddFieldToTable1(string fieldName)
         {

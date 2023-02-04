@@ -181,6 +181,7 @@
     <Compile Include="Entities\Database\AccessColumn.cs" />
     <Compile Include="Entities\Database\BoatLandingsFromServerRepository.cs" />
     <Compile Include="Entities\Database\BuildSummaryReportEventArg.cs" />
+    <Compile Include="Entities\Database\CalendarDayLineage.cs" />
     <Compile Include="Entities\Database\CollectedUnrecognizedFG.cs" />
     <Compile Include="Entities\Database\CopyTextFromDataGrid.cs" />
     <Compile Include="Entities\Database\CreateTablesInAccess.cs" />
@@ -192,6 +193,7 @@
     <Compile Include="Entities\Database\DownloadedJsonMetadata.cs" />
     <Compile Include="Entities\Database\EntityBulkImportEventArg.cs" />
     <Compile Include="Entities\Database\FileInfoJSONMetadata.cs" />
+    <Compile Include="Entities\Database\FixCalendarMismatchEventArg.cs" />
     <Compile Include="Entities\Database\GearAtLandingSiteDaysPerMonth.cs" />
     <Compile Include="Entities\Database\GearAtLandingSiteDaysPerMonthRepository.cs" />
     <Compile Include="Entities\Database\GearAtLandingSiteDaysPerMonthViewModel.cs" />
@@ -201,6 +203,7 @@
     <Compile Include="Entities\Database\KoboServerViewModel.cs" />
     <Compile Include="Entities\Database\LastPrimaryKeys.cs" />
     <Compile Include="Entities\Database\OrphanedSpeciesNameRaw.cs" />
+    <Compile Include="Entities\Database\SamplingCalendaryMismatchFixer.cs" />
     <Compile Include="Entities\Database\ServerUploadsByMonth.cs" />
     <Compile Include="Entities\Database\SetFishingGroundOfUnloadEventArg.cs" />
     <Compile Include="Entities\Database\SQLDumpParsed.cs" />
@@ -543,6 +546,9 @@
     <Compile Include="Views\FirstSamplingOfEnumeratorsWindow.xaml.cs">
       <DependentUpon>FirstSamplingOfEnumeratorsWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\FixCalendarVesselUnloadWindow.xaml.cs">
+      <DependentUpon>FixCalendarVesselUnloadWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\GearUnloadWindow.xaml.cs">
       <DependentUpon>GearUnloadWindow.xaml</DependentUpon>
     </Compile>
@@ -701,6 +707,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\FirstSamplingOfEnumeratorsWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\FixCalendarVesselUnloadWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

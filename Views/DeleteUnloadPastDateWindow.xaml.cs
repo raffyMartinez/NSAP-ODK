@@ -43,14 +43,14 @@ namespace NSAP_ODK.Views
                             Entities.NSAPEntities.VesselUnloadViewModel.DeleteUnloadChildrenEvent += OnDeleteVesselUnloadChildren;
                             var result = await Entities.NSAPEntities.VesselUnloadViewModel.DeleteUnloadChildrenAsync(unloads);
                             MessageBox.Show($"Deleted {result.VesselUnloadToDeleteCoount} vessel unload out of {unloads.Count}",
-                                "NSAP-ODK Database",
+                                Utilities.Global.MessageBoxCaption,
                                 MessageBoxButton.OK,
                                 MessageBoxImage.Information);
                         }
                         else
                         {
                             MessageBox.Show("There are no vessel unload with upload date that match the date provided",
-                                "NSAP-ODK Database",
+                                Utilities.Global.MessageBoxCaption,
                                 MessageBoxButton.OK,
                                 MessageBoxImage.Information);
                         }
@@ -59,7 +59,7 @@ namespace NSAP_ODK.Views
                     else
                     {
                         MessageBox.Show("Please provide a proper date",
-                            "NSAP-ODK Database",
+                            Utilities.Global.MessageBoxCaption,
                             MessageBoxButton.OK,
                             MessageBoxImage.Information
                             );

@@ -12,6 +12,12 @@ using NSAP_ODK.Entities.Database;
 
 namespace NSAP_ODK.Utilities
 {
+    public enum DBView
+    {
+        dbviewSummary,
+        dbviewDownloadHistory,
+        dbviewCalendar
+    }
     public static class Global
     {
 
@@ -31,6 +37,8 @@ namespace NSAP_ODK.Utilities
             UserSettingsFilename;
 
 
+        private static string _msgBoxCaption = "NSAP-ODK Database";
+
         //public static string MDBPath = $"{AppDomain.CurrentDomain.BaseDirectory}/nsap_odk.mdb";
 
 
@@ -44,6 +52,7 @@ namespace NSAP_ODK.Utilities
         //    return stream;
         //}
 
+        public static string MessageBoxCaption { get { return _msgBoxCaption; } }
         public static double? Add(this double? num1, double? num2)
         {
             return num1.GetValueOrDefault() + num2.GetValueOrDefault();
@@ -335,7 +344,7 @@ namespace NSAP_ODK.Utilities
 
         public static bool StringIsOnlyASCIILettersAndDigits(string s)
         {
-            return  s.All(c =>  (c >= 'A' && c <= 'Z') || (c >='0' && c<='9'));
+            return s.All(c => (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9'));
         }
         public static bool MySQLLogInCancelled { get; set; }
         public static void DoAppProceed()

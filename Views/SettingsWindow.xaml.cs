@@ -60,7 +60,7 @@ namespace NSAP_ODK.Views
                 }
                 else
                 {
-                    textCutoffWidth.Text = ((int)Utilities.Global.Settings.DownloadSizeForBatchMode).ToString();
+                    textDownloadSizeForBatchMode.Text = ((int)Utilities.Global.Settings.DownloadSizeForBatchMode).ToString();
                 }
 
                 textAcceptableDiff.Text = ((int)Utilities.Global.Settings.AcceptableWeightsDifferencePercent).ToString();
@@ -272,6 +272,11 @@ namespace NSAP_ODK.Views
                         Utilities.Global.Settings.UsemySQL = (bool)chkUsemySQL.IsChecked;
                         Utilities.Global.Settings.MySQLBackupFolder = textmySQLBackupFolder.Text;
                         Utilities.Global.Settings.AcceptableWeightsDifferencePercent = int.Parse(textAcceptableDiff.Text);
+                        if(int.TryParse(textDownloadSizeForBatchMode.Text,out int v))
+                        {
+                            Utilities.Global.Settings.DownloadSizeForBatchMode = v;
+                            Utilities.Settings.DefaultDownloadSizeForBatchMode = v;
+                        }
                         Utilities.Global.SaveGlobalSettings();
 
 

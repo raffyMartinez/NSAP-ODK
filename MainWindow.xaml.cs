@@ -78,6 +78,8 @@ namespace NSAP_ODK
             Loaded += OnWindowLoaded;
             Closing += OnWindowClosing;
         }
+
+        public DBView DBView { get; set; }
         public static HttpClient HttpClient
         {
             get { return _httpClient; }
@@ -451,12 +453,6 @@ namespace NSAP_ODK
             {
                 ResetDisplay();
                 ShowDatabaseNotFoundView();
-                //MessageBox.Show(
-                //    "The application cannot find the MDB file for saving fish landing data\r\nClick on the Setting toolbar button",
-                //    "NSAP-ODK Database",
-                //    MessageBoxButton.OK,
-                //    MessageBoxImage.Information
-                //    );
             }
 
 
@@ -1371,7 +1367,7 @@ namespace NSAP_ODK
 
             if ((_nsapEntity == NSAPEntity.FishSpecies || _nsapEntity == NSAPEntity.NonFishSpecies)
                 && MessageBox.Show("Are you sure you want to delete this species?\r\nThe species you delete is being used in the ODK collect app.",
-                "Confirm deletetion", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                Global.MessageBoxCaption, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
                 if (_nsapEntity == NSAPEntity.FishSpecies)
                 {
@@ -1528,7 +1524,7 @@ namespace NSAP_ODK
 
                 if (message.Length > 0)
                 {
-                    MessageBox.Show(message, "Cannot delete selected item", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show(message, Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 else
                 {
@@ -1589,7 +1585,7 @@ namespace NSAP_ODK
         public void RefreshSpeciesGrid(int ItemsRefreshed)
         {
             dataGridSpecies.Items.Refresh();
-            MessageBox.Show($"Updated {ItemsRefreshed} species!");
+            MessageBox.Show($"Updated {ItemsRefreshed} species!", Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void ExportSelectedEntityData()
@@ -1667,18 +1663,18 @@ namespace NSAP_ODK
 
                 if (ExportExcel.ExportDatasetToExcel(ds, fileName))
                 {
-                    MessageBox.Show($"{entityExported} exported to Excel", "NSAP-ODK Database");
+                    MessageBox.Show($"{entityExported} exported to Excel", Global.MessageBoxCaption);
                 }
                 else
                 {
                     if (ExportExcel.ErrorMessage.Length > 0)
                     {
-                        MessageBox.Show(ExportExcel.ErrorMessage, "NSAP-ODK Database");
+                        MessageBox.Show(ExportExcel.ErrorMessage, Global.MessageBoxCaption);
                     }
                     else
                     {
                         MessageBox.Show($"An error occurred when exporting {entityExported} to Excel\r\n" +
-                                        "Please report this error", "NSAP-ODK Database");
+                                        "Please report this error", Global.MessageBoxCaption);
                     }
                 }
             }
@@ -1691,6 +1687,19 @@ namespace NSAP_ODK
             {
                 //case "buttonEntitySummary":
                 //    break;
+                case "buttonFix":
+                    FixCalendarVesselUnloadWindow fcw = FixCalendarVesselUnloadWindow.GetInstance();
+                    fcw.FishingCalendarViewModel = _fishingCalendarViewModel;
+                    fcw.Owner = this;
+                    if (fcw.Visibility == Visibility.Visible)
+                    {
+                        fcw.BringIntoView();
+                    }
+                    else
+                    {
+                        fcw.Show();
+                    }
+                    break;
                 case "buttonExport":
                     ExportSelectedEntityData();
                     break;
@@ -2088,7 +2097,7 @@ namespace NSAP_ODK
                     exportResult = $"Was not successfull in exporting database to excel\r\n{ExportExcel.ErrorMessage}";
                 }
 
-                MessageBox.Show(exportResult, "Database export", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(exportResult, Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
@@ -2144,7 +2153,7 @@ namespace NSAP_ODK
 
                 if (!proceed && MessageBox.Show(
                     $"{ofd.FileName} does not exist\r\n\r\nWould you like to create a new one?",
-                    "NSAP-ODK Database",
+                    Global.MessageBoxCaption,
                     MessageBoxButton.YesNo,
                     MessageBoxImage.Information) == MessageBoxResult.Yes)
                 {
@@ -2173,21 +2182,21 @@ namespace NSAP_ODK
                 {
                     if (ExportExcel.ExportDatasetToExcel(ds, fn))
                     {
-                        MessageBox.Show("Successfully exported maturity data to Excel", "NSAP ODK Database");
+                        MessageBox.Show("Successfully exported maturity data to Excel", Global.MessageBoxCaption);
                     }
                     else
                     {
-                        MessageBox.Show(ExportExcel.ErrorMessage, "NSAP ODK Database");
+                        MessageBox.Show(ExportExcel.ErrorMessage, Global.MessageBoxCaption);
                     }
                 }
                 else
                 {
-                    MessageBox.Show("Export was cancelled", "NSAP ODK Database");
+                    MessageBox.Show("Export was cancelled", Global.MessageBoxCaption);
                 }
             }
             else
             {
-                MessageBox.Show("Selected region and fishing ground does not contain maturity data", "NSAP ODK Database");
+                MessageBox.Show("Selected region and fishing ground does not contain maturity data", Global.MessageBoxCaption);
             }
         }
 
@@ -2209,6 +2218,18 @@ namespace NSAP_ODK
 
             switch (itemName)
             {
+                case "menuCalendarDayMismatch":
+                    FixCalendarVesselUnloadWindow fcdmw = FixCalendarVesselUnloadWindow.GetInstance();
+                    fcdmw.Owner = this;
+                    if (fcdmw.Visibility == Visibility.Visible)
+                    {
+                        fcdmw.BringIntoView();
+                    }
+                    else
+                    {
+                        fcdmw.Show();
+                    }
+                    break;
                 case "menuMoveToFishingGround":
 
                     var nrf = (NSAPRegionFMAFishingGround)((TreeViewItem)treeViewSummary.SelectedItem).Tag;
@@ -2222,14 +2243,14 @@ namespace NSAP_ODK
                         VesselUnloadRepository.ChangeFishingGroundOFUnloadEvent += VesselUnloadRepository_ChangeFishingGroundOFUnloadEvent;
 
                         List<DBSummary> sumarries = new List<DBSummary>();
-                        int totalUnloads = 0;
+
                         foreach (SummaryResults item in dataGridSummary.SelectedItems)
                         {
                             sumarries.Add(item.DBSummary);
                         }
                         int result = await VesselUnloadRepository.SetFishingGroundsOfVesselUnloadsAsync(sumarries, _fishingGroundMoveDestination);
                         VesselUnloadRepository.ChangeFishingGroundOFUnloadEvent -= VesselUnloadRepository_ChangeFishingGroundOFUnloadEvent;
-                        dataGridSummary.DataContext= await NSAPEntities.SummaryItemViewModel.GetRegionFishingGroundSummaryAsync(nrf.RegionFMA.NSAPRegion, nrf.FishingGround, nrf.RegionFMA.FMA);
+                        dataGridSummary.DataContext = await NSAPEntities.SummaryItemViewModel.GetRegionFishingGroundSummaryAsync(nrf.RegionFMA.NSAPRegion, nrf.FishingGround, nrf.RegionFMA.FMA);
                     }
 
                     break;
@@ -2374,7 +2395,7 @@ namespace NSAP_ODK
                     if (NSAPEntities.VesselUnloadViewModel.CountLandingWithCatchComposition() > 0)
                     {
                         if (MessageBox.Show("Updating landing statistics coould take a long time\r\nDo you want to proceed?",
-                                            "NSAP-ODK Database",
+                                            Global.MessageBoxCaption,
                                             MessageBoxButton.YesNo,
                                             MessageBoxImage.Information) == MessageBoxResult.Yes)
                         {
@@ -2384,7 +2405,7 @@ namespace NSAP_ODK
                             NSAPEntities.VesselUnloadViewModel.DatabaseUpdatedEvent -= VesselUnloadViewModel_DatabaseUpdatedEvent;
                             ShowStatusRow(isVisible: false);
                             MessageBox.Show("Finished updating the database for responses to \"Is catch composition included\"",
-                                            "NSAP-ODK Database",
+                                            Global.MessageBoxCaption,
                                             MessageBoxButton.OK,
                                             MessageBoxImage.Information);
                         }
@@ -2392,7 +2413,7 @@ namespace NSAP_ODK
                     else
                     {
                         MessageBox.Show("Update table column \"Has catch composition\" before updating landings statistics",
-                                        "NSAP-ODK Database",
+                                        Global.MessageBoxCaption,
                                         MessageBoxButton.OK,
                                         MessageBoxImage.Information
                                         );
@@ -2410,7 +2431,7 @@ namespace NSAP_ODK
                     }
 
                     MessageBox.Show(msg,
-                                    "NSAP-ODK Database",
+                                    Global.MessageBoxCaption,
                                     MessageBoxButton.OK,
                                     MessageBoxImage.Information
                                     );
@@ -2433,7 +2454,7 @@ namespace NSAP_ODK
                     else
                     {
                         MessageBox.Show("Please provide backup folder for MySQL data using the Settings dialog",
-                                        "NSAP-ODK Database",
+                                        Global.MessageBoxCaption,
                                         MessageBoxButton.OK,
                                         MessageBoxImage.Information);
                     }
@@ -2530,12 +2551,6 @@ namespace NSAP_ODK
 
 
                 case "menuGenerateItemSets":
-
-                    //if (SelectRegions() && GetCSVSaveLocationFromSaveAsDialog(out fileName, LogType.ItemSets_csv))
-                    //{
-                    //    Logger.FilePath = fileName;
-                    //    MessageBox.Show($"{await GenerateCSV.GenerateItemsetsCSV()} items in itemsets.csv generated\r maxrow is {NSAPEntities.GetMaxItemSetID()}", "CSV file created", MessageBoxButton.OK, MessageBoxImage.Information);
-                    //}
                     break;
 
 
@@ -2581,7 +2596,7 @@ namespace NSAP_ODK
                               //do what you need to do on UI Thread
                               return null;
                           }), null);
-                    
+
                     mainStatusLabel.Dispatcher.BeginInvoke
                         (
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
@@ -2800,11 +2815,11 @@ namespace NSAP_ODK
                 {
                     int result = await GenerateCSV.GenerateAll();
 
-                    MessageBox.Show($"Generated {GenerateCSV.FilesCount} csv files with a total of {result} lines", "CSV files created", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show($"Generated {GenerateCSV.FilesCount} csv files with a total of {result} lines", Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (System.IO.IOException)
                 {
-                    MessageBox.Show("Cannot complete this operation because some files are open.", "Exception", MessageBoxButton.OK, MessageBoxImage.Exclamation); ;
+                    MessageBox.Show("Cannot complete this operation because some files are open.", Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Exclamation); ;
                 }
                 catch (Exception ex)
                 {
@@ -3163,6 +3178,8 @@ namespace NSAP_ODK
 
         private void OnTreeViewItemSelected(object sender, TreeViewModelControl.AllSamplingEntitiesEventHandler e)
         {
+            buttonFix.Visibility = Visibility.Collapsed;
+            _fishingCalendarViewModel = null;
             gridCalendarHeader.Visibility = Visibility.Visible;
             NSAPEntities.SummaryItemViewModel.TreeViewData = e;
             string labelContent = "";
@@ -3219,7 +3236,23 @@ namespace NSAP_ODK
                 MonthSubLabel.Visibility = Visibility.Visible;
                 _acceptDataGridCellClick = true;
             }
-            labelRowCount.Content = $"Rows: {GridNSAPData.Items.Count}";
+            var totlaLandingsCount = "";
+            if (_fishingCalendarViewModel != null)
+            {
+                int totalLandingsCount = _fishingCalendarViewModel.CountVesselUnloads;
+                totlaLandingsCount = $", Total landings: {totalLandingsCount}";
+                int vuCountInGU = 0;
+                foreach (var gu in _fishingCalendarViewModel.UnloadList)
+                {
+                    vuCountInGU += gu.ListVesselUnload.Count;
+                }
+                if (vuCountInGU != totalLandingsCount)
+                {
+                    totlaLandingsCount += $" ({vuCountInGU})";
+                    buttonFix.Visibility = Visibility.Visible;
+                }
+            }
+            labelRowCount.Content = $"Rows: {GridNSAPData.Items.Count}{totlaLandingsCount}";
         }
 
         private async void OnSelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
@@ -3752,7 +3785,16 @@ namespace NSAP_ODK
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Latest date of downloaded e-forms ", Binding = new Binding("DBSummary.LatestDownloadFormattedDate") });
                     break;
                 case SummaryLevelType.FMA:
-                    targetGrid.DataContext = NSAPEntities.SummaryItemViewModel.SummaryResults;
+                    if (treeviewData != null)
+                    {
+                        targetGrid.DataContext = NSAPEntities.SummaryItemViewModel.SummaryResults;
+                    }
+                    else
+                    {
+
+                        targetGrid.DataContext = await NSAPEntities.SummaryItemViewModel.GetFMASummaryAsync(region, fma);
+                    }
+
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("DBSummary.FishingGround") });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of gear unload", Binding = new Binding("DBSummary.GearUnloadCount"), CellStyle = AlignRightStyle });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of complete gear unload", Binding = new Binding("DBSummary.CountCompleteGearUnload"), CellStyle = AlignRightStyle });
@@ -3875,6 +3917,8 @@ namespace NSAP_ODK
                     SetUpSummaryGrid(SummaryLevelType.AllRegions, dataGridSummary);
                     break;
                 case SummaryLevelType.FMA:
+                    labelContent = $"Summary of selected FMA: {region.Name}, {fma.Name}";
+                    SetUpSummaryGrid(SummaryLevelType.FMA, dataGridSummary, region: region, fma: fma);
                     break;
                 case SummaryLevelType.Region:
                     labelContent = $"Summary of selected region: {region.Name}";
@@ -3969,10 +4013,15 @@ namespace NSAP_ODK
                                     break;
                             }
                             break;
+                        case "NSAPRegionFMA":
+                            //var nrf = (NSAPRegionFMA)((TreeViewItem)tvItem.Parent).Tag;
+                            var nrf = (NSAPRegionFMA)tvItem.Tag;
+                            ShowSummaryAtLevel(summaryType: SummaryLevelType.FMA, region: nrf.NSAPRegion, fma: nrf.FMA);
+                            break;
                         case "FishingGround":
                         case "NSAPRegionFMAFishingGround":
                             //ShowSummaryAtLevel(summaryType: SummaryLevelType.FishingGround, region: (NSAPRegion)((TreeViewItem)tvItem.Parent).Tag, fg: (FishingGround)tvItem.Tag);
-                            var nrf = (NSAPRegionFMA)((TreeViewItem)tvItem.Parent).Tag;
+                            nrf = (NSAPRegionFMA)((TreeViewItem)tvItem.Parent).Tag;
                             ShowSummaryAtLevel(summaryType: SummaryLevelType.FishingGround, region: nrf.NSAPRegion, fma: nrf.FMA, fg: ((NSAPRegionFMAFishingGround)tvItem.Tag).FishingGround);
                             _summaryLevelType = SummaryLevelType.FishingGround;
                             break;
@@ -4086,7 +4135,7 @@ namespace NSAP_ODK
 
         private void ShowToBeImplemented()
         {
-            MessageBox.Show("This feature is not yet implemented", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show("This feature is not yet implemented", Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
 
@@ -4110,6 +4159,7 @@ namespace NSAP_ODK
                     await GenerateAllCSV();
                     break;
                 case "buttonSummary":
+                    DBView = DBView.dbviewSummary;
                     showStatus = true;
                     menuDatabaseSummary.IsChecked = true;
                     break;
@@ -4124,10 +4174,12 @@ namespace NSAP_ODK
                     Close();
                     break;
                 case "buttonCalendar":
+                    DBView = DBView.dbviewCalendar;
                     showStatus = true;
                     ShowNSAPCalendar();
                     break;
                 case "buttonDownloadHistory":
+                    DBView = DBView.dbviewDownloadHistory;
                     showStatus = true;
                     _currentDisplayMode = DataDisplayMode.DownloadHistory;
                     ColumnForTreeView.Width = new GridLength(1, GridUnitType.Star);
@@ -4233,7 +4285,7 @@ namespace NSAP_ODK
                 m.Click += OnMenuClicked;
                 cm.Items.Add(m);
             }
-            else if (_nsapEntity == NSAPEntity.DBSummary)
+            else if (DBView == DBView.dbviewSummary && _nsapEntity == NSAPEntity.DBSummary)
             {
                 if (_summaryLevelType == SummaryLevelType.FishingGround)
                 {

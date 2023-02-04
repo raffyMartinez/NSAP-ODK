@@ -211,7 +211,7 @@ namespace NSAP_ODK.Views
                     }
                 }
 
-                MessageBox.Show(exportResult, "Export", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(exportResult, Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
         private void OnMenuClicked(object sender, RoutedEventArgs e)

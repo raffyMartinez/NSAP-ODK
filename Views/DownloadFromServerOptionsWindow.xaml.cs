@@ -74,7 +74,7 @@ namespace NSAP_ODK.Views
 
                             if (msg.Length > 0)
                             {
-                                MessageBox.Show(msg, "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                                MessageBox.Show(msg, Utilities.Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
                             }
                         }
                         else
@@ -86,7 +86,7 @@ namespace NSAP_ODK.Views
                     {
                         MessageBox.Show(
                             "Please select a download option", 
-                            "NSAP-ODK Database", 
+                            Utilities.Global.MessageBoxCaption, 
                             MessageBoxButton.OK, 
                             MessageBoxImage.Information);
                     }
