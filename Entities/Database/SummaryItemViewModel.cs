@@ -260,7 +260,7 @@ namespace NSAP_ODK.Entities.Database
 
             foreach (var item in samplingDayIDs)
             {
-                lss.Add(NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(item));
+                lss.Add(NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(item));
             }
             return lss;
         }
@@ -628,8 +628,8 @@ namespace NSAP_ODK.Entities.Database
             List<VesselUnload> this_list = new List<VesselUnload>();
             foreach (var item in SummaryItemCollection.Where(t => t.EnumeratorText == enumeratorName && t.LandingSiteNameText == landingSiteName))
             {
-                this_list.Add(NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(item.SamplingDayID)
-                    .GearUnloadViewModel.getGearUnload((int)item.GearUnloadID, loadVesselViewModel: true)
+                this_list.Add(NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(item.SamplingDayID)
+                    .GearUnloadViewModel.GetGearUnload((int)item.GearUnloadID, loadVesselViewModel: true)
                     .VesselUnloadViewModel.getVesselUnload((int)item.VesselUnloadID));
             }
 
@@ -806,7 +806,7 @@ namespace NSAP_ODK.Entities.Database
                 {
                     GearID = gear_code,
                     PK = (int)item.Key.GearUnloadID,
-                    Parent = NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(item.Key.SamplingDayID),
+                    Parent = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(item.Key.SamplingDayID),
                     Boats = item.First().GearUnloadBoats,
                     Catch = item.First().GearUnloadCatch,
                     Gear = NSAPEntities.GearViewModel.GetGear(gear_code),
@@ -945,8 +945,8 @@ namespace NSAP_ODK.Entities.Database
                 //var vu = NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(si.SamplingDayID)
                 //    .GearUnloadViewModel.getGearUnload((int)si.GearUnloadID, loadVesselViewModel: true).
                 //    VesselUnloadViewModel.getVesselUnload((int)si.VesselUnloadID);
-                return NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(si.SamplingDayID)
-                    .GearUnloadViewModel.getGearUnload((int)si.GearUnloadID, loadVesselViewModel: true).
+                return NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(si.SamplingDayID)
+                    .GearUnloadViewModel.GetGearUnload((int)si.GearUnloadID, loadVesselViewModel: true).
                     VesselUnloadViewModel.getVesselUnload((int)si.VesselUnloadID);
             }
             else
@@ -1572,14 +1572,14 @@ namespace NSAP_ODK.Entities.Database
             List<GearUnload> gearUnloads = new List<GearUnload>();
             foreach (var si in SummaryItemCollection.Where(t => t.GearText == gearUsedText && t.GearCode?.Length == 0).GroupBy(t => t.SamplingDayID))
             {
-                var lss = NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(si.Key);
+                var lss = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(si.Key);
                 if (lss != null)
                 {
                     if (lss.GearUnloadViewModel == null)
                     {
                         lss.GearUnloadViewModel = new GearUnloadViewModel(lss);
                     }
-                    foreach (GearUnload gu in lss.GearUnloadViewModel.getGearUnloads(gearUsedText))
+                    foreach (GearUnload gu in lss.GearUnloadViewModel.GetGearUnloads(gearUsedText))
                     {
                         gearUnloads.Add(gu);
                     }
@@ -1691,8 +1691,8 @@ namespace NSAP_ODK.Entities.Database
 
             foreach (var si in enum_unloads)
             {
-                unloads.Add(NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(si.SamplingDayID)
-                        .GearUnloadViewModel.getGearUnload((int)si.GearUnloadID, true)
+                unloads.Add(NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(si.SamplingDayID)
+                        .GearUnloadViewModel.GetGearUnload((int)si.GearUnloadID, true)
                         .VesselUnloadViewModel.getVesselUnload((int)si.VesselUnloadID));
             }
             ProcessBuildEvent(status: BuildSummaryReportStatus.StatusBuildEnd, totalRowsFetched: unloads.Count);
@@ -1749,8 +1749,8 @@ namespace NSAP_ODK.Entities.Database
 
             foreach (var si in reg_fg_ls)
             {
-                unloads.AddRange(NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(si.SamplingDay_id)
-                        .GearUnloadViewModel.getGearUnload((int)si.GU_id, true)
+                unloads.AddRange(NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(si.SamplingDay_id)
+                        .GearUnloadViewModel.GetGearUnload((int)si.GU_id, true)
                         .VesselUnloadViewModel.VesselUnloadCollection.ToList());
             }
 
@@ -1788,8 +1788,8 @@ namespace NSAP_ODK.Entities.Database
 
             foreach (var si in reg_fg_ls)
             {
-                unloads.AddRange(NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(si.SamplingDay_id)
-                        .GearUnloadViewModel.getGearUnload((int)si.GU_id, true)
+                unloads.AddRange(NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(si.SamplingDay_id)
+                        .GearUnloadViewModel.GetGearUnload((int)si.GU_id, true)
                         .VesselUnloadViewModel.VesselUnloadCollection.ToList());
             }
 

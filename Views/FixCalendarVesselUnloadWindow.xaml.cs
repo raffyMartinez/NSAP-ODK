@@ -184,52 +184,54 @@ namespace NSAP_ODK.Views
             }
             else
             {
-                rowStatus.Height = new GridLength(30);
-                dataGrid.Visibility = Visibility.Collapsed;
+                //rowStatus.Height = new GridLength(30);
+                //dataGrid.Visibility = Visibility.Collapsed;
 
-                labelTitle.Content = $"Mismatch between count of fish landings sampled per day and number shown in a calendar day";
-                SamplingCalendaryMismatchFixer.FixCalendarItemCountMismatchEvent += SamplingCalendaryMismatchFixer_FixCalendarItemCountMismatchEvent;
-                _searchResults = await SamplingCalendaryMismatchFixer.SearchMismatchAsync();
-                SamplingCalendaryMismatchFixer.FixCalendarItemCountMismatchEvent -= SamplingCalendaryMismatchFixer_FixCalendarItemCountMismatchEvent;
-                ShowSearchResults();
+                //labelTitle.Content = $"Mismatch between count of fish landings sampled per day and number shown in a calendar day";
+                //SamplingCalendaryMismatchFixer.FixCalendarItemCountMismatchEvent += SamplingCalendaryMismatchFixer_FixCalendarItemCountMismatchEvent;
+                //_searchResults = await SamplingCalendaryMismatchFixer.SearchMismatchAsync();
+                //SamplingCalendaryMismatchFixer.FixCalendarItemCountMismatchEvent -= SamplingCalendaryMismatchFixer_FixCalendarItemCountMismatchEvent;
+                //ShowSearchResults();
+
             }
         }
 
-        private void ShowSearchResults()
+        public void ShowSearchResults()
         {
-            if (_searchResults > 0)
-            {
-                dataGrid.Visibility = Visibility.Visible;
-                var ds = SamplingCalendaryMismatchFixer.MismatchSortResults.OrderBy(t => t.Grouping).ToList();
-                dataGrid.DataContext = ds;
-                dataGrid.Columns.Add(new DataGridTextColumn { Header = "Grouping", Binding = new Binding("Grouping") });
-                dataGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("EnumeratorNameToUse") });
-                dataGrid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("FMA.Name") });
-                dataGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("FishingGround.Name") });
-                dataGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSiteNameText") });
-                dataGrid.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("GearUsedName") });
-                dataGrid.Columns.Add(new DataGridTextColumn { Header = "Date", Binding = new Binding("SamplingDayDateString") });
-                dataGrid.Columns.Add(new DataGridTextColumn { Header = "Sampling day ID", Binding = new Binding("SamplingDayID") });
-                dataGrid.Columns.Add(new DataGridTextColumn { Header = "Gear unload ID", Binding = new Binding("GearUnloadID") });
-                dataGrid.Columns.Add(new DataGridTextColumn { Header = "Vessel unload ID", Binding = new Binding("VesselUnloadID") });
-                buttonFix.IsEnabled = true;
-            }
-            else
-            {
-                Visibility = Visibility.Collapsed;
-                MessageBox.Show("No mismatched sampling calendar items was found", Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
-                Close();
-                if(Owner!=null)
-                {
-                    Owner.Focus();
-                }
-            }
+            //if (_searchResults > 0)
+            //{
+            dataGrid.Visibility = Visibility.Visible;
+            var ds = SamplingCalendaryMismatchFixer.MismatchSortResults.OrderBy(t => t.Grouping).ToList();
+            dataGrid.DataContext = ds;
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Grouping", Binding = new Binding("Grouping") });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("EnumeratorNameToUse") });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("FMA.Name") });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("FishingGround.Name") });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSiteNameText") });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("GearUsedName") });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Date", Binding = new Binding("SamplingDayDateString") });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Sampling day ID", Binding = new Binding("SamplingDayID") });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Gear unload ID", Binding = new Binding("GearUnloadID") });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Vessel unload ID", Binding = new Binding("VesselUnloadID") });
+            buttonFix.IsEnabled = true;
+            labelTitle.Content = $"There are {ds.Count} fish landings that need to be updated to correct the mismatch";
+            //}
+            //else
+            //{
+            //    Visibility = Visibility.Collapsed;
+            //    MessageBox.Show("No mismatched sampling calendar items was found", Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
+            //    Close();
+            //    if(Owner!=null)
+            //    {
+            //        Owner.Focus();
+            //    }
+            //}
 
-            labelTitle.Content = $"Mismatch between count of fish landings sampled per day and number shown in a calendar day ({SamplingCalendaryMismatchFixer.MismatchSortResults.Count})";
+            //labelTitle.Content = $"Mismatch between count of fish landings sampled per day and number shown in a calendar day ({SamplingCalendaryMismatchFixer.MismatchSortResults.Count})";
 
 
         }
-        private void SamplingCalendaryMismatchFixer_FixCalendarItemCountMismatchEvent(object sender, FixCalendarMismatchEventArg e)
+        private void SamplingCalendaryMismatchFixer_FixCalendarItemCountMismatchEvent(object sender, ProcessingItemsEventArg e)
         {
             string processName = "";
             switch (e.Intent)
@@ -351,9 +353,9 @@ namespace NSAP_ODK.Views
                         SamplingCalendaryMismatchFixer.SetCalendarDayMismatchResults((List<CalendarDayLineage>)dataGrid.DataContext);
                     }
 
-                    SamplingCalendaryMismatchFixer.FixCalendarItemCountMismatchEvent += SamplingCalendaryMismatchFixer_FixCalendarItemCountMismatchEvent;
+                    SamplingCalendaryMismatchFixer.ProcessingItemsEvent += SamplingCalendaryMismatchFixer_FixCalendarItemCountMismatchEvent;
                     var success = await SamplingCalendaryMismatchFixer.FixMismatchesAsync();
-                    SamplingCalendaryMismatchFixer.FixCalendarItemCountMismatchEvent += SamplingCalendaryMismatchFixer_FixCalendarItemCountMismatchEvent;
+                    SamplingCalendaryMismatchFixer.ProcessingItemsEvent += SamplingCalendaryMismatchFixer_FixCalendarItemCountMismatchEvent;
 
                     if (success)
                     {
@@ -370,6 +372,7 @@ namespace NSAP_ODK.Views
                     break;
                 case "Cancel":
                     Close();
+                    if (Owner != null) Owner.Focus();
                     break;
             }
         }

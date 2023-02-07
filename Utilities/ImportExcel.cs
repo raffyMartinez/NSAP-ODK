@@ -84,7 +84,7 @@ namespace NSAP_ODK.Utilities
                         NSAPEntities.LandingSiteSamplingViewModel.AddRecordToRepo(landingSiteSampling);
                     }
 
-                    GearUnload gu = NSAPEntities.GearUnloadViewModel.getGearUnload(item);
+                    GearUnload gu = NSAPEntities.GearUnloadViewModel.GetGearUnload(item);
                     if (gu == null)
                     {
                         if (gu != null && gu.GearUsedText != null && gu.GearUsedText.Length > 0)

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NSAP_ODK.Entities.Database
 {
-    public class FixCalendarMismatchEventArg : EventArgs
+    public class ProcessingItemsEventArg : EventArgs
     {
         public string Intent { get; set; }
         public int TotalCountToProcess { get; set; }

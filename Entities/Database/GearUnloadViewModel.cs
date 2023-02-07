@@ -544,11 +544,11 @@ namespace NSAP_ODK.Entities.Database
             return GearUnloadRepository.ClearTable();
         }
 
-        public List<GearUnload> getGearUnloads(string gearText)
+        public List<GearUnload> GetGearUnloads(string gearText)
         {
             return GearUnloadCollection.Where(t => t.GearUsedText == gearText).ToList();
         }
-        public GearUnload getGearUnload(int pk, bool loadVesselViewModel = false)
+        public GearUnload GetGearUnload(int pk, bool loadVesselViewModel = false)
         {
             var gu = GearUnloadCollection.FirstOrDefault(n => n.PK == pk);
             if (gu != null && loadVesselViewModel)
@@ -562,7 +562,7 @@ namespace NSAP_ODK.Entities.Database
 
         }
 
-        public GearUnload getGearUnload(ExcelMainSheet ex)
+        public GearUnload GetGearUnload(ExcelMainSheet ex)
         {
             return GearUnloadCollection
                 .Where(t => t.Parent.LandingSiteName == ex.LandingSiteName)
@@ -587,7 +587,7 @@ namespace NSAP_ODK.Entities.Database
         //    }
         //}
 
-        public GearUnload getGearUnload(FromJson.VesselLanding landing)
+        public GearUnload GetGearUnload(FromJson.VesselLanding landing)
         {
             if (landing.LandingSite == null && landing.LandingSiteText == null)
             {

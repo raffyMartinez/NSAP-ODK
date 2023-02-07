@@ -78,7 +78,7 @@ namespace NSAP_ODK.Entities.Database
                     }
                     else if (landingSiteLandings.SavedInLocalDatabase)
                     {
-                        lss = NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(ls.PK);
+                        lss = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(ls.PK);
                         if (string.IsNullOrEmpty(lss.DeviceID))
                         {
                             landingStatus = BoatLandingStatus.boatLandingStatusSavedForUpdate;

@@ -45,6 +45,31 @@ namespace NSAP_ODK.Entities.Database
             }
             return maxRecNo;
         }
+
+        public static bool EditRemarkOfGearUnload(int gearUnloadID, string remark)
+        {
+            bool success = false;
+            using (var con = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    cmd.Parameters.AddWithValue("@id", gearUnloadID);
+                    //cmd.Parameters.AddWithValue("@remark", "delete after fixing mismatch on calendar");
+                    cmd.Parameters.Add("@remark", OleDbType.VarChar).Value = remark;
+                    cmd.CommandText = "UPDATE dbo_gear_unload SET remarks=@remark WHERE unload_gr_id=@id";
+                    try
+                    {
+                        con.Open();
+                        success = cmd.ExecuteNonQuery() > 0;
+                    }
+                    catch(Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
         public int MaxRecordNumber()
         {
             return NSAPEntities.SummaryItemViewModel.GetGearUnloadMaxRecordNumber();

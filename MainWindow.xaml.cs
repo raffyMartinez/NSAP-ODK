@@ -1688,17 +1688,19 @@ namespace NSAP_ODK
                 //case "buttonEntitySummary":
                 //    break;
                 case "buttonFix":
-                    FixCalendarVesselUnloadWindow fcw = FixCalendarVesselUnloadWindow.GetInstance();
-                    fcw.FishingCalendarViewModel = _fishingCalendarViewModel;
-                    fcw.Owner = this;
-                    if (fcw.Visibility == Visibility.Visible)
-                    {
-                        fcw.BringIntoView();
-                    }
-                    else
-                    {
-                        fcw.Show();
-                    }
+                    ShowFixMismatchCalendarWindow();
+
+                    //FixCalendarVesselUnloadWindow fcw = FixCalendarVesselUnloadWindow.GetInstance();
+                    //fcw.FishingCalendarViewModel = _fishingCalendarViewModel;
+                    //fcw.Owner = this;
+                    //if (fcw.Visibility == Visibility.Visible)
+                    //{
+                    //    fcw.BringIntoView();
+                    //}
+                    //else
+                    //{
+                    //    fcw.Show();
+                    //}
                     break;
                 case "buttonExport":
                     ExportSelectedEntityData();
@@ -2199,7 +2201,19 @@ namespace NSAP_ODK
                 MessageBox.Show("Selected region and fishing ground does not contain maturity data", Global.MessageBoxCaption);
             }
         }
-
+        private void ShowFixMismatchCalendarWindow()
+        {
+            ProgressDialogWindow pdw = ProgressDialogWindow.GetInstance("fix mismatch in calendar days");
+            pdw.Owner = this;
+            if (pdw.Visibility == Visibility.Visible)
+            {
+                pdw.BringIntoView();
+            }
+            else
+            {
+                pdw.Show();
+            }
+        }
         private async void OnMenuClicked(object sender, RoutedEventArgs e)
         {
             string fileName = "";
@@ -2219,16 +2233,17 @@ namespace NSAP_ODK
             switch (itemName)
             {
                 case "menuCalendarDayMismatch":
-                    FixCalendarVesselUnloadWindow fcdmw = FixCalendarVesselUnloadWindow.GetInstance();
-                    fcdmw.Owner = this;
-                    if (fcdmw.Visibility == Visibility.Visible)
-                    {
-                        fcdmw.BringIntoView();
-                    }
-                    else
-                    {
-                        fcdmw.Show();
-                    }
+                    ShowFixMismatchCalendarWindow();
+                    //FixCalendarVesselUnloadWindow fcdmw = FixCalendarVesselUnloadWindow.GetInstance();
+                    //fcdmw.Owner = this;
+                    //if (fcdmw.Visibility == Visibility.Visible)
+                    //{
+                    //    fcdmw.BringIntoView();
+                    //}
+                    //else
+                    //{
+                    //    fcdmw.Show();
+                    //}
                     break;
                 case "menuMoveToFishingGround":
 
@@ -4160,7 +4175,7 @@ namespace NSAP_ODK
                     break;
                 case "buttonSummary":
                     DBView = DBView.dbviewSummary;
-                    showStatus = true;
+                    //showStatus = true;
                     menuDatabaseSummary.IsChecked = true;
                     break;
                 case "buttonAbout":
@@ -4175,7 +4190,7 @@ namespace NSAP_ODK
                     break;
                 case "buttonCalendar":
                     DBView = DBView.dbviewCalendar;
-                    showStatus = true;
+                    //showStatus = true;
                     ShowNSAPCalendar();
                     break;
                 case "buttonDownloadHistory":

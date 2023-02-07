@@ -545,7 +545,7 @@ namespace NSAP_ODK.Entities.Database
         }
 
 
-        public LandingSiteSampling getLandingSiteSampling(int pk)
+        public LandingSiteSampling GetLandingSiteSampling(int pk)
         {
             return LandingSiteSamplingCollection.ToList().FirstOrDefault(n => n.PK == pk);
         }

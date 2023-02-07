@@ -51,7 +51,7 @@ namespace NSAP_ODK.Utilities
         //    stream.Position = 0;
         //    return stream;
         //}
-
+        //public static bool CancelOperation { get; set; }
         public static string MessageBoxCaption { get { return _msgBoxCaption; } }
         public static double? Add(this double? num1, double? num2)
         {

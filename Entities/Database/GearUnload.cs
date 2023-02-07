@@ -157,7 +157,7 @@ namespace NSAP_ODK.Entities.Database
             {
                 if (_parent == null)
                 {
-                    _parent = NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(LandingSiteSamplingID);
+                    _parent = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(LandingSiteSamplingID);
                 }
                 return _parent;
             }
