@@ -53,9 +53,10 @@ namespace NSAP_ODK.Entities.Database
             {
                 using (var cmd = con.CreateCommand())
                 {
+                    
+                    cmd.Parameters.AddWithValue("@remark", remark);
+                    //cmd.Parameters.Add("@remark", OleDbType.VarChar).Value = remark;
                     cmd.Parameters.AddWithValue("@id", gearUnloadID);
-                    //cmd.Parameters.AddWithValue("@remark", "delete after fixing mismatch on calendar");
-                    cmd.Parameters.Add("@remark", OleDbType.VarChar).Value = remark;
                     cmd.CommandText = "UPDATE dbo_gear_unload SET remarks=@remark WHERE unload_gr_id=@id";
                     try
                     {

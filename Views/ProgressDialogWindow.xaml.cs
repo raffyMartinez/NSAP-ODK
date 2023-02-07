@@ -235,7 +235,7 @@ namespace NSAP_ODK.Views
                     _timer.Interval = TimeSpan.FromSeconds(3);
                     if (e.Intent == "cancel")
                     {
-                        _timer.Interval = TimeSpan.FromSeconds(10);
+                        _timer.Interval = TimeSpan.FromSeconds(3);
                     }
                     _timer.Start();
                     break;

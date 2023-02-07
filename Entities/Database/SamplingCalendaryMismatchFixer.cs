@@ -39,13 +39,16 @@ namespace NSAP_ODK.Entities.Database
                 {
                     if (id != minGearUnloadID)
                     {
-                        //GearUnloadRepository.EditRemarkOfGearUnload((int)id, "delete after fixing mismatch on calendar");
-                        var gu = lss.GearUnloadViewModel.GetGearUnload((int)id);
-                        gu.Remarks = "delete after fixing mismatch on calendar";
-                        if (lss.GearUnloadViewModel.UpdateRecordInRepo(gu))
+                        if(GearUnloadRepository.EditRemarkOfGearUnload((int)id, "delete after fixing mismatch on calendar"))
                         {
                             editRemarkCount++;
                         }
+                        //var gu = lss.GearUnloadViewModel.GetGearUnload((int)id);
+                        //gu.Remarks = "delete after fixing mismatch on calendar";
+                        //if (lss.GearUnloadViewModel.UpdateRecordInRepo(gu))
+                        //{
+                        //    editRemarkCount++;
+                        //}
                     }
                 }
 
