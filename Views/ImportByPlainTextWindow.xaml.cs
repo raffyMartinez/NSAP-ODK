@@ -18,6 +18,7 @@ namespace NSAP_ODK.Views
     {
         private NSAPRegion _selectedRegion;
         private bool _errorMessageHandled;
+        private DispatcherTimer _timer;
         public ImportByPlainTextWindow()
         {
             InitializeComponent();
@@ -40,6 +41,11 @@ namespace NSAP_ODK.Views
             }
         }
 
+        private void OnTimerTick(object sender, EventArgs e)
+        {
+            _timer.Stop();
+            Close();
+        }
         private void OnRadioButton_Checked(object sender, RoutedEventArgs e)
         {
             _selectedRegion = (NSAPRegion)((RadioButton)sender).Tag;
@@ -47,6 +53,9 @@ namespace NSAP_ODK.Views
 
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
+            _timer = new DispatcherTimer();
+            _timer.Tick += OnTimerTick;
+
             progressLabel.Content = "";
             progressBar.Value = 0;
             menuImportFile.IsEnabled = false;
@@ -154,9 +163,25 @@ namespace NSAP_ODK.Views
                                     }
                                 }
 
-                                NSAPEntities.FishingVesselViewModel.BulkImportFishingVessels += FishingVesselViewModel_BulkImportFishingVessels;
-                                importCount = await NSAPEntities.FishingVesselViewModel.ImportVesselsAsync(textBox.Text, region, fs);
-                                NSAPEntities.FishingVesselViewModel.BulkImportFishingVessels -= FishingVesselViewModel_BulkImportFishingVessels;
+                                ProgressDialogWindow pdw = ProgressDialogWindow.GetInstance("import fishing vessels");
+                                pdw.Sector = fs;
+                                pdw.ListToImportFromTextBox = textBox.Text;
+                                pdw.Region = region;
+
+                                pdw.Owner = Owner;
+                                if (pdw.Visibility == Visibility.Visible)
+                                {
+                                    pdw.BringIntoView();
+                                }
+                                else
+                                {
+                                    pdw.Show();
+                                }
+                                _timer.Interval = TimeSpan.FromSeconds(3);
+                                _timer.Start();
+                                //NSAPEntities.FishingVesselViewModel.BulkImportFishingVessels += FishingVesselViewModel_BulkImportFishingVessels;
+                                //importCount = await NSAPEntities.FishingVesselViewModel.ImportVesselsAsync(textBox.Text, region, fs);
+                                //NSAPEntities.FishingVesselViewModel.BulkImportFishingVessels -= FishingVesselViewModel_BulkImportFishingVessels;
 
                                 break;
                             case NSAPEntity.GPS:
@@ -216,22 +241,24 @@ namespace NSAP_ODK.Views
                                 break;
                         }
 
-
-                    ((MainWindow)Owner).RefreshEntityGrid();
-                        if (importCount > 0)
+                        if (NSAPEntityType != NSAPEntity.FishingVessel)
                         {
-                            MessageBox.Show($"Succesfully imported {importCount} items", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
-                            Close();
-                        }
-                        else
-                        {
-                            if (msg?.Length > 0)
+                            ((MainWindow)Owner).RefreshEntityGrid();
+                            if (importCount > 0)
                             {
-                                MessageBox.Show(msg, "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                                MessageBox.Show($"Succesfully imported {importCount} items", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                                Close();
                             }
                             else
                             {
-                                MessageBox.Show($"Was not able to import an item", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                                if (msg?.Length > 0)
+                                {
+                                    MessageBox.Show(msg, "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                                }
+                                else
+                                {
+                                    MessageBox.Show($"Was not able to import an item", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                                }
                             }
                         }
                     }
@@ -279,9 +306,7 @@ namespace NSAP_ODK.Views
                         (
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
-
                               progressBar.Value = e.ImportedCount;
-
                               //do what you need to do on UI Thread
                               return null;
                           }), null);
@@ -356,7 +381,6 @@ namespace NSAP_ODK.Views
                         default:
                             break;
                     }
-
                     csv = OpenCSVFile(entityName);
                     if (csv?.Length > 0)
                     {

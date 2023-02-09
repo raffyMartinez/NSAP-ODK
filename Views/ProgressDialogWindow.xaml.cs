@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using NSAP_ODK.Entities;
 using NSAP_ODK.Entities.Database;
 
 namespace NSAP_ODK.Views
@@ -21,12 +22,12 @@ namespace NSAP_ODK.Views
     /// </summary>
     public partial class ProgressDialogWindow : Window
     {
-        private bool _proceedAndClose = false;
+        //private bool _proceedAndClose = false;
         private DispatcherTimer _timer;
         private int _countToProcess;
         private static ProgressDialogWindow _instance;
         private bool _processStarted = false;
-        
+
         public ProgressDialogWindow(string taskToDo)
         {
             InitializeComponent();
@@ -43,18 +44,19 @@ namespace NSAP_ODK.Views
                     labelBigTitle.Content = "Search and fix mismatch in sampling calendar";
 
                     break;
+                case "import fishing vessels":
+                    labelBigTitle.Content = "Importing fishing vessels";
+                    break;
+
             }
+            Title = labelBigTitle.Content.ToString();
         }
         private void OnTimerTick(object sender, EventArgs e)
         {
             _timer.Stop();
             panelStatus.Visibility = Visibility.Collapsed;
-            //if (_proceedAndClose)
-            //{
-
+            Owner.Focus();
             Close();
-            //}
-
         }
         public string TaskToDo { get; private set; }
 
@@ -63,6 +65,10 @@ namespace NSAP_ODK.Views
             _instance = null;
         }
 
+        public NSAPRegion Region { get; set; }
+        public string ListToImportFromTextBox { get; set; }
+
+        public FisheriesSector Sector { get; set; }
 
         public async Task DoTask()
         {
@@ -71,59 +77,63 @@ namespace NSAP_ODK.Views
 
             switch (TaskToDo)
             {
+                case "import fishing vessels":
+                    labelDescription.Content = "Importing fishing vessels";
+                    NSAPEntities.FishingVesselViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
+                    if (await NSAPEntities.FishingVesselViewModel.ImportVesselsAsync(ListToImportFromTextBox, Region, Sector))
+                    {
+                        panelStatus.Visibility = Visibility.Collapsed;
+                        ((MainWindow)Owner).RefreshEntityGrid();
+                        //_proceedAndClose = true;
+                    }
+                    NSAPEntities.FishingVesselViewModel.ProcessingItemsEvent -= OnProcessingItemsEvent;
+                    break;
                 case "fix mismatch in calendar days":
-                    SamplingCalendaryMismatchFixer.ProcessingItemsEvent += SamplingCalendaryMismatchFixer_FixCalendarItemCountMismatchEvent;
-
-
-
+                    SamplingCalendaryMismatchFixer.ProcessingItemsEvent += OnProcessingItemsEvent;
                     if (await SamplingCalendaryMismatchFixer.SearchMismatchAsync())
                     {
                         panelStatus.Visibility = Visibility.Collapsed;
-                        _proceedAndClose = true;
+                        //_proceedAndClose = true;
 
-                        switch (TaskToDo)
+
+                        labelDescription.Content = labelSuccessFindingMismatch;
+                        FixCalendarVesselUnloadWindow fcmw = FixCalendarVesselUnloadWindow.GetInstance();
+                        fcmw.Owner = this.Owner;
+                        if (fcmw.Visibility == Visibility.Visible)
                         {
-                            case "fix mismatch in calendar days":
-                                labelDescription.Content = labelSuccessFindingMismatch;
-                                FixCalendarVesselUnloadWindow fcmw = FixCalendarVesselUnloadWindow.GetInstance();
-                                fcmw.Owner = this.Owner;
-                                if (fcmw.Visibility == Visibility.Visible)
-                                {
-                                    fcmw.BringIntoView();
-                                }
-                                else
-                                {
-                                    fcmw.Show();
-                                }
-                                fcmw.ShowSearchResults();
-                                break;
+                            fcmw.BringIntoView();
                         }
+                        else
+                        {
+                            fcmw.Show();
+                        }
+                        fcmw.ShowSearchResults();
+                        break;
                     }
                     else
                     {
                         if (SamplingCalendaryMismatchFixer.Cancel)
                         {
-                            
+
                             labelDescription.Content = "Operation was cancelled";
                         }
                         else
                         {
                             _processStarted = false;
-                            switch (TaskToDo)
-                            {
-                                case "fix mismatch in calendar days":
-                                    labelDescription.Content = labelNoSuccessFindingMismatch;
-                                    break;
-                            }
-
+                            labelDescription.Content = labelNoSuccessFindingMismatch;
                         }
                     }
-                    SamplingCalendaryMismatchFixer.ProcessingItemsEvent -= SamplingCalendaryMismatchFixer_FixCalendarItemCountMismatchEvent;
+                    SamplingCalendaryMismatchFixer.ProcessingItemsEvent -= OnProcessingItemsEvent;
                     break;
             }
+
+
+
         }
 
-        private void SamplingCalendaryMismatchFixer_FixCalendarItemCountMismatchEvent(object sender, ProcessingItemsEventArg e)
+
+
+        private void OnProcessingItemsEvent(object sender, ProcessingItemsEventArg e)
         {
             string processName = "";
             switch (e.Intent)
@@ -131,7 +141,7 @@ namespace NSAP_ODK.Views
                 case "start sorting":
                 case "start fixing":
                     progressBar.Dispatcher.BeginInvoke
-    (
+                    (
                       DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                       {
 
@@ -160,8 +170,9 @@ namespace NSAP_ODK.Views
 
                     break;
                 case "processing start":
+                case "start":
                     progressBar.Dispatcher.BeginInvoke
-    (
+                    (
                       DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                       {
 
@@ -175,13 +186,18 @@ namespace NSAP_ODK.Views
                     break;
                 case "item sorted":
                 case "item fixed":
+                case "imported_entity":
                     processName = "Found";
                     if (e.Intent == "item fixed")
                     {
                         processName = "Fixed";
                     }
+                    else if (e.Intent == "imported_entity")
+                    {
+                        processName = "Imported";
+                    }
                     progressBar.Dispatcher.BeginInvoke
-    (
+                    (
                       DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                       {
 
@@ -199,12 +215,14 @@ namespace NSAP_ODK.Views
                               return null;
                           }
                          ), null);
+
                     break;
                 case "done sorting":
                 case "done fixing":
+                case "import_done":
                 case "cancel":
                     progressBar.Dispatcher.BeginInvoke
-    (
+                    (
                       DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                       {
 
@@ -218,11 +236,18 @@ namespace NSAP_ODK.Views
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
                               processName = "sorting";
-                              if (e.Intent == "done fixing")
+                              switch (e.Intent)
                               {
-                                  processName = "fixing";
+                                  case "done fixing":
+                                      processName = "fixing";
+                                      break;
+                                  case "import_done":
+                                      processName = "importing";
+                                      break;
                               }
-                              progressLabel.Content = $"Finished {processName} {e.CountProcessed} items";
+
+                              progressLabel.Content = $"Finished {processName} {progressBar.Maximum} items";
+
                               if (e.Intent == "cancel")
                               {
                                   progressLabel.Content = "Operation was cancelled";
@@ -232,6 +257,33 @@ namespace NSAP_ODK.Views
                               return null;
                           }
                          ), null);
+
+
+
+                    labelDescription.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              switch (TaskToDo)
+                              {
+                                  case "import fishing vessels":
+                                      labelDescription.Content = $"Finishsed importing {progressBar.Maximum} vessels";
+                                      break;
+                                  case "fix mismatch in calendar days":
+                                      labelDescription.Content = $"Found {progressBar.Maximum} gear unloads with mismatch";
+                                      break;
+                              }
+
+                              if (e.Intent == "cancel")
+                              {
+                                  labelDescription.Content = $"Operation was cancelled";
+                              }
+
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+
                     _timer.Interval = TimeSpan.FromSeconds(3);
                     if (e.Intent == "cancel")
                     {
@@ -267,23 +319,55 @@ namespace NSAP_ODK.Views
                     Close();
                     break;
                 case "Cancel":
-                    if(!_processStarted)
-                    {
-                        Close();
-                    }
-                    else if (SamplingCalendaryMismatchFixer.Cancel)
+                    if (!_processStarted)
                     {
                         Close();
                     }
                     else
                     {
-                        //Cancel = true;
-                        SamplingCalendaryMismatchFixer.Cancel = true;
-                        panelButtons.Visibility = Visibility.Collapsed;
-                        panelStatus.Visibility = Visibility.Collapsed;
-                        //Close();
+                        switch (TaskToDo)
+                        {
+                            case "fix mismatch in calendar days":
+                                if (SamplingCalendaryMismatchFixer.Cancel)
+                                {
+                                    Close();
+                                }
+                                else
+                                {
+                                    SamplingCalendaryMismatchFixer.Cancel = true;
+                                    panelButtons.Visibility = Visibility.Collapsed;
+                                    panelStatus.Visibility = Visibility.Collapsed;
+                                }
+                                break;
+                            case "import fishing vessels":
+                                if (NSAPEntities.FishingVesselViewModel.Cancel)
+                                {
+                                    Close();
+                                }
+                                else
+                                {
+                                    NSAPEntities.FishingVesselViewModel.Cancel = true;
+                                    panelButtons.Visibility = Visibility.Collapsed;
+                                    panelStatus.Visibility = Visibility.Collapsed;
+                                }
+                                break;
+
+                        }
                     }
                     break;
+                    //else if (SamplingCalendaryMismatchFixer.Cancel)
+                    //{
+                    //    Close();
+                    //}
+                    //else
+                    //{
+                    //    //Cancel = true;
+                    //    SamplingCalendaryMismatchFixer.Cancel = true;
+                    //    panelButtons.Visibility = Visibility.Collapsed;
+                    //    panelStatus.Visibility = Visibility.Collapsed;
+                    //    //Close();
+                    //}
+                    //break;
             }
         }
 

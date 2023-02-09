@@ -11,5 +11,7 @@ namespace NSAP_ODK.Entities.Database
         public string Intent { get; set; }
         public int TotalCountToProcess { get; set; }
         public int CountProcessed { get; set; }
+
+        public string ProcessedItemName { get; set; }
     }
 }

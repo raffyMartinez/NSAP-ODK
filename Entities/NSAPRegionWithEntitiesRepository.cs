@@ -939,7 +939,15 @@ namespace NSAP_ODK.Entities
                         try
                         {
                             con.Open();
-                            maxID = (int)cmd.ExecuteScalar();
+                            var r = cmd.ExecuteScalar();
+                            if (r == DBNull.Value)
+                            {
+                                maxID = 0;
+                            }
+                            else
+                            {
+                                maxID = (int)r;
+                            }
                         }
                         catch (Exception ex)
                         {

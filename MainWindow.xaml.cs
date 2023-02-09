@@ -128,6 +128,7 @@ namespace NSAP_ODK
                 NSAPEntities.SummaryItemViewModel.BuildingSummaryTable -= SummaryItemViewModel_BuildingSummaryTable;
                 NSAPEntities.SummaryItemViewModel.BuildingOrphanedEntity -= SummaryItemViewModel_BuildingOrphanedEntity;
                 DownloadFromServerWindow.RefreshDatabaseSummaryTable -= DownloadFromServerWindow_RefreshDatabaseSummaryTable;
+                NSAPEntities.FishingVesselViewModel.ProcessingItemsEvent -= OnProcessingItemsEvent;
             }
             _httpClient.Dispose();
         }
@@ -419,6 +420,7 @@ namespace NSAP_ODK
                             NSAPEntities.SummaryItemViewModel.BuildingSummaryTable += SummaryItemViewModel_BuildingSummaryTable;
                             NSAPEntities.SummaryItemViewModel.BuildingOrphanedEntity += SummaryItemViewModel_BuildingOrphanedEntity;
                             DownloadFromServerWindow.RefreshDatabaseSummaryTable += DownloadFromServerWindow_RefreshDatabaseSummaryTable;
+                            NSAPEntities.FishingVesselViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
                         }
                     }
                     else
@@ -457,6 +459,29 @@ namespace NSAP_ODK
 
 
         }
+
+        private void OnProcessingItemsEvent(object sender, ProcessingItemsEventArg e)
+        {
+            switch (e.Intent)
+            {
+                case "imported_entity":
+                    if (e.CountProcessed % 100 == 0)
+                    {
+                        this.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              RefreshEntityGrid();
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+                        //((MainWindow)Owner).RefreshEntityGrid();
+                    }
+                    break;
+            }
+        }
+
         private void SummaryItemViewModel_BuildingOrphanedEntity(object sender, BuildOrphanedEntityEventArg e)
         {
             switch (e.BuildOrphanedEntityStatus)
@@ -2203,6 +2228,7 @@ namespace NSAP_ODK
         }
         private void ShowFixMismatchCalendarWindow()
         {
+            NSAPEntities.FishingVesselViewModel.ProcessingItemsEvent += FishingVesselViewModel_ProcessingItemsEvent;
             ProgressDialogWindow pdw = ProgressDialogWindow.GetInstance("fix mismatch in calendar days");
             pdw.Owner = this;
             if (pdw.Visibility == Visibility.Visible)
@@ -2214,6 +2240,12 @@ namespace NSAP_ODK
                 pdw.Show();
             }
         }
+
+        private void FishingVesselViewModel_ProcessingItemsEvent(object sender, ProcessingItemsEventArg e)
+        {
+            throw new NotImplementedException();
+        }
+
         private async void OnMenuClicked(object sender, RoutedEventArgs e)
         {
             string fileName = "";

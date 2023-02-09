@@ -10,29 +10,32 @@ namespace NSAP_ODK.Entities
 {
     public class FishingVesselViewModel
     {
+        public event EventHandler<ProcessingItemsEventArg> ProcessingItemsEvent;
         public event EventHandler<Database.EntityBulkImportEventArg> BulkImportFishingVessels;
         private bool _editSuccess;
         public ObservableCollection<FishingVessel> FishingVesselCollection { get; set; }
         private FishingVesselRepository FishingVessels { get; set; }
         public static bool BulkSave { get; set; }
-        public Task<int> ImportVesselsAsync(string vesselNames, NSAPRegion region, FisheriesSector fs)
+        public Task<bool> ImportVesselsAsync(string vesselNames, NSAPRegion region, FisheriesSector fs)
         {
             return Task.Run(() => ImportVessels(vesselNames, region, fs));
         }
 
+        public bool Cancel { get; set; }
+
         public List<EntityValidationMessage> EntityValidationMessages { get; set; }
-        private int ImportVessels(string vesselNames, NSAPRegion region, FisheriesSector fs)
+        private bool ImportVessels(string vesselNames, NSAPRegion region, FisheriesSector fs)
         {
             EntityValidationMessages = new List<EntityValidationMessage>();
             var rvm = NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(region);
             int importCount = 0;
             List<EntityValidationMessage> entityMessages = new List<EntityValidationMessage>();
             List<string> vesselsToImport = vesselNames.Split('\n').ToList();
-            BulkImportFishingVessels?.Invoke(null, new EntityBulkImportEventArg { Intent = "start", RecordsToImport = vesselsToImport.Count });
-            foreach (var item in vesselsToImport)
+            ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "start", TotalCountToProcess = vesselsToImport.Count });
+            foreach (var item in vesselsToImport.Where(t => t.Length > 0))
             {
                 string to_import = string.Join(" ", item.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)).Trim('\r');
-                if (to_import.Length > 0)
+                if (!Cancel && to_import.Length > 0)
                 {
                     var fv = new FishingVessel { Name = item.Trim(), FisheriesSector = fs, ID = NSAPEntities.FishingVesselViewModel.NextRecordNumber };
                     if (NSAPEntities.FishingVesselViewModel.EntityValidated(fv, out entityMessages, true))
@@ -46,11 +49,11 @@ namespace NSAP_ODK.Entities
                                 added: DateTime.Now
                             );
 
-                            
+
                             if (rvm.AddFishingVessel(nrfv))
                             {
                                 importCount++;
-                                BulkImportFishingVessels?.Invoke(null, new EntityBulkImportEventArg { Intent = "imported_entity", ImportedCount = importCount, ImportedEntityName = nrfv.FishingVessel.Name, NSAPEntity = NSAPEntity.FishingVessel });
+                                ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "imported_entity", CountProcessed = importCount, ProcessedItemName = nrfv.FishingVessel.Name });
                             }
                         }
                     }
@@ -59,9 +62,14 @@ namespace NSAP_ODK.Entities
                         EntityValidationMessages.AddRange(entityMessages);
                     }
                 }
+                else
+                {
+                    ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "cancel" });
+                    return importCount > 0;
+                }
             }
-            BulkImportFishingVessels?.Invoke(null, new EntityBulkImportEventArg { Intent = "import_done", NSAPEntity = NSAPEntity.FishingVessel });
-            return importCount;
+            ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "import_done" });
+            return importCount > 0;
         }
         public FishingVesselViewModel()
         {
@@ -72,7 +80,7 @@ namespace NSAP_ODK.Entities
 
         public List<OrphanedFishingVessel> OrphanedFishingVesseks()
         {
-            
+
             var itemsVesselSamplings = NSAPEntities.VesselUnloadViewModel?.VesselUnloadCollection
                 .Where(t => t.VesselID == null && t.VesselName != null && t.VesselText.Length > 0)
                 .GroupBy(t => new { Sector = t.Sector, LandingSite = t.Parent.Parent.LandingSiteName, Name = t.VesselName })
@@ -145,7 +153,7 @@ namespace NSAP_ODK.Entities
                     {
                         int newIndex = e.NewStartingIndex;
                         FishingVessel newVessel = FishingVesselCollection[newIndex];
-                        if(BulkSave)
+                        if (BulkSave)
                         {
 
                         }
