@@ -69,7 +69,8 @@ namespace NSAP_ODK.TreeViewModelControl
 
                 hsLS.Add(lst);
             }
-            foreach (var ls in hsLS.ToList().OrderBy(t=>t.Municipality.Province.ProvinceName).ThenBy(t=>t.Municipality.MunicipalityName).ThenBy(t=>t.LandingSiteName))
+            //foreach (var ls in hsLS.ToList().OrderBy(t=>t.Municipality.Province.ProvinceName).ThenBy(t=>t.Municipality.MunicipalityName).ThenBy(t=>t.LandingSiteName))
+            foreach (var ls in hsLS.ToList().OrderBy(t=>t.LandingSiteName))
             {
                 //base.Children.Add(new tv_LandingSiteViewModel(ls, this, ls.ToString()));
                 string ls_location; ;

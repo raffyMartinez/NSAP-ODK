@@ -38,11 +38,12 @@ namespace NSAP_ODK.Views
         private bool _closingDeleteDone;
         private bool _hasReplacedCellChecked;
         private List<OrphanedLandingSite> _olsForDeletion = new List<OrphanedLandingSite>();
-
+        private OrphanedLandingSite _orphanedLandingSite;
         private string _itemToReplace;
         private List<string> _itemsToReplace = new List<string>();
         private int _checkCount = 0;
         private EntityContext _entityContext = new EntityContext();
+
         public OrphanItemsManagerWindow()
         {
             InitializeComponent();
@@ -201,7 +202,9 @@ namespace NSAP_ODK.Views
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of landings", Binding = new Binding("NumberOfLandings"), IsReadOnly = true });
                     break;
                 case NSAPEntity.FishingGear:
+                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerators", Binding = new Binding("EnumeratorNameList"), IsReadOnly = true });
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of gear unload", Binding = new Binding("NumberOfUnload"), IsReadOnly = true });
+                    
                     break;
             }
 
@@ -1521,7 +1524,19 @@ namespace NSAP_ODK.Views
         {
             var dg = (DataGrid)sender;
             menuCheckState.IsEnabled = dg.SelectedCells.Count > 1;
-            if (dg.SelectedCells.Count > 1)
+            if (dg.SelectedCells.Count == 1 && NSAPEntity == NSAPEntity.LandingSite)
+            {
+                _orphanedLandingSite = (OrphanedLandingSite)dg.SelectedCells[0].Item;
+                if (dg.ContextMenu.Items.Count == 1)
+                {
+
+                    var menuItem = new MenuItem { Name = "menuOrphanedLandingSiteEnumerator", Header = "Show landing site of enumerator", Tag = "enumerator_landing_site" };
+                    menuItem.Click += onContextMenuClicked;
+                    dg.ContextMenu.Items.Add(menuItem);
+                }
+            }
+
+            else if (dg.SelectedCells.Count > 1)
             {
                 var sc = dg.SelectedCells[0];
                 switch (NSAPEntity)
@@ -1581,6 +1596,20 @@ namespace NSAP_ODK.Views
         {
             switch (((MenuItem)sender).Tag.ToString())
             {
+                case "enumerator_landing_site":
+                    EnumeratorsAndLandingSitesWindow elsw = EnumeratorsAndLandingSitesWindow.GetInstance();
+                    elsw.OrphanedLandingSite = _orphanedLandingSite;
+                    elsw.Owner = this;
+                    if (elsw.Visibility == Visibility.Visible)
+                    {
+                        elsw.BringIntoView();
+                    }
+                    else
+                    {
+                        elsw.ShowDialog();
+                    }
+
+                    break;
                 case "check_state":
                     if (menuCheckState.Header.ToString() == "Check selected")
                     {

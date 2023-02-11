@@ -9,10 +9,11 @@ namespace NSAP_ODK.Entities.Database
     public class OrphanedFishingGear
     {
         public string Name { get; set; }
-        public List<GearUnload> GearUnloads{ get; set; }
+        public List<GearUnload> GearUnloads { get; set; }
 
-        public NSAPRegion Region { 
-            get 
+        public NSAPRegion Region
+        {
+            get
             {
                 if (GearUnloads.Count > 0)
                 {
@@ -22,11 +23,12 @@ namespace NSAP_ODK.Entities.Database
                 {
                     return null;
                 }
-            } 
+            }
         }
 
-        public FMA FMA { 
-            get 
+        public FMA FMA
+        {
+            get
             {
                 if (GearUnloads.Count == 0)
                 {
@@ -36,11 +38,53 @@ namespace NSAP_ODK.Entities.Database
                 {
                     return GearUnloads[0].Parent.FMA;
                 }
-            } 
+            }
         }
-
-        public FishingGround FishingGround {
-            get 
+        public string EnumeratorNameList
+        {
+            get
+            {
+                var e = "";
+                int count = 0;
+                foreach (var item in EnumeratorNames)
+                {
+                    e += $"{item}, ";
+                    count++;
+                    if (count % 3 == 0)
+                    {
+                        e += "\r\n";
+                    }
+                }
+                return e.Trim(new char[] { ',', ' ', '\r', '\n' });
+            }
+        }
+        public List<string> EnumeratorNames
+        {
+            get
+            {
+                HashSet<string> enumerators = new HashSet<string>();
+                if (GearUnloads.Count > 0)
+                {
+                    foreach (var item in GearUnloads)
+                    {
+                        if(item.VesselUnloadViewModel==null)
+                        {
+                            item.VesselUnloadViewModel = new VesselUnloadViewModel(parent: item);
+                        }
+                        //var h = item.VesselUnloadViewModel.VesselUnloadCollection.Select(t => t.EnumeratorName).ToHashSet();
+                        enumerators.UnionWith(item.VesselUnloadViewModel.VesselUnloadCollection.Select(t => t.EnumeratorName).ToHashSet());
+                    }
+                    return enumerators.ToList();
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+        public FishingGround FishingGround
+        {
+            get
             {
                 if (GearUnloads.Count > 0)
                 {

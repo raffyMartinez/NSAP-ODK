@@ -510,6 +510,10 @@
     <Compile Include="Views\backupMySQLWindow.xaml.cs">
       <DependentUpon>backupMySQLWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\EnumeratorLandingSiteSummary.cs" />
+    <Compile Include="Views\EnumeratorsAndLandingSitesWindow.xaml.cs">
+      <DependentUpon>EnumeratorsAndLandingSitesWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\ProgressDialogWindow.xaml.cs">
       <DependentUpon>ProgressDialogWindow.xaml</DependentUpon>
     </Compile>
@@ -659,6 +663,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\backupMySQLWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\EnumeratorsAndLandingSitesWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
