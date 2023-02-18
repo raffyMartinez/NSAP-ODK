@@ -1758,7 +1758,6 @@ namespace NSAP_ODK
                 case "buttonEdit":
                     EditEntity();
                     break;
-
                 case "buttonDelete":
                     DeleteEntity();
                     break;
@@ -1768,11 +1767,8 @@ namespace NSAP_ODK
                 case "ButtonUndoGearUnload":
                     UndoChangesToGearUnload();
                     break;
-
             }
         }
-
-
 
         public void ShowDBSummary()
         {

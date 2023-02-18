@@ -490,6 +490,8 @@ namespace NSAP_ODK.Entities.Database.FromJson
         public string SpeciesName { get { return SpeciesNameSelected; } }
 
 
+
+
         //this is the invert species ID
         [JsonProperty("catch_comp_group/catch_composition_repeat/speciesname_group/species_notfish")]
         public int? SpeciesNotFish { get; set; }
@@ -563,22 +565,23 @@ namespace NSAP_ODK.Entities.Database.FromJson
             {
                 if (Parent.SavedInLocalDatabase)
                 {
-                    var this_catch = NSAPEntities.VesselCatchViewModel.getVesselCatch(Parent, SpeciesID, SpeciesNameOther);
-                    if (this_catch != null)
-                    {
-                        _rowID = NSAPEntities.VesselCatchViewModel.getVesselCatch(Parent, SpeciesID, SpeciesNameOther).PK;
-                    }
-                    else
-                    {
-                        Utilities.Logger.Log($"IMPORTANT: Catch composition item not found in repository" +
-                            $"\r\n Vessel unload PK is {Parent.PK}" +
-                            $"\r\n Vessel name is {Parent.FishingVesselName}" +
-                            $"\r\n Catch name is {SpeciesNameSelected}" +
-                            $"\r\n Vessel unload is saved is {Parent.SavedInLocalDatabase}");
+                    return 0;
+                    //var this_catch = NSAPEntities.VesselCatchViewModel.getVesselCatch(Parent, SpeciesID, SpeciesNameOther);
+                    //if (this_catch != null)
+                    //{
+                    //    _rowID = NSAPEntities.VesselCatchViewModel.getVesselCatch(Parent, SpeciesID, SpeciesNameOther).PK;
+                    //}
+                    //else
+                    //{
+                    //    Utilities.Logger.Log($"IMPORTANT: Catch composition item not found in repository" +
+                    //        $"\r\n Vessel unload PK is {Parent.PK}" +
+                    //        $"\r\n Vessel name is {Parent.FishingVesselName}" +
+                    //        $"\r\n Catch name is {SpeciesNameSelected}" +
+                    //        $"\r\n Vessel unload is saved is {Parent.SavedInLocalDatabase}");
 
-                        Utilities.VesselLandingFixDownload.VesselLandingToRepair(Parent);
+                    //    Utilities.VesselLandingFixDownload.VesselLandingToRepair(Parent);
 
-                    }
+                    //}
                 }
                 else
                 {
@@ -1233,7 +1236,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
                     }
                     else
                     {
-                        return "";
+                        return "NOT RECOGNIZED";
                     }
                 }
                 else
@@ -1317,7 +1320,14 @@ namespace NSAP_ODK.Entities.Database.FromJson
                 }
                 else
                 {
-                    return LandingSite?.ToString();
+                    if (LandingSite == null)
+                    {
+                        return "NOT RECOGNIZED";
+                    }
+                    else
+                    {
+                        return LandingSite?.ToString();
+                    }
                 }
             }
         }
@@ -1329,7 +1339,27 @@ namespace NSAP_ODK.Entities.Database.FromJson
         public string GearUsedText { get; set; }
 
 
-
+        public string GearNameToUse
+        {
+            get
+            {
+                if(Gear!=null)
+                {
+                    return Gear.GearName;
+                }
+                else
+                {
+                    if(GearUsedText!=null && GearUsedText.Length>0)
+                    {
+                        return GearUsedText;
+                    }
+                    else
+                    {
+                        return "NOT RECOGNIZED";
+                    }
+                }
+            }
+        }
         public string length_type { get; set; }
         [JsonProperty("vessel_catch/trip_isSuccess")]
         public string TripIsSuccessYesNo
@@ -1508,6 +1538,8 @@ namespace NSAP_ODK.Entities.Database.FromJson
                 IsBoatUsedYesNo = value ? "yes" : "no";
             }
         }
+
+        
         public string FishingVesselName
         {
             get

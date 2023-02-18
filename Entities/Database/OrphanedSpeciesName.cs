@@ -14,6 +14,7 @@ namespace NSAP_ODK.Entities.Database
 
         public string FMA { get; set; }
 
+        public List<NSAPEnumerator> Enumerators { get; set; }
         public string FishingGround { get; set; }
 
         public int NumberOfLandings { get { return SampledLandings.Count; } }

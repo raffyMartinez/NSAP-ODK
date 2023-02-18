@@ -333,7 +333,8 @@ namespace NSAP_ODK.Utilities
                     NSAPEntities.DatabaseEnumeratorSummary = new DatabaseEnumeratorSummary();
                     NSAPEntities.JSONFileViewModel = new JSONFileViewModel();
                     NSAPEntities.ODKEformVersionViewModel = new ODKEformVersionViewModel();
-
+                    NSAPEntities.UnmatchedFieldsFromJSONFileViewModel = new UnmatchedFieldsFromJSONFileViewModel();
+                    
                     NSAPEntities.ResetEntititesCurrentIDs();
                     Entities.Database.FromJson.VesselUnloadServerRepository.ResetGroupIDState();
 
@@ -372,7 +373,7 @@ namespace NSAP_ODK.Utilities
 
                     if (!AppProceed)
                     {
-                        Logger.Log(Entities.Database.CSVFIleManager.XMLError);
+                        Logger.Log(CSVFIleManager.XMLError);
                     }
                 }
             }

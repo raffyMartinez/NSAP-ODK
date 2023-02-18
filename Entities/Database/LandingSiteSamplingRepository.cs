@@ -14,16 +14,16 @@ namespace NSAP_ODK.Entities.Database
 {
     class LandingSiteSamplingRepository
     {
-        private static int _maxRecordNumber;
-        private bool _addHasOperationColumn = false;
+        //private static int _maxRecordNumber;
+        //private bool _addHasOperationColumn = false;
         //private string _dateFormat = "MMM-dd-yyyy";
         public List<LandingSiteSampling> LandingSiteSamplings { get; set; }
 
         public static bool UpdateColumns()
         {
             bool proceed = false;
-            //if (TotalWtSpRepository.CheckForTWSPTable() && GearAtLandingSiteDaysPerMonthRepository.CheckForGearLandingSiteTable())
-            if (TotalWtSpRepository.CheckForTWSPTable() && VesselUnloadRepository.CheckForWtValidationTable())// && GearAtLandingSiteDaysPerMonthRepository.CheckForGearLandingSiteTable())
+
+            if (TotalWtSpRepository.CheckForTWSPTable() && VesselUnloadRepository.CheckForWtValidationTable() && UnmatchedFieldsFromJSONFileRepository.CheckTableExist())
             {
                 var cols = CreateTablesInAccess.GetColumnNames("dbo_LC_FG_sample_day");
                 if (cols.Contains("has_fishing_operation") || UpdateTableDefinition("has_fishing_operation") &&
@@ -274,7 +274,7 @@ namespace NSAP_ODK.Entities.Database
                             switch (ex.Message)
                             {
                                 case "has_fishing_operation":
-                                    _addHasOperationColumn = true;
+                                    //_addHasOperationColumn = true;
                                     //conection.Close();
                                     //if (UpdateTableDefinition(ex.Message) && UpdateHasFishingOperationField())
                                     //{

@@ -179,6 +179,7 @@
     </ApplicationDefinition>
     <Compile Include="Entities\BuildOrphanedEntityEventArg.cs" />
     <Compile Include="Entities\Database\AccessColumn.cs" />
+    <Compile Include="Entities\Database\AnalyzeJsonForMismatch.cs" />
     <Compile Include="Entities\Database\BoatLandingsFromServerRepository.cs" />
     <Compile Include="Entities\Database\BuildSummaryReportEventArg.cs" />
     <Compile Include="Entities\Database\CalendarDayLineage.cs" />
@@ -275,6 +276,9 @@
     <Compile Include="Entities\Database\UnloadStatsLine.cs" />
     <Compile Include="Entities\Database\UnloadWithMaturityDatasetManager.cs" />
     <Compile Include="Entities\Database\TrackedVesselUnloadSummary.cs" />
+    <Compile Include="Entities\Database\UnmatchedFieldsFromJSONFile.cs" />
+    <Compile Include="Entities\Database\UnmatchedFieldsFromJSONFileRepository.cs" />
+    <Compile Include="Entities\Database\UnmatchedFieldsFromJSONFileViewModel.cs" />
     <Compile Include="Entities\Database\UnrecognizedFishingGround.cs" />
     <Compile Include="Entities\Database\UnrecognizedFishingGroundComparer.cs" />
     <Compile Include="Entities\Database\UpdateDatabaseColumnEventArg.cs" />

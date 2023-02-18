@@ -8,6 +8,8 @@ namespace NSAP_ODK.Entities.Database
 {
     public class OrphanedFishingGear
     {
+        private int _vesselUnloadCount;
+        private string _enumeratorNameList;
         public string Name { get; set; }
         public List<GearUnload> GearUnloads { get; set; }
 
@@ -55,6 +57,7 @@ namespace NSAP_ODK.Entities.Database
                         e += "\r\n";
                     }
                 }
+
                 return e.Trim(new char[] { ',', ' ', '\r', '\n' });
             }
         }
@@ -67,13 +70,29 @@ namespace NSAP_ODK.Entities.Database
                 {
                     foreach (var item in GearUnloads)
                     {
-                        if(item.VesselUnloadViewModel==null)
+                        if (item.VesselUnloadViewModel == null)
                         {
                             item.VesselUnloadViewModel = new VesselUnloadViewModel(parent: item);
                         }
+                        _vesselUnloadCount += item.VesselUnloadViewModel.Count;
                         //var h = item.VesselUnloadViewModel.VesselUnloadCollection.Select(t => t.EnumeratorName).ToHashSet();
                         enumerators.UnionWith(item.VesselUnloadViewModel.VesselUnloadCollection.Select(t => t.EnumeratorName).ToHashSet());
                     }
+
+                    //var el = enumerators.ToList();
+                    //_enumeratorNameList = "";
+                    //int count = 0;
+                    //foreach (var item in el)
+                    //{
+                    //    _enumeratorNameList += $"{item}, ";
+                    //    count++;
+                    //    if (count % 3 == 0)
+                    //    {
+                    //        _enumeratorNameList += "\r\n";
+                    //    }
+                    //}
+
+                    //_enumeratorNameList = _enumeratorNameList.Trim(new char[] { ',', ' ', '\r', '\n' });
                     return enumerators.ToList();
                 }
                 else
@@ -96,7 +115,7 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
         }
-
+        public int NumberOfVesselUnload { get { return _vesselUnloadCount; } }
         public int NumberOfUnload { get { return GearUnloads.Count; } }
 
         public bool ForReplacement { get; set; }

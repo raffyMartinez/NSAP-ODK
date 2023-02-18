@@ -89,6 +89,7 @@ namespace NSAP_ODK.Entities
         public static GearAtLandingSiteDaysPerMonthViewModel GearAtLandingSiteDaysPerMonthViewModel;
         public static FBSpeciesViewModel FishBaseViewModel;
         public static FBSpeciesViewModel FBSpeciesViewModel;
+        public static UnmatchedFieldsFromJSONFileViewModel UnmatchedFieldsFromJSONFileViewModel;
 
         public static LSSelectViewModel LSSelectViewModel;
         public static EnumeratorSelectViewModel EnumeratorSelectViewModel;

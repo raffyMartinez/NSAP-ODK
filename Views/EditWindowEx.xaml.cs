@@ -3057,7 +3057,7 @@ namespace NSAP_ODK.Views
                     break;
 
                 case "Enumerators":
-                    sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("RowID"), Visibility = Visibility.Hidden });
+                    sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("RowID"), Visibility = Visibility.Visible });
                     sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("Enumerator.Name") });
                     sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Date added", Binding = new Binding("DateStart") });
                     sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Date removed", Binding = new Binding("DateEnd") });

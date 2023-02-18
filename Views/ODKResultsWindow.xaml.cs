@@ -727,7 +727,14 @@ namespace NSAP_ODK.Views
             vfbd.Description = description;
             vfbd.UseDescriptionForTitle = true;
             vfbd.ShowNewFolderButton = true;
-            vfbd.SelectedPath = AppDomain.CurrentDomain.BaseDirectory;
+            if (Global.Settings.JSONFolder.Length > 0)
+            {
+                vfbd.SelectedPath = Global.Settings.JSONFolder;
+            }
+            else
+            {
+                vfbd.SelectedPath = AppDomain.CurrentDomain.BaseDirectory;
+            }
             if ((bool)vfbd.ShowDialog() && vfbd.SelectedPath.Length > 0)
             {
                 return vfbd.SelectedPath;
@@ -748,6 +755,8 @@ namespace NSAP_ODK.Views
             string menuName = ((MenuItem)sender).Name;
             switch (menuName)
             {
+                case "menuAnalyzeJSON":
+                    break;
                 case "menuLocateMissingLSInfo":
                     _formsWithMissingLandingSiteInfo.Clear();
                     await ProcessJSONSNodes(locateMissingLSInfo: true);
@@ -894,7 +903,9 @@ namespace NSAP_ODK.Views
                         {
                             treeViewJSONNavigator.DataContext = null;
                             treeViewJSONNavigator.Items.Clear();
+                            rowGrid.Height = new GridLength(1, GridUnitType.Star);
                             MessageBox.Show("No JSON files from Kobotoolbox server was found", "NSAP-ODK Database");
+                            return;
                         }
                         rowJsonFiles.Height = new GridLength(1, GridUnitType.Star);
                     }
@@ -1013,7 +1024,10 @@ namespace NSAP_ODK.Views
                     {
                         treeViewJSONNavigator.DataContext = null;
                         treeViewJSONNavigator.Items.Clear();
+                        rowGrid.Height = new GridLength(1, GridUnitType.Star);
                         MessageBox.Show("No JSON files from Kobotoolbox server was found", "NSAP-ODK Database");
+                        //hide UI elements related to displaying JSON
+                        return;
                     }
                     rowJsonFiles.Height = new GridLength(1, GridUnitType.Star);
                     break;
@@ -1805,6 +1819,7 @@ namespace NSAP_ODK.Views
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("EnumeratorName") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("FMA") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("FishingGround") });
+                    _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site ID", Binding = new Binding("LandingSiteId") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSiteName") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Notes", Binding = new Binding("NotesRemarks") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("PK") });
@@ -1897,13 +1912,17 @@ namespace NSAP_ODK.Views
                     _targetGrid.Columns.Add(col);
 
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "NSAP Region", Binding = new Binding("NSAPRegion.Name") });
+                    _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerator ID", Binding = new Binding("RegionEnumeratorID") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("EnumeratorName") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("NSAPRegionFMA.FMA.Name") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("FishingGround.Name") });
+                    _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site ID", Binding = new Binding("LandingSiteID") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSiteName") });
-                    _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing gear", Binding = new Binding("GearName") });
+                    _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing gear code", Binding = new Binding("GearCode") });
+                    _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing gear", Binding = new Binding("GearNameToUse") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Ref#", Binding = new Binding("ref_no") });
                     _targetGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "Fishing boat is used", Binding = new Binding("IsBoatUsed") });
+                    _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel ID", Binding = new Binding("BoatUsed") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("FishingVesselName") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Sector") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Number of fishers", Binding = new Binding("NumberOfFishers"), CellStyle = AlignRightStyle });
@@ -2078,6 +2097,7 @@ namespace NSAP_ODK.Views
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing gear", Binding = new Binding("Parent.GearName") });
 
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Taxa", Binding = new Binding("Taxa.Name") });
+                    _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Species ID", Binding = new Binding("SpeciesID") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Name of catch", Binding = new Binding("SpeciesNameSelected") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("SpeciesWt"), CellStyle = AlignRightStyle });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Sample weight", Binding = new Binding("SpeciesSampleWt"), CellStyle = AlignRightStyle });
@@ -2615,6 +2635,10 @@ namespace NSAP_ODK.Views
                         ProcessJsonFileForDisplay(md);
                         _jsonFileUseCreationDateForHistory = md.JSONFile.CreationTime;
                         VesselUnloadServerRepository.CurrentJSONFileName = md.JSONFile.FullName;
+                        
+                        AnalyzeJsonForMismatch.Reset();
+                        AnalyzeJsonForMismatch.VesselLandings = VesselUnloadServerRepository.VesselLandings;
+                        AnalyzeJsonForMismatch.Analyze();
                         break;
                     case "NSAP_ODK.Entities.Database.DownloadedJsonMetadata":
                         _downloadedJsonMetadata = (DownloadedJsonMetadata)((TreeViewItem)treeViewJSONNavigator.SelectedItem).Tag;
@@ -2660,6 +2684,7 @@ namespace NSAP_ODK.Views
         }
         private void OnTreeMouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
+            bool addUnmatchedJSONMenu = false;
             ContextMenu cm = new ContextMenu();
             MenuItem m = null;
             string tag = ((TreeViewItem)treeViewJSONNavigator.SelectedItem).Tag?.ToString();
@@ -2710,7 +2735,7 @@ namespace NSAP_ODK.Views
                 FileInfo fi = new FileInfo(tag);
                 if (fi.Extension.ToLower() == ".json")
                 {
-
+                    addUnmatchedJSONMenu = true;
                     //when a single history json node is clicked in the treeview
                     _isJSONData = true;
                     m = new MenuItem { Header = "Upload", Name = "menuUploadJsonFile" };
@@ -2720,7 +2745,7 @@ namespace NSAP_ODK.Views
             }
             else if (tag != null && tag.Contains("FileInfoJSONMetadata"))
             {
-
+                addUnmatchedJSONMenu = true;
                 //when a singel downloaded JSON file is selected
                 m = new MenuItem { Header = "Upload", Name = "menuUploadJsonFile" };
                 m.Click += OnMenuClick;
@@ -2734,7 +2759,12 @@ namespace NSAP_ODK.Views
                 cm.Items.Add(m);
             }
 
-
+            if (addUnmatchedJSONMenu)
+            {
+                m = new MenuItem { Header = "Analyze JSON", Name = "menuAnalyzeJSON" };
+                m.Click += OnMenuClick;
+                cm.Items.Add(m);
+            }
 
             if (cm.Items.Count > 0)
             {

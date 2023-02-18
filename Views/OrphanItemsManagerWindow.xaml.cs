@@ -39,6 +39,7 @@ namespace NSAP_ODK.Views
         private bool _hasReplacedCellChecked;
         private List<OrphanedLandingSite> _olsForDeletion = new List<OrphanedLandingSite>();
         private OrphanedLandingSite _orphanedLandingSite;
+        private OrphanedFishingGear _orphanedFishingGear;
         private string _itemToReplace;
         private List<string> _itemsToReplace = new List<string>();
         private int _checkCount = 0;
@@ -204,7 +205,8 @@ namespace NSAP_ODK.Views
                 case NSAPEntity.FishingGear:
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerators", Binding = new Binding("EnumeratorNameList"), IsReadOnly = true });
                     dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of gear unload", Binding = new Binding("NumberOfUnload"), IsReadOnly = true });
-                    
+                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of vessel unload", Binding = new Binding("NumberOfVesselUnload"), IsReadOnly = true });
+
                     break;
             }
 
@@ -1318,7 +1320,7 @@ namespace NSAP_ODK.Views
 
                         _timer.Interval = TimeSpan.FromSeconds(3);
                         _timer.Start();
-                        //dataGrid.DataContext = NSAPEntities.VesselCatchViewModel.OrphanedSpeciesNames(getMultiLine: (bool)checkMultipleSp.IsChecked);
+
                         dataGrid.DataContext = VesselCatchViewModel.OrphanedSpeciesNamesStatic(getMultiLine: (bool)checkMultipleSp.IsChecked);
                     }
                     break;
@@ -1524,15 +1526,27 @@ namespace NSAP_ODK.Views
         {
             var dg = (DataGrid)sender;
             menuCheckState.IsEnabled = dg.SelectedCells.Count > 1;
-            if (dg.SelectedCells.Count == 1 && NSAPEntity == NSAPEntity.LandingSite)
+            if (dg.SelectedCells.Count == 1)
             {
-                _orphanedLandingSite = (OrphanedLandingSite)dg.SelectedCells[0].Item;
-                if (dg.ContextMenu.Items.Count == 1)
+                if (NSAPEntity == NSAPEntity.LandingSite)
                 {
-
-                    var menuItem = new MenuItem { Name = "menuOrphanedLandingSiteEnumerator", Header = "Show landing site of enumerator", Tag = "enumerator_landing_site" };
-                    menuItem.Click += onContextMenuClicked;
-                    dg.ContextMenu.Items.Add(menuItem);
+                    _orphanedLandingSite = (OrphanedLandingSite)dg.SelectedCells[0].Item;
+                    if (dg.ContextMenu.Items.Count == 1)
+                    {
+                        var menuItem = new MenuItem { Name = "menuOrphanedLandingSiteEnumerator", Header = "Show landing site of enumerator", Tag = "enumerator_landing_site" };
+                        menuItem.Click += onContextMenuClicked;
+                        dg.ContextMenu.Items.Add(menuItem);
+                    }
+                }
+                else if (NSAPEntity == NSAPEntity.FishingGear)
+                {
+                    _orphanedFishingGear = (OrphanedFishingGear)dg.SelectedCells[0].Item;
+                    if (dg.ContextMenu.Items.Count == 1)
+                    {
+                        var menuItem = new MenuItem { Name = "menuOrphanedFishingGearEnumerator", Header = "Show fishing gears of enumerator", Tag = "enumerator_fishing_gear" };
+                        menuItem.Click += onContextMenuClicked;
+                        dg.ContextMenu.Items.Add(menuItem);
+                    }
                 }
             }
 
@@ -1594,11 +1608,23 @@ namespace NSAP_ODK.Views
 
         private void onContextMenuClicked(object sender, RoutedEventArgs e)
         {
+            string menu_tag = ((MenuItem)sender).Tag.ToString();
             switch (((MenuItem)sender).Tag.ToString())
             {
+                case "enumerator_fishing_gear":
                 case "enumerator_landing_site":
+
+
                     EnumeratorsAndLandingSitesWindow elsw = EnumeratorsAndLandingSitesWindow.GetInstance();
-                    elsw.OrphanedLandingSite = _orphanedLandingSite;
+                    elsw.NSAPEntity = NSAPEntity;
+                    if (menu_tag == "enumerator_landing_site")
+                    {
+                        elsw.OrphanedLandingSite = _orphanedLandingSite;
+                    }
+                    else
+                    {
+                        elsw.OrphanedFishingGear = _orphanedFishingGear;
+                    }
                     elsw.Owner = this;
                     if (elsw.Visibility == Visibility.Visible)
                     {
