@@ -8,8 +8,8 @@ namespace NSAP_ODK.Utilities
 {
     public static class VesselLandingFixDownload
     {
-        private static List<Entities.Database.FromJson.VesselLanding> _listLandingsToRepair = new List<Entities.Database.FromJson.VesselLanding>();
-        public  static void VesselLandingToRepair(Entities.Database.FromJson.VesselLanding vesselLanding)
+        private static List<Entities.Database.VesselLanding> _listLandingsToRepair = new List<Entities.Database.VesselLanding>();
+        public  static void VesselLandingToRepair(Entities.Database.VesselLanding vesselLanding)
         {
             _listLandingsToRepair.Add(vesselLanding);
         }

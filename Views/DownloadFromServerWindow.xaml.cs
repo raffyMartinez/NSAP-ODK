@@ -14,7 +14,7 @@ using System.Windows.Shapes;
 using System.Net.Http;
 using Newtonsoft.Json;
 using NSAP_ODK.Entities;
-using NSAP_ODK.Entities.Database.FromJson;
+using NSAP_ODK.Entities.Database;
 using Newtonsoft.Json.Linq;
 using Xceed.Wpf.Toolkit.PropertyGrid;
 using NSAP_ODK.Utilities;

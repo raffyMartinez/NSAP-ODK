@@ -71,6 +71,7 @@
     <Reference Include="K4os.Hash.xxHash, Version=1.0.6.0, Culture=neutral, PublicKeyToken=32cd54395057cec3, processorArchitecture=MSIL">
       <HintPath>packages\K4os.Hash.xxHash.1.0.6\lib\net46\K4os.Hash.xxHash.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="MySql.Data, Version=8.0.28.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
       <HintPath>packages\MySql.Data.8.0.28\lib\net452\MySql.Data.dll</HintPath>
     </Reference>
@@ -614,6 +615,9 @@
     <Compile Include="Views\TrackedSummariesForExportWindow.xaml.cs">
       <DependentUpon>TrackedSummariesForExportWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\UnmatchedJSONAnalysisResultWindow.xaml.cs">
+      <DependentUpon>UnmatchedJSONAnalysisResultWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\UnrecognizedFGsWindows.xaml.cs">
       <DependentUpon>UnrecognizedFGsWindows.xaml</DependentUpon>
     </Compile>
@@ -799,6 +803,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\TrackedSummariesForExportWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\UnmatchedJSONAnalysisResultWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -9,8 +9,10 @@ namespace NSAP_ODK.Entities.Database
 {
     public class FileInfoJSONMetadata
     {
-        public FileInfo JSONFile { get; set; }
+        public FileInfo JSONFileInfo { get; set; }
 
+        public JSONFile JSONFile { get; set; }
+        
         public DownloadedJsonMetadata DownloadedJsonMetadata { get; set; }
 
         public int ItemNumber { get; set; }

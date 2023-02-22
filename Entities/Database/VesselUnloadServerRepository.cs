@@ -11,7 +11,7 @@ using DocumentFormat.OpenXml.InkML;
 using Newtonsoft.Json;
 using NPOI.OpenXmlFormats.Wordprocessing;
 
-namespace NSAP_ODK.Entities.Database.FromJson
+namespace NSAP_ODK.Entities.Database
 {
 
     public enum WeightValidationFlag
@@ -490,7 +490,10 @@ namespace NSAP_ODK.Entities.Database.FromJson
         public string SpeciesName { get { return SpeciesNameSelected; } }
 
 
-
+        public string TaxaSpecies
+        {
+            get { return $"{TaxaCode}-{SpeciesName}"; }
+        }
 
         //this is the invert species ID
         [JsonProperty("catch_comp_group/catch_composition_repeat/speciesname_group/species_notfish")]
@@ -599,9 +602,9 @@ namespace NSAP_ODK.Entities.Database.FromJson
         }
     }
 
-    public class ValidationStatus
-    {
-    }
+    //public class ValidationStatus
+    //{
+    //}
     public class SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat
     {
         private static int _pk;
@@ -1034,7 +1037,14 @@ namespace NSAP_ODK.Entities.Database.FromJson
                             item.Parent = this;
                             if (item.SpeciesSampleWt == null)
                             {
-                                from_total_sum += (double)item.SpeciesWt;
+                                if (item.SpeciesWt == null)
+                                {
+                                    from_total_sum += 0;
+                                }
+                                else
+                                {
+                                    from_total_sum += (double)item.SpeciesWt;
+                                }
                                 countTotalEnum++;
                             }
                             else
@@ -1052,7 +1062,10 @@ namespace NSAP_ODK.Entities.Database.FromJson
                     foreach (CatchCompGroupCatchCompositionRepeat item in _catchComps)
                     {
                         item.Parent = this;
-                        SumOfCatchCompWeight += (double)item.SpeciesWt;
+                        if (item.SpeciesWt != null)
+                        {
+                            SumOfCatchCompWeight += (double)item.SpeciesWt;
+                        }
 
                         if (item.SpeciesSampleWt != null)
                         {
@@ -1071,19 +1084,33 @@ namespace NSAP_ODK.Entities.Database.FromJson
                 {
                     foreach (CatchCompGroupCatchCompositionRepeat item in _catchComps)
                     {
-                        if (item.FromTotalCatch || item.SpeciesSampleWt == null)
+                        if (item.WeightOfCatch!=null && ( item.FromTotalCatch || item.SpeciesSampleWt == null))
                         {
                             SumOfCatchCompWeight += (double)item.WeightOfCatch;
                         }
                         else
                         {
-                            SumOfCatchCompWeight += ((double)item.SpeciesSampleWt * RaisingFactorComputed);
+                            if (item.SpeciesSampleWt == null)
+                            {
+                                SumOfCatchCompWeight += 0;
+                            }
+                            else
+                            {
+                                if (item.SpeciesSampleWt == null)
+                                {
+                                    SumOfCatchCompWeight += 0;
+                                }
+                                else
+                                {
+                                    SumOfCatchCompWeight += ((double)item.SpeciesSampleWt * RaisingFactorComputed);
+                                }
+                            }
                         }
                     }
 
                 }
 
-                if (SumOfCatchCompWeight > 0)
+                if (CatchTotalWt!=null && SumOfCatchCompWeight > 0)
                 {
                     DifferenceInWeight = Math.Abs((double)CatchTotalWt - (double)SumOfCatchCompWeight) / (double)CatchTotalWt * 100;
                     if (DifferenceInWeight <= (int)Utilities.Global.Settings.AcceptableWeightsDifferencePercent)
@@ -1596,14 +1623,60 @@ namespace NSAP_ODK.Entities.Database.FromJson
         {
             get
             {
-                return double.Parse(Form_version);
+                if (double.TryParse(Form_version, out double v))
+                {
+                    return double.Parse(Form_version);
+                }
+                else
+                {
+                    var s = Form_version.Split('.');
+                    if(s.Length>0)
+                    {
+                        string ss = "";
+                        int count = 0;
+                        foreach(var i in s)
+                        {
+                            if(int.TryParse(i,out int ii))
+                            {
+                                if (count == 0)
+                                {
+                                    ss = $"{ii.ToString()}.";
+                                }
+                                else
+                                {
+                                    ss += ii.ToString();
+                                }
+                            }
+                            count++;
+                        }
+                        if(ss.Length>0)
+                        {
+                            return double.Parse(ss);
+                        }
+                        else
+                        {
+                            return -1;
+                        }
+                    }
+                    else
+                    {
+                        return -1;
+                    }
+                }
             }
         }
         public string Form_version
         {
             get
             {
-                return intronote.Replace("Version ", "");
+                if (intronote == null)
+                {
+                    return "6";
+                }
+                else
+                {
+                    return intronote.Replace("Version ", "");
+                }
             }
         }
         public string _bamboo_dataset_id { get; set; }
@@ -1795,6 +1868,8 @@ namespace NSAP_ODK.Entities.Database.FromJson
         {
             return VesselLandings.Count;
         }
+
+
         public static List<VesselLanding> VesselLandings { get; internal set; }
 
         public static event EventHandler<UploadToDbEventArg> UploadSubmissionToDB;
@@ -1826,7 +1901,7 @@ namespace NSAP_ODK.Entities.Database.FromJson
             CatchCompGroupCatchCompositionRepeatLengthFreqRepeat.SetRowIDs();
             CatchCompGroupCatchCompositionRepeatGmsRepeatGroup.SetRowIDs();
         }
-        public static void ResetLists()
+        public static void ResetLists(bool includeJSON=false)
         {
             _listGridBingoCoordinates = null;
             _listGearEfforts = null;
@@ -1840,6 +1915,12 @@ namespace NSAP_ODK.Entities.Database.FromJson
             DuplicatedLenFreq = new List<CatchCompGroupCatchCompositionRepeatLengthFreqRepeat>();
             DuplicatedCatchComposition = new List<CatchCompGroupCatchCompositionRepeat>();
             DuplicatedEffortSpec = new List<EffortsGroupEffortRepeat>();
+
+            if (includeJSON)
+            {
+                JSON = "";
+                VesselLandings = null;
+            }
 
         }
 

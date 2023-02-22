@@ -834,13 +834,13 @@ namespace NSAP_ODK.Entities.Database
             {
                 switch (WeightValidationFlag)
                 {
-                    case FromJson.WeightValidationFlag.WeightValidationInValid:
+                    case WeightValidationFlag.WeightValidationInValid:
                         return "Not valid";
-                    case FromJson.WeightValidationFlag.WeightValidationNotApplicable:
+                    case WeightValidationFlag.WeightValidationNotApplicable:
                         return "Not applicable";
-                    case FromJson.WeightValidationFlag.WeightValidationValid:
+                    case WeightValidationFlag.WeightValidationValid:
                         return "Valid";
-                    case FromJson.WeightValidationFlag.WeightValidationNotValidated:
+                    case WeightValidationFlag.WeightValidationNotValidated:
                         return "Not validated";
                     default:
                         return "";
@@ -854,21 +854,21 @@ namespace NSAP_ODK.Entities.Database
             {
                 switch (SamplingTypeFlag)
                 {
-                    case FromJson.SamplingTypeFlag.SamplingTypeMixed:
+                    case SamplingTypeFlag.SamplingTypeMixed:
                         return "Mixed";
-                    case FromJson.SamplingTypeFlag.SamplingTypeNone:
+                    case SamplingTypeFlag.SamplingTypeNone:
                         return "None";
-                    case FromJson.SamplingTypeFlag.SamplingTypeSampled:
+                    case SamplingTypeFlag.SamplingTypeSampled:
                         return "Sample of catch";
-                    case FromJson.SamplingTypeFlag.SamplingTypeTotalEnumeration:
+                    case SamplingTypeFlag.SamplingTypeTotalEnumeration:
                         return "Total enumeration";
                     default:
                         return "";
                 }
             }
         }
-        public NSAP_ODK.Entities.Database.FromJson.WeightValidationFlag WeightValidationFlag { get; set; }
-        public NSAP_ODK.Entities.Database.FromJson.SamplingTypeFlag SamplingTypeFlag { get; set; }
+        public NSAP_ODK.Entities.Database.WeightValidationFlag WeightValidationFlag { get; set; }
+        public NSAP_ODK.Entities.Database.SamplingTypeFlag SamplingTypeFlag { get; set; }
 
         public double? DifferenceCatchWtAndSumCatchCompWt { get; set; }
         public string DifferenceCatchWtAndSumCatchCompWtText

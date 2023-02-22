@@ -155,6 +155,7 @@ namespace NSAP_ODK.Entities
         public static bool ClearNSAPDatabaseTables(string otherConnectionString = "")
         {
             bool success = false;
+            UnmatchedFieldsFromJSONFileRepository.ClearTable(otherConnectionString);
             JSONFileRepository.ClearTable(otherConnectionString);
             CatchMaturityRepository.ClearTable(otherConnectionString);
             CatchLengthRepository.ClearTable(otherConnectionString);

@@ -3,13 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace NSAP_ODK.Entities.Database
 {
     public class UnmatchedFieldsFromJSONFile
     {
         public int RowID { get; set; }
-
+        public string FileName
+        {
+            get { return Path.GetFileName(JSONFileName); }
+        }
         private string StringifyNumericList(List<int> numbers)
         {
             string result = "";
@@ -57,6 +61,9 @@ namespace NSAP_ODK.Entities.Database
                     break;
                 case "species_names":
                     result = StringifyStringList(SpeciesNames);
+                    break;
+                case "species_taxa":
+                    result = StringifyStringList(SpeciesNamesTaxa);
                     break;
             }
             return result;
@@ -123,6 +130,14 @@ namespace NSAP_ODK.Entities.Database
                 return ProcessList("landing_site_names");
             }
         }
+
+        public string AllSpeciesTaxa
+        {
+            get
+            {
+                return ProcessList("species_taxa");
+            }
+        }
         public List<int> LandingSiteIDs { get; set; }
         public List<string> LandingSiteNames { get; set; }
         public List<int> EnumeratorIDs { get; set; }
@@ -139,6 +154,7 @@ namespace NSAP_ODK.Entities.Database
 
         public List<int> SpeciesIDs { get; set; }
         public List<string> SpeciesNames { get; set; }
+        public List<string> SpeciesNamesTaxa { get; set; }
 
     }
 }

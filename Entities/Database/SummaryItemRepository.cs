@@ -738,12 +738,12 @@ namespace NSAP_ODK.Entities.Database
 
                                 if (dr["type_of_sampling_flag"] != DBNull.Value)
                                 {
-                                    si.SamplingTypeFlag = (FromJson.SamplingTypeFlag)(int)dr["type_of_sampling_flag"];
+                                    si.SamplingTypeFlag = (SamplingTypeFlag)(int)dr["type_of_sampling_flag"];
                                 }
 
                                 if(dr["validity_flag"]!=DBNull.Value)
                                 {
-                                    si.WeightValidationFlag = (FromJson.WeightValidationFlag)(int)dr["validity_flag"];
+                                    si.WeightValidationFlag = (WeightValidationFlag)(int)dr["validity_flag"];
                                 }
 
                                 si.WeightOfCatch = weight_catch;

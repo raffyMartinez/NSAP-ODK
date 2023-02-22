@@ -18,6 +18,11 @@ namespace NSAP_ODK.Entities.Database
             UnmatchedFieldsFromJSONFileCollection = new ObservableCollection<UnmatchedFieldsFromJSONFile>(UnmatchedFieldsFromJSONFiles.UnmatchedFieldsFromJSONFiles);
             UnmatchedFieldsFromJSONFileCollection.CollectionChanged += UnmatchedFieldsFromJSONFileCollection_collectionChanged;
         }
+
+        public UnmatchedFieldsFromJSONFile GetItem(string fileName)
+        {
+            return UnmatchedFieldsFromJSONFileCollection.FirstOrDefault(t => t.FileName == fileName);
+        }
         public int Count()
         {
             return UnmatchedFieldsFromJSONFileCollection.Count;

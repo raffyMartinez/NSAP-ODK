@@ -42,7 +42,7 @@ namespace NSAP_ODK.Entities.Database
                         {
                             JSONFile item = new JSONFile();
                             item.RowID = (int)dr["RowID"];
-                            item.FileName= dr["FileName"].ToString();
+                            item.FullFileName= dr["FileName"].ToString();
                             item.Count= (int)dr["Count"];
                             item.Earliest= DateTime.Parse( dr["EarliestDate"].ToString());
                             item.Latest= DateTime.Parse( dr["LatestDate"].ToString());
@@ -177,14 +177,28 @@ namespace NSAP_ODK.Entities.Database
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
                     update.Parameters.Add("@row_id", OleDbType.Integer).Value = jsonFile.RowID;
-                    update.Parameters.Add("@file_name", OleDbType.VarChar).Value = jsonFile.FileName;
+                    update.Parameters.Add("@file_name", OleDbType.VarChar).Value = jsonFile.FullFileName;
                     update.Parameters.Add("@count", OleDbType.Integer).Value = jsonFile.Count;
                     update.Parameters.Add("@earliest_date", OleDbType.Date).Value = jsonFile.Earliest;
                     update.Parameters.Add("@latest_date", OleDbType.Date).Value = jsonFile.Latest;
                     update.Parameters.Add("@date_added", OleDbType.Date).Value = jsonFile.DateAdded;
                     update.Parameters.Add("@md5", OleDbType.VarChar).Value = jsonFile.MD5;
-                    update.Parameters.Add("@form_id", OleDbType.VarChar).Value = jsonFile.FormID;
-                    update.Parameters.Add("@description", OleDbType.VarChar).Value = jsonFile.Description;
+                    if (jsonFile.FormID == null)
+                    {
+                        update.Parameters.Add("@form_id", OleDbType.VarChar).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@form_id", OleDbType.VarChar).Value = jsonFile.FormID;
+                    }
+                    if (jsonFile.Description == null)
+                    {
+                           update.Parameters.Add("@description", OleDbType.VarChar).Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        update.Parameters.Add("@description", OleDbType.VarChar).Value = jsonFile.Description;
+                    }
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;
@@ -211,7 +225,7 @@ namespace NSAP_ODK.Entities.Database
                 conn.Open();
                 using (OleDbCommand cmd = conn.CreateCommand())
                 {
-                    cmd.Parameters.Add("@FileName", OleDbType.VarChar).Value = jsf.FileName;
+                    cmd.Parameters.Add("@FileName", OleDbType.VarChar).Value = jsf.FullFileName;
                     cmd.Parameters.Add("@Count", OleDbType.Integer).Value = jsf.Count;
                     cmd.Parameters.Add("@EarliestDate", OleDbType.Date).Value = jsf.Earliest;
                     cmd.Parameters.Add("@LatestDate", OleDbType.Date).Value = jsf.Latest;

@@ -1,7 +1,7 @@
 ﻿using Microsoft.Win32;
 using NSAP_ODK.Entities;
 using NSAP_ODK.Entities.Database;
-using NSAP_ODK.Entities.Database.FromJson;
+using NSAP_ODK.Entities.Database;
 using NSAP_ODK.Utilities;
 using System;
 using System.Collections.Generic;
@@ -57,6 +57,7 @@ namespace NSAP_ODK.Views
         private List<VesselLanding> _formsWithMissingLandingSiteInfo = new List<VesselLanding>();
         private int? _downloadedJSONBatchSize;
         private DownloadedJsonMetadata _downloadedJsonMetadata;
+        private FileInfoJSONMetadata _selectedJSONMetaData;
         public string JSON { get; set; }
         public string FormID { get; set; }
         private bool _openLogInWindow;
@@ -412,31 +413,70 @@ namespace NSAP_ODK.Views
             return Task.Run(() => SaveJSONText(verbose));
         }
 
+        private async Task<JSONFile> CreateJsonFile(string description = "", string fileName = "")
+        {
+            var jsonFile = new JSONFile();
+            jsonFile.JSONText = JSON;
+            jsonFile.MD5 = MD5.CreateMD5(JSON);
+            jsonFile.RowID = NSAPEntities.JSONFileViewModel.NextRecordNumber;
+            jsonFile.Description = description;
+            jsonFile.Earliest = VesselUnloadServerRepository.DownloadedLandingsEarliestLandingDate();
+            jsonFile.Latest = VesselUnloadServerRepository.DownloadedLandingsLatestLandingDate();
+            jsonFile.Count = VesselUnloadServerRepository.DownloadedLandingsCount();
+            jsonFile.LandingIdentifiers = VesselUnloadServerRepository.GetLandingIdentifiers();
+            jsonFile.DateAdded = DateTime.Now;
+            if (fileName.Length > 0)
+            {
+                jsonFile.FullFileName = fileName;
+            }
+            else
+            {
+                jsonFile.FullFileName = $@"{Global.Settings.JSONFolder}\{NSAPEntities.JSONFileViewModel.CreateFileName(jsonFile)}";
+            }
+            if (FormID == null)
+            {
+                FormID = Path.GetFileName(jsonFile.FullFileName).Split(' ')[0];
+            }
+            jsonFile.FormID = FormID;
+
+            if (!JsonFileIsSaved(jsonFile))
+            {
+                await NSAPEntities.JSONFileViewModel.Save(jsonFile);
+            }
+            return jsonFile;
+        }
+
+        private bool JsonFileIsSaved(JSONFile jsonFile)
+        {
+            return NSAPEntities.JSONFileViewModel.Count() > 0 && NSAPEntities.JSONFileViewModel.getJSONFIle(jsonFile.MD5) != null;
+        }
         private async Task<bool> SaveJSONText(bool verbose = true)
         {
             bool success = false;
+            _jsonFile = await CreateJsonFile();
+            //_jsonFile = new JSONFile();
+            //_jsonFile.JSONText = JSON;
+            //_jsonFile.MD5 = MD5.CreateMD5(_jsonFile.JSONText);
+            //_jsonFile.RowID = NSAPEntities.JSONFileViewModel.NextRecordNumber;
+            //_jsonFile.FormID = FormID;
+            //_jsonFile.Description = Description;
+            //_jsonFile.Earliest = VesselUnloadServerRepository.DownloadedLandingsEarliestLandingDate();
+            //_jsonFile.Latest = VesselUnloadServerRepository.DownloadedLandingsLatestLandingDate();
+            //_jsonFile.Count = VesselUnloadServerRepository.DownloadedLandingsCount();
+            //_jsonFile.LandingIdentifiers = VesselUnloadServerRepository.GetLandingIdentifiers();
+            //_jsonFile.DateAdded = DateTime.Now;
+            //_jsonFile.FileName = $@"{Global.Settings.JSONFolder}\{NSAPEntities.JSONFileViewModel.CreateFileName(_jsonFile)}";
 
-            _jsonFile = new JSONFile();
-            _jsonFile.JSONText = JSON;
-            _jsonFile.MD5 = MD5.CreateMD5(_jsonFile.JSONText);
-            _jsonFile.RowID = NSAPEntities.JSONFileViewModel.NextRecordNumber;
-            _jsonFile.FormID = FormID;
-            _jsonFile.Description = Description;
-            _jsonFile.Earliest = VesselUnloadServerRepository.DownloadedLandingsEarliestLandingDate();
-            _jsonFile.Latest = VesselUnloadServerRepository.DownloadedLandingsLatestLandingDate();
-            _jsonFile.Count = VesselUnloadServerRepository.DownloadedLandingsCount();
-            _jsonFile.LandingIdentifiers = VesselUnloadServerRepository.GetLandingIdentifiers();
-            _jsonFile.DateAdded = DateTime.Now;
-            _jsonFile.FileName = $@"{Global.Settings.JSONFolder}\{NSAPEntities.JSONFileViewModel.CreateFileName(_jsonFile)}";
 
-            if (NSAPEntities.JSONFileViewModel.Count() == 0 || NSAPEntities.JSONFileViewModel.getJSONFIle(_jsonFile.MD5) == null)
+            //if (NSAPEntities.JSONFileViewModel.Count() == 0 || NSAPEntities.JSONFileViewModel.getJSONFIle(_jsonFile.MD5) == null)
+            if (!JsonFileIsSaved(_jsonFile))
             {
                 success = await NSAPEntities.JSONFileViewModel.Save(_jsonFile);
                 if (success)
                 {
                     NSAPEntities.KoboServerViewModel.ResetJSONFields(resetLastUploaded: false);
                     var ks = NSAPEntities.KoboServerViewModel.GetKoboServer(int.Parse(_jsonFile.FormID));
-                    ks.LastCreatedJSON = new FileInfo(_jsonFile.FileName).Name;
+                    ks.LastCreatedJSON = new FileInfo(_jsonFile.FullFileName).Name;
                     NSAPEntities.KoboServerViewModel.ServerWithCreatedJSON = ks;
 
                     if (verbose)
@@ -476,7 +516,7 @@ namespace NSAP_ODK.Views
                     TreeViewItem fileNode = new TreeViewItem
                     {
                         Header = $"{dateDownloaded} {++counter}",
-                        Tag = new FileInfoJSONMetadata { JSONFile = f, DownloadedJsonMetadata = djmd, ItemNumber = counter },
+                        Tag = new FileInfoJSONMetadata { JSONFileInfo = f, DownloadedJsonMetadata = djmd, ItemNumber = counter },
 
                     };
 
@@ -574,15 +614,37 @@ namespace NSAP_ODK.Views
         private async Task ProcessHistoryJsonNode(TreeViewItem historyJSONNode)
         {
             var jm = (FileInfoJSONMetadata)historyJSONNode.Tag;
-            _jsonFileUseCreationDateForHistory = jm.JSONFile.CreationTime;
+            _jsonFileUseCreationDateForHistory = jm.JSONFileInfo.CreationTime;
             historyJSONNode.IsSelected = true;
             await Upload(verbose: !VesselUnloadServerRepository.DelayedSave);
             NSAPEntities.KoboServerViewModel.ResetJSONFields();
-            jm.Koboserver.LastUploadedJSON = jm.JSONFile.Name;
+            jm.Koboserver.LastUploadedJSON = jm.JSONFileInfo.Name;
             NSAPEntities.KoboServerViewModel.ServerWithUploadedJSON = jm.Koboserver;
         }
 
 
+        private async Task AnalyzeJSONHistoryNodes(TreeViewItem root)
+        {
+            foreach (TreeViewItem jsonNode in root.Items)
+            {
+
+                _selectedJSONMetaData = (FileInfoJSONMetadata)jsonNode.Tag;
+                ProcessJsonFileForDisplay(_selectedJSONMetaData);
+                //gridJSONContent.ItemsSource = null;
+                //gridJSONContent.ItemsSource = VesselUnloadServerRepository.VesselLandings;
+                if (_selectedJSONMetaData.JSONFile == null)
+                {
+                    _selectedJSONMetaData.JSONFile = NSAPEntities.JSONFileViewModel.getJSONFileFromFileName(_selectedJSONMetaData.JSONFileInfo.Name);
+                    if (_selectedJSONMetaData.JSONFile == null)
+                    {
+                        _selectedJSONMetaData.JSONFile = await CreateJsonFile("NSAP Fish Catch Monitoring e-Form", _selectedJSONMetaData.JSONFileInfo.FullName);
+                    }
+                    AnalyzeJsonForMismatch.Analyze(VesselUnloadServerRepository.VesselLandings, _selectedJSONMetaData.JSONFile);
+                }
+            }
+
+
+        }
         private async Task ProcessJSONHistoryNodes(TreeViewItem root)
         {
             bool firstLoopDone = false;
@@ -591,6 +653,7 @@ namespace NSAP_ODK.Views
             NSAPEntities.ClearCSVData();
             foreach (TreeViewItem jsonNode in root.Items)
             {
+
                 if (!VesselUnloadServerRepository.CancelUpload)
                 {
                     var jm = (FileInfoJSONMetadata)jsonNode.Tag;
@@ -605,7 +668,7 @@ namespace NSAP_ODK.Views
                     }
                     else
                     {
-                        if (jm.JSONFile.Name == lastUploadedJSON || lastJSONUploadFound)
+                        if (jm.JSONFileInfo.Name == lastUploadedJSON || lastJSONUploadFound)
                         {
                             await ProcessHistoryJsonNode(jsonNode);
                             lastJSONUploadFound = true;
@@ -623,6 +686,7 @@ namespace NSAP_ODK.Views
                     VesselUnloadServerRepository.CancelUpload = false;
                     break;
                 }
+
             }
         }
 
@@ -727,7 +791,7 @@ namespace NSAP_ODK.Views
             vfbd.Description = description;
             vfbd.UseDescriptionForTitle = true;
             vfbd.ShowNewFolderButton = true;
-            if (Global.Settings.JSONFolder.Length > 0)
+            if (Global.Settings.JSONFolder != null && Global.Settings.JSONFolder.Length > 0)
             {
                 vfbd.SelectedPath = Global.Settings.JSONFolder;
             }
@@ -755,7 +819,74 @@ namespace NSAP_ODK.Views
             string menuName = ((MenuItem)sender).Name;
             switch (menuName)
             {
+                case "menuAnalyzeAllJSON":
+                    List<FileInfoJSONMetadata> metadatas = new List<FileInfoJSONMetadata>();
+                    foreach (TreeViewItem jsonNode in ((TreeViewItem)treeViewJSONNavigator.SelectedItem).Items)
+                    {
+                        metadatas.Add((FileInfoJSONMetadata)jsonNode.Tag);
+                        //_selectedJSONMetaData = (FileInfoJSONMetadata)jsonNode.Tag;
+                    }
+                    ProgressDialogWindow pdw = ProgressDialogWindow.GetInstance("analyze json history files");
+                    pdw.FileInfoJSONMetadatas = metadatas;
+                    //pdw.Sector = fs;
+                    //pdw.ListToImportFromTextBox = textBox.Text;
+                    //pdw.Region = region;
+
+                    pdw.Owner = Owner;
+                    if (pdw.Visibility == Visibility.Visible)
+                    {
+                        pdw.BringIntoView();
+                    }
+                    else
+                    {
+                        pdw.Show();
+                    }
+
+
+
+
+
+
+                    //await AnalyzeJSONHistoryNodes((TreeViewItem)treeViewJSONNavigator.SelectedItem);
+                    //if (NSAPEntities.JSONFileViewModel.Count() > 0 && NSAPEntities.UnmatchedFieldsFromJSONFileViewModel.Count() > 0)
+                    //{
+                    //    MessageBox.Show("Analysin of content of JSON files is done", Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
+                    //}
+                    break;
+
                 case "menuAnalyzeJSON":
+                    var unMatched = NSAPEntities.UnmatchedFieldsFromJSONFileViewModel.GetItem(Path.GetFileName(_selectedJSONMetaData.JSONFileInfo.FullName));
+                    if (unMatched == null)
+                    {
+                        if (_selectedJSONMetaData.JSONFile == null)
+                        {
+                            _selectedJSONMetaData.JSONFile = NSAPEntities.JSONFileViewModel.getJSONFileFromFileName(_selectedJSONMetaData.JSONFileInfo.Name);
+                            if (_selectedJSONMetaData.JSONFile == null)
+                            {
+                                _selectedJSONMetaData.JSONFile = await CreateJsonFile("NSAP Fish Catch Monitoring e-Form", _selectedJSONMetaData.JSONFileInfo.FullName);
+                            }
+                        }
+                        if (AnalyzeJsonForMismatch.Analyze(VesselUnloadServerRepository.VesselLandings, _selectedJSONMetaData.JSONFile))
+                        {
+                            unMatched = NSAPEntities.UnmatchedFieldsFromJSONFileViewModel.GetItem(Path.GetFileName(_selectedJSONMetaData.JSONFileInfo.FullName));
+                        }
+                        else
+                        {
+                            return;
+                        }
+                    }
+                    UnmatchedJSONAnalysisResultWindow urw = UnmatchedJSONAnalysisResultWindow.GetInstance();
+                    urw.UnmatchedFieldsFromJSONFile = unMatched;
+                    urw.Owner = this;
+                    if (urw.Visibility == Visibility.Visible)
+                    {
+                        urw.BringIntoView();
+                    }
+                    else
+                    {
+                        urw.Show();
+                    }
+
                     break;
                 case "menuLocateMissingLSInfo":
                     _formsWithMissingLandingSiteInfo.Clear();
@@ -877,7 +1008,7 @@ namespace NSAP_ODK.Views
                                                 counter++;
                                                 FileInfoJSONMetadata fm = new FileInfoJSONMetadata
                                                 {
-                                                    JSONFile = new FileInfo(f.FullName),
+                                                    JSONFileInfo = new FileInfo(f.FullName),
                                                     ItemNumber = counter,
                                                     Koboserver = ks
                                                 };
@@ -1377,6 +1508,7 @@ namespace NSAP_ODK.Views
                         VesselUnloadServerRepository.JSONFileCreationTime = _jsonFileUseCreationDateForHistory;
                         if (await VesselUnloadServerRepository.UploadToDBAsync())
                         {
+                            string jsonDescription = "NSAP Fish Catch Monitoring e-Form";
                             _targetGrid.ItemsSource = null;
                             _targetGrid.ItemsSource = VesselUnloadServerRepository.VesselLandings;
                             int sourceCount = VesselUnloadServerRepository.VesselLandings.Count;
@@ -1384,7 +1516,7 @@ namespace NSAP_ODK.Views
                             success = true;
                             _uploadToDBSuccess = true;
 
-                            if (JSON != null && (_jsonfiles == null || _jsonfiles.Count == 0) && await SaveJSONTextTask(verbose: false))
+                            if (JSON != null && (_jsonfiles == null || _jsonfiles.Count == 0) && await SaveJSONTextTask(verbose: false) && AnalyzeJsonForMismatch.Analyze(VesselUnloadServerRepository.VesselLandings, _jsonFile))
                             {
                                 msg = "Finished uploading to database\r\n" +
                                        $"from source having {sourceCount} records with {savedCount} saved\r\n" +
@@ -1392,10 +1524,23 @@ namespace NSAP_ODK.Views
 
 
                             }
+                            else if (JSON != null && _selectedJSONMetaData != null)
+                            {
+                                if (_selectedJSONMetaData.JSONFile == null)
+                                {
+                                    _selectedJSONMetaData.JSONFile = await CreateJsonFile(jsonDescription, _selectedJSONMetaData.JSONFileInfo.FullName);
+                                    if (AnalyzeJsonForMismatch.Analyze(VesselUnloadServerRepository.VesselLandings, _selectedJSONMetaData.JSONFile))
+                                    {
+
+                                    }
+                                }
+                            }
                             else
                             {
+
                                 msg = "Finished uploading JSON file to database\r\n" +
                                     $"from source having {sourceCount} records with {savedCount} saved\r\n";
+
                             }
                         }
                         else if (_savedCount == 0 && VesselUnloadServerRepository.VesselLandings.Count > 0)
@@ -2578,15 +2723,15 @@ namespace NSAP_ODK.Views
             }
         }
 
-        private void ProcessJsonFileForDisplay(FileInfoJSONMetadata fm)
+        private void ProcessJsonFileForDisplay(FileInfoJSONMetadata fm, bool includeJSONWhenReset = false)
         {
             rowJSONGrid.Height = new GridLength(1, GridUnitType.Star);
-            JSON = File.ReadAllText(fm.JSONFile.FullName);
+            JSON = File.ReadAllText(fm.JSONFileInfo.FullName);
             VesselUnloadServerRepository.JSON = JSON;
             VesselUnloadServerRepository.CreateLandingsFromJSON();
-            _historyJSONFileForUploading = fm.JSONFile.Name;
+            _historyJSONFileForUploading = fm.JSONFileInfo.Name;
 
-            VesselUnloadServerRepository.ResetLists();
+            VesselUnloadServerRepository.ResetLists(includeJSON: includeJSONWhenReset);
             SetMenus();
             gridJSONContent.Visibility = Visibility.Visible;
 
@@ -2605,7 +2750,7 @@ namespace NSAP_ODK.Views
             }
             else
             {
-                labelJSONFile.Content = $"({fm.ItemNumber} of {_jsonFileForUploadCount}) JSON file from {fm.JSONFile.Name}: # of items - {VesselUnloadServerRepository.VesselLandings.Count} ";
+                labelJSONFile.Content = $"({fm.ItemNumber} of {_jsonFileForUploadCount}) JSON file from {fm.JSONFileInfo.Name}: # of items - {VesselUnloadServerRepository.VesselLandings.Count} ";
             }
         }
 
@@ -2631,14 +2776,24 @@ namespace NSAP_ODK.Views
                 switch (itemTag)
                 {
                     case "NSAP_ODK.Entities.Database.FileInfoJSONMetadata":
-                        var md = (FileInfoJSONMetadata)((TreeViewItem)e.NewValue).Tag;
-                        ProcessJsonFileForDisplay(md);
-                        _jsonFileUseCreationDateForHistory = md.JSONFile.CreationTime;
-                        VesselUnloadServerRepository.CurrentJSONFileName = md.JSONFile.FullName;
-                        
-                        AnalyzeJsonForMismatch.Reset();
-                        AnalyzeJsonForMismatch.VesselLandings = VesselUnloadServerRepository.VesselLandings;
-                        AnalyzeJsonForMismatch.Analyze();
+                        _selectedJSONMetaData = (FileInfoJSONMetadata)((TreeViewItem)e.NewValue).Tag;
+                        ProcessJsonFileForDisplay(_selectedJSONMetaData);
+                        _jsonFileUseCreationDateForHistory = _selectedJSONMetaData.JSONFileInfo.CreationTime;
+                        VesselUnloadServerRepository.CurrentJSONFileName = _selectedJSONMetaData.JSONFileInfo.FullName;
+
+                        if (UnmatchedJSONAnalysisResultWindow.Instance != null)
+                        {
+                            UnmatchedJSONAnalysisResultWindow.Instance.UnmatchedFieldsFromJSONFile = NSAPEntities.UnmatchedFieldsFromJSONFileViewModel.GetItem(Path.GetFileName(_selectedJSONMetaData.JSONFileInfo.FullName));
+                            UnmatchedJSONAnalysisResultWindow.Instance.ShowAnalysis();
+                        }
+                        //AnalyzeJsonForMismatch.Reset();
+                        //AnalyzeJsonForMismatch.JSONFileName = md.JSONFile.FullName;
+                        //AnalyzeJsonForMismatch.VesselLandings = VesselUnloadServerRepository.VesselLandings;
+                        //AnalyzeJsonForMismatch.Analyze();
+                        //if (AnalyzeJsonForMismatch.ResultStatus == "")
+                        //{
+                        //    AnalyzeJsonForMismatch.Save();
+                        //}
                         break;
                     case "NSAP_ODK.Entities.Database.DownloadedJsonMetadata":
                         _downloadedJsonMetadata = (DownloadedJsonMetadata)((TreeViewItem)treeViewJSONNavigator.SelectedItem).Tag;
@@ -2650,8 +2805,8 @@ namespace NSAP_ODK.Views
                         {
                             if (File.Exists(itemTag))
                             {
-                                FileInfoJSONMetadata fjmd = new FileInfoJSONMetadata { JSONFile = new FileInfo(itemTag) };
-                                _jsonFileUseCreationDateForHistory = fjmd.JSONFile.CreationTime;
+                                FileInfoJSONMetadata fjmd = new FileInfoJSONMetadata { JSONFileInfo = new FileInfo(itemTag) };
+                                _jsonFileUseCreationDateForHistory = fjmd.JSONFileInfo.CreationTime;
                                 ProcessJsonFileForDisplay(fjmd);
                             }
                         }
@@ -2755,6 +2910,10 @@ namespace NSAP_ODK.Views
             {
                 //when root node of history json tree view is clicked
                 m = new MenuItem { Header = "Upload all", Name = "menuUploadAllJsonHistoryFiles" };
+                m.Click += OnMenuClick;
+                cm.Items.Add(m);
+
+                m = new MenuItem { Header = "Analyze all JSON", Name = "menuAnalyzeAllJSON" };
                 m.Click += OnMenuClick;
                 cm.Items.Add(m);
             }

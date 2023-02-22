@@ -571,7 +571,7 @@ namespace NSAP_ODK.Entities.Database
                 .Where(t => t.GearUsedName == ex.GearName).FirstOrDefault();
         }
 
-        public GearUnload GetGearUnload(FromJson.VesselLanding landing)
+        public GearUnload GetGearUnload(VesselLanding landing)
         {
             if (landing.LandingSite == null && landing.LandingSiteText == null)
             {

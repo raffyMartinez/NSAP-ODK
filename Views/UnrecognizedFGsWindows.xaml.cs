@@ -17,7 +17,7 @@ using NSAP_ODK.Entities.Database;
 using System.IO;
 using NSAP_ODK.Entities;
 using System.Windows.Threading;
-using NSAP_ODK.Entities.Database.FromJson;
+using NSAP_ODK.Entities.Database;
 namespace NSAP_ODK.Views
 {
     /// <summary>

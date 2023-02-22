@@ -8,6 +8,7 @@ using System.Data;
 using NSAP_ODK.Utilities;
 using MySql.Data.MySqlClient;
 using NSAP_ODK.NSAPMysql;
+using Microsoft.VisualBasic.FileIO;
 
 namespace NSAP_ODK.Entities.Database
 {
@@ -17,7 +18,40 @@ namespace NSAP_ODK.Entities.Database
         {
             UnmatchedFieldsFromJSONFiles = getItems();
         }
+        public static bool ClearTable(string otherConnectionString = "")
+        {
+            bool success = false;
 
+            string con_string = Global.ConnectionString;
+            if (otherConnectionString.Length > 0)
+            {
+                con_string = otherConnectionString;
+            }
+
+            using (OleDbConnection conn = new OleDbConnection(con_string))
+            {
+                conn.Open();
+                var sql = $"Delete * from dbo_json_fields_mismatch";
+                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                {
+                    try
+                    {
+                        update.ExecuteNonQuery();
+                        success = true;
+                    }
+                    catch (OleDbException)
+                    {
+                        success = false;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                        success = false;
+                    }
+                }
+            }
+            return success;
+        }
         public List<UnmatchedFieldsFromJSONFile> UnmatchedFieldsFromJSONFiles { get; private set; }
         private List<UnmatchedFieldsFromJSONFile> getItems()
         {
@@ -72,19 +106,57 @@ namespace NSAP_ODK.Entities.Database
         private List<string> ListFromStringOfStrings(string strings)
         {
             List<string> this_list = new List<string>();
-            foreach (var item in strings.Split(','))
+            using (var stream = Global.GenerateStreamFromString(strings))
             {
-                this_list.Add(item.Split('\"')[0]);
+                using (TextFieldParser parser = new TextFieldParser(stream))
+                {
+                    parser.TextFieldType = FieldType.Delimited;
+                    parser.SetDelimiters(",");
+                    while (!parser.EndOfData)
+                    {
+                        //Process row
+                        string[] fields = parser.ReadFields();
+                        foreach (string field in fields)
+                        {
+                            this_list.Add(field);
+                        }
+                    }
+                }
             }
+            //foreach (var item in strings.Split(','))
+            //{
+            //    this_list.Add(item.Split('\"')[0]);
+            //}
             return this_list;
         }
         private List<int> ListFromStringOfInt(string ints)
         {
             List<int> this_list = new List<int>();
-            foreach (var item in ints.Split(','))
+            using (var stream = Global.GenerateStreamFromString(ints))
             {
-                this_list.Add(int.Parse(item));
+                using (TextFieldParser parser = new TextFieldParser(stream))
+                {
+                    parser.TextFieldType = FieldType.Delimited;
+                    parser.SetDelimiters(",");
+                    while (!parser.EndOfData)
+                    {
+                        //Process row
+                        string[] fields = parser.ReadFields();
+                        foreach (string field in fields)
+                        {
+                            this_list.Add(int.Parse(field));
+                        }
+                    }
+                }
             }
+
+
+
+            //List<int> this_list = new List<int>();
+            //foreach (var item in ints.Split(','))
+            //{
+            //    this_list.Add(int.Parse(item));
+            //}
 
             return this_list;
         }
@@ -102,20 +174,33 @@ namespace NSAP_ODK.Entities.Database
                 {
                     using (var cmd = con.CreateCommand())
                     {
-                        cmd.Parameters.AddWithValue("@id", item.RowID);
-                        cmd.Parameters.AddWithValue("@ls_ids", item.AllLandingSiteIDs);
-                        cmd.Parameters.AddWithValue("@ls_names", item.AllLandingSiteNames);
-                        cmd.Parameters.AddWithValue("@enum_ids", item.AllEnumeratorIDs);
-                        cmd.Parameters.AddWithValue("@enum_names", item.AllEnumeratorNames);
-                        cmd.Parameters.AddWithValue("@gear_ids", item.AllGearIDs);
-                        cmd.Parameters.AddWithValue("@gear_names", item.AllEnumeratorIDs);
-                        cmd.Parameters.AddWithValue("@species_ids", item.AllSpeciesIDs);
-                        cmd.Parameters.AddWithValue("@species_names", item.AllSpeciesNames);
-                        cmd.Parameters.AddWithValue("@date_start", item.DateStart);
-                        cmd.Parameters.AddWithValue("@date_end", item.DateEnd);
-                        cmd.Parameters.AddWithValue("@date_parse", item.DateOfParsing);
-                        cmd.Parameters.AddWithValue("@json_filename", item.JSONFileName);
-                        cmd.Parameters.AddWithValue("@region_id", item.NSAPRegion.Code);
+                        //cmd.Parameters.Add("@id", OleDbType. item.RowID);
+                        cmd.Parameters.Add("@id", OleDbType.Integer).Value = item.RowID;
+                        cmd.Parameters.Add("@ls_ids", OleDbType.VarChar).Value = item.AllLandingSiteIDs;
+                        cmd.Parameters.Add("@ls_names", OleDbType.VarChar).Value = item.AllLandingSiteNames;
+                        cmd.Parameters.Add("@enum_ids", OleDbType.VarChar).Value = item.AllEnumeratorIDs;
+                        cmd.Parameters.Add("@enum_names", OleDbType.VarChar).Value = item.AllEnumeratorNames;
+                        cmd.Parameters.Add("@gear_ids", OleDbType.VarChar).Value = item.AllGearIDs;
+                        cmd.Parameters.Add("@gear_names", OleDbType.VarChar).Value = item.AllGearNames;
+                        cmd.Parameters.Add("@species_names_taxa", OleDbType.VarChar).Value = item.AllSpeciesTaxa;
+                        cmd.Parameters.Add("@date_start", OleDbType.Date).Value = item.DateStart;
+                        cmd.Parameters.Add("@date_end", OleDbType.Date).Value = item.DateEnd;
+                        cmd.Parameters.Add("@date_parse", OleDbType.Date).Value = item.DateOfParsing;
+                        cmd.Parameters.Add("@json_filename", OleDbType.VarChar).Value = item.JSONFileName;
+                        cmd.Parameters.Add("@region_id", OleDbType.VarChar).Value = item.NSAPRegion.Code;
+                        // cmd.Parameters.AddWithValue("@ls_ids", item.AllLandingSiteIDs);
+                        // cmd.Parameters.AddWithValue("@ls_names", item.AllLandingSiteNames);
+                        // cmd.Parameters.AddWithValue("@enum_ids", item.AllEnumeratorIDs);
+                        // cmd.Parameters.AddWithValue("@enum_names", item.AllEnumeratorNames);
+                        // cmd.Parameters.AddWithValue("@gear_ids", item.AllGearIDs);
+                        // cmd.Parameters.AddWithValue("@gear_names", item.AllGearNames);
+                        //// cmd.Parameters.AddWithValue("@species_ids", item.AllSpeciesIDs);
+                        // cmd.Parameters.AddWithValue("@species_names_taxa", item.AllSpeciesTaxa);
+                        // cmd.Parameters.AddWithValue("@date_start", item.DateStart);
+                        // cmd.Parameters.AddWithValue("@date_end", item.DateEnd);
+                        // cmd.Parameters.AddWithValue("@date_parse", item.DateOfParsing);
+                        // cmd.Parameters.AddWithValue("@json_filename", item.JSONFileName);
+                        // cmd.Parameters.AddWithValue("@region_id", item.NSAPRegion.Code);
 
                         cmd.CommandText = @"INSERT INTO dbo_json_fields_mismatch 
                                             (row_id,
@@ -125,14 +210,13 @@ namespace NSAP_ODK.Entities.Database
                                             enumerator_names,
                                             gear_codes,
                                             gear_names,
-                                            species_ids,
                                             species_names,
                                             date_start,
                                             date_end,
                                             date_parsed,
                                             json_filename,
                                             region_id)
-                                            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                                            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
                         try
                         {
                             con.Open();
@@ -190,7 +274,7 @@ namespace NSAP_ODK.Entities.Database
                                             json_filename = @json_filename,
                                             region_id = @region_id,
                                             WHERE row_id = @id";
-                                            
+
                         try
                         {
                             con.Open();

@@ -14,7 +14,7 @@ using System.Windows.Shapes;
 using NSAP_ODK.Entities.Database;
 using NSAP_ODK.Entities;
 using NSAP_ODK.Utilities;
-using NSAP_ODK.Entities.Database.FromJson;
+using NSAP_ODK.Entities.Database;
 namespace NSAP_ODK.Views
 {
     public enum GearUnloadWindowListSource

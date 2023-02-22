@@ -52,6 +52,16 @@ namespace NSAP_ODK.Utilities
         //    return stream;
         //}
         //public static bool CancelOperation { get; set; }
+
+        public static Stream GenerateStreamFromString(string s)
+        {
+            var stream = new MemoryStream();
+            var writer = new StreamWriter(stream);
+            writer.Write(s);
+            writer.Flush();
+            stream.Position = 0;
+            return stream;
+        }
         public static string MessageBoxCaption { get { return _msgBoxCaption; } }
         public static double? Add(this double? num1, double? num2)
         {
@@ -336,7 +346,7 @@ namespace NSAP_ODK.Utilities
                     NSAPEntities.UnmatchedFieldsFromJSONFileViewModel = new UnmatchedFieldsFromJSONFileViewModel();
                     
                     NSAPEntities.ResetEntititesCurrentIDs();
-                    Entities.Database.FromJson.VesselUnloadServerRepository.ResetGroupIDState();
+                    VesselUnloadServerRepository.ResetGroupIDState();
 
                     EntityLoaded?.Invoke(null, new EntityLoadedEventArg { IsEnding = true });
                 }

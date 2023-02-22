@@ -529,7 +529,7 @@ namespace NSAP_ODK.Entities.Database
                 .ToList();
         }
 
-        public VesselCatch getVesselCatch(FromJson.VesselLanding parent, int? speciesID, string speciesText)
+        public VesselCatch getVesselCatch(VesselLanding parent, int? speciesID, string speciesText)
         {
             if (speciesID == null)
             {
@@ -546,7 +546,7 @@ namespace NSAP_ODK.Entities.Database
                     .FirstOrDefault();
             }
         }
-        public VesselCatch getVesselCatch(FromJson.VesselLanding parent, string nameOfCatch)
+        public VesselCatch getVesselCatch(VesselLanding parent, string nameOfCatch)
         {
             return VesselCatchCollection
                 .Where(t => t.Parent.PK == parent.PK)

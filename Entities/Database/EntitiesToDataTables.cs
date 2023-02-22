@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data;
 using FastMember;
-using NSAP_ODK.Entities.Database.FromJson;
+using NSAP_ODK.Entities.Database;
 
 namespace NSAP_ODK.Entities.Database
 {

@@ -100,7 +100,7 @@ namespace NSAP_ODK.Entities.Database
             }
             return false;
         }
-        public bool UpdateWeightValidation(NSAP_ODK.Entities.Database.FromJson.VesselLanding vl, VesselUnload vu)
+        public bool UpdateWeightValidation(NSAP_ODK.Entities.Database.VesselLanding vl, VesselUnload vu)
         {
             if(vu.DelayedSave)
             {

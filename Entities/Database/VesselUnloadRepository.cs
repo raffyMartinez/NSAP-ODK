@@ -1342,8 +1342,8 @@ namespace NSAP_ODK.Entities.Database
                                 {
                                     item.SumOfSampleWeights = dr["total_wt_sampled_species"] == DBNull.Value ? 0 : (double)dr["total_wt_sampled_species"];
                                     item.SumOfCatchCompositionWeights = (double)dr["total_wt_catch_composition"];
-                                    item.WeightValidationFlag = (FromJson.WeightValidationFlag)(int)dr["validity_flag"];
-                                    item.SamplingTypeFlag = (FromJson.SamplingTypeFlag)(int)dr["type_of_sampling_flag"];
+                                    item.WeightValidationFlag = (WeightValidationFlag)(int)dr["validity_flag"];
+                                    item.SamplingTypeFlag = (SamplingTypeFlag)(int)dr["type_of_sampling_flag"];
                                     if (dr["weight_difference"] == DBNull.Value)
                                     {
                                         item.DifferenceCatchWtAndSumCatchCompWt = null;

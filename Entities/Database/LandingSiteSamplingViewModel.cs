@@ -497,7 +497,7 @@ namespace NSAP_ODK.Entities.Database
         //        .Where(t => t.SamplingDate == samplingDate).ToList();
         //}
 
-        public LandingSiteSampling getLandingSiteSampling(FromJson.VesselLanding landing)
+        public LandingSiteSampling getLandingSiteSampling(VesselLanding landing)
         {
             if (landing.FishingGround == null)
             {
