@@ -30,6 +30,7 @@ namespace NSAP_ODK.Views
     /// </summary>
     public partial class ODKResultsWindow : Window
     {
+        private TreeViewItem _formNameNode;
         private DispatcherTimer _timer;
         private TreeViewItem _jsonDateDownloadnode;
         private static ODKResultsWindow _instance;
@@ -534,9 +535,25 @@ namespace NSAP_ODK.Views
 
 
             string dateDownloaded = djmd.DateDownloaded.ToString("MMM-dd-yyyy HH:mm");
+            //if (formNameNode == null)
+            //{
+            //    formNameNode = new TreeViewItem { Header = djmd.FormName };
+            //    //formNameNode.ContextMenu = new ContextMenu();
+            //    //formNameNode.ContextMenu.Items.Add(new MenuItem { Header = "Analyze JSON babay", Name = "menuAnalyzeJSONDownloadedJSONFiles" });
+            //}
             TreeViewItem formNameNode = new TreeViewItem { Header = djmd.FormName };
+            //formNameNode.ContextMenu = new ContextMenu();
+            //formNameNode.ContextMenu.Items.Add(new MenuItem { Header = "Analyze JSON babay", Name = "menuAnalyzeJSONDownloadedJSONFiles" });
+
             TreeViewItem formOwnerNode = new TreeViewItem { Header = djmd.DBOwner };
+            MenuItem mi = new MenuItem { Header = "Analyze all JSON files", Name = "menuAnalyzeJSONOfOwner" };
+            mi.Click += OnMenuClick;
+            ContextMenu cm = new ContextMenu();
+            cm.Items.Add(mi);
+            formOwnerNode.ContextMenu = cm;
+
             TreeViewItem dateDownloadNode = new TreeViewItem { Header = dateDownloaded, Tag = "date_download" };
+            //formOwnerNode.ContextMenu = null;
 
             //formNameNode.Tag = djmd;
             //formOwnerNode.Tag = djmd;
@@ -551,6 +568,10 @@ namespace NSAP_ODK.Views
                 AddFilesToDateNode(dateDownloadNode, djmd, dateDownloaded);
                 formNameNode.ExpandSubtree();
                 _firstJSONFileNode = dateDownloadNode.Items[0] as TreeViewItem;
+                if (formOwnerNode.ContextMenu != null)
+                {
+
+                }
             }
             else if (_rootChildrenHeadersHashSet.Add(formNameNode.Header.ToString()))
             {
@@ -819,19 +840,17 @@ namespace NSAP_ODK.Views
             string menuName = ((MenuItem)sender).Name;
             switch (menuName)
             {
-                case "menuAnalyzeAllJSON":
-                    List<FileInfoJSONMetadata> metadatas = new List<FileInfoJSONMetadata>();
-                    foreach (TreeViewItem jsonNode in ((TreeViewItem)treeViewJSONNavigator.SelectedItem).Items)
-                    {
-                        metadatas.Add((FileInfoJSONMetadata)jsonNode.Tag);
-                        //_selectedJSONMetaData = (FileInfoJSONMetadata)jsonNode.Tag;
-                    }
-                    ProgressDialogWindow pdw = ProgressDialogWindow.GetInstance("analyze json history files");
-                    pdw.FileInfoJSONMetadatas = metadatas;
-                    //pdw.Sector = fs;
-                    //pdw.ListToImportFromTextBox = textBox.Text;
-                    //pdw.Region = region;
-
+                case "menuAnalyzeJSONOfOwner":
+                    TreeViewItem selectedNode = treeViewJSONNavigator.SelectedItem as TreeViewItem;
+                    var formName = ((TreeViewItem)selectedNode.Parent).Header.ToString();
+                    string owner = selectedNode.Header.ToString();
+                    var fileList = _jsonfiles
+                        .Where(t => t.Extension == ".json" &&
+                        t.Name.Contains(formName) &&
+                        t.Name.Contains(selectedNode.Header.ToString())).ToList();
+                    ProgressDialogWindow pdw = ProgressDialogWindow.GetInstance("analyze batch json files");
+                    pdw.BatchJSONFiles = fileList;
+                    pdw.Koboserver = NSAPEntities.KoboServerViewModel.KoboserverCollection.Where(t => t.FormName == formName && t.Owner == owner).FirstOrDefault();
                     pdw.Owner = Owner;
                     if (pdw.Visibility == Visibility.Visible)
                     {
@@ -841,7 +860,35 @@ namespace NSAP_ODK.Views
                     {
                         pdw.Show();
                     }
-
+                    break;
+                case "menuAnalyzeAllJSON":
+                    if (NSAPEntities.KoboServerViewModel.Count() > 0)
+                    {
+                        List<FileInfoJSONMetadata> metadatas = new List<FileInfoJSONMetadata>();
+                        foreach (TreeViewItem jsonNode in ((TreeViewItem)treeViewJSONNavigator.SelectedItem).Items)
+                        {
+                            metadatas.Add((FileInfoJSONMetadata)jsonNode.Tag);
+                        }
+                        pdw = ProgressDialogWindow.GetInstance("analyze json history files");
+                        pdw.FileInfoJSONMetadatas = metadatas;
+                        pdw.Owner = Owner;
+                        if (pdw.Visibility == Visibility.Visible)
+                        {
+                            pdw.BringIntoView();
+                        }
+                        else
+                        {
+                            pdw.Show();
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("Please login to the server to save the Kobotoolbox database identifiers into the database",
+                            Global.MessageBoxCaption,
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information
+                            );
+                    }
 
 
 
@@ -1105,8 +1152,10 @@ namespace NSAP_ODK.Views
                         await SaveUploadedJsonInLoop(closeWindow: true, verbose: true, isHistoryJson: false, allowDownloadAgain: true);
                     }
                     break;
+
                 case "menuUploadJson": //when you want to upload json created in batch mode
                     ClearJSONTreeRootNodes();
+                    _formNameNode = null;
                     _rootChildrenHeadersHashSet.Clear();
                     jsonFolder = GetJSONFolder(savedHistory: false);
                     if (jsonFolder.Length > 0)
@@ -1142,6 +1191,18 @@ namespace NSAP_ODK.Views
 
                                 }
                             }
+                            //if (_formNameNode != null)
+                            //{
+                            //    MenuItem mi = new MenuItem
+                            //    {
+                            //        Header = "Analyze all JSON files",
+                            //        Name = "menuAnalyzeJSONDownloadedJSONFiles"
+                            //    };
+                            //    mi.Click += OnMenuClick;
+
+                            //    _formNameNode.ContextMenu = new ContextMenu();
+                            //    _formNameNode.ContextMenu.Items.Add(mi);
+                            //}
                         }
                     }
                     ResetView();

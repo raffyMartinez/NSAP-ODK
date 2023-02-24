@@ -83,7 +83,7 @@ namespace NSAP_ODK.Entities.Database
                                     FishingGearCodes = ListFromStringOfStrings(dr["gear_codes"].ToString()),
                                     FishingGearNames = ListFromStringOfStrings(dr["gear_names"].ToString()),
                                     SpeciesIDs = ListFromStringOfInt(dr["species_ids"].ToString()),
-                                    SpeciesNames = ListFromStringOfStrings(dr["species_names"].ToString()),
+                                    SpeciesNamesTaxa = ListFromStringOfStrings(dr["species_names"].ToString()),
                                     JSONFileName = dr["json_filename"].ToString(),
                                     NSAPRegion = NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(dr["region_id"].ToString()),
                                     DateStart = (DateTime)dr["date_start"],

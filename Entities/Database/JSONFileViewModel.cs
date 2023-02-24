@@ -14,9 +14,116 @@ namespace NSAP_ODK.Entities.Database
     {
         public event EventHandler<ProcessingItemsEventArg> ProcessingItemsEvent;
         private bool _editSuccess;
+
+
         public ObservableCollection<JSONFile> JSONFileCollection { get; set; }
         private JSONFileRepository JSONFiles { get; set; }
 
+        public async Task<bool> AnalyzeBatchJSONFilesAsync(List<FileInfo> batchJSONFiles, Koboserver ks)
+        {
+            int loop = 0;
+            int countJSONFileFound = 0;
+            int countJSONAnalyzed = 0;
+            StatusJSONAnalyze("start", batchJSONFiles.Count);
+            foreach (var fi in batchJSONFiles)
+            {
+
+                var jf = JSONFileCollection.FirstOrDefault(t => t.FileName == fi.Name);
+                if (jf == null)
+                {
+                    jf = await CreateJSONFileAsync(fi.FullName);
+
+                    if (jf != null)
+                    {
+                        jf.FormID = ks.ServerNumericID.ToString();
+                        jf.Description = ks.FormName;
+                        if (AddRecordToRepo(jf))
+                        {
+                            countJSONFileFound++;
+                        }
+
+                        var umjf = NSAPEntities.UnmatchedFieldsFromJSONFileViewModel.GetItem(jf.FileName);
+                        if (umjf == null && AnalyzeForMismatchAndSave(jf))
+                        {
+                            countJSONAnalyzed++;
+                        }
+
+
+                        jf.Dispose();
+                    }
+                    else
+                    {
+
+                    }
+                }
+                loop++;
+                StatusJSONAnalyze("found", loop);
+
+            }
+
+            StatusJSONAnalyze("end");
+            return countJSONFileFound > 0 || countJSONAnalyzed > 0;
+        }
+        public async Task<bool> AnalyzeJSONInListAsync(List<FileInfoJSONMetadata> fijms)
+        {
+            return await Task.Run(() => AnalyzeJSONInList(fijms));
+        }
+        private async Task<bool> AnalyzeJSONInList(List<FileInfoJSONMetadata> fijms)
+        {
+            int loop = 0;
+            int countJSONFileFound = 0;
+            int countJSONAnalyzed = 0;
+            StatusJSONAnalyze("start", fijms.Count);
+            foreach (FileInfoJSONMetadata fijm in fijms)
+            {
+                var jf = JSONFileCollection.FirstOrDefault(t => t.FileName == fijm.JSONFileInfo.Name);
+                if (jf == null)
+                {
+                    jf = await CreateJSONFileAsync(fijm.JSONFileInfo.FullName);
+                    jf.FormID = fijm.Koboserver.ServerNumericID.ToString();
+                    jf.Description = fijm.Koboserver.FormName;
+                    if (AddRecordToRepo(jf))
+                    {
+                        countJSONFileFound++;
+                    }
+
+                }
+                var umjf = NSAPEntities.UnmatchedFieldsFromJSONFileViewModel.GetItem(jf.FileName);
+                if (umjf == null && AnalyzeForMismatchAndSave(jf))
+                //if (NSAPEntities.UnmatchedFieldsFromJSONFileViewModel.GetItem(jf.FileName) == null && AnalyzeForMismatchAndSave(jf))
+                {
+                    countJSONAnalyzed++;
+                }
+
+                loop++;
+                StatusJSONAnalyze("found", loop);
+                jf.Dispose();
+            }
+            StatusJSONAnalyze("end");
+            return countJSONFileFound > 0 || countJSONAnalyzed > 0;
+        }
+
+        public async Task<bool> CreateJSONFilesFromJSONFolder(string folderPath)
+        {
+            return await JSONFiles.GetJSONFilesFromFolderAsync(folderPath);
+
+        }
+
+        public void StatusJSONAnalyze(string status, int? count = null)
+        {
+            switch (status)
+            {
+                case "start":
+                    ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "start analyzing JSON files", TotalCountToProcess = (int)count });
+                    break;
+                case "found":
+                    ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "JSON file analyzed", CountProcessed = (int)count });
+                    break;
+                case "end":
+                    ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "done analyzing JSON file" });
+                    break;
+            }
+        }
         public bool ClearRepository()
         {
             JSONFileCollection.Clear();
@@ -24,7 +131,7 @@ namespace NSAP_ODK.Entities.Database
         }
         public JSONFileViewModel()
         {
-            JSONFiles = new JSONFileRepository();
+            JSONFiles = new JSONFileRepository(this);
             JSONFileCollection = new ObservableCollection<JSONFile>(JSONFiles.JSONFiles);
             JSONFileCollection.CollectionChanged += JSONFiles_CollectionChanged;
         }
@@ -79,6 +186,39 @@ namespace NSAP_ODK.Entities.Database
         private bool JsonFileIsSaved(JSONFile jsonFile)
         {
             return NSAPEntities.JSONFileViewModel.Count() > 0 && NSAPEntities.JSONFileViewModel.getJSONFIle(jsonFile.MD5) != null;
+        }
+
+        public Task<JSONFile> CreateJSONFileAsync(string fileName)
+        {
+            return Task.Run(() => CreateJSONFile(fileName));
+        }
+
+        public bool AnalyzeForMismatchAndSave(JSONFile jf)
+        {
+            if (AnalyzeJsonForMismatch.Analyze(jsonFile: jf))
+            {
+                return true;
+            }
+            return false;
+        }
+        public JSONFile CreateJSONFile(string fileName)
+        {
+            var jsonFile = new JSONFile();
+
+            jsonFile.FullFileName = fileName;
+            if (jsonFile.VesselLandings != null)
+            {
+                jsonFile.Earliest = jsonFile.VesselLandings.OrderBy(t => t.SamplingDate).FirstOrDefault().SamplingDate;
+                jsonFile.Latest = jsonFile.VesselLandings.OrderByDescending(t => t.SamplingDate).FirstOrDefault().SamplingDate;
+                jsonFile.Count = jsonFile.VesselLandings.Count();
+                jsonFile.RowID = NSAPEntities.JSONFileViewModel.NextRecordNumber;
+                jsonFile.DateAdded = DateTime.Now;
+                return jsonFile;
+            }
+            else
+            {
+                return null;
+            }
         }
         public async Task<JSONFile> CreateJsonFile(string json, string description = "", string fileName = "")
         {
@@ -159,7 +299,7 @@ namespace NSAP_ODK.Entities.Database
                     }
                 }
                 AnalyzeJsonForMismatch.Analyze(VesselUnloadServerRepository.VesselLandings, item.JSONFile);
-                VesselUnloadServerRepository.ResetLists(includeJSON:true);
+                VesselUnloadServerRepository.ResetLists(includeJSON: true);
                 loopCount++;
                 ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "JSON file analyzed", CountProcessed = loopCount });
             }

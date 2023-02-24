@@ -14,6 +14,7 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using NSAP_ODK.Entities;
 using NSAP_ODK.Entities.Database;
+using Ookii.Dialogs.Wpf;
 
 namespace NSAP_ODK.Views
 {
@@ -40,6 +41,9 @@ namespace NSAP_ODK.Views
             _timer.Tick += OnTimerTick;
             switch (TaskToDo)
             {
+                case "analyze batch json files":
+                    labelBigTitle.Content = "Analyze content of JSON batch files";
+                    break;
                 case "fix mismatch in calendar days":
                     labelBigTitle.Content = "Search and fix mismatch in sampling calendar";
 
@@ -68,11 +72,37 @@ namespace NSAP_ODK.Views
             _instance = null;
         }
 
+        public Koboserver Koboserver { get; set; }
+        public List<System.IO.FileInfo> BatchJSONFiles { get; set; }
         public NSAPRegion Region { get; set; }
         public string ListToImportFromTextBox { get; set; }
         public List<FileInfoJSONMetadata> FileInfoJSONMetadatas { get; set; }
         public FisheriesSector Sector { get; set; }
-
+        private string GetJSONFolder(bool savedHistory = true)
+        {
+            string description = "Locate folder containing saved JSON history files";
+            if (!savedHistory)
+            {
+                description = "Locate folder containing downloaded JSON files";
+            }
+            VistaFolderBrowserDialog vfbd = new VistaFolderBrowserDialog();
+            vfbd.Description = description;
+            vfbd.UseDescriptionForTitle = true;
+            vfbd.ShowNewFolderButton = true;
+            if (Utilities.Global.Settings.JSONFolder != null && Utilities.Global.Settings.JSONFolder.Length > 0)
+            {
+                vfbd.SelectedPath = Utilities.Global.Settings.JSONFolder;
+            }
+            else
+            {
+                vfbd.SelectedPath = AppDomain.CurrentDomain.BaseDirectory;
+            }
+            if ((bool)vfbd.ShowDialog() && vfbd.SelectedPath.Length > 0)
+            {
+                return vfbd.SelectedPath;
+            }
+            return "";
+        }
         public async Task DoTask()
         {
             string labelSuccessFindingMismatch = "Mismatched items were found";
@@ -80,9 +110,19 @@ namespace NSAP_ODK.Views
 
             switch (TaskToDo)
             {
-                case "analyze json history files":
+                case "analyze batch json files":
+                    labelDescription.Content = "Analyzing JSON files";
                     NSAPEntities.JSONFileViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
-                    await NSAPEntities.JSONFileViewModel.AnalyzeJSONFiles(FileInfoJSONMetadatas);
+                    //await NSAPEntities.JSONFileViewModel.CreateJSONFilesFromJSONFolder(GetJSONFolder());
+                    await NSAPEntities.JSONFileViewModel.AnalyzeBatchJSONFilesAsync(BatchJSONFiles, Koboserver);
+                    NSAPEntities.JSONFileViewModel.ProcessingItemsEvent -= OnProcessingItemsEvent;
+                    break;
+
+                case "analyze json history files":
+                    labelDescription.Content = "Analyzing JSON files";
+                    NSAPEntities.JSONFileViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
+                    //await NSAPEntities.JSONFileViewModel.CreateJSONFilesFromJSONFolder(GetJSONFolder());
+                    await NSAPEntities.JSONFileViewModel.AnalyzeJSONInListAsync(FileInfoJSONMetadatas);
                     NSAPEntities.JSONFileViewModel.ProcessingItemsEvent -= OnProcessingItemsEvent;
                     break;
                 case "import fishing vessels":

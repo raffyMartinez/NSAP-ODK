@@ -126,7 +126,7 @@ namespace NSAP_ODK.Views
                         labelExplain.Text = "If there are IDs listed, then it means that the select list of landing sites were created from another backend that is different from the backend in your computer";
                         break;
                     case "Species":
-                        listBox.ItemsSource = UnmatchedFieldsFromJSONFile.SpeciesNames;
+                        listBox.ItemsSource = UnmatchedFieldsFromJSONFile.SpeciesNamesTaxa;
                         labelExplain.Text = "If there are species names listed, then it means that these were inputted by typing instead of selecting from a list";
                         break;
                 }

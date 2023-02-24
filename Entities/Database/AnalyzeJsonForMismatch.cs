@@ -73,9 +73,13 @@ namespace NSAP_ODK.Entities.Database
             if (hasLandingsAndJsonFile)
             {
                 VesselLandings = vls;
-                JSONFileName = _jSONFile.FullFileName;
+                
             }
-
+            else
+            {
+                VesselLandings = _jSONFile.VesselLandings;
+            }
+            JSONFileName = _jSONFile.FullFileName;
             OrphanedEnumerators = VesselLandings.Where(t => t.RegionEnumeratorID == null).Select(t => t.EnumeratorName).ToHashSet();
             UnmatchedEnumeratorIDs = VesselLandings.Where(t => t.EnumeratorName == "NOT RECOGNIZED").Select(t => (int)t.RegionEnumeratorID).ToHashSet();
             OrphanedlandingSites = VesselLandings.Where(t => t.LandingSiteID == null).Select(t => t.LandingSiteName).ToHashSet();
@@ -109,14 +113,25 @@ namespace NSAP_ODK.Entities.Database
             //}
         }
         //public static bool Analyze(List<VesselLanding> vls = null, string jf = null)
-        public static bool Analyze(List<VesselLanding> vls = null, JSONFile jf = null)
+
+
+        public static bool Analyze(List<VesselLanding> vls = null, JSONFile jsonFile = null)
         {
 
-
-            if (vls != null && jf != null)
+            if (jsonFile != null && jsonFile.VesselLandings != null)
             {
                 Reset();
-                _jSONFile = jf;
+                _jSONFile = jsonFile;
+                if (AnalyzeLandings())
+                {
+                    _successAnalyze = Save();
+                }
+
+            }
+            else if (vls != null && jsonFile != null)
+            {
+                Reset();
+                _jSONFile = jsonFile;
                 if (AnalyzeLandings(vls))
                 {
                     _successAnalyze = Save();

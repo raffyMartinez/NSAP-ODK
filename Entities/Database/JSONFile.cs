@@ -1,18 +1,62 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace NSAP_ODK.Entities.Database
 {
-    public class JSONFile
+    public enum JsonFileType
+    {
+        jsonFileTypeCatchAndEffort,
+        jsonFileTypeLandingsCount,
+        jsonFileTypeCatchEffortLandingsCount
+    }
+    public class JSONFile : IDisposable
     {
         private string _jsonText;
+        private List<VesselLanding> _vesselLandings;
+        private string _fullFileName;
 
+        public void CleanUp()
+        {
+            _jsonText = null;
+            _vesselLandings.Clear();
+            _vesselLandings = null;
+        }
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // free managed resources
+                _jsonText = null;
+                if (_vesselLandings != null)
+                {
+                    _vesselLandings.Clear();
+                    _vesselLandings = null;
+                }
+            }
+            // free native resources if there are any.
+        }
+        public JsonFileType JsonFileType { get; set; }
         public string JSONText
         {
-            get { return _jsonText; }
+            get
+            {
+                if (_jsonText == null || _jsonText.Length == 0)
+                {
+                    _jsonText = File.ReadAllText(FullFileName);
+                    MD5 = Utilities.MD5.CreateMD5(_jsonText);
+                }
+                return _jsonText;
+            }
             set
             {
                 _jsonText = value;
@@ -20,12 +64,36 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
+        public List<VesselLanding> VesselLandings
+        {
+            get
+            {
+                if (_vesselLandings == null)
+                {
+                    _vesselLandings = JsonConvert.DeserializeObject<List<VesselLanding>>(JSONText);
+                    //if (_vesselLandings != null)
+                    //{
+                    //    Utilities.Logger.Log($"vessel landings of {Path.GetFileName(FullFileName)} ({_vesselLandings.Count} items) created");
+                    //}
+                }
+                return _vesselLandings;
+            }
+        }
+
+
         public string FileName
         {
-            get { return System.IO.Path.GetFileName(FullFileName); }
+            get { return Path.GetFileName(FullFileName); }
         }
         public List<string> LandingIdentifiers { get; set; }
-        public string FullFileName { get; set; }
+        public string FullFileName
+        {
+            get { return _fullFileName; }
+            set
+            {
+                _fullFileName = value;
+            }
+        }
 
         public int Count { get; set; }
 

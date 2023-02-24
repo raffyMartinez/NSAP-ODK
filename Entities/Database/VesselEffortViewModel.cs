@@ -14,12 +14,13 @@ namespace NSAP_ODK.Entities.Database
         private VesselEffortRepository VesselEfforts { get; set; }
         private static StringBuilder _csv = new StringBuilder();
 
+  
+        public static int CurrentIDNumber { get; set; }
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-        public static int CurrentIDNumber { get; set; }
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
