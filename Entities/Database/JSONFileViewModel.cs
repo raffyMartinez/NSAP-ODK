@@ -82,6 +82,7 @@ namespace NSAP_ODK.Entities.Database
                     jf = await CreateJSONFileAsync(fijm.JSONFileInfo.FullName);
                     jf.FormID = fijm.Koboserver.ServerNumericID.ToString();
                     jf.Description = fijm.Koboserver.FormName;
+                    jf.DateAdded = fijm.JSONFileInfo.CreationTime;
                     if (AddRecordToRepo(jf))
                     {
                         countJSONFileFound++;
@@ -212,7 +213,9 @@ namespace NSAP_ODK.Entities.Database
                 jsonFile.Latest = jsonFile.VesselLandings.OrderByDescending(t => t.SamplingDate).FirstOrDefault().SamplingDate;
                 jsonFile.Count = jsonFile.VesselLandings.Count();
                 jsonFile.RowID = NSAPEntities.JSONFileViewModel.NextRecordNumber;
-                jsonFile.DateAdded = DateTime.Now;
+                FileInfo fi = new FileInfo(fileName);
+                //jsonFile.DateAdded = DateTime.Now;
+                jsonFile.DateAdded = fi.CreationTime;
                 return jsonFile;
             }
             else
@@ -231,7 +234,6 @@ namespace NSAP_ODK.Entities.Database
             jsonFile.Latest = VesselUnloadServerRepository.DownloadedLandingsLatestLandingDate();
             jsonFile.Count = VesselUnloadServerRepository.DownloadedLandingsCount();
             jsonFile.LandingIdentifiers = VesselUnloadServerRepository.GetLandingIdentifiers();
-            jsonFile.DateAdded = DateTime.Now;
             if (fileName.Length > 0)
             {
                 jsonFile.FullFileName = fileName;
@@ -240,6 +242,9 @@ namespace NSAP_ODK.Entities.Database
             {
                 jsonFile.FullFileName = $@"{Utilities.Global.Settings.JSONFolder}\{NSAPEntities.JSONFileViewModel.CreateFileName(jsonFile)}";
             }
+            FileInfo fi = new FileInfo(jsonFile.FullFileName);
+            //jsonFile.DateAdded = DateTime.Now;
+            jsonFile.DateAdded = fi.CreationTime;
             //if (FormID == null)
             //{
             //    FormID = Path.GetFileName(jsonFile.FullFileName).Split(' ')[0];

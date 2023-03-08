@@ -273,7 +273,7 @@ namespace NSAP_ODK.Entities
                         {
                             update.Parameters.Add("@sp_code", OleDbType.Integer).Value = fishSpecies.SpeciesCode;
                         }
-                        if (fishSpecies.Importance == null)
+                        if (fishSpecies.Importance == null || fishSpecies.Importance=="NA")
                         {
                             update.Parameters.Add("@importance", OleDbType.VarChar).Value = DBNull.Value;
                         }
@@ -289,7 +289,7 @@ namespace NSAP_ODK.Entities
                         {
                             update.Parameters.Add("@family", OleDbType.VarChar).Value = fishSpecies.Family;
                         }
-                        if (fishSpecies.MainCatchingMethod == null)
+                        if (fishSpecies.MainCatchingMethod == null || fishSpecies.MainCatchingMethod=="NA")
                         {
                             update.Parameters.Add("@catch_method", OleDbType.VarChar).Value = DBNull.Value;
                         }

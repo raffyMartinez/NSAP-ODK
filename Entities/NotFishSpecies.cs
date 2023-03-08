@@ -33,7 +33,7 @@ namespace NSAP_ODK.Entities
         public string Species { get; set; }
         public double? MaxSize { get; set; }
 
-        [ItemsSource(typeof(TaxaItemsSource))]
+        [ItemsSource(typeof(TaxaItemSourceNotFish))]
         public string TaxaCode { get; set; }
 
         [ItemsSource(typeof(SizeTypeItemsSource))]

@@ -14,6 +14,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using SysIo = System.IO;
 
 namespace NSAP_ODK.Views
 {
@@ -45,6 +46,10 @@ namespace NSAP_ODK.Views
                 chkUsemySQL.IsChecked = Utilities.Global.Settings.UsemySQL;
                 buttonLocateMySQlBackupFolder.IsEnabled = (bool)chkUsemySQL.IsChecked;
                 chkUsemySQL.Click += ChkUsemySQL_Click;
+
+                textJsonFolder.MouseDoubleClick += OnTextBoxDoubleClick;
+                textBackenDB.MouseDoubleClick += OnTextBoxDoubleClick;
+
                 if (Utilities.Global.Settings.CutOFFUndersizedCW == null)
                 {
                     textCutoffWidth.Text = Utilities.Settings.DefaultCutoffUndesizedCW.ToString();
@@ -72,6 +77,23 @@ namespace NSAP_ODK.Views
                 textAcceptableDiff.Text = "10";
             }
 
+        }
+
+        private void OnTextBoxDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            var txt = (TextBox)sender;
+            if (txt.Text.Length > 0)
+            {
+                switch (txt.Name)
+                {
+                    case "textBackenDB":
+                        System.Diagnostics.Process.Start(SysIo.Path.GetDirectoryName(txt.Text));
+                        break;
+                    case "textJsonFolder":
+                        System.Diagnostics.Process.Start(txt.Text);
+                        break;
+                }
+            }
         }
 
         private void ChkUsemySQL_Click(object sender, RoutedEventArgs e)
@@ -272,7 +294,7 @@ namespace NSAP_ODK.Views
                         Utilities.Global.Settings.UsemySQL = (bool)chkUsemySQL.IsChecked;
                         Utilities.Global.Settings.MySQLBackupFolder = textmySQLBackupFolder.Text;
                         Utilities.Global.Settings.AcceptableWeightsDifferencePercent = int.Parse(textAcceptableDiff.Text);
-                        if(int.TryParse(textDownloadSizeForBatchMode.Text,out int v))
+                        if (int.TryParse(textDownloadSizeForBatchMode.Text, out int v))
                         {
                             Utilities.Global.Settings.DownloadSizeForBatchMode = v;
                             Utilities.Settings.DefaultDownloadSizeForBatchMode = v;

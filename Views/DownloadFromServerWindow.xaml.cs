@@ -1125,10 +1125,18 @@ namespace NSAP_ODK.Views
             vfbd.Description = "Select folder for saving downloaded JSON files";
             vfbd.UseDescriptionForTitle = true;
             vfbd.ShowNewFolderButton = true;
-            vfbd.SelectedPath = System.AppDomain.CurrentDomain.BaseDirectory;
+            if (Global.Settings.JSONFolder.Length == 0)
+            {
+                vfbd.SelectedPath = System.AppDomain.CurrentDomain.BaseDirectory;
+            }
+            else
+            {
+                vfbd.SelectedPath = Global.Settings.JSONFolder;
+            }
 
             if ((bool)vfbd.ShowDialog() && vfbd.SelectedPath.Length > 0)
             {
+                Global.Settings.JSONFolder = vfbd.SelectedPath;
                 folderToSave = vfbd.SelectedPath;
 
                 int downloadSize = _formSummary.NumberOfSubmissions - _formSummary.NumberSavedToDatabase;

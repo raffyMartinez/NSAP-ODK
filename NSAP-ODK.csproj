@@ -349,6 +349,7 @@
     <Compile Include="Entities\ItemSources\FMAInRegionItemsSource.cs" />
     <Compile Include="Entities\ItemSources\LandingSiteInFMAFishingGroundItemsSource.cs" />
     <Compile Include="Entities\Database\VesselUnloadSummary.cs" />
+    <Compile Include="Entities\ItemSources\TaxaItemSourceNotFish.cs" />
     <Compile Include="Entities\KoboForms.cs" />
     <Compile Include="Entities\Koboform_files.cs" />
     <Compile Include="Entities\MDBTablesRowCount.cs" />

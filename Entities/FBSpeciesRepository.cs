@@ -19,12 +19,105 @@ namespace NSAP_ODK.Entities
         public List<FBSpecies> FBSpecieses { get; set; }
         public FBSpeciesViewModel _parent;
         private List<FBSpecies> _updateFBSpeciesList;
-        public FBSpeciesRepository(FBSpeciesViewModel parent)
+        public FBSpeciesRepository(FBSpeciesViewModel parent, string fbSPeciesFileName = null)
         {
             _parent = parent;
-            FBSpecieses = getFBSpecies();
+            if (fbSPeciesFileName != null)
+            {
+                FBSpecieses = GetFBSpeciesFromExternalFile(fbSPeciesFileName);
+            }
+            else
+            {
+                FBSpecieses = getFBSpecies();
+            }
         }
 
+        private List<FBSpecies> GetFBSpeciesFromExternalFile(string fbSpeciesFile)
+        {
+            //string connectionString = "Provider=Microsoft.JET.OLEDB.4.0;data source=" + fbSpeciesFile;
+            //using (var con = new OleDbConnection("Provider=Microsoft.JET.OLEDB.4.0;data source=" + fbSpeciesFile))
+            List<FBSpecies> thisList = new List<FBSpecies>();
+
+            using (var con = new OleDbConnection("Provider=Microsoft.JET.OLEDB.4.0;data source=" + fbSpeciesFile))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    cmd.CommandText = "Select * from species ORDER BY Genus, Species";
+                    con.Open();
+                    var dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        FBSpecies fb = new FBSpecies
+                        {
+                            Genus = dr["Genus"].ToString(),
+                            Species = dr["Species"].ToString(),
+                            SpCode = (int)(double)dr["SpecCode"],
+                            Family = dr["Family"].ToString(),
+                            Importance = dr["Importance"].ToString(),
+                            MainCatchingMethod = dr["MainCatchingMethod"].ToString()
+                        };
+                        //LengthType = dr["LengthType"].ToString(),
+                        //};
+                        //if (fb.Genus == "Lepidocybium")
+                        //{
+
+                        //}
+                        string ltype = dr["LTypeComF"].ToString();
+                        if(ltype.Length>0 && ltype!="NA")
+                        {
+                            fb.LengthType = ltype;
+                        }
+                        else 
+                        {
+                            ltype = dr["LTypeComM"].ToString();
+                            if (ltype.Length > 0 && ltype != "NA")
+                            {
+                                fb.LengthType = ltype;
+                            }
+                            else
+                            {
+                                ltype = dr["LTypeMaxF"].ToString();
+                                if (ltype.Length > 0 && ltype != "NA")
+                                {
+                                    fb.LengthType = ltype;
+                                }
+                                else
+                                {
+                                    ltype = dr["LTypeMaxF"].ToString();
+                                    if (ltype.Length > 0 && ltype != "NA")
+                                    {
+                                        fb.LengthType = ltype;
+                                    }
+                                }
+                            }
+                        }
+                        fb.LengthMax = null;
+                        fb.LengthCommon = null;
+                        //if (dr["Length"] != DBNull.Value)
+                        //{
+                        //    fb.LengthMax = (double)dr["Length"];
+                        //}
+                        if(double.TryParse(dr["Length"].ToString(),out double lm))
+                        {
+                            fb.LengthMax = lm;
+                        }
+                        //string comLen = dr["CommonLength"].ToString();
+                        if(double.TryParse(dr["CommonLength"].ToString(),out double cl))
+                        {
+                            fb.LengthCommon = cl;
+                        }
+                        //if (dr["CommonLength"] != DBNull.Value && dr["CommonLength"].ToString()!="NA")
+                        //{
+                        //    if(double.TryParse)
+                        //    fb.LengthCommon = double.Parse(dr["CommonLength"].ToString());
+                        //}
+                        thisList.Add(fb);
+                    }
+                }
+            }
+
+            return thisList;
+        }
         public bool DuplicateErrorWhenAddSpecies { get; set; }
 
         public bool Add(FBSpecies sp)

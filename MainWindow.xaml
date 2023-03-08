@@ -226,7 +226,7 @@
             <treeViewControl:TreeControl Grid.Column="0" Grid.RowSpan="2" x:Name="samplingTree" 
                     TreeViewItemSelected="OnTreeViewItemSelected" TreeContextMenu="OnTreeContextMenu"/>
 
-            <TreeView x:Name="treeViewDownloadHistory" Grid.Column="0" Grid.RowSpan="2" SelectedItemChanged="OnHistoryTreeItemChanged" MouseRightButtonDown="OnTreeMouseRightButtonDown" />
+            <TreeView x:Name="treeViewDownloadHistory" Grid.Column="0" Grid.RowSpan="2" SelectedItemChanged="OnHistoryTreeItemChanged" MouseRightButtonDown="OnTreeMouseRightButtonDown"/>
 
 
             <Grid x:Name="GridContainer_NSAPData" Grid.Column="1" Grid.Row="1">

@@ -25,6 +25,12 @@ namespace NSAP_ODK.Entities
             FBSpeciesCollection = new ObservableCollection<FBSpecies>(FBSpecieses.FBSpecieses);
             FBSpeciesCollection.CollectionChanged += FBSpeciesCollection_CollectionChanged;
         }
+        public FBSpeciesViewModel(string fbSpeciesMDBFileName)
+        {
+            FBSpecieses = new FBSpeciesRepository(this, fbSpeciesMDBFileName);
+            FBSpeciesCollection = new ObservableCollection<FBSpecies>(FBSpecieses.FBSpecieses);
+            FBSpeciesCollection.CollectionChanged += FBSpeciesCollection_CollectionChanged;
+        }
 
         public void ObjectCreated()
         {
@@ -207,7 +213,7 @@ namespace NSAP_ODK.Entities
 
         public FBSpecies GetFBSpecies(string genus, string species)
         {
-            return FBSpeciesCollection.FirstOrDefault(t => t.Genus == genus && t.Species==species);
+            return FBSpeciesCollection.FirstOrDefault(t => t.Genus == genus && t.Species == species);
         }
         public FBSpecies GetFBSpecies(int spCode)
         {

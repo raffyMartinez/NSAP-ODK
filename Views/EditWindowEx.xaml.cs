@@ -64,7 +64,7 @@ namespace NSAP_ODK.Views
         public bool CloseCommandFromMainWindow { get; set; }
         public NSAPEntity NSAPEntity { get { return _nsapEntity; } }
         public bool Cancelled { get; set; } = false;
-
+        public string PathToFBSpeciesMDB { get; set; }
         public EditWindowEx(NSAPEntity nsapENtity, string entityID = "", object nsapObject = null)
         {
             InitializeComponent();
@@ -974,7 +974,7 @@ namespace NSAP_ODK.Views
                     //bool proceed = true;
                     if (NSAPEntities.FBSpeciesViewModel == null)
                     {
-                        NSAPEntities.FBSpeciesViewModel = new FBSpeciesViewModel();
+                        NSAPEntities.FBSpeciesViewModel = new FBSpeciesViewModel(PathToFBSpeciesMDB);
                     }
                     var fishSpeciesEdit = new FishSpeciesEdit();
                     this.Title = "Fish species";
@@ -1559,13 +1559,25 @@ namespace NSAP_ODK.Views
                                         SpecificName = fBSpecies.Species,
                                         SpeciesCode = fBSpecies.SpCode,
                                         Family = fBSpecies.Family,
-                                        Importance = fBSpecies.Importance,
-                                        MainCatchingMethod = fBSpecies.MainCatchingMethod,
+                                        //Importance = fBSpecies.Importance,
+                                        //MainCatchingMethod = fBSpecies.MainCatchingMethod,
                                         LengthCommon = fBSpecies.LengthCommon,
                                         LengthMax = fBSpecies.LengthMax,
-                                        LengthType = NSAPEntities.SizeTypeViewModel.GetSizeType(fBSpecies.LengthType),
+                                        //LengthType = NSAPEntities.SizeTypeViewModel.GetSizeType(fBSpecies.LengthType),
                                         RowNumber = NSAPEntities.FishSpeciesViewModel.NextRecordNumber
                                     };
+                                    if (fBSpecies.LengthType != null && fBSpecies.LengthType != "NA")
+                                    {
+                                        _selectedFishSpecies.LengthType = NSAPEntities.SizeTypeViewModel.GetSizeType(fBSpecies.LengthType);
+                                    }
+                                    if (fBSpecies.Importance != null && fBSpecies.Importance != "NA" && fBSpecies.Importance.Length > 2)
+                                    {
+                                        _selectedFishSpecies.Importance = fBSpecies.Importance;
+                                    }
+                                    if (fBSpecies.MainCatchingMethod != null && fBSpecies.MainCatchingMethod != "NA" && fBSpecies.MainCatchingMethod.Length > 2)
+                                    {
+                                        _selectedFishSpecies.MainCatchingMethod = fBSpecies.MainCatchingMethod;
+                                    }
                                 }
                                 else
                                 {
@@ -1731,8 +1743,12 @@ namespace NSAP_ODK.Views
                 case "buttonAddToFB":
                     if (_selectedFishSpecies != null && NSAPEntities.FishSpeciesViewModel.AddRecordToRepo(_selectedFishSpecies))
                     {
-                        labelFishSpecies.Content = "The selected species has been added to the fish species list.";
+                        //labelFishSpecies.Content = "The selected species has been added to the fish species list.";
                         buttonAddToFB.IsEnabled = false;
+                        MessageBox.Show("The selected species has been added to the fish species list.", Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
+                        //Close();
+                        DialogResult = true;
+                        //Close();
                         //MessageBox.Show(
                         //    $"{_selectedFishSpecies.GenericName} {_selectedFishSpecies.SpecificName} was added to the fish species list",
                         //    "NSAP-ODK Database",

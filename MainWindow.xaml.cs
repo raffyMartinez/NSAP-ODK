@@ -933,6 +933,12 @@ namespace NSAP_ODK
                         tvItem.Items.Add(new TreeViewItem { Header = "Tracked fishing effort", Tag = "tracked" });
                         tvItem.Items.Add(new TreeViewItem { Header = "Gear unload", Tag = "gearUnload" });
                         tvItem.Items.Add(new TreeViewItem { Header = "Unload summary", Tag = "unloadSummary" });
+
+                        TreeViewItem tv = new TreeViewItem { Header = "JSON analysis", Tag = "jsonAnalysis" };
+                        tv.Expanded += onJsonDummyNode_Expanded;
+                        tv.Items.Add(new TreeViewItem { Header = "json_dummy" });
+
+                        tvItem.Items.Add(tv);
                         if (n == 0)
                         {
                             item_0 = tvItem;
@@ -1001,6 +1007,21 @@ namespace NSAP_ODK
                         }
                     }
                     break;
+            }
+        }
+
+        private void onJsonDummyNode_Expanded(object sender, RoutedEventArgs e)
+        {
+            TreeViewItem node = e.Source as TreeViewItem;
+            if (node.Tag.ToString() == "jsonAnalysis")
+            {
+                node.Items.Clear();
+                DateTime dateDownload = DateTime.Parse(((TreeViewItem)node.Parent).Header.ToString());
+                foreach (var item in NSAPEntities.UnmatchedFieldsFromJSONFileViewModel.UnmatchedFieldsFromJSONFileCollection.Where(t => t.DateOfParsing.Date == dateDownload.Date).OrderBy(t => t.DateOfParsing))
+                {
+                    TreeViewItem tv = new TreeViewItem { Header = $"{item.RowID} - {item.DateOfParsing.ToString("MMM-dd-yyyy HH:mm")}", Tag = item };
+                    node.Items.Add(tv);
+                }
             }
         }
 
@@ -1377,9 +1398,28 @@ namespace NSAP_ODK
             }
         }
 
+        private string GetPathToFBSpeciesMDB()
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.Title = "Locate Fishbase species database file (MDB)";
+            ofd.DefaultExt = ".mdb";
+            ofd.Filter = "Microsoft Access Database (*.mdb)|*.mdb|All files (*.*)|*.*";
+            ofd.InitialDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            if((bool)ofd.ShowDialog() && File.Exists(ofd.FileName))
+            {
+                return ofd.FileName;
+            }
+            return "";
+        }
         private void AddEntity()
         {
+            string pathToFbSpeciesMD = "";
+            if(_nsapEntity==NSAPEntity.FishSpecies && NSAPEntities.FBSpeciesViewModel==null)
+            {
+                pathToFbSpeciesMD = GetPathToFBSpeciesMDB();
+            }
             EditWindowEx ew = new EditWindowEx(_nsapEntity);
+            ew.PathToFBSpeciesMDB = pathToFbSpeciesMD;
             ew.Owner = this;
             if ((bool)ew.ShowDialog())
             {
@@ -3715,6 +3755,24 @@ namespace NSAP_ODK
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Length weight count", Binding = new Binding("LenWtRows"), CellStyle = AlignRightStyle });
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Maturity count", Binding = new Binding("CatchMaturityRows"), CellStyle = AlignRightStyle });
 
+                        break;
+                    default:
+                        if (tvItem.Tag.GetType().Name == "UnmatchedFieldsFromJSONFile")
+                        {
+                            UnmatchedJSONAnalysisResultWindow uw = UnmatchedJSONAnalysisResultWindow.GetInstance();
+                            uw.UnmatchedFieldsFromJSONFile = tvItem.Tag as UnmatchedFieldsFromJSONFile;
+                            uw.Owner = this;
+                            if(uw.Visibility==Visibility.Visible)
+                            {
+                                uw.BringIntoView();
+                                uw.ShowAnalysis();
+                            }
+                            else
+                            {
+                                uw.Show();
+                            }
+                            tvItem.Focus();
+                        }
                         break;
                 }
 

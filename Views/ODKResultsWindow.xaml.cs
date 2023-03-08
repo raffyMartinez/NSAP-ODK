@@ -420,25 +420,41 @@ namespace NSAP_ODK.Views
             jsonFile.JSONText = JSON;
             jsonFile.MD5 = MD5.CreateMD5(JSON);
             jsonFile.RowID = NSAPEntities.JSONFileViewModel.NextRecordNumber;
-            jsonFile.Description = description;
             jsonFile.Earliest = VesselUnloadServerRepository.DownloadedLandingsEarliestLandingDate();
             jsonFile.Latest = VesselUnloadServerRepository.DownloadedLandingsLatestLandingDate();
             jsonFile.Count = VesselUnloadServerRepository.DownloadedLandingsCount();
             jsonFile.LandingIdentifiers = VesselUnloadServerRepository.GetLandingIdentifiers();
-            jsonFile.DateAdded = DateTime.Now;
+            //jsonFile.DateAdded = DateTime.Now;
+
+            
+            if (FormID == null)
+            {
+                if (jsonFile.FullFileName != null)
+                {
+                    FormID = Path.GetFileName(jsonFile.FullFileName).Split(' ')[0];
+                }
+                else
+                {
+                    FormID = _selectedJSONMetaData.Koboserver.ServerNumericID.ToString();
+                }
+            }
+            jsonFile.FormID = FormID;
+            if (description.Length == 0)
+            {
+                description = NSAPEntities.KoboServerViewModel.KoboserverCollection.FirstOrDefault(t => t.ServerNumericID == int.Parse(FormID)).FormName;
+            }
+            jsonFile.Description = description;
             if (fileName.Length > 0)
             {
                 jsonFile.FullFileName = fileName;
+                jsonFile.DateAdded = (DateTime)_jsonFileUseCreationDateForHistory;
             }
             else
             {
                 jsonFile.FullFileName = $@"{Global.Settings.JSONFolder}\{NSAPEntities.JSONFileViewModel.CreateFileName(jsonFile)}";
+                jsonFile.DateAdded = DateTime.Now;
             }
-            if (FormID == null)
-            {
-                FormID = Path.GetFileName(jsonFile.FullFileName).Split(' ')[0];
-            }
-            jsonFile.FormID = FormID;
+
 
             if (!JsonFileIsSaved(jsonFile))
             {
@@ -455,6 +471,23 @@ namespace NSAP_ODK.Views
         {
             bool success = false;
             _jsonFile = await CreateJsonFile();
+            if (_jsonFile != null)
+            {
+                success = true;
+                NSAPEntities.KoboServerViewModel.ResetJSONFields(resetLastUploaded: false);
+                var ks = NSAPEntities.KoboServerViewModel.GetKoboServer(int.Parse(_jsonFile.FormID));
+                ks.LastCreatedJSON = new FileInfo(_jsonFile.FullFileName).Name;
+                NSAPEntities.KoboServerViewModel.ServerWithCreatedJSON = ks;
+
+                if (verbose)
+                {
+                    MessageBox.Show("JSON file saved successfully", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            else
+            {
+                success = false;
+            }
             //_jsonFile = new JSONFile();
             //_jsonFile.JSONText = JSON;
             //_jsonFile.MD5 = MD5.CreateMD5(_jsonFile.JSONText);
@@ -470,29 +503,30 @@ namespace NSAP_ODK.Views
 
 
             //if (NSAPEntities.JSONFileViewModel.Count() == 0 || NSAPEntities.JSONFileViewModel.getJSONFIle(_jsonFile.MD5) == null)
-            if (!JsonFileIsSaved(_jsonFile))
-            {
-                success = await NSAPEntities.JSONFileViewModel.Save(_jsonFile);
-                if (success)
-                {
-                    NSAPEntities.KoboServerViewModel.ResetJSONFields(resetLastUploaded: false);
-                    var ks = NSAPEntities.KoboServerViewModel.GetKoboServer(int.Parse(_jsonFile.FormID));
-                    ks.LastCreatedJSON = new FileInfo(_jsonFile.FullFileName).Name;
-                    NSAPEntities.KoboServerViewModel.ServerWithCreatedJSON = ks;
+            //if (!JsonFileIsSaved(_jsonFile))
+            //{
+            //    success = await NSAPEntities.JSONFileViewModel.Save(_jsonFile);
+            //    if (success)
+            //    {
+            //        NSAPEntities.KoboServerViewModel.ResetJSONFields(resetLastUploaded: false);
+            //        var ks = NSAPEntities.KoboServerViewModel.GetKoboServer(int.Parse(_jsonFile.FormID));
+            //        ks.LastCreatedJSON = new FileInfo(_jsonFile.FullFileName).Name;
+            //        NSAPEntities.KoboServerViewModel.ServerWithCreatedJSON = ks;
 
-                    if (verbose)
-                    {
-                        MessageBox.Show("JSON file saved successfully", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
-                }
-            }
-            else
-            {
-                if (verbose)
-                {
-                    MessageBox.Show("JSON file already saved in database", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-            }
+            //        if (verbose)
+            //        {
+            //            MessageBox.Show("JSON file saved successfully", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+            //        }
+            //    }
+            //}
+            //else
+            //{
+            //    success = true;
+            //    if (verbose)
+            //    {
+            //        MessageBox.Show("JSON file already saved in database", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+            //    }
+            //}
             return success;
         }
 
@@ -822,6 +856,7 @@ namespace NSAP_ODK.Views
             }
             if ((bool)vfbd.ShowDialog() && vfbd.SelectedPath.Length > 0)
             {
+                Global.Settings.JSONFolder = vfbd.SelectedPath;
                 return vfbd.SelectedPath;
             }
             return "";
@@ -1590,7 +1625,7 @@ namespace NSAP_ODK.Views
                                 if (_selectedJSONMetaData.JSONFile == null)
                                 {
                                     _selectedJSONMetaData.JSONFile = await CreateJsonFile(jsonDescription, _selectedJSONMetaData.JSONFileInfo.FullName);
-                                    if (AnalyzeJsonForMismatch.Analyze(VesselUnloadServerRepository.VesselLandings, _selectedJSONMetaData.JSONFile))
+                                    if (_selectedJSONMetaData.JSONFile != null && AnalyzeJsonForMismatch.Analyze(VesselUnloadServerRepository.VesselLandings, _selectedJSONMetaData.JSONFile))
                                     {
 
                                     }
@@ -2838,6 +2873,11 @@ namespace NSAP_ODK.Views
                 {
                     case "NSAP_ODK.Entities.Database.FileInfoJSONMetadata":
                         _selectedJSONMetaData = (FileInfoJSONMetadata)((TreeViewItem)e.NewValue).Tag;
+                        if ( _downloadedJsonMetadata != null && _selectedJSONMetaData.Koboserver==null)
+                        {
+                            _selectedJSONMetaData.Koboserver = NSAPEntities.KoboServerViewModel.KoboserverCollection.
+                                FirstOrDefault(t => t.FormName == _downloadedJsonMetadata.FormName && t.Owner == _downloadedJsonMetadata.DBOwner);
+                        }
                         ProcessJsonFileForDisplay(_selectedJSONMetaData);
                         _jsonFileUseCreationDateForHistory = _selectedJSONMetaData.JSONFileInfo.CreationTime;
                         VesselUnloadServerRepository.CurrentJSONFileName = _selectedJSONMetaData.JSONFileInfo.FullName;

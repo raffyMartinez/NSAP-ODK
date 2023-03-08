@@ -99,6 +99,7 @@ namespace NSAP_ODK.Views
             }
             if ((bool)vfbd.ShowDialog() && vfbd.SelectedPath.Length > 0)
             {
+                Utilities.Global.Settings.JSONFolder = vfbd.SelectedPath;
                 return vfbd.SelectedPath;
             }
             return "";
