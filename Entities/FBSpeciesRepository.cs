@@ -26,10 +26,10 @@ namespace NSAP_ODK.Entities
             {
                 FBSpecieses = GetFBSpeciesFromExternalFile(fbSPeciesFileName);
             }
-            else
-            {
-                FBSpecieses = getFBSpecies();
-            }
+            //else
+            //{
+            //    FBSpecieses = getFBSpecies();
+            //}
         }
         public string ErrorInSpeciesFile { get; private set; }
         private List<FBSpecies> GetFBSpeciesFromExternalFile(string fbSpeciesFile)

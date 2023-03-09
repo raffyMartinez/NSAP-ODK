@@ -23,7 +23,7 @@ namespace NSAP_ODK.Utilities
         public string TBL_TWSPKoboserverServerNumericID { get; set; }
         public string NSAPFishCatchMonitoringKoboserverServerNumericID { get; set; }
         public bool UsemySQL { get; set; }
-
+        public string FileNameFBSpeciesUpdate { get; set; }
         public int? AcceptableWeightsDifferencePercent
         {
             get

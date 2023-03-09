@@ -1404,32 +1404,55 @@ namespace NSAP_ODK
             ofd.Title = "Locate Fishbase species database file (MDB)";
             ofd.DefaultExt = ".mdb";
             ofd.Filter = "Microsoft Access Database (*.mdb)|*.mdb|All files (*.*)|*.*";
-            ofd.InitialDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            if((bool)ofd.ShowDialog() && File.Exists(ofd.FileName))
+            if (Global.Settings.FileNameFBSpeciesUpdate == null)
+            {
+                ofd.InitialDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            }
+            else
+            {
+                ofd.InitialDirectory = Path.GetDirectoryName(Global.Settings.FileNameFBSpeciesUpdate);
+                ofd.FileName = Global.Settings.FileNameFBSpeciesUpdate;
+            }
+            if ((bool)ofd.ShowDialog() && File.Exists(ofd.FileName))
             {
                 return ofd.FileName;
             }
             return "";
         }
 
-        public void FishSpeciesAddedSuccess()
+        public void NewSpeciesEditedSuccess()
         {
             SetDataGridSource();
         }
         private void AddEntity()
         {
-            string pathToFbSpeciesMD = "";
-            if(_nsapEntity==NSAPEntity.FishSpecies && NSAPEntities.FBSpeciesViewModel==null || NSAPEntities.FBSpeciesViewModel.ErrorInGettingFishSpeciesFromExternalFile().Length>0)
-            {
-                pathToFbSpeciesMD = GetPathToFBSpeciesMDB();
-            }
+            //string pathToFbSpeciesMD = "";
+            bool proceed = false;
+
             EditWindowEx ew = new EditWindowEx(_nsapEntity);
-            ew.PathToFBSpeciesMDB = pathToFbSpeciesMD;
-            ew.Owner = this;
-            if ((bool)ew.ShowDialog())
+            if (_nsapEntity == NSAPEntity.FishSpecies)
             {
-                //SetDataGridSource();
+                if (NSAPEntities.FBSpeciesViewModel == null || NSAPEntities.FBSpeciesViewModel.ErrorInGettingFishSpeciesFromExternalFile().Length > 0)
+                {
+                    //pathToFbSpeciesMD = ;
+                    ew.PathToFBSpeciesMDB = GetPathToFBSpeciesMDB();
+                }
+                proceed = NSAPEntities.FBSpeciesViewModel!=null && NSAPEntities.FBSpeciesViewModel.Count > 0 || ew.PathToFBSpeciesMDB.Length > 0 ;
             }
+            else
+            {
+                proceed = true;
+            }
+
+            if (proceed)
+            {
+                ew.Owner = this;
+                if ((bool)ew.ShowDialog())
+                {
+                    //SetDataGridSource();
+                }
+            }
+
         }
 
         private void DeleteEntity()
@@ -3767,7 +3790,7 @@ namespace NSAP_ODK
                             UnmatchedJSONAnalysisResultWindow uw = UnmatchedJSONAnalysisResultWindow.GetInstance();
                             uw.UnmatchedFieldsFromJSONFile = tvItem.Tag as UnmatchedFieldsFromJSONFile;
                             uw.Owner = this;
-                            if(uw.Visibility==Visibility.Visible)
+                            if (uw.Visibility == Visibility.Visible)
                             {
                                 uw.BringIntoView();
                                 uw.ShowAnalysis();
