@@ -206,7 +206,7 @@ namespace NSAP_ODK.Views
                 }
                 else
                 {
-                    buttonUpdate.Visibility = Visibility.Visible;
+                    //buttonUpdate.Visibility = Visibility.Visible;
                     statusBar.Visibility = Visibility.Collapsed;
                 }
             }
@@ -1754,7 +1754,7 @@ namespace NSAP_ODK.Views
                     {
                         //labelFishSpecies.Content = "The selected species has been added to the fish species list.";
                         buttonAddToFB.IsEnabled = false;
-                        MessageBox.Show("The selected species has been added to the fish species list.", Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
+                        //MessageBox.Show("The selected species has been added to the fish species list.", Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
                         //Close();
                         //DialogResult = true;
                         _cboGenus.SelectedItem = null;
@@ -1762,12 +1762,12 @@ namespace NSAP_ODK.Views
                         ((MainWindow)Owner).FishSpeciesAddedSuccess();
                         panelForNewFishSpecies.Visibility = Visibility.Collapsed;
                         //Close();
-                        //MessageBox.Show(
-                        //    $"{_selectedFishSpecies.GenericName} {_selectedFishSpecies.SpecificName} was added to the fish species list",
-                        //    "NSAP-ODK Database",
-                        //    MessageBoxButton.OK,
-                        //    MessageBoxImage.Information
-                        //    );
+                        MessageBox.Show(
+                            $"{_selectedFishSpecies.GenericName} {_selectedFishSpecies.SpecificName} was added to the fish species list",
+                            Global.MessageBoxCaption,
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information
+                            );
 
                     }
                     break;
