@@ -1411,10 +1411,15 @@ namespace NSAP_ODK
             }
             return "";
         }
+
+        public void FishSpeciesAddedSuccess()
+        {
+            SetDataGridSource();
+        }
         private void AddEntity()
         {
             string pathToFbSpeciesMD = "";
-            if(_nsapEntity==NSAPEntity.FishSpecies && NSAPEntities.FBSpeciesViewModel==null)
+            if(_nsapEntity==NSAPEntity.FishSpecies && NSAPEntities.FBSpeciesViewModel==null || NSAPEntities.FBSpeciesViewModel.ErrorInGettingFishSpeciesFromExternalFile().Length>0)
             {
                 pathToFbSpeciesMD = GetPathToFBSpeciesMDB();
             }
@@ -1423,7 +1428,7 @@ namespace NSAP_ODK
             ew.Owner = this;
             if ((bool)ew.ShowDialog())
             {
-                SetDataGridSource();
+                //SetDataGridSource();
             }
         }
 

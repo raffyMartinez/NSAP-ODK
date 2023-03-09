@@ -219,6 +219,18 @@ namespace NSAP_ODK.Entities
         {
             return FBSpeciesCollection.FirstOrDefault(t => t.SpCode == spCode);
         }
+
+        public string ErrorInGettingFishSpeciesFromExternalFile()
+        {
+            if (FBSpecieses.ErrorInSpeciesFile == null)
+            {
+                return "";
+            }
+            else
+            {
+                return FBSpecieses.ErrorInSpeciesFile;
+            }
+        }
         public int Count
         {
             get { return FBSpeciesCollection.Count; }

@@ -972,76 +972,85 @@ namespace NSAP_ODK.Views
 
                 case NSAPEntity.FishSpecies:
                     //bool proceed = true;
-                    if (NSAPEntities.FBSpeciesViewModel == null)
+                    buttonOK.IsEnabled = false;
+                    if (NSAPEntities.FBSpeciesViewModel == null || NSAPEntities.FBSpeciesViewModel.Count==0)
                     {
                         NSAPEntities.FBSpeciesViewModel = new FBSpeciesViewModel(PathToFBSpeciesMDB);
                     }
-                    var fishSpeciesEdit = new FishSpeciesEdit();
-                    this.Title = "Fish species";
-                    LabelTop.Content = "New fish species";
-                    if (!_isNew)
+                    if (NSAPEntities.FBSpeciesViewModel.Count > 0)
                     {
-
-                        var fs = NSAPEntities.FishSpeciesViewModel.GetSpecies(int.Parse(_entityID));
-                        if (fs != null)
+                        var fishSpeciesEdit = new FishSpeciesEdit();
+                        this.Title = "Fish species";
+                        LabelTop.Content = "New fish species";
+                        if (!_isNew)
                         {
-                            LabelTop.Content = $"Details of the {fs.Family.TrimEnd(new char[] { 'a', 'e' })} fish {fs.GenericName} {fs.SpecificName}";
-                            fishSpeciesEdit = new FishSpeciesEdit(fs);
-                            _oldGenus = fs.GenericName;
-                            _oldSpecies = fs.SpecificName;
+
+                            var fs = NSAPEntities.FishSpeciesViewModel.GetSpecies(int.Parse(_entityID));
+                            if (fs != null)
+                            {
+                                LabelTop.Content = $"Details of the {fs.Family.TrimEnd(new char[] { 'a', 'e' })} fish {fs.GenericName} {fs.SpecificName}";
+                                fishSpeciesEdit = new FishSpeciesEdit(fs);
+                                _oldGenus = fs.GenericName;
+                                _oldSpecies = fs.SpecificName;
+                            }
+                        }
+                        else
+                        {
+                            //proceed = CheckFishBaseSpeciesUpdateFile();
+                        }
+
+
+                        if (_isNew)
+                        {
+                            panelButtonsLower.Visibility = Visibility.Collapsed;
+                            fishSpeciesEdit.RowNumber = NSAPEntities.FishSpeciesViewModel.NextRecordNumber;
+                            _requireUpdateToFishBase = true;
+                            PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "GenericName", DisplayName = "Genus", DisplayOrder = 3, Description = "Generic name of the species" });
+                            PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SpecificName", DisplayName = "Species", DisplayOrder = 4, Description = "Specific name of the species" });
+
+                            spgFishSpeciesPropertyGrid.AutoGenerateProperties = false;
+                            spgFishSpeciesPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "GenericName", DisplayName = "Genus", DisplayOrder = 1, Description = "Genus" });
+                            spgFishSpeciesPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SpecificName", DisplayName = "Species", DisplayOrder = 2, Description = "Genus" });
+                            spgFishSpeciesPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SpeciesCode", DisplayName = "Fishbase species ID", DisplayOrder = 3, Description = "Identifier of the species in FishBase" });
+                            spgFishSpeciesPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Family", DisplayName = "Family", DisplayOrder = 4, Description = "Family of the species" });
+                            spgFishSpeciesPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Importance", DisplayName = "Importance to fishery", DisplayOrder = 8, Description = "Importance of the species to the fishery" });
+                            spgFishSpeciesPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "MainCatchingMethod", DisplayName = "Main catching method", DisplayOrder = 9, Description = "Main catching method" });
+                            spgFishSpeciesPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LengthType", DisplayName = "Length type", DisplayOrder = 5, Description = "Length category of the species" });
+                            spgFishSpeciesPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LengthMax", DisplayName = "Max length", DisplayOrder = 6, Description = "Maximum length recorded for the species" });
+                            spgFishSpeciesPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LengthCommon", DisplayName = "Common length", DisplayOrder = 7, Description = "Maximum length recorded for the species" });
+                        }
+                        else
+                        {
+                            //PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "RowNumber", DisplayName = "Row #", DisplayOrder = 1, Description = "Identifier used in the database" });
+                            PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SpeciesCode", DisplayName = "Fishbase species ID", DisplayOrder = 2, Description = "Identifier of the species in FishBase" });
+                            PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "GenericName", DisplayName = "Genus", DisplayOrder = 3, Description = "Generic name of the species" });
+                            PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SpecificName", DisplayName = "Species", DisplayOrder = 4, Description = "Specific name of the species" });
+                            PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Family", DisplayName = "Family", DisplayOrder = 5, Description = "Family of the species" });
+                            PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LengthType", DisplayName = "Length type", DisplayOrder = 6, Description = "Length category of the species" });
+                            PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "MaxLength", DisplayName = "Max length", DisplayOrder = 7, Description = "Maximum length recorded for the species" });
+                            PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "CommonLength", DisplayName = "Common length", DisplayOrder = 8, Description = "Maximum length recorded for the species" });
+                            PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Importance", DisplayName = "Importance to fishery", DisplayOrder = 9, Description = "Importance of the species to the fishery" });
+                            PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "MainCatchingMethod", DisplayName = "Main catching method", DisplayOrder = 10, Description = "Main catching method" });
+                        }
+                        PropertyGrid.SelectedObject = fishSpeciesEdit;
+                        if (_isNew)
+                        {
+                            UpdateNameControlsForSpecies();
+                        }
+                        else
+                        {
+
+                            MakePropertyReadOnly("SpeciesCode");
+                            MakePropertyReadOnly("GenericName");
+                            MakePropertyReadOnly("SpecificName");
+                            MakePropertyReadOnly("Family");
+
                         }
                     }
                     else
                     {
-                        //proceed = CheckFishBaseSpeciesUpdateFile();
-                    }
-
-
-                    if (_isNew)
-                    {
-                        panelButtonsLower.Visibility = Visibility.Collapsed;
-                        fishSpeciesEdit.RowNumber = NSAPEntities.FishSpeciesViewModel.NextRecordNumber;
-                        _requireUpdateToFishBase = true;
-                        PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "GenericName", DisplayName = "Genus", DisplayOrder = 3, Description = "Generic name of the species" });
-                        PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SpecificName", DisplayName = "Species", DisplayOrder = 4, Description = "Specific name of the species" });
-
-                        spgFishSpeciesPropertyGrid.AutoGenerateProperties = false;
-                        spgFishSpeciesPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "GenericName", DisplayName = "Genus", DisplayOrder = 1, Description = "Genus" });
-                        spgFishSpeciesPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SpecificName", DisplayName = "Species", DisplayOrder = 2, Description = "Genus" });
-                        spgFishSpeciesPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SpeciesCode", DisplayName = "Fishbase species ID", DisplayOrder = 3, Description = "Identifier of the species in FishBase" });
-                        spgFishSpeciesPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Family", DisplayName = "Family", DisplayOrder = 4, Description = "Family of the species" });
-                        spgFishSpeciesPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Importance", DisplayName = "Importance to fishery", DisplayOrder = 8, Description = "Importance of the species to the fishery" });
-                        spgFishSpeciesPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "MainCatchingMethod", DisplayName = "Main catching method", DisplayOrder = 9, Description = "Main catching method" });
-                        spgFishSpeciesPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LengthType", DisplayName = "Length type", DisplayOrder = 5, Description = "Length category of the species" });
-                        spgFishSpeciesPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LengthMax", DisplayName = "Max length", DisplayOrder = 6, Description = "Maximum length recorded for the species" });
-                        spgFishSpeciesPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LengthCommon", DisplayName = "Common length", DisplayOrder = 7, Description = "Maximum length recorded for the species" });
-                    }
-                    else
-                    {
-                        //PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "RowNumber", DisplayName = "Row #", DisplayOrder = 1, Description = "Identifier used in the database" });
-                        PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SpeciesCode", DisplayName = "Fishbase species ID", DisplayOrder = 2, Description = "Identifier of the species in FishBase" });
-                        PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "GenericName", DisplayName = "Genus", DisplayOrder = 3, Description = "Generic name of the species" });
-                        PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SpecificName", DisplayName = "Species", DisplayOrder = 4, Description = "Specific name of the species" });
-                        PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Family", DisplayName = "Family", DisplayOrder = 5, Description = "Family of the species" });
-                        PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LengthType", DisplayName = "Length type", DisplayOrder = 6, Description = "Length category of the species" });
-                        PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "MaxLength", DisplayName = "Max length", DisplayOrder = 7, Description = "Maximum length recorded for the species" });
-                        PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "CommonLength", DisplayName = "Common length", DisplayOrder = 8, Description = "Maximum length recorded for the species" });
-                        PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Importance", DisplayName = "Importance to fishery", DisplayOrder = 9, Description = "Importance of the species to the fishery" });
-                        PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "MainCatchingMethod", DisplayName = "Main catching method", DisplayOrder = 10, Description = "Main catching method" });
-                    }
-                    PropertyGrid.SelectedObject = fishSpeciesEdit;
-                    if (_isNew)
-                    {
-                        UpdateNameControlsForSpecies();
-                    }
-                    else
-                    {
-
-                        MakePropertyReadOnly("SpeciesCode");
-                        MakePropertyReadOnly("GenericName");
-                        MakePropertyReadOnly("SpecificName");
-                        MakePropertyReadOnly("Family");
-
+                        MessageBox.Show(NSAPEntities.FBSpeciesViewModel.ErrorInGettingFishSpeciesFromExternalFile(), Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Error);
+                        DialogResult = false;
                     }
 
                     break;
@@ -1747,7 +1756,11 @@ namespace NSAP_ODK.Views
                         buttonAddToFB.IsEnabled = false;
                         MessageBox.Show("The selected species has been added to the fish species list.", Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
                         //Close();
-                        DialogResult = true;
+                        //DialogResult = true;
+                        _cboGenus.SelectedItem = null;
+                        _cboSpecies.SelectedItem = null;
+                        ((MainWindow)Owner).FishSpeciesAddedSuccess();
+                        panelForNewFishSpecies.Visibility = Visibility.Collapsed;
                         //Close();
                         //MessageBox.Show(
                         //    $"{_selectedFishSpecies.GenericName} {_selectedFishSpecies.SpecificName} was added to the fish species list",
