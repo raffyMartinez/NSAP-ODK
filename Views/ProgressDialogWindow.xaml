@@ -14,9 +14,13 @@
         </Grid.RowDefinitions>
         <Label Content="Copy text of table" HorizontalAlignment="Center" FontWeight="Bold" x:Name="labelBigTitle"/>
         <StackPanel Grid.Row="1">
-            <Label HorizontalAlignment="Center" x:Name="labelDescription">
-                <TextBlock>Do you want to copy the content of the table?<LineBreak/>This operation might take a while for large tables</TextBlock>
-            </Label>
+            <TextBlock Text="Do you want to copy the content of the table? This operation might take a while for large tables" 
+                       TextWrapping="Wrap" 
+                       HorizontalAlignment="Center"
+                       x:Name="textBlockDescription" Margin="10 2"/>
+            <!--<Label HorizontalAlignment="Center" x:Name="labelDescription">
+                <TextBlock Text="Do you want to copy the content of the table? This operation might take a while for large tables" TextWrapping="Wrap" x:Name="textBlockDescription"/>
+            </Label>-->
             <WrapPanel HorizontalAlignment="Center" x:Name="panelButtons">
                 <Button Content="Yes" Height="25" Width="50" Margin="10" Click="OnButtonClicked" x:Name="buttonYes"/>
                 <Button Content="No" Height="25" Width="50" Margin="10" Click="OnButtonClicked" x:Name="buttonNo" />

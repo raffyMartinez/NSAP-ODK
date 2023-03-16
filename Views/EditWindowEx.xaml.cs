@@ -47,7 +47,7 @@ namespace NSAP_ODK.Views
         private ComboBox _cboGenus = new ComboBox();
         private ComboBox _cboSpecies = new ComboBox();
         private FishSpecies _selectedFishSpecies;
-        private bool _requireUpdateToFishBase = false;
+        //private bool _requireUpdateToFishBase = false;
         private string _excelUpdateFileName;
         private bool _updatingFBSpecies;
         private int _fbSpeciesUpdateListCount;
@@ -173,43 +173,43 @@ namespace NSAP_ODK.Views
                 SetUpSubFormSource();
             }
 
-            if (_requireUpdateToFishBase && !_updatingFBSpecies)
-            {
-                _updatingFBSpecies = true;
-                statusBar.Visibility = Visibility.Visible;
-                //if (NSAPEntities.FBSpeciesViewModel == null)
-                //{
-                //    NSAPEntities.FBSpeciesViewModel = new FBSpeciesViewModel();
-                //}
-                NSAPEntities.FBSpeciesViewModel.FBSpeciesUpdateEvent += FBSpeciesViewModel_FBSpeciesUpdateEvent;
-                NSAPEntities.FBSpeciesViewModel.ObjectCreated();
+            //if (_requireUpdateToFishBase && !_updatingFBSpecies)
+            //{
+            //    _updatingFBSpecies = true;
+            //    statusBar.Visibility = Visibility.Visible;
+            //    //if (NSAPEntities.FBSpeciesViewModel == null)
+            //    //{
+            //    //    NSAPEntities.FBSpeciesViewModel = new FBSpeciesViewModel();
+            //    //}
+            //    NSAPEntities.FBSpeciesViewModel.FBSpeciesUpdateEvent += FBSpeciesViewModel_FBSpeciesUpdateEvent;
+            //    NSAPEntities.FBSpeciesViewModel.ObjectCreated();
 
-                if (NSAPEntities.FBSpeciesViewModel.FBSpeciesUpdateStatus == FBSpeciesUpdateStatus.FBSpeciesStatus_SettingsNotFound)
-                {
+            //    if (NSAPEntities.FBSpeciesViewModel.FBSpeciesUpdateStatus == FBSpeciesUpdateStatus.FBSpeciesStatus_SettingsNotFound)
+            //    {
 
-                    //if (_showUpdateMessage && MessageBox.Show(
-                    if (MessageBox.Show(
-                    "It is recommended to update the Fishbase species list\r\nDo you wish to continue?",
-                    Utilities.Global.MessageBoxCaption,
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Question
-                    ) == MessageBoxResult.Yes)
-                    {
-                        await UpdateFbSpecies();
-                    }
-                    else
-                    {
-                        Close();
-                        //_showUpdateMessage = false;
-                    }
+            //        //if (_showUpdateMessage && MessageBox.Show(
+            //        if (MessageBox.Show(
+            //        "It is recommended to update the Fishbase species list\r\nDo you wish to continue?",
+            //        Utilities.Global.MessageBoxCaption,
+            //        MessageBoxButton.YesNo,
+            //        MessageBoxImage.Question
+            //        ) == MessageBoxResult.Yes)
+            //        {
+            //            await UpdateFbSpecies();
+            //        }
+            //        else
+            //        {
+            //            Close();
+            //            //_showUpdateMessage = false;
+            //        }
 
-                }
-                else
-                {
-                    //buttonUpdate.Visibility = Visibility.Visible;
-                    statusBar.Visibility = Visibility.Collapsed;
-                }
-            }
+            //    }
+            //    else
+            //    {
+            //        //buttonUpdate.Visibility = Visibility.Visible;
+            //        statusBar.Visibility = Visibility.Collapsed;
+            //    }
+            //}
 
             //buttonValidate.Visibility = Visibility.Collapsed;
 
@@ -407,7 +407,7 @@ namespace NSAP_ODK.Views
                     }
                 }
             }
-            _requireUpdateToFishBase = false;
+            //_requireUpdateToFishBase = false;
         }
 
 
@@ -972,7 +972,7 @@ namespace NSAP_ODK.Views
 
                 case NSAPEntity.FishSpecies:
                     //bool proceed = true;
-                    
+
                     //if ( NSAPEntities.FBSpeciesViewModel == null || NSAPEntities.FBSpeciesViewModel.Count == 0)
                     //{
                     //    NSAPEntities.FBSpeciesViewModel = new FBSpeciesViewModel(PathToFBSpeciesMDB);
@@ -1023,7 +1023,7 @@ namespace NSAP_ODK.Views
                     {
                         panelButtonsLower.Visibility = Visibility.Collapsed;
                         fishSpeciesEdit.RowNumber = NSAPEntities.FishSpeciesViewModel.NextRecordNumber;
-                        _requireUpdateToFishBase = true;
+                        //_requireUpdateToFishBase = true;
                         PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "GenericName", DisplayName = "Genus", DisplayOrder = 3, Description = "Generic name of the species" });
                         PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SpecificName", DisplayName = "Species", DisplayOrder = 4, Description = "Specific name of the species" });
 
@@ -1736,7 +1736,17 @@ namespace NSAP_ODK.Views
                 }
             }
         }
-
+        public void RefreshSubForm(string task)
+        {
+            FillPropertyGrid();
+             SetUpSubForm();
+            switch(task)
+            {
+                case "delete region vessels":
+                    //SetUpSubForm();
+                    break;
+            }
+        }
         private async void OnButtonClick(object sender, RoutedEventArgs e)
         {
             bool cancel = false;
@@ -1884,10 +1894,32 @@ namespace NSAP_ODK.Views
 
                                         break;
                                     case "Vessels":
-                                        NSAPRegionFishingVessel regionVessel = (NSAPRegionFishingVessel)sfDataGrid.SelectedItem;
-                                        if (entitiesRepository.DeleteFishingVessel(regionVessel.RowID))
+                                        if (sfDataGrid.SelectedItems.Count > 1)
                                         {
-                                            success = nsr.FishingVessels.Remove(regionVessel);
+                                            List<NSAPRegionFishingVessel> regionVessels = new List<NSAPRegionFishingVessel>();
+                                            foreach(var item in sfDataGrid.SelectedItems)
+                                            {
+                                                regionVessels.Add((NSAPRegionFishingVessel)item);
+                                            }
+                                            ProgressDialogWindow pdw = ProgressDialogWindow.GetInstance("delete region vessels");
+                                            pdw.NSAPRegionFishingVessels = regionVessels;
+                                            pdw.Owner = this;
+                                            if(pdw.Visibility==Visibility.Visible)
+                                            {
+                                                pdw.BringIntoView();
+                                            }
+                                            else
+                                            {
+                                                pdw.Show();
+                                            }
+                                        }
+                                        else
+                                        {
+                                            NSAPRegionFishingVessel regionVessel = (NSAPRegionFishingVessel)sfDataGrid.SelectedItem;
+                                            if (entitiesRepository.DeleteFishingVessel(regionVessel.RowID))
+                                            {
+                                                success = nsr.FishingVessels.Remove(regionVessel);
+                                            }
                                         }
                                         break;
                                     case "Enumerators":

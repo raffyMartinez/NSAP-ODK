@@ -28,19 +28,26 @@ namespace NSAP_ODK.Views
         private int _countToProcess;
         private static ProgressDialogWindow _instance;
         private bool _processStarted = false;
+        private bool _timerEnable = true;
+
+        private List<DeleteRegionEntityFail> _deleteRegionEntityFails;
 
         public ProgressDialogWindow(string taskToDo)
         {
             InitializeComponent();
             SamplingCalendaryMismatchFixer.Cancel = false;
             TaskToDo = taskToDo;
-            labelDescription.Content = "This process might take a while\r\nDo you wish to continue?";
+            textBlockDescription.Text = "This process might take a while\r\nDo you wish to continue?";
+
             Closing += OnCopyTextDialogWindow_Closing;
             panelStatus.Visibility = Visibility.Collapsed;
             _timer = new DispatcherTimer();
             _timer.Tick += OnTimerTick;
             switch (TaskToDo)
             {
+                case "delete region vessels":
+                    labelBigTitle.Content = "Delete fishing vessels of region";
+                    break;
                 case "analyze batch json files":
                     labelBigTitle.Content = "Analyze content of JSON batch files";
                     break;
@@ -61,9 +68,16 @@ namespace NSAP_ODK.Views
         private void OnTimerTick(object sender, EventArgs e)
         {
             _timer.Stop();
-            panelStatus.Visibility = Visibility.Collapsed;
-            Owner.Focus();
-            Close();
+            if (_timerEnable)
+            {
+                panelStatus.Visibility = Visibility.Collapsed;
+                Owner.Focus();
+                Close();
+            }
+            else
+            {
+                panelButtons.Visibility = Visibility.Visible;
+            }
         }
         public string TaskToDo { get; private set; }
 
@@ -71,7 +85,7 @@ namespace NSAP_ODK.Views
         {
             _instance = null;
         }
-
+        public List<NSAPRegionFishingVessel> NSAPRegionFishingVessels { get; set; }
         public Koboserver Koboserver { get; set; }
         public List<System.IO.FileInfo> BatchJSONFiles { get; set; }
         public NSAPRegion Region { get; set; }
@@ -108,11 +122,26 @@ namespace NSAP_ODK.Views
         {
             string labelSuccessFindingMismatch = "Mismatched items were found";
             string labelNoSuccessFindingMismatch = "There were no mismatched items found";
+            var ner = NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(NSAPEntities.NSAPRegionViewModel.CurrentEntity);
 
             switch (TaskToDo)
             {
+                case "delete vessel from vessel unload":
+                    textBlockDescription.Text = "Removing vessel IDs from unload table";
+                    ner.ResetDeleteEntityFails();
+                    NSAPEntities.SummaryItemViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
+                    await NSAPEntities.SummaryItemViewModel.DeleteVesselIDFromVesselUnloadsAsync(_deleteRegionEntityFails);
+                    NSAPEntities.SummaryItemViewModel.ProcessingItemsEvent -= OnProcessingItemsEvent;
+                    break;
+                case "delete region vessels":
+                    textBlockDescription.Text = "Deleting fishing vessels of region";
+
+                    ner.ProcessingItemsEvent += OnProcessingItemsEvent;
+                    await ner.DeleteFishingVesselsAsync(NSAPRegionFishingVessels);
+                    ner.ProcessingItemsEvent -= OnProcessingItemsEvent;
+                    break;
                 case "analyze batch json files":
-                    labelDescription.Content = "Analyzing JSON files";
+                    textBlockDescription.Text = "Analyzing JSON files";
                     NSAPEntities.JSONFileViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
                     //await NSAPEntities.JSONFileViewModel.CreateJSONFilesFromJSONFolder(GetJSONFolder());
                     await NSAPEntities.JSONFileViewModel.AnalyzeBatchJSONFilesAsync(BatchJSONFiles, Koboserver);
@@ -120,14 +149,14 @@ namespace NSAP_ODK.Views
                     break;
 
                 case "analyze json history files":
-                    labelDescription.Content = "Analyzing JSON files";
+                    textBlockDescription.Text = "Analyzing JSON files";
                     NSAPEntities.JSONFileViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
                     //await NSAPEntities.JSONFileViewModel.CreateJSONFilesFromJSONFolder(GetJSONFolder());
                     await NSAPEntities.JSONFileViewModel.AnalyzeJSONInListAsync(FileInfoJSONMetadatas);
                     NSAPEntities.JSONFileViewModel.ProcessingItemsEvent -= OnProcessingItemsEvent;
                     break;
                 case "import fishing vessels":
-                    labelDescription.Content = "Importing fishing vessels";
+                    textBlockDescription.Text = "Importing fishing vessels";
                     NSAPEntities.FishingVesselViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
                     if (await NSAPEntities.FishingVesselViewModel.ImportVesselsAsync(ListToImportFromTextBox, Region, Sector))
                     {
@@ -145,7 +174,7 @@ namespace NSAP_ODK.Views
                         //_proceedAndClose = true;
 
 
-                        labelDescription.Content = labelSuccessFindingMismatch;
+                        textBlockDescription.Text = labelSuccessFindingMismatch;
                         FixCalendarVesselUnloadWindow fcmw = FixCalendarVesselUnloadWindow.GetInstance();
                         fcmw.Owner = this.Owner;
                         if (fcmw.Visibility == Visibility.Visible)
@@ -164,12 +193,12 @@ namespace NSAP_ODK.Views
                         if (SamplingCalendaryMismatchFixer.Cancel)
                         {
 
-                            labelDescription.Content = "Operation was cancelled";
+                            textBlockDescription.Text = "Operation was cancelled";
                         }
                         else
                         {
                             _processStarted = false;
-                            labelDescription.Content = labelNoSuccessFindingMismatch;
+                            textBlockDescription.Text = labelNoSuccessFindingMismatch;
                         }
                     }
                     SamplingCalendaryMismatchFixer.ProcessingItemsEvent -= OnProcessingItemsEvent;
@@ -184,6 +213,7 @@ namespace NSAP_ODK.Views
 
         private void OnProcessingItemsEvent(object sender, ProcessingItemsEventArg e)
         {
+            _timerEnable = true;
             string processName = "";
             switch (e.Intent)
             {
@@ -234,6 +264,8 @@ namespace NSAP_ODK.Views
                           return null;
                       }), null);
                     break;
+                case "item deleted":
+                case "entity id removed":
                 case "item sorted":
                 case "item fixed":
                 case "imported_entity":
@@ -243,6 +275,10 @@ namespace NSAP_ODK.Views
                     {
                         processName = "Fixed";
                     }
+                    else if (e.Intent == "entity id removed")
+                    {
+                        processName = "Removed item ID of";
+                    }
                     else if (e.Intent == "imported_entity")
                     {
                         processName = "Imported";
@@ -250,6 +286,10 @@ namespace NSAP_ODK.Views
                     else if (e.Intent == "JSON file analyzed")
                     {
                         processName = "Analyzed";
+                    }
+                    else if (e.Intent == "item deleted")
+                    {
+                        processName = "Deleted";
                     }
                     progressBar.Dispatcher.BeginInvoke
                     (
@@ -272,10 +312,12 @@ namespace NSAP_ODK.Views
                          ), null);
 
                     break;
+                case "done deleting":
                 case "done sorting":
                 case "done fixing":
                 case "import_done":
                 case "done analyzing JSON file":
+                case "done removing entity id":
                 case "cancel":
                     progressBar.Dispatcher.BeginInvoke
                     (
@@ -294,6 +336,13 @@ namespace NSAP_ODK.Views
                               processName = "sorting";
                               switch (e.Intent)
                               {
+                                  case "done removing entity id":
+                                      processName = "removing removing entity IDs of";
+                                      break;
+                                  case "done deleting":
+                                      processName = "deleting";
+                                      ((EditWindowEx)Owner).RefreshSubForm(TaskToDo);
+                                      break;
                                   case "done fixing":
                                       processName = "fixing";
                                       break;
@@ -319,26 +368,55 @@ namespace NSAP_ODK.Views
 
 
 
-                    labelDescription.Dispatcher.BeginInvoke
+                    //labelDescription.Dispatcher.BeginInvoke
+                    _timer.Interval = TimeSpan.FromSeconds(3);
+                    textBlockDescription.Dispatcher.BeginInvoke
                         (
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
                               switch (TaskToDo)
                               {
+                                  case "delete vessel from vessel unload":
+                                      textBlockDescription.Text = $"Finishsed removing entity IDs of {progressBar.Maximum} vessels";
+                                      break;
                                   case "analyze json history files":
-                                      labelDescription.Content = $"Finishsed analyzing {progressBar.Maximum} JSON files";
+                                      //textBlockDescription.Text = $"Finishsed analyzing {progressBar.Maximum} JSON files";
+                                      textBlockDescription.Text = $"Finishsed analyzing {progressBar.Maximum} JSON files";
                                       break;
                                   case "import fishing vessels":
-                                      labelDescription.Content = $"Finishsed importing {progressBar.Maximum} vessels";
+                                      //textBlockDescription.Text = $"Finishsed importing {progressBar.Maximum} vessels";
+                                      textBlockDescription.Text = $"Finishsed importing {progressBar.Maximum} vessels";
                                       break;
                                   case "fix mismatch in calendar days":
-                                      labelDescription.Content = $"Found {progressBar.Maximum} gear unloads with mismatch";
+                                      //textBlockDescription.Text = $"Found {progressBar.Maximum} gear unloads with mismatch";
+                                      textBlockDescription.Text = $"Found {progressBar.Maximum} gear unloads with mismatch";
+                                      break;
+                                  case "delete region vessels":
+
+                                      _deleteRegionEntityFails = NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(NSAPEntities.NSAPRegionViewModel.CurrentEntity).DeleteRegionEntityFails;
+                                      if (_deleteRegionEntityFails.Count > 0)
+                                      {
+
+                                          string msg = $"There are {_deleteRegionEntityFails.Count} vessels that were not deleted because they are used in the vessel unload table\n\r" +
+                                          "Do you want to delete fishing vessel name from that table?";
+
+
+                                          _timerEnable = false;
+                                          _timer.Interval = TimeSpan.FromMilliseconds(1);
+                                          textBlockDescription.Text = msg;
+
+
+                                      }
+                                      else
+                                      {
+                                          textBlockDescription.Text = $"Finishsed deleting {progressBar.Maximum} vessels in the region";
+                                      }
                                       break;
                               }
 
                               if (e.Intent == "cancel")
                               {
-                                  labelDescription.Content = $"Operation was cancelled";
+                                  textBlockDescription.Text = $"Operation was cancelled";
                               }
 
                               //do what you need to do on UI Thread
@@ -346,16 +424,17 @@ namespace NSAP_ODK.Views
                           }
                          ), null);
 
-                    _timer.Interval = TimeSpan.FromSeconds(3);
-                    if (e.Intent == "cancel")
-                    {
-                        _timer.Interval = TimeSpan.FromSeconds(3);
-                    }
+
+                    //_timer.Interval = TimeSpan.FromSeconds(3);
+                    //if (e.Intent == "cancel")
+                    //{
+                    //    _timer.Interval = TimeSpan.FromSeconds(3);
+                    //}
                     _timer.Start();
+
                     break;
             }
         }
-
         public static ProgressDialogWindow GetInstance(string taskToDo)
         {
             if (_instance == null)
@@ -370,6 +449,15 @@ namespace NSAP_ODK.Views
             switch (((Button)sender).Content)
             {
                 case "Yes":
+                    if (_deleteRegionEntityFails != null && _deleteRegionEntityFails.Count > 0)
+                    {
+                        switch (TaskToDo)
+                        {
+                            case "delete region vessels":
+                                TaskToDo = "delete vessel from vessel unload";
+                                break;
+                        }
+                    }
                     panelButtons.Visibility = Visibility.Collapsed;
                     panelStatus.Visibility = Visibility.Visible;
                     _processStarted = true;
@@ -389,6 +477,9 @@ namespace NSAP_ODK.Views
                     {
                         switch (TaskToDo)
                         {
+                            case "delete region vessels":
+                                Close();
+                                break;
                             case "analyze json history files":
                                 break;
                             case "fix mismatch in calendar days":

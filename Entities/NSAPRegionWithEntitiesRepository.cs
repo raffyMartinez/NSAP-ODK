@@ -1,15 +1,19 @@
 ﻿using MySql.Data.MySqlClient;
+using NSAP_ODK.Entities.Database;
 using NSAP_ODK.NSAPMysql;
 using NSAP_ODK.Utilities;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.OleDb;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace NSAP_ODK.Entities
 {
     public class NSAPRegionWithEntitiesRepository
     {
+        public event EventHandler<ProcessingItemsEventArg> ProcessingItemsEvent;
         private string _dateFormat = "MMM-dd-yyyy";
         public NSAPRegion NSAPRegion { get; private set; }
 
@@ -2263,6 +2267,114 @@ namespace NSAP_ODK.Entities
                 }
             }
             return success;
+        }
+
+        public void ResetDeleteEntityFails()
+        {
+            DeleteRegionEntityFails = null;
+        }
+        public List<DeleteRegionEntityFail> DeleteRegionEntityFails { get; set; }
+        public Task<bool> DeleteFishingVesselsAsync(List<NSAPRegionFishingVessel> fvs)
+        {
+            return Task.Run(() => DeleteFishingVessels(fvs));
+        }
+        public bool DeleteFishingVessels(List<NSAPRegionFishingVessel> fvs)
+        {
+
+            if (DeleteRegionEntityFails == null)
+            {
+                DeleteRegionEntityFails = new List<DeleteRegionEntityFail>();
+            }
+
+
+            ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "start", TotalCountToProcess = fvs.Count });
+            int loopCount = 0;
+
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    con.Open();
+                    foreach (var fv in fvs)
+                    {
+                        using (var cmd = con.CreateCommand())
+                        {
+                            //OleDbTransaction transaction = null;
+
+                            OleDbTransaction transaction = con.BeginTransaction(IsolationLevel.ReadCommitted);
+                            cmd.Transaction = transaction;
+                            cmd.Parameters.AddWithValue("@rowid", fv.RowID);
+                            cmd.CommandText = $"Delete * from NSAPRegionVessel where RowID=@rowid";
+                            try
+                            {
+
+
+                                if (cmd.ExecuteNonQuery() > 0)
+                                {
+                                    using (var cmd2 = con.CreateCommand())
+                                    {
+                                        cmd2.Transaction = transaction;
+                                        cmd2.Parameters.AddWithValue("@id", OleDbType.Integer).Value = fv.FishingVesselID;
+                                        cmd2.CommandText = "Delete * from fishingVessel where VesselID=@id";
+                                        try
+                                        {
+                                            if (cmd2.ExecuteNonQuery() > 0)
+                                            {
+                                                transaction.Commit();
+                                                NSAPRegion.FishingVessels.Remove(fv);
+                                                ProcessingItemsEvent.Invoke(null, new ProcessingItemsEventArg { Intent = "item deleted", CountProcessed = ++loopCount });
+                                            }
+                                        }
+                                        catch (OleDbException oex)
+                                        {
+                                            transaction.Rollback();
+                                            switch (oex.ErrorCode)
+                                            {
+                                                case -2147467259:
+                                                    var arr = oex.Message.Split('\'');
+                                                    DeleteRegionEntityFails.Add(
+                                                        new DeleteRegionEntityFail
+                                                        {
+                                                            EntityID = fv.FishingVesselID,
+                                                            RegionEntityID = fv.RowID,
+                                                            ErrorMessage = oex.Message,
+                                                            NSAPEntity = NSAPEntity.FishingVessel,
+                                                            EntityTable = "fishingVessel",
+                                                            RegionEntityTable = "NSAPRegionVessel",
+                                                            AffectedTable = arr[1]
+                                                        });
+                                                    break;
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            transaction.Rollback();
+                                            Logger.Log(ex);
+                                        }
+                                    }
+                                }
+                                //con.Close();
+                            }
+                            catch (OleDbException oex)
+                            {
+
+                            }
+                            catch (Exception ex)
+                            {
+
+                            }
+                        }
+
+                    }
+                }
+            }
+            ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "done deleting" });
+            return loopCount > 0;
         }
         public bool DeleteFishingVessel(int id)
         {

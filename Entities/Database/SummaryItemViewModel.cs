@@ -12,7 +12,7 @@ namespace NSAP_ODK.Entities.Database
     {
         //private readonly object collectionLock = new object();
 
-
+        public event EventHandler<ProcessingItemsEventArg> ProcessingItemsEvent;
         private bool _editSuccess;
         private TreeViewModelControl.AllSamplingEntitiesEventHandler _treeViewData;
         private NSAPEntity _orphanedEntity;
@@ -936,6 +936,48 @@ namespace NSAP_ODK.Entities.Database
 
             return unloads;
         }
+        public Task<bool> DeleteVesselIDFromVesselUnloadsAsync(List<DeleteRegionEntityFail> deleteRegionEntityFails)
+        {
+            return Task.Run(() => DeleteVesselIDFromVesselUnloads(deleteRegionEntityFails));
+        }
+        public bool DeleteVesselIDFromVesselUnloads(List<DeleteRegionEntityFail> deleteRegionEntityFails)
+        {
+            ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "start", TotalCountToProcess = deleteRegionEntityFails.Count });
+            int successCount = 0;
+            var unloads = GetVesselUnloads(deleteRegionEntityFails);
+            foreach (var unload in unloads)
+            {
+                var id = unload.VesselID;
+                unload.VesselID = null;
+                if (unload.Parent.VesselUnloadViewModel.UpdateRecordInRepo(unload))
+                {
+                    foreach (var sic in SummaryItemCollection.Where(t => t.VesselID == id))
+                    {
+                        sic.VesselID = null;
+                    }
+                    successCount++;
+                    ProcessingItemsEvent.Invoke(null, new ProcessingItemsEventArg { Intent = "entity id removed", CountProcessed = successCount });
+                }
+            }
+            ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "done removing entity id" });
+            return successCount == deleteRegionEntityFails.Count;
+        }
+
+
+        public List<VesselUnload> GetVesselUnloads(List<DeleteRegionEntityFail> deleteRegionEntityFails)
+        {
+            var matches = from o in SummaryItemCollection
+                          from i in deleteRegionEntityFails
+                          where o.VesselID == i.EntityID
+                          select o;
+
+            List<VesselUnload> vus = new List<VesselUnload>();
+            foreach (var item in matches)
+            {
+                vus.Add(item.VesselUnload);
+            }
+            return vus;
+        }
         public VesselUnload GetVesselUnload(SummaryItem si)
         {
             if (si.GearUnloadID != null && si.VesselUnloadID != null)
@@ -1474,15 +1516,15 @@ namespace NSAP_ODK.Entities.Database
 
         public Task<List<SummaryResults>> GetFMASummaryAsync(NSAPRegion region, FMA fma)
         {
-            return Task.Run(() => GetFMASummary(region,fma));
+            return Task.Run(() => GetFMASummary(region, fma));
         }
 
-        public List<SummaryResults> GetFMASummary(NSAPRegion region,FMA fma)
+        public List<SummaryResults> GetFMASummary(NSAPRegion region, FMA fma)
         {
             ProcessBuildEvent(status: BuildSummaryReportStatus.StatusBuildStart, isIndeterminate: true);
             List<SummaryResults> resuts = new List<SummaryResults>();
             int seq = 0;
-            foreach (var fgData in SummaryItemCollection.Where(t => t.SamplingDate != null && t.DateAdded != null && t.RegionID == region.Code && t.FMAId==fma.FMAID)
+            foreach (var fgData in SummaryItemCollection.Where(t => t.SamplingDate != null && t.DateAdded != null && t.RegionID == region.Code && t.FMAId == fma.FMAID)
                 .OrderBy(t => t.SamplingDate)
                 .GroupBy(t => t.FishingGroundID))
             {

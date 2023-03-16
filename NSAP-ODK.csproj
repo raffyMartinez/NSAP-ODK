@@ -190,6 +190,7 @@
     <Compile Include="Entities\Database\CreateTablesInAccessEventArgs.cs" />
     <Compile Include="Entities\Database\CrossTabLengthWeight.cs" />
     <Compile Include="Entities\Database\DeleteLandingSiteSamplingFromOrphanEventArg.cs" />
+    <Compile Include="Entities\Database\DeleteRegionEntityFail.cs" />
     <Compile Include="Entities\Database\DeleteVesselUnloadFromOrphanEventArg.cs" />
     <Compile Include="Entities\Database\DownloadMediaFromServerEventArgs.cs" />
     <Compile Include="Entities\Database\DownloadedJsonMetadata.cs" />

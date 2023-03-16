@@ -481,6 +481,11 @@ namespace NSAP_ODK.Entities
             }
             return success;
         }
+
+        public string DeleteVesselError { get; set; }
+        
+
+        
         public bool Delete(int id)
         {
             bool success = false;
@@ -502,7 +507,7 @@ namespace NSAP_ODK.Entities
                         {
                             success = update.ExecuteNonQuery() > 0;
                         }
-                        catch (OleDbException)
+                        catch (OleDbException olx)
                         {
                             success = false;
                         }

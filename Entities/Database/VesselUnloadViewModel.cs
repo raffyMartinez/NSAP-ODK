@@ -23,6 +23,16 @@ namespace NSAP_ODK.Entities.Database
             return VesselUnloadCollection.Count(t => t.HasCatchComposition == true);
         }
 
+        public bool RemoveVesselFromUnload(VesselUnload vu)
+        {
+
+            vu.VesselID = null;
+            return UpdateRecordInRepo(vu);
+
+
+
+        }
+
         public static string StatusText(VesselUnload vu)
         {
             if (vu.VesselCatchViewModel?.Count > 0)
@@ -90,7 +100,7 @@ namespace NSAP_ODK.Entities.Database
 
             WeightValidationUpdater.VesselCatches = vu.VesselCatchViewModel.VesselCatchCollection.ToList();
             WeightValidationUpdater.SummaryItem = si;
-            if(WeightValidationUpdater.UpdateDatabase())
+            if (WeightValidationUpdater.UpdateDatabase())
             {
                 if (WeightValidationUpdater.CSV.Length > 0)
                 {
@@ -102,7 +112,7 @@ namespace NSAP_ODK.Entities.Database
         }
         public bool UpdateWeightValidation(NSAP_ODK.Entities.Database.VesselLanding vl, VesselUnload vu)
         {
-            if(vu.DelayedSave)
+            if (vu.DelayedSave)
             {
                 vu.SumOfSampleWeights = vl.SumOfCatchCompWeight;
                 vu.SumOfCatchCompositionWeights = vl.SumOfCatchCompSampleWeight;
