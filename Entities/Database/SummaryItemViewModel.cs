@@ -942,9 +942,10 @@ namespace NSAP_ODK.Entities.Database
         }
         public bool DeleteVesselIDFromVesselUnloads(List<DeleteRegionEntityFail> deleteRegionEntityFails)
         {
-            ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "start", TotalCountToProcess = deleteRegionEntityFails.Count });
+            ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "start remove entity id", TotalCountToProcess = deleteRegionEntityFails.Count });
             int successCount = 0;
             var unloads = GetVesselUnloads(deleteRegionEntityFails);
+            ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "processing start", TotalCountToProcess = unloads.Count });
             foreach (var unload in unloads)
             {
                 var id = unload.VesselID;
@@ -966,6 +967,8 @@ namespace NSAP_ODK.Entities.Database
 
         public List<VesselUnload> GetVesselUnloads(List<DeleteRegionEntityFail> deleteRegionEntityFails)
         {
+            //linq query to select from a list that matches properties from another list
+            // and put the results in a third list
             var matches = from o in SummaryItemCollection
                           from i in deleteRegionEntityFails
                           where o.VesselID == i.EntityID

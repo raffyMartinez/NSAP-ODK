@@ -217,6 +217,7 @@ namespace NSAP_ODK.Views
             string processName = "";
             switch (e.Intent)
             {
+                case "start remove entity id":
                 case "start sorting":
                 case "start fixing":
                 case "start analyzing JSON files":
@@ -233,7 +234,11 @@ namespace NSAP_ODK.Views
                               _countToProcess = e.TotalCountToProcess;
                           }
                           progressBar.Value = 0;
-                          progressBar.Maximum = e.TotalCountToProcess;
+                          if (e.Intent != "start remove entity id")
+                          {
+                              progressBar.Maximum = e.TotalCountToProcess;
+                          }
+
                           //do what you need to do on UI Thread
                           return null;
                       }), null);

@@ -2660,7 +2660,7 @@ namespace NSAP_ODK.Entities.Database
                                         HasCatchComposition = @has_catch_composition,
                                         NumberOfFishers = @num_fisher,
                                         ref_no = @ref_no,
-                                        is_catch_sold = @is_catch_sold,
+                                        is_catch_sold = @is_catch_sold
                                         WHERE v_unload_id =@Vessel_unload_id";
 
 
