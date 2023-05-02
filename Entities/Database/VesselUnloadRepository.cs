@@ -16,6 +16,44 @@ namespace NSAP_ODK.Entities.Database
         private string _dateFormat = "MMM-dd-yyyy HH:mm";
         public List<VesselUnload> VesselUnloads { get; set; }
 
+        public static bool UpdateTableDefinitionEx(string colName)
+        {
+            bool success = false;
+            using (var conn = new OleDbConnection(Global.ConnectionString))
+            {
+                conn.Open();
+                var sql = "";
+                switch (colName)
+                {
+                    case "json_filename":
+                        sql = $@"ALTER TABLE dbo_vessel_unload_1 ADD COLUMN {colName}  varchar(50)";
+                        break;
+                }
+
+                OleDbCommand cmd = new OleDbCommand();
+                cmd.Connection = conn;
+                cmd.CommandText = sql;
+
+                try
+                {
+                    cmd.ExecuteNonQuery();
+                    success = true;
+
+                }
+                catch (OleDbException dbex)
+                {
+                    Logger.Log(dbex);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(ex);
+                }
+
+                cmd.Connection.Close();
+                conn.Close();
+            }
+            return success;
+        }
         public static bool ChangeGearUnloadIDOfLanding(int vesselUnloadID, int newGearUnloadID)
         {
             bool success = false;
@@ -1325,7 +1363,7 @@ namespace NSAP_ODK.Entities.Database
                                 item.RefNo = dr["ref_no"].ToString();
                                 item.IsCatchSold = (bool)dr["is_catch_sold"];
 
-
+                                item.JSONFileName = dr["json_filename"].ToString();
                                 if (dr["count_catch_composition"] != DBNull.Value)
                                 {
                                     item.CountCatchCompositionItems = (int)dr["count_catch_composition"];

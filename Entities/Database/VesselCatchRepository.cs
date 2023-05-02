@@ -12,6 +12,7 @@ namespace NSAP_ODK.Entities.Database
 {
     class VesselCatchRepository
     {
+        public static event EventHandler<ProcessingItemsEventArg> ProcessingItemsEvent;
         public List<VesselCatch> VesselCatches { get; set; }
         private bool _requireTableDefinitionUpdate = false;
 
@@ -63,6 +64,73 @@ namespace NSAP_ODK.Entities.Database
             return max_rec_no;
         }
 
+        public static Task<List<CatchWithZeroWeight>> GetCatchesWithZeroWeightAsync()
+        {
+            return Task.Run(() => GetCatchesWithZeroWeight());
+        }
+
+
+        public static List<CatchWithZeroWeight> GetCatchesWithZeroWeight()
+        {
+
+            List<CatchWithZeroWeight> thisLlist = new List<CatchWithZeroWeight>();
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        con.Open();
+                        cmd.CommandText = "SELECT Count(catch_id) AS n FROM dbo_vessel_catch WHERE catch_kg=0";
+                        int result = (int)cmd.ExecuteScalar();
+
+                        if (result > 0)
+                        {
+                            int loopCount = 0;
+                            ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "start", TotalCountToProcess = result });
+                            cmd.CommandText = "Select * from dbo_vessel_catch where catch_kg=0";
+                            var dr = cmd.ExecuteReader();
+                            while (dr.Read())
+                            {
+                                int? sp_id = null;
+                                if (dr["species_id"] != DBNull.Value)
+                                {
+                                    sp_id = (int)dr["species_id"];
+                                }
+                                CatchWithZeroWeight cw = new CatchWithZeroWeight
+                                {
+                                    SpeciesID = sp_id,
+                                    SpeciesName = dr["species_text"].ToString(),
+                                    VesselUnloadID = (int)dr["v_unload_id"],
+                                    Taxa = NSAPEntities.TaxaViewModel.GetTaxa(dr["taxa"].ToString()),
+                                };
+                                cw.Parent = NSAPEntities.SummaryItemViewModel.GetVesselUnload(cw.VesselUnloadID);
+                                if (cw.SpeciesID != null)
+                                {
+                                    if (cw.Taxa.Code == "FIS")
+                                    {
+                                        cw.FishSpecies = NSAPEntities.FishSpeciesViewModel.GetSpecies((int)cw.SpeciesID);
+                                    }
+                                    else
+                                    {
+                                        cw.NotFishSpecies = NSAPEntities.NotFishSpeciesViewModel.GetSpecies((int)cw.SpeciesID);
+                                    }
+                                }
+                                thisLlist.Add(cw);
+                                loopCount++;
+                                ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "item found", CountProcessed = loopCount });
+                            }
+                        }
+                    }
+                }
+            }
+            ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "done searching" });
+            return thisLlist;
+        }
         public static List<OrphanedSpeciesNameRaw> GetOrphanedSpecies(bool multiline = false)
         {
             List<OrphanedSpeciesNameRaw> this_list = new List<OrphanedSpeciesNameRaw>();
@@ -347,20 +415,20 @@ namespace NSAP_ODK.Entities.Database
                         {
                             conection.Open();
                             var dr = cmd.ExecuteReader();
-                            while(dr.Read())
+                            while (dr.Read())
                             {
                                 VesselCatchWV vcwv = new VesselCatchWV
                                 {
                                     PK = (int)dr["catch_id"],
-                                    VesselUnloadID=(int)dr["v_unload_id"],
-                                    Species_kg=dr["catch_kg"]==DBNull.Value?null:(double?)dr["catch_kg"],
-                                    Species_sample_kg=dr["samp_kg"]==DBNull.Value?null:(double?)dr["samp_kg"],
-                                    FromTotalCatch=(bool)dr["from_total_catch"]
+                                    VesselUnloadID = (int)dr["v_unload_id"],
+                                    Species_kg = dr["catch_kg"] == DBNull.Value ? null : (double?)dr["catch_kg"],
+                                    Species_sample_kg = dr["samp_kg"] == DBNull.Value ? null : (double?)dr["samp_kg"],
+                                    FromTotalCatch = (bool)dr["from_total_catch"]
                                 };
                                 thisList.Add(vcwv);
                             }
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             Logger.Log(ex);
                         }

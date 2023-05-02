@@ -39,14 +39,23 @@ namespace NSAP_ODK.Entities.Database
                             if (cols.Contains("weighing_unit") || VesselCatchRepository.UpdateTableDefinition("weighing_unit"))
                             {
                                 if (cols.Contains("from_total_catch") || VesselCatchRepository.UpdateTableDefinition("from_total_catch"))
-                                    proceed = true;
+                                { proceed = true; }
                             }
 
-                            if(proceed)
+                            if (proceed)
+                            {
+                                cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_unload_1");
+                                if (cols.Contains("json_filename") || VesselUnloadRepository.UpdateTableDefinitionEx("json_filename"))
+                                {
+                                    proceed = true;
+                                }
+                            }
+
+                            if (proceed)
                             {
                                 cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_unload_1");
                                 proceed = cols.Contains("ref_no") || VesselUnloadRepository.AddFieldToTable1("ref_no");
-                                if(proceed)
+                                if (proceed)
                                 {
                                     proceed = cols.Contains("is_catch_sold") || VesselUnloadRepository.AddFieldToTable1("is_catch_sold");
                                 }
@@ -54,10 +63,10 @@ namespace NSAP_ODK.Entities.Database
 
 
                             //check for pricing columns in catch composition table
-                            if(proceed)
+                            if (proceed)
                             {
                                 cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_catch");
-                                if( cols.Contains("price_of_species") || VesselCatchRepository.AddFieldToTable("price_of_species"))
+                                if (cols.Contains("price_of_species") || VesselCatchRepository.AddFieldToTable("price_of_species"))
                                 {
                                     proceed = cols.Contains("price_unit") || VesselCatchRepository.AddFieldToTable("price_unit");
                                 }

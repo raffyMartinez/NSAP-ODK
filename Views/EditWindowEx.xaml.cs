@@ -3348,6 +3348,10 @@ namespace NSAP_ODK.Views
                     else if (_nsapEntity == NSAPEntity.LandingSite)
                     {
                         var province = NSAPEntities.ProvinceViewModel.GetProvince((int)e.NewValue);
+                        if(province.Municipalities==null)
+                        {
+                            province.Municipalities = new MunicipalityViewModel(province);
+                        }
                         foreach (var mun in province.Municipalities.MunicipalityCollection
                             .Where(t => t.Province.ProvinceID == (int)e.NewValue)
                             .OrderBy(t => t.MunicipalityName))

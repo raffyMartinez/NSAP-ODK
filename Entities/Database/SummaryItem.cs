@@ -19,8 +19,8 @@ namespace NSAP_ODK.Entities.Database
                 other.RegionID == this.RegionID &&
                 other.FMAId == this.FMAId &&
                 other.FishingGroundID == this.FishingGroundID &&
-                other.LandingSiteNameText == this.LandingSiteNameText && 
-                other.EnumeratorNameToUse==this.EnumeratorNameToUse;
+                other.LandingSiteNameText == this.LandingSiteNameText &&
+                other.EnumeratorNameToUse == this.EnumeratorNameToUse;
 
         }
 
@@ -64,7 +64,7 @@ namespace NSAP_ODK.Entities.Database
         public double? SumOfCatchCompositionSampleWeight { get; set; }
         public SamplingTypeFlag SamplingTypeFlag { get; set; }
         public WeightValidationFlag WeightValidationFlag { get; set; }
-
+        public string JSONFileName { get; set; }
         public double? DifferenceCatchWtandSumCatchCompWeight { get; set; }
         public bool LandingSiteHasOperation { get; set; }
         public string UserName { get; set; }

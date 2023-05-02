@@ -426,7 +426,7 @@ namespace NSAP_ODK.Views
             jsonFile.LandingIdentifiers = VesselUnloadServerRepository.GetLandingIdentifiers();
             //jsonFile.DateAdded = DateTime.Now;
 
-            
+
             if (FormID == null)
             {
                 if (jsonFile.FullFileName != null)
@@ -467,10 +467,11 @@ namespace NSAP_ODK.Views
         {
             return NSAPEntities.JSONFileViewModel.Count() > 0 && NSAPEntities.JSONFileViewModel.getJSONFIle(jsonFile.MD5) != null;
         }
-        private async Task<bool> SaveJSONText(bool verbose = true)
+        private bool SaveJSONText(bool verbose = true)
+        //private async Task<bool> SaveJSONText(bool verbose = true)
         {
             bool success = false;
-            _jsonFile = await CreateJsonFile();
+            //_jsonFile = await CreateJsonFile();
             if (_jsonFile != null)
             {
                 success = true;
@@ -1602,7 +1603,10 @@ namespace NSAP_ODK.Views
                     if (_targetGrid.Items.Count > 0)
                     {
                         VesselUnloadServerRepository.JSONFileCreationTime = _jsonFileUseCreationDateForHistory;
-                        if (await VesselUnloadServerRepository.UploadToDBAsync())
+                        _jsonFile = null;
+                        _jsonFile = await CreateJsonFile();
+                        //if (await VesselUnloadServerRepository.UploadToDBAsync())
+                        if (_jsonFile != null && await VesselUnloadServerRepository.UploadToDBAsync(_jsonFile.FileName))
                         {
                             string jsonDescription = "NSAP Fish Catch Monitoring e-Form";
                             _targetGrid.ItemsSource = null;
@@ -2873,7 +2877,7 @@ namespace NSAP_ODK.Views
                 {
                     case "NSAP_ODK.Entities.Database.FileInfoJSONMetadata":
                         _selectedJSONMetaData = (FileInfoJSONMetadata)((TreeViewItem)e.NewValue).Tag;
-                        if ( _downloadedJsonMetadata != null && _selectedJSONMetaData.Koboserver==null)
+                        if (_downloadedJsonMetadata != null && _selectedJSONMetaData.Koboserver == null)
                         {
                             _selectedJSONMetaData.Koboserver = NSAPEntities.KoboServerViewModel.KoboserverCollection.
                                 FirstOrDefault(t => t.FormName == _downloadedJsonMetadata.FormName && t.Owner == _downloadedJsonMetadata.DBOwner);

@@ -61,6 +61,9 @@ namespace NSAP_ODK.Views
                 case "analyze json history files":
                     labelBigTitle.Content = "Analyze content of JSON history files";
                     break;
+                case "identify zero weight catch composition":
+                    labelBigTitle.Content = "Identify catch composition weight of zero";
+                    break;
 
             }
             Title = labelBigTitle.Content.ToString();
@@ -126,6 +129,26 @@ namespace NSAP_ODK.Views
 
             switch (TaskToDo)
             {
+                case "identify zero weight catch composition":
+                    textBlockDescription.Text = "Identifying catch composition with weight of zero";
+                    VesselCatchRepository.ProcessingItemsEvent += OnProcessingItemsEvent;
+                    var listZeroCatchWeight = await VesselCatchRepository.GetCatchesWithZeroWeightAsync();
+                    if (listZeroCatchWeight != null && listZeroCatchWeight.Count > 0)
+                    {
+                        SpeciesWithZeroWeightListingWindow slw = SpeciesWithZeroWeightListingWindow.GetInstance();
+                        if(slw.Visibility==Visibility.Visible)
+                        {
+                            slw.BringIntoView();
+                        }
+                        else
+                        {
+                            slw.Show();
+                        }
+                        slw.CatchesWithZeroWeight = listZeroCatchWeight;
+                        slw.Owner = Owner;
+                    }
+                    VesselCatchRepository.ProcessingItemsEvent += OnProcessingItemsEvent;
+                    break;
                 case "delete vessel from vessel unload":
                     textBlockDescription.Text = "Removing vessel IDs from unload table";
                     ner.ResetDeleteEntityFails();
@@ -221,6 +244,7 @@ namespace NSAP_ODK.Views
                 case "start sorting":
                 case "start fixing":
                 case "start analyzing JSON files":
+
                     progressBar.Dispatcher.BeginInvoke
                     (
                       DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
@@ -275,6 +299,7 @@ namespace NSAP_ODK.Views
                 case "item fixed":
                 case "imported_entity":
                 case "JSON file analyzed":
+                case "item found":
                     processName = "Found";
                     if (e.Intent == "item fixed")
                     {
@@ -318,6 +343,7 @@ namespace NSAP_ODK.Views
 
                     break;
                 case "done deleting":
+                case "done searching":
                 case "done sorting":
                 case "done fixing":
                 case "import_done":
@@ -341,6 +367,9 @@ namespace NSAP_ODK.Views
                               processName = "sorting";
                               switch (e.Intent)
                               {
+                                  case "done searching":
+                                      processName = "searching";
+                                      break;
                                   case "done removing entity id":
                                       processName = "removing removing entity IDs of";
                                       break;
@@ -381,6 +410,9 @@ namespace NSAP_ODK.Views
                           {
                               switch (TaskToDo)
                               {
+                                  case "identify zero weight catch composition":
+                                      textBlockDescription.Text = $"Finishsed searching for species with weight of zero.";
+                                      break;
                                   case "delete vessel from vessel unload":
                                       textBlockDescription.Text = $"Finishsed removing entity IDs of {progressBar.Maximum} vessels";
                                       break;
@@ -403,7 +435,7 @@ namespace NSAP_ODK.Views
                                       {
 
                                           string msg = $"There are {_deleteRegionEntityFails.Count} vessels that were not deleted because they are used in the vessel unload table\n\r" +
-                                          "Do you want to delete fishing vessel name from that table?";
+                                          "Do you want to delete the fishing vessel IDs from that table?";
 
 
                                           _timerEnable = false;

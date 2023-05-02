@@ -184,6 +184,7 @@
     <Compile Include="Entities\Database\BoatLandingsFromServerRepository.cs" />
     <Compile Include="Entities\Database\BuildSummaryReportEventArg.cs" />
     <Compile Include="Entities\Database\CalendarDayLineage.cs" />
+    <Compile Include="Entities\Database\CatchWithZeroWeight.cs" />
     <Compile Include="Entities\Database\CollectedUnrecognizedFG.cs" />
     <Compile Include="Entities\Database\CopyTextFromDataGrid.cs" />
     <Compile Include="Entities\Database\CreateTablesInAccess.cs" />
@@ -521,6 +522,9 @@
     <Compile Include="Views\EnumeratorsAndLandingSitesWindow.xaml.cs">
       <DependentUpon>EnumeratorsAndLandingSitesWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\ListFoldersWindow.xaml.cs">
+      <DependentUpon>ListFoldersWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\ProgressDialogWindow.xaml.cs">
       <DependentUpon>ProgressDialogWindow.xaml</DependentUpon>
     </Compile>
@@ -611,6 +615,9 @@
     <Compile Include="Views\SettingsWindow.xaml.cs">
       <DependentUpon>SettingsWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\SpeciesWithZeroWeightListingWindow.xaml.cs">
+      <DependentUpon>SpeciesWithZeroWeightListingWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\SplashWindow.xaml.cs">
       <DependentUpon>SplashWindow.xaml</DependentUpon>
     </Compile>
@@ -677,6 +684,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\EnumeratorsAndLandingSitesWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ListFoldersWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -797,6 +808,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\SettingsWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\SpeciesWithZeroWeightListingWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

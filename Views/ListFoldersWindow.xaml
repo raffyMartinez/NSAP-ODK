@@ -1,0 +1,32 @@
+﻿<Window x:Class="NSAP_ODK.Views.ListFoldersWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NSAP_ODK.Views"
+        mc:Ignorable="d"
+        Title="Folders containing JSON files" Height="450" Width="420" ResizeMode="NoResize">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition/>
+            <RowDefinition Height="40"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="1" Margin="5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="35"/>
+            </Grid.ColumnDefinitions>
+            <DataGrid x:Name="dataGrid" Grid.Row="1"/>
+            <StackPanel Grid.Column="1" Margin="0 10">
+                <Button x:Name="buttonAdd" Content="+" Width="25" Height="25" HorizontalAlignment="Center" FontSize="16" FontWeight="Bold"/>
+                <Button x:Name="buttonMinus" Content="-" Width="25" Height="25" HorizontalAlignment="Center" Margin="0 10 0 0" FontSize="16" FontWeight="Bold"/>
+            </StackPanel>
+        </Grid>
+        <Label Content="Locate folders where JSON files are saved"/>
+        <WrapPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="10 0">
+            <Button Content="Cancel" x:Name="buttonCancel" Click="onButtonClick" Width="50" Height="25" Margin="0 0 10 0" FontWeight="Normal" FontSize="14"/>
+            <Button Content="Ok" x:Name="buttonOk" Click="onButtonClick" Width="50" Height="25" />
+        </WrapPanel>
+    </Grid>
+</Window>

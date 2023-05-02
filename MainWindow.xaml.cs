@@ -2292,7 +2292,7 @@ namespace NSAP_ODK
         }
         private void ShowFixMismatchCalendarWindow()
         {
-            NSAPEntities.FishingVesselViewModel.ProcessingItemsEvent += FishingVesselViewModel_ProcessingItemsEvent;
+
             ProgressDialogWindow pdw = ProgressDialogWindow.GetInstance("fix mismatch in calendar days");
             pdw.Owner = this;
             if (pdw.Visibility == Visibility.Visible)
@@ -2305,9 +2305,18 @@ namespace NSAP_ODK
             }
         }
 
-        private void FishingVesselViewModel_ProcessingItemsEvent(object sender, ProcessingItemsEventArg e)
+        private void ShowIdentifyCatchCompWithZeroWt()
         {
-            throw new NotImplementedException();
+            ProgressDialogWindow pdw = ProgressDialogWindow.GetInstance("identify zero weight catch composition");
+            pdw.Owner = this;
+            if (pdw.Visibility == Visibility.Visible)
+            {
+                pdw.BringIntoView();
+            }
+            else
+            {
+                pdw.Show();
+            }
         }
 
         private async void OnMenuClicked(object sender, RoutedEventArgs e)
@@ -2328,6 +2337,9 @@ namespace NSAP_ODK
 
             switch (itemName)
             {
+                case "menuIdentifyZeroWtCatchComp":
+                    ShowIdentifyCatchCompWithZeroWt();
+                    break;
                 case "menuCalendarDayMismatch":
                     ShowFixMismatchCalendarWindow();
                     //FixCalendarVesselUnloadWindow fcdmw = FixCalendarVesselUnloadWindow.GetInstance();

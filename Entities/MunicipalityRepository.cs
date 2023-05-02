@@ -66,7 +66,7 @@ namespace NSAP_ODK.Entities
             }
             return success;
         }
-        private List<Municipality> getFromMySQL(Province province)
+        private static List<Municipality> getFromMySQL(Province province)
         {
             List<Municipality> thisList = new List<Municipality>();
 
@@ -129,8 +129,11 @@ namespace NSAP_ODK.Entities
             }
             return maxRecordNumber;
         }
-
-        private List<Municipality> getMunicipalities(Province province)
+        public static List<Municipality> GetMunicipalitiesOfPRovince(Province p)
+        {
+            return getMunicipalities(p);
+        }    
+        private static List<Municipality> getMunicipalities(Province province)
         {
             List<Municipality> listMunicipalities = new List<Municipality>();
             if (Global.Settings.UsemySQL)

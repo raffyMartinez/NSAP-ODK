@@ -116,6 +116,7 @@
                 <MenuItem Header="Download CSV from server" x:Name="menuDownloadCSV" Click="OnMenuClicked"/>
                 <MenuItem Header="Update weight validation summary" x:Name="menuUpdateWeightValidation" Click="OnMenuClicked"/>
                 <MenuItem Header="Identify sampling calendar mismatch" x:Name="menuCalendarDayMismatch" Click="OnMenuClicked"/>
+                <MenuItem Header="Identify catch composition with zero weight" x:Name="menuIdentifyZeroWtCatchComp" Click="OnMenuClicked"/>
                 <Separator/>
                 <MenuItem Header="Backup MySQL Database" x:Name="menuBackupMySQL" Click="OnMenuClicked" Visibility="Collapsed"/>
                 <MenuItem Header="Setup MysQL tables" x:Name="menuSetupMySQLTables" Click="OnMenuClicked" Visibility="Collapsed"/>

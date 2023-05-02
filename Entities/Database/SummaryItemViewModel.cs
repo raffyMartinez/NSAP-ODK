@@ -917,7 +917,10 @@ namespace NSAP_ODK.Entities.Database
             ProcessBuildEvent(status: BuildSummaryReportStatus.StatusBuildEnd, totalRowsFetched: results.Count);
             return results;
         }
-
+        public VesselUnload GetVesselUnload(int unloadID)
+        {
+            return GetVesselUnload(SummaryItemCollection.FirstOrDefault(t => t.VesselUnloadID == unloadID));
+        }
         public List<VesselUnload> GetVesselUnloads(SummaryResults sr)
         {
             DBSummary dbs = sr.DBSummary;

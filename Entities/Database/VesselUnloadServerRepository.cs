@@ -1084,7 +1084,7 @@ namespace NSAP_ODK.Entities.Database
                 {
                     foreach (CatchCompGroupCatchCompositionRepeat item in _catchComps)
                     {
-                        if (item.WeightOfCatch!=null && ( item.FromTotalCatch || item.SpeciesSampleWt == null))
+                        if (item.WeightOfCatch != null && (item.FromTotalCatch || item.SpeciesSampleWt == null))
                         {
                             SumOfCatchCompWeight += (double)item.WeightOfCatch;
                         }
@@ -1110,7 +1110,7 @@ namespace NSAP_ODK.Entities.Database
 
                 }
 
-                if (CatchTotalWt!=null && SumOfCatchCompWeight > 0)
+                if (CatchTotalWt != null && SumOfCatchCompWeight > 0)
                 {
                     DifferenceInWeight = Math.Abs((double)CatchTotalWt - (double)SumOfCatchCompWeight) / (double)CatchTotalWt * 100;
                     if (DifferenceInWeight <= (int)Utilities.Global.Settings.AcceptableWeightsDifferencePercent)
@@ -1370,13 +1370,13 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if(Gear!=null)
+                if (Gear != null)
                 {
                     return Gear.GearName;
                 }
                 else
                 {
-                    if(GearUsedText!=null && GearUsedText.Length>0)
+                    if (GearUsedText != null && GearUsedText.Length > 0)
                     {
                         return GearUsedText;
                     }
@@ -1566,7 +1566,7 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-        
+
         public string FishingVesselName
         {
             get
@@ -1630,13 +1630,13 @@ namespace NSAP_ODK.Entities.Database
                 else
                 {
                     var s = Form_version.Split('.');
-                    if(s.Length>0)
+                    if (s.Length > 0)
                     {
                         string ss = "";
                         int count = 0;
-                        foreach(var i in s)
+                        foreach (var i in s)
                         {
-                            if(int.TryParse(i,out int ii))
+                            if (int.TryParse(i, out int ii))
                             {
                                 if (count == 0)
                                 {
@@ -1649,7 +1649,7 @@ namespace NSAP_ODK.Entities.Database
                             }
                             count++;
                         }
-                        if(ss.Length>0)
+                        if (ss.Length > 0)
                         {
                             return double.Parse(ss);
                         }
@@ -1901,7 +1901,7 @@ namespace NSAP_ODK.Entities.Database
             CatchCompGroupCatchCompositionRepeatLengthFreqRepeat.SetRowIDs();
             CatchCompGroupCatchCompositionRepeatGmsRepeatGroup.SetRowIDs();
         }
-        public static void ResetLists(bool includeJSON=false)
+        public static void ResetLists(bool includeJSON = false)
         {
             _listGridBingoCoordinates = null;
             _listGearEfforts = null;
@@ -2174,9 +2174,9 @@ namespace NSAP_ODK.Entities.Database
         public static bool CancelUpload { get; set; }
 
         public static DateTime? JSONFileCreationTime { get; set; }
-        public static Task<bool> UploadToDBAsync()
+        public static Task<bool> UploadToDBAsync(string jsonFileName = "")
         {
-            return Task.Run(() => UploadToDatabase());
+            return Task.Run(() => UploadToDatabase(jsonFileName: jsonFileName));
         }
 
         public static Task<bool> UploadToDBResolvedLandingsAsync(List<VesselLanding> resolvedLanddings)
@@ -2441,7 +2441,7 @@ namespace NSAP_ODK.Entities.Database
         public static int TotalUploadCount { get; private set; }
 
         public static string CurrentJSONFileName { get; set; }
-        public static bool UploadToDatabase(List<VesselLanding> resolvedLandings = null)
+        public static bool UploadToDatabase(List<VesselLanding> resolvedLandings = null, string jsonFileName = "")
         {
             bool isVersion643 = false;
             DelayedSave = true;
@@ -2655,8 +2655,7 @@ namespace NSAP_ODK.Entities.Database
                                     DelayedSave = DelayedSave,
                                     RefNo = landing.ref_no,
                                     IsCatchSold = landing.IsCatchSold,
-
-
+                                    JSONFileName = jsonFileName
 
                                 };
 

@@ -12,10 +12,9 @@ namespace NSAP_ODK.Entities.ItemSources
         public ItemCollection GetValues()
         {
             ItemCollection deviceTypes = new ItemCollection();
-            deviceTypes.Add(DeviceType.DeviceTypeNone, "None");
-            deviceTypes.Add(DeviceType.DeviceTypeGPS, "GPS");
-            deviceTypes.Add(DeviceType.DeviceTypePhone, "Phone");
-            deviceTypes.Add(DeviceType.DeviceTypeOther, "Other");
+            deviceTypes.Add("int", "Integers or whole numbers");
+            deviceTypes.Add("dbl", "Doubles or numbers with decimal places");
+            deviceTypes.Add("txt","Text values");
             return deviceTypes;
 
         }

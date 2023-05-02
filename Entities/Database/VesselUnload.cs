@@ -545,11 +545,11 @@ namespace NSAP_ODK.Entities.Database
         public VesselUnloadWeights(VesselUnload vu)
         {
             _vesselUnload = vu;
-            if (_vesselUnload.RaisingFactor != null && _vesselUnload.RaisingFactor>0)
+            if (_vesselUnload.RaisingFactor != null && _vesselUnload.RaisingFactor > 0)
             {
                 _raisingFactor = ((double)_vesselUnload.RaisingFactor).ToString("N2");
             }
-            if (_vesselUnload.DifferenceCatchWtAndSumCatchCompWt != null && _vesselUnload.WeightOfCatchSample!=null)
+            if (_vesselUnload.DifferenceCatchWtAndSumCatchCompWt != null && _vesselUnload.WeightOfCatchSample != null)
             {
                 _differenceInWeights = ((double)_vesselUnload.DifferenceCatchWtAndSumCatchCompWt).ToString("N2");
             }
@@ -565,7 +565,7 @@ namespace NSAP_ODK.Entities.Database
             {
                 _catchSampleWeight = ((double)_vesselUnload.WeightOfCatchSample).ToString("N2");
             }
-            if(_vesselUnload.SumOfSampleWeights!=0)
+            if (_vesselUnload.SumOfSampleWeights != 0)
             {
                 _sumCatchCompositionWeightFromSample = _vesselUnload.SumOfSampleWeights.ToString("N2");
             }
@@ -617,6 +617,8 @@ namespace NSAP_ODK.Entities.Database
         {
             get { return _landedCatchValidationResult; }
         }
+
+        public string JSONFileName { get; set; }
         public VesselUnloadWeights VesselUnloadWeights { get; set; }
         public bool IsCatchSold { get; set; }
         public bool DelayedSave { get; set; }

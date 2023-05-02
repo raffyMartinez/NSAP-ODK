@@ -546,6 +546,7 @@ namespace NSAP_ODK.Entities.Database
                                                 fv.VesselName AS vessel_name,
                                                 fv.VesselID AS vessel_id,
                                                 vu1.SamplingDate AS sampling_date,
+                                                vu1.json_filename as json_filename,
                                                 vu.boat_text AS vessel_text,
                                                 vu1.user_name,
                                                 vu1.Success AS is_success,
@@ -804,7 +805,7 @@ namespace NSAP_ODK.Entities.Database
                                 si.LenWtRows = count_len_wt;
                                 si.VesselEffortRows = count_efforts;
                                 si.RefNo = dr["ref_no"].ToString();
-                                
+                                si.JSONFileName = dr["json_filename"].ToString();
                                 if (dr["datetime_submitted"] != DBNull.Value)
                                 {
                                     si.DateSubmitted = (DateTime)dr["datetime_submitted"];
