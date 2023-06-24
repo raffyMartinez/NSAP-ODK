@@ -165,9 +165,11 @@ namespace NSAP_ODK.Entities
             {
                 KoboFormType = KoboFormType.FormTypeVesselCountAndCatchEstimate;
             }
+            IsMultiGear = Title.Contains("MultiGear");
             KoboForm = form;
         }
 
+        public bool IsMultiGear { get; internal set; }
         public KoboFormType KoboFormType { get; set; }
         public string Title { get; internal set; }
         public string Description { get; internal set; }
@@ -390,24 +392,24 @@ namespace NSAP_ODK.Entities
                         else
                         {
 
-                            var x = MakeXLSForm(the_response);
-                            if (x != null)
-                            {
-                                kf.Version_ID = x.version_id;
-                                XLSFormVersion = x.content.settings.version;
-                                kf.xlsform_version = XLSFormVersion;
-                                XLSForm_idString = x.content.settings.id_string;
-                                switch (x.name)
-                                {
-                                    case "NSAP Fish Catch Monitoring e-Form":
-                                    case "Fisheries landing survey":
-                                    case "NSAP Fishing boats landed and TWSP":
-                                        kf.eForm_version = x.content.survey.Where(t => t.name == "intronote").FirstOrDefault().@default.Replace("Version ", "");
-                                        break;
-                                }
-                            }
-                            else
-                            {
+                            //var x = MakeXLSForm(the_response);
+                            //if (x != null)
+                            //{
+                            //    kf.Version_ID = x.version_id;
+                            //    XLSFormVersion = x.content.settings.version;
+                            //    kf.xlsform_version = XLSFormVersion;
+                            //    XLSForm_idString = x.content.settings.id_string;
+                            //    switch (x.name)
+                            //    {
+                            //        case "NSAP Fish Catch Monitoring e-Form":
+                            //        case "Fisheries landing survey":
+                            //        case "NSAP Fishing boats landed and TWSP":
+                            //            kf.eForm_version = x.content.survey.Where(t => t.name == "intronote").FirstOrDefault().@default.Replace("Version ", "");
+                            //            break;
+                            //    }
+                            //}
+                            //else
+                            //{
                                 var search_string = "\"name\":\"intronote\"";
                                 var idx = the_response.IndexOf(search_string);
                                 //var arr = the_response.Substring(idx, 200).Replace("\"", "").Split(new char[] { ',',':'}).FirstOrDefault(t=>t.Contains("Version"));
@@ -419,7 +421,7 @@ namespace NSAP_ODK.Entities
                                 //var arr = the_response.Substring(idx + search_string.Length,20).Replace("\"","").Split(new char[] {',', })[0];
                                 XLSFormVersion = the_response.Substring(idx + search_string.Length,20).Replace("\"","").Split(',')[0];
                                 kf.xlsform_version = XLSFormVersion;
-                            }
+                            //}
                         }
                     }
                     catch (HttpRequestException)

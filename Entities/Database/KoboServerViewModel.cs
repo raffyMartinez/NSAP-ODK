@@ -175,9 +175,17 @@ namespace NSAP_ODK.Entities.Database
                     break;
             }
         }
-        public void ResetJSONFields(bool resetLastUploaded = true)
+        public void ResetJSONFields(bool resetLastUploaded = true, bool isMultiGearform = false)
         {
-            var fl_servers = KoboserverCollection.Where(t => t.IsFishLandingSurveyForm == true).ToList();
+            List<Koboserver> fl_servers;
+            if (isMultiGearform)
+            {
+                fl_servers = KoboserverCollection.Where(t => t.IsFishLandingMultiGearSurveyForm == true).ToList();
+            }
+            else
+            {
+                fl_servers = KoboserverCollection.Where(t => t.IsFishLandingSurveyForm == true).ToList();
+            }
             if (resetLastUploaded)
             {
                 _updateUploadedJSON = true;

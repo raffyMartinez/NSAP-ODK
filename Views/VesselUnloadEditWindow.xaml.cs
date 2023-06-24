@@ -103,13 +103,12 @@ namespace NSAP_ODK.Views
                 if (_vesselUnload != null)
                 {
                     NSAPEntities.NSAPRegion = _vesselUnload.Parent.Parent.NSAPRegion;
-                    //NSAPEntities.NSAPRegionFMA = NSAPEntities.NSAPRegion.FMAs.Where(t => t.FMAID == _vesselUnload.Parent.Parent.FMAID).FirstOrDefault();
                     NSAPEntities.NSAPRegionFMA = NSAPEntities.NSAPRegion.FMAs.Where(t => t.FMAID == _vesselUnload.Parent.Parent.FMA.FMAID).FirstOrDefault();
-                    //NSAPEntities.NSAPRegionFMAFishingGround = NSAPEntities.NSAPRegionFMA.FishingGrounds.Where(t => t.FishingGroundCode == _vesselUnload.Parent.Parent.FishingGroundID).FirstOrDefault();
+
                     NSAPEntities.NSAPRegionFMAFishingGround = NSAPEntities.NSAPRegionFMA.FishingGrounds.Where(t => t.FishingGroundCode == _vesselUnload.Parent.Parent.FishingGround.Code).FirstOrDefault();
                     unloadEditor.Owner = this;
                     unloadEditor.VesselUnload = _vesselUnload;
-                    //treeItemVesselUnload.IsSelected = true;
+
 
                     if (unloadEditor.UnloadView != "treeItemVesselUnload")
                     {
@@ -120,8 +119,11 @@ namespace NSAP_ODK.Views
                         unloadEditor.UnloadView = "treeItemVesselUnload";
                     }
 
-
-
+                    //treeItemFishingGears.Visibility = Visibility.Collapsed;
+                    //if(VesselUnload.IsMultiGear)
+                    //{
+                    //    treeItemFishingGears.Visibility = Visibility.Visible;
+                    //}
                 }
 
             }

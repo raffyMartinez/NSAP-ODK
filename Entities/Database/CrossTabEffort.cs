@@ -12,4 +12,11 @@ namespace NSAP_ODK.Entities.Database
 
         public VesselUnload VesselUnload { get; set; }
     }
+
+    public class CrossTabEffort_VesselUnloadGear
+    {
+        public CrossTabCommon CrossTabCommon { get; set; }
+
+        public VesselUnload_FishingGear VesselUnload_FishingGear{ get; set; }
+    }
 }

@@ -483,6 +483,8 @@ namespace NSAP_ODK.Entities.Database
                                 item.FromTotalCatch = (bool)dr["from_total_catch"];
                                 item.PriceOfSpecies = string.IsNullOrEmpty(dr["price_of_species"].ToString()) ? null : (double?)dr["price_of_species"];
                                 item.PriceUnit = dr["price_unit"].ToString();
+                                item.GearCode=string.IsNullOrEmpty(dr["gear_code"].ToString()) ? null : dr["gear_code"].ToString();
+                                item.GearText=string.IsNullOrEmpty(dr["gear_text"].ToString()) ? null : dr["gear_text"].ToString();
                                 thisList.Add(item);
                             }
 
@@ -510,26 +512,39 @@ namespace NSAP_ODK.Entities.Database
         }
 
 
-        public static bool UpdateTableDefinition(string colName)
+        public static bool UpdateTableDefinition(string colName="", bool removeIndex=false, string indexName="")
         {
             bool success = false;
             using (var conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
                 var sql = "";
-                switch (colName)
+                if (removeIndex)
                 {
-                    case "weighing_unit":
-                        sql = $@"ALTER TABLE dbo_vessel_catch ADD COLUMN {colName} TEXT(2)";
-                        break;
-                    case "tws":
+                    sql = $"DROP INDEX {indexName} on dbo_vessel_catch";
+                }
+                else
+                {
+                    switch (colName)
+                    {
+                        case "weighing_unit":
+                            sql = $@"ALTER TABLE dbo_vessel_catch ADD COLUMN {colName} TEXT(2)";
+                            break;
+                        case "tws":
 
-                        sql = $@"ALTER TABLE dbo_vessel_catch ADD COLUMN {colName} FLOAT";
-                        break;
-                    case "from_total_catch":
-                        sql = $@"ALTER TABLE dbo_vessel_catch ADD COLUMN {colName} BIT";
-                        break;
+                            sql = $@"ALTER TABLE dbo_vessel_catch ADD COLUMN {colName} FLOAT";
+                            break;
+                        case "from_total_catch":
+                            sql = $@"ALTER TABLE dbo_vessel_catch ADD COLUMN {colName} BIT";
+                            break;
+                        case "gear_code":
+                            sql = $@"ALTER TABLE dbo_vessel_catch ADD COLUMN {colName} TEXT(8)";
+                            break;
+                        case "gear_text":
+                            sql = $@"ALTER TABLE dbo_vessel_catch ADD COLUMN {colName} VarChar";
+                            break;
 
+                    }
                 }
 
                 OleDbCommand cmd = new OleDbCommand();
@@ -544,7 +559,14 @@ namespace NSAP_ODK.Entities.Database
                 }
                 catch (OleDbException dbex)
                 {
-                    Logger.Log(dbex);
+                    if (dbex.Message.Contains("No such index"))
+                    {
+                        success = true;
+                    }
+                    else
+                    {
+                        Logger.Log(dbex);
+                    }
                 }
                 catch (Exception ex)
                 {

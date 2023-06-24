@@ -108,7 +108,11 @@ namespace NSAP_ODK.Entities
                         try
                         {
                             con.Open();
-                            fg = NSAPEntities.FishingGroundViewModel.GetFishingGround(cmd.ExecuteScalar().ToString());
+                            string fg_code = cmd.ExecuteScalar()?.ToString();
+                            if (!string.IsNullOrEmpty(fg_code))
+                            {
+                                fg = NSAPEntities.FishingGroundViewModel.GetFishingGround(fg_code);
+                            }
                         }
                         catch (OleDbException oex)
                         {

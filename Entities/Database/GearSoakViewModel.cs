@@ -112,8 +112,16 @@ namespace NSAP_ODK.Entities.Database
                 time_set = item.TimeAtSet.ToString("yyyy-MM-dd HH:mm:ss");
                 time_haul = item.TimeAtHaul.ToString("yyyy-MM-dd HH:mm:ss");
             }
+            Dictionary<string, string> myDict = new Dictionary<string, string>();
+            myDict.Add("gear_soak_id", item.PK.ToString());
+            myDict.Add("v_unload_id", item.Parent.PK.ToString());
+            myDict.Add("time_set", time_set);
+            myDict.Add("time_hauled", time_haul);
+            myDict.Add("wpt_set", item.WaypointAtSet);
+            myDict.Add("wpt_haul", item.WaypointAtHaul);
 
-            _csv.AppendLine($"{item.PK},{item.Parent.PK},{time_set},{time_haul},\"{item.WaypointAtSet}\",\"{item.WaypointAtHaul}\"");
+            _csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_gear_soak"));
+            //_csv.AppendLine($"{item.PK},{item.Parent.PK},{time_set},{time_haul},\"{item.WaypointAtSet}\",\"{item.WaypointAtHaul}\"");
             return true;
         }
         private void GearSoaks_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)

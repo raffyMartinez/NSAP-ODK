@@ -315,10 +315,16 @@ namespace NSAP_ODK.Utilities
                 NSAPEntities.FishSpeciesViewModel = new FishSpeciesViewModel();
                 EntityLoaded?.Invoke(null, new EntityLoadedEventArg { Count = NSAPEntities.FishSpeciesViewModel.Count });
 
-                EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "Not fish species" });
-                NSAPEntities.NotFishSpeciesViewModel = new NotFishSpeciesViewModel();
-                EntityLoaded?.Invoke(null, new EntityLoadedEventArg { Count = NSAPEntities.NotFishSpeciesViewModel.Count });
 
+
+                var cols = CreateTablesInAccess.GetColumnNames("notFishSpecies");
+                bool proceed = cols.Contains("Name") || NotFishSpeciesRepository.UpdateTableDefinition() ;
+                if (proceed)
+                {
+                    EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "Not fish species" });
+                    NSAPEntities.NotFishSpeciesViewModel = new NotFishSpeciesViewModel();
+                    EntityLoaded?.Invoke(null, new EntityLoadedEventArg { Count = NSAPEntities.NotFishSpeciesViewModel.Count });
+                }
 
                 if (LandingSiteSamplingRepository.UpdateColumns())
                 {
@@ -344,7 +350,7 @@ namespace NSAP_ODK.Utilities
                     NSAPEntities.JSONFileViewModel = new JSONFileViewModel();
                     NSAPEntities.ODKEformVersionViewModel = new ODKEformVersionViewModel();
                     NSAPEntities.UnmatchedFieldsFromJSONFileViewModel = new UnmatchedFieldsFromJSONFileViewModel();
-                    
+
                     NSAPEntities.ResetEntititesCurrentIDs();
                     VesselUnloadServerRepository.ResetGroupIDState();
 

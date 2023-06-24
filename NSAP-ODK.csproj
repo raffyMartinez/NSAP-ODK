@@ -197,6 +197,7 @@
     <Compile Include="Entities\Database\DownloadedJsonMetadata.cs" />
     <Compile Include="Entities\Database\EntityBulkImportEventArg.cs" />
     <Compile Include="Entities\Database\FileInfoJSONMetadata.cs" />
+    <Compile Include="Entities\Database\ObjectDataHolder_KeyValuePair.cs" />
     <Compile Include="Entities\Database\ProcessingItemsEventArg.cs" />
     <Compile Include="Entities\Database\GearAtLandingSiteDaysPerMonth.cs" />
     <Compile Include="Entities\Database\GearAtLandingSiteDaysPerMonthRepository.cs" />
@@ -268,6 +269,7 @@
     <Compile Include="Entities\Database\SpeciesTextToSpeciesConvert.cs" />
     <Compile Include="Entities\Database\SummaryItemRepository.cs" />
     <Compile Include="Entities\Database\SummaryResults.cs" />
+    <Compile Include="Entities\Database\tempServerRepo.cs" />
     <Compile Include="Entities\Database\TotalWtSpRepository.cs" />
     <Compile Include="Entities\Database\TotalWtSpViewModel.cs" />
     <Compile Include="Entities\Database\TrackedLandingCentroid.cs" />
@@ -293,6 +295,12 @@
     <Compile Include="Entities\Database\VesselCatchWV.cs" />
     <Compile Include="Entities\Database\VesselUnload7ServerRepository.cs" />
     <Compile Include="Entities\Database\VesselUnloadServerRepository.cs" />
+    <Compile Include="Entities\Database\VesselUnload_FishingGear.cs" />
+    <Compile Include="Entities\Database\VesselUnload_FishingGearRepository.cs" />
+    <Compile Include="Entities\Database\VesselUnload_FishingGearViewModel.cs" />
+    <Compile Include="Entities\Database\VesselUnload_Gear_Spec.cs" />
+    <Compile Include="Entities\Database\VesselUnload_Gear_Spec_Repository.cs" />
+    <Compile Include="Entities\Database\VesselUnload_Gear_Spec_ViewModel.cs" />
     <Compile Include="Entities\Database\WeightValidationUpdater.cs" />
     <Compile Include="Entities\Database\XLSForm.cs" />
     <Compile Include="Entities\Database\XLSForm2.cs" />
@@ -487,6 +495,7 @@
     <Compile Include="Oware\LatLngUTMConverter.cs" />
     <Compile Include="Utilities\GridCellHelper.cs" />
     <Compile Include="Utilities\MD5.cs" />
+    <Compile Include="Utilities\MDBColumnInfo.cs" />
     <Compile Include="Utilities\Settings.cs" />
     <Compile Include="TreeViewModelControl\AllSamplingEntitiesEventHandler.cs" />
     <Compile Include="TreeViewModelControl\TreeControl.xaml.cs">

@@ -264,7 +264,7 @@ namespace NSAP_ODK.Entities.Database
             }
             return lss;
         }
-        public List<OrphanedLandingSite> GetOrphanedLandingSitesex()
+        public List<OrphanedLandingSite> GetOrphanedLandingSitesEx()
         {
             ProceessBuildOrphanedEntitiesEvent(status: BuildOrphanedEntityStatus.StatusBuildStart, isIndeterminate: true);
             List<OrphanedLandingSite> thisList = new List<OrphanedLandingSite>();
@@ -2476,7 +2476,8 @@ namespace NSAP_ODK.Entities.Database
                 CatchMaturityRows = vu.CountMaturityRows,
                 LandingSiteHasOperation = vu.Parent.Parent.HasFishingOperation,
                 WeightOfCatch = vu.WeightOfCatch,
-                WeightOfCatchSample = vu.WeightOfCatchSample
+                WeightOfCatchSample = vu.WeightOfCatchSample,
+                IsMultiGear = vu.IsMultiGear
 
             };
             if (vu.NSAPEnumeratorID != null)

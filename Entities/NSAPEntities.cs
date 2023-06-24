@@ -126,6 +126,8 @@ namespace NSAP_ODK.Entities
             FishingGroundGridViewModel.ClearCSV();
             GearSoakViewModel.ClearCSV();
             VesselEffortViewModel.ClearCSV();
+            VesselUnload_Gear_Spec_ViewModel.ClearCSV();
+            VesselUnload_FishingGearViewModel.ClearCSV();
             VesselUnloadViewModel.ClearCSV();
             GearUnloadViewModel.ClearCSV();
             LandingSiteSamplingViewModel.ClearCSV();
@@ -165,6 +167,8 @@ namespace NSAP_ODK.Entities
             FishingGroundGridRepository.ClearTable(otherConnectionString);
             GearSoakRepository.ClearTable(otherConnectionString);
             VesselEffortRepository.ClearTable(otherConnectionString);
+            VesselUnload_Gear_Spec_Repository.ClearTable(otherConnectionString);
+            VesselUnload_FishingGearRepository.ClearTable(otherConnectionString);
             VesselUnloadRepository.ClearTable(otherConnectionString);
             TotalWtSpRepository.ClearTable(otherConnectionString);
             GearUnloadRepository.ClearTable(otherConnectionString);

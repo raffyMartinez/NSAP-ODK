@@ -137,7 +137,21 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
 
-            _csv.AppendLine($"{item.PK},{item.Parent.PK},{len},{wt},\"{item.SexCode}\",\"{item.MaturityCode}\",{gut_wt},\"{item.GutContentCode}\",{gonad_wt}");
+            Dictionary<string, string> myDict = new Dictionary<string, string>();
+            myDict.Add("catch_maturity_id", item.PK.ToString());
+            myDict.Add("catch_id", item.Parent.PK.ToString());
+            myDict.Add("length", len);
+            myDict.Add("weight", wt);
+            myDict.Add("sex", item.SexCode);
+            myDict.Add("maturity", item.MaturityCode);
+            myDict.Add("gut_content_wt", gut_wt);
+            myDict.Add("gut_content_code", item.GutContentCode);
+            myDict.Add("gonadWt", gonad_wt);
+
+
+            _csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_catch_maturity"));
+
+            //_csv.AppendLine($"{item.PK},{item.Parent.PK},{len},{wt},\"{item.SexCode}\",\"{item.MaturityCode}\",{gut_wt},\"{item.GutContentCode}\",{gonad_wt}");
 
             return true;
         }

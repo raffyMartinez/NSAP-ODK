@@ -321,6 +321,24 @@ namespace NSAP_ODK.Entities.Database
 
         public int ParentID { get { return Parent.PK; } }
 
+
+        //the position of the gear in the select list
+        [JsonProperty("catch_comp_group/catch_composition_repeat/speciesname_group/gear_species")]
+        public string Gear_species { get; set; }
+
+
+        //the name of the gear used in catching
+        [JsonProperty("catch_comp_group/catch_composition_repeat/speciesname_group/gear_species_name")]
+        public string Gear_species_name { get; set; }
+
+
+        //the code of the gear used in catching. Maybe null if the gear is typed-in and not selected from the list of gears
+        [JsonProperty("catch_comp_group/catch_composition_repeat/speciesname_group/gear_species_code")]
+        public string Gear_species_code { get; set; }
+
+        [JsonProperty("catch_comp_group/catch_composition_repeat/speciesname_group/gear_species_code_final")]
+        public string Gear_species_code_final { get; set; }
+
         public List<CatchCompGroupCatchCompositionRepeatLengthFreqRepeat> GetDuplicatedLenFreq()
         {
             var thisList = new List<CatchCompGroupCatchCompositionRepeatLengthFreqRepeat>();
@@ -745,11 +763,25 @@ namespace NSAP_ODK.Entities.Database
         }
     }
 
-    public class EffortsGroupEffortRepeat
+    public class EffortGroupEffortRepeatMultiGear
+    {
+
+    }
+
+    public class EffortSpecSingleGear
     {
         private static int _pk;
         private int _rowID;
-        public VesselLanding Parent { get; set; }
+        private VesselLanding _parent;
+        public VesselLanding Parent
+        {
+            get { return _parent; }
+            set
+            {
+                _parent = value;
+            }
+        }
+        public List<EffortGroupEffortRepeatMultiGear> EffortRepeatMultiGears { get; set; }
         public int ParentID { get { return Parent.PK; } }
         [JsonProperty("efforts_group/effort_repeat/group_effort/selected_effort_measure")]
         public string SelectedEffortMeasure { get; set; }
@@ -913,6 +945,88 @@ namespace NSAP_ODK.Entities.Database
         public bool SavedToDatabase { get; set; }
     }
 
+    public class VesselSamplingRepeatGear
+    {
+        private VesselLanding _parent;
+        private static int _pk;
+        private int _rowID;
+
+        public static bool RowIDSet { get; private set; }
+
+        public static void ResetIDState()
+        {
+            RowIDSet = false;
+        }
+        public static void SetRowIDs()
+        {
+
+            //if (NSAPEntities.VesselCatchViewModel.VesselCatchCollection.Count == 0)
+            //{
+            //    _pk = 0;
+            //}
+            //else
+            //{
+            //    _pk = NSAPEntities.VesselCatchViewModel.NextRecordNumber - 1;
+            //}
+            _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastVesselUnloadGearPK;
+            RowIDSet = true;
+        }
+
+        public int? PK
+        {
+            get
+            {
+                if (Parent.SavedInLocalDatabase)
+                {
+                    return null;
+                }
+                else
+                {
+
+                    if (RowIDSet && _rowID == 0)
+                    {
+
+                        _rowID = ++_pk;
+                    }
+
+                }
+                return _rowID;
+
+            }
+        }
+        public Gear Gear { get { return NSAPEntities.GearViewModel.GetGear(GearCode); } }
+        public VesselLanding Parent
+        {
+            get { return _parent; }
+            set
+            {
+                _parent = value;
+            }
+        }
+        [JsonProperty("vessel_sampling/repeat_gears/group_gear/select_gear")]
+        public string SelectGear { get; set; }
+
+        [JsonProperty("vessel_sampling/repeat_gears/group_gear/gear_used")]
+        public string GearUsed { get; set; }
+
+        [JsonProperty("vessel_sampling/repeat_gears/group_gear/repeat_gear_code")]
+        public string GearCode { get; set; }
+
+        [JsonProperty("vessel_sampling/repeat_gears/group_gear/repeat_gear_name")]
+        public string GearName { get; set; }
+
+
+        [JsonProperty("vessel_sampling/repeat_gears/group_gear/gear_used_text")]
+        public string GearUsedText { get; set; }
+
+
+    }
+
+    public class UnmatchedEnumeratorJSONFile
+    {
+        public string JSONFileName { get; set; }
+        public int EnumeratorID { get; set; }
+    }
     public class VesselLanding
     {
         private string _gps2;
@@ -924,10 +1038,22 @@ namespace NSAP_ODK.Entities.Database
         private string _tripIsCompletedYesNo;
         private bool _tripIsCompleted;
         private List<GridCoordGroupBingoRepeat> _gridCoordinates;
-        private List<EffortsGroupEffortRepeat> _effortSpecs;
+        private List<EffortSpecSingleGear> _effortSpecs;
         private List<SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat> _gearSoakTimes;
         private List<CatchCompGroupCatchCompositionRepeat> _catchComps;
+        private List<VesselSamplingRepeatGear> _samplingGears;
+        private List<MultiGearEffortSpecContainer> _gearsEfforts;
         private string _includeCatchComposition;
+        private static List<int> _unmatchedENumeratorIDs = new List<int>();
+        public bool IncludeEffort { get { return IncludeEffortYesNo == "yes"; } }
+        [JsonProperty("efforts_group/include_effort")]
+        public string IncludeEffortYesNo { get; set; }
+
+        [JsonProperty("efforts_group/repeat_gear_effort_count")]
+        public string efforts_grouprepeat_gear_effort_count { get; set; }
+
+
+
 
         public SamplingTypeFlag SamplingTypeFlag { get; internal set; }
 
@@ -963,9 +1089,9 @@ namespace NSAP_ODK.Entities.Database
             return thisList;
         }
 
-        public List<EffortsGroupEffortRepeat> GetDuplicatedEffortSpecs()
+        public List<EffortSpecSingleGear> GetDuplicatedEffortSpecs()
         {
-            var thisList = new List<EffortsGroupEffortRepeat>();
+            var thisList = new List<EffortSpecSingleGear>();
             if (_effortSpecs != null && _effortSpecs.Count > 1)
             {
                 foreach (var item in _effortSpecs
@@ -997,6 +1123,41 @@ namespace NSAP_ODK.Entities.Database
         public double SumOfCatchCompWeight { get; internal set; }
 
         public double DifferenceInWeight { get; internal set; }
+
+
+        public bool IsMultiGear { get { return GearTypeCount != null; } }
+        [JsonProperty("vessel_sampling/repeat_gears_count")]
+        public int? GearTypeCount { get; set; }
+
+
+        //effort specs of gears for multi-gear eform
+        [JsonProperty("efforts_group/repeat_gear_effort")]
+        public List<MultiGearEffortSpecContainer> GearsEfforts
+        {
+            get { return _gearsEfforts; }
+            set
+            {
+                _gearsEfforts = value;
+                foreach (MultiGearEffortSpecContainer item in _gearsEfforts)
+                {
+                    item.Parent = this;
+                }
+
+            }
+        }
+        [JsonProperty("vessel_sampling/repeat_gears")]
+        public List<VesselSamplingRepeatGear> SamplingGears
+        {
+            get { return _samplingGears; }
+            set
+            {
+                _samplingGears = value;
+                foreach (VesselSamplingRepeatGear item in _samplingGears)
+                {
+                    item.Parent = this;
+                }
+            }
+        }
         [JsonProperty("catch_comp_group/catch_composition_repeat")]
         public List<CatchCompGroupCatchCompositionRepeat> CatchComposition
         {
@@ -1160,14 +1321,16 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
         }
+
+        //effort specification of gear for non-multigear eform
         [JsonProperty("efforts_group/effort_repeat")]
-        public List<EffortsGroupEffortRepeat> GearEffortSpecs
+        public List<EffortSpecSingleGear> SingleGearEffortSpecs
         {
             get { return _effortSpecs; }
             set
             {
                 _effortSpecs = value;
-                foreach (EffortsGroupEffortRepeat effort in _effortSpecs)
+                foreach (EffortSpecSingleGear effort in _effortSpecs)
                 {
                     effort.Parent = this;
                 }
@@ -1238,7 +1401,16 @@ namespace NSAP_ODK.Entities.Database
                     {
                         if (regionEnumerator == null)
                         {
-                            NSAP_ODK.Utilities.Logger.Log($"NSAP enumerator with ID {RegionEnumeratorID} was not found");
+                            //NSAP_ODK.Utilities.Logger.Log($"NSAP enumerator with ID {RegionEnumeratorID} was not found");
+
+                            if (VesselUnloadServerRepository.UnmatchedEnumeratorIDs.FirstOrDefault(t => t.EnumeratorID == (int)RegionEnumeratorID) == null)
+                            {
+                                VesselUnloadServerRepository.UnmatchedEnumeratorIDs.Add(new UnmatchedEnumeratorJSONFile
+                                {
+                                    EnumeratorID = (int)RegionEnumeratorID,
+                                    JSONFileName = VesselUnloadServerRepository.CurrentJSONFileName
+                                });
+                            }
                         }
                         return null;
                     }
@@ -1525,6 +1697,8 @@ namespace NSAP_ODK.Entities.Database
         public string GearName { get; set; }
         [JsonProperty("fishing_vessel_group/is_boat_used")]
         public string IsBoatUsedYesNo { get; set; }
+
+        public bool IncludeCatchComp { get { return IncludeCatchComposition == "yes"; } }
         [JsonProperty("catch_comp_group/include_catchcomp")]
         public string IncludeCatchComposition
         {
@@ -1808,11 +1982,131 @@ namespace NSAP_ODK.Entities.Database
     }
 
 
+    /// <summary>
+    /// vessel unload gear specs
+    /// </summary>
+    public class MultiGearEffortSpecContainer
+    {
+        private static int _pk;
+        private VesselLanding _parent;
+        private int _rowID;
+        private List<MultiGearEffortSpec> _effortsSpecsOfGearinMultiGear;
 
+
+
+        // effort specs of gears for each gear in the sampled landing
+        [JsonProperty("efforts_group/repeat_gear_effort/effort_group_inside/effort_repeat")]
+        public List<MultiGearEffortSpec> EffortsSpecsOfGear
+        {
+            get { return _effortsSpecsOfGearinMultiGear; }
+            set
+            {
+                _effortsSpecsOfGearinMultiGear = value;
+                foreach (MultiGearEffortSpec item in _effortsSpecsOfGearinMultiGear)
+                {
+                    item.Parent = this;
+                }
+            }
+        }
+        public VesselLanding Parent
+        {
+            get { return _parent; }
+            set
+            {
+                _parent = value;
+            }
+        }
+
+        [JsonProperty("efforts_group/repeat_gear_effort/effort_group_inside/effort_group_inside1/selected_gear_name")]
+        public string SelectedGearName { get; set; }
+
+
+        [JsonProperty("efforts_group/repeat_gear_effort/effort_group_inside/effort_group_inside1/selected_gear_code")]
+        public string SelectedGearCode { get; set; }
+
+    }
+
+
+    /// <summary>
+    /// vessel unload gear specs inside group
+    /// </summary>
+    public class MultiGearEffortSpec
+    {
+        private static int _pk;
+        private int _rowID;
+        private MultiGearEffortSpecContainer _parent;
+        public static bool RowIDSet { get; private set; }
+
+        public static void ResetIDState()
+        {
+            RowIDSet = false;
+        }
+        public static void SetRowIDs()
+        {
+
+            //if (NSAPEntities.FishingGroundGridViewModel.FishingGroundGridCollection.Count == 0)
+            //{
+            //    _pk = 0;
+            //}
+            //else
+            //{
+            //    _pk = NSAPEntities.FishingGroundGridViewModel.NextRecordNumber - 1;
+            //}
+            _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastVesselEffortsPK;
+            RowIDSet = true;
+        }
+
+        public int? PK
+        {
+            get
+            {
+                if (Parent.Parent.SavedInLocalDatabase)
+                {
+                    return null;
+                }
+                else
+                {
+                    if (_rowID == 0)
+                    {
+                        _rowID = ++_pk;
+                    }
+                    return _rowID;
+                }
+
+            }
+        }
+
+        public MultiGearEffortSpecContainer Parent { get; set; }
+
+        [JsonProperty("efforts_group/repeat_gear_effort/effort_group_inside/effort_repeat/group_effort/effort_type")]
+        public int EffortType { get; set; }
+
+        [JsonProperty("efforts_group/repeat_gear_effort/effort_group_inside/effort_repeat/group_effort/response_type")]
+        public string ResponseType { get; set; }
+
+        [JsonProperty("efforts_group/repeat_gear_effort/effort_group_inside/effort_repeat/group_effort/effort_spec_name")]
+        public string EffortSpecName { get; set; }
+        public double? EffortNumericValue { get { return EffortIntensity; } }
+        public bool EffortBool { get { return EffortBoolYesNo == "yes"; } }
+        [JsonProperty("efforts_group/repeat_gear_effort/effort_group_inside/effort_repeat/group_effort/effort_bool")]
+        public string EffortBoolYesNo { get; set; }
+
+        [JsonProperty("efforts_group/repeat_gear_effort/effort_group_inside/effort_repeat/group_effort/effort_desc")]
+        public string EffortDescription { get; set; }
+
+        [JsonProperty("efforts_group/repeat_gear_effort/effort_group_inside/effort_repeat/group_effort/effort_intensity")]
+        public double? EffortIntensity { get; set; }
+
+        [JsonProperty("efforts_group/repeat_gear_effort/effort_group_inside/effort_repeat/group_effort/selected_effort_measure")]
+        public string SelectedEffortMeasure { get; set; }
+
+        //[JsonProperty("efforts_group/repeat_gear_effort/effort_group_inside/effort_repeat/group_effort/effort_desc")]
+        //public string efforts_grouprepeat_gear_efforteffort_group_insideeffort_repeatgroup_efforteffort_desc { get; set; }
+    }
     public static class VesselUnloadServerRepository
     {
         private static List<GridCoordGroupBingoRepeat> _listGridBingoCoordinates;
-        private static List<EffortsGroupEffortRepeat> _listGearEfforts;
+        private static List<EffortSpecSingleGear> _listGearEfforts;
         private static List<SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat> _listGearSoakTimes;
         private static List<CatchCompGroupCatchCompositionRepeat> _listCatchComps;
         private static List<CatchCompGroupCatchCompositionRepeatLengthFreqRepeat> _listLenFreqs;
@@ -1829,6 +2123,8 @@ namespace NSAP_ODK.Entities.Database
                 _unrecognizedFishingGrounds.Clear();
             }
         }
+
+        public static HashSet<UnmatchedEnumeratorJSONFile> UnmatchedEnumeratorIDs { get; set; } = new HashSet<UnmatchedEnumeratorJSONFile>();
         public static VesselUnload LastVesselUnload { get; private set; }
         public static string JSON { get; set; }
         public static void CreateLandingsFromJSON()
@@ -1882,7 +2178,9 @@ namespace NSAP_ODK.Entities.Database
         {
             SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat.ResetIDState();
             GridCoordGroupBingoRepeat.ResetIDState();
-            EffortsGroupEffortRepeat.ResetIDState();
+            EffortSpecSingleGear.ResetIDState();
+            MultiGearEffortSpec.ResetIDState();
+            VesselSamplingRepeatGear.ResetIDState();
             CatchCompGroupCatchCompositionRepeat.ResetIDState();
             CatchCompGroupCatchCompositionRepeatLenWtRepeat.ResetIDState();
             CatchCompGroupCatchCompositionRepeatLengthListRepeat.ResetIDState();
@@ -1894,12 +2192,26 @@ namespace NSAP_ODK.Entities.Database
             NSAPEntities.SummaryItemViewModel.RefreshLastPrimaryLeys(delayedSave);
             SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat.SetRowIDs();
             GridCoordGroupBingoRepeat.SetRowIDs();
-            EffortsGroupEffortRepeat.SetRowIDs();
+            EffortSpecSingleGear.SetRowIDs();
+            MultiGearEffortSpec.SetRowIDs();
+            VesselSamplingRepeatGear.SetRowIDs();
             CatchCompGroupCatchCompositionRepeat.SetRowIDs();
             CatchCompGroupCatchCompositionRepeatLenWtRepeat.SetRowIDs();
             CatchCompGroupCatchCompositionRepeatLengthListRepeat.SetRowIDs();
             CatchCompGroupCatchCompositionRepeatLengthFreqRepeat.SetRowIDs();
             CatchCompGroupCatchCompositionRepeatGmsRepeatGroup.SetRowIDs();
+        }
+
+        public static void ResetUnmatchedEnumeratorIDList()
+        {
+            if (UnmatchedEnumeratorIDs.Count > 0)
+            {
+                foreach (var item in UnmatchedEnumeratorIDs.OrderBy(t => t.EnumeratorID))
+                {
+                    Utilities.Logger.Log($"Enumerator ID not in database: {item.EnumeratorID} JSON file:{item.JSONFileName}", addNewLine: false);
+                }
+                UnmatchedEnumeratorIDs.Clear();
+            }
         }
         public static void ResetLists(bool includeJSON = false)
         {
@@ -1914,7 +2226,7 @@ namespace NSAP_ODK.Entities.Database
 
             DuplicatedLenFreq = new List<CatchCompGroupCatchCompositionRepeatLengthFreqRepeat>();
             DuplicatedCatchComposition = new List<CatchCompGroupCatchCompositionRepeat>();
-            DuplicatedEffortSpec = new List<EffortsGroupEffortRepeat>();
+            DuplicatedEffortSpec = new List<EffortSpecSingleGear>();
 
             if (includeJSON)
             {
@@ -1946,7 +2258,7 @@ namespace NSAP_ODK.Entities.Database
                     }
                 }
 
-                if (item.GearEffortSpecs != null && item.GearEffortSpecs.Count > 1)
+                if (item.SingleGearEffortSpecs != null && item.SingleGearEffortSpecs.Count > 1)
                 {
                     var esd = item.GetDuplicatedEffortSpecs();
                     if (esd.Count > 1)
@@ -1961,7 +2273,7 @@ namespace NSAP_ODK.Entities.Database
 
         public static List<CatchCompGroupCatchCompositionRepeat> DuplicatedCatchComposition { get; private set; }
         public static List<CatchCompGroupCatchCompositionRepeatLengthFreqRepeat> DuplicatedLenFreq { get; private set; }
-        public static List<EffortsGroupEffortRepeat> DuplicatedEffortSpec { get; private set; }
+        public static List<EffortSpecSingleGear> DuplicatedEffortSpec { get; private set; }
 
 
         public static List<CatchCompGroupCatchCompositionRepeatLengthListRepeat> GetLengthList()
@@ -2093,20 +2405,20 @@ namespace NSAP_ODK.Entities.Database
 
         }
 
-        public static List<EffortsGroupEffortRepeat> GetGearEfforts()
+        public static List<EffortSpecSingleGear> GetGearEfforts()
         {
-            List<EffortsGroupEffortRepeat> thisList = new List<EffortsGroupEffortRepeat>();
+            List<EffortSpecSingleGear> thisList = new List<EffortSpecSingleGear>();
             if (_listGearEfforts == null)
             {
-                if (!EffortsGroupEffortRepeat.RowIDSet)
+                if (!EffortSpecSingleGear.RowIDSet)
                 {
-                    EffortsGroupEffortRepeat.SetRowIDs();
+                    EffortSpecSingleGear.SetRowIDs();
                 }
                 foreach (var item in VesselLandings)
                 {
-                    if (item.GearEffortSpecs != null)
+                    if (item.SingleGearEffortSpecs != null)
                     {
-                        foreach (var effort in item.GearEffortSpecs)
+                        foreach (var effort in item.SingleGearEffortSpecs)
                         {
                             thisList.Add(effort);
                         }
@@ -2434,15 +2746,22 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-        public static void ResetTotalUploadCounter()
+        public static void ResetTotalUploadCounter(bool uploadingDone = false)
         {
             TotalUploadCount = 0;
+            if (uploadingDone)
+            {
+                UpdateInProgress = false;
+                UploadInProgress = false;
+                UnmatchedEnumeratorIDs.Clear();
+            }
         }
         public static int TotalUploadCount { get; private set; }
 
         public static string CurrentJSONFileName { get; set; }
         public static bool UploadToDatabase(List<VesselLanding> resolvedLandings = null, string jsonFileName = "")
         {
+            bool hasUnrecognizedFG = false;
             bool isVersion643 = false;
             DelayedSave = true;
             UploadInProgress = true;
@@ -2458,9 +2777,13 @@ namespace NSAP_ODK.Entities.Database
             {
                 landings = VesselLandings.Where(t => t.SavedInLocalDatabase == false).ToList();
             }
-
-            if (landings.Count > 0)
+            if (VesselLandings.Count > 0 && landings.Count == 0)
             {
+                return true;
+            }
+            else if (landings.Count > 0)
+            {
+                hasUnrecognizedFG = false;
                 _unrecognizedFishingGrounds = new List<UnrecognizedFishingGround>();
                 UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadToSaveCount = landings.Count, Intent = UploadToDBIntent.StartOfUpload });
                 foreach (var landing in landings)
@@ -2521,6 +2844,9 @@ namespace NSAP_ODK.Entities.Database
                                             VesselLanding = landing
                                         };
                                         _unrecognizedFishingGrounds.Add(urf);
+                                        hasUnrecognizedFG = true;
+
+                                        Utilities.Logger.Log($"Missing fishing ground\r\n ODK row ID:{ landing._uuid}, user name:{landing.user_name}, region:{landing.NSAPRegion.ShortName}, fma:{landing.FMA}, version:{landing.intronote}");
                                     }
                                     else
                                     {
@@ -2655,9 +2981,20 @@ namespace NSAP_ODK.Entities.Database
                                     DelayedSave = DelayedSave,
                                     RefNo = landing.ref_no,
                                     IsCatchSold = landing.IsCatchSold,
-                                    JSONFileName = jsonFileName
-
+                                    JSONFileName = jsonFileName,
+                                    IsMultiGear = landing.IsMultiGear,
                                 };
+
+                                if (vu.IsMultiGear)
+                                {
+                                    vu.CountGearTypesUsed = (int)landing.GearTypeCount;
+                                }
+                                else
+                                {
+                                    vu.CountGearTypesUsed = 1;
+                                }
+
+
 
                                 if (JSONFileCreationTime != null)
                                 {
@@ -2667,16 +3004,83 @@ namespace NSAP_ODK.Entities.Database
                                 if (gear_unload.VesselUnloadViewModel.AddRecordToRepo(vu))
                                 {
                                     VesselUnloadViewModel.CurrentIDNumber = vu.PK;
+                                    if (vu.IsMultiGear)
+                                    {
+                                        vu.VesselUnload_FishingGearsViewModel = new VesselUnload_FishingGearViewModel(vu);
+                                        if (!VesselSamplingRepeatGear.RowIDSet)
+                                        {
+                                            VesselSamplingRepeatGear.SetRowIDs();
+                                        }
+                                        foreach (var landing_fg in landing.SamplingGears)
+                                        {
+                                            VesselUnload_FishingGear vu_fg = new VesselUnload_FishingGear
+                                            {
+                                                GearText = landing_fg.GearUsedText,
+                                                GearCode = landing_fg.GearCode,
+                                                Parent = vu,
+                                                RowID = (int)landing_fg.PK,
+                                                DelayedSave = DelayedSave
+                                            };
+                                            if (vu.VesselUnload_FishingGearsViewModel.AddRecordToRepo(vu_fg))
+                                            {
+                                                VesselUnload_FishingGearViewModel.CurrentIDNumber = vu_fg.RowID;
 
-                                    if (landing.GearEffortSpecs != null)
+
+                                                vu_fg.VesselUnload_Gear_Specs_ViewModel = new VesselUnload_Gear_Spec_ViewModel(vu_fg);
+                                                MultiGearEffortSpecContainer egr;
+
+                                                if (string.IsNullOrEmpty(vu_fg.GearCode))
+                                                {
+                                                    egr = landing.GearsEfforts.FirstOrDefault(t => t.SelectedGearName == vu_fg.GearText);
+                                                }
+                                                else
+                                                {
+                                                    egr = landing.GearsEfforts.FirstOrDefault(t => t.SelectedGearCode == vu_fg.GearCode);
+                                                }
+
+                                                if (!MultiGearEffortSpec.RowIDSet)
+                                                {
+                                                    MultiGearEffortSpec.SetRowIDs();
+                                                }
+
+
+                                                foreach (var gear_effortspec in egr.EffortsSpecsOfGear)
+                                                {
+                                                    VesselUnload_Gear_Spec vu_gs = new VesselUnload_Gear_Spec
+                                                    {
+                                                        EffortSpecID = gear_effortspec.EffortType,
+                                                        EffortValueNumeric = gear_effortspec.EffortNumericValue,
+                                                        EffortValueText = gear_effortspec.EffortDescription,
+                                                        Parent = vu_fg,
+                                                        RowID = (int)gear_effortspec.PK,
+                                                        DelayedSave = DelayedSave
+                                                    };
+
+                                                    if (vu_fg.VesselUnload_Gear_Specs_ViewModel.AddRecordToRepo(vu_gs))
+                                                    {
+                                                        VesselUnload_Gear_Spec_ViewModel.CurrentIDNumber = vu_gs.RowID;
+                                                        VesselEffortViewModel.CurrentIDNumber = vu_gs.RowID;
+                                                        vu.CountEffortIndicators++;
+                                                    }
+
+                                                }
+
+                                                vu_fg.VesselUnload_Gear_Specs_ViewModel.Dispose();
+
+                                            }
+                                        }
+                                        vu.VesselUnload_FishingGearsViewModel.Dispose();
+                                    }
+
+                                    else if (landing.SingleGearEffortSpecs != null)
                                     {
                                         vu.VesselEffortViewModel = new VesselEffortViewModel(isNew: true);
-                                        vu.CountEffortIndicators = landing.GearEffortSpecs.Count;
-                                        if (!EffortsGroupEffortRepeat.RowIDSet)
+                                        vu.CountEffortIndicators = landing.SingleGearEffortSpecs.Count;
+                                        if (!EffortSpecSingleGear.RowIDSet)
                                         {
-                                            EffortsGroupEffortRepeat.SetRowIDs();
+                                            EffortSpecSingleGear.SetRowIDs();
                                         }
-                                        foreach (var effort in landing.GearEffortSpecs
+                                        foreach (var effort in landing.SingleGearEffortSpecs
                                             .Where(t => t.Parent.PK == landing.PK))
                                         {
                                             VesselEffort ve = new VesselEffort
@@ -2692,6 +3096,7 @@ namespace NSAP_ODK.Entities.Database
                                             if (vu.VesselEffortViewModel.AddRecordToRepo(ve))
                                             {
                                                 VesselEffortViewModel.CurrentIDNumber = ve.PK;
+                                                VesselUnload_Gear_Spec_ViewModel.CurrentIDNumber = ve.PK;
                                             }
 
                                         }
@@ -2808,6 +3213,12 @@ namespace NSAP_ODK.Entities.Database
                                                     PriceOfSpecies = catchComp.PriceOfSpecies,
                                                     PriceUnit = catchComp.PriceUnitText
                                                 };
+
+                                                if (landing.IsMultiGear)
+                                                {
+                                                    vc.GearCode = catchComp.Gear_species_code;
+                                                    vc.GearText = catchComp.Gear_species_name;
+                                                }
 
 
                                                 if (vu.VesselCatchViewModel.AddRecordToRepo(vc))
@@ -2956,16 +3367,9 @@ namespace NSAP_ODK.Entities.Database
                                     }
 
 
-                                    //if (gear_unload.VesselUnloadViewModel.UpdateUnloadStats(vu) && gear_unload.VesselUnloadViewModel.UpdateWeightValidation(landing, vu) && NSAPEntities.SummaryItemViewModel.AddRecordToRepo(vu))
-                                    //{
-                                    //    savedCount++;
-                                    //    landing.SavedInLocalDatabase = true;
-                                    //    UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadSavedCount = savedCount, Intent = UploadToDBIntent.Uploading });
-                                    //    TotalUploadCount++;
-                                    //}
                                     if (gear_unload.VesselUnloadViewModel.UpdateUnloadStats(vu) && NSAPEntities.SummaryItemViewModel.AddRecordToRepo(vu))
                                     {
-                                        if (gear_unload.VesselUnloadViewModel.UpdateWeightValidation(NSAPEntities.SummaryItemViewModel.CurrentEntity, vu))
+                                        if (landing.IncludeCatchComp && gear_unload.VesselUnloadViewModel.UpdateWeightValidation(NSAPEntities.SummaryItemViewModel.CurrentEntity, vu))
                                         {
                                             vu.VesselCatchViewModel.Dispose();
                                             savedCount++;
@@ -3007,7 +3411,18 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
             UploadInProgress = false;
-            return savedCount > 0;
+            UpdateInProgress = false;
+
+            //if(UnmatchedEnumeratorIDs.Count>0)
+            //{
+            //    foreach(var item in UnmatchedEnumeratorIDs.OrderBy(t=>t))
+            //    {
+            //        NSAP_ODK.Utilities.Logger.Log($"NSAP enumerator with ID {item} was not found");
+            //    }
+            //    UnmatchedEnumeratorIDs.Clear();
+            //}
+
+            return savedCount > 0 || hasUnrecognizedFG;
         }
     }
 }

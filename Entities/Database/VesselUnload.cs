@@ -10,8 +10,7 @@ namespace NSAP_ODK.Entities.Database
     using System.ComponentModel;
     using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
     using Xceed.Wpf.Toolkit;
-
-
+    using Newtonsoft.Json;
 
     [CategoryOrder("Header", 1)]
     [CategoryOrder("Effort", 2)]
@@ -94,6 +93,8 @@ namespace NSAP_ODK.Entities.Database
                 SectorCode = vesselUnload.SectorCode;
                 FromExcelDownload = vesselUnload.FromExcelDownload;
                 IsCatchSold = vesselUnload.IsCatchSold;
+                IsMutligear = vesselUnload.IsMultiGear;
+                CountGearTypesUsed = vesselUnload.CountGearTypesUsed;
             }
 
         }
@@ -113,6 +114,7 @@ namespace NSAP_ODK.Entities.Database
         [ItemsSource(typeof(FMAInRegionItemsSource))]
         public int FMAID { get; set; }
 
+        public bool IsMutligear { get; set; }
         public FishingGround FishingGround { get; set; }
         public bool IsCatchSold { get; set; }
         public int? NumberOfFishers { get; set; }
@@ -153,6 +155,8 @@ namespace NSAP_ODK.Entities.Database
         public int? VesselID { get; set; }
 
         public string VesselText { get; set; }
+
+        public int CountGearTypesUsed { get; set; }
 
         public double? WeightOfCatch { get; set; }
 
@@ -373,6 +377,7 @@ namespace NSAP_ODK.Entities.Database
             Boxes = vesselUnload.Boxes;
             BoxesSampled = vesselUnload.BoxesSampled;
             RaisingFactor = vesselUnload.RaisingFactor;
+            IsMultigear = vesselUnload.IsMultiGear;
             IsCatchSold = vesselUnload.IsCatchSold;
             Notes = vesselUnload.Notes;
 
@@ -392,8 +397,9 @@ namespace NSAP_ODK.Entities.Database
 
             HasCatchComposition = vesselUnload.HasCatchComposition;
             NumberOfFishers = vesselUnload.NumberOfFishers;
+            CountGearTypesUsed = vesselUnload.CountGearTypesUsed;
         }
-
+        public int CountGearTypesUsed { get; private set; }
         public bool IsCatchSold { get; private set; }
         public string Region { get; private set; }
         public string FMA { get; private set; }
@@ -427,7 +433,7 @@ namespace NSAP_ODK.Entities.Database
 
         public string Notes { get; private set; }
 
-
+        public bool IsMultigear { get; private set; }
         public bool OperationIsTracked { get; private set; }
 
         public string DepartureFromLandingSite { get; private set; }
@@ -484,8 +490,15 @@ namespace NSAP_ODK.Entities.Database
             Sector = vesselUnload.Sector;
             FromExcelDownload = vesselUnload.FromExcelDownload;
             HasCatchComposition = vesselUnload.HasCatchComposition;
+            IsMultigear = vesselUnload.IsMultiGear;
+            IsCatchSold = vesselUnload.IsCatchSold;
+            CountGearTypesUsed = vesselUnload.CountGearTypesUsed;
         }
         public int ID { get; set; }
+        public int CountGearTypesUsed { get; set; }
+        public bool IsMultigear { get; set; }
+
+        public bool IsCatchSold { get; set; }
         public int ParentID { get; set; }
         public bool FishingTripIsCompleted { get; set; }
         public string LandingSite { get; set; }
@@ -604,6 +617,7 @@ namespace NSAP_ODK.Entities.Database
         }
     }
 
+    //[JsonObject(MemberSerialization.OptIn)]
     public class VesselUnload
     {
         private LandedCatchValidationResult _landedCatchValidationResult;
@@ -613,17 +627,46 @@ namespace NSAP_ODK.Entities.Database
         private NSAPEnumerator _nsapEnumerator;
         private double _runningSum = 0;
         private bool _speciesWeightIsZero;
+
+        public int CountGearTypesUsed { get; set; }
         public LandedCatchValidationResult LandedCatchValidationResult
         {
             get { return _landedCatchValidationResult; }
         }
 
+        //[JsonProperty]
+        //public int ParentPK { get { return Parent.PK; } }
+        public string Gears
+        {
+            get
+            {
+                if (IsMultiGear)
+                {
+                    if (VesselUnload_FishingGearsViewModel == null || VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection == null)
+                    {
+                        VesselUnload_FishingGearsViewModel = new VesselUnload_FishingGearViewModel(this);
+                    }
+                    string g = "";
+                    foreach (var item in VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection)
+                    {
+                        g += $"{item.GearUsedName},";
+                    }
+                    return g.Trim(',');
+                }
+                else
+                {
+                    return Parent.GearUsedName;
+                }
+            }
+        }
         public string JSONFileName { get; set; }
         public VesselUnloadWeights VesselUnloadWeights { get; set; }
         public bool IsCatchSold { get; set; }
         public bool DelayedSave { get; set; }
         public VesselUnloadViewModel ContainerViewModel { get; set; }
         public VesselCatchViewModel VesselCatchViewModel { get; set; }
+
+        public VesselUnload_FishingGearViewModel VesselUnload_FishingGearsViewModel { get; set; }
         public FishingGroundGridViewModel FishingGroundGridViewModel { get; set; }
 
         public GearSoakViewModel GearSoakViewModel { get; set; }
@@ -1094,6 +1137,42 @@ namespace NSAP_ODK.Entities.Database
 
         public string VesselText { get; set; }
 
+        public List<VesselUnload_Gear_Spec> ListVesselGearSpec
+        {
+            get
+            {
+                List<VesselUnload_Gear_Spec> vu_gses = new List<VesselUnload_Gear_Spec>();
+                if (VesselUnload_FishingGearsViewModel == null)
+                {
+                    VesselUnload_FishingGearsViewModel = new VesselUnload_FishingGearViewModel(this);
+                }
+                foreach (VesselUnload_FishingGear vu_fg in VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection)
+                {
+                    if (vu_fg.VesselUnload_Gear_Specs_ViewModel == null)
+                    {
+                        vu_fg.VesselUnload_Gear_Specs_ViewModel = new VesselUnload_Gear_Spec_ViewModel(vu_fg);
+                    }
+                    vu_gses.AddRange(vu_fg.VesselUnload_Gear_Specs_ViewModel.VesselUnload_Gear_SpecCollection.ToList());
+                }
+                return vu_gses;
+            }
+        }
+        public List<VesselUnload_FishingGear> ListUnloadFishingGears
+        {
+            get
+            {
+                List<VesselUnload_FishingGear> vu_fgs = new List<VesselUnload_FishingGear>();
+                if (VesselUnload_FishingGearsViewModel == null || VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection == null)
+                {
+                    VesselUnload_FishingGearsViewModel = new VesselUnload_FishingGearViewModel(this);
+                }
+                foreach (VesselUnload_FishingGear vu_fg in VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection)
+                {
+                    vu_fgs.Add(vu_fg);
+                }
+                return vu_fgs;
+            }
+        }
         public List<VesselEffort> ListVesselEffort
         {
             get
@@ -1154,6 +1233,10 @@ namespace NSAP_ODK.Entities.Database
             if (VesselCatchViewModel == null)
             {
                 VesselCatchViewModel = new VesselCatchViewModel(this);
+            }
+            if (VesselUnload_FishingGearsViewModel == null)
+            {
+                VesselUnload_FishingGearsViewModel = new VesselUnload_FishingGearViewModel(this);
             }
             if (FishingGroundGridViewModel == null)
             {
@@ -1222,6 +1305,8 @@ namespace NSAP_ODK.Entities.Database
         public DateTime? DepartureFromLandingSite { get; set; }
         public DateTime? ArrivalAtLandingSite { get; set; }
         public string ODKRowID { get; set; }
+
+        public bool IsMultiGear { get; set; }
 
         public FishingVessel FishingVessel
         {

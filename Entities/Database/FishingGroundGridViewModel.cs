@@ -90,7 +90,15 @@ namespace NSAP_ODK.Entities.Database
 
         private bool SetCSV(FishingGroundGrid item)
         {
-            _csv.AppendLine($"{item.PK},{item.Parent.PK},\"{item.UTMZone}\",\"{item.Grid}\"");
+            Dictionary<string, string> myDict = new Dictionary<string, string>();
+            myDict.Add("fg_grid_id", item.PK.ToString());
+            myDict.Add("v_unload_id", item.Parent.PK.ToString());
+            myDict.Add("utm_zone", item.UTMZone.ToString());
+            myDict.Add("grid25", item.Grid);
+
+            _csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_fg_grid"));
+
+            //_csv.AppendLine($"{item.PK},{item.Parent.PK},\"{item.UTMZone}\",\"{item.Grid}\"");
             return true;
         }
         public static string CSV

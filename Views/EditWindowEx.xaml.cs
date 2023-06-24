@@ -1086,6 +1086,7 @@ namespace NSAP_ODK.Views
                         notFishSpeciesEdit = new NotFishSpeciesEdit(nfs);
                         _oldGenus = nfs.Genus;
                         _oldSpecies = nfs.Species;
+                        _oldName = nfs.Name;
                     }
                     else
                     {
@@ -1094,9 +1095,10 @@ namespace NSAP_ODK.Views
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SpeciesID", DisplayName = "Species ID", DisplayOrder = 1, Description = "Identifier used in the database" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Genus", DisplayName = "Genus", DisplayOrder = 2, Description = "Generic name of the species" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Species", DisplayName = "Species", DisplayOrder = 3, Description = "Specific name of the species" });
-                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "TaxaCode", DisplayName = "Taxonomic category", DisplayOrder = 4, Description = "Taxonomic category of the species" });
-                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SizeTypeCode", DisplayName = "Size type", DisplayOrder = 5, Description = "Size category of the species" });
-                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "MaxSize", DisplayName = "Max size", DisplayOrder = 6, Description = "Maximum size recorded for the species" });
+                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Name", DisplayName = "Name (use if species cannot be identified", DisplayOrder = 4, Description = "Name of the species" });
+                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "TaxaCode", DisplayName = "Taxonomic category", DisplayOrder = 5, Description = "Taxonomic category of the species" });
+                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SizeTypeCode", DisplayName = "Size type", DisplayOrder = 6, Description = "Size category of the species" });
+                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "MaxSize", DisplayName = "Max size", DisplayOrder = 7, Description = "Maximum size recorded for the species" });
                     PropertyGrid.SelectedObject = notFishSpeciesEdit;
 
                     break;
@@ -2062,9 +2064,11 @@ namespace NSAP_ODK.Views
                                 SpeciesID = nfe.SpeciesID,
                                 MaxSize = nfe.MaxSize,
                                 SizeType = NSAPEntities.SizeTypeViewModel.GetSizeType(nfe.SizeTypeCode),
-                                Taxa = NSAPEntities.TaxaViewModel.GetTaxa(nfe.TaxaCode)
+                                Taxa = NSAPEntities.TaxaViewModel.GetTaxa(nfe.TaxaCode),
+                                Name = nfe.Name
                             };
-                            validationResult = NSAPEntities.NotFishSpeciesViewModel.ValidateNonFishSpecies(notFish, _isNew, _oldGenus, _oldSpecies);
+
+                            validationResult = NSAPEntities.NotFishSpeciesViewModel.ValidateNonFishSpecies(notFish, _isNew, _oldGenus, _oldSpecies, _oldName);
                             if (validationResult.ErrorMessage.Length > 0)
                             {
                                 MessageBox.Show(validationResult.ErrorMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -2100,7 +2104,7 @@ namespace NSAP_ODK.Views
 
                                     //FillPropertyGrid();
                                     MessageBox.Show(
-                                        $"{notFish.Genus} {notFish.Species} was {editType}",
+                                        $"{notFish.ToString()}  was {editType}",
                                         Global.MessageBoxCaption,
                                         MessageBoxButton.OK,
                                         MessageBoxImage.Information

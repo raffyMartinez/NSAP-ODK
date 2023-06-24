@@ -72,6 +72,9 @@ namespace NSAP_ODK.Entities.Database
                                                  vu1.row_id,   
                                                  vu1.xform_identifier,
                                                  vu1.datetime_submitted,
+                                                 vu1.is_multigear,
+                                                 vu1.is_catch_sold,
+                                                 vu1.ref_no   
                                                  en.enumerator_id,
                                                  vu1.enumerator_text,
                                                  en.enumerator_name,
@@ -229,6 +232,9 @@ namespace NSAP_ODK.Entities.Database
                                 DateAdded = (DateTime)dr["date_added"],
                                 IsSuccess = (bool)dr["is_success"],
                                 IsTracked = (bool)dr["is_tracked"],
+                                IsMultiGear = (bool)dr["is_multigear"],
+                                IsCatchSold = (bool)dr["is_catch_sold"],
+                                RefNo = dr["ref_no"].ToString(),
                                 SectorCode = dr["sector_code"].ToString(),
                                 HasCatchComposition = (bool)dr["has_catch_composition"],
                                 IsTripCompleted = (bool)dr["trip_is_completed"],
@@ -385,6 +391,26 @@ namespace NSAP_ODK.Entities.Database
 
                         using (var cmd = con.CreateCommand())
                         {
+                            cmd.CommandText = "SELECT Max(row_id) AS max_id FROM dbo_vesselunload_fishinggear;";
+                            try
+                            {
+                                lpks.LastVesselUnloadGearPK = (int)cmd.ExecuteScalar();
+                            }
+                            catch { }
+                        }
+
+                        using (var cmd = con.CreateCommand())
+                        {
+                            cmd.CommandText = "SELECT Max(effort_row_id) AS max_id FROM dbo_vessel_effort;";
+                            try
+                            {
+                                lpks.LastVesselUnloadGearSpecPK = (int)cmd.ExecuteScalar();
+                            }
+                            catch { }
+                        }
+
+                        using (var cmd = con.CreateCommand())
+                        {
                             cmd.CommandText = "SELECT max(fg_grid_id) FROM dbo_fg_grid;";
                             try
                             {
@@ -476,7 +502,7 @@ namespace NSAP_ODK.Entities.Database
                 lpks.LastVesselUnloadPK = VesselUnloadViewModel.CurrentIDNumber;
                 lpks.LastFishingGridsPK = FishingGroundGridViewModel.CurrentIDNumber;
                 lpks.LastGearSoaksPK = GearSoakViewModel.CurrentIDNumber;
-                lpks.LastVesselEffortsPK = VesselEffortViewModel.CurrentIDNumber;
+                lpks.LastVesselEffortsPK = VesselEffortViewModel.CurrentIDNumber; //> VesselUnload_Gear_Spec_ViewModel.CurrentIDNumber ? VesselEffortViewModel.CurrentIDNumber : VesselUnload_Gear_Spec_ViewModel.CurrentIDNumber;
                 lpks.LastVesselCatchPK = VesselCatchViewModel.CurrentIDNumber;
                 lpks.LastLenWtPK = CatchLengthWeightViewModel.CurrentIDNumber;
                 lpks.LastLengthsPK = CatchLengthViewModel.CurrentIDNumber;
@@ -558,6 +584,9 @@ namespace NSAP_ODK.Entities.Database
                                                 vu1.RowID,
                                                 vu1.XFormIdentifier AS xform_identifier,
                                                 vu1.datetime_submitted,
+                                                vu1.is_multigear,
+                                                vu1.is_catch_sold,
+                                                vu1.count_gear_types,
                                                 en.EnumeratorID AS enumerator_id,
                                                 vu1.EnumeratorText AS enumerator_text,
                                                 en.EnumeratorName AS enumerator_name,
@@ -621,6 +650,7 @@ namespace NSAP_ODK.Entities.Database
                                 int? count_len_freq = null;
                                 int? count_maturity = null;
                                 int? count_twsp = null;
+                                int? count_gear_types = null;
 
                                 double? weight_catch = null;
                                 double? weight_catch_sample = null;
@@ -628,7 +658,7 @@ namespace NSAP_ODK.Entities.Database
                                 double? total_catch_comp_wt = null;
                                 double? total_catch_comp_sample_wt = null;
 
-                                if(dr["catch_total"]!=DBNull.Value)
+                                if (dr["catch_total"] != DBNull.Value)
                                 {
                                     weight_catch = (double)dr["catch_total"];
                                 }
@@ -646,6 +676,11 @@ namespace NSAP_ODK.Entities.Database
                                 if (dr["enumerator_id"] != DBNull.Value)
                                 {
                                     en_id = (int)dr["enumerator_id"];
+                                }
+
+                                if (dr["count_gear_types"] != DBNull.Value)
+                                {
+                                    count_gear_types = (int)dr["count_gear_types"];
                                 }
 
                                 if (dr["boats"] != DBNull.Value)
@@ -709,7 +744,7 @@ namespace NSAP_ODK.Entities.Database
                                     count_maturity = (int)dr["count_maturity"];
                                 }
 
-                                if(dr["total_wt_catch_composition"] != DBNull.Value)
+                                if (dr["total_wt_catch_composition"] != DBNull.Value)
                                 {
                                     total_catch_comp_wt = (double)dr["total_wt_catch_composition"];
                                 }
@@ -742,7 +777,7 @@ namespace NSAP_ODK.Entities.Database
                                     si.SamplingTypeFlag = (SamplingTypeFlag)(int)dr["type_of_sampling_flag"];
                                 }
 
-                                if(dr["validity_flag"]!=DBNull.Value)
+                                if (dr["validity_flag"] != DBNull.Value)
                                 {
                                     si.WeightValidationFlag = (WeightValidationFlag)(int)dr["validity_flag"];
                                 }
@@ -790,6 +825,8 @@ namespace NSAP_ODK.Entities.Database
                                 si.IsTracked = (bool)dr["is_tracked"];
                                 si.SectorCode = dr["sector_code"].ToString();
                                 si.HasCatchComposition = (bool)dr["has_catch_composition"];
+                                si.IsMultiGear = (bool)dr["is_multigear"];
+                                si.IsCatchSold = (bool)dr["is_catch_sold"];
                                 si.IsTripCompleted = (bool)dr["trip_is_completed"];
                                 si.CatchCompositionRows = count_catch_comp;
                                 si.VesselID = vessel_id;
@@ -814,6 +851,16 @@ namespace NSAP_ODK.Entities.Database
                                 {
                                     si.EnumeratorText = si.UserName;
                                 }
+
+                                if (si.IsMultiGear)
+                                {
+                                    si.CountFishingGearTypesUsed = count_gear_types;
+                                }
+                                else
+                                {
+                                    si.CountFishingGearTypesUsed = 1;
+                                }
+
                                 items.Add(si);
                                 count++;
                                 if (count == 21537)

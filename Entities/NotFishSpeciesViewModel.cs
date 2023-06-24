@@ -97,17 +97,29 @@ namespace NSAP_ODK.Entities
         public List<string> GetAllGenus(Taxa taxa)
         {
             List<string> genusList = new List<string>();
-            foreach (var item in NotFishSpeciesCollection.Where(t=>t.Taxa.Code==taxa.Code).OrderBy(t => t.Genus).GroupBy(t => t.Genus).ToList())
+            foreach (var item in NotFishSpeciesCollection.Where(t => t.Taxa.Code == taxa.Code).OrderBy(t => t.Genus).GroupBy(t => t.Genus).ToList())
             {
                 genusList.Add(item.Key);
             }
             return genusList;
         }
+
+        public bool SpeciesNameExist(string name)
+        {
+            foreach (NotFishSpecies nfs in NotFishSpeciesCollection)
+            {
+                if (!string.IsNullOrEmpty(nfs.Name) && nfs.Name == name)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
         public bool SpeciesNameExist(string genus, string species)
         {
             foreach (NotFishSpecies nfs in NotFishSpeciesCollection)
             {
-                if (nfs.Genus == genus && nfs.Species==species)
+                if (nfs.Genus == genus && nfs.Species == species)
                 {
                     return true;
                 }
@@ -132,19 +144,19 @@ namespace NSAP_ODK.Entities
                 case NotifyCollectionChangedAction.Add:
                     {
                         int newIndex = e.NewStartingIndex;
-                        _editSuccess= NotFishSpeciesRepo.Add(NotFishSpeciesCollection[newIndex]);
+                        _editSuccess = NotFishSpeciesRepo.Add(NotFishSpeciesCollection[newIndex]);
                     }
                     break;
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<NotFishSpecies> tempListOfRemovedItems = e.OldItems.OfType<NotFishSpecies>().ToList();
-                        _editSuccess= NotFishSpeciesRepo.Delete(tempListOfRemovedItems[0].SpeciesID);
+                        _editSuccess = NotFishSpeciesRepo.Delete(tempListOfRemovedItems[0].SpeciesID);
                     }
                     break;
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<NotFishSpecies> tempList = e.NewItems.OfType<NotFishSpecies>().ToList();
-                        _editSuccess= NotFishSpeciesRepo.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        _editSuccess = NotFishSpeciesRepo.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -212,30 +224,71 @@ namespace NSAP_ODK.Entities
             }
             return _editSuccess;
         }
-        public EntityValidationResult ValidateNonFishSpecies(NotFishSpecies species, bool isNew, string oldGenus, string oldSpecies)
+        public EntityValidationResult ValidateNonFishSpecies(NotFishSpecies species, bool isNew, string oldGenus, string oldSpecies, string oldName = "")
         {
             EntityValidationResult evr = new EntityValidationResult();
 
-            if(string.IsNullOrEmpty(species.Species) || string.IsNullOrEmpty(species.Genus))
+            if (isNew)
             {
-                evr.AddMessage("Generic and specific names must not be empty");
+                if (!string.IsNullOrEmpty(species.Name))
+                {
+                    if (SpeciesNameExist(species.Name))
+                    {
+                        evr.AddMessage("Name already used");
+                    }
+                }
+                else
+                {
+                    if (string.IsNullOrEmpty(species.Species) || string.IsNullOrEmpty(species.Genus))
+                    {
+                        evr.AddMessage("Generic and specific names must not be empty");
+                    }
+                    else if (isNew && SpeciesNameExist(species.Genus, species.Species))
+                    {
+                        evr.AddMessage("Species name already used");
+                    }
+                }
             }
-            else if(isNew && SpeciesNameExist(species.Genus, species.Species))
+            else
             {
-                evr.AddMessage("Species name already used");
+                if (string.IsNullOrEmpty(oldName))
+                {
+                    if (species.Genus.Length > 0 && species.Species.Length > 0
+                        && oldGenus != species.Genus && oldSpecies != species.Species
+                        && SpeciesNameExist(oldGenus, oldSpecies))
+                    {
+                        evr.AddMessage("Species name already used");
+                    }
+                }
+                else
+                {
+                    if (oldName != species.Name && SpeciesNameExist(species.Name))
+                    {
+                        evr.AddMessage("Name already used");
+                    }
+                }
+
             }
+            //if (!string.IsNullOrEmpty(species.Name) && isNew && SpeciesNameExist(species.Name))
+            //{
+            //    evr.AddMessage("Name already used");
+            //}
+            //else if (string.IsNullOrEmpty(species.Species) || string.IsNullOrEmpty(species.Genus))
+            //{
+            //    evr.AddMessage("Generic and specific names must not be empty");
+            //}
+            //else if (isNew && SpeciesNameExist(species.Genus, species.Species))
+            //{
+            //    evr.AddMessage("Species name already used");
+            //}
 
             if (species.Taxa == null)
             {
                 evr.AddMessage("Taxonomic category cannot be empty");
             }
 
-            if(!isNew && species.Genus.Length>0 && species.Species.Length>0
-                && oldGenus!= species.Genus && oldSpecies != species.Species
-                && SpeciesNameExist(oldGenus,oldSpecies))
-            {
-                evr.AddMessage("Species name already used");
-            }
+
+
 
             return evr;
         }

@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using Newtonsoft.Json;
+
 namespace NSAP_ODK.Entities.Database
 {
     public class VesselUnloadViewModel
@@ -16,6 +18,8 @@ namespace NSAP_ODK.Entities.Database
         private static StringBuilder _csv_1 = new StringBuilder();
         private static StringBuilder _unloadStats_csv = new StringBuilder();
         private static StringBuilder _weight_validataion_csv = new StringBuilder();
+        private static List<string> _serializedObjectsJSON = new List<string>();
+
         //private static int _deleted_vu_count;
         //public static event EventHandler<DeleteVesselUnloadFromOrphanEventArg> DeleteVesselUnloadFromOrphanedItem;
         public int CountLandingWithCatchComposition()
@@ -31,6 +35,73 @@ namespace NSAP_ODK.Entities.Database
 
 
 
+        }
+
+
+        public static void SetUpFishingGearSubModel(VesselUnload vu)
+        {
+            VesselUnload_FishingGear vufg;
+
+            if (!vu.IsMultiGear)
+            {
+                //if (vu.VesselUnload_FishingGearsViewModel == null || vu.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection == null)
+                if (vu.VesselUnload_FishingGearsViewModel == null || vu.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection.Count==0)
+                {
+                    vu.VesselUnload_FishingGearsViewModel = new VesselUnload_FishingGearViewModel();
+                    vufg = new VesselUnload_FishingGear
+                    {
+                        GearCode = vu.Parent.GearID,
+                        GearText = vu.Parent.GearUsedText,
+                        Parent = vu
+                    };
+
+                    vu.VesselUnload_FishingGearsViewModel.AddRecordToRepo(vufg, isTemporary: true);
+
+                    if (vufg.VesselUnload_Gear_Specs_ViewModel == null || vufg.VesselUnload_Gear_Specs_ViewModel.VesselUnload_Gear_SpecCollection == null)
+                    {
+                        vufg.VesselUnload_Gear_Specs_ViewModel = new VesselUnload_Gear_Spec_ViewModel();
+
+                        foreach (var eff in vu.ListVesselEffort)
+                        {
+                            VesselUnload_Gear_Spec vufg_spec = new VesselUnload_Gear_Spec
+                            {
+                                Parent = vufg,
+                                EffortSpecID = eff.EffortSpecID,
+                                EffortValueNumeric = eff.EffortValueNumeric,
+                                EffortValueText = eff.EffortValueText
+                            };
+                            vufg.VesselUnload_Gear_Specs_ViewModel.AddRecordToRepo(vufg_spec, isTemporary: true);
+                        }
+                    }
+
+                    foreach (VesselCatch vc in vu.ListVesselCatch)
+                    {
+                        vc.GearCode = vufg.GearCode;
+                        vc.GearText = vufg.GearText;
+                    }
+                    //Console.WriteLine("sub model created");
+                }
+                else
+                {
+                    //Console.WriteLine("sub model already in place");
+                }
+            
+                //return vu;
+            }
+            else
+            {
+                if(vu.VesselUnload_FishingGearsViewModel==null)
+                {
+                    vu.VesselUnload_FishingGearsViewModel = new VesselUnload_FishingGearViewModel(vu);
+                    foreach( VesselUnload_FishingGear fg in vu.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection)
+                    {
+                        if(fg.VesselUnload_Gear_Specs_ViewModel==null)
+                        {
+                            fg.VesselUnload_Gear_Specs_ViewModel = new VesselUnload_Gear_Spec_ViewModel(fg);
+                        }
+                    }
+                }
+            }
         }
 
         public static string StatusText(VesselUnload vu)
@@ -97,21 +168,31 @@ namespace NSAP_ODK.Entities.Database
 
         public bool UpdateWeightValidation(SummaryItem si, VesselUnload vu)
         {
-
-            WeightValidationUpdater.VesselCatches = vu.VesselCatchViewModel.VesselCatchCollection.ToList();
-            WeightValidationUpdater.SummaryItem = si;
-            if (WeightValidationUpdater.UpdateDatabase())
+            try
             {
-                if (WeightValidationUpdater.CSV.Length > 0)
+                if (vu.VesselCatchViewModel != null)
                 {
-                    _weight_validataion_csv.AppendLine(WeightValidationUpdater.CSV);
-                    return true;
+                    WeightValidationUpdater.VesselCatches = vu.VesselCatchViewModel.VesselCatchCollection.ToList();
+                    WeightValidationUpdater.SummaryItem = si;
+                    if (WeightValidationUpdater.UpdateDatabase())
+                    {
+                        if (WeightValidationUpdater.CSV.Length > 0)
+                        {
+                            _weight_validataion_csv.AppendLine(WeightValidationUpdater.CSV);
+                            return true;
+                        }
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Utilities.Logger.Log(ex);
             }
             return false;
         }
         public bool UpdateWeightValidation(NSAP_ODK.Entities.Database.VesselLanding vl, VesselUnload vu)
         {
+            Dictionary<string, string> myDict = new Dictionary<string, string>();
             if (vu.DelayedSave)
             {
                 vu.SumOfSampleWeights = vl.SumOfCatchCompWeight;
@@ -121,7 +202,17 @@ namespace NSAP_ODK.Entities.Database
                 vu.WeightValidationFlag = vl.WeightValidationFlag;
                 vu.RaisingFactor = vl.RaisingFactorComputed;
 
-                _weight_validataion_csv.AppendLine($"{vu.PK},{vl.SumOfCatchCompWeight},{vl.SumOfCatchCompSampleWeight},{(int)vl.WeightValidationFlag},{(int)vl.SamplingTypeFlag},{vl.DifferenceInWeight},{vl.FormVersion},{vl.RaisingFactorComputed}");
+                myDict.Add("v_unload_id", vu.PK.ToString());
+                myDict.Add("total_wt_catch_composition", vl.SumOfCatchCompWeight.ToString());
+                myDict.Add("total_wt_sampled_species", vl.SumOfCatchCompSampleWeight.ToString());
+                myDict.Add("validity_flag", ((int)vl.WeightValidationFlag).ToString());
+                myDict.Add("type_of_sampling_flag", ((int)vl.SamplingTypeFlag).ToString());
+                myDict.Add("weight_difference", vl.DifferenceInWeight.ToString());
+                myDict.Add("form_version", vl.FormVersion.ToString());
+                myDict.Add("raising_factor", vl.RaisingFactorComputed.ToString());
+
+                _weight_validataion_csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload_weight_validation"));
+                //_weight_validataion_csv.AppendLine($"{vu.PK},{vl.SumOfCatchCompWeight},{vl.SumOfCatchCompSampleWeight},{(int)vl.WeightValidationFlag},{(int)vl.SamplingTypeFlag},{vl.DifferenceInWeight},{vl.FormVersion},{vl.RaisingFactorComputed}");
                 return true;
             }
             else
@@ -131,10 +222,23 @@ namespace NSAP_ODK.Entities.Database
         }
         public bool UpdateUnloadStats(VesselUnload vu)
         {
+            Dictionary<string, string> myDict = new Dictionary<string, string>();
             if (vu.DelayedSave)
             {
+                myDict.Add("v_unload_id", vu.PK.ToString());
+                myDict.Add("count_effort", vu.CountEffortIndicators.ToString());
+                myDict.Add("count_grid", vu.CountGrids.ToString());
+                myDict.Add("count_soak", vu.CountGearSoak.ToString());
+                myDict.Add("count_catch_composition", vu.CountCatchCompositionItems.ToString());
+                myDict.Add("count_lengths", vu.CountLengthRows.ToString());
+                myDict.Add("count_lenfreq", vu.CountLenFreqRows.ToString());
+                myDict.Add("count_lenwt", vu.CountLenWtRows.ToString());
+                myDict.Add("count_maturity", vu.CountMaturityRows.ToString());
 
-                _unloadStats_csv.AppendLine($"{vu.PK},{vu.CountEffortIndicators},{vu.CountGrids},{vu.CountGearSoak},{vu.CountCatchCompositionItems},{vu.CountLengthRows},{vu.CountLenFreqRows},{vu.CountLenWtRows},{vu.CountMaturityRows}");
+
+                _unloadStats_csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload_stats"));
+
+                //_unloadStats_csv.AppendLine($"{vu.PK},{vu.CountEffortIndicators},{vu.CountGrids},{vu.CountGearSoak},{vu.CountCatchCompositionItems},{vu.CountLengthRows},{vu.CountLenFreqRows},{vu.CountLenWtRows},{vu.CountMaturityRows}");
 
                 return true;
             }
@@ -706,6 +810,7 @@ namespace NSAP_ODK.Entities.Database
 
         private static bool SetCSV(VesselUnload vu)
         {
+            Dictionary<string, string> myDict = new Dictionary<string, string>();
             string date_submitted = vu.DateTimeSubmitted.ToString();
             string date_added = vu.DateAddedToDatabase.ToString();
             string date_sampled = vu.SamplingDate.ToString();
@@ -868,9 +973,55 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
 
+            myDict.Add("unload_gr_id", vu.Parent.PK.ToString());
+            myDict.Add("v_unload_id", vu.PK.ToString());
+            myDict.Add("boat_id", boat_id);
+            myDict.Add("catch_total", catch_wt);
+            myDict.Add("catch_samp", sample_wt);
+            myDict.Add("boxes_total", boxes_total);
+            myDict.Add("boxes_samp", boxes_sampled);
+            myDict.Add("boat_text", vu.VesselText);
+            myDict.Add("is_boat_used", vu.IsBoatUsed.ToString());
+            myDict.Add("raising_factor", raising_factor);
 
-            _csv.AppendLine($"{vu.Parent.PK},{vu.PK},{boat_id},{catch_wt},{sample_wt},{boxes_total},{boxes_sampled},\"{vu.VesselText}\",{Convert.ToInt32(vu.IsBoatUsed)},{raising_factor}");
-            _csv_1.AppendLine($"{vu.PK},{Convert.ToInt32(vu.OperationIsSuccessful)},{Convert.ToInt32(vu.OperationIsTracked)},{departure},{arrival},\"{vu.SectorCode}\",\"{vu.ODKRowID}\",\"{vu.XFormIdentifier}\",{xFormDate},\"{vu.UserName}\",\"{vu.DeviceID}\",{date_submitted},\"{vu.FormVersion}\",\"{vu.GPSCode}\",{date_sampled},\"{vu.Notes}\",{enum_id},\"{enum_text}\",{date_added},{Convert.ToInt32(vu.FromExcelDownload)},{Convert.ToInt32(vu.FishingTripIsCompleted)},{Convert.ToInt32(vu.HasCatchComposition)},{no_fishers},\"{vu.RefNo}\", {Convert.ToInt32(vu.IsCatchSold)},\"{vu.JSONFileName}\" ");
+            //_csv.AppendLine($"{vu.Parent.PK},{vu.PK},{boat_id},{catch_wt},{sample_wt},{boxes_total},{boxes_sampled},\"{vu.VesselText}\",{Convert.ToInt32(vu.IsBoatUsed)},{raising_factor}");
+            _csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload"));
+
+
+            myDict.Clear();
+
+            myDict.Add("v_unload_id", vu.PK.ToString());
+            myDict.Add("Success", vu.OperationIsSuccessful.ToString());
+            myDict.Add("Tracked", vu.OperationIsTracked.ToString());
+            myDict.Add("DepartureLandingSite", departure);
+            myDict.Add("ArrivalLandingSite", arrival);
+            myDict.Add("sector_code", vu.SectorCode);
+            myDict.Add("RowID", vu.ODKRowID);
+            myDict.Add("XFormIdentifier", vu.XFormIdentifier);
+            myDict.Add("XFormDate", xFormDate);
+            myDict.Add("user_name", vu.UserName);
+            myDict.Add("device_id", vu.DeviceID);
+            myDict.Add("datetime_submitted", date_submitted);
+            myDict.Add("form_version", vu.FormVersion);
+            myDict.Add("GPS", vu.GPSCode);
+            myDict.Add("SamplingDate", date_sampled);
+            myDict.Add("Notes", vu.Notes);
+            myDict.Add("EnumeratorID", enum_id);
+            myDict.Add("EnumeratorText", enum_text);
+            myDict.Add("DateAdded", date_added);
+            myDict.Add("FromExcelDownload", vu.FromExcelDownload.ToString());
+            myDict.Add("HasCatchComposition", vu.HasCatchComposition.ToString());
+            myDict.Add("trip_is_completed", vu.FishingTripIsCompleted.ToString());
+            myDict.Add("NumberOfFishers", no_fishers);
+            myDict.Add("json_filename", vu.JSONFileName);
+            myDict.Add("ref_no", vu.RefNo);
+            myDict.Add("is_catch_sold", vu.IsCatchSold.ToString());
+            myDict.Add("is_multigear", vu.IsMultiGear.ToString());
+            myDict.Add("count_gear_types", vu.CountGearTypesUsed.ToString());
+
+            _csv_1.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload_1"));
+
+            //_csv_1.AppendLine($"{vu.PK},{Convert.ToInt32(vu.OperationIsSuccessful)},{Convert.ToInt32(vu.OperationIsTracked)},{departure},{arrival},\"{vu.SectorCode}\",\"{vu.ODKRowID}\",\"{vu.XFormIdentifier}\",{xFormDate},\"{vu.UserName}\",\"{vu.DeviceID}\",{date_submitted},\"{vu.FormVersion}\",\"{vu.GPSCode}\",{date_sampled},\"{vu.Notes}\",{enum_id},\"{enum_text}\",{date_added},{Convert.ToInt32(vu.FromExcelDownload)},{Convert.ToInt32(vu.FishingTripIsCompleted)},{Convert.ToInt32(vu.HasCatchComposition)},{no_fishers},\"{vu.RefNo}\", {Convert.ToInt32(vu.IsCatchSold)},\"{vu.JSONFileName}\" ");
 
 
 
@@ -930,10 +1081,12 @@ namespace NSAP_ODK.Entities.Database
                 }
                 else
                 {
-                    return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_vessel_unload")}\r\n{_csv.ToString()}";
+
+                    return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_vessel_unload")}\r\n{_csv}";
                 }
             }
         }
+
         public VesselUnload getVesselUnload(string odkROWID)
         {
             var vu = VesselUnloadCollection.FirstOrDefault(n => n.ODKRowID == odkROWID);
@@ -958,6 +1111,7 @@ namespace NSAP_ODK.Entities.Database
                         VesselUnload newvu = VesselUnloadCollection[e.NewStartingIndex];
                         if (newvu.DelayedSave)
                         {
+                            //_serializedObjectsJSON.Add(JsonConvert.SerializeObject(newvu));
                             EditSucceeded = SetCSV(newvu);
                         }
                         else

@@ -30,9 +30,21 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                return FormName == "NSAP Fish Catch Monitoring e-Form" || FormName == "Fisheries landing survey";
+                return FormName.Contains("NSAP Fish Catch Monitoring e-Form") || FormName.Contains("Fisheries landing survey");
             }
             set { _dummy = value; }
+        }
+
+        public bool IsFishLandingMultiGearSurveyForm
+        {
+            get
+            {
+                return  FormName.Contains("NSAP Fish Catch Monitoring e-Form") && FormName.Contains("MultiGear");
+            }
+            set
+            {
+                //
+            }
         }
 
         public int SavedInDBCount { get; set; }

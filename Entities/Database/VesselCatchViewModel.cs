@@ -642,6 +642,7 @@ namespace NSAP_ODK.Entities.Database
                     price_sp = @"\N";
                 }
 
+
                 // if (item.TWS == null)
                 //{
                 //   tws = @"\N";
@@ -652,8 +653,25 @@ namespace NSAP_ODK.Entities.Database
             }
             else
             {
-                //_csv.AppendLine($"{item.PK},{item.Parent.PK},{sp_id},{catch_kg},{sample_kg},\"{item.TaxaCode}\",\"{item.SpeciesText}\",{tws}");
-                _csv.AppendLine($"{item.PK},{item.Parent.PK},{sp_id},{catch_kg},{sample_kg},\"{item.TaxaCode}\",\"{item.SpeciesText}\",\"{item.WeighingUnit}\",{Convert.ToInt32(item.FromTotalCatch)},{price_sp},\"{item.PriceUnit}\"");
+                Dictionary<string, string> myDict = new Dictionary<string, string>();
+                myDict.Add("catch_id", item.PK.ToString());
+                myDict.Add("v_unload_id", item.Parent.PK.ToString());
+                myDict.Add("species_id", sp_id);
+                myDict.Add("catch_kg", catch_kg);
+                myDict.Add("samp_kg", sample_kg);
+                myDict.Add("taxa", item.TaxaCode);
+                myDict.Add("species_text", item.SpeciesText);
+                myDict.Add("weighing_unit", item.WeighingUnit);
+                myDict.Add("from_total_catch", item.FromTotalCatch.ToString());
+                myDict.Add("gear_code", string.IsNullOrEmpty(item.GearCode) ? "" : item.GearCode);
+                myDict.Add("gear_text", string.IsNullOrEmpty(item.GearCode) ? item.GearText : "");
+                myDict.Add("price_of_species", price_sp);
+                myDict.Add("price_unit", item.PriceUnit);
+
+
+                _csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_catch"));
+
+                //_csv.AppendLine($"{item.PK},{item.Parent.PK},{sp_id},{catch_kg},{sample_kg},\"{item.TaxaCode}\",\"{item.SpeciesText}\",\"{item.WeighingUnit}\",{Convert.ToInt32(item.FromTotalCatch)},{price_sp},\"{item.PriceUnit}\"");
             }
             return true;
         }

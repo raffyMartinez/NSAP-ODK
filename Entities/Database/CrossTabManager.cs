@@ -10,8 +10,13 @@ namespace NSAP_ODK.Entities.Database
 {
     public static class CrossTabManager
     {
+
         private static List<CrossTabEffort> _crossTabEfforts;
+        private static List<CrossTabEffort_VesselUnloadGear> _crossTabEfforts_vesselunloadGear;  // crosstab with species composition and will only
+                                                                                                 // contain sampled landings with species composition
         private static List<CrossTabLengthWeight> _crossTabLenWts;
+        private static List<CrossTabEffortAll_VesselUnloadGear> _crossTabEffortsAll_vesselUnloadGear; //crostab without species comp
+                                                                                                      //and will contain all sampled landings
         private static List<CrossTabEffortAll> _crossTabEffortsAll;
         private static List<CrossTabLenFreq> _crossTabLenFreqs;
         private static List<CrossTabMaturity> _crossTabMaturities;
@@ -22,7 +27,10 @@ namespace NSAP_ODK.Entities.Database
         private static List<LandingSiteSampling> _landingSiteSamplings;
         private static TreeViewModelControl.AllSamplingEntitiesEventHandler _sev;
         private static DataSet _crossTabDataSet;
-        public static Dictionary<int, CrossTabCommonProperties> UnloadCrossTabCommonPropertyDictionary { get; set; } = new Dictionary<int, CrossTabCommonProperties>();
+        //public static Dictionary<int, CrossTabCommonProperties> UnloadCrossTabCommonPropertyDictionary { get; set; } = new Dictionary<int, CrossTabCommonProperties>();
+
+
+        public static Dictionary<string, CrossTabCommonProperties> UnloadCrossTabCommonPropertyDictionary { get; set; } = new Dictionary<string, CrossTabCommonProperties>();
 
         public static event EventHandler<CrossTabReportEventArg> CrossTabEvent;
 
@@ -35,6 +43,8 @@ namespace NSAP_ODK.Entities.Database
         {
             int counter = 0;
             _sev = sev;
+            _crossTabEfforts_vesselunloadGear = new List<CrossTabEffort_VesselUnloadGear>();
+            _crossTabEffortsAll_vesselUnloadGear = new List<CrossTabEffortAll_VesselUnloadGear>();
             _crossTabEfforts = new List<CrossTabEffort>();
             _crossTabLenFreqs = new List<CrossTabLenFreq>();
             _crossTabMaturities = new List<CrossTabMaturity>();
@@ -107,71 +117,80 @@ namespace NSAP_ODK.Entities.Database
             CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { RowsToPrepare = unloads.Count, Context = "Start" });
 
             UnloadCrossTabCommonPropertyDictionary.Clear();
+            //enumerate all the vessel unload for the month
             foreach (var unload in unloads)
             {
-
-                CrossTabCommon ctc = new CrossTabCommon(unload);
-                UnloadCrossTabCommonPropertyDictionary.Add(unload.PK, ctc.CommonProperties);
-
-                _crossTabEffortsAll.Add(new CrossTabEffortAll { CrossTabCommon = ctc, VesselUnload = unload });
-
-                List<VesselCatch> vesselCatch = unload.ListVesselCatch;
-
-                if (UnloadCrossTabCommonPropertyDictionary.Count == 1)
+                VesselUnloadViewModel.SetUpFishingGearSubModel(unload);
+                foreach (VesselUnload_FishingGear vufg in unload.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection)
                 {
-                    CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { Context = "RowsPrepared" });
-                }
-
-                foreach (var vc in vesselCatch)
-                {
-                    ctc = new CrossTabCommon(vc);
-                    _crossTabEfforts.Add(new CrossTabEffort { CrossTabCommon = ctc, VesselUnload = unload });
+                    CrossTabCommon ctc = new CrossTabCommon(vufg);
 
 
-                    foreach (var clf in vc.ListCatchLenFreq)
+                    //CrossTabCommon ctc = new CrossTabCommon(unload);
+                    UnloadCrossTabCommonPropertyDictionary.Add(vufg.Guid.ToString(), ctc.CommonProperties);
+                    //UnloadCrossTabCommonPropertyDictionary.Add(vufg.RowID, ctc.CommonProperties);
+
+                    _crossTabEffortsAll_vesselUnloadGear.Add(new CrossTabEffortAll_VesselUnloadGear { CrossTabCommon = ctc, VesselUnload_FishingGear = vufg });
+
+                    //List<VesselCatch> vesselCatch =  unload.ListVesselCatch;
+                    List<VesselCatch> vesselCatch = unload.ListVesselCatch.Where(t => t.GearNameUsedEx == vufg.GearUsedName).ToList();
+
+                    if (UnloadCrossTabCommonPropertyDictionary.Count == 1)
                     {
-                        ctc = new CrossTabCommon(clf);
-                        _crossTabLenFreqs.Add(new CrossTabLenFreq { CrossTabCommon = ctc, Length = clf.LengthClass, Freq = clf.Frequency, Sex = clf.Sex });
+                        CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { Context = "RowsPrepared" });
                     }
 
-                    foreach (var cm in vc.ListCatchMaturity)
+                    foreach (var vc in vesselCatch)
                     {
-                        ctc = new CrossTabCommon(cm);
-                        _crossTabMaturities.Add(new CrossTabMaturity
+                        ctc = new CrossTabCommon(vc, vufg);
+                        //_crossTabEfforts.Add(new CrossTabEffort { CrossTabCommon = ctc, VesselUnload = unload });
+                        _crossTabEfforts_vesselunloadGear.Add(new CrossTabEffort_VesselUnloadGear { CrossTabCommon = ctc, VesselUnload_FishingGear = vufg });
+
+                        foreach (var clf in vc.ListCatchLenFreq)
                         {
-                            CrossTabCommon = ctc,
-                            Length = cm.Length,
-                            Weight = cm.Weight,
-                            //WeightUnit = ctc.WeightUnit,
-                            Sex = cm.Sex,
-                            MaturityStage = cm.Maturity,
-                            GutContent = cm.GutContentClassification,
-                            GonadWeight = cm.GonadWeight
-                        });
-                    }
+                            //ctc = new CrossTabCommon(clf, vufg);
+                            _crossTabLenFreqs.Add(new CrossTabLenFreq { CrossTabCommon = ctc, Length = clf.LengthClass, Freq = clf.Frequency, Sex = clf.Sex });
+                        }
 
-                    foreach (var cl in vc.ListCatchLength)
-                    {
-                        ctc = new CrossTabCommon(cl);
-                        _crossTabLengths.Add(new CrossTabLength { CrossTabCommon = ctc, Length = cl.Length, Sex = cl.Sex });
-                    }
-
-                    foreach (var clw in vc.ListCatchLengthWeight)
-                    {
-                        ctc = new CrossTabCommon(clw);
-                        _crossTabLenWts.Add(new CrossTabLengthWeight
+                        foreach (var cm in vc.ListCatchMaturity)
                         {
-                            Length = clw.Length,
-                            Weight = clw.Weight,
-                            //WeightUnit = ctc.WeightUnit,
-                            Sex = clw.Sex,
-                            CrossTabCommon = ctc,
-                        });
-                    }
+                            //ctc = new CrossTabCommon(cm, vufg);
+                            _crossTabMaturities.Add(new CrossTabMaturity
+                            {
+                                CrossTabCommon = ctc,
+                                Length = cm.Length,
+                                Weight = cm.Weight,
+                                //WeightUnit = ctc.WeightUnit,
+                                Sex = cm.Sex,
+                                MaturityStage = cm.Maturity,
+                                GutContent = cm.GutContentClassification,
+                                GonadWeight = cm.GonadWeight
+                            });
+                        }
 
+                        foreach (var cl in vc.ListCatchLength)
+                        {
+                            //ctc = new CrossTabCommon(cl, vufg);
+                            _crossTabLengths.Add(new CrossTabLength { CrossTabCommon = ctc, Length = cl.Length, Sex = cl.Sex });
+                        }
+
+                        foreach (var clw in vc.ListCatchLengthWeight)
+                        {
+                            //ctc = new CrossTabCommon(clw, vufg);
+                            _crossTabLenWts.Add(new CrossTabLengthWeight
+                            {
+                                Length = clw.Length,
+                                Weight = clw.Weight,
+                                //WeightUnit = ctc.WeightUnit,
+                                Sex = clw.Sex,
+                                CrossTabCommon = ctc,
+                            });
+                        }
+
+                    }
+                    counter++;
+                    CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { RowsToPrepare = unloads.Count, RowsPrepared = counter, Context = "AddingRows" });
                 }
-                counter++;
-                CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { RowsToPrepare = unloads.Count, RowsPrepared = counter, Context = "AddingRows" });
             }
 
             CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { IsDone = true, Context = "PreparingDisplayRows" });
@@ -182,6 +201,164 @@ namespace NSAP_ODK.Entities.Database
             CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { IsDone = true, Context = "DoneAddingRows" });
             return counter;
         }
+        //private static int GearByMonthYear1(TreeViewModelControl.AllSamplingEntitiesEventHandler sev)
+        //{
+        //    int counter = 0;
+        //    _sev = sev;
+        //    _crossTabEfforts = new List<CrossTabEffort>();
+        //    _crossTabLenFreqs = new List<CrossTabLenFreq>();
+        //    _crossTabMaturities = new List<CrossTabMaturity>();
+        //    _crossTabLengths = new List<CrossTabLength>();
+        //    _crossTabEffortsAll = new List<CrossTabEffortAll>();
+        //    _crossTabLenWts = new List<CrossTabLengthWeight>();
+
+        //    string topic = _sev.ContextMenuTopic;
+
+        //    _landingSiteSamplings = new List<LandingSiteSampling>();
+        //    _gearUnloads = new List<GearUnload>();
+
+        //    CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { Context = "FilteringCatchData" });
+
+        //    switch (topic)
+        //    {
+        //        case "contextMenuCrosstabLandingSite":
+        //            _landingSiteSamplings = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection
+        //                .Where(t => t.NSAPRegion.Code == _sev.NSAPRegion.Code &&
+        //                       t.FMA.FMAID == _sev.FMA.FMAID &&
+        //                       t.FishingGround.Code == _sev.FishingGround.Code &&
+        //                       t.LandingSiteName == _sev.LandingSiteText).ToList();
+
+        //            foreach (var ls in _landingSiteSamplings)
+        //            {
+        //                _gearUnloads.AddRange(ls.GearUnloadViewModel.GearUnloadCollection.Where(r => r.ListVesselUnload.Count > 0).ToList());
+        //            }
+
+        //            break;
+        //        case "contextMenuCrosstabMonth":
+        //            _landingSiteSamplings = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection
+        //                .Where(t => t.NSAPRegion.Code == _sev.NSAPRegion.Code &&
+        //                       t.FMA.FMAID == _sev.FMA.FMAID &&
+        //                       t.FishingGround.Code == _sev.FishingGround.Code &&
+        //                       t.LandingSiteID == _sev.LandingSite.LandingSiteID &&
+        //                       t.SamplingDate.Date >= (DateTime)_sev.MonthSampled &&
+        //                       t.SamplingDate.Date < ((DateTime)_sev.MonthSampled).AddMonths(1)).ToList();
+
+        //            foreach (var ls in _landingSiteSamplings)
+        //            {
+        //                if (ls.GearUnloadViewModel == null)
+        //                {
+        //                    ls.GearUnloadViewModel = new GearUnloadViewModel(ls);
+        //                }
+        //                _gearUnloads.AddRange(ls.GearUnloadViewModel.GearUnloadCollection.Where(r => r.ListVesselUnload.Count > 0).ToList());
+        //            }
+        //            break;
+        //        case "contextMenuCrosstabGear":
+        //            _gearUnloads = NSAPEntities.GearUnloadViewModel.GearUnloadCollection
+        //             .Where(t => t.ListVesselUnload.Count > 0 &&
+        //                       t.Parent.NSAPRegion.Code == _sev.NSAPRegion.Code &&
+        //                       t.Parent.FMA.FMAID == _sev.FMA.FMAID &&
+        //                       t.Parent.FishingGround.Code == _sev.FishingGround.Code &&
+        //                       t.Parent.LandingSiteName == _sev.LandingSiteText &&
+        //                       t.GearUsedName == _sev.GearUsed &&
+        //                       t.Parent.SamplingDate.Date >= (DateTime)_sev.MonthSampled &&
+        //                       t.Parent.SamplingDate.Date < ((DateTime)_sev.MonthSampled).AddMonths(1)).ToList();
+        //            break;
+        //    }
+
+
+
+        //    List<VesselUnload> unloads = new List<VesselUnload>();
+
+        //    foreach (var gu in _gearUnloads)
+        //    {
+        //        unloads.AddRange(gu.ListVesselUnload);
+        //    }
+
+        //    CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { RowsToPrepare = unloads.Count, Context = "Start" });
+
+        //    UnloadCrossTabCommonPropertyDictionary.Clear();
+        //    foreach (var unload in unloads)
+        //    {
+        //        VesselUnloadViewModel.SetUpFishingGearSubModel(unload);
+        //        //foreach (VesselUnload_FishingGear vufg in unload.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection)
+        //        //{
+        //        CrossTabCommon ctc = new CrossTabCommon(unload);
+
+
+        //        //CrossTabCommon ctc = new CrossTabCommon(unload);
+        //        UnloadCrossTabCommonPropertyDictionary.Add("", ctc.CommonProperties);
+        //        //UnloadCrossTabCommonPropertyDictionary.Add(vufg.RowID, ctc.CommonProperties);
+
+        //        _crossTabEffortsAll.Add(new CrossTabEffortAll { CrossTabCommon = ctc, VesselUnload = unload });
+
+        //        List<VesselCatch> vesselCatch = unload.ListVesselCatch;
+
+        //        if (UnloadCrossTabCommonPropertyDictionary.Count == 1)
+        //        {
+        //            CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { Context = "RowsPrepared" });
+        //        }
+
+        //        foreach (var vc in vesselCatch)
+        //        {
+        //            ctc = new CrossTabCommon(vc);
+        //            _crossTabEfforts.Add(new CrossTabEffort { CrossTabCommon = ctc, VesselUnload = unload });
+
+
+        //            foreach (var clf in vc.ListCatchLenFreq)
+        //            {
+        //                ctc = new CrossTabCommon(clf);
+        //                _crossTabLenFreqs.Add(new CrossTabLenFreq { CrossTabCommon = ctc, Length = clf.LengthClass, Freq = clf.Frequency, Sex = clf.Sex });
+        //            }
+
+        //            foreach (var cm in vc.ListCatchMaturity)
+        //            {
+        //                ctc = new CrossTabCommon(cm);
+        //                _crossTabMaturities.Add(new CrossTabMaturity
+        //                {
+        //                    CrossTabCommon = ctc,
+        //                    Length = cm.Length,
+        //                    Weight = cm.Weight,
+        //                    //WeightUnit = ctc.WeightUnit,
+        //                    Sex = cm.Sex,
+        //                    MaturityStage = cm.Maturity,
+        //                    GutContent = cm.GutContentClassification,
+        //                    GonadWeight = cm.GonadWeight
+        //                });
+        //            }
+
+        //            foreach (var cl in vc.ListCatchLength)
+        //            {
+        //                ctc = new CrossTabCommon(cl);
+        //                _crossTabLengths.Add(new CrossTabLength { CrossTabCommon = ctc, Length = cl.Length, Sex = cl.Sex });
+        //            }
+
+        //            foreach (var clw in vc.ListCatchLengthWeight)
+        //            {
+        //                ctc = new CrossTabCommon(clw);
+        //                _crossTabLenWts.Add(new CrossTabLengthWeight
+        //                {
+        //                    Length = clw.Length,
+        //                    Weight = clw.Weight,
+        //                    //WeightUnit = ctc.WeightUnit,
+        //                    Sex = clw.Sex,
+        //                    CrossTabCommon = ctc,
+        //                });
+        //            }
+
+        //        }
+        //        counter++;
+        //        CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { RowsToPrepare = unloads.Count, RowsPrepared = counter, Context = "AddingRows" });
+        //        //}
+        //    }
+
+        //    CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { IsDone = true, Context = "PreparingDisplayRows" });
+        //    BuildEffortCrossTabDataTable();
+        //    BuildEffortSpeciesCrossTabDataTable();
+
+
+        //    CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { IsDone = true, Context = "DoneAddingRows" });
+        //    return counter;
+        //}
 
         public static TreeViewModelControl.AllSamplingEntitiesEventHandler AllSamplingEntitiesEventHandler { get { return _sev; } }
 
@@ -190,7 +367,7 @@ namespace NSAP_ODK.Entities.Database
         {
             _effortCrostabDataTable = new DataTable();
 
-            DataColumn dc = new DataColumn { ColumnName = "Data ID" };
+            DataColumn dc = new DataColumn { ColumnName = "Data ID", DataType = typeof(string) };
             _effortCrostabDataTable.Columns.Add(dc);
 
 
@@ -298,7 +475,8 @@ namespace NSAP_ODK.Entities.Database
                 _effortCrostabDataTable.Columns.Add(dc);
             }
 
-            foreach (var item in _crossTabEffortsAll)
+            //foreach (var item in _crossTabEffortsAll)
+            foreach (var item in _crossTabEffortsAll_vesselUnloadGear)
             {
                 var row = _effortCrostabDataTable.NewRow();
                 CrossTabCommonProperties ctcp = item.CrossTabCommon.CommonProperties;
@@ -331,6 +509,7 @@ namespace NSAP_ODK.Entities.Database
                 }
 
 
+                //row["Gears"] = ctcp.Gears;
                 row["Gear"] = ctcp.Gear;
                 row["Ref #"] = ctcp.RefNo;
                 row["Is a fishing boat used"] = ctcp.IsBoatUsed;
@@ -368,7 +547,8 @@ namespace NSAP_ODK.Entities.Database
                 row["Is the catch sold"] = ctcp.IsCatchSold;
                 row["Notes"] = ctcp.Notes;
 
-                foreach (var ve in ctcp.VesselUnload.ListVesselEffort)
+                //foreach (var ve in ctcp.VesselUnload.ListVesselEffort)
+                foreach (var ve in ctcp.VesselUnload_FishingGear.VesselUnload_Gear_Specs_ViewModel.VesselUnload_Gear_SpecCollection.ToList())
                 {
                     try
                     {
@@ -491,6 +671,12 @@ namespace NSAP_ODK.Entities.Database
             dc = new DataColumn { ColumnName = "Is the catch sold", DataType = typeof(bool) };
             _effortSpeciesCrostabDataTable.Columns.Add(dc);
 
+            dc = new DataColumn { ColumnName = "Price" };
+            _effortSpeciesCrostabDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Unit" };
+            _effortSpeciesCrostabDataTable.Columns.Add(dc);
+
             dc = new DataColumn { ColumnName = "Notes", DataType = typeof(string) };
             _effortSpeciesCrostabDataTable.Columns.Add(dc);
 
@@ -509,11 +695,7 @@ namespace NSAP_ODK.Entities.Database
             dc = new DataColumn { ColumnName = "Weight unit" };
             _effortSpeciesCrostabDataTable.Columns.Add(dc);
 
-            dc = new DataColumn { ColumnName = "Price" };
-            _effortSpeciesCrostabDataTable.Columns.Add(dc);
 
-            dc = new DataColumn { ColumnName = "Unit" };
-            _effortSpeciesCrostabDataTable.Columns.Add(dc);
 
 
             foreach (var spec in NSAPEntities.EffortSpecificationViewModel.EffortSpecCollection.OrderBy(t => t.Name))
@@ -538,10 +720,13 @@ namespace NSAP_ODK.Entities.Database
                 _effortSpeciesCrostabDataTable.Columns.Add(dc);
             }
 
-            foreach (var item in _crossTabEfforts)
+            //foreach (var item in _crossTabEfforts)
+            //foreach(var item in _crossTabEffortsAll_UnloadGear)
+            foreach (var item in _crossTabEfforts_vesselunloadGear)
             {
                 var row = _effortSpeciesCrostabDataTable.NewRow();
-                CrossTabCommonProperties ctcp = UnloadCrossTabCommonPropertyDictionary[item.VesselUnload.PK];
+                //CrossTabCommonProperties ctcp = UnloadCrossTabCommonPropertyDictionary[item.VesselUnload.PK];
+                CrossTabCommonProperties ctcp = UnloadCrossTabCommonPropertyDictionary[item.VesselUnload_FishingGear.Guid.ToString()];
                 row["Data ID"] = ctcp.DataID;
                 row["Fishing ground"] = ctcp.FishingGround;
                 row["Year"] = ctcp.Year;
@@ -567,6 +752,7 @@ namespace NSAP_ODK.Entities.Database
                     row["Latitude"] = ctcp.yCoordinate;
                 }
 
+                //row["Gear"] = ctcp.Gears;
                 row["Gear"] = ctcp.Gear;
 
                 row["Ref #"] = ctcp.RefNo;
@@ -597,14 +783,16 @@ namespace NSAP_ODK.Entities.Database
                 row["Species"] = item.CrossTabCommon.SN;
                 row["Total weight of catch"] = ctcp.TotalWeight;
                 row["Is the catch sold"] = ctcp.IsCatchSold;
+                row["Price"] = item.CrossTabCommon.Price;
+                row["Unit"] = item.CrossTabCommon.Unit;
                 row["Notes"] = ctcp.Notes;
                 row["Weight of species"] = item.CrossTabCommon.SpeciesWeight;
                 row["TWS"] = item.CrossTabCommon.TWS;
                 row["Weight unit"] = item.CrossTabCommon.WeightUnit;
-                row["Price"] = item.CrossTabCommon.Price;
-                row["Unit"] = item.CrossTabCommon.Unit;
 
-                foreach (var ve in ctcp.VesselUnload.ListVesselEffort)
+
+                //foreach (var ve in ctcp.VesselUnload.ListVesselEffort)
+                foreach (var ve in ctcp.VesselUnload_FishingGear.VesselUnload_Gear_Specs_ViewModel.VesselUnload_Gear_SpecCollection.ToList())
                 {
                     try
                     {
@@ -714,10 +902,14 @@ namespace NSAP_ODK.Entities.Database
                             {
                                 foreach (PropertyDescriptor ptd in pt.GetChildProperties())
                                 {
-                                    if (ptd.Name != "VesselUnload")
+                                    if (ptd.Name != "VesselUnload" && ptd.Name != "VesselUnload_FishingGear")
                                     {
                                         table.Columns.Add(ptd.Name, Nullable.GetUnderlyingType(ptd.PropertyType) ?? ptd.PropertyType);
                                     }
+                                    //if(ptd.Name != "VesselUnload_FishingGear")
+                                    //{
+                                    //    table.Columns.Add(ptd.Name, Nullable.GetUnderlyingType(ptd.PropertyType) ?? ptd.PropertyType);
+                                    //}
                                 }
                             }
                             else
@@ -765,7 +957,7 @@ namespace NSAP_ODK.Entities.Database
                                 {
                                     foreach (PropertyDescriptor ptdd in ptd.GetChildProperties())
                                     {
-                                        if (ptdd.Name != "VesselUnload")
+                                        if (ptdd.Name != "VesselUnload" && ptdd.Name != "VesselUnload_FishingGear")
                                         {
                                             row[ptdd.Name] = ptdd.GetValue(ctc.CommonProperties) ?? DBNull.Value;
                                         }

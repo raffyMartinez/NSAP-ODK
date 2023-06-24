@@ -19,6 +19,8 @@ namespace NSAP_ODK.Entities.Database
             LastLenWtPK = 0;
             LastLenFreqPK = 0;
             LastMaturityPK = 0;
+            LastVesselUnloadGearPK = 0;
+            LastVesselUnloadGearSpecPK = 0;
         }
         public int LastVesselUnloadPK { get; set; }
         public int LastFishingGridsPK { get; set; }
@@ -35,5 +37,8 @@ namespace NSAP_ODK.Entities.Database
         public int LastLenFreqPK { get; set; }
 
         public int LastMaturityPK { get; set; }
+
+        public int LastVesselUnloadGearPK { get; set; }
+        public int LastVesselUnloadGearSpecPK { get; set; }
     }
 }

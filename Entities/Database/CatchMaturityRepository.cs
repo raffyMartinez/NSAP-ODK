@@ -90,6 +90,37 @@ namespace NSAP_ODK.Entities.Database
             }
             return thisList;
         }
+
+
+        public static bool AddFieldToTable(string fieldName)
+        {
+            bool success = false;
+            string sql = "";
+            switch (fieldName)
+            {
+                case "gonadWt":
+                    sql = $"ALTER TABLE dbo_catch_maturity ADD COLUMN {fieldName} double";
+                    break;
+            }
+            using (var con = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    con.Open();
+                    cmd.CommandText = sql;
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        success = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
         private List<CatchMaturity> getCatchMaturites(VesselCatch vc = null)
         {
             List<CatchMaturity> thisList = new List<CatchMaturity>();

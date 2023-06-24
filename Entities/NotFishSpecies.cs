@@ -22,15 +22,19 @@ namespace NSAP_ODK.Entities
             Species = nfs.Species;
             MaxSize = nfs.MaxSize;
             TaxaCode = nfs.Taxa.Code;
-            
-            if(nfs.SizeType!=null)
-              SizeTypeCode = nfs.SizeType.Code;
-            
+
+            if (nfs.SizeType != null)
+                SizeTypeCode = nfs.SizeType.Code;
+
             SpeciesID = nfs.SpeciesID;
+
+            Name = nfs.Name;
         }
         public NotFishSpecies NotFishSpecies { get; set; }
         public string Genus { get; set; }
         public string Species { get; set; }
+
+        public string Name { get; set; }
         public double? MaxSize { get; set; }
 
         [ItemsSource(typeof(TaxaItemSourceNotFish))]
@@ -54,8 +58,16 @@ namespace NSAP_ODK.Entities
 
         public override string ToString()
         {
-            return $"{Genus} {Species}";
+            if (string.IsNullOrEmpty(Name))
+            {
+                return $"{Genus} {Species}";
+            }
+            else
+            {
+                return Name;
+            }
         }
 
+        public string Name { get; set; }
     }
 }

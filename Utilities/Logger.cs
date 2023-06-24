@@ -86,7 +86,7 @@ namespace NSAP_ODK.Utilities
             }
         }
 
-        public static void Log(string s, bool simpleLog = false)
+        public static void Log(string s, bool simpleLog = false, bool addNewLine = true)
         {
             using (StreamWriter writer = new StreamWriter(_filepath, true))
             {
@@ -98,7 +98,10 @@ namespace NSAP_ODK.Utilities
                 {
                     writer.WriteLine(s);
                 }
-                writer.WriteLine(Environment.NewLine);
+                if (addNewLine)
+                {
+                    writer.WriteLine(Environment.NewLine);
+                }
             }
         }
 

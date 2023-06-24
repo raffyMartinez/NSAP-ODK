@@ -14,6 +14,44 @@ namespace NSAP_ODK.Entities.Database
     {
         public List<VesselEffort> VesselEfforts { get; set; }
 
+        public static bool UpdateTableDefinition(bool removeMultiFieldIndex=false,string indexName="")
+        {
+            bool success = false;
+            string sql="";
+            if(removeMultiFieldIndex)
+            {
+                sql = $"DROP INDEX {indexName} on dbo_vessel_effort";
+            }
+            using (var con = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    con.Open();
+                    if (sql.Length > 0)
+                    {
+                        cmd.CommandText = sql;
+
+                        try
+                        {
+                            cmd.ExecuteNonQuery();
+                            success = true;
+                        }
+                        catch (Exception ex)
+                        {
+                            if (ex.Message.Contains("No such index 'alt_key' on table 'dbo_vessel_effort'"))
+                            {
+                                success = true;
+                            }
+                            else
+                            {
+                                Logger.Log(ex);
+                            }
+                        }
+                    }
+                }
+            }
+            return success;
+        }
         public VesselEffortRepository(VesselUnload vu)
         {
             VesselEfforts = getVesselEfforts(vu);

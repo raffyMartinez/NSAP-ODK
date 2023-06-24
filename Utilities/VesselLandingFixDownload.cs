@@ -9,7 +9,7 @@ namespace NSAP_ODK.Utilities
     public static class VesselLandingFixDownload
     {
         private static List<Entities.Database.VesselLanding> _listLandingsToRepair = new List<Entities.Database.VesselLanding>();
-        public  static void VesselLandingToRepair(Entities.Database.VesselLanding vesselLanding)
+        public static void VesselLandingToRepair(Entities.Database.VesselLanding vesselLanding)
         {
             _listLandingsToRepair.Add(vesselLanding);
         }
@@ -19,7 +19,7 @@ namespace NSAP_ODK.Utilities
         }
         public static bool RepairVesselLanding(string userName, string password)
         {
-            if(_listLandingsToRepair.Count>0)
+            if (_listLandingsToRepair.Count > 0)
             {
 
             }
@@ -44,7 +44,10 @@ namespace NSAP_ODK.Utilities
                 "catch_comp_group/catch_composition_repeat/species_data_group/",
                 "catch_comp_group/catch_composition_repeat/speciesname_group/");
 
-            
+            json1 = json1.Replace("vessel_sampling/sampling_group_1", "vessel_sampling");
+
+            json1 = json1.Replace("vessel_sampling/sampling_group_2", "vessel_sampling");
+
 
             return json1;
         }

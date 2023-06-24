@@ -175,7 +175,10 @@ namespace NSAP_ODK
             {
                 case "Overall":
 
-                    NSAPEntities.DBSummary.Refresh();
+                    if (NSAPEntities.DBSummary != null)
+                    {
+                        NSAPEntities.DBSummary.Refresh();
+                    }
                     labelSummary.Content = "Overall summary of database content";
                     propertyGridSummary.SelectedObject = NSAPEntities.DBSummary;
                     propertyGridSummary.NameColumnWidth = 350;
@@ -345,6 +348,7 @@ namespace NSAP_ODK
                     dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "# submissions", Binding = new Binding("SubmissionCount"), CellStyle = AlignRightStyle });
                     dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "# saved", Binding = new Binding("SavedInDBCount"), CellStyle = AlignRightStyle });
                     dataGridEFormVersionStats.Columns.Add(new DataGridCheckBoxColumn { Header = "Fish landing form", Binding = new Binding("IsFishLandingSurveyForm") });
+                    dataGridEFormVersionStats.Columns.Add(new DataGridCheckBoxColumn { Header = "MultiGear landing form", Binding = new Binding("IsFishLandingMultiGearSurveyForm") });
                     dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "Last uploaded JSON file", Binding = new Binding("LastUploadedJSON") });
                     dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "Last created JSON file", Binding = new Binding("LastCreatedJSON") });
 
@@ -422,6 +426,7 @@ namespace NSAP_ODK
                             DownloadFromServerWindow.RefreshDatabaseSummaryTable += DownloadFromServerWindow_RefreshDatabaseSummaryTable;
                             NSAPEntities.FishingVesselViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
                         }
+                        CreateTablesInAccess.GetMDBColumnInfo(Global.ConnectionString);
                     }
                     else
                     {
@@ -997,7 +1002,7 @@ namespace NSAP_ODK
                         summaryTreeNodeEnumerators.Items.Add(item1);
                     }
                     summaryTreeNodeOverall.IsSelected = true;
-                    if (NSAPEntities.SummaryItemViewModel.Count > 0)
+                    if (NSAPEntities.SummaryItemViewModel!=null && NSAPEntities.SummaryItemViewModel.Count > 0)
                     {
                         summaryTreeNodeDatabases.Items.Clear();
                         foreach (var item in NSAPEntities.KoboServerViewModel.KoboserverCollection)
@@ -1265,6 +1270,7 @@ namespace NSAP_ODK
                     dataGridEntities.Columns.Add(new DataGridTextColumn { Header = "Taxa", Binding = new Binding("Taxa.Name") });
                     dataGridEntities.Columns.Add(new DataGridTextColumn { Header = "Genus", Binding = new Binding("Genus") });
                     dataGridEntities.Columns.Add(new DataGridTextColumn { Header = "Species", Binding = new Binding("Species") });
+                    dataGridEntities.Columns.Add(new DataGridTextColumn { Header = "Name", Binding = new Binding("Name") });
                     dataGridEntities.Columns.Add(new DataGridTextColumn { Header = "Size measure", Binding = new Binding("SizeType.Code") });
                     dataGridEntities.Columns.Add(new DataGridTextColumn { Header = "Maximum size", Binding = new Binding("MaxSize") });
                     break;
@@ -3734,9 +3740,13 @@ namespace NSAP_ODK
                             }
                             else
                             {
-                                GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Excel download ", Binding = new Binding("FromExcelDownload") });
+                                GridNSAPData.Columns.Add(new DataGridCheckBoxColumn { Header = "Excel download ", Binding = new Binding("FromExcelDownload") });
                                 GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Form version ", Binding = new Binding("FormVersion") });
+                                GridNSAPData.Columns.Add(new DataGridCheckBoxColumn { Header = "Multi-gear", Binding = new Binding("IsMultiGear") });
+                                GridNSAPData.Columns.Add(new DataGridCheckBoxColumn { Header = "Is catch sold", Binding = new Binding("IsCatchSold") });
+                                GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "# of gears used ", Binding = new Binding("CountFishingGearTypesUsed") });
                             }
+                            
                         }
                         break;
                     case "gearUnload":

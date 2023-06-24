@@ -64,6 +64,45 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                 _vesselUnloadEdit = new VesselUnloadEdit(_vesselUnload);
                 _vesselUnloadForDisplay = new VesselUnloadForDisplay(_vesselUnload);
                 labelCatch.Content = "No selected catch";
+
+                VesselUnloadViewModel.SetUpFishingGearSubModel(_vesselUnload);
+
+                //VesselUnload_FishingGear vufg;
+
+                //if (!_vesselUnload.IsMultiGear && _vesselUnload.VesselUnload_FishingGearsViewModel == null || _vesselUnload.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection == null)
+                //{
+                //    _vesselUnload.VesselUnload_FishingGearsViewModel = new VesselUnload_FishingGearViewModel();
+                //    vufg = new VesselUnload_FishingGear
+                //    {
+                //        GearCode = _vesselUnload.Parent.GearID,
+                //        GearText = _vesselUnload.Parent.GearUsedText,
+                //        Parent = _vesselUnload
+                //    };
+                //    _vesselUnload.VesselUnload_FishingGearsViewModel.AddRecordToRepo(vufg, isTemporary: true);
+
+                //    if (vufg.VesselUnload_Gear_Specs_ViewModel == null || vufg.VesselUnload_Gear_Specs_ViewModel.VesselUnload_Gear_SpecCollection == null)
+                //    {
+                //        vufg.VesselUnload_Gear_Specs_ViewModel = new VesselUnload_Gear_Spec_ViewModel();
+
+                //        foreach (var eff in _vesselUnload.ListVesselEffort)
+                //        {
+                //            VesselUnload_Gear_Spec vufg_spec = new VesselUnload_Gear_Spec
+                //            {
+                //                Parent = vufg,
+                //                EffortSpecID = eff.EffortSpecID,
+                //                EffortValueNumeric = eff.EffortValueNumeric,
+                //                EffortValueText = eff.EffortValueText
+                //            };
+                //            vufg.VesselUnload_Gear_Specs_ViewModel.AddRecordToRepo(vufg_spec, isTemporary: true);
+                //        }
+                //    }
+
+                //    foreach (VesselCatch vc in _vesselUnload.ListVesselCatch)
+                //    {
+                //        vc.GearCode = vufg.GearCode;
+                //        vc.GearText = vufg.GearText;
+                //    }
+                //}
             }
         }
 
@@ -126,6 +165,7 @@ namespace NSAP_ODK.VesselUnloadEditorControl
             {
                 case "treeItemVesselUnload":
                     break;
+                case "treeItemFishingGears":
                 case "treeItemSoakTime":
                 case "treeItemFishingGround":
                 case "treeItemEffortDefinition":
@@ -177,6 +217,11 @@ namespace NSAP_ODK.VesselUnloadEditorControl
 
                     effortDataGrid.DataContext = _vesselUnload.ListGearSoak;
                     break;
+                case "treeItemFishingGears":
+                    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("GearUsedName") });
+                    effortDataGrid.DataContext = _vesselUnload.ListUnloadFishingGears;
+                    //Console.WriteLine(_vesselUnload.ListUnloadFishingGears[0].Catches[0].CatchNameEx);
+                    break;
                 case "treeItemFishingGround":
                     effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("PK") });
                     effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "UTM Zone", Binding = new Binding("UTMZoneText") });
@@ -185,17 +230,36 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                     effortDataGrid.DataContext = _vesselUnload.ListFishingGroundGrid;
                     break;
                 case "treeItemEffortDefinition":
-                    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("PK") });
-                    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Effort specification", Binding = new Binding("EffortSpecification") });
+                    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("GearUsedName") });
+                    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Specification", Binding = new Binding("EffortSpecification") });
                     effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Value", Binding = new Binding("EffortValue") });
+                    effortDataGrid.DataContext = _vesselUnload.ListVesselGearSpec;
+                    //if (VesselUnload.IsMultiGear)
+                    //{
+                    //    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("GearUsedName") });
+                    //    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Specification", Binding = new Binding("EffortSpecification") });
+                    //    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Value", Binding = new Binding("EffortValue") });
+                    //    effortDataGrid.DataContext = _vesselUnload.ListVesselGearSpec;
+                    //}
+                    //else
+                    //{
+                    //    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("PK") });
+                    //    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Effort specification", Binding = new Binding("EffortSpecification") });
+                    //    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Value", Binding = new Binding("EffortValue") });
 
-                    effortDataGrid.DataContext = _vesselUnload.ListVesselEffort;
+                    //    effortDataGrid.DataContext = _vesselUnload.ListVesselEffort;
+                    //}
                     break;
                 case "treeItemCatchComposition":
                     effortDataGrid.Columns.Clear();
                     effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("PK") });
                     effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Taxa", Binding = new Binding("Taxa") });
                     effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Name", Binding = new Binding("CatchNameEx") });
+
+                    //if (VesselUnload.IsMultiGear)
+                    //{
+                        effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("GearNameUsedEx") });
+                    //}
 
                     col = new DataGridTextColumn()
                     {
@@ -307,8 +371,9 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "BoxesSampled", DisplayName = "Number of boxes sampled", DisplayOrder = 16, Description = "Number of boxes sampled", Category = "Effort" });
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "RaisingFactor", DisplayName = "Raising factor", DisplayOrder = 17, Description = "Raising factor", Category = "Effort" });
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "HasCatchComposition", DisplayName = "Catch composition is included", DisplayOrder = 18, Description = "Whether or not catch composition of the landing was included", Category = "Effort" });
-                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "IsCatchSold", DisplayName = "Was the catch sold at the landing site", DisplayOrder = 19, Description = "Notes", Category = "Effort" });
-                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Notes", DisplayName = "Notes", DisplayOrder = 20, Description = "Notes", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "IsCatchSold", DisplayName = "Was the catch sold at the landing site", DisplayOrder = 19, Description = "Catch sold by the fisher at the landing site", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "CountGearTypesUsed", DisplayName = "Number of gears used", DisplayOrder = 20, Description = "Number of gears used in the sampled landing", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Notes", DisplayName = "Notes", DisplayOrder = 21, Description = "Notes", Category = "Effort" });
 
 
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "OperationIsTracked", DisplayName = "This operation is tracked", DisplayOrder = 11, Description = "Is this fishing operation tracked", Category = "Tracking" });
@@ -321,9 +386,11 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "XFormIdentifier", DisplayName = "XForm identifier", DisplayOrder = 17, Description = "Name of the downloaded excel file containing the data", Category = "Device metadata" });
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "XFormDate", DisplayName = "XForm date", DisplayOrder = 18, Description = "Date when the downloaded excel file was created", Category = "Device metadata" });
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "FormVersion", DisplayName = "Version of the electronic form", DisplayOrder = 19, Description = "Version of the electronic form used in encoding", Category = "Device metadata" });
-                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Submitted", DisplayName = "Date when the electronic form was submitted to the net", DisplayOrder = 20, Description = "Date and time of submission of the encoded data", Category = "Device metadata" });
-                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DateAddedToDatabase", DisplayName = "Date added to database", DisplayOrder = 21, Description = "Date and time when data was added to the database", Category = "Device metadata" });
-                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "FromExcelDownload", DisplayName = "Excel download", DisplayOrder = 22, Description = "Data was donwloaded to an Excel file", Category = "Device metadata" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "IsMultigear", DisplayName = "eForm used can capture multiple gears", DisplayOrder = 20, Description = "eForm version used by enumerators is able to capture multiple fishing gears", Category = "Device metadata" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Submitted", DisplayName = "Date when the electronic form was submitted to the net", DisplayOrder = 21, Description = "Date and time of submission of the encoded data", Category = "Device metadata" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DateAddedToDatabase", DisplayName = "Date added to database", DisplayOrder = 22, Description = "Date and time when data was added to the database", Category = "Device metadata" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "FromExcelDownload", DisplayName = "Excel download", DisplayOrder = 23, Description = "Data was donwloaded to an Excel file", Category = "Device metadata" });
+
 
                 propertyGrid.IsReadOnly = true;
 
@@ -396,7 +463,7 @@ namespace NSAP_ODK.VesselUnloadEditorControl
 
         private void ShowStatusCatchComposition()
         {
-            statusBar.Items.Add(new Label { Content=VesselUnloadViewModel.StatusText(_vesselUnload)});
+            statusBar.Items.Add(new Label { Content = VesselUnloadViewModel.StatusText(_vesselUnload) });
         }
         private void ShowStatusCatchCOmposition1()
         {
@@ -463,6 +530,10 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                         {
                             SetupPropertyGridForDisplay();
                         }
+                        break;
+                    case "treeItemFishingGears":
+                        labelEffort.Content = "Fishing gears used in the sampled landing";
+                        SetupDataGridsForDisplay();
                         break;
                     case "treeItemSoakTime":
                         labelEffort.Content = "Soak time of gears deployed by sampled landing";
@@ -660,6 +731,9 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                 case "treeItemMaturity":
                     contextLabel = "Length, weight, sex and maturity table for";
                     break;
+                case "treeItemFishingGears":
+                    contextLabel = "Fishing gears for";
+                    break;
             }
             return contextLabel;
         }
@@ -667,7 +741,7 @@ namespace NSAP_ODK.VesselUnloadEditorControl
         {
             VesselCatch = null;
             labelCatch.Content = "No selected catch";
-            switch(((DataGrid)sender).Name)
+            switch (((DataGrid)sender).Name)
             {
                 case "effortDataGrid":
                     if (_unloadView == "treeItemCatchComposition")

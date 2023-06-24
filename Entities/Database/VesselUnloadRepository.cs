@@ -16,37 +16,75 @@ namespace NSAP_ODK.Entities.Database
         private string _dateFormat = "MMM-dd-yyyy HH:mm";
         public List<VesselUnload> VesselUnloads { get; set; }
 
-        public static bool UpdateTableDefinitionEx(string colName)
+        public static bool UpdateTableDefinitionEx(string colName = null, int? colWidth = null, string relationshipToRemove = "")
         {
             bool success = false;
             using (var conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
                 var sql = "";
-                switch (colName)
+                if (string.IsNullOrEmpty(colName) && relationshipToRemove.Length > 0)
                 {
-                    case "json_filename":
-                        sql = $@"ALTER TABLE dbo_vessel_unload_1 ADD COLUMN {colName}  varchar(50)";
-                        break;
+                    sql = $"ALTER TABLE dbo_vessel_unload DROP CONSTRAINT {relationshipToRemove}";
+
                 }
+                else
+                {
+                    switch (colName)
+                    {
+                        case "count_gear_types":
+                            sql = $@"ALTER TABLE dbo_vessel_unload_1 ADD COLUMN {colName}  int";
+                            break;
+                        case "is_multigear":
+                            sql = $@"ALTER TABLE dbo_vessel_unload_1 ADD COLUMN {colName}  BIT";
+                            break;
+                        case "ref_no":
+                            if (colWidth != null)
+                            {
+                                sql = $"ALTER TABLE dbo_vessel_unload_1 ALTER Column {colName} text(150)";
+                            }
+                            break;
+                        case "json_filename":
+                            sql = $@"ALTER TABLE dbo_vessel_unload_1 ADD COLUMN {colName}  varchar(50)";
+                            break;
+                    }
+                }
+
 
                 OleDbCommand cmd = new OleDbCommand();
                 cmd.Connection = conn;
-                cmd.CommandText = sql;
+                if (!string.IsNullOrEmpty(sql))
+                {
+                    cmd.CommandText = sql;
 
-                try
-                {
-                    cmd.ExecuteNonQuery();
-                    success = true;
+                    try
+                    {
+                        if (sql.Length > 0)
+                        {
+                            cmd.ExecuteNonQuery();
+                            success = true;
+                        }
 
-                }
-                catch (OleDbException dbex)
-                {
-                    Logger.Log(dbex);
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log(ex);
+
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        if (dbex.Message.Contains($"CHECK constraint '{relationshipToRemove}' does not exist."))
+                        {
+                            success = true;
+                        }
+                        else
+                        {
+                            Logger.Log(dbex);
+                        }
+
+                    }
+                    catch (Exception ex)
+                    {
+
+                        Logger.Log(ex);
+
+                    }
                 }
 
                 cmd.Connection.Close();
@@ -69,7 +107,7 @@ namespace NSAP_ODK.Entities.Database
                         con.Open();
                         success = cmd.ExecuteNonQuery() > 0;
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Logger.Log(ex);
                     }
@@ -1362,6 +1400,16 @@ namespace NSAP_ODK.Entities.Database
                                 item.HasCatchComposition = (bool)dr["HasCatchComposition"];
                                 item.RefNo = dr["ref_no"].ToString();
                                 item.IsCatchSold = (bool)dr["is_catch_sold"];
+                                item.IsMultiGear = (bool)dr["is_multigear"];
+
+                                if (item.IsMultiGear)
+                                {
+                                    item.CountGearTypesUsed = (int)dr["count_gear_types"];
+                                }
+                                else
+                                {
+                                    item.CountGearTypesUsed = 1;
+                                }
 
                                 item.JSONFileName = dr["json_filename"].ToString();
                                 if (dr["count_catch_composition"] != DBNull.Value)
@@ -1852,8 +1900,9 @@ namespace NSAP_ODK.Entities.Database
                                                 (v_unload_id, Success, Tracked, trip_is_completed, DepartureLandingSite, ArrivalLandingSite, 
                                                 RowID, XFormIdentifier, XFormDate, SamplingDate,
                                                 user_name,device_id,datetime_submitted,form_version,
-                                                GPS,Notes,EnumeratorID,EnumeratorText,DateAdded,sector_code,FromExcelDownload,HasCatchComposition,NumberOfFishers,ref_no,is_catch_sold)
-                                    Values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                                                GPS,Notes,EnumeratorID,EnumeratorText,DateAdded,sector_code,FromExcelDownload,HasCatchComposition,
+                                                NumberOfFishers,ref_no,is_catch_sold,is_multigear,count_gear_types)
+                                    Values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
                                 using (OleDbCommand update1 = new OleDbCommand(sql, conn))
                                 {
@@ -1948,7 +1997,16 @@ namespace NSAP_ODK.Entities.Database
                                     }
                                     update1.Parameters.Add("@ref_no", OleDbType.VarChar).Value = item.RefNo;
                                     update1.Parameters.Add("@is_catch_sold", OleDbType.Boolean).Value = item.IsCatchSold;
+                                    update1.Parameters.Add("@is_multigear", OleDbType.Boolean).Value = item.IsMultiGear;
 
+                                    if (item.IsMultiGear)
+                                    {
+                                        update1.Parameters.Add("@num_gear_type", OleDbType.Integer).Value = item.CountGearTypesUsed;
+                                    }
+                                    else
+                                    {
+                                        update1.Parameters.Add("@num_gear_type", OleDbType.Integer).Value = 1;
+                                    }
                                     try
                                     {
                                         success = update1.ExecuteNonQuery() > 0;
@@ -2672,6 +2730,15 @@ namespace NSAP_ODK.Entities.Database
 
                                 cmd_1.Parameters.Add("@is_catch_sold", OleDbType.Boolean).Value = item.IsCatchSold;
 
+                                if (item.IsMultiGear)
+                                {
+                                    cmd_1.Parameters.Add("@num_gear_type", OleDbType.Integer).Value = item.CountGearTypesUsed;
+                                }
+                                else
+                                {
+                                    cmd_1.Parameters.Add("@num_gear_type", OleDbType.Integer).Value = 1;
+                                }
+
                                 cmd_1.Parameters.Add("@Vessel_unload_id", OleDbType.Integer).Value = item.PK;
 
                                 cmd_1.CommandText = $@"UPDATE dbo_vessel_unload_1 SET
@@ -2698,8 +2765,10 @@ namespace NSAP_ODK.Entities.Database
                                         HasCatchComposition = @has_catch_composition,
                                         NumberOfFishers = @num_fisher,
                                         ref_no = @ref_no,
-                                        is_catch_sold = @is_catch_sold
-                                        WHERE v_unload_id =@Vessel_unload_id";
+                                        is_catch_sold = @is_catch_sold,
+                                        is_multigear = @is_multigear,
+                                        count_gear_types = @num_gear_type,
+                                        WHERE v_unload_id = @Vessel_unload_id";
 
 
                                 success = false;

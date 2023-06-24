@@ -106,7 +106,64 @@ namespace NSAP_ODK.Entities.Database
         public string WeighingUnit { get; set; }
         public int? SpeciesID { get; set; }
         public string TaxaCode { get; set; }
+        public string GearCode { get; set; }
+        public string GearText { get; set; }
 
+        public string GearNameUsedEx
+        {
+            get
+            {
+
+                if (string.IsNullOrEmpty(GearCode) && string.IsNullOrEmpty(GearText))
+                {
+                    return "";
+                }
+                else if (string.IsNullOrEmpty(GearCode))
+                {
+                    return GearText;
+                }
+                else
+                {
+                    return NSAPEntities.GearViewModel.GetGear(GearCode).GearName;
+                }
+
+            }
+        }
+        public string GearNameUsed
+        {
+            get
+            {
+                if (Parent.IsMultiGear)
+                {
+                    if (string.IsNullOrEmpty(GearCode))
+                    {
+                        return GearText;
+                    }
+                    else
+                    {
+                        return NSAPEntities.GearViewModel.GetGear(GearCode).GearName;
+                    }
+                }
+                else
+                {
+                    return "";
+                }
+            }
+        }
+        public Gear Gear
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(GearCode))
+                {
+                    return null;
+                }
+                else
+                {
+                    return NSAPEntities.GearViewModel.GetGear(GearCode);
+                }
+            }
+        }
         public bool FromTotalCatch { get; set; }
 
         private string FishSpeciesName(int speciesID)

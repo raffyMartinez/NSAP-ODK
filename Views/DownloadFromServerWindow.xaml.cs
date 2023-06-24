@@ -319,6 +319,8 @@ namespace NSAP_ODK.Views
         public string DownloadAsJSONNotes { get; set; }
         public bool SaveDownloadAsJSON { get; set; }
         public bool DownloadOptionDownloadAll { get; set; }
+
+        public bool FormIsMultiGear { get; set; }
         public int? NumberToDownloadPerBatch
         {
             get { return _numberToDownloadPerBatch; }
@@ -1125,7 +1127,11 @@ namespace NSAP_ODK.Views
             vfbd.Description = "Select folder for saving downloaded JSON files";
             vfbd.UseDescriptionForTitle = true;
             vfbd.ShowNewFolderButton = true;
-            if (Global.Settings.JSONFolder.Length == 0)
+            if(Global.Settings.JSONFolder==null)
+            {
+                vfbd.SelectedPath = System.AppDomain.CurrentDomain.BaseDirectory;
+            }
+            else if (Global.Settings.JSONFolder.Length == 0)
             {
                 vfbd.SelectedPath = System.AppDomain.CurrentDomain.BaseDirectory;
             }
@@ -1670,7 +1676,7 @@ namespace NSAP_ODK.Views
                         _formID = ((TreeViewItem)treeViewItem.Parent).Header.ToString();
                         var koboform = _koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID));
 
-
+                        
                         //_version = koboform.version;
                         //_xlsFormIdString = koboform.xlsForm_idstring;
                         _xlsFormVersion = koboform.xlsform_version;
@@ -1687,7 +1693,7 @@ namespace NSAP_ODK.Views
                         {
                             ComboUser.Items.Add(new ComboBoxItem { Content = user.user });
                         }
-
+                        ((ODKResultsWindow)Owner).IsMultiGear = _formSummary.IsMultiGear;
                         break;
                     case "upload_media":
                         gridDownload.Visibility = Visibility.Visible;

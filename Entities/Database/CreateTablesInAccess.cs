@@ -7,6 +7,7 @@ using System.Data.OleDb;
 using NSAP_ODK.Utilities;
 using System.IO;
 using System.Data;
+using NSAP_ODK.Utilities;
 
 namespace NSAP_ODK.Entities.Database
 {
@@ -28,15 +29,34 @@ namespace NSAP_ODK.Entities.Database
                 _connectionString = "Provider=Microsoft.JET.OLEDB.4.0;data source=" + _mdbFile;
             }
         }
-
+        public static List<MDBColumnInfo> MDBColumnInfos { get; set; } = new List<MDBColumnInfo>();
         public static Task<bool> UploadImportJsonResultAsync()
         {
             return Task.Run(() => UploadImportJsonResult());
         }
         public static string TableWithUploadError { get; set; }
         public static string UploadErrorMessage { get; set; }
-    
 
+        public static string GetAccessRelationshipName(string column_many, string table_many, string column_one, string table_one)
+        {
+            string result = "";
+            using (OleDbConnection connection = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = connection.CreateCommand())
+                {
+                    connection.Open();
+                    cmd.Parameters.AddWithValue("@many_col", column_many);
+                    cmd.Parameters.AddWithValue("@many_tbl", table_many);
+                    cmd.Parameters.AddWithValue("@one_col", column_one);
+                    cmd.Parameters.AddWithValue("@one_tbl", table_one);
+                    cmd.CommandText = "Select szRelationship from msysrelationships where szColumn=? and szObject=? and szReferencedColumn=? and szReferencedObject=?";
+
+
+                    result = cmd.ExecuteScalar().ToString();
+                }
+            }
+            return result;
+        }
         /// <summary>
         /// inserts data into the database in batch mode
         /// </summary>
@@ -44,7 +64,7 @@ namespace NSAP_ODK.Entities.Database
         public static bool UploadImportJsonResult()
         {
             UploadErrorMessage = "";
-            string currentTableName="";
+            string currentTableName = "";
             //Logger.Log($"In CreateTablesInAccess.UploadImportJsonResult");
             bool success = false;
             string base_dir = AppDomain.CurrentDomain.BaseDirectory;
@@ -60,7 +80,7 @@ namespace NSAP_ODK.Entities.Database
                         connection.Open();
                         transaction = connection.BeginTransaction(IsolationLevel.ReadCommitted);
                         cmd.Transaction = transaction;
-                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "start importing csv", TotalTableCount = 15 });
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "start importing csv", TotalTableCount = 17 });
                         _importCSVCount = 0;
 
                         currentTableName = "dbo_LC_FG_sample_day";
@@ -88,6 +108,7 @@ namespace NSAP_ODK.Entities.Database
                         cmd.ExecuteNonQuery();
                         AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = currentTableName, CurrentTableCount = ++_importCSVCount });
 
+
                         //do not write enumerator text if enumerator id is not null
                         currentTableName = "dbo_vessel_unload_1";
                         File.WriteAllText(csv_file, VesselUnloadViewModel.CSV_1);
@@ -107,11 +128,27 @@ namespace NSAP_ODK.Entities.Database
                         cmd.ExecuteNonQuery();
                         AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = currentTableName, CurrentTableCount = ++_importCSVCount });
 
+                        //MULTI GEAR DATA 
+
+                        currentTableName = "dbo_vesselunload_fishinggear";
+                        File.WriteAllText(csv_file, VesselUnload_FishingGearViewModel.CSV);
+                        cmd.CommandText = $@"INSERT INTO dbo_vesselunload_fishinggear SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
+                        cmd.ExecuteNonQuery();
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = currentTableName, CurrentTableCount = ++_importCSVCount });
+
+                        currentTableName = "dbo_vessel_effort";
+                        File.WriteAllText(csv_file, VesselUnload_Gear_Spec_ViewModel.CSV);
+                        cmd.CommandText = $@"INSERT INTO dbo_vessel_effort SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
+                        cmd.ExecuteNonQuery();
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = currentTableName, CurrentTableCount = ++_importCSVCount });
+
+
                         currentTableName = "dbo_vessel_effort";
                         File.WriteAllText(csv_file, VesselEffortViewModel.CSV);
                         cmd.CommandText = $@"INSERT INTO dbo_vessel_effort SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
                         cmd.ExecuteNonQuery();
                         AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = currentTableName, CurrentTableCount = ++_importCSVCount });
+
 
 
                         currentTableName = "dbo_fg_grid";
@@ -159,7 +196,7 @@ namespace NSAP_ODK.Entities.Database
 
                         transaction.Commit();
                         success = true;
-                       
+
                     }
                     catch (Exception ex)
                     {
@@ -240,6 +277,28 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
+        public static List<string> GetColumnNamesList(string tableName)
+        {
+            List<string> this_list = new List<string>();
+            using (var con = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    cmd.CommandText = $"Select * from {tableName}";
+                    con.Open();
+                    using (var reader = cmd.ExecuteReader(System.Data.CommandBehavior.SchemaOnly))
+                    {
+                        var table = reader.GetSchemaTable();
+                        var nameCol = table.Columns["ColumnName"];
+                        foreach (DataRow row in table.Rows)
+                        {
+                            this_list.Add(row[nameCol].ToString());
+                        }
+                    }
+                }
+            }
+            return this_list;
+        }
         public static string GetColumnNamesCSV(string tableName)
         {
             string csv = "";
@@ -274,7 +333,109 @@ namespace NSAP_ODK.Entities.Database
                 return _connectionString;
             }
         }
+        /// <summary>
+        /// Reads all the entire mdb file, scans all tables for columns and saves column name, type and sequence.
+        /// </summary>
+        /// <param name="connectionString"></param>
+        public static void GetMDBColumnInfo(string connectionString)
+        {
+            MDBColumnInfos.Clear();
+            OleDbConnection con = new OleDbConnection(connectionString);
+            DataSet tablesFromDB = new DataSet();
 
+            DataTable schemaTbl;
+            try
+            {
+                // Open the connection
+                con.Open();
+                object[] objArrRestrict = new object[] { null, null, null, "TABLE" };
+                //object[] objArrRestrict = new object[] { null, null, "fishingVesel",null,null, "dbo_Vessel_unload" };
+
+                // Get the table names from the database we're connected to
+                schemaTbl = con.GetOleDbSchemaTable(OleDbSchemaGuid.Tables, objArrRestrict);
+
+                // Not sure if this is correct syntax...fix it if it isn't :)
+                //String commandText = @"SELECT * FROM {0}";
+
+                // Get each table name that we just found and get the schema for that table.
+                int seq = 0;
+                foreach (DataRow row in schemaTbl.Rows)
+                {
+
+                    DataTable dt = new DataTable();
+                    //OleDbCommand command = new OleDbCommand(String.Format(commandText, row["TABLE_NAME"] as String), con);
+                    if (!row["TABLE_NAME"].ToString().Contains("~"))
+                    {
+                        OleDbCommand command = new OleDbCommand($"Select * from {row["TABLE_NAME"]}", con);
+                        dt.Load(command.ExecuteReader(CommandBehavior.SchemaOnly));
+                        tablesFromDB.Tables.Add(dt);
+
+                        foreach (DataColumn item in dt.Columns)
+                        {
+                            try
+                            {
+                                MDBColumnInfos.Add(new MDBColumnInfo { TableName = row.ItemArray[2].ToString(), ColumnName = item.ColumnName, TypeName = item.DataType.Name, Sequence = ++seq });
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Log(ex);
+
+                            }
+
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
+        }
+        public static string CSVFromObjectDataDictionary(Dictionary<string, string> values, string tableName)
+        {
+            StringBuilder csv = new StringBuilder();
+            string columns = "";
+            foreach (var item in MDBColumnInfos.Where(t => t.TableName == tableName).OrderBy(t => t.Sequence))
+            {
+                try
+                {
+                    string s;
+                    if (values.TryGetValue(item.ColumnName, out s))
+                    {
+                        switch (item.TypeName)
+                        {
+                            case "Int32":
+                            case "Double":
+                                csv.Append($"{s},");
+                                break;
+                            case "String":
+                            case "Guid":
+                                csv.Append($"\"{s}\",");
+                                break;
+                            case "DateTime":
+                                csv.Append($"{s},");
+                                break;
+                            case "Boolean":
+                                if (s == "True")
+                                {
+                                    csv.Append("1,");
+                                }
+                                else
+                                {
+                                    csv.Append("0,");
+                                }
+                                break;
+                        }
+                        //columns += $"{item.ColumnName},";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(ex);
+                }
+            }
+            return csv.ToString().Trim(',');
+        }
         public static Task<bool> DropTablesAsync()
         {
             return Task.Run(() => DropTables());

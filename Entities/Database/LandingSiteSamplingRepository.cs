@@ -39,7 +39,9 @@ namespace NSAP_ODK.Entities.Database
                             if (cols.Contains("weighing_unit") || VesselCatchRepository.UpdateTableDefinition("weighing_unit"))
                             {
                                 if (cols.Contains("from_total_catch") || VesselCatchRepository.UpdateTableDefinition("from_total_catch"))
-                                { proceed = true; }
+                                    if (cols.Contains("gear_code") || VesselCatchRepository.UpdateTableDefinition("gear_code"))
+                                        if (cols.Contains("gear_text") || VesselCatchRepository.UpdateTableDefinition("gear_text"))
+                                        { proceed = true; }
                             }
 
                             if (proceed)
@@ -47,17 +49,31 @@ namespace NSAP_ODK.Entities.Database
                                 cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_unload_1");
                                 if (cols.Contains("json_filename") || VesselUnloadRepository.UpdateTableDefinitionEx("json_filename"))
                                 {
-                                    proceed = true;
+                                    if (cols.Contains("is_multigear") || VesselUnloadRepository.UpdateTableDefinitionEx("is_multigear"))
+                                    {
+                                        if (cols.Contains("count_gear_types") || VesselUnloadRepository.UpdateTableDefinitionEx("count_gear_types"))
+                                        {
+                                            proceed = true;
+                                        }
+                                    }
                                 }
                             }
 
                             if (proceed)
                             {
-                                cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_unload_1");
+                                //cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_unload_1");
                                 proceed = cols.Contains("ref_no") || VesselUnloadRepository.AddFieldToTable1("ref_no");
                                 if (proceed)
                                 {
                                     proceed = cols.Contains("is_catch_sold") || VesselUnloadRepository.AddFieldToTable1("is_catch_sold");
+                                    if (proceed)
+                                    {
+                                        proceed = VesselUnloadRepository.UpdateTableDefinitionEx("ref_no", 100);
+                                    }
+                                    if (proceed)
+                                    {
+                                        proceed = VesselUnloadRepository.UpdateTableDefinitionEx(relationshipToRemove: "fishingVesseldbo_vessel_unload");
+                                    }
                                 }
                             }
 
@@ -90,6 +106,33 @@ namespace NSAP_ODK.Entities.Database
                                 cols = CreateTablesInAccess.GetColumnNames("dbo_catch_len_wt");
                                 proceed = cols.Contains("sex") || CatchLenWeightRepository.AddFieldToTable("sex");
                             }
+
+                            if (proceed)
+                            {
+                                cols = CreateTablesInAccess.GetColumnNames("dbo_catch_maturity");
+                                proceed = cols.Contains("gonadWt") || CatchMaturityRepository.AddFieldToTable("gonadWt");
+                            }
+                            if (proceed)
+                            {
+                                proceed = VesselUnload_FishingGearRepository.CheckTableExists();
+                            }
+
+                            if (proceed)
+                            {
+                                cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_effort");
+                                proceed = cols.Contains("vessel_unload_fishing_gear_id") || VesselUnload_Gear_Spec_Repository.UpdateTable();
+                            }
+
+
+                            if (proceed)
+                            {
+                                //drop multifield index in effort table
+                                if (VesselCatchRepository.UpdateTableDefinition(removeIndex: true, indexName: "alt_key"))
+                                {
+                                    proceed = VesselEffortRepository.UpdateTableDefinition(removeMultiFieldIndex: true, indexName: "alt_key");
+                                }
+                            }
+
 
 
 

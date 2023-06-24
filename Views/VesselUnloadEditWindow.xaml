@@ -20,6 +20,7 @@
         
         <TreeView SelectedItemChanged="OnTreeSelectedItemChanged" Grid.Row="1" Grid.RowSpan="2" Margin="10 10 0 10">
             <TreeViewItem Header="Vessel unload" x:Name="treeItemVesselUnload"/>
+            <TreeViewItem Header="Fishing gears" x:Name="treeItemFishingGears"/>
             <TreeViewItem Header="Gear soak times" x:Name="treeItemSoakTime"/>
             <TreeViewItem Header="Fishing grounds" x:Name="treeItemFishingGround"/>
             <TreeViewItem Header="Effort definitions" x:Name="treeItemEffortDefinition"/>

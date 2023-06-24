@@ -94,7 +94,16 @@ namespace NSAP_ODK.Entities.Database
 
         private static bool SetCSV(CatchLenFreq item)
         {
-            _csv.AppendLine($"{item.PK},{item.Parent.PK},{item.LengthClass},{item.Frequency},\"{item.Sex}\"");
+            Dictionary<string, string> myDict = new Dictionary<string, string>();
+            myDict.Add("catch_len_freq_id", item.PK.ToString());
+            myDict.Add("catch_id", item.Parent.PK.ToString());
+            myDict.Add("len_class", item.LengthClass.ToString());
+            myDict.Add("freq", item.Frequency.ToString());
+            myDict.Add("sex", item.Sex);
+
+
+            _csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_catch_len_freq"));
+            //_csv.AppendLine($"{item.PK},{item.Parent.PK},{item.LengthClass},{item.Frequency},\"{item.Sex}\"");
             return true;
         }
 

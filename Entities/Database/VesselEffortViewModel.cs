@@ -115,7 +115,15 @@ namespace NSAP_ODK.Entities.Database
             {
                 effort_numeric = @"\N";
             }
-            _csv.AppendLine($"{item.PK},{item.Parent.PK},{item.EffortSpecID},{effort_numeric},\"{item.EffortValueText}\"");
+            Dictionary<string, string> myDict = new Dictionary<string, string>();
+            myDict.Add("effort_row_id", item.PK.ToString());
+            myDict.Add("v_unload_id", item.Parent.PK.ToString());
+            myDict.Add("effort_spec_id", item.EffortSpecID.ToString());
+            myDict.Add("effort_value_numeric", effort_numeric);
+            myDict.Add("effort_value_text", item.EffortValueText);
+
+            _csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_effort"));
+            //_csv.AppendLine($"{item.PK},{item.Parent.PK},{item.EffortSpecID},{effort_numeric},\"{item.EffortValueText}\"");
             return true;
         }
 

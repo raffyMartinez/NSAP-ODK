@@ -31,7 +31,10 @@ namespace NSAP_ODK.Entities.Database
                 int hash = (int)2166136261;
                 // Suitable nullity checks etc, of course :)
                 hash = (hash * 16777619) ^ SamplingDayDate.GetHashCode();
-                hash = (hash * 16777619) ^ GearUsedName.GetHashCode();
+                if (!string.IsNullOrEmpty(GearUsedName))
+                {
+                    hash = (hash * 16777619) ^ GearUsedName.GetHashCode();
+                }
                 hash = (hash * 16777619) ^ RegionID.GetHashCode();
                 hash = (hash * 16777619) ^ FMAId.GetHashCode();
                 hash = (hash * 16777619) ^ FishingGroundID.GetHashCode();
@@ -59,6 +62,7 @@ namespace NSAP_ODK.Entities.Database
         public DateTime SamplingDayDate { get; set; }
         public string SamplingDayDateString { get { return SamplingDayDate.ToString("MMM-dd-yyyy"); } }
         public List<VesselCatchWV> ListOfCatch { get; set; }
+        public int? CountFishingGearTypesUsed { get; set; }
         public double RaisingFactor { get; set; }
         public double? SumOfCatchCompositionWeight { get; set; }
         public double? SumOfCatchCompositionSampleWeight { get; set; }
@@ -475,6 +479,10 @@ namespace NSAP_ODK.Entities.Database
         public bool HasCatchComposition { get; set; }
 
         public bool IsTripCompleted { get; set; }
+
+        public bool IsCatchSold { get; set; }
+
+        public bool IsMultiGear { get; set; }
 
         public int? CatchCompositionRows { get; set; }
         public int? FishingGridRows { get; set; }

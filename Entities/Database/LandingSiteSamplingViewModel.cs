@@ -130,7 +130,7 @@ namespace NSAP_ODK.Entities.Database
                     }
                 }
                 parent.GearUnloadViewModel.DeleteRecordFromRepo(gu.PK);
-                if(parent.GearUnloadViewModel.Count==0)
+                if (parent.GearUnloadViewModel.Count == 0)
                 {
                     NSAPEntities.LandingSiteSamplingViewModel.DeleteRecordFromRepo(parent);
                 }
@@ -559,7 +559,7 @@ namespace NSAP_ODK.Entities.Database
             string sampling_date = item.SamplingDate.Date.ToString();
             string date_submitted = item.DateSubmitted.ToString();
             string date_added = item.DateAdded.ToString();
-
+            Dictionary<string, string> myDict = new Dictionary<string, string>();
             if (!string.IsNullOrEmpty(item.LandingSiteText) && item.LandingSiteID == null)
             {
                 ls_text = item.LandingSiteText.Replace("»", ",");
@@ -620,12 +620,41 @@ namespace NSAP_ODK.Entities.Database
             if (Utilities.Global.Settings.UsemySQL)
             {
                 _csv.AppendLine($"{item.PK},\"{item.NSAPRegionID}\",{item.FMAID},{sampling_date},{ls_id},\"{item.FishingGroundID}\",\"{item.Remarks}\",{Convert.ToInt32(item.IsSamplingDay)},\"{ls_text}\"");
+                
             }
             else
             {
-                _csv.AppendLine($"{item.PK},\"{item.NSAPRegionID}\",{sampling_date},{ls_id},\"{item.FishingGroundID}\",\"{item.Remarks}\",{Convert.ToInt32(item.IsSamplingDay)},\"{ls_text}\",{item.FMAID},{Convert.ToInt32(item.HasFishingOperation)}");
+                
+                myDict.Add("unload_day_id", item.PK.ToString());
+                myDict.Add("region_id", item.NSAPRegionID);
+                myDict.Add("sdate", sampling_date.ToString());
+                myDict.Add("land_ctr_id", ls_id.ToString());
+                myDict.Add("ground_id", item.FishingGroundID);
+                myDict.Add("remarks", item.Remarks);
+                myDict.Add("sampleday", item.IsSamplingDay.ToString());
+                myDict.Add("land_ctr_text", ls_text);
+                myDict.Add("fma", item.FMAID.ToString());
+                myDict.Add("has_fishing_operation", item.HasFishingOperation.ToString());
+
+                _csv.AppendLine( CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_LC_FG_sample_day"));
+
+                //_csv.AppendLine($"{item.PK},\"{item.NSAPRegionID}\",{sampling_date},{ls_id},\"{item.FishingGroundID}\",\"{item.Remarks}\",{Convert.ToInt32(item.IsSamplingDay)},\"{ls_text}\",{item.FMAID},{Convert.ToInt32(item.HasFishingOperation)}");
             }
-            _csv_1.AppendLine($"{item.PK},{date_submitted},\"{item.UserName}\",\"{item.DeviceID}\",\"{item.XFormIdentifier}\",{date_added},{Convert.ToInt32(item.FromExcelDownload)},\"{item.FormVersion}\",\"{item.RowID}\",{enum_id},\"{item.EnumeratorText}\"");
+            myDict.Clear();
+            myDict.Add("unload_day_id", item.PK.ToString());
+            myDict.Add("datetime_submitted", date_submitted);
+            myDict.Add("user_name", item.UserName);
+            myDict.Add("device_id", item.DeviceID);
+            myDict.Add("XFormIdentifier", item.XFormIdentifier);
+            myDict.Add("DateAdded", date_added);
+            myDict.Add("FromExcelDownload", item.FromExcelDownload.ToString());
+            myDict.Add("form_version", item.FormVersion);
+            myDict.Add("RowID", item.RowID);
+            myDict.Add("EnumeratorID", enum_id);
+            myDict.Add("EnumeratorText", item.EnumeratorText);
+
+            _csv_1.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict,"dbo_LC_FG_sample_day_1"));
+            //_csv_1.AppendLine($"{item.PK},{date_submitted},\"{item.UserName}\",\"{item.DeviceID}\",\"{item.XFormIdentifier}\",{date_added},{Convert.ToInt32(item.FromExcelDownload)},\"{item.FormVersion}\",\"{item.RowID}\",{enum_id},\"{item.EnumeratorText}\"");
             return true;
         }
 

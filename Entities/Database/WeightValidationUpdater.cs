@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NSAP_ODK.Entities.Database;
-using NSAP_ODK.Entities.Database;
 using NSAP_ODK.Utilities;
 namespace NSAP_ODK.Entities.Database
 {
@@ -28,291 +27,298 @@ namespace NSAP_ODK.Entities.Database
 
         public static bool UpdateDatabase()
         {
-            Cancel = false;
-            StringBuilder csv = new StringBuilder();
-            int loopCount = 0;
-            int csv_update_counter = 0;
-
-            int csv_loop = 2000;
-            var looper = Global.Settings.DownloadSizeForBatchMode;
-            if (looper != null && looper > 0)
+            try
             {
-                csv_loop = (int)looper;
-            }
+                Cancel = false;
+                StringBuilder csv = new StringBuilder();
+                int loopCount = 0;
+                int csv_update_counter = 0;
 
-            List<SummaryItem> itemList = new List<SummaryItem>();
-            List<VesselCatchWV> vcwvs = new List<VesselCatchWV>();
-
-            if (SummaryItem != null)
-            {
-                itemList.Add(SummaryItem);
-                CSV = "";
-            }
-            else
-            {
-                vcwvs = VesselCatchRepository.GetVesselCatchForWV();
-
-                var maxID = VesselUnloadRepository.WeightValidationTableMaxID();
-                maxID = null;
-
-                if (maxID != null)
+                int csv_loop = 2000;
+                var looper = Global.Settings.DownloadSizeForBatchMode;
+                if (looper != null && looper > 0)
                 {
-                    itemList = NSAPEntities.SummaryItemViewModel.SummaryItemCollection.OrderBy(t => t.VesselUnloadID).Where(t => t.VesselUnloadID > (int)maxID).ToList();
+                    csv_loop = (int)looper;
+                }
+
+                List<SummaryItem> itemList = new List<SummaryItem>();
+                List<VesselCatchWV> vcwvs = new List<VesselCatchWV>();
+
+                if (SummaryItem != null)
+                {
+                    itemList.Add(SummaryItem);
+                    CSV = "";
                 }
                 else
                 {
-                    itemList = NSAPEntities.SummaryItemViewModel.SummaryItemCollection.OrderBy(t => t.VesselUnloadID).ToList();
-                }
-            }
+                    vcwvs = VesselCatchRepository.GetVesselCatchForWV();
 
-            //itemList = NSAPEntities.SummaryItemViewModel.SummaryItemCollection.Where(t => t.VesselUnloadID >= 792).OrderBy(t => t.VesselUnloadID).ToList();
-            UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.StartOfUpdate, VesselUnloadToUpdateCount = itemList.Count });
-            foreach (SummaryItem item in itemList)
-            {
-                double version = item.FormVersionNumeric;
-                if (Cancel)
-                {
-                    break;
-                }
+                    var maxID = VesselUnloadRepository.WeightValidationTableMaxID();
+                    maxID = null;
 
-                bool hasSpeciesWtOfZero = false;
-                int countTotalEnum = 0;
-                int countFromSample = 0;
-                bool computeForRaisedValue = false;
-                double sumOfCatchCompositionSampleWeight = 0;
-                double sumOfCatchCompositionWeight = 0;
-                double sumOfCatchCompositionWeight_earlyVersion = 0;
-
-
-                if (SummaryItem == null)
-                {
-                    item.ListOfCatch = vcwvs.Where(t => t.VesselUnloadID == item.VesselUnloadID).ToList();
-                }
-                else
-                {
-                    item.ListOfCatch = new List<VesselCatchWV>();
-                    foreach (var c in VesselCatches)
+                    if (maxID != null)
                     {
-                        VesselCatchWV vesselCatchWV = new VesselCatchWV
-                        {
-                            PK = c.VesselUnloadID,
-                            FromTotalCatch = c.FromTotalCatch,
-                            Species_kg = c.Catch_kg,
-                            Species_sample_kg = c.Sample_kg
-                        };
-                        item.ListOfCatch.Add(vesselCatchWV);
+                        itemList = NSAPEntities.SummaryItemViewModel.SummaryItemCollection.OrderBy(t => t.VesselUnloadID).Where(t => t.VesselUnloadID > (int)maxID).ToList();
+                    }
+                    else
+                    {
+                        itemList = NSAPEntities.SummaryItemViewModel.SummaryItemCollection.OrderBy(t => t.VesselUnloadID).ToList();
                     }
                 }
 
-
-                if (item.WeightOfCatch != null && item.WeightOfCatchSample != null && item.WeightOfCatch > 0 && item.WeightOfCatchSample > 0)
+                //itemList = NSAPEntities.SummaryItemViewModel.SummaryItemCollection.Where(t => t.VesselUnloadID >= 792).OrderBy(t => t.VesselUnloadID).ToList();
+                UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.StartOfUpdate, VesselUnloadToUpdateCount = itemList.Count });
+                foreach (SummaryItem item in itemList)
                 {
-                    computeForRaisedValue = true;
-                    double from_total_sum = 0;
-
-                    if (item.CatchCompositionRows != null && item.CatchCompositionRows > 0)
+                    double version = item.FormVersionNumeric;
+                    if (Cancel)
                     {
-                        if (version >= 6.43)
-                        {
-                            foreach (VesselCatchWV vc in item.ListOfCatch)
-                            {
-                                if (!hasSpeciesWtOfZero && vc.Species_kg == 0)
-                                {
-                                    hasSpeciesWtOfZero = true;
-                                }
-                                if (vc.FromTotalCatch)
-                                {
-                                    from_total_sum += (double)vc.Species_kg;
-                                    countTotalEnum++;
-                                }
-                                else if (vc.Species_sample_kg != null)
-                                {
-                                    sumOfCatchCompositionSampleWeight += (double)vc.Species_sample_kg;
-                                    countFromSample++;
-                                }
-
-                            }
-                            item.SumOfCatchCompositionSampleWeight = sumOfCatchCompositionSampleWeight;
-                        }
-                        else
-                        {
-
-                            foreach (VesselCatchWV vc in item.ListOfCatch)
-                            {
-                                if (vc.Species_kg != null)
-                                {
-                                    sumOfCatchCompositionWeight_earlyVersion += (double)vc.Species_kg;
-                                }
-                                if (!hasSpeciesWtOfZero && vc.Species_kg == 0)
-                                {
-                                    hasSpeciesWtOfZero = true;
-                                }
-                                if (vc.Species_sample_kg == null || vc.Species_sample_kg == 0)
-                                {
-
-                                    from_total_sum += (double)vc.Species_kg;
-                                    countTotalEnum++;
-                                }
-                                else
-                                {
-                                    sumOfCatchCompositionSampleWeight += (double)vc.Species_sample_kg;
-                                    countFromSample++;
-                                }
-                            }
-                            item.SumOfCatchCompositionSampleWeight = sumOfCatchCompositionSampleWeight;
-                        }
-
-                        item.RaisingFactor = ((double)item.WeightOfCatch - from_total_sum) / (double)item.WeightOfCatchSample;
+                        break;
                     }
-                }
-                else
-                {
-                    if (item.ListOfCatch != null)
-                    {
-                        foreach (VesselCatchWV vc in item.ListOfCatch)
-                        {
-                            if (!hasSpeciesWtOfZero && vc.Species_kg == 0)
-                            {
-                                hasSpeciesWtOfZero = true;
-                            }
-                            sumOfCatchCompositionWeight += (double)vc.Species_kg;
 
+                    bool hasSpeciesWtOfZero = false;
+                    int countTotalEnum = 0;
+                    int countFromSample = 0;
+                    bool computeForRaisedValue = false;
+                    double sumOfCatchCompositionSampleWeight = 0;
+                    double sumOfCatchCompositionWeight = 0;
+                    double sumOfCatchCompositionWeight_earlyVersion = 0;
+
+
+                    if (SummaryItem == null)
+                    {
+                        item.ListOfCatch = vcwvs.Where(t => t.VesselUnloadID == item.VesselUnloadID).ToList();
+                    }
+                    else
+                    {
+                        item.ListOfCatch = new List<VesselCatchWV>();
+                        foreach (var c in VesselCatches)
+                        {
+                            VesselCatchWV vesselCatchWV = new VesselCatchWV
+                            {
+                                PK = c.VesselUnloadID,
+                                FromTotalCatch = c.FromTotalCatch,
+                                Species_kg = c.Catch_kg,
+                                Species_sample_kg = c.Sample_kg
+                            };
+                            item.ListOfCatch.Add(vesselCatchWV);
+                        }
+                    }
+
+
+                    if (item.WeightOfCatch != null && item.WeightOfCatchSample != null && item.WeightOfCatch > 0 && item.WeightOfCatchSample > 0)
+                    {
+                        computeForRaisedValue = true;
+                        double from_total_sum = 0;
+
+                        if (item.CatchCompositionRows != null && item.CatchCompositionRows > 0)
+                        {
                             if (version >= 6.43)
                             {
-                                if (vc.FromTotalCatch)
+                                foreach (VesselCatchWV vc in item.ListOfCatch)
                                 {
-                                    countTotalEnum++;
-                                }
-                                else if (vc.Species_sample_kg != null)
-                                {
-                                    countFromSample++;
-                                }
+                                    if (!hasSpeciesWtOfZero && vc.Species_kg == 0)
+                                    {
+                                        hasSpeciesWtOfZero = true;
+                                    }
+                                    if (vc.FromTotalCatch)
+                                    {
+                                        from_total_sum += (double)vc.Species_kg;
+                                        countTotalEnum++;
+                                    }
+                                    else if (vc.Species_sample_kg != null)
+                                    {
+                                        sumOfCatchCompositionSampleWeight += (double)vc.Species_sample_kg;
+                                        countFromSample++;
+                                    }
 
+                                }
+                                item.SumOfCatchCompositionSampleWeight = sumOfCatchCompositionSampleWeight;
                             }
                             else
                             {
-                                if (vc.Species_sample_kg != null)
+
+                                foreach (VesselCatchWV vc in item.ListOfCatch)
                                 {
-                                    countFromSample++;
+                                    if (vc.Species_kg != null)
+                                    {
+                                        sumOfCatchCompositionWeight_earlyVersion += (double)vc.Species_kg;
+                                    }
+                                    if (!hasSpeciesWtOfZero && vc.Species_kg == 0)
+                                    {
+                                        hasSpeciesWtOfZero = true;
+                                    }
+                                    if (vc.Species_sample_kg == null || vc.Species_sample_kg == 0)
+                                    {
+
+                                        from_total_sum += (double)vc.Species_kg;
+                                        countTotalEnum++;
+                                    }
+                                    else
+                                    {
+                                        sumOfCatchCompositionSampleWeight += (double)vc.Species_sample_kg;
+                                        countFromSample++;
+                                    }
                                 }
-                                else if (vc.Species_kg != null && vc.Species_sample_kg == null)
+                                item.SumOfCatchCompositionSampleWeight = sumOfCatchCompositionSampleWeight;
+                            }
+
+                            item.RaisingFactor = ((double)item.WeightOfCatch - from_total_sum) / (double)item.WeightOfCatchSample;
+                        }
+                    }
+                    else
+                    {
+                        if (item.ListOfCatch != null)
+                        {
+                            foreach (VesselCatchWV vc in item.ListOfCatch)
+                            {
+                                if (!hasSpeciesWtOfZero && vc.Species_kg == 0)
                                 {
-                                    countTotalEnum++;
+                                    hasSpeciesWtOfZero = true;
                                 }
+                                sumOfCatchCompositionWeight += (double)vc.Species_kg;
+
+                                if (version >= 6.43)
+                                {
+                                    if (vc.FromTotalCatch)
+                                    {
+                                        countTotalEnum++;
+                                    }
+                                    else if (vc.Species_sample_kg != null)
+                                    {
+                                        countFromSample++;
+                                    }
+
+                                }
+                                else
+                                {
+                                    if (vc.Species_sample_kg != null)
+                                    {
+                                        countFromSample++;
+                                    }
+                                    else if (vc.Species_kg != null && vc.Species_sample_kg == null)
+                                    {
+                                        countTotalEnum++;
+                                    }
+                                }
+                            }
+                            item.SumOfCatchCompositionWeight = sumOfCatchCompositionWeight;
+                        }
+                    }
+
+                    if (computeForRaisedValue && item.ListOfCatch != null)
+                    {
+                        foreach (VesselCatchWV vc in item.ListOfCatch)
+                        {
+                            if (vc.FromTotalCatch || vc.Species_sample_kg == null || vc.Species_sample_kg == 0)
+                            {
+                                sumOfCatchCompositionWeight += (double)vc.Species_kg;
+                            }
+                            else
+                            {
+                                sumOfCatchCompositionWeight += (double)vc.Species_sample_kg * item.RaisingFactor;
                             }
                         }
                         item.SumOfCatchCompositionWeight = sumOfCatchCompositionWeight;
                     }
-                }
 
-                if (computeForRaisedValue && item.ListOfCatch != null)
-                {
-                    foreach (VesselCatchWV vc in item.ListOfCatch)
+                    if (item.SumOfCatchCompositionWeight > 0)
                     {
-                        if (vc.FromTotalCatch || vc.Species_sample_kg == null || vc.Species_sample_kg == 0)
+                        item.DifferenceCatchWtandSumCatchCompWeight = Math.Abs((double)item.WeightOfCatch - (double)item.SumOfCatchCompositionWeight) / (double)item.WeightOfCatch * 100;
+                        if (hasSpeciesWtOfZero)
                         {
-                            sumOfCatchCompositionWeight += (double)vc.Species_kg;
+                            item.WeightValidationFlag = WeightValidationFlag.WeightValidationInValid;
+                        }
+                        else if (item.DifferenceCatchWtandSumCatchCompWeight <= (int)Utilities.Global.Settings.AcceptableWeightsDifferencePercent)
+                        {
+                            item.WeightValidationFlag = WeightValidationFlag.WeightValidationValid;
                         }
                         else
                         {
-                            sumOfCatchCompositionWeight += (double)vc.Species_sample_kg * item.RaisingFactor;
+                            item.WeightValidationFlag = WeightValidationFlag.WeightValidationInValid;
+                            if (version < 6.43 && Math.Abs(sumOfCatchCompositionWeight_earlyVersion - (double)item.WeightOfCatch) < .1)
+                            {
+                                item.WeightValidationFlag = WeightValidationFlag.WeightValidationValid;
+                                item.SumOfCatchCompositionWeight = sumOfCatchCompositionWeight_earlyVersion;
+                                item.DifferenceCatchWtandSumCatchCompWeight = Math.Abs((double)item.WeightOfCatch - (double)item.SumOfCatchCompositionWeight) / (double)item.WeightOfCatch * 100;
+                            }
                         }
                     }
-                    item.SumOfCatchCompositionWeight = sumOfCatchCompositionWeight;
-                }
-
-                if (item.SumOfCatchCompositionWeight > 0)
-                {
-                    item.DifferenceCatchWtandSumCatchCompWeight = Math.Abs((double)item.WeightOfCatch - (double)item.SumOfCatchCompositionWeight) / (double)item.WeightOfCatch * 100;
-                    if (hasSpeciesWtOfZero)
+                    else if (hasSpeciesWtOfZero)
                     {
                         item.WeightValidationFlag = WeightValidationFlag.WeightValidationInValid;
                     }
-                    else if (item.DifferenceCatchWtandSumCatchCompWeight <= (int)Utilities.Global.Settings.AcceptableWeightsDifferencePercent)
-                    {
-                        item.WeightValidationFlag = WeightValidationFlag.WeightValidationValid;
-                    }
-                    else
+                    else if (item.SumOfCatchCompositionSampleWeight > item.WeightOfCatchSample)
                     {
                         item.WeightValidationFlag = WeightValidationFlag.WeightValidationInValid;
-                        if (version < 6.43 && Math.Abs(sumOfCatchCompositionWeight_earlyVersion - (double)item.WeightOfCatch) < .1)
+                    }
+
+                    if (version < 6.43)
+                    {
+                        if (item.WeightOfCatch != null && item.WeightOfCatch > 0 && item.ListOfCatch != null && item.ListOfCatch.Count > 0)
                         {
-                            item.WeightValidationFlag = WeightValidationFlag.WeightValidationValid;
-                            item.SumOfCatchCompositionWeight = sumOfCatchCompositionWeight_earlyVersion;
-                            item.DifferenceCatchWtandSumCatchCompWeight = Math.Abs((double)item.WeightOfCatch - (double)item.SumOfCatchCompositionWeight) / (double)item.WeightOfCatch * 100;
+                            if (item.WeightOfCatchSample == null)
+                            {
+                                item.SamplingTypeFlag = SamplingTypeFlag.SamplingTypeTotalEnumeration;
+                            }
+                            else if (item.WeightOfCatchSample > 0)
+                            {
+                                item.SamplingTypeFlag = SamplingTypeFlag.SamplingTypeSampled;
+                            }
                         }
                     }
-                }
-                else if (hasSpeciesWtOfZero)
-                {
-                    item.WeightValidationFlag = WeightValidationFlag.WeightValidationInValid;
-                }
-                else if (item.SumOfCatchCompositionSampleWeight > item.WeightOfCatchSample)
-                {
-                    item.WeightValidationFlag = WeightValidationFlag.WeightValidationInValid;
-                }
-
-                if (version < 6.43)
-                {
-                    if (item.WeightOfCatch != null && item.WeightOfCatch > 0 && item.ListOfCatch != null && item.ListOfCatch.Count > 0)
+                    else if (countFromSample > 0 && countTotalEnum > 0)
                     {
-                        if (item.WeightOfCatchSample == null)
-                        {
-                            item.SamplingTypeFlag = SamplingTypeFlag.SamplingTypeTotalEnumeration;
-                        }
-                        else if (item.WeightOfCatchSample > 0)
-                        {
-                            item.SamplingTypeFlag = SamplingTypeFlag.SamplingTypeSampled;
-                        }
+                        item.SamplingTypeFlag = SamplingTypeFlag.SamplingTypeMixed;
                     }
-                }
-                else if (countFromSample > 0 && countTotalEnum > 0)
-                {
-                    item.SamplingTypeFlag = SamplingTypeFlag.SamplingTypeMixed;
-                }
-                else if (countFromSample > 0)
-                {
-                    item.SamplingTypeFlag = SamplingTypeFlag.SamplingTypeSampled;
-                }
-                else if (countTotalEnum > 0)
-                {
-                    item.SamplingTypeFlag = SamplingTypeFlag.SamplingTypeTotalEnumeration;
-                }
-                UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.UpdateFound });
-
-                if (SummaryItem == null)
-                {
-                    csv.AppendLine(MakeUnloadCSVLine(item));
-                    double q = (double)loopCount / (double)csv_loop;
-                    if (loopCount > 0 && q == (int)q)
+                    else if (countFromSample > 0)
                     {
-                        csv_update_counter += csv_loop;
-                        if (VesselUnloadRepository.BulkUpdateWeightValidationUsingCSV(csv))
+                        item.SamplingTypeFlag = SamplingTypeFlag.SamplingTypeSampled;
+                    }
+                    else if (countTotalEnum > 0)
+                    {
+                        item.SamplingTypeFlag = SamplingTypeFlag.SamplingTypeTotalEnumeration;
+                    }
+                    UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.UpdateFound });
+
+                    if (SummaryItem == null)
+                    {
+                        csv.AppendLine(MakeUnloadCSVLine(item));
+                        double q = (double)loopCount / (double)csv_loop;
+                        if (loopCount > 0 && q == (int)q)
                         {
-                            UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.BatchCSVUploaded, VesselUnloadWeightValidationUpdateCount = csv_update_counter });
-                            csv.Clear();
+                            csv_update_counter += csv_loop;
+                            if (VesselUnloadRepository.BulkUpdateWeightValidationUsingCSV(csv))
+                            {
+                                UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.BatchCSVUploaded, VesselUnloadWeightValidationUpdateCount = csv_update_counter });
+                                csv.Clear();
+                            }
                         }
+                        else
+                        {
+
+                        }
+
+                        loopCount++;
+                        UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.SummaryItemProcessed, SummaryItemProcessedCount = loopCount });
                     }
                     else
                     {
-
+                        CSV = MakeUnloadCSVLine(item);
+                        return CSV.Length > 0;
                     }
-
-                    loopCount++;
-                    UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.SummaryItemProcessed, SummaryItemProcessedCount = loopCount });
                 }
-                else
+                UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.EndOfUpdate });
+
+                if (csv.ToString().Length > 0)
                 {
-                    CSV = MakeUnloadCSVLine(item);
-                    return CSV.Length > 0;
+                    VesselUnloadRepository.BulkUpdateWeightValidationUsingCSV(csv);
+                    csv.Clear();
                 }
             }
-            UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.EndOfUpdate });
-
-            if (csv.ToString().Length > 0)
+            catch(Exception ex)
             {
-                VesselUnloadRepository.BulkUpdateWeightValidationUsingCSV(csv);
-                csv.Clear();
+                Utilities.Logger.Log(ex);
             }
 
             return !Cancel;
