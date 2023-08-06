@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using NSAP_ODK.Entities.ItemSources;
+using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
+using System.ComponentModel;
 namespace NSAP_ODK.Entities.Database
 {
     public class CatchLenFreqFlattened
     {
-        public  CatchLenFreqFlattened(CatchLenFreq clf)
+        public CatchLenFreqFlattened(CatchLenFreq clf)
         {
             ID = clf.PK;
             ParentID = clf.Parent.PK;
@@ -25,6 +27,31 @@ namespace NSAP_ODK.Entities.Database
         public string Gear { get; set; }
         public int Frequency { get; set; }
         public double Length { get; set; }
+    }
+
+    public class CatchLenFreqEdited
+    {
+        public CatchLenFreqEdited()
+        {
+
+        }
+
+        public CatchLenFreqEdited(CatchLenFreq clf)
+        {
+            PK = clf.PK;
+            SexCode = clf.Sex;
+            LengthClass = clf.LengthClass;
+            Frequency = clf.Frequency;
+        }
+
+        [ReadOnly(true)]
+        public int PK { get; set; }
+        public CatchLenFreq CatchLenFreq { get; set; }
+
+        public double LengthClass { get; set; }
+        public int Frequency { get; set; }
+        [ItemsSource(typeof(SexItemsSource))]
+        public string SexCode { get; set; }
     }
     public class CatchLenFreq
     {
@@ -43,7 +70,7 @@ namespace NSAP_ODK.Entities.Database
             set { _parent = value; }
             get
             {
-                if(_parent==null)
+                if (_parent == null)
                 {
                     _parent = NSAPEntities.VesselCatchViewModel.getVesselCatch(VesselCatchID);
                 }

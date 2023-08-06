@@ -14,7 +14,6 @@ namespace NSAP_ODK.Entities.Database
     {
         public List<VesselUnload_FishingGear> VesselUnload_FishingGears { get; set; }
         private VesselUnload _parent;
-
         public static bool CheckTableExists()
         {
             bool tableExists = false;
@@ -167,7 +166,7 @@ namespace NSAP_ODK.Entities.Database
                             {
                                 update.Parameters.Add("@gear_code", OleDbType.VarChar).Value = item.Gear.Code;
                             }
-                            if(string.IsNullOrEmpty(item.GearCode))
+                            if (string.IsNullOrEmpty(item.GearCode))
                             {
                                 update.Parameters.Add("@gear_code", OleDbType.VarChar).Value = DBNull.Value;
                             }
@@ -220,6 +219,42 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
+
+        //internal static bool AddFieldToTable(string fieldName)
+        //{
+        //    bool success = false;
+        //    string sql = "";
+        //    switch (fieldName)
+        //    {
+        //        case "gear_sequence":
+        //            sql = $"ALTER TABLE dbo_vesselunload_fishinggear ADD COLUMN {fieldName} int";
+        //            break;
+        //        case "count_landings":
+        //            sql = $"ALTER TABLE dbo_vesselunload_fishinggear ADD COLUMN {fieldName} int";
+        //            break;
+        //        case "catch_of_gear":
+        //            sql = $"ALTER TABLE dbo_vesselunload_fishinggear ADD COLUMN {fieldName} double";
+        //            break;
+        //    }
+        //    using (var con = new OleDbConnection(Global.ConnectionString))
+        //    {
+        //        using (var cmd = con.CreateCommand())
+        //        {
+        //            con.Open();
+        //            cmd.CommandText = sql;
+        //            try
+        //            {
+        //                cmd.ExecuteNonQuery();
+        //                success = true;
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                Logger.Log(ex);
+        //            }
+        //        }
+        //    }
+        //    return success;
+        //}
 
         public bool Update(VesselUnload_FishingGear item)
         {
@@ -316,6 +351,14 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
+
+        public VesselUnload_FishingGearRepository(bool isNew = false)
+        {
+            if (!isNew)
+            {
+                VesselUnload_FishingGears = getGears();
+            }
+        }
         public VesselUnload_FishingGearRepository(VesselUnload vu)
         {
             if (vu != null)
@@ -345,7 +388,6 @@ namespace NSAP_ODK.Entities.Database
 
                             cmd.Parameters.AddWithValue("@parentID", _parent.PK);
                             cmd.CommandText = "Select * from dbo_vesselunload_fishinggear where vessel_unload_id=@parentID";
-
 
                             thisList.Clear();
                             OleDbDataReader dr = cmd.ExecuteReader();

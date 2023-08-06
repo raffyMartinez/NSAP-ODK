@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
+using System.ComponentModel;
+using NSAP_ODK.Entities.ItemSources;
 namespace NSAP_ODK.Entities.Database
 {
     public class CatchLengthFlattened
     {
-        public  CatchLengthFlattened(CatchLength cl)
+        public CatchLengthFlattened(CatchLength cl)
         {
             ID = cl.PK;
             ParentID = cl.Parent.PK;
@@ -25,6 +27,32 @@ namespace NSAP_ODK.Entities.Database
         public string Gear { get; set; }
         public double Length { get; set; }
     }
+
+    public class CatchLengthEdited
+    {
+        public CatchLengthEdited()
+        {
+            //
+        }
+
+        public CatchLengthEdited(CatchLength cl)
+        {
+            PK = cl.PK;
+            SexCode = cl.Sex;
+            CatchLength = cl;
+            Length = cl.Length;
+        }
+        [ItemsSource(typeof(SexItemsSource))]
+        public string SexCode { get; set; }
+        [ReadOnly(true)]
+        public int PK { get; set; }
+
+        public CatchLength CatchLength { get; set; }
+
+        public double Length { get; set; }
+
+    }
+
     public class CatchLength
     {
         private VesselCatch _parent;

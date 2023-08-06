@@ -39,7 +39,14 @@ namespace NSAP_ODK.Entities.Database
                     {
                         con.Open();
                         cmd.CommandText = "SELECT Max(unload_gr_id) AS max_id FROM dbo_gear_unload";
-                        maxRecNo = (int)cmd.ExecuteScalar();
+                        try
+                        {
+                            maxRecNo = (int)cmd.ExecuteScalar();
+                        }
+                        catch(Exception ex)
+                        {
+                            maxRecNo = 0;
+                        }
                     }
                 }
             }
@@ -53,7 +60,7 @@ namespace NSAP_ODK.Entities.Database
             {
                 using (var cmd = con.CreateCommand())
                 {
-                    
+
                     cmd.Parameters.AddWithValue("@remark", remark);
                     //cmd.Parameters.Add("@remark", OleDbType.VarChar).Value = remark;
                     cmd.Parameters.AddWithValue("@id", gearUnloadID);
@@ -63,7 +70,7 @@ namespace NSAP_ODK.Entities.Database
                         con.Open();
                         success = cmd.ExecuteNonQuery() > 0;
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Logger.Log(ex);
                     }
@@ -250,6 +257,11 @@ namespace NSAP_ODK.Entities.Database
                                 item.SectorCode = dr["sector"].ToString();
                                 item.TotalWtSpViewModel = new TotalWtSpViewModel(item);
                                 //item.VesselUnloadViewModel = new VesselUnloadViewModel(item);
+                                if (ls.IsMultiVessel && dr["gear_sequence"] != DBNull.Value)
+                                {
+                                    item.Sequence = (int)dr["gear_sequence"];
+                                }
+
                                 thisList.Add(item);
 
                             }
@@ -284,10 +296,11 @@ namespace NSAP_ODK.Entities.Database
             switch (fieldName)
             {
                 case "sector":
-                    sql = "ALTER TABLE dbo_gear_unload ADD COLUMN sector VARCHAR(1)";
+                    sql = $"ALTER TABLE dbo_gear_unload ADD COLUMN {fieldName} VARCHAR(1)";
                     break;
                 case "sp_twsp_count":
-                    sql = "ALTER TABLE dbo_gear_unload ADD COLUMN sp_twsp_count INT";
+                case "gear_sequence":
+                    sql = $"ALTER TABLE dbo_gear_unload ADD COLUMN {fieldName} INT";
                     break;
             }
             using (var con = new OleDbConnection(Global.ConnectionString))
@@ -301,7 +314,7 @@ namespace NSAP_ODK.Entities.Database
                         cmd.ExecuteNonQuery();
                         success = true;
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Logger.Log(ex);
                     }
@@ -454,7 +467,7 @@ namespace NSAP_ODK.Entities.Database
                             update.Parameters.Add("@remarks", OleDbType.VarChar).Value = item.Remarks;
                         }
 
-                        if (string.IsNullOrEmpty( item.SectorCode))
+                        if (string.IsNullOrEmpty(item.SectorCode))
                         {
                             update.Parameters.Add("@sector", OleDbType.VarChar).Value = DBNull.Value;
                         }
@@ -591,8 +604,8 @@ namespace NSAP_ODK.Entities.Database
                         update.Parameters.Add("@parent", OleDbType.Integer).Value = item.LandingSiteSamplingID;
 
                         //if (item.GearID == null)
-                        if(string.IsNullOrEmpty(item.GearID))
-                        { 
+                        if (string.IsNullOrEmpty(item.GearID))
+                        {
                             update.Parameters.Add("@gear_id", OleDbType.Integer).Value = DBNull.Value;
                         }
                         else
@@ -627,7 +640,7 @@ namespace NSAP_ODK.Entities.Database
                             update.Parameters.Add("@gear_text", OleDbType.VarChar).Value = item.GearUsedText;
                         }
 
-                        if (string.IsNullOrEmpty( item.SectorCode))
+                        if (string.IsNullOrEmpty(item.SectorCode))
                         {
                             update.Parameters.Add("@sector", OleDbType.VarChar).Value = DBNull.Value;
                         }

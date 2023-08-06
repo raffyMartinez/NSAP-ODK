@@ -143,6 +143,8 @@ namespace NSAP_ODK.Entities.Database
         public List<int> EnumeratorIDs { get; set; }
         public List<string> EnumeratorNames { get; set; }
         public string JSONFileName { get; set; }
+
+        public int JsonFileID { get; set; }
         public NSAPRegion NSAPRegion { get; set; }
         public DateTime DateStart { get; set; }
         public DateTime DateEnd { get; set; }

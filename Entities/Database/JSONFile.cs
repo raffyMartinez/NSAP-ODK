@@ -63,7 +63,7 @@ namespace NSAP_ODK.Entities.Database
                 MD5 = Utilities.MD5.CreateMD5(_jsonText);
             }
         }
-
+        public string VersionString { get; set; }
         public List<VesselLanding> VesselLandings
         {
             get

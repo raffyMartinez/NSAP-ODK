@@ -3,42 +3,43 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
+using System.ComponentModel;
 namespace NSAP_ODK.Entities.Database
 {
     public class VesselUnload_FishingGear
     {
         private VesselUnload _vesselUnload;
-        public List<VesselCatch> Catches
-        {
-            get
-            {
-                List<VesselCatch> vcs = new List<VesselCatch>();
-                if (Parent.VesselCatchViewModel == null || Parent.VesselCatchViewModel.VesselCatchCollection == null)
-                {
-                    Parent.VesselCatchViewModel = new VesselCatchViewModel(Parent);
-                }
-                foreach (VesselCatch vc in Parent.VesselCatchViewModel.VesselCatchCollection)
-                {
-                    if (string.IsNullOrEmpty(GearCode))
-                    {
-                        if (vc.GearText == GearText)
-                        {
-                            vcs.Add(vc);
-                        }
-                    }
-                    else
-                    {
-                        if (vc.GearCode == GearCode)
-                        {
-                            vcs.Add(vc);
-                        }
-                    }
-                }
+        //public List<VesselCatch> Catches
+        //{
+        //    get
+        //    {
+        //        List<VesselCatch> vcs = new List<VesselCatch>();
+        //        if (Parent.VesselCatchViewModel == null || Parent.VesselCatchViewModel.VesselCatchCollection == null)
+        //        {
+        //            Parent.VesselCatchViewModel = new VesselCatchViewModel(Parent);
+        //        }
+        //        foreach (VesselCatch vc in Parent.VesselCatchViewModel.VesselCatchCollection)
+        //        {
+        //            if (string.IsNullOrEmpty(GearCode))
+        //            {
+        //                if (vc.GearText == GearText)
+        //                {
+        //                    vcs.Add(vc);
+        //                }
+        //            }
+        //            else
+        //            {
+        //                if (vc.GearCode == GearCode)
+        //                {
+        //                    vcs.Add(vc);
+        //                }
+        //            }
+        //        }
 
-                return vcs;
-            }
-        }
+        //        return vcs;
+        //    }
+        //}
         private Gear _gear;
         public VesselUnload_Gear_Spec_ViewModel VesselUnload_Gear_Specs_ViewModel { get; set; }
         public void SetChildEntities()
@@ -63,6 +64,10 @@ namespace NSAP_ODK.Entities.Database
         public Guid Guid { get; private set; }
         public bool DelayedSave { get; set; }
         public string GearCode { get; set; }
+
+        public double? WeightOfCatch { get; set; }
+        public int? CountUsed { get; set; }
+        public int? Sequence { get; set; }
         public Gear Gear
         {
             get
@@ -99,5 +104,33 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
         }
+    }
+    public class VesselUnload_FishingGear_Edited
+    {
+        public VesselUnload_FishingGear_Edited()
+        {
+
+        }
+        public VesselUnload_FishingGear_Edited(VesselUnload_FishingGear vufg)
+        {
+            if (vufg != null)
+            {
+                GearCode = vufg.GearCode;
+                GearText = vufg.GearText;
+                VesselUnload_FishingGear = vufg;
+                RowID = vufg.RowID;
+                GearUsedName = vufg.GearUsedName;
+            }
+        }
+        
+        [ItemsSource(typeof(NSAP_ODK.Entities.ItemSources.GearsInNSAPRegionItemsSource))]
+        public string GearCode { get; set; }
+        
+        [ItemsSource(typeof(NSAP_ODK.Entities.ItemSources.GearsInNSAPRegionItemsSource))]
+        public string GearUsedName { get; set; }
+        public string GearText { get; set; }
+        [ReadOnly(true)]
+        public int RowID { get; set; }
+        public VesselUnload_FishingGear VesselUnload_FishingGear { get; private set; }
     }
 }

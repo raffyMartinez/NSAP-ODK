@@ -47,7 +47,7 @@ namespace NSAP_ODK.Views
         public static event Action RefreshDatabaseSummaryTable;
         public event EventHandler<DownloadMediaFromServerEventArgs> DownloadMediaFromServerEvent;
 
-
+        private int? _totalCountSampledLandings;
         //private int _numberOfSubmissions;
         private int? _numberToDownloadPerBatch;
         private List<KoboForm> _koboForms;
@@ -319,7 +319,7 @@ namespace NSAP_ODK.Views
         public string DownloadAsJSONNotes { get; set; }
         public bool SaveDownloadAsJSON { get; set; }
         public bool DownloadOptionDownloadAll { get; set; }
-
+        public bool FormIsMultiVessel { get; set; }
         public bool FormIsMultiGear { get; set; }
         public int? NumberToDownloadPerBatch
         {
@@ -657,6 +657,9 @@ namespace NSAP_ODK.Views
                                         {
                                             //using (var httpClient = new HttpClient())
                                             //{
+
+                                            //uri to download selected fields
+                                            //$"https://kc.kobotoolbox.org/api/v1/data/{_formID}?fields=[landing_site_sampling_group/count_sampled_landings,today]&format=json"
                                             switch (_jsonOption)
                                             {
                                                 case "all":
@@ -673,6 +676,9 @@ namespace NSAP_ODK.Views
                                                 case "all_not_downloaded":
                                                     string lastSubmissionDate = (((DateTime)_lastSubmittedDate)).Date.ToString("yyyy-MM-ddTHH:mm:ss");
                                                     api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gte\":\"{lastSubmissionDate}\"}}}}";
+                                                    break;
+                                                case "predownload_sampling_count":
+                                                    api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?fields=[\"landing_site_sampling_group/count_sampled_landings\",\"today\"]&format=json";
                                                     break;
                                                 case "specify_date_range":
                                                     string start_date = ((DateTime)dateStart.Value).ToString("yyyy-MM-dd");
@@ -763,7 +769,11 @@ namespace NSAP_ODK.Views
                                                     {
                                                         case ODKServerDownload.ServerDownloadVesselUnload:
                                                             string json;
-                                                            if (DateTime.TryParse(_xlsFormVersion, out DateTime versionDate1))
+                                                            if(_formSummary.IsMultiVessel)
+                                                            {
+                                                                json = the_response.ToString();
+                                                            }
+                                                            else if (DateTime.TryParse(_xlsFormVersion, out DateTime versionDate1))
                                                             {
                                                                 versionDate = versionDate1;
                                                                 if (versionDate >= new DateTime(2021, 10, 1))
@@ -782,11 +792,28 @@ namespace NSAP_ODK.Views
                                                                 //VesselUnloadServerRepository.JSON = the_response;
                                                             }
                                                             ((ODKResultsWindow)Owner).JSON = json;
-                                                            VesselUnloadServerRepository.JSON = json;
-                                                            VesselUnloadServerRepository.ResetLists();
-                                                            VesselUnloadServerRepository.CreateLandingsFromJSON();
-                                                            VesselUnloadServerRepository.FillDuplicatedLists();
-
+                                                            if (_formSummary.IsMultiVessel)
+                                                            {
+                                                                MultiVesselGear_UnloadServerRepository.JSON = json;
+                                                                if (_jsonOption == "predownload_sampling_count")
+                                                                {
+                                                                    MultiVesselGear_UnloadServerRepository.CreateLandingCountsFromJSON();
+                                                                    _totalCountSampledLandings = MultiVesselGear_UnloadServerRepository.ListOfLandingsCount.Sum(t => t.CountSampledLandings);
+                                                                    MessageBox.Show($"There are {_totalCountSampledLandings} sampled fish landings available for download from the server", Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
+                                                                    return;
+                                                                }
+                                                                else
+                                                                {
+                                                                    MultiVesselGear_UnloadServerRepository.CreateLandingsFromJSON();
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                VesselUnloadServerRepository.JSON = json;
+                                                                VesselUnloadServerRepository.ResetLists();
+                                                                VesselUnloadServerRepository.CreateLandingsFromJSON();
+                                                                VesselUnloadServerRepository.FillDuplicatedLists();
+                                                            }
 
                                                             break;
                                                         case ODKServerDownload.ServerDownloadLandings:
@@ -805,7 +832,14 @@ namespace NSAP_ODK.Views
                                                     switch (_parentWindow.ODKServerDownload)
                                                     {
                                                         case ODKServerDownload.ServerDownloadVesselUnload:
-                                                            _parentWindow.MainSheets = VesselUnloadServerRepository.VesselLandings;
+                                                            if (_formSummary.IsMultiVessel)
+                                                            {
+                                                                _parentWindow.MultiVesselMainSheets = MultiVesselGear_UnloadServerRepository.SampledVesselLandings;
+                                                            }
+                                                            else
+                                                            {
+                                                                _parentWindow.MainSheets = VesselUnloadServerRepository.VesselLandings;
+                                                            }
                                                             break;
                                                         case ODKServerDownload.ServerDownloadLandings:
                                                             _parentWindow.MainSheetsLanding = BoatLandingsFromServerRepository.BoatLandings;
@@ -1587,14 +1621,25 @@ namespace NSAP_ODK.Views
                 }
 
             }
+
+            if(_formSummary.IsMultiVessel)
+            {
+                rbDownloadCount.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                rbDownloadCount.Visibility = Visibility.Collapsed;
+            }
         }
         private void OnTreeItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
+            _totalCountSampledLandings = null;
             propertyGrid.Visibility = Visibility.Collapsed;
             gridFormUsers.Visibility = Visibility.Collapsed;
             gridDownload.Visibility = Visibility.Collapsed;
             panelReplace.Visibility = Visibility.Collapsed;
             var treeViewItem = (TreeViewItem)e.NewValue;
+            FormIsMultiVessel = false;
             if (treeViewItem != null)
             {
                 switch (treeViewItem.Tag.ToString())
@@ -1603,6 +1648,7 @@ namespace NSAP_ODK.Views
                         _formID = treeViewItem.Header.ToString();
 
                         _formSummary = new FormSummary(_koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)));
+                        FormIsMultiVessel = _formSummary.Description.Contains("Multi-Vessel");
                         _versionID = _formSummary.KoboForm.Version_ID;
                         // _numberOfSubmissions = _formSummary.NumberOfSubmissions;
                         //_xlsFormVersion = _formSummary.XLSForm_Version;
@@ -1644,6 +1690,7 @@ namespace NSAP_ODK.Views
                         gridFormUsers.Visibility = Visibility.Visible;
                         _formID = ((TreeViewItem)treeViewItem.Parent).Header.ToString();
                         _formSummary = new FormSummary(_koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)));
+                        FormIsMultiVessel = _formSummary.Description.Contains("Multi-Vessel");
                         _versionID = _formSummary.KoboForm.Version_ID;
                         dataGrid.DataContext = _koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)).metadata_active;
                         dataGrid.AutoGenerateColumns = false;
@@ -1682,6 +1729,7 @@ namespace NSAP_ODK.Views
                         _xlsFormVersion = koboform.xlsform_version;
                         _formSummary = new FormSummary(koboform);
                         _description = _formSummary.Description;
+                        FormIsMultiVessel = _description.Contains("Multi-Vessel");
                         _count = _formSummary.NumberOfSubmissions;
                         SetODKServerDownloadType(_formSummary);
                         SetDownloadOptionsVisibility();
@@ -1694,6 +1742,7 @@ namespace NSAP_ODK.Views
                             ComboUser.Items.Add(new ComboBoxItem { Content = user.user });
                         }
                         ((ODKResultsWindow)Owner).IsMultiGear = _formSummary.IsMultiGear;
+                        ((ODKResultsWindow)Owner).IsMultiVessel = _formSummary.IsMultiVessel;
                         break;
                     case "upload_media":
                         gridDownload.Visibility = Visibility.Visible;

@@ -23,7 +23,7 @@ namespace NSAP_ODK.Entities.Database
             GearUnloadCollection.CollectionChanged += GearUnloadCollection_CollectionChanged;
         }
 
-        
+        public static int CurrentIDNumber { get; set; }
         public static async Task<bool> DeleteVesselUnloads(List<OrphanedFishingGear> ofg)
         {
             _deleted_vu_count = 0;
@@ -76,7 +76,7 @@ namespace NSAP_ODK.Entities.Database
                         countDeleted++;
                     }
 
-                    if(gu.VesselUnloadViewModel.Count==0)
+                    if (gu.VesselUnloadViewModel.Count == 0)
                     {
                         if (gu.Parent.GearUnloadViewModel.DeleteRecordFromRepo(gu.PK))
                         {
@@ -84,7 +84,7 @@ namespace NSAP_ODK.Entities.Database
                         }
                     }
 
-                    if(gu.Parent.GearUnloadViewModel.Count==0)
+                    if (gu.Parent.GearUnloadViewModel.Count == 0)
                     {
 
                     }
@@ -150,7 +150,7 @@ namespace NSAP_ODK.Entities.Database
                 {
                     countDeleted++;
                 }
-                
+
 
 
             }
@@ -216,17 +216,30 @@ namespace NSAP_ODK.Entities.Database
                     catch_wt = @"\N";
                 }
             }
-            myDict.Add("unload_gr_id",item.PK.ToString());
-            myDict.Add("unload_day_id",item.Parent.PK.ToString());
-            myDict.Add("gr_id",item.GearID);
-            myDict.Add("boats",boat_ct);
-            myDict.Add("catch",catch_wt);
-            myDict.Add("gr_text",gr_text);
-            myDict.Add("remarks",item.Remarks);
-            myDict.Add("sp_twsp_count",item.SpeciesWithTWSpCount.ToString());
-            myDict.Add("sector",item.SectorCode);
 
-            _csv.AppendLine( CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_gear_unload"));
+            string gear_sequence = "";
+            if (Global.Settings.UsemySQL)
+            {
+                gear_sequence = @"\N";
+            }
+
+            if (item.Parent.IsMultiVessel)
+            {
+                gear_sequence = ((int)item.Sequence).ToString();
+            }
+
+            myDict.Add("unload_gr_id", item.PK.ToString());
+            myDict.Add("unload_day_id", item.Parent.PK.ToString());
+            myDict.Add("gr_id", item.GearID);
+            myDict.Add("boats", boat_ct);
+            myDict.Add("catch", catch_wt);
+            myDict.Add("gr_text", gr_text);
+            myDict.Add("remarks", item.Remarks);
+            myDict.Add("sp_twsp_count", item.SpeciesWithTWSpCount.ToString());
+            myDict.Add("sector", item.SectorCode);
+            myDict.Add("gear_sequence", gear_sequence);
+
+            _csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_gear_unload"));
 
             //_csv.AppendLine($"{item.PK},{item.Parent.PK},{gr_id},{boat_ct},{catch_wt},\"{gr_text}\",\"{item.Remarks}\",{item.SpeciesWithTWSpCount},\"{item.SectorCode}\"");
 

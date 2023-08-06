@@ -38,7 +38,7 @@ namespace NSAP_ODK.Entities.Database
         private FMA _fma;
         private FishingGround _fishingGround;
         public bool HasFishingOperation { get; set; }
-
+        public bool IsMultiVessel { get; set; }
         public bool DelayedSave { get; set; }
         public int PK { get; set; }
         public string NSAPRegionID { get; set; }
@@ -46,8 +46,12 @@ namespace NSAP_ODK.Entities.Database
         public int? LandingSiteID { get; set; }
         public string FishingGroundID { get; set; }
         public string Remarks { get; set; }
-        public bool IsSamplingDay { get; set; }
 
+        public string JSONFileName { get; set; }
+        public bool IsSamplingDay { get; set; }
+        public int? NumberOfLandingsSampled { get; set; }
+        public int? NumberOfGearTypesInLandingSite { get; set; }
+        public int? NumberOfLandings { get; set; }
         public string LandingSiteName
         {
             get
@@ -58,7 +62,14 @@ namespace NSAP_ODK.Entities.Database
                 }
                 else
                 {
-                    return LandingSite.ToString();
+                    if (LandingSite == null)
+                    {
+                        return "UNRECOGNIZED LANDING SITE";
+                    }
+                    else
+                    {
+                        return LandingSite.ToString();
+                    }
                 }
             }
         }

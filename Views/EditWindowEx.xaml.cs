@@ -818,6 +818,7 @@ namespace NSAP_ODK.Views
                 case NSAPEntity.FishingGearEffortSpecification:
                     var fgs = (GearEffortSpecification)_nsapObject;
                     GearEffortSpecification gearEffortSpec = new GearEffortSpecification();
+                    Entities.ItemSources.EffortSpecificationItemsSource.VesselUnload_Gear_Spec = null;
                     Title = $"Fishing effort indicator of fishing gear";
                     LabelTop.Content = "New effort specification for fishing gear";
                     if (!_isNew)
@@ -945,6 +946,8 @@ namespace NSAP_ODK.Views
                     break;
 
                 case NSAPEntity.NSAPRegionGear:
+                    Entities.ItemSources.GearItemsSource.UnloadGears = null;
+                    Entities.ItemSources.GearItemsSource.AllowAddBlankGearName = false;
                     NSAPRegionGear nsapRegionGear = new NSAPRegionGear();
                     this.Title = "Fishing gear in NSAP Region";
                     LabelTop.Content = $"New gear type to be added to {NSAPEntities.NSAPRegionViewModel.CurrentEntity}";
@@ -1306,6 +1309,7 @@ namespace NSAP_ODK.Views
                     }
                     break;
                 case NSAPEntity.FishingGear:
+                    Entities.ItemSources.EffortSpecificationItemsSource.VesselUnload_Gear_Spec = null;
                     GearEdit gearEdit = new GearEdit();
                     LabelTop.Content = "New fishing gear";
                     Title = "Fishing gear";

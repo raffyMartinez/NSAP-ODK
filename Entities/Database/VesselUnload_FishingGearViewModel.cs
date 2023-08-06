@@ -31,7 +31,19 @@ namespace NSAP_ODK.Entities.Database
             VesselUnload_FishingGearsCollection.CollectionChanged += VesselUnload_FishingGearsCollection_CollectionChanged;
 
         }
-
+        public VesselUnload_FishingGearViewModel(bool isNew = false)
+        {
+            VesselUnload_FishingGears = new VesselUnload_FishingGearRepository(isNew);
+            if (isNew)
+            {
+                VesselUnload_FishingGearsCollection = new ObservableCollection<VesselUnload_FishingGear>();
+            }
+            else
+            {
+                VesselUnload_FishingGearsCollection = new ObservableCollection<VesselUnload_FishingGear>(VesselUnload_FishingGears.VesselUnload_FishingGears);
+            }
+            VesselUnload_FishingGearsCollection.CollectionChanged += VesselUnload_FishingGearsCollection_CollectionChanged;
+        }
         public bool ClearRepository()
         {
             VesselUnload_FishingGearsCollection.Clear();

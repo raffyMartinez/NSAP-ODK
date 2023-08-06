@@ -162,7 +162,18 @@ namespace NSAP_ODK.Views
         {
             unloadEditor.UnloadView = ((TreeViewItem)e.NewValue).Name.ToString();
         }
+        private void ResetEditButton()
+        {
+            buttonEdit.Background = Brushes.SkyBlue;
+            buttonEdit.Content = "Edit";
+        }
 
+        private void SetUnloadView()
+        {
+            unloadEditor.EditMode = _editMode;
+            treeItemVesselUnload.IsSelected = true;
+            unloadEditor.UnloadView = "treeItemVesselUnload";
+        }
         private void OnButtonClicked(object sender, RoutedEventArgs e)
         {
             switch (((Button)sender).Name)
@@ -170,19 +181,30 @@ namespace NSAP_ODK.Views
                 case "buttonEdit":
 
                     _editMode = !_editMode;
+
                     if (_editMode)
                     {
                         buttonEdit.Background = Brushes.Yellow;
                         buttonEdit.Content = "Stop edits";
-                        treeItemVesselUnload.IsSelected = true;
+                        buttonSave.Visibility = Visibility.Visible;
+
 
                     }
                     else
                     {
-                        buttonEdit.Background = Brushes.SkyBlue;
-                        buttonEdit.Content = "Edit";
+                        ResetEditButton();
+                        buttonSave.Visibility = Visibility.Collapsed;
                     }
-                    unloadEditor.EditMode = _editMode;
+
+                    //unloadEditor.EditMode = _editMode;
+                    SetUnloadView();
+                    break;
+                case "buttonSave":
+                    ResetEditButton();
+                    _editMode = false;
+                    buttonSave.Visibility = Visibility.Collapsed;
+                    SetUnloadView();
+
                     break;
                 case "buttonOk":
                     break;

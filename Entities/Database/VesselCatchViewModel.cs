@@ -667,6 +667,8 @@ namespace NSAP_ODK.Entities.Database
                 myDict.Add("gear_text", string.IsNullOrEmpty(item.GearCode) ? item.GearText : "");
                 myDict.Add("price_of_species", price_sp);
                 myDict.Add("price_unit", item.PriceUnit);
+                myDict.Add("other_price_unit", item.OtherPriceUnit);
+                myDict.Add("is_catch_sold", item.IsCatchSold.ToString());
 
 
                 _csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_catch"));

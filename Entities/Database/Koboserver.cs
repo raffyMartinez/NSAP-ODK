@@ -47,6 +47,18 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
+        public bool IsFishLandingMultiVesselSurveyForm
+        {
+            get
+            {
+                return FormName.Contains("NSAP Fish Catch Monitoring e-Form") && FormName.Contains("Multi-Vessel");
+            }
+            set
+            {
+                //
+            }
+        }
+
         public int SavedInDBCount { get; set; }
 
         public string LastUploadedJSON { get; set; }

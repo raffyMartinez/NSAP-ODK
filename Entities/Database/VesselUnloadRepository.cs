@@ -15,7 +15,24 @@ namespace NSAP_ODK.Entities.Database
         public static event EventHandler<SetFishingGroundOfUnloadEventArg> ChangeFishingGroundOFUnloadEvent;
         private string _dateFormat = "MMM-dd-yyyy HH:mm";
         public List<VesselUnload> VesselUnloads { get; set; }
+        public static int GetFieldSize(string fieldName)
+        {
+            int fieldSize;
+            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            {
 
+                using (OleDbCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = $"Select {fieldName} from dbo_vessel_unload_1";
+                    conn.Open();
+                    cmd.Connection = conn;
+                    var reader = cmd.ExecuteReader(CommandBehavior.SchemaOnly);
+                    var schema = reader.GetSchemaTable();
+                    fieldSize = Convert.ToInt32(schema.Rows[0]["ColumnSize"]);
+                }
+            }
+            return fieldSize;
+        }
         public static bool UpdateTableDefinitionEx(string colName = null, int? colWidth = null, string relationshipToRemove = "")
         {
             bool success = false;
@@ -23,7 +40,17 @@ namespace NSAP_ODK.Entities.Database
             {
                 conn.Open();
                 var sql = "";
-                if (string.IsNullOrEmpty(colName) && relationshipToRemove.Length > 0)
+                if (colWidth != null)
+                {
+                    switch (colName)
+                    {
+                        case "json_filename":
+                        case "ref_no":
+                            sql = $"ALTER TABLE dbo_vessel_unload_1   ALTER {colName} varchar({colWidth})";
+                            break;
+                    }
+                }
+                else if (string.IsNullOrEmpty(colName) && relationshipToRemove.Length > 0)
                 {
                     sql = $"ALTER TABLE dbo_vessel_unload DROP CONSTRAINT {relationshipToRemove}";
 
@@ -32,6 +59,9 @@ namespace NSAP_ODK.Entities.Database
                 {
                     switch (colName)
                     {
+                        case "sampling_sequence":
+                            sql = $@"ALTER TABLE dbo_vessel_unload_1 ADD COLUMN {colName}  int";
+                            break;
                         case "count_gear_types":
                             sql = $@"ALTER TABLE dbo_vessel_unload_1 ADD COLUMN {colName}  int";
                             break;
@@ -45,7 +75,7 @@ namespace NSAP_ODK.Entities.Database
                             }
                             break;
                         case "json_filename":
-                            sql = $@"ALTER TABLE dbo_vessel_unload_1 ADD COLUMN {colName}  varchar(50)";
+                            sql = $@"ALTER TABLE dbo_vessel_unload_1 ADD COLUMN {colName}  varchar(255)";
                             break;
                     }
                 }
@@ -1439,6 +1469,10 @@ namespace NSAP_ODK.Entities.Database
                                         item.DifferenceCatchWtAndSumCatchCompWt = (double)dr["weight_difference"];
                                     }
 
+                                }
+                                if (item.Parent.Parent.IsMultiVessel && dr["sampling_sequence"] != DBNull.Value)
+                                {
+                                    item.SequenceOfSampling = (int)dr["sampling_sequence"];
                                 }
 
                                 //double? rf = null;

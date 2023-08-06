@@ -60,7 +60,8 @@ namespace NSAP_ODK.Entities.Database
                 DateStart = _jSONFile.Earliest,
                 DateEnd = _jSONFile.Latest,
                 DateOfParsing = _jSONFile.DateAdded,
-                RowID = _jSONFile.RowID
+                JsonFileID = _jSONFile.RowID,
+                RowID = NSAPEntities.UnmatchedFieldsFromJSONFileViewModel.NextRecordNumber
             };
 
             success = NSAPEntities.UnmatchedFieldsFromJSONFileViewModel.AddRecordToRepo(ufjf);

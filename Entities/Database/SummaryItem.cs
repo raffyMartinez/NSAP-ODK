@@ -59,6 +59,9 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
         }
+        public int MaxSampledLandingGear_RowID { get; set; }
+
+        public string SamplingDayUUID { get; set; }
         public DateTime SamplingDayDate { get; set; }
         public string SamplingDayDateString { get { return SamplingDayDate.ToString("MMM-dd-yyyy"); } }
         public List<VesselCatchWV> ListOfCatch { get; set; }

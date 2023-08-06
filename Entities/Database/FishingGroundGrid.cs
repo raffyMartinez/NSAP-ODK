@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.ComponentModel;
+using NSAP_ODK.Entities.ItemSources;
+using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
 
 namespace NSAP_ODK.Entities.Database
 {
     public class FishingGroundGridFlattened
     {
-        public  FishingGroundGridFlattened(FishingGroundGrid fgg)
+        public FishingGroundGridFlattened(FishingGroundGrid fgg)
         {
             ID = fgg.PK;
             ParentID = fgg.Parent.PK;
@@ -34,6 +37,35 @@ namespace NSAP_ODK.Entities.Database
 
         public string UTMCoordinate { get { return Grid25Grid.UTMCoordinate.ToString(); } }
 
+    }
+
+    public class FishingGroundGridEdited
+    {
+        public FishingGroundGridEdited()
+        {
+
+        }
+        public FishingGroundGridEdited(FishingGroundGrid fgg)
+        {
+            if (fgg != null)
+            {
+                PK = fgg.PK;
+                FishingGroundGrid = fgg;
+                UTMZoneText = fgg.UTMZoneText;
+                Grid = fgg.Grid;
+            }
+        }
+
+        [ReadOnly(true)]
+        public int PK { get; set; }
+        public FishingGroundGrid FishingGroundGrid { get; set; }
+        
+        [ItemsSource(typeof(UTMZoneItemsSource))]
+        public string UTMZoneText { get; set; }
+        public string Grid
+        {
+            get; set;
+        }
     }
     public class FishingGroundGrid
     {
@@ -68,7 +100,7 @@ namespace NSAP_ODK.Entities.Database
             set { _parent = value; }
             get
             {
-                if(_parent==null)
+                if (_parent == null)
                 {
                     _parent = NSAPEntities.VesselUnloadViewModel.getVesselUnload(VesselUnloadID);
                 }

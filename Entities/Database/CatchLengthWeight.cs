@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
+using System.ComponentModel;
+using NSAP_ODK.Entities.ItemSources;
 
 namespace NSAP_ODK.Entities.Database
 {
@@ -23,6 +26,32 @@ namespace NSAP_ODK.Entities.Database
         public string CatchName { get; set; }
         public string Taxa { get; set; }
         public string Gear { get; set; }
+        public double Length { get; set; }
+        public double Weight { get; set; }
+    }
+
+    public class CatchLengthWeightEdited
+    {
+        public CatchLengthWeightEdited(CatchLengthWeight clw)
+        {
+            SexCode = clw.Sex;
+            Length = clw.Length;
+            Weight = clw.Weight;
+            CatchLengthWeight = clw;
+            PK = clw.PK;
+        }
+        public CatchLengthWeightEdited()
+        {
+            
+        }
+
+        [ItemsSource(typeof(SexItemsSource))]
+        public string SexCode { get; set; }
+        [ReadOnly(true)]
+        public int PK { get; set; }
+
+        public CatchLengthWeight CatchLengthWeight { get; set; }
+
         public double Length { get; set; }
         public double Weight { get; set; }
     }

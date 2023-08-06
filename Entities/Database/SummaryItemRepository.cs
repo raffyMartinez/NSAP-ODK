@@ -391,6 +391,26 @@ namespace NSAP_ODK.Entities.Database
 
                         using (var cmd = con.CreateCommand())
                         {
+                            cmd.CommandText = "SELECT max(unload_gr_id) FROM dbo_gear_unload;";
+                            try
+                            {
+                                lpks.LastGearUnloadPK = (int)cmd.ExecuteScalar();
+                            }
+                            catch { }
+                        }
+
+                        using (var cmd = con.CreateCommand())
+                        {
+                            cmd.CommandText = "SELECT Max(unload_day_id) AS max_id FROM dbo_LC_FG_sample_day;";
+                            try
+                            {
+                                lpks.LastLandingSiteSamplingPK = (int)cmd.ExecuteScalar();
+                            }
+                            catch { }
+                        }
+
+                        using (var cmd = con.CreateCommand())
+                        {
                             cmd.CommandText = "SELECT Max(row_id) AS max_id FROM dbo_vesselunload_fishinggear;";
                             try
                             {
@@ -499,6 +519,7 @@ namespace NSAP_ODK.Entities.Database
             LastPrimaryKeys lpks = new LastPrimaryKeys();
             if (delayedSave)
             {
+                lpks.LastGearUnloadPK = GearUnloadViewModel.CurrentIDNumber;
                 lpks.LastVesselUnloadPK = VesselUnloadViewModel.CurrentIDNumber;
                 lpks.LastFishingGridsPK = FishingGroundGridViewModel.CurrentIDNumber;
                 lpks.LastGearSoaksPK = GearSoakViewModel.CurrentIDNumber;
@@ -508,6 +529,8 @@ namespace NSAP_ODK.Entities.Database
                 lpks.LastLengthsPK = CatchLengthViewModel.CurrentIDNumber;
                 lpks.LastLenFreqPK = CatchLenFreqViewModel.CurrentIDNumber;
                 lpks.LastMaturityPK = CatchMaturityViewModel.CurrentIDNumber;
+                lpks.LastLandingSiteSamplingPK = LandingSiteSamplingViewModel.CurrentIDNumber;
+                lpks.LastVesselUnloadGearPK = VesselUnload_FishingGearViewModel.CurrentIDNumber;
 
                 if (lpks.LastVesselUnloadPK == 0 && NSAPEntities.SummaryItemViewModel.Count > 0)
                 {
@@ -547,7 +570,7 @@ namespace NSAP_ODK.Entities.Database
                         cmd.CommandText = @"SELECT 
                                                 sd.unload_day_id,
                                                 sd.sdate AS SamplingDayDate,
-                                                dbo_LC_FG_sample_day_1.device_id,
+                                                sd1.device_id,
                                                 ls.LandingSiteID AS landing_site_id,
                                                 ls.LandingSiteName AS landing_site_name,
                                                 sd.land_ctr_text AS landing_site_text,
@@ -582,6 +605,7 @@ namespace NSAP_ODK.Entities.Database
                                                 vu1.datetime_submitted,
                                                 vu1.form_version,
                                                 vu1.RowID,
+                                                sd1.RowID AS sd_rowid,
                                                 vu1.XFormIdentifier AS xform_identifier,
                                                 vu1.datetime_submitted,
                                                 vu1.is_multigear,
@@ -617,7 +641,7 @@ namespace NSAP_ODK.Entities.Database
                                                 RIGHT JOIN (((dbo_LC_FG_sample_day AS sd 
                                                 LEFT JOIN (dbo_gear_unload AS gu 
                                                 LEFT JOIN dbo_vessel_unload AS vu ON gu.unload_gr_id = vu.unload_gr_id) ON sd.unload_day_id = gu.unload_day_id) 
-                                                INNER JOIN dbo_LC_FG_sample_day_1 ON sd.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id) 
+                                                INNER JOIN dbo_LC_FG_sample_day_1 as sd1 ON sd.unload_day_id = sd1.unload_day_id) 
                                                 LEFT JOIN (NSAPEnumerator AS en 
                                                 RIGHT JOIN dbo_vessel_unload_1 AS vu1 ON en.EnumeratorID = vu1.EnumeratorID) ON vu.v_unload_id = vu1.v_unload_id) ON fv.VesselID = vu.boat_id) 
                                                 LEFT JOIN dbo_vessel_unload_stats AS vu_st ON vu.v_unload_id = vu_st.v_unload_id) ON gr.GearCode = gu.gr_id) ON ls.LandingSiteID = sd.land_ctr_id) ON nr.Code = sd.region_id) 
@@ -758,6 +782,7 @@ namespace NSAP_ODK.Entities.Database
                                 SummaryItem si = new SummaryItem();
                                 si.ID = ++id;
                                 si.ODKRowID = dr["RowID"].ToString();
+                                si.SamplingDayUUID = dr["sd_rowid"].ToString();
                                 si.XFormIdentifier = dr["xform_identifier"].ToString();
                                 si.SamplingDayID = (int)dr["unload_day_id"];
                                 si.SamplingDayDate = (DateTime)dr["SamplingDayDate"];

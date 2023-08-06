@@ -97,6 +97,7 @@
 
                                 <RadioButton Content="Download all submissions" Margin="10 5" Checked="OnButtonChecked" Tag="all" x:Name="rbAll"/>
                                 <RadioButton Content="Get all not downloaded" Margin="10 5"  Checked="OnButtonChecked" Tag="all_not_downloaded" x:Name="rbNotDownloaded"/>
+                                <RadioButton Content="Download count of sampled landings for multi-vessel eForms" Margin="10 5"  Checked="OnButtonChecked" Tag="predownload_sampling_count" x:Name="rbDownloadCount"/>
                                 <RadioButton Content="Specify date range" Margin="10 5"  Checked="OnButtonChecked" Tag="specify_date_range"/>
                                 <WrapPanel x:Name="panelDateRange" Visibility="Collapsed">
                                     <Label Content="Start:" Margin="10 5"/>

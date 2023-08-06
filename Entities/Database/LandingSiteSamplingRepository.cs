@@ -29,119 +29,186 @@ namespace NSAP_ODK.Entities.Database
                 if (cols.Contains("has_fishing_operation") || UpdateTableDefinition("has_fishing_operation") &&
                  UpdateHasFishingOperationField())
                 {
-                    cols = CreateTablesInAccess.GetColumnNames("dbo_gear_unload");
-                    if (cols.Contains("sp_twsp_count") || GearUnloadRepository.AddFieldToTable("sp_twsp_count"))
+                    cols = CreateTablesInAccess.GetColumnNames("dbo_LC_FG_sample_day_1");
+                    if (cols.Contains("is_multivessel") || UpdateTableDefinition("is_multivessel"))
                     {
-                        if (cols.Contains("sector") || GearUnloadRepository.AddFieldToTable("sector"))
+                        if (cols.Contains("number_landings_sampled") || UpdateTableDefinition("number_landings_sampled"))
                         {
-                            cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_catch");
-
-                            if (cols.Contains("weighing_unit") || VesselCatchRepository.UpdateTableDefinition("weighing_unit"))
+                            if (cols.Contains("number_gear_types_in_landingsite") || UpdateTableDefinition("number_gear_types_in_landingsite"))
                             {
-                                if (cols.Contains("from_total_catch") || VesselCatchRepository.UpdateTableDefinition("from_total_catch"))
-                                    if (cols.Contains("gear_code") || VesselCatchRepository.UpdateTableDefinition("gear_code"))
-                                        if (cols.Contains("gear_text") || VesselCatchRepository.UpdateTableDefinition("gear_text"))
-                                        { proceed = true; }
-                            }
-
-                            if (proceed)
-                            {
-                                cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_unload_1");
-                                if (cols.Contains("json_filename") || VesselUnloadRepository.UpdateTableDefinitionEx("json_filename"))
+                                if (cols.Contains("number_landings") || UpdateTableDefinition("number_landings"))
                                 {
-                                    if (cols.Contains("is_multigear") || VesselUnloadRepository.UpdateTableDefinitionEx("is_multigear"))
+                                    if (cols.Contains("json_filename") || UpdateTableDefinition("json_filename"))
                                     {
-                                        if (cols.Contains("count_gear_types") || VesselUnloadRepository.UpdateTableDefinitionEx("count_gear_types"))
+                                        cols = CreateTablesInAccess.GetColumnNames("dbo_gear_unload");
+                                        if (cols.Contains("sp_twsp_count") || GearUnloadRepository.AddFieldToTable("sp_twsp_count"))
                                         {
-                                            proceed = true;
+                                            if (cols.Contains("sector") || GearUnloadRepository.AddFieldToTable("sector"))
+                                            {
+                                                if (cols.Contains("gear_sequence") || GearUnloadRepository.AddFieldToTable("gear_sequence"))
+                                                {
+
+                                                    cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_catch");
+
+                                                    if (cols.Contains("weighing_unit") || VesselCatchRepository.UpdateTableDefinition("weighing_unit"))
+                                                    {
+                                                        if (cols.Contains("from_total_catch") || VesselCatchRepository.UpdateTableDefinition("from_total_catch"))
+                                                            if (cols.Contains("gear_code") || VesselCatchRepository.UpdateTableDefinition("gear_code"))
+                                                                if (cols.Contains("gear_text") || VesselCatchRepository.UpdateTableDefinition("gear_text"))
+                                                                { proceed = true; }
+                                                    }
+
+                                                    if (proceed)
+                                                    {
+                                                        cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_unload_1");
+                                                        if (cols.Contains("json_filename"))
+                                                        {
+                                                            int fs = VesselUnloadRepository.GetFieldSize("json_filename");
+                                                            if (fs != 255)
+                                                            {
+                                                                proceed = VesselUnloadRepository.UpdateTableDefinitionEx("json_filename", 255);
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            proceed = VesselUnloadRepository.UpdateTableDefinitionEx("json_filename");
+                                                        }
+                                                        if (proceed)
+                                                        {
+                                                            if (cols.Contains("sampling_sequence") || VesselUnloadRepository.UpdateTableDefinitionEx("sampling_sequence"))
+                                                            {
+                                                                if (cols.Contains("is_multigear") || VesselUnloadRepository.UpdateTableDefinitionEx("is_multigear"))
+                                                                {
+                                                                    if (cols.Contains("count_gear_types") || VesselUnloadRepository.UpdateTableDefinitionEx("count_gear_types"))
+                                                                    {
+                                                                        proceed = true;
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+
+                                                    if (proceed)
+                                                    {
+                                                        //cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_unload_1");
+                                                        proceed = cols.Contains("ref_no") || VesselUnloadRepository.AddFieldToTable1("ref_no");
+                                                        if (proceed)
+                                                        {
+                                                            proceed = cols.Contains("is_catch_sold") || VesselUnloadRepository.AddFieldToTable1("is_catch_sold");
+                                                            if (proceed)
+                                                            {
+                                                                proceed = VesselUnloadRepository.UpdateTableDefinitionEx("ref_no", 100);
+                                                            }
+                                                            if (proceed)
+                                                            {
+                                                                proceed = VesselUnloadRepository.UpdateTableDefinitionEx(relationshipToRemove: "fishingVesseldbo_vessel_unload");
+                                                            }
+                                                        }
+                                                    }
+
+
+                                                    //check for pricing columns in catch composition table
+                                                    if (proceed)
+                                                    {
+                                                        cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_catch");
+                                                        if (cols.Contains("price_of_species") || VesselCatchRepository.AddFieldToTable("price_of_species"))
+                                                        {
+                                                            if (cols.Contains("price_unit") || VesselCatchRepository.AddFieldToTable("price_unit"))
+                                                            {
+                                                                if (cols.Contains("other_price_unit") || VesselCatchRepository.AddFieldToTable("other_price_unit"))
+                                                                {
+                                                                    proceed = cols.Contains("is_catch_sold") || VesselCatchRepository.AddFieldToTable("is_catch_sold");
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+
+                                                    //check and and sex column for length table
+                                                    if (proceed)
+                                                    {
+                                                        cols = CreateTablesInAccess.GetColumnNames("dbo_catch_len");
+                                                        proceed = cols.Contains("sex") || CatchLengthRepository.AddFieldToTable("sex");
+                                                    }
+
+                                                    if (proceed)
+                                                    {
+                                                        cols = CreateTablesInAccess.GetColumnNames("dbo_catch_len_freq");
+                                                        proceed = cols.Contains("sex") || CatchLenFreqRepository.AddFieldToTable("sex");
+                                                    }
+
+                                                    if (proceed)
+                                                    {
+                                                        cols = CreateTablesInAccess.GetColumnNames("dbo_catch_len_wt");
+                                                        proceed = cols.Contains("sex") || CatchLenWeightRepository.AddFieldToTable("sex");
+                                                    }
+
+                                                    if (proceed)
+                                                    {
+                                                        cols = CreateTablesInAccess.GetColumnNames("dbo_catch_maturity");
+                                                        proceed = cols.Contains("gonadWt") || CatchMaturityRepository.AddFieldToTable("gonadWt");
+                                                    }
+                                                    if (proceed)
+                                                    {
+                                                        proceed = VesselUnload_FishingGearRepository.CheckTableExists();
+                                                        //proceed = false;
+                                                        //if (VesselUnload_FishingGearRepository.CheckTableExists())
+                                                        //{
+                                                        //    cols = CreateTablesInAccess.GetColumnNames("dbo_vesselunload_fishinggear");
+                                                        //    if (cols.Contains("count_landings") || VesselUnload_FishingGearRepository.AddFieldToTable("count_landings"))
+                                                        //    {
+                                                        //        if (cols.Contains("catch_of_gear") || VesselUnload_FishingGearRepository.AddFieldToTable("catch_of_gear"))
+                                                        //        {
+                                                        //            proceed = cols.Contains("gear_sequence") || VesselUnload_FishingGearRepository.AddFieldToTable("gear_sequence");
+                                                        //        }
+                                                        //    }
+                                                        //}
+
+                                                    }
+
+                                                    if (proceed)
+                                                    {
+                                                        cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_effort");
+                                                        proceed = cols.Contains("vessel_unload_fishing_gear_id") || VesselUnload_Gear_Spec_Repository.UpdateTable();
+                                                    }
+
+
+                                                    if (proceed)
+                                                    {
+                                                        //drop multifield index in effort table
+                                                        if (VesselCatchRepository.UpdateTableDefinition(removeIndex: true, indexName: "alt_key"))
+                                                        {
+                                                            proceed = VesselEffortRepository.UpdateTableDefinition(removeMultiFieldIndex: true, indexName: "alt_key");
+                                                        }
+                                                    }
+
+                                                    if (proceed)
+                                                    {
+                                                        cols = CreateTablesInAccess.GetColumnNames("dbo_json_fields_mismatch");
+                                                        proceed = cols.Contains("json_file_id") || UnmatchedFieldsFromJSONFileRepository.AddFieldToTable("json_file_id");
+                                                    }
+
+                                                    if(proceed)
+                                                    {
+                                                        cols = CreateTablesInAccess.GetColumnNames("JSONFIle");
+                                                        proceed = cols.Contains("version") || JSONFileRepository.AddFieldToTable("version");
+                                                    }
+
+
+                                                }
+
+                                            }
                                         }
                                     }
                                 }
                             }
-
-                            if (proceed)
-                            {
-                                //cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_unload_1");
-                                proceed = cols.Contains("ref_no") || VesselUnloadRepository.AddFieldToTable1("ref_no");
-                                if (proceed)
-                                {
-                                    proceed = cols.Contains("is_catch_sold") || VesselUnloadRepository.AddFieldToTable1("is_catch_sold");
-                                    if (proceed)
-                                    {
-                                        proceed = VesselUnloadRepository.UpdateTableDefinitionEx("ref_no", 100);
-                                    }
-                                    if (proceed)
-                                    {
-                                        proceed = VesselUnloadRepository.UpdateTableDefinitionEx(relationshipToRemove: "fishingVesseldbo_vessel_unload");
-                                    }
-                                }
-                            }
-
-
-                            //check for pricing columns in catch composition table
-                            if (proceed)
-                            {
-                                cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_catch");
-                                if (cols.Contains("price_of_species") || VesselCatchRepository.AddFieldToTable("price_of_species"))
-                                {
-                                    proceed = cols.Contains("price_unit") || VesselCatchRepository.AddFieldToTable("price_unit");
-                                }
-                            }
-
-                            //check and and sex column for length table
-                            if (proceed)
-                            {
-                                cols = CreateTablesInAccess.GetColumnNames("dbo_catch_len");
-                                proceed = cols.Contains("sex") || CatchLengthRepository.AddFieldToTable("sex");
-                            }
-
-                            if (proceed)
-                            {
-                                cols = CreateTablesInAccess.GetColumnNames("dbo_catch_len_freq");
-                                proceed = cols.Contains("sex") || CatchLenFreqRepository.AddFieldToTable("sex");
-                            }
-
-                            if (proceed)
-                            {
-                                cols = CreateTablesInAccess.GetColumnNames("dbo_catch_len_wt");
-                                proceed = cols.Contains("sex") || CatchLenWeightRepository.AddFieldToTable("sex");
-                            }
-
-                            if (proceed)
-                            {
-                                cols = CreateTablesInAccess.GetColumnNames("dbo_catch_maturity");
-                                proceed = cols.Contains("gonadWt") || CatchMaturityRepository.AddFieldToTable("gonadWt");
-                            }
-                            if (proceed)
-                            {
-                                proceed = VesselUnload_FishingGearRepository.CheckTableExists();
-                            }
-
-                            if (proceed)
-                            {
-                                cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_effort");
-                                proceed = cols.Contains("vessel_unload_fishing_gear_id") || VesselUnload_Gear_Spec_Repository.UpdateTable();
-                            }
-
-
-                            if (proceed)
-                            {
-                                //drop multifield index in effort table
-                                if (VesselCatchRepository.UpdateTableDefinition(removeIndex: true, indexName: "alt_key"))
-                                {
-                                    proceed = VesselEffortRepository.UpdateTableDefinition(removeMultiFieldIndex: true, indexName: "alt_key");
-                                }
-                            }
-
-
-
-
                         }
                     }
                 }
             }
             return proceed;
         }
+
+
         public LandingSiteSamplingRepository()
         {
 
@@ -269,20 +336,10 @@ namespace NSAP_ODK.Entities.Database
                         try
                         {
                             conection.Open();
-                            cmd.CommandText = @"SELECT dbo_LC_FG_sample_day.*, 
-                                        dbo_LC_FG_sample_day_1.datetime_submitted, 
-                                        dbo_LC_FG_sample_day_1.user_name, 
-                                        dbo_LC_FG_sample_day_1.device_id, 
-                                        dbo_LC_FG_sample_day_1.XFormIdentifier, 
-                                        dbo_LC_FG_sample_day_1.DateAdded, 
-                                        dbo_LC_FG_sample_day_1.FromExcelDownload, 
-                                        dbo_LC_FG_sample_day_1.form_version, 
-                                        dbo_LC_FG_sample_day_1.RowID, 
-                                        dbo_LC_FG_sample_day_1.EnumeratorID, 
-                                        dbo_LC_FG_sample_day_1.EnumeratorText
-                                        FROM dbo_LC_FG_sample_day 
-                                            LEFT JOIN dbo_LC_FG_sample_day_1 
-                                            ON dbo_LC_FG_sample_day.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id";
+                            cmd.CommandText = @"SELECT dbo_LC_FG_sample_day.*, dbo_LC_FG_sample_day_1.*
+                                                    FROM dbo_LC_FG_sample_day 
+                                                    LEFT JOIN dbo_LC_FG_sample_day_1 
+                                                    ON dbo_LC_FG_sample_day.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id";
 
 
 
@@ -292,7 +349,7 @@ namespace NSAP_ODK.Entities.Database
                             while (dr.Read())
                             {
                                 LandingSiteSampling item = new LandingSiteSampling();
-                                item.PK = (int)dr["unload_day_id"];
+                                item.PK = (int)dr["dbo_LC_FG_sample_day.unload_day_id"];
                                 item.NSAPRegionID = dr["region_id"].ToString();
                                 item.SamplingDate = (DateTime)dr["sdate"];
                                 item.LandingSiteID = dr["land_ctr_id"] == DBNull.Value ? null : (int?)dr["land_ctr_id"];
@@ -301,6 +358,7 @@ namespace NSAP_ODK.Entities.Database
                                 item.IsSamplingDay = (bool)dr["sampleday"];
                                 item.LandingSiteText = dr["land_ctr_text"].ToString();
                                 item.HasFishingOperation = (bool)dr["has_fishing_operation"];
+                                item.IsMultiVessel = (bool)dr["is_multivessel"];
                                 item.FMAID = (int)dr["fma"];
                                 item.DateSubmitted = dr["datetime_submitted"] == DBNull.Value ? null : (DateTime?)dr["datetime_submitted"];
                                 item.UserName = dr["user_name"].ToString();
@@ -313,6 +371,22 @@ namespace NSAP_ODK.Entities.Database
                                 item.EnumeratorID = dr["EnumeratorID"] == DBNull.Value ? null : (int?)int.Parse(dr["EnumeratorID"].ToString());
                                 item.EnumeratorText = dr["EnumeratorText"].ToString();
                                 item.GearUnloadViewModel = new GearUnloadViewModel(item);
+
+                                if (item.IsMultiVessel)
+                                {
+                                    if (dr["number_gear_types_in_landingsite"] != DBNull.Value)
+                                    {
+                                        item.NumberOfGearTypesInLandingSite = (int)dr["number_gear_types_in_landingsite"];
+                                    }
+                                    if (dr["number_landings_sampled"] != DBNull.Value)
+                                    {
+                                        item.NumberOfLandingsSampled = (int)dr["number_landings_sampled"];
+                                    }
+                                    if (dr["number_landings"] != DBNull.Value)
+                                    {
+                                        item.NumberOfLandings = (int)dr["number_landings"];
+                                    }
+                                }
                                 thisList.Add(item);
                             }
 
@@ -383,9 +457,23 @@ namespace NSAP_ODK.Entities.Database
                 var sql = "";
                 switch (colName)
                 {
+                    case "json_filename":
+                        sql = $@"ALTER TABLE dbo_LC_FG_sample_day_1 ADD COLUMN {colName} VARCHAR";
+                        break;
+                    case "number_gear_types_in_landingsite":
+                        sql = $@"ALTER TABLE dbo_LC_FG_sample_day_1 ADD COLUMN {colName} INTEGER DEFAULT NULL";
+                        break;
+                    case "number_landings_sampled":
+                        sql = $@"ALTER TABLE dbo_LC_FG_sample_day_1 ADD COLUMN {colName} INTEGER DEFAULT NULL";
+                        break;
+                    case "number_landings":
+                        sql = $@"ALTER TABLE dbo_LC_FG_sample_day_1 ADD COLUMN {colName} INTEGER DEFAULT NULL";
+                        break;
                     case "has_fishing_operation":
-
                         sql = $@"ALTER TABLE dbo_LC_FG_sample_day ADD COLUMN {colName} YESNO";
+                        break;
+                    case "is_multivessel":
+                        sql = $@"ALTER TABLE dbo_LC_FG_sample_day_1 ADD COLUMN {colName} YESNO";
                         break;
                     case "NumberOfFishers":
                         //sql = $@"ALTER TABLE dbo_vessel_unload_1 ADD COLUMN {colName} INTEGER DEFAULT NULL";

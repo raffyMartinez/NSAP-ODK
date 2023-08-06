@@ -147,6 +147,7 @@ namespace NSAP_ODK.Entities
             GearSoakViewModel.CurrentIDNumber = 0;
             VesselEffortViewModel.CurrentIDNumber = 0;
             VesselUnloadViewModel.CurrentIDNumber = 0;
+            LandingSiteSamplingViewModel.CurrentIDNumber = 0;
         }
 
         /// <summary>

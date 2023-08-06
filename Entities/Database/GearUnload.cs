@@ -77,6 +77,8 @@ namespace NSAP_ODK.Entities.Database
                 //       SectorCode == "m" ? "Municipal" : "";
             }
         }
+
+        public int? Sequence { get; set; }
         public TotalWtSpViewModel TotalWtSpViewModel { get; set; }
         public int NumberOfSampledLandings
         {

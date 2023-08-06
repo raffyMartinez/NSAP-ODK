@@ -47,7 +47,7 @@ namespace NSAP_ODK.Entities.Database
                 //if (vu.VesselUnload_FishingGearsViewModel == null || vu.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection == null)
                 if (vu.VesselUnload_FishingGearsViewModel == null || vu.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection.Count==0)
                 {
-                    vu.VesselUnload_FishingGearsViewModel = new VesselUnload_FishingGearViewModel();
+                    vu.VesselUnload_FishingGearsViewModel = new VesselUnload_FishingGearViewModel(isNew:true);
                     vufg = new VesselUnload_FishingGear
                     {
                         GearCode = vu.Parent.GearID,
@@ -801,10 +801,10 @@ namespace NSAP_ODK.Entities.Database
         public VesselUnload getVesselUnload(int pk)
         {
             var vu = VesselUnloadCollection.FirstOrDefault(n => n.PK == pk);
-            if (vu != null)
-            {
-                vu.ContainerViewModel = this;
-            }
+            //if (vu != null)
+            //{
+            //    vu.ContainerViewModel = this;
+            //}
             return vu;
         }
 
@@ -990,6 +990,16 @@ namespace NSAP_ODK.Entities.Database
 
             myDict.Clear();
 
+            string sequence="";
+            if(Utilities.Global.Settings.UsemySQL)
+            {
+                sequence=@"\N";
+            }
+            if(vu.Parent.Parent.IsMultiVessel)
+            {
+                sequence = ((int)vu.SequenceOfSampling).ToString();
+            }
+
             myDict.Add("v_unload_id", vu.PK.ToString());
             myDict.Add("Success", vu.OperationIsSuccessful.ToString());
             myDict.Add("Tracked", vu.OperationIsTracked.ToString());
@@ -1018,6 +1028,7 @@ namespace NSAP_ODK.Entities.Database
             myDict.Add("is_catch_sold", vu.IsCatchSold.ToString());
             myDict.Add("is_multigear", vu.IsMultiGear.ToString());
             myDict.Add("count_gear_types", vu.CountGearTypesUsed.ToString());
+            myDict.Add("sampling_sequence", sequence);
 
             _csv_1.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload_1"));
 
@@ -1090,10 +1101,10 @@ namespace NSAP_ODK.Entities.Database
         public VesselUnload getVesselUnload(string odkROWID)
         {
             var vu = VesselUnloadCollection.FirstOrDefault(n => n.ODKRowID == odkROWID);
-            if (vu != null)
-            {
-                vu.ContainerViewModel = this;
-            }
+            //if (vu != null)
+            //{
+            //    vu.ContainerViewModel = this;
+            //}
             return vu;
         }
 

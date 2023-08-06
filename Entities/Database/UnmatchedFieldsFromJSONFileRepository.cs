@@ -18,6 +18,37 @@ namespace NSAP_ODK.Entities.Database
         {
             UnmatchedFieldsFromJSONFiles = getItems();
         }
+
+        public static bool AddFieldToTable(string fieldName)
+        {
+            bool success = false;
+            string sql = "";
+            switch (fieldName)
+            {
+                case "json_file_id":
+                    sql = $"ALTER TABLE dbo_json_fields_mismatch ADD COLUMN {fieldName} int";
+                    break;
+            }
+            using (var con = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    con.Open();
+                    cmd.CommandText = sql;
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        success = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
+
         public static bool ClearTable(string otherConnectionString = "")
         {
             bool success = false;
@@ -187,6 +218,7 @@ namespace NSAP_ODK.Entities.Database
                         cmd.Parameters.Add("@date_end", OleDbType.Date).Value = item.DateEnd;
                         cmd.Parameters.Add("@date_parse", OleDbType.Date).Value = item.DateOfParsing;
                         cmd.Parameters.Add("@json_filename", OleDbType.VarChar).Value = item.JSONFileName;
+                        cmd.Parameters.Add("@jsonfile_id", OleDbType.Integer).Value = item.JsonFileID;
                         cmd.Parameters.Add("@region_id", OleDbType.VarChar).Value = item.NSAPRegion.Code;
                         // cmd.Parameters.AddWithValue("@ls_ids", item.AllLandingSiteIDs);
                         // cmd.Parameters.AddWithValue("@ls_names", item.AllLandingSiteNames);
@@ -215,8 +247,9 @@ namespace NSAP_ODK.Entities.Database
                                             date_end,
                                             date_parsed,
                                             json_filename,
+                                            json_file_id,
                                             region_id)
-                                            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                                            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
                         try
                         {
                             con.Open();

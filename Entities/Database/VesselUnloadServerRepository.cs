@@ -53,6 +53,7 @@ namespace NSAP_ODK.Entities.Database
             //    _pk = NSAPEntities.CatchLengthWeightViewModel.NextRecordNumber - 1;
             //}
             _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastLenWtPK;
+            CatchLengthWeightViewModel.CurrentIDNumber = _pk;
             RowIDSet = true;
         }
 
@@ -109,6 +110,7 @@ namespace NSAP_ODK.Entities.Database
             //    _pk = NSAPEntities.CatchLenFreqViewModel.NextRecordNumber - 1;
             //}
             _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastLenFreqPK;
+            CatchLenFreqViewModel.CurrentIDNumber = _pk;
             RowIDSet = true;
         }
 
@@ -169,6 +171,7 @@ namespace NSAP_ODK.Entities.Database
             {
 
             }
+            CatchLengthViewModel.CurrentIDNumber = _pk;
             RowIDSet = true;
         }
 
@@ -222,6 +225,7 @@ namespace NSAP_ODK.Entities.Database
             //    _pk = NSAPEntities.CatchMaturityViewModel.NextRecordNumber - 1;
             //}
             _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastMaturityPK;
+            CatchMaturityViewModel.CurrentIDNumber = _pk;
             RowIDSet = true;
         }
 
@@ -577,6 +581,7 @@ namespace NSAP_ODK.Entities.Database
             //    _pk = NSAPEntities.VesselCatchViewModel.NextRecordNumber - 1;
             //}
             _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastVesselCatchPK;
+            VesselCatchViewModel.CurrentIDNumber = _pk;
             RowIDSet = true;
         }
 
@@ -657,6 +662,7 @@ namespace NSAP_ODK.Entities.Database
             //    _pk = NSAPEntities.GearSoakViewModel.NextRecordNumber - 1;
             //}
             _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastGearSoaksPK;
+            GearSoakViewModel.CurrentIDNumber = _pk;
             RowIDSet = true;
         }
 
@@ -739,6 +745,7 @@ namespace NSAP_ODK.Entities.Database
             //    _pk = NSAPEntities.FishingGroundGridViewModel.NextRecordNumber - 1;
             //}
             _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastFishingGridsPK;
+            FishingGroundGridViewModel.CurrentIDNumber = _pk;
             RowIDSet = true;
         }
 
@@ -781,7 +788,7 @@ namespace NSAP_ODK.Entities.Database
                 _parent = value;
             }
         }
-        public List<EffortGroupEffortRepeatMultiGear> EffortRepeatMultiGears { get; set; }
+
         public int ParentID { get { return Parent.PK; } }
         [JsonProperty("efforts_group/effort_repeat/group_effort/selected_effort_measure")]
         public string SelectedEffortMeasure { get; set; }
@@ -837,6 +844,7 @@ namespace NSAP_ODK.Entities.Database
             //    _pk = NSAPEntities.VesselEffortViewModel.NextRecordNumber - 1;
             //}
             _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastVesselEffortsPK;
+            VesselEffortViewModel.CurrentIDNumber = _pk;
             RowIDSet = true;
         }
 
@@ -969,6 +977,7 @@ namespace NSAP_ODK.Entities.Database
             //    _pk = NSAPEntities.VesselCatchViewModel.NextRecordNumber - 1;
             //}
             _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastVesselUnloadGearPK;
+            VesselUnload_FishingGearViewModel.CurrentIDNumber = _pk;
             RowIDSet = true;
         }
 
@@ -2034,7 +2043,7 @@ namespace NSAP_ODK.Entities.Database
     {
         private static int _pk;
         private int _rowID;
-        private MultiGearEffortSpecContainer _parent;
+        //private MultiGearEffortSpecContainer _parent;
         public static bool RowIDSet { get; private set; }
 
         public static void ResetIDState()
@@ -2053,6 +2062,7 @@ namespace NSAP_ODK.Entities.Database
             //    _pk = NSAPEntities.FishingGroundGridViewModel.NextRecordNumber - 1;
             //}
             _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastVesselEffortsPK;
+            VesselEffortViewModel.CurrentIDNumber = _pk;
             RowIDSet = true;
         }
 
@@ -2165,7 +2175,7 @@ namespace NSAP_ODK.Entities.Database
             return VesselLandings.Count;
         }
 
-
+        public static List<MultiVesselGear_SampledLanding> MultiVesselLandings { get; internal set; }
         public static List<VesselLanding> VesselLandings { get; internal set; }
 
         public static event EventHandler<UploadToDbEventArg> UploadSubmissionToDB;
@@ -2176,7 +2186,7 @@ namespace NSAP_ODK.Entities.Database
         /// </summary>
         public static void ResetGroupIDState()
         {
-            SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat.ResetIDState();
+            MultiVesselGear_SoakTime.ResetIDState();
             GridCoordGroupBingoRepeat.ResetIDState();
             EffortSpecSingleGear.ResetIDState();
             MultiGearEffortSpec.ResetIDState();
@@ -2486,9 +2496,9 @@ namespace NSAP_ODK.Entities.Database
         public static bool CancelUpload { get; set; }
 
         public static DateTime? JSONFileCreationTime { get; set; }
-        public static Task<bool> UploadToDBAsync(string jsonFileName = "")
+        public static Task<bool> UploadToDBAsync(string jsonFileName = "", int loopCount = 0)
         {
-            return Task.Run(() => UploadToDatabase(jsonFileName: jsonFileName));
+            return Task.Run(() => UploadToDatabase(jsonFileName: jsonFileName, loopCount: loopCount));
         }
 
         public static Task<bool> UploadToDBResolvedLandingsAsync(List<VesselLanding> resolvedLanddings)
@@ -2653,7 +2663,7 @@ namespace NSAP_ODK.Entities.Database
                 {
                     try
                     {
-                        var landingSiteSampling = NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(landing);
+                        var landingSiteSampling = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(landing);
                         if (landingSiteSampling != null)
                         {
                             if (landingSiteSampling.GearUnloadViewModel == null)
@@ -2759,13 +2769,27 @@ namespace NSAP_ODK.Entities.Database
         public static int TotalUploadCount { get; private set; }
 
         public static string CurrentJSONFileName { get; set; }
-        public static bool UploadToDatabase(List<VesselLanding> resolvedLandings = null, string jsonFileName = "")
+        public static bool UploadToDatabase(List<VesselLanding> resolvedLandings = null, string jsonFileName = "", int loopCount = 0)
         {
             bool hasUnrecognizedFG = false;
             bool isVersion643 = false;
             DelayedSave = true;
             UploadInProgress = true;
             int savedCount = 0;
+
+            GearUnloadViewModel.CurrentIDNumber = NSAPEntities.SummaryItemViewModel.GetGearUnloadMaxRecordNumber();
+
+            
+            if (loopCount == 0)
+            {
+                int idFromDB = GearUnloadRepository.MaxRecordNumberFromDB();
+                if (idFromDB > GearUnloadViewModel.CurrentIDNumber)
+                {
+                    GearUnloadViewModel.CurrentIDNumber = idFromDB;
+                }
+            }
+
+            VesselUnloadViewModel.CurrentIDNumber = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastVesselUnloadPK;
 
             List<VesselLanding> landings;
             UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.Searching });
@@ -2793,7 +2817,7 @@ namespace NSAP_ODK.Entities.Database
                         try
                         {
                             bool proceed = false;
-                            var landingSiteSampling = NSAPEntities.LandingSiteSamplingViewModel.getLandingSiteSampling(landing);
+                            var landingSiteSampling = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(landing);
                             if (landingSiteSampling == null)
                             {
                                 var code = landing.FishingGround?.Code;
@@ -2819,7 +2843,8 @@ namespace NSAP_ODK.Entities.Database
                                         LandingSiteText = landing.LandingSiteText == null ? landing.LandingSiteName2 : landing.LandingSiteText,
                                         FMAID = landing.NSAPRegionFMA.FMA.FMAID,
                                         DelayedSave = DelayedSave,
-                                        HasFishingOperation = true
+                                        HasFishingOperation = true,
+                                        DateAdded = DateTime.Now
                                     };
 
                                     proceed = NSAPEntities.LandingSiteSamplingViewModel.AddRecordToRepo(landingSiteSampling);
@@ -2841,7 +2866,8 @@ namespace NSAP_ODK.Entities.Database
                                             Enumerator = landing.EnumeratorName,
                                             SamplingDate = landing.SamplingDate,
                                             RowID = landing._uuid,
-                                            VesselLanding = landing
+                                            VesselLanding = landing,
+
                                         };
                                         _unrecognizedFishingGrounds.Add(urf);
                                         hasUnrecognizedFG = true;
@@ -2873,9 +2899,6 @@ namespace NSAP_ODK.Entities.Database
                                 //Oct 21: added fisheries sector when making a new gear unload
                                 gear_unload = landingSiteSampling.GearUnloadViewModel.GetGearUnloads(landingSiteSampling).FirstOrDefault(t => (t.GearUsedText == landing.GearUsedText || t.GearID == landing.GearCode) && t.SectorCode == landing.SectorCode);
 
-                                //gear_unload = landingSiteSampling.GearUnloadViewModel.GetGearUnloads(landingSiteSampling).FirstOrDefault(t => t.GearUsedText == landing.GearUsedText || t.GearID == landing.GearCode);
-
-
                                 if (gear_unload == null)
                                 {
                                     if (landing.GearCode == "_OT")
@@ -2885,7 +2908,7 @@ namespace NSAP_ODK.Entities.Database
 
                                     gear_unload = new GearUnload
                                     {
-                                        PK = landingSiteSampling.GearUnloadViewModel.NextRecordNumber,
+                                        PK = GearUnloadViewModel.CurrentIDNumber + 1,
                                         Parent = landingSiteSampling,
                                         LandingSiteSamplingID = landingSiteSampling.PK,
                                         GearID = NSAPEntities.GearViewModel.GearCodeExist(landing.GearCode) ? landing.GearCode : string.Empty,
@@ -2897,7 +2920,11 @@ namespace NSAP_ODK.Entities.Database
                                         Remarks = "",
                                         DelayedSave = DelayedSave
                                     };
-                                    proceed = landingSiteSampling.GearUnloadViewModel.AddRecordToRepo(gear_unload);
+                                    if (landingSiteSampling.GearUnloadViewModel.AddRecordToRepo(gear_unload))
+                                    {
+                                        proceed = true;
+                                        GearUnloadViewModel.CurrentIDNumber = gear_unload.PK;
+                                    }
 
                                 }
                                 else
@@ -2944,7 +2971,8 @@ namespace NSAP_ODK.Entities.Database
 
                                 VesselUnload vu = new VesselUnload
                                 {
-                                    PK = landing.PK,
+                                    //PK = landing.PK,
+                                    PK = VesselUnloadViewModel.CurrentIDNumber + 1,
                                     Parent = gear_unload,
                                     GearUnloadID = gear_unload.PK,
                                     IsBoatUsed = landing.IsBoatUsed,
@@ -3018,7 +3046,8 @@ namespace NSAP_ODK.Entities.Database
                                                 GearText = landing_fg.GearUsedText,
                                                 GearCode = landing_fg.GearCode,
                                                 Parent = vu,
-                                                RowID = (int)landing_fg.PK,
+                                                //RowID = (int)landing_fg.PK,
+                                                RowID = VesselUnload_FishingGearViewModel.CurrentIDNumber + 1,
                                                 DelayedSave = DelayedSave
                                             };
                                             if (vu.VesselUnload_FishingGearsViewModel.AddRecordToRepo(vu_fg))
@@ -3052,7 +3081,8 @@ namespace NSAP_ODK.Entities.Database
                                                         EffortValueNumeric = gear_effortspec.EffortNumericValue,
                                                         EffortValueText = gear_effortspec.EffortDescription,
                                                         Parent = vu_fg,
-                                                        RowID = (int)gear_effortspec.PK,
+                                                        //RowID = (int)gear_effortspec.PK,
+                                                        RowID = VesselEffortViewModel.CurrentIDNumber + 1,
                                                         DelayedSave = DelayedSave
                                                     };
 
@@ -3085,7 +3115,7 @@ namespace NSAP_ODK.Entities.Database
                                         {
                                             VesselEffort ve = new VesselEffort
                                             {
-                                                PK = (int)effort.PK,
+                                                PK = VesselEffortViewModel.CurrentIDNumber + 1,
                                                 Parent = vu,
                                                 VesselUnloadID = vu.PK,
                                                 EffortSpecID = effort.EffortType,
@@ -3116,7 +3146,8 @@ namespace NSAP_ODK.Entities.Database
                                         {
                                             GearSoak gs = new GearSoak
                                             {
-                                                PK = (int)soak.PK,
+                                                //PK = (int)soak.PK,
+                                                PK = GearSoakViewModel.CurrentIDNumber + 1,
                                                 Parent = vu,
                                                 VesselUnloadID = vu.PK,
                                                 TimeAtSet = soak.SetTime,
@@ -3146,7 +3177,8 @@ namespace NSAP_ODK.Entities.Database
                                         {
                                             FishingGroundGrid fgg = new FishingGroundGrid
                                             {
-                                                PK = (int)gr.PK,
+                                                //PK = (int)gr.PK,
+                                                PK = FishingGroundGridViewModel.CurrentIDNumber + 1,
                                                 Parent = vu,
                                                 VesselUnloadID = vu.PK,
                                                 UTMZoneText = gr.Parent.UTMZone,
@@ -3198,12 +3230,12 @@ namespace NSAP_ODK.Entities.Database
 
                                                 VesselCatch vc = new VesselCatch
                                                 {
-                                                    PK = catchComp.PK,
+                                                    //PK = catchComp.PK,
+                                                    PK = VesselCatchViewModel.CurrentIDNumber + 1,
                                                     Parent = vu,
                                                     VesselUnloadID = vu.PK,
                                                     SpeciesID = catchComp.CatchCompSpeciesID,
                                                     Catch_kg = catchComp.SpeciesWt,
-                                                    //TWS = catchComp.TWS,
                                                     Sample_kg = catchComp.SpeciesSampleWt,
                                                     TaxaCode = catchComp.TaxaCode,
                                                     SpeciesText = catchComp.SpeciesNameOther,
@@ -3238,7 +3270,8 @@ namespace NSAP_ODK.Entities.Database
                                                         {
                                                             CatchLenFreq clf = new CatchLenFreq
                                                             {
-                                                                PK = (int)lf.PK,
+                                                                //PK = (int)lf.PK,
+                                                                PK = CatchLenFreqViewModel.CurrentIDNumber + 1,
                                                                 Parent = vc,
                                                                 VesselCatchID = vc.PK,
                                                                 LengthClass = lf.LengthClass,
@@ -3267,7 +3300,8 @@ namespace NSAP_ODK.Entities.Database
                                                         {
                                                             CatchLengthWeight clw = new CatchLengthWeight
                                                             {
-                                                                PK = (int)lw.PK,
+                                                                //PK = (int)lw.PK,
+                                                                PK = CatchLengthWeightViewModel.CurrentIDNumber + 1,
                                                                 Parent = vc,
                                                                 VesselCatchID = vc.PK,
                                                                 Length = lw.Length,
@@ -3297,7 +3331,8 @@ namespace NSAP_ODK.Entities.Database
                                                         {
                                                             CatchLength cl = new CatchLength
                                                             {
-                                                                PK = (int)l.PK,
+                                                                //PK = (int)l.PK,
+                                                                PK = CatchLengthViewModel.CurrentIDNumber + 1,
                                                                 Parent = vc,
                                                                 VesselCatchID = vc.PK,
                                                                 Length = l.Length,
@@ -3326,7 +3361,8 @@ namespace NSAP_ODK.Entities.Database
                                                         {
                                                             CatchMaturity cm = new CatchMaturity
                                                             {
-                                                                PK = (int)m.PK,
+                                                                //PK = (int)m.PK,
+                                                                PK = CatchMaturityViewModel.CurrentIDNumber + 1,
                                                                 Parent = vc,
                                                                 VesselCatchID = vc.PK,
                                                                 Length = m.Length,
@@ -3363,20 +3399,20 @@ namespace NSAP_ODK.Entities.Database
                                         {
                                             Utilities.Logger.LogMissingCatchInfo($@"""{vu.ODKRowID}"",{missingCatchInfoCounter}, ""{vu.XFormIdentifier}"",""{vu.FormVersion}"",""{vu.Parent.GearUsedName}"",""{vu.EnumeratorName}"",""{vu.Parent.Parent.LandingSiteName}"",{vu.SamplingDate},""{System.IO.Path.GetFileName(CurrentJSONFileName)}"",{DateTime.Now}");
                                         }
-                                        //vu.VesselCatchViewModel.Dispose();
                                     }
 
 
                                     if (gear_unload.VesselUnloadViewModel.UpdateUnloadStats(vu) && NSAPEntities.SummaryItemViewModel.AddRecordToRepo(vu))
                                     {
-                                        if (landing.IncludeCatchComp && gear_unload.VesselUnloadViewModel.UpdateWeightValidation(NSAPEntities.SummaryItemViewModel.CurrentEntity, vu))
+                                        if (landing.IncludeCatchComp)
                                         {
+                                            gear_unload.VesselUnloadViewModel.UpdateWeightValidation(NSAPEntities.SummaryItemViewModel.CurrentEntity, vu);
                                             vu.VesselCatchViewModel.Dispose();
-                                            savedCount++;
-                                            landing.SavedInLocalDatabase = true;
-                                            UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadSavedCount = savedCount, Intent = UploadToDBIntent.Uploading });
-                                            TotalUploadCount++;
                                         }
+                                        savedCount++;
+                                        landing.SavedInLocalDatabase = true;
+                                        UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadSavedCount = savedCount, Intent = UploadToDBIntent.Uploading });
+                                        TotalUploadCount++;
                                     }
                                 }
                             }
@@ -3412,15 +3448,6 @@ namespace NSAP_ODK.Entities.Database
             }
             UploadInProgress = false;
             UpdateInProgress = false;
-
-            //if(UnmatchedEnumeratorIDs.Count>0)
-            //{
-            //    foreach(var item in UnmatchedEnumeratorIDs.OrderBy(t=>t))
-            //    {
-            //        NSAP_ODK.Utilities.Logger.Log($"NSAP enumerator with ID {item} was not found");
-            //    }
-            //    UnmatchedEnumeratorIDs.Clear();
-            //}
 
             return savedCount > 0 || hasUnrecognizedFG;
         }

@@ -3,11 +3,60 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NSAP_ODK.Entities.ItemSources;
+using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
+using System.ComponentModel;
 
 namespace NSAP_ODK.Entities.Database
 {
+    public class CatchMaturityEdited
+    {
+        public CatchMaturityEdited()
+        {
+            //
+        }
+
+        public CatchMaturityEdited(CatchMaturity cm)
+        {
+            SexCode = cm.SexCode;
+            MaturityCode = cm.MaturityCode;
+            WeightGutContent = cm.WeightGutContent;
+            Weight = cm.Weight;
+            Length = cm.Length;
+            PK = cm.PK;
+            GonadWeight = cm.GonadWeight;
+            Parent = cm.Parent;
+            GutContentCode = cm.GutContentCode;
+
+        }
+        [ItemsSource(typeof(GutContentItemsSource))]
+        public string GutContentCode { get; set; }
+        
+        [ItemsSource(typeof(MaturityItemsSource))]
+        public string MaturityCode { get; set; }
+
+        public double? WeightGutContent { get; set; }
+        [ReadOnly(true)]
+        public int PK { get; set; }
+
+        public bool DelayedSave { get; set; }
+
+        public double? GonadWeight { get; set; }
+
+
+        public VesselCatch Parent { get; set; }
+
+        public double? Length { get; set; }
+        public double? Weight { get; set; }
+
+        [ItemsSource(typeof(SexItemsSource))]
+        public string SexCode { get; set; }
+
+
+    }
     public class CatchMaturityFlattened
     {
+        
         public CatchMaturityFlattened(CatchMaturity cm)
         {
 

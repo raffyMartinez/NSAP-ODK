@@ -3,9 +3,41 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using NSAP_ODK.Entities.ItemSources;
+using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
+using System.ComponentModel;
 namespace NSAP_ODK.Entities.Database
 {
+    public class VesselUnload_Gear_Spec_Edited
+    {
+        public VesselUnload_Gear_Spec_Edited()
+        {
+
+        }
+
+        public VesselUnload_Gear_Spec_Edited(VesselUnload_Gear_Spec vu_gs)
+        {
+            if (vu_gs != null)
+            {
+                RowID = vu_gs.RowID;
+                VesselUnload_Gear_Spec = vu_gs;
+                EffortSpecID = vu_gs.EffortSpecID;
+                EffortValueNumeric = vu_gs.EffortValueNumeric;
+                EffortValueText = vu_gs.EffortValueText;
+                GearUsedName = vu_gs.GearUsedName;
+            }
+        }
+        [ReadOnly(true)]
+        public int RowID { get; set; }
+        public VesselUnload_Gear_Spec VesselUnload_Gear_Spec { get; set; }
+        [ItemsSource(typeof(EffortSpecificationItemsSource))]
+        public int EffortSpecID { get; set; }
+
+        public double? EffortValueNumeric { get; set; }
+        public string EffortValueText { get; set; }
+        [ItemsSource(typeof(GearsInNSAPRegionItemsSource))]
+        public string GearUsedName { get; set; }
+    }
     public class VesselUnload_Gear_Spec
     {
         public string GearUsedName

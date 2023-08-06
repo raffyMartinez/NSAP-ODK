@@ -9,6 +9,7 @@ using System.Xml;
 using System.Net;
 using NSAP_ODK.Entities;
 using NSAP_ODK.Entities.Database;
+using Newtonsoft.Json;
 
 namespace NSAP_ODK.Utilities
 {
@@ -475,6 +476,12 @@ namespace NSAP_ODK.Utilities
                 }
             }
             return success;
+        }
+
+        public static T Clone<T>(this T source)
+        {
+            var serialized = JsonConvert.SerializeObject(source);
+            return JsonConvert.DeserializeObject<T>(serialized);
         }
         public static Stream ToStream(this string str)
         {

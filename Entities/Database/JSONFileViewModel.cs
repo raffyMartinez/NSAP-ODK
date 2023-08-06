@@ -223,6 +223,50 @@ namespace NSAP_ODK.Entities.Database
                 return null;
             }
         }
+
+        public static string GetVersionString(string json)
+        {
+            string search = "\"intronote\":\"Version ";
+            string r = "";
+            int start = 0;
+            string searchstring = json;
+            if (json.IndexOf(Environment.NewLine) < json.Length)
+            {
+                search = "\"intronote\": \"Version ";
+                var lines = json.Split('\n');
+                foreach (var item in lines)
+                {
+                    if (item.Contains(search))
+                    {
+                        start = item.IndexOf(search) + search.Length;
+                        searchstring = item;
+                        break;
+                    }
+                }
+            }
+
+            else
+            {
+
+                start = json.IndexOf(search) + search.Length;
+            }
+            bool isnumeric = true;
+            int x = 0;
+            do
+            {
+                char c = searchstring[start + x];
+                isnumeric = c >= '0' && c <= '9' || c == '.';
+                if (isnumeric)
+                {
+                    r += c;
+                    x++;
+
+                }
+
+            } while (isnumeric);
+
+            return r;
+        }
         public async Task<JSONFile> CreateJsonFile(string json, string description = "", string fileName = "")
         {
             var jsonFile = new JSONFile();

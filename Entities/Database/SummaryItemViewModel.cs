@@ -24,11 +24,29 @@ namespace NSAP_ODK.Entities.Database
 
         public event EventHandler<BuildSummaryReportEventArg> BuildingSummaryTable;
         public event EventHandler<BuildOrphanedEntityEventArg> BuildingOrphanedEntity;
-
+        public LandingSiteSampling GetLandingSiteSampling(string landingUUID)
+        {
+            var item = SummaryItemCollection.FirstOrDefault(t => t.SamplingDayUUID == landingUUID);
+            if (item == null)
+            {
+                return null;
+            }
+            else
+            {
+                return NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(item.SamplingDayID);
+            }
+        }
         public SummaryItem CurrentEntity { get; private set; }
         public SummaryItem GetItem(VesselUnload vu)
         {
             return SummaryItemCollection.ToList().FirstOrDefault(t => t.VesselUnloadID == vu.PK);
+        }
+
+        public SummaryItem GetItemEx(string samplingDayUUID)
+        {
+            //var l = SummaryItemCollection.Where(t => t.SamplingDayUUID == samplingDayUUID);
+            //var si = SummaryItemCollection.FirstOrDefault(t => t.SamplingDayUUID == samplingDayUUID);
+            return SummaryItemCollection.FirstOrDefault(t => t.SamplingDayUUID == samplingDayUUID);
         }
         public SummaryItem GetItem(string odkROWID)
         {
@@ -324,7 +342,7 @@ namespace NSAP_ODK.Entities.Database
             ProceessBuildOrphanedEntitiesEvent(status: BuildOrphanedEntityStatus.StatusBuildEnd, totalRowsFetched: counter);
             return thisList;
         }
-        public int GetLandingSiteSamplingMaxRecordNumber()
+        public int GetLandingSiteSamplingMaxRecordNumber(bool fromCollection = false)
         {
             if (SummaryItemCollection.Count == 0)
             {
@@ -332,10 +350,15 @@ namespace NSAP_ODK.Entities.Database
             }
             else
             {
-
-                //var max=SummaryItemCollection.Max(t => t.SamplingDayID);
-                //return SummaryItemCollection.Max(t => t.SamplingDayID);
-                return LandingSiteSamplingRepository.MaxRecordNumber_from_db();
+                if (fromCollection)
+                {
+                    //var max=SummaryItemCollection.Max(t => t.SamplingDayID);
+                    return SummaryItemCollection.Max(t => t.SamplingDayID);
+                }
+                else
+                {
+                    return LandingSiteSamplingRepository.MaxRecordNumber_from_db();
+                }
             }
         }
         public int GetGearUnloadMaxRecordNumber()
@@ -347,7 +370,6 @@ namespace NSAP_ODK.Entities.Database
             else
             {
                 return SummaryItemCollection.Where(t => t.GearUnloadID != null).Max(t => (int)t.GearUnloadID);
-                //return SummaryItemCollection.Max(t => (int)t.GearUnloadID);
             }
         }
 
@@ -783,7 +805,88 @@ namespace NSAP_ODK.Entities.Database
         }
         public Task<List<GearUnload>> GetGearUnloadsAsync(DateTime date_download)
         {
-            return Task.Run(() => GetGearUnloads(date_download));
+            return Task.Run(() => GetGearUnloadsEx(date_download));
+        }
+
+        public List<GearUnload> GetGearUnloadsEx(DateTime date_download)
+        {
+            List<GearUnload> gus = new List<GearUnload>();
+            var list_lss = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection.Where(t => ((DateTime)t.DateAdded).Date == date_download.Date).ToList();
+            foreach (LandingSiteSampling lss in list_lss)
+            {
+                foreach (GearUnload gu in lss.GearUnloadViewModel.GearUnloadCollection)
+                {
+                    GearUnload g_u = new GearUnload
+                    {
+                        PK = (int)gu.PK,
+                        Parent = gu.Parent,
+                        Boats = gu.Boats,
+                        Catch = gu.Catch,
+                        Gear = gu.Gear,
+                        GearID = gu.GearID,
+                        GearUsedText = gu.GearUsedText,
+                    };
+                    //GetCountSampledLandingsOfGear(g_u, list_lss);
+                    gus.Add(g_u);
+                }
+            }
+
+            foreach (GearUnload g in gus)
+            {
+                if (g.VesselUnloadViewModel == null)
+                {
+                    g.VesselUnloadViewModel = new VesselUnloadViewModel(g);
+                }
+                foreach (VesselUnload vu in g.VesselUnloadViewModel.VesselUnloadCollection)
+                {
+                    if (vu.IsMultiGear)
+                    {
+                        if (vu.VesselUnload_FishingGearsViewModel == null)
+                        {
+                            vu.VesselUnload_FishingGearsViewModel = new VesselUnload_FishingGearViewModel(vu);
+                        }
+                        foreach (VesselUnload_FishingGear vfg in vu.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection)
+                        {
+                            gus.FirstOrDefault(t => t.GearUsedName == vfg.GearUsedName && t.Parent.LandingSiteName == vfg.Parent.Parent.Parent.LandingSiteName).NumberOfSampledLandingsEx++;
+                        }
+                    }
+                    else
+                    {
+                        g.NumberOfSampledLandingsEx++;
+                    }
+                }
+            }
+            return gus;
+        }
+
+        private void GetCountSampledLandingsOfGear(GearUnload gu, List<LandingSiteSampling> lss)
+        {
+            foreach (var ls in lss)
+            {
+                if (ls.GearUnloadViewModel == null)
+                {
+                    ls.GearUnloadViewModel = new GearUnloadViewModel(ls);
+                }
+                foreach (var g_u in ls.GearUnloadViewModel.GearUnloadCollection)
+                {
+                    if (g_u.VesselUnloadViewModel == null)
+                    {
+                        g_u.VesselUnloadViewModel = new VesselUnloadViewModel(gu);
+                    }
+                    foreach (var vu in g_u.VesselUnloadViewModel.VesselUnloadCollection)
+                    {
+                        if (vu.VesselUnload_FishingGearsViewModel == null)
+                        {
+                            vu.VesselUnload_FishingGearsViewModel = new VesselUnload_FishingGearViewModel(vu);
+                        }
+                        if (vu.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection.FirstOrDefault(t => t.GearUsedName == gu.GearUsedName) != null)
+                        {
+                            gu.NumberOfSampledLandingsEx++;
+                        }
+                    }
+                }
+
+            }
         }
         public List<GearUnload> GetGearUnloads(DateTime date_download)
         {
@@ -867,7 +970,6 @@ namespace NSAP_ODK.Entities.Database
                     LatestDownloadFormattedDate = item.Max(t => (DateTime)t.DateAdded).ToString("MMM-dd-yyyy HH:mm"),
                     LatestEformVersion = item.Last().FormVersion,
                 };
-
                 results.Add(
                     new SummaryResults
                     {
@@ -2431,6 +2533,7 @@ namespace NSAP_ODK.Entities.Database
                 ID = SummaryItemCollection.Count + 1,
 
                 SamplingDayID = vu.Parent.Parent.PK,
+                SamplingDayUUID = vu.Parent.Parent.RowID,
                 LandingSiteID = vu.Parent.Parent.LandingSiteID,
                 LandingSiteText = vu.Parent.Parent.LandingSiteText,
                 FMAId = vu.Parent.Parent.FMAID,
@@ -2447,25 +2550,16 @@ namespace NSAP_ODK.Entities.Database
                 //GearName = vu.Parent.Gear.GearName,
 
                 VesselUnloadID = vu.PK,
-                XFormIdentifier = vu.XFormIdentifier,
-                ODKRowID = vu.ODKRowID,
-                GPSCode = vu.GPSCode,
                 NumberOfFishers = vu.NumberOfFishers,
-                FormVersion = vu.FormVersion,
                 VesselName = vu.VesselName,
                 VesselID = vu.VesselID,
                 VesselText = vu.VesselText,
                 HasCatchComposition = vu.HasCatchComposition,
                 IsTracked = vu.OperationIsTracked,
                 IsTripCompleted = vu.FishingTripIsCompleted,
-                EnumeratorID = vu.NSAPEnumeratorID,
-                EnumeratorText = vu.EnumeratorText,
-                //EnumeratorName = vu.EnumeratorName,
                 SamplingDate = vu.SamplingDate,
                 IsSuccess = vu.OperationIsSuccessful,
                 SectorCode = vu.SectorCode,
-                DateAdded = (DateTime)vu.DateAddedToDatabase,
-                DateSubmitted = (DateTime)vu.DateTimeSubmitted,
                 FishingGridRows = vu.CountGrids,
                 GearSoakRows = vu.CountGearSoak,
                 VesselEffortRows = vu.CountEffortIndicators,
@@ -2477,14 +2571,31 @@ namespace NSAP_ODK.Entities.Database
                 LandingSiteHasOperation = vu.Parent.Parent.HasFishingOperation,
                 WeightOfCatch = vu.WeightOfCatch,
                 WeightOfCatchSample = vu.WeightOfCatchSample,
-                IsMultiGear = vu.IsMultiGear
+                IsMultiGear = vu.IsMultiGear,
+                EnumeratorID = vu.NSAPEnumeratorID,
+                EnumeratorText = vu.EnumeratorText,
+                DateAdded = (DateTime)vu.DateAddedToDatabase,
+                FormVersion = vu.FormVersion,
 
             };
+
+            if (vu.Parent.Parent.IsMultiVessel)
+            {
+
+            }
+            else
+            {
+                si.XFormIdentifier = vu.XFormIdentifier;
+                si.ODKRowID = vu.ODKRowID;
+                si.GPSCode = vu.GPSCode;
+
+                si.DateSubmitted = (DateTime)vu.DateTimeSubmitted;
+            }
             if (vu.NSAPEnumeratorID != null)
             {
                 si.EnumeratorName = vu.EnumeratorName;
             }
-            if (!string.IsNullOrEmpty(vu.Parent.GearID))
+            if (!string.IsNullOrEmpty(vu.Parent.GearID) && vu.Parent.GearID != "_OT")
             {
                 si.GearName = vu.Parent.Gear.GearName;
             }

@@ -175,10 +175,14 @@ namespace NSAP_ODK.Entities.Database
                     break;
             }
         }
-        public void ResetJSONFields(bool resetLastUploaded = true, bool isMultiGearform = false)
+        public void ResetJSONFields(bool resetLastUploaded = true, bool isMultiGearform = false, bool isMultiVesselform=false)
         {
             List<Koboserver> fl_servers;
-            if (isMultiGearform)
+            if(isMultiVesselform)
+            {
+                fl_servers = KoboserverCollection.Where(t => t.IsFishLandingMultiVesselSurveyForm == true).ToList();
+            }
+            else if (isMultiGearform)
             {
                 fl_servers = KoboserverCollection.Where(t => t.IsFishLandingMultiGearSurveyForm == true).ToList();
             }

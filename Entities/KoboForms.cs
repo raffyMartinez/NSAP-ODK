@@ -166,9 +166,10 @@ namespace NSAP_ODK.Entities
                 KoboFormType = KoboFormType.FormTypeVesselCountAndCatchEstimate;
             }
             IsMultiGear = Title.Contains("MultiGear");
+            IsMultiVessel = Title.Contains("Multi-Vessel");
             KoboForm = form;
         }
-
+        public bool IsMultiVessel { get; internal set; }
         public bool IsMultiGear { get; internal set; }
         public KoboFormType KoboFormType { get; set; }
         public string Title { get; internal set; }

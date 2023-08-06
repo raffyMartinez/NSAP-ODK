@@ -370,7 +370,10 @@ namespace NSAP_ODK.Entities.Database
             return list;
 
         }
-
+        public LandingSiteSampling GetLandingSiteSampling(string samplingUUID)
+        {
+            return LandingSiteSamplingCollection.FirstOrDefault(t => t.RowID == samplingUUID);
+        }
         public LandingSiteSampling GetLandingSiteSampling(OrphanedLandingSite ols, LandingSite replacement, DateTime samplingDate)
         {
             List<LandingSiteSampling> samplings = new List<LandingSiteSampling>();
@@ -395,69 +398,6 @@ namespace NSAP_ODK.Entities.Database
             LandingSiteSamplingCollection = new ObservableCollection<LandingSiteSampling>(LandingSiteSamplings.LandingSiteSamplings);
             LandingSiteSamplingCollection.CollectionChanged += LandingSiteSamplingCollection_CollectionChanged;
         }
-
-        //public List<LandingSiteSampling> GetAllLandingSiteSamplings()
-        //{
-        //    return LandingSiteSamplingCollection.ToList();
-        //}
-
-        //public List<VesselUnload> VesselUnloadsFromDummyGearUnload(GearUnload dummy)
-        //{
-        //    List<LandingSiteSampling> lss = new List<LandingSiteSampling>();
-        //    if (dummy.Parent.LandingSite == null)
-        //    {
-        //        lss = LandingSiteSamplingCollection.Where(t => t.FishingGroundID == dummy.Parent.FishingGround.Code &&
-        //                                                 t.NSAPRegionID == dummy.Parent.NSAPRegion.Code &&
-        //                                                 t.LandingSiteText == dummy.Parent.LandingSiteText &&
-        //                                                 t.FMAID == dummy.Parent.FMA.FMAID &&
-        //                                                 t.SamplingDate == dummy.Parent.SamplingDate).ToList();
-        //    }
-        //    else
-        //    {
-        //        lss = LandingSiteSamplingCollection.Where(t => t.FishingGroundID == dummy.Parent.FishingGround.Code &&
-        //                                                     t.NSAPRegionID == dummy.Parent.NSAPRegion.Code &&
-        //                                                     t.LandingSiteID == dummy.Parent.LandingSite.LandingSiteID &&
-        //                                                     t.FMAID == dummy.Parent.FMA.FMAID &&
-        //                                                     t.SamplingDate == dummy.Parent.SamplingDate).ToList();
-        //    }
-
-        //    GearUnload gu = new GearUnload();
-        //    if (lss.Count == 1)
-        //    {
-        //        foreach (var item in lss[0].GearUnloadViewModel.GearUnloadCollection)
-        //        {
-        //            if (item.GearUsedName == dummy.GearUsedName)
-        //            {
-        //                gu = item;
-        //                break;
-        //            }
-        //        }
-        //    }
-        //    else
-        //    {
-        //        foreach (var ls in lss)
-        //        {
-        //            foreach (var g in ls.GearUnloadViewModel.GearUnloadCollection)
-        //            {
-        //                if (g.GearUsedName == dummy.GearUsedName)
-        //                {
-        //                    gu = g;
-        //                    break;
-        //                }
-        //                if (gu != null)
-        //                {
-        //                    break;
-        //                }
-        //            }
-        //        }
-        //    }
-        //    if (gu.VesselUnloadViewModel == null)
-        //    {
-        //        gu.VesselUnloadViewModel = new VesselUnloadViewModel(gu);
-        //    }
-        //    var vus = gu.VesselUnloadViewModel.VesselUnloadCollection.ToList();
-        //    return gu.VesselUnloadViewModel.VesselUnloadCollection.ToList();
-        //}
 
         public LandingSiteSamplingFlattened GetFlattenedItem(int id)
         {
@@ -497,7 +437,7 @@ namespace NSAP_ODK.Entities.Database
         //        .Where(t => t.SamplingDate == samplingDate).ToList();
         //}
 
-        public LandingSiteSampling getLandingSiteSampling(VesselLanding landing)
+        public LandingSiteSampling GetLandingSiteSampling(VesselLanding landing)
         {
             if (landing.FishingGround == null)
             {
@@ -597,12 +537,6 @@ namespace NSAP_ODK.Entities.Database
             }
 
 
-
-
-
-            //_csv.AppendLine($"{item.PK},\"{item.NSAPRegionID}\",{item.SamplingDate.Date},{ls_id},\"{item.FishingGroundID}\",\"{item.Remarks}\",{Convert.ToInt32(item.IsSamplingDay)},\"{ls_text}\",{item.FMAID}");
-
-
             string enum_id = "";
             if (item.EnumeratorID != null)
             {
@@ -613,18 +547,40 @@ namespace NSAP_ODK.Entities.Database
                 enum_id = @"\N";
             }
 
+            string number_landings = "";
+            string number_landings_sampled = "";
+            string number_gear_types = "";
+            if (Utilities.Global.Settings.UsemySQL)
+            {
+                number_landings = @"\N";
+                number_landings_sampled = @"\N";
+                number_gear_types = @"\N";
+            }
+            if (item.IsMultiVessel)
+            {
+                if (item.NumberOfLandings != null)
+                {
+                    number_landings = ((int)item.NumberOfLandings).ToString();
+                }
+                if (item.NumberOfLandingsSampled != null)
+                {
+                    number_landings_sampled = ((int)item.NumberOfLandingsSampled).ToString();
+                }
+                if (item.NumberOfGearTypesInLandingSite != null)
+                {
+                    number_gear_types = ((int)item.NumberOfGearTypesInLandingSite).ToString();
+                }
+            }
 
-
-            //_csv_1.AppendLine($"{item.PK},{item.DateSubmitted},\"{item.UserName}\",\"{item.DeviceID}\",\"{item.XFormIdentifier}\",{item.DateAdded},{Convert.ToInt32(item.FromExcelDownload)},\"{item.FormVersion}\",\"{item.RowID}\",{enum_id},\"{item.EnumeratorText}\"");
 
             if (Utilities.Global.Settings.UsemySQL)
             {
                 _csv.AppendLine($"{item.PK},\"{item.NSAPRegionID}\",{item.FMAID},{sampling_date},{ls_id},\"{item.FishingGroundID}\",\"{item.Remarks}\",{Convert.ToInt32(item.IsSamplingDay)},\"{ls_text}\"");
-                
+
             }
             else
             {
-                
+
                 myDict.Add("unload_day_id", item.PK.ToString());
                 myDict.Add("region_id", item.NSAPRegionID);
                 myDict.Add("sdate", sampling_date.ToString());
@@ -636,10 +592,10 @@ namespace NSAP_ODK.Entities.Database
                 myDict.Add("fma", item.FMAID.ToString());
                 myDict.Add("has_fishing_operation", item.HasFishingOperation.ToString());
 
-                _csv.AppendLine( CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_LC_FG_sample_day"));
+                _csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_LC_FG_sample_day"));
 
-                //_csv.AppendLine($"{item.PK},\"{item.NSAPRegionID}\",{sampling_date},{ls_id},\"{item.FishingGroundID}\",\"{item.Remarks}\",{Convert.ToInt32(item.IsSamplingDay)},\"{ls_text}\",{item.FMAID},{Convert.ToInt32(item.HasFishingOperation)}");
             }
+
             myDict.Clear();
             myDict.Add("unload_day_id", item.PK.ToString());
             myDict.Add("datetime_submitted", date_submitted);
@@ -653,8 +609,16 @@ namespace NSAP_ODK.Entities.Database
             myDict.Add("EnumeratorID", enum_id);
             myDict.Add("EnumeratorText", item.EnumeratorText);
 
-            _csv_1.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict,"dbo_LC_FG_sample_day_1"));
-            //_csv_1.AppendLine($"{item.PK},{date_submitted},\"{item.UserName}\",\"{item.DeviceID}\",\"{item.XFormIdentifier}\",{date_added},{Convert.ToInt32(item.FromExcelDownload)},\"{item.FormVersion}\",\"{item.RowID}\",{enum_id},\"{item.EnumeratorText}\"");
+            myDict.Add("is_multivessel", item.IsMultiVessel.ToString());
+
+            myDict.Add("number_landings_sampled", number_landings_sampled);
+            myDict.Add("number_landings", number_landings);
+            myDict.Add("number_gear_types_in_landingsite", number_gear_types);
+            myDict.Add("json_filename", item.JSONFileName);
+
+
+            _csv_1.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_LC_FG_sample_day_1"));
+
             return true;
         }
 
@@ -761,7 +725,7 @@ namespace NSAP_ODK.Entities.Database
             }
             return EditSuccess;
         }
-
+        public static int CurrentIDNumber { get; set; }
         public int NextRecordNumber
         {
             get
@@ -773,7 +737,7 @@ namespace NSAP_ODK.Entities.Database
                 else
                 {
 
-                    var m = LandingSiteSamplingCollection.Max(t => t.PK);
+                    //var m = LandingSiteSamplingCollection.Max(t => t.PK);
                     //return m + 1;
                     //return LandingSiteSamplings.MaxRecordNumber() + 1;
                     return LandingSiteSamplingCollection.Max(t => t.PK) + 1;

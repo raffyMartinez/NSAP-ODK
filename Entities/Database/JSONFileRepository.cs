@@ -23,7 +23,35 @@ namespace NSAP_ODK.Entities.Database
         }
         public List<JSONFile> JSONFiles { get; private set; }
 
-
+        public static bool AddFieldToTable(string fieldName)
+        {
+            bool success = false;
+            string sql = "";
+            switch (fieldName)
+            {
+                case "version":
+                    sql = $"ALTER TABLE JSONFile ADD COLUMN {fieldName} varchar(7)";
+                    break;
+            }
+            using (var con = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    con.Open();
+                    cmd.CommandText = sql;
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        success = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
 
         public Task<bool> GetJSONFilesFromFolderAsync(string folderPath)
         {
@@ -229,7 +257,7 @@ namespace NSAP_ODK.Entities.Database
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = "Insert into JSONFile (RowID, FileName, [Count], EarliestDate, LatestDate, DateAdded, MD5, FormID, [Description]) Values (?,?,?,?,?,?,?,?,?)";
+                var sql = "Insert into JSONFile (RowID, FileName, [Count], EarliestDate, LatestDate, DateAdded, MD5, FormID, [Description], version) Values (?,?,?,?,?,?,?,?,?,?)";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
                     update.Parameters.Add("@row_id", OleDbType.Integer).Value = jsonFile.RowID;
@@ -255,6 +283,8 @@ namespace NSAP_ODK.Entities.Database
                     {
                         update.Parameters.Add("@description", OleDbType.VarChar).Value = jsonFile.Description;
                     }
+                    update.Parameters.Add("@version", OleDbType.VarChar).Value = jsonFile.VersionString;
+
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;
@@ -289,6 +319,7 @@ namespace NSAP_ODK.Entities.Database
                     cmd.Parameters.Add("@MD5", OleDbType.VarChar).Value = jsf.MD5;
                     cmd.Parameters.Add("@FormID", OleDbType.VarChar).Value = jsf.FormID;
                     cmd.Parameters.Add("@Description", OleDbType.VarChar).Value = jsf.Description;
+                    cmd.Parameters.Add("@version", OleDbType.VarChar).Value = jsf.VersionString;
                     cmd.Parameters.Add("@RowID", OleDbType.Integer).Value = jsf.RowID;
 
                     cmd.CommandText = @"Update JSONFile set
@@ -300,6 +331,7 @@ namespace NSAP_ODK.Entities.Database
                                         MD5 = @MD5,
                                         FormID = @FormID,
                                         Description = @Description,
+                                        version = @version
                                         Where RowID = @RowID";
                     try
                     {

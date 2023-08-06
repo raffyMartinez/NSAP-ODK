@@ -294,6 +294,7 @@
     <Compile Include="Entities\Database\UpdateXFormIdentifierRepo.cs" />
     <Compile Include="Entities\Database\VesselCatchWV.cs" />
     <Compile Include="Entities\Database\VesselUnload7ServerRepository.cs" />
+    <Compile Include="Entities\Database\MultiVesselGear_UnloadServerRepository.cs" />
     <Compile Include="Entities\Database\VesselUnloadServerRepository.cs" />
     <Compile Include="Entities\Database\VesselUnload_FishingGear.cs" />
     <Compile Include="Entities\Database\VesselUnload_FishingGearRepository.cs" />
@@ -318,6 +319,7 @@
     <Compile Include="Entities\FBSpecies.cs" />
     <Compile Include="Entities\ItemSources\FishingGroundInRegionFMAItemsSource.cs" />
     <Compile Include="Entities\ItemSources\GearsInNSAPRegionItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\GenusFromTaxaItemsSource.cs" />
     <Compile Include="Entities\ItemSources\GPSItemsSource.cs" />
     <Compile Include="Entities\Database\GPXparser\Track.cs" />
     <Compile Include="Entities\Database\GPXparser\Waypoint.cs" />
@@ -357,9 +359,15 @@
     <Compile Include="Entities\Database\LandingSiteSampling.cs" />
     <Compile Include="Entities\Database\LandingSiteSamplingRepository.cs" />
     <Compile Include="Entities\ItemSources\FMAInRegionItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\GutContentItemsSource.cs" />
     <Compile Include="Entities\ItemSources\LandingSiteInFMAFishingGroundItemsSource.cs" />
     <Compile Include="Entities\Database\VesselUnloadSummary.cs" />
+    <Compile Include="Entities\ItemSources\MaturityItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\PricingUnitItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\SexItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\SpeciesFromGenusItemsSource.cs" />
     <Compile Include="Entities\ItemSources\TaxaItemSourceNotFish.cs" />
+    <Compile Include="Entities\ItemSources\UTMZoneItemsSource.cs" />
     <Compile Include="Entities\KoboForms.cs" />
     <Compile Include="Entities\Koboform_files.cs" />
     <Compile Include="Entities\MDBTablesRowCount.cs" />
@@ -651,6 +659,9 @@
     <Compile Include="Views\VerifyCSVWindow.xaml.cs">
       <DependentUpon>VerifyCSVWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\VesselUnloadEditorWindow.xaml.cs">
+      <DependentUpon>VesselUnloadEditorWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\VesselUnloadEditWindow.xaml.cs">
       <DependentUpon>VesselUnloadEditWindow.xaml</DependentUpon>
     </Compile>
@@ -853,6 +864,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\VerifyCSVWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\VesselUnloadEditorWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

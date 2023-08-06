@@ -481,8 +481,10 @@ namespace NSAP_ODK.Entities.Database
                                 item.CatchMaturityViewModel = new CatchMaturityViewModel(item);
                                 item.WeighingUnit = dr["weighing_unit"].ToString();
                                 item.FromTotalCatch = (bool)dr["from_total_catch"];
+                                item.IsCatchSold =   (bool)dr["is_catch_sold"];
                                 item.PriceOfSpecies = string.IsNullOrEmpty(dr["price_of_species"].ToString()) ? null : (double?)dr["price_of_species"];
                                 item.PriceUnit = dr["price_unit"].ToString();
+                                item.OtherPriceUnit = dr["other_price_unit"].ToString();
                                 item.GearCode=string.IsNullOrEmpty(dr["gear_code"].ToString()) ? null : dr["gear_code"].ToString();
                                 item.GearText=string.IsNullOrEmpty(dr["gear_text"].ToString()) ? null : dr["gear_text"].ToString();
                                 thisList.Add(item);
@@ -669,8 +671,8 @@ namespace NSAP_ODK.Entities.Database
                 {
                     conn.Open();
 
-                    var sql = @"Insert into dbo_vessel_catch(catch_id, v_unload_id, species_id, catch_kg, samp_kg, taxa, species_text, weighing_unit,from_total_catch,price_of_species,price_unit)
-                            Values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    var sql = @"Insert into dbo_vessel_catch(catch_id, v_unload_id, species_id, catch_kg, samp_kg, taxa, species_text, weighing_unit,from_total_catch,price_of_species,price_unit,other_price_unit,is_catch_sold)
+                            Values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                     using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
                         update.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
@@ -723,6 +725,8 @@ namespace NSAP_ODK.Entities.Database
                             update.Parameters.Add("@price", OleDbType.Double).Value = item.PriceOfSpecies;
                         }
                         update.Parameters.Add("@price_unit", OleDbType.VarChar).Value = item.PriceUnit;
+                        update.Parameters.Add("@other_price_unit", OleDbType.VarChar).Value = item.OtherPriceUnit;
+                        update.Parameters.Add("@is_sold", OleDbType.VarChar).Value = item.IsCatchSold;
 
                         //if(item.TWS==null)
                         //{
@@ -902,7 +906,8 @@ namespace NSAP_ODK.Entities.Database
                         }
 
                         cmd.Parameters.Add("@price_unit", OleDbType.VarChar).Value = item.PriceUnit;
-
+                        cmd.Parameters.Add("@other_price_unit", OleDbType.VarChar).Value = item.OtherPriceUnit;
+                        cmd.Parameters.Add("@is_sold", OleDbType.Boolean).Value = item.IsCatchSold;
 
                         cmd.Parameters.Add("@catch_id", OleDbType.Integer).Value = item.PK;
 
@@ -917,7 +922,9 @@ namespace NSAP_ODK.Entities.Database
                                 weighing_unit = @wt_unit,
                                 from_total_catch = @from_total,
                                 price_of_species = @price,
-                                price_unit = @price_unit
+                                price_unit = @price_unit,
+                                other_price_unit = @other_price_unit,
+                                is_catch_sold = @is_sold
                             WHERE catch_id = @catch_id";
                         try
                         {
@@ -944,6 +951,12 @@ namespace NSAP_ODK.Entities.Database
             string sql = "";
             switch (fieldName)
             {
+                case "is_catch_sold":
+                    sql = "ALTER TABLE dbo_vessel_catch ADD COLUMN is_catch_sold bit";
+                    break;
+                case "other_price_unit":
+                    sql = "ALTER TABLE dbo_vessel_catch ADD COLUMN other_price_unit varchar(100)";
+                    break;
                 case "price_of_species":
                     sql = "ALTER TABLE dbo_vessel_catch ADD COLUMN price_of_species double";
                     break;

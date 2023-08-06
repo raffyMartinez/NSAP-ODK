@@ -50,6 +50,7 @@ namespace NSAP_ODK.Entities.Database
                     GearCode = Gear.Code;
                 }
                 else
+
                 {
                     GearCode = "";
                 }
@@ -93,13 +94,22 @@ namespace NSAP_ODK.Entities.Database
                 SectorCode = vesselUnload.SectorCode;
                 FromExcelDownload = vesselUnload.FromExcelDownload;
                 IsCatchSold = vesselUnload.IsCatchSold;
-                IsMutligear = vesselUnload.IsMultiGear;
+                IsMultigear = vesselUnload.IsMultiGear;
                 CountGearTypesUsed = vesselUnload.CountGearTypesUsed;
+                MainGearName = vesselUnload.GearUsed;
+
+                //if (vesselUnload.VesselCatchViewModel == null)
+                //{
+                //    vesselUnload.VesselCatchViewModel = new VesselCatchViewModel(vesselUnload);
+                //}
+                //VesselCatches = vesselUnload.VesselCatchViewModel.VesselCatchCollection.ToList();
             }
 
         }
         [ReadOnly(true)]
         public NSAPRegion NSAPRegion { get; set; }
+
+        //public List<VesselCatch> VesselCatches { get; set; }
 
         public bool FishingTripIsCompleted { get; set; }
         public string Region { get; set; }
@@ -113,8 +123,8 @@ namespace NSAP_ODK.Entities.Database
 
         [ItemsSource(typeof(FMAInRegionItemsSource))]
         public int FMAID { get; set; }
-
-        public bool IsMutligear { get; set; }
+        [ReadOnly(true)]
+        public bool IsMultigear { get; set; }
         public FishingGround FishingGround { get; set; }
         public bool IsCatchSold { get; set; }
         public int? NumberOfFishers { get; set; }
@@ -133,7 +143,8 @@ namespace NSAP_ODK.Entities.Database
 
         [ItemsSource(typeof(LandingSiteInFMAFishingGroundItemsSource))]
         public int? LandingSiteID { get; set; }
-
+        [ItemsSource(typeof(GearsInNSAPRegionItemsSource))]
+        public string MainGearName { get; set; }
         public Gear Gear { get; set; }
         [ReadOnly(true)]
         public string GearName { get; set; }
@@ -156,7 +167,7 @@ namespace NSAP_ODK.Entities.Database
 
         public string VesselText { get; set; }
 
-        public int CountGearTypesUsed { get; set; }
+        public int? CountGearTypesUsed { get; set; }
 
         public double? WeightOfCatch { get; set; }
 
@@ -398,8 +409,9 @@ namespace NSAP_ODK.Entities.Database
             HasCatchComposition = vesselUnload.HasCatchComposition;
             NumberOfFishers = vesselUnload.NumberOfFishers;
             CountGearTypesUsed = vesselUnload.CountGearTypesUsed;
+            ODKRowID = vesselUnload.ODKRowID;
         }
-        public int CountGearTypesUsed { get; private set; }
+        public int? CountGearTypesUsed { get; private set; }
         public bool IsCatchSold { get; private set; }
         public string Region { get; private set; }
         public string FMA { get; private set; }
@@ -411,7 +423,7 @@ namespace NSAP_ODK.Entities.Database
         public int Identifier { get; private set; }
         public string SamplingDate { get; private set; }
         public string Enumerator { get; private set; }
-
+        public string ODKRowID { get; private set; }
         public bool IsBoatUsed { get; private set; }
         public string FishingVessel { get; private set; }
 
@@ -495,7 +507,7 @@ namespace NSAP_ODK.Entities.Database
             CountGearTypesUsed = vesselUnload.CountGearTypesUsed;
         }
         public int ID { get; set; }
-        public int CountGearTypesUsed { get; set; }
+        public int? CountGearTypesUsed { get; set; }
         public bool IsMultigear { get; set; }
 
         public bool IsCatchSold { get; set; }
@@ -627,8 +639,8 @@ namespace NSAP_ODK.Entities.Database
         private NSAPEnumerator _nsapEnumerator;
         private double _runningSum = 0;
         private bool _speciesWeightIsZero;
-
-        public int CountGearTypesUsed { get; set; }
+        public int? SequenceOfSampling { get; set; }
+        public int? CountGearTypesUsed { get; set; }
         public LandedCatchValidationResult LandedCatchValidationResult
         {
             get { return _landedCatchValidationResult; }
@@ -663,7 +675,7 @@ namespace NSAP_ODK.Entities.Database
         public VesselUnloadWeights VesselUnloadWeights { get; set; }
         public bool IsCatchSold { get; set; }
         public bool DelayedSave { get; set; }
-        public VesselUnloadViewModel ContainerViewModel { get; set; }
+        //public VesselUnloadViewModel ContainerViewModel { get; set; }
         public VesselCatchViewModel VesselCatchViewModel { get; set; }
 
         public VesselUnload_FishingGearViewModel VesselUnload_FishingGearsViewModel { get; set; }
@@ -1297,6 +1309,20 @@ namespace NSAP_ODK.Entities.Database
                 GetCounts();
                 return VesselCatchViewModel.VesselCatchCollection.ToList();
 
+            }
+        }
+
+        public List<VesselCatchEdited> ListVesselCatchEdited
+        {
+            get
+            {
+                List<VesselCatchEdited> the_list = new List<VesselCatchEdited>();
+                foreach (VesselCatch vc in ListVesselCatch)
+                {
+                    VesselCatchEdited vce = new VesselCatchEdited(vc);
+                    the_list.Add(vce);
+                }
+                return the_list;
             }
         }
         public bool OperationIsSuccessful { get; set; }

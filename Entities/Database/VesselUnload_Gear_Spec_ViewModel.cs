@@ -171,14 +171,15 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if (VesselUnload_Gear_SpecCollection.Count == 0)
-                {
-                    return 1;
-                }
-                else
-                {
-                    return VesselUnload_Gear_Specs.MaxRecordNumber() + 1;
-                }
+                return NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastVesselEffortsPK+1;
+                //if (VesselUnload_Gear_SpecCollection.Count == 0)
+                //{
+                //    return 1;
+                //}
+                //else
+                //{
+                //    return VesselUnload_Gear_Specs.MaxRecordNumber() + 1;
+                //}
             }
         }
 
