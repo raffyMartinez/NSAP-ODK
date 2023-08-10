@@ -81,7 +81,10 @@ namespace NSAP_ODK.Entities.Database
                                                                 {
                                                                     if (cols.Contains("count_gear_types") || VesselUnloadRepository.UpdateTableDefinitionEx("count_gear_types"))
                                                                     {
-                                                                        proceed = true;
+                                                                        if (cols.Contains("number_species_catch_composition") || VesselUnloadRepository.UpdateTableDefinitionEx("number_species_catch_composition"))
+                                                                        {
+                                                                            proceed = true;
+                                                                        }
                                                                     }
                                                                 }
                                                             }
@@ -187,7 +190,7 @@ namespace NSAP_ODK.Entities.Database
                                                         proceed = cols.Contains("json_file_id") || UnmatchedFieldsFromJSONFileRepository.AddFieldToTable("json_file_id");
                                                     }
 
-                                                    if(proceed)
+                                                    if (proceed)
                                                     {
                                                         cols = CreateTablesInAccess.GetColumnNames("JSONFIle");
                                                         proceed = cols.Contains("version") || JSONFileRepository.AddFieldToTable("version");
@@ -321,6 +324,7 @@ namespace NSAP_ODK.Entities.Database
         }
         private List<LandingSiteSampling> getLandingSiteSamplings()
         {
+
             List<LandingSiteSampling> thisList = new List<LandingSiteSampling>();
             if (Global.Settings.UsemySQL)
             {
@@ -333,6 +337,7 @@ namespace NSAP_ODK.Entities.Database
                 {
                     using (var cmd = conection.CreateCommand())
                     {
+                        int loopCount = 0;
                         try
                         {
                             conection.Open();
@@ -346,6 +351,7 @@ namespace NSAP_ODK.Entities.Database
 
                             thisList.Clear();
                             OleDbDataReader dr = cmd.ExecuteReader();
+
                             while (dr.Read())
                             {
                                 LandingSiteSampling item = new LandingSiteSampling();
@@ -358,7 +364,14 @@ namespace NSAP_ODK.Entities.Database
                                 item.IsSamplingDay = (bool)dr["sampleday"];
                                 item.LandingSiteText = dr["land_ctr_text"].ToString();
                                 item.HasFishingOperation = (bool)dr["has_fishing_operation"];
-                                item.IsMultiVessel = (bool)dr["is_multivessel"];
+                                if (dr["is_multivessel"] == DBNull.Value)
+                                {
+                                    item.IsMultiVessel = false;
+                                }
+                                else
+                                {
+                                    item.IsMultiVessel = (bool)dr["is_multivessel"];
+                                }
                                 item.FMAID = (int)dr["fma"];
                                 item.DateSubmitted = dr["datetime_submitted"] == DBNull.Value ? null : (DateTime?)dr["datetime_submitted"];
                                 item.UserName = dr["user_name"].ToString();
@@ -388,6 +401,7 @@ namespace NSAP_ODK.Entities.Database
                                     }
                                 }
                                 thisList.Add(item);
+                                loopCount++;
                             }
 
                         }

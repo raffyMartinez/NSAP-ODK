@@ -1619,8 +1619,8 @@ namespace NSAP_ODK.Entities
                         update.Parameters.Add("@id", OleDbType.Integer).Value = fmaFishingGroundLandingSite.RowID;
 
                         update.CommandText = @"Update NSAPRegionLandingSite set
-                                            LandingSiteID = @id',
-                                            DateStart = @start',
+                                            LandingSiteID = @id,
+                                            DateStart = @start,
                                             DateEnd = @end
                                         Where RowID=@id";
 

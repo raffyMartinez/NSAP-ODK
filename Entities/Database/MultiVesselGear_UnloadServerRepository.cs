@@ -120,6 +120,7 @@ namespace NSAP_ODK.Entities.Database
             //if (LandingSiteSamplingViewModel.CurrentIDNumber == 0)
             //{
             LandingSiteSamplingViewModel.CurrentIDNumber = NSAPEntities.SummaryItemViewModel.GetLandingSiteSamplingMaxRecordNumber(fromCollection: true);
+            LandingSiteSamplingViewModel.CurrentIDNumber = NSAPEntities.SummaryItemViewModel.GetLandingSiteSamplingMaxRecordNumber(fromCollection: true);
             //}
             foreach (MultiVesselGear_Root root in MultiVesselLandings)
             {
@@ -227,7 +228,8 @@ namespace NSAP_ODK.Entities.Database
                                         EnumeratorText = gu.Parent.EnumeratorText,
                                         DateAddedToDatabase = DateTime.Now,
                                         FormVersion = sl.Parent.FormVersion == -1 ? "" : sl.Parent.FormVersion.ToString(),
-                                        XFormIdentifier = sl.Parent._xform_id_string
+                                        XFormIdentifier = sl.Parent._xform_id_string,
+                                        NumberOfSpeciesInCatchComposition = sl.NumberSpeciesInCatchComposition
                                     };
                                     if (gu.VesselUnloadViewModel.AddRecordToRepo(vu))
                                     {
@@ -1107,6 +1109,8 @@ namespace NSAP_ODK.Entities.Database
 
         [JsonProperty("repeat_landings/group_sampled_landing/vessel_catch/catch_sampled")]
         public double? CatchSampled { get; set; }
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/select_length_group/catch_composition_items_count")]
+        public int? NumberSpeciesInCatchComposition { get; set; }
 
         [JsonProperty("repeat_landings/group_sampled_landing/vessel_catch/is_region_total_enumeration")]
         public string Is_region_total_enumeration { get; set; }

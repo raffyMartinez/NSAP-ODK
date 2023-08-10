@@ -172,70 +172,6 @@ namespace NSAP_ODK.Views
                 NSAPEntities.EntityToRefresh = NSAPEntity.Nothing;
                 SetUpSubFormSource();
             }
-
-            //if (_requireUpdateToFishBase && !_updatingFBSpecies)
-            //{
-            //    _updatingFBSpecies = true;
-            //    statusBar.Visibility = Visibility.Visible;
-            //    //if (NSAPEntities.FBSpeciesViewModel == null)
-            //    //{
-            //    //    NSAPEntities.FBSpeciesViewModel = new FBSpeciesViewModel();
-            //    //}
-            //    NSAPEntities.FBSpeciesViewModel.FBSpeciesUpdateEvent += FBSpeciesViewModel_FBSpeciesUpdateEvent;
-            //    NSAPEntities.FBSpeciesViewModel.ObjectCreated();
-
-            //    if (NSAPEntities.FBSpeciesViewModel.FBSpeciesUpdateStatus == FBSpeciesUpdateStatus.FBSpeciesStatus_SettingsNotFound)
-            //    {
-
-            //        //if (_showUpdateMessage && MessageBox.Show(
-            //        if (MessageBox.Show(
-            //        "It is recommended to update the Fishbase species list\r\nDo you wish to continue?",
-            //        Utilities.Global.MessageBoxCaption,
-            //        MessageBoxButton.YesNo,
-            //        MessageBoxImage.Question
-            //        ) == MessageBoxResult.Yes)
-            //        {
-            //            await UpdateFbSpecies();
-            //        }
-            //        else
-            //        {
-            //            Close();
-            //            //_showUpdateMessage = false;
-            //        }
-
-            //    }
-            //    else
-            //    {
-            //        //buttonUpdate.Visibility = Visibility.Visible;
-            //        statusBar.Visibility = Visibility.Collapsed;
-            //    }
-            //}
-
-            //buttonValidate.Visibility = Visibility.Collapsed;
-
-            //if (_requireUpdateToFishBase && !_updatingFBSpecies)
-            //{
-            //    statusBar.Visibility = Visibility.Visible;
-            //    _updatingFBSpecies = true;
-
-
-            //    if (NSAPEntities.FBSpeciesViewModel.FBSpeciesUpdateStatus == FBSpeciesUpdateStatus.FBSpeciesStatus_SettingsNotFound)
-            //    {
-
-            //        progressBar.IsIndeterminate = true;
-            //        progressLabel.Content = "Waiting to load update file of FishBase species list";
-            //        NSAPEntities.FBSpeciesViewModel.ObjectCreated();
-            //        NSAPEntities.FBSpeciesViewModel.FBSpeciesUpdateEvent += FBSpeciesViewModel_FBSpeciesUpdateEvent;
-            //        await UpdateFbSpecies();
-
-            //    }
-            //    else
-            //    {
-            //        statusBar.Visibility = Visibility.Collapsed;
-            //        buttonUpdate.Visibility = Visibility.Visible;
-            //    }
-            //    _updatingFBSpecies = false;
-            //}
         }
 
         private void FBSpeciesViewModel_FBSpeciesUpdateEvent(object sender, FBSpeciesUpdateEventArgs e)
@@ -551,6 +487,7 @@ namespace NSAP_ODK.Views
                 switch (_selectedProperty)
                 {
                     case "EnumeratorID":
+                        #region enumerator ID
                         if (NSAPEntities.NSAPEnumeratorViewModel.CurrentEntity != null)
                         {
                             NSAPEnumerator nse = NSAPEntities.NSAPEnumeratorViewModel.CurrentEntity;
@@ -588,8 +525,9 @@ namespace NSAP_ODK.Views
                             }
                         }
                         break;
-
+                    #endregion
                     case "FishingVesselID":
+                        #region fishing vessel ID
                         if (NSAPEntities.FishingVesselViewModel.CurrentEntity != null)
                         {
                             FishingVessel fv = NSAPEntities.FishingVesselViewModel.CurrentEntity;
@@ -627,8 +565,9 @@ namespace NSAP_ODK.Views
                             }
                         }
                         break;
-
+                    #endregion
                     case "GearCode":
+                        #region gear code
                         if (NSAPEntities.GearViewModel.CurrentEntity != null)
                         {
                             Gear g = NSAPEntities.GearViewModel.CurrentEntity;
@@ -666,8 +605,9 @@ namespace NSAP_ODK.Views
                             }
                         }
                         break;
-
+                    #endregion 
                     case "LandingSiteID":
+                        #region landing site ID
                         if (NSAPEntities.LandingSiteViewModel.CurrentEntity != null)
                         {
                             LandingSite ls = NSAPEntities.LandingSiteViewModel.CurrentEntity;
@@ -715,8 +655,9 @@ namespace NSAP_ODK.Views
                             }
                         }
                         break;
-
+                    #endregion
                     case "FishingGroundCode":
+                        #region fishing ground code
                         if (NSAPEntities.FishingGroundViewModel.CurrentEntity != null)
                         {
                             FishingGround fg = NSAPEntities.FishingGroundViewModel.CurrentEntity;
@@ -755,6 +696,7 @@ namespace NSAP_ODK.Views
                             }
                         }
                         break;
+                        #endregion
                 }
                 cbo.DisplayMemberPath = "Value";
                 cbo.SelectionChanged += OnComboSelectionChanged;
@@ -780,6 +722,7 @@ namespace NSAP_ODK.Views
             {
 
                 case NSAPEntity.NSAPRegionFMAFishingGroundLandingSite:
+                    #region NSAP Region FMA FishingGround LandingSite
 
                     NSAPRegionFMAFishingGroundLandingSiteEdit nsapRegionFMAFGLS = new NSAPRegionFMAFishingGroundLandingSiteEdit();
                     var landingSite = (NSAPRegionFMAFishingGroundLandingSite)_nsapObject;
@@ -801,6 +744,7 @@ namespace NSAP_ODK.Views
                             Barangay = nsffls.Barangay
                         };
                     }
+                    Entities.ItemSources.LandingSiteMunicipalityItemsSource.Province = NSAPEntities.ProvinceViewModel.GetProvince(nsapRegionFMAFGLS.Province);
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Province", DisplayName = "Province", DisplayOrder = 1, Description = "Province where landing site is found" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Municipality", DisplayName = "Municipality", DisplayOrder = 2, Description = "Municipality where landing site is found" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LandingSiteID", DisplayName = "Landing site*", DisplayOrder = 4, Description = "Name of landing site.\r\nDouble click to directly add a new landing site to the fishing ground" });
@@ -809,13 +753,15 @@ namespace NSAP_ODK.Views
 
                     if (_isNew)
                     {
+                        Entities.ItemSources.LandingSiteMunicipalityItemsSource.Province = null;
                         PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "RowID", DisplayName = "Database identifier", DisplayOrder = 7, Description = "Identifier used in the database" });
                     }
 
                     PropertyGrid.SelectedObject = nsapRegionFMAFGLS;
                     break;
-
+                #endregion
                 case NSAPEntity.FishingGearEffortSpecification:
+                    #region FishingGear Effort Specification
                     var fgs = (GearEffortSpecification)_nsapObject;
                     GearEffortSpecification gearEffortSpec = new GearEffortSpecification();
                     Entities.ItemSources.EffortSpecificationItemsSource.VesselUnload_Gear_Spec = null;
@@ -838,8 +784,9 @@ namespace NSAP_ODK.Views
 
                     PropertyGrid.SelectedObject = gearEffortSpec;
                     break;
-
+                #endregion
                 case NSAPEntity.NSAPRegionFMAFishingGround:
+                    #region  NSAP Region FMAF ishingGround
                     Title = "Fishing ground in FMA";
                     NSAPRegionFMAFishingGround nsapRegionFMAFishingGround = (NSAPRegionFMAFishingGround)_nsapObject;
                     LabelTop.Content = $"New fishing ground for {nsapRegionFMAFishingGround.RegionFMA.FMA}, {nsapRegionFMAFishingGround.RegionFMA.NSAPRegion}";
@@ -869,8 +816,9 @@ namespace NSAP_ODK.Views
                     PropertyGrid.SelectedObject = nsapRegionFMAFishingGround;
 
                     break;
-
+                #endregion
                 case NSAPEntity.NSAPRegionFishingVessel:
+                    #region NSAP region fishing vessel
                     Title = "Fishing vessel in NSAP Region";
                     NSAPRegionFishingVesselEdit nsapRegionFishingVesselEdit = new NSAPRegionFishingVesselEdit();
                     LabelTop.Content = $"New fishing vessel to be added to {NSAPEntities.NSAPRegionViewModel.CurrentEntity}";
@@ -896,8 +844,9 @@ namespace NSAP_ODK.Views
 
                     PropertyGrid.SelectedObject = nsapRegionFishingVesselEdit;
                     break;
-
+                #endregion
                 case NSAPEntity.NSAPRegionFMA:
+                    #region nsap region FMA
                     if (!_isNew)
                     {
                         this.Title = "FMA in NSAP Region";
@@ -918,8 +867,9 @@ namespace NSAP_ODK.Views
                         PropertyGrid.SelectedObject = nsapRegionFMA;
                     }
                     break;
-
+                #endregion
                 case NSAPEntity.NSAPRegionEnumerator:
+                    #region nsap region enumerator
                     this.Title = "Enumerator in NSAP Region";
                     NSAPRegionEnumerator nsapRegionEnumerator = new NSAPRegionEnumerator();
                     LabelTop.Content = $"New enumerator to be added to {NSAPEntities.NSAPRegionViewModel.CurrentEntity}";
@@ -944,8 +894,9 @@ namespace NSAP_ODK.Views
 
                     PropertyGrid.SelectedObject = nsapRegionEnumerator;
                     break;
-
+                #endregion 
                 case NSAPEntity.NSAPRegionGear:
+                    #region nsap region gear
                     Entities.ItemSources.GearItemsSource.UnloadGears = null;
                     Entities.ItemSources.GearItemsSource.AllowAddBlankGearName = false;
                     NSAPRegionGear nsapRegionGear = new NSAPRegionGear();
@@ -972,8 +923,9 @@ namespace NSAP_ODK.Views
 
                     PropertyGrid.SelectedObject = nsapRegionGear;
                     break;
-
+                #endregion
                 case NSAPEntity.FishSpecies:
+                    #region fish species
                     //bool proceed = true;
 
                     //if ( NSAPEntities.FBSpeciesViewModel == null || NSAPEntities.FBSpeciesViewModel.Count == 0)
@@ -1077,8 +1029,9 @@ namespace NSAP_ODK.Views
                     //}
 
                     break;
-
+                #endregion
                 case NSAPEntity.NonFishSpecies:
+                    #region non fish species
                     Title = "Non fish species";
                     NotFishSpeciesEdit notFishSpeciesEdit = new NotFishSpeciesEdit();
                     LabelTop.Content = "New non-fish species";
@@ -1105,8 +1058,9 @@ namespace NSAP_ODK.Views
                     PropertyGrid.SelectedObject = notFishSpeciesEdit;
 
                     break;
-
+                #endregion
                 case NSAPEntity.EffortIndicator:
+                    #region effort indicator
                     Title = "Effort indicator";
                     EffortSpecification effortSpecification = new EffortSpecification();
                     LabelTop.Content = "New fishing effort specification";
@@ -1133,8 +1087,9 @@ namespace NSAP_ODK.Views
 
                     PropertyGrid.SelectedObject = effortSpecification;
                     break;
-
+                #endregion
                 case NSAPEntity.Municipality:
+                    #region municipality
                     Title = "Municipality";
                     MunicipalityEdit munEdit = new MunicipalityEdit();
                     LabelTop.Content = "New municipality";
@@ -1156,8 +1111,9 @@ namespace NSAP_ODK.Views
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Latitude", DisplayName = "Latitude", DisplayOrder = 6, Description = "Latitude of municipality's location" });
                     PropertyGrid.SelectedObject = munEdit;
                     break;
-
+                #endregion
                 case NSAPEntity.Province:
+                    #region province
                     Title = "Province";
                     Province prv = new Province();
                     LabelTop.Content = "New province";
@@ -1188,8 +1144,9 @@ namespace NSAP_ODK.Views
                     }
                     PropertyGrid.SelectedObject = prv;
                     break;
-
+                #endregion
                 case NSAPEntity.FishingGround:
+                    #region fishing ground
                     Title = "Fishing ground";
                     FishingGround fishingGround = new FishingGround();
                     LabelTop.Content = "New fishing ground";
@@ -1214,8 +1171,9 @@ namespace NSAP_ODK.Views
                         MakePropertyReadOnly("Code");
                     }
                     break;
-
+                #endregion 
                 case NSAPEntity.NSAPRegion:
+                    #region nsap region
                     Title = "NSAP Region";
                     NSAPRegionEdit nsapRegionEdit = new NSAPRegionEdit();
                     if (!_isNew)
@@ -1234,8 +1192,9 @@ namespace NSAP_ODK.Views
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "ID", DisplayName = "Database identifier", DisplayOrder = 7, Description = "Identifier of the landing site in database" });
                     PropertyGrid.SelectedObject = nsapRegionEdit;
                     break;
-
+                #endregion
                 case NSAPEntity.FMA:
+                    #region fma
                     FMA fma = new FMA();
                     Title = "FMA";
                     if (!_isNew)
@@ -1252,8 +1211,9 @@ namespace NSAP_ODK.Views
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "ID", DisplayName = "Database identifier", DisplayOrder = 2, Description = "Identifier of FMA in the database" });
                     PropertyGrid.SelectedObject = fma;
                     break;
-
+                #endregion
                 case NSAPEntity.LandingSite:
+                    #region landing site
                     LandingSiteEdit landingSiteEdit = new LandingSiteEdit();
                     LabelTop.Content = "New landing site";
                     Title = "Landing site";
@@ -1273,7 +1233,9 @@ namespace NSAP_ODK.Views
 
                     PropertyGrid.SelectedObject = landingSiteEdit;
                     break;
+                #endregion
                 case NSAPEntity.GPS:
+                    #region gps
                     LabelTop.Content = "New GPS";
                     Title = "GPS";
                     GPS gps = new GPS();
@@ -1308,7 +1270,9 @@ namespace NSAP_ODK.Views
                         MakePropertyReadOnly("Code");
                     }
                     break;
+                #endregion
                 case NSAPEntity.FishingGear:
+                    #region fishing gear
                     Entities.ItemSources.EffortSpecificationItemsSource.VesselUnload_Gear_Spec = null;
                     GearEdit gearEdit = new GearEdit();
                     LabelTop.Content = "New fishing gear";
@@ -1342,8 +1306,9 @@ namespace NSAP_ODK.Views
                         MakePropertyReadOnly("Code");
                     }
                     break;
-
+                #endregion
                 case NSAPEntity.Enumerator:
+                    #region enumerator
                     LabelTop.Content = "New sampling enumerator";
                     Title = "Enumerator";
                     NSAPEnumerator nsapEnumerator = new NSAPEnumerator();
@@ -1360,8 +1325,9 @@ namespace NSAP_ODK.Views
 
                     PropertyGrid.SelectedObject = nsapEnumerator;
                     break;
-
+                #endregion 
                 case NSAPEntity.FishingVessel:
+                    #region fishing vessel
                     LabelTop.Content = "New fishing vessel";
                     Title = "Fishing vessel";
                     FishingVessel fishingVessel = new FishingVessel();
@@ -1399,6 +1365,7 @@ namespace NSAP_ODK.Views
                     PropertyGrid.SelectedObject = fishingVessel;
 
                     break;
+                    #endregion 
             }
             foreach (PropertyItem prp in PropertyGrid.Properties)
             {
@@ -1460,6 +1427,7 @@ namespace NSAP_ODK.Views
             switch (cbo.Tag.ToString())
             {
                 case "FishingGears":
+                    #region fishing gears
                     foreach (PropertyItem prp in PropertyGrid.Properties)
                     {
                         if (prp.PropertyName == "BaseGear")
@@ -1469,7 +1437,9 @@ namespace NSAP_ODK.Views
                         }
                     }
                     break;
+                #endregion
                 case "FishingVessels":
+                    #region fishing vessels
                     foreach (PropertyItem prp in PropertyGrid.Properties)
                     {
                         if (prp.PropertyName == "FishingVesselID")
@@ -1479,7 +1449,9 @@ namespace NSAP_ODK.Views
                         }
                     }
                     break;
+                #endregion
                 case "Enumerator":
+                    #region enumerator
                     foreach (PropertyItem prp in PropertyGrid.Properties)
                     {
                         if (prp.PropertyName == "EnumeratorID")
@@ -1489,8 +1461,9 @@ namespace NSAP_ODK.Views
                         }
                     }
                     break;
-
+                #endregion
                 case "Gear":
+                    #region gear
                     foreach (PropertyItem prp in PropertyGrid.Properties)
                     {
                         if (prp.PropertyName == "GearCode")
@@ -1500,8 +1473,9 @@ namespace NSAP_ODK.Views
                         }
                     }
                     break;
-
+                #endregion
                 case "Province":
+                    #region province
                     foreach (PropertyItem prp in PropertyGrid.Properties)
                     {
                         if (prp.PropertyName == "Province")
@@ -1511,8 +1485,9 @@ namespace NSAP_ODK.Views
                         }
                     }
                     break;
-
+                #endregion
                 case "Municipality":
+                    #region municipality
                     foreach (PropertyItem prp in PropertyGrid.Properties)
                     {
                         if (prp.PropertyName == "Municipality")
@@ -1522,8 +1497,9 @@ namespace NSAP_ODK.Views
                         }
                     }
                     break;
-
+                #endregion
                 case "FishingVessel":
+                    #region fishing vessel
                     foreach (PropertyItem prp in PropertyGrid.Properties)
                     {
                         if (prp.PropertyName == "FishingVesselID")
@@ -1533,8 +1509,9 @@ namespace NSAP_ODK.Views
                         }
                     }
                     break;
-
+                #endregion
                 case "LandingSite":
+                    #region landing site
                     foreach (PropertyItem prp in PropertyGrid.Properties)
                     {
                         if (prp.PropertyName == "LandingSiteID")
@@ -1544,8 +1521,9 @@ namespace NSAP_ODK.Views
                         }
                     }
                     break;
-
+                #endregion
                 case "FishingGround":
+                    #region fishing ground
                     foreach (PropertyItem prp in PropertyGrid.Properties)
                     {
                         if (prp.PropertyName == "FishingGroundCode")
@@ -1555,7 +1533,9 @@ namespace NSAP_ODK.Views
                         }
                     }
                     break;
+                #endregion
                 case "FishGenus":
+                    #region fish genus
                     foreach (PropertyItem prp in PropertyGrid.Properties)
                     {
                         if (prp.PropertyName == "GenericName")
@@ -1571,7 +1551,9 @@ namespace NSAP_ODK.Views
                         }
                     }
                     break;
+                #endregion 
                 case "FishSpecies":
+                    #region fish species
                     _speciesInFishSpeciesList = true;
                     if (_cboSpecies.SelectedItem != null)
                     {
@@ -1625,6 +1607,7 @@ namespace NSAP_ODK.Views
                         }
                     }
                     break;
+                    #endregion 
             }
         }
 
@@ -1676,26 +1659,18 @@ namespace NSAP_ODK.Views
 
         }
 
-        //private bool DownloadCSVFromServer()
-        //{
-        //    ODKResultsWindow window = new ODKResultsWindow();
-        //    window.Owner = this;
-        //    window.DownloadCSVFromServer = true;
-        //    window.OpenLogInWindow(isOpen: true);
-        //    return (bool)window.ShowDialog();
-        //}
         private void ValidateRegionCSV()
         {
             bool proceed = false;
             if (string.IsNullOrEmpty(Global.CSVMediaSaveFolder))
             {
-                var r = MessageBox.Show("CSV files not found. Do you want to specify a folder or download the files\r\n\r\n" +
+                var message_box_result = MessageBox.Show("CSV files not found. Do you want to specify a folder or download the files\r\n\r\n" +
                     "Select Yes if you want to specify a folder containing csv files,\r\n" +
                     "No, if you want to download the files,\r\n" +
                     "Cancel, to cancel this operation", "NSAP-ODK Database,",
                     MessageBoxButton.YesNoCancel,
                     MessageBoxImage.Question);
-                switch (r)
+                switch (message_box_result)
                 {
                     case MessageBoxResult.Yes:
                         proceed = GetCSVSaveLocationFromSaveAsDialog();
@@ -1745,8 +1720,8 @@ namespace NSAP_ODK.Views
         public void RefreshSubForm(string task)
         {
             FillPropertyGrid();
-             SetUpSubForm();
-            switch(task)
+            SetUpSubForm();
+            switch (task)
             {
                 case "delete region vessels":
                     //SetUpSubForm();
@@ -1818,6 +1793,7 @@ namespace NSAP_ODK.Views
                     switch (_nsapEntity)
                     {
                         case NSAPEntity.FishingGear:
+                            #region fishinggear
                             var ges = (GearEffortSpecification)sfDataGrid.SelectedItem;
                             if (!ges.EffortSpecification.IsForAllTypesFishing)
                             {
@@ -1829,7 +1805,9 @@ namespace NSAP_ODK.Views
                                 MessageBox.Show("Cannot delete a universal effort specification", Utilities.Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
                             }
                             break;
+                        #endregion
                         case NSAPEntity.NSAPRegionFMAFishingGround:
+                            #region nsapregionfmafishingground
                             NSAPRegionFMAFishingGround nrfg = (NSAPRegionFMAFishingGround)_nsapObject;
                             NSAPRegionFMAFishingGroundLandingSite regionLandingSite = (NSAPRegionFMAFishingGroundLandingSite)sfDataGrid.SelectedItem;
 
@@ -1838,7 +1816,9 @@ namespace NSAP_ODK.Views
                                 success = nrfg.LandingSites.Remove(regionLandingSite);
                             }
                             break;
+                        #endregion
                         case NSAPEntity.NSAPRegionFMA:
+                            #region nsapregionfma
                             NSAPRegionFMA regionFMA = (NSAPRegionFMA)_nsapObject;
                             NSAPRegionFMAFishingGround regionFishingGround = (NSAPRegionFMAFishingGround)sfDataGrid.SelectedItem;
                             if (entitiesRepository.DeleteFishingGround(regionFishingGround.RowID))
@@ -1854,7 +1834,9 @@ namespace NSAP_ODK.Views
                                     MessageBoxImage.Information);
                             }
                             break;
+                        #endregion
                         case NSAPEntity.NSAPRegion:
+                            #region nsapregion
                             NSAPRegion region = (NSAPRegion)_nsapObject;
                             if (sfDataGrid.SelectedItem != null)
                             {
@@ -1903,14 +1885,14 @@ namespace NSAP_ODK.Views
                                         if (sfDataGrid.SelectedItems.Count > 1)
                                         {
                                             List<NSAPRegionFishingVessel> regionVessels = new List<NSAPRegionFishingVessel>();
-                                            foreach(var item in sfDataGrid.SelectedItems)
+                                            foreach (var item in sfDataGrid.SelectedItems)
                                             {
                                                 regionVessels.Add((NSAPRegionFishingVessel)item);
                                             }
                                             ProgressDialogWindow pdw = ProgressDialogWindow.GetInstance("delete region vessels");
                                             pdw.NSAPRegionFishingVessels = regionVessels;
                                             pdw.Owner = this;
-                                            if(pdw.Visibility==Visibility.Visible)
+                                            if (pdw.Visibility == Visibility.Visible)
                                             {
                                                 pdw.BringIntoView();
                                             }
@@ -1938,6 +1920,7 @@ namespace NSAP_ODK.Views
                                 }
                             }
                             break;
+                            #endregion
                     }
 
                     if (success)
@@ -1958,6 +1941,7 @@ namespace NSAP_ODK.Views
                     switch (_nsapEntity)
                     {
                         case NSAPEntity.GPS:
+                            #region gps
                             GPS gps = (GPS)PropertyGrid.SelectedObject;
                             validationResult = NSAPEntities.GPSViewModel.ValidateGPS(gps, _isNew, _oldName, _oldIdentifier);
                             if (validationResult.WarningMessage.Length > 0)
@@ -1983,8 +1967,10 @@ namespace NSAP_ODK.Views
                                 }
                                 //success = true;
                             }
+                            #endregion
                             break;
                         case NSAPEntity.Municipality:
+                            #region municipality
                             var munEdit = (MunicipalityEdit)PropertyGrid.SelectedObject;
                             Municipality municipality = new Municipality
                             {
@@ -2025,8 +2011,9 @@ namespace NSAP_ODK.Views
                                 }
                             }
                             break;
-
+                        #endregion
                         case NSAPEntity.Province:
+                            #region province
                             var prv = (Province)PropertyGrid.SelectedObject;
                             Province province = new Province
                             {
@@ -2058,8 +2045,9 @@ namespace NSAP_ODK.Views
                                 }
                             }
                             break;
-
+                        #endregion 
                         case NSAPEntity.NonFishSpecies:
+                            #region nonfishspecies
                             var nfe = (NotFishSpeciesEdit)PropertyGrid.SelectedObject;
                             NotFishSpecies notFish = new NotFishSpecies
                             {
@@ -2126,8 +2114,9 @@ namespace NSAP_ODK.Views
 
                             }
                             break;
-
+                        #endregion
                         case NSAPEntity.FishSpecies:
+                            #region fishspecies
                             if (_isNew && !string.IsNullOrEmpty(_newGenus) && !string.IsNullOrEmpty(_newSpecies) && _selectedFishSpecies != null)
                             {
                                 success = true;
@@ -2183,18 +2172,22 @@ namespace NSAP_ODK.Views
                                 }
                             }
                             break;
-
+                        #endregion
                         case NSAPEntity.NSAPRegion:
+                            #region nsapregion
                             var r = (NSAPRegionEdit)PropertyGrid.SelectedObject;
                             NSAPRegion nr = new NSAPRegion { Code = r.NSAPRegion.Code, Name = r.Name, ShortName = r.ShortName, Sequence = r.NSAPRegion.Sequence };
                             //nr.NSAPEnumerators=r.NSAPRegion.NSAPEnumerators
                             success = NSAPEntities.NSAPRegionViewModel.UpdateRecordInRepo(nr);
                             break;
+                        #endregion
                         case NSAPEntity.NSAPRegionFMA:
+                            #region nsapregionfma
                             success = true;
                             break;
-
+                        #endregion
                         case NSAPEntity.NSAPRegionEnumerator:
+                            #region nsapregionenumerator
                             rvm = NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(nsapRegion);
                             var regionEnumerator = (NSAPRegionEnumerator)PropertyGrid.SelectedObject;
                             regionEnumerator.NSAPRegion = nsapRegion;
@@ -2231,8 +2224,9 @@ namespace NSAP_ODK.Views
                                 }
                             }
                             break;
-
+                        #endregion
                         case NSAPEntity.FishingGearEffortSpecification:
+                            #region fishinggeareffortspecification
                             var gearEffortSpec = (GearEffortSpecification)PropertyGrid.SelectedObject;
                             gearEffortSpec.Gear = NSAPEntities.GearViewModel.CurrentEntity;
                             gearEffortSpec.EffortSpecification = NSAPEntities.EffortSpecificationViewModel.GetEffortSpecification(gearEffortSpec.EffortSpecificationID);
@@ -2261,8 +2255,9 @@ namespace NSAP_ODK.Views
                                 success = true;
                             }
                             break;
-
+                        #endregion
                         case NSAPEntity.NSAPRegionFMAFishingGroundLandingSite:
+                            #region nsapregionfmafishinggroundlandingsite
                             rvm = NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(nsapRegion);
                             var fmaFishngGroundLandingSiteEdit = (NSAPRegionFMAFishingGroundLandingSiteEdit)PropertyGrid.SelectedObject;
                             if (fmaFishngGroundLandingSiteEdit.LandingSiteID > 0)
@@ -2298,8 +2293,9 @@ namespace NSAP_ODK.Views
                                 }
                             }
                             break;
-
+                        #endregion
                         case NSAPEntity.NSAPRegionFMAFishingGround:
+                            #region nsapregionfmafishingground
                             rvm = NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(nsapRegion);
                             var fmaFishngGround = (NSAPRegionFMAFishingGround)PropertyGrid.SelectedObject;
                             if (fmaFishngGround.FishingGroundCode != null)
@@ -2331,8 +2327,9 @@ namespace NSAP_ODK.Views
                                 }
                             }
                             break;
-
+                        #endregion
                         case NSAPEntity.NSAPRegionFishingVessel:
+                            #region nsapregionfishingvessel
                             rvm = NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(nsapRegion);
                             var regionVesselEdit = (NSAPRegionFishingVesselEdit)PropertyGrid.SelectedObject;
                             if (regionVesselEdit.FishingVesselID > 0)
@@ -2371,8 +2368,9 @@ namespace NSAP_ODK.Views
                                 }
                             }
                             break;
-
+                        #endregion
                         case NSAPEntity.NSAPRegionGear:
+                            #region nsapregiongear
                             rvm = NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(nsapRegion);
                             var regionGear = (NSAPRegionGear)PropertyGrid.SelectedObject;
                             if (regionGear.GearCode != null)
@@ -2410,8 +2408,9 @@ namespace NSAP_ODK.Views
                                 }
                             }
                             break;
-
+                        #endregion
                         case NSAPEntity.EffortIndicator:
+                            #region effortindicator
                             var effortSpec = (EffortSpecification)PropertyGrid.SelectedObject;
                             validationResult = NSAPEntities.EffortSpecificationViewModel.EntityValidated(effortSpec, _isNew, _oldName, _oldIsForAllTypesFishing);
                             if (validationResult.ErrorMessage.Length > 0)
@@ -2464,8 +2463,9 @@ namespace NSAP_ODK.Views
 
                             }
                             break;
-
+                        #endregion
                         case NSAPEntity.FishingVessel:
+                            #region fishingvessel
                             FishingVessel fishingVessel = (FishingVessel)PropertyGrid.SelectedObject;
                             if (NSAPEntities.FishingVesselViewModel.EntityValidated(fishingVessel, out entityMessages, _isNew))
                             {
@@ -2481,8 +2481,9 @@ namespace NSAP_ODK.Views
 
                             }
                             break;
-
+                        #endregion
                         case NSAPEntity.Enumerator:
+                            #region enumerator
                             NSAPEnumerator nse = (NSAPEnumerator)PropertyGrid.SelectedObject;
                             if (NSAPEntities.NSAPEnumeratorViewModel.EntityValidated(nse, out entityMessages, _isNew))
                             {
@@ -2498,8 +2499,9 @@ namespace NSAP_ODK.Views
 
                             }
                             break;
-
+                        #endregion
                         case NSAPEntity.LandingSite:
+                            #region landingsite
                             var lsEdit = (LandingSiteEdit)PropertyGrid.SelectedObject;
                             var prov = NSAPEntities.ProvinceViewModel.GetProvince(lsEdit.Province);
                             LandingSite landingSite = new LandingSite
@@ -2526,18 +2528,23 @@ namespace NSAP_ODK.Views
                             {
                                 if (_isNew)
                                 {
-                                    NSAPEntities.LandingSiteViewModel.AddRecordToRepo(landingSite);
+                                    success = NSAPEntities.LandingSiteViewModel.AddRecordToRepo(landingSite);
                                 }
                                 else
                                 {
-                                    NSAPEntities.LandingSiteViewModel.UpdateRecordInRepo(landingSite);
+                                    if (NSAPEntities.LandingSiteViewModel.UpdateRecordInRepo(landingSite))
+                                    {
+                                        success = true;
+                                        //NSAPEntities.
+                                    }
                                 }
-                                success = true;
+                                //success = true;
                             }
 
                             break;
-
+                        #endregion
                         case NSAPEntity.FishingGround:
+                            #region fishingground
                             FishingGround fg = (FishingGround)PropertyGrid.SelectedObject;
                             if (NSAPEntities.FishingGroundViewModel.EntityValidated(fg, out entityMessages, _isNew, _oldName, _oldIdentifier))
                             {
@@ -2551,9 +2558,9 @@ namespace NSAP_ODK.Views
                                 }
                             }
                             break;
-
+                        #endregion
                         case NSAPEntity.FishingGear:
-
+                            #region fishing gear
                             var g = ((GearEdit)PropertyGrid.SelectedObject).Save(_isNew);
                             Gear gear = new Gear
                             {
@@ -2587,6 +2594,7 @@ namespace NSAP_ODK.Views
                             }
 
                             break;
+                            #endregion
                     }
 
                     if (success)
@@ -3056,6 +3064,12 @@ namespace NSAP_ODK.Views
                     LabelBottom.Content = $"List of effort specifiers (from base gear) for {NSAPEntities.GearViewModel.CurrentEntity}";
                     break;
                 case "LandingSiteCount":
+                    //var nrffg = (NSAPRegionFMAFishingGround)_nsapObject;
+                    //if(LandingSiteViewModel.EditedLandingSiteIDs.Count>0)
+                    //{
+
+                    //}
+                    //sfDataGrid.ItemsSource = nrffg.LandingSites.OrderBy(t => t.LandingSite.LandingSiteName);
                     sfDataGrid.ItemsSource = ((NSAPRegionFMAFishingGround)_nsapObject).LandingSites.OrderBy(t => t.LandingSite.LandingSiteName);
                     break;
 
@@ -3339,11 +3353,13 @@ namespace NSAP_ODK.Views
                     break;
 
                 case "Province":
+                    int provID = (int)e.NewValue;
+                    //NSAP_ODK.Entities.ItemSources.LandingSiteMunicipalityItemsSource.Province = NSAPEntities.ProvinceViewModel.GetProvince(provID);
                     cbo.Tag = "Municipality";
                     if (_nsapEntity == NSAPEntity.NSAPRegionFMAFishingGroundLandingSite)
                     {
                         List<int> municipalityIDs = new List<int>();
-                        foreach (var ls in NSAPEntities.LandingSiteViewModel.LandingSiteCollection.Where(t => t.Municipality.Province.ProvinceID == (int)e.NewValue))
+                        foreach (var ls in NSAPEntities.LandingSiteViewModel.LandingSiteCollection.Where(t => t.Municipality.Province.ProvinceID == provID))
                         {
                             var mun = ls.Municipality;
                             if (!municipalityIDs.Contains(mun.MunicipalityID))
@@ -3356,7 +3372,7 @@ namespace NSAP_ODK.Views
                     else if (_nsapEntity == NSAPEntity.LandingSite)
                     {
                         var province = NSAPEntities.ProvinceViewModel.GetProvince((int)e.NewValue);
-                        if(province.Municipalities==null)
+                        if (province.Municipalities == null)
                         {
                             province.Municipalities = new MunicipalityViewModel(province);
                         }

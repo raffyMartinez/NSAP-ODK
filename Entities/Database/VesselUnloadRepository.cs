@@ -59,6 +59,9 @@ namespace NSAP_ODK.Entities.Database
                 {
                     switch (colName)
                     {
+                        case "number_species_catch_composition":
+                            sql = $@"ALTER TABLE dbo_vessel_unload_1 ADD COLUMN {colName}  int";
+                            break;
                         case "sampling_sequence":
                             sql = $@"ALTER TABLE dbo_vessel_unload_1 ADD COLUMN {colName}  int";
                             break;
@@ -1432,6 +1435,12 @@ namespace NSAP_ODK.Entities.Database
                                 item.IsCatchSold = (bool)dr["is_catch_sold"];
                                 item.IsMultiGear = (bool)dr["is_multigear"];
 
+                                item.NumberOfSpeciesInCatchComposition = null;
+                                if (dr["number_species_catch_composition"] != DBNull.Value)
+                                {
+                                    item.NumberOfSpeciesInCatchComposition = (int)dr["number_species_catch_composition"];
+                                }
+
                                 if (item.IsMultiGear)
                                 {
                                     item.CountGearTypesUsed = (int)dr["count_gear_types"];
@@ -1919,11 +1928,11 @@ namespace NSAP_ODK.Entities.Database
 
 
 
+
                         try
                         {
 
                             bool proceed = true;
-                            //string dateAdded = item.DateAddedToDatabase == null ? "null" : ((DateTime)item.DateAddedToDatabase).ToString("MMM-dd-yyy HH:mm");
                             if (!_newFieldAdded)
                             {
                                 proceed = update.ExecuteNonQuery() > 0;
@@ -1935,8 +1944,8 @@ namespace NSAP_ODK.Entities.Database
                                                 RowID, XFormIdentifier, XFormDate, SamplingDate,
                                                 user_name,device_id,datetime_submitted,form_version,
                                                 GPS,Notes,EnumeratorID,EnumeratorText,DateAdded,sector_code,FromExcelDownload,HasCatchComposition,
-                                                NumberOfFishers,ref_no,is_catch_sold,is_multigear,count_gear_types)
-                                    Values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                                                NumberOfFishers,ref_no,is_catch_sold,is_multigear,count_gear_types,number_species_catch_composition)
+                                    Values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
                                 using (OleDbCommand update1 = new OleDbCommand(sql, conn))
                                 {
@@ -2040,6 +2049,14 @@ namespace NSAP_ODK.Entities.Database
                                     else
                                     {
                                         update1.Parameters.Add("@num_gear_type", OleDbType.Integer).Value = 1;
+                                    }
+                                    if (item.NumberOfSpeciesInCatchComposition == null)
+                                    {
+                                        update.Parameters.Add("@count_species_catch_comp", OleDbType.Integer).Value = DBNull.Value;
+                                    }
+                                    else
+                                    {
+                                        update.Parameters.Add("@count_species_catch_comp", OleDbType.Integer).Value = item.NumberOfSpeciesInCatchComposition;
                                     }
                                     try
                                     {
@@ -2772,6 +2789,14 @@ namespace NSAP_ODK.Entities.Database
                                 {
                                     cmd_1.Parameters.Add("@num_gear_type", OleDbType.Integer).Value = 1;
                                 }
+                                if (item.NumberOfSpeciesInCatchComposition == null)
+                                {
+                                    cmd_1.Parameters.Add("@count_species_catch_comp", OleDbType.Integer).Value = DBNull.Value;
+                                }
+                                else
+                                {
+                                    cmd_1.Parameters.Add("@count_species_catch_comp", OleDbType.Integer).Value = item.NumberOfSpeciesInCatchComposition;
+                                }
 
                                 cmd_1.Parameters.Add("@Vessel_unload_id", OleDbType.Integer).Value = item.PK;
 
@@ -2802,6 +2827,7 @@ namespace NSAP_ODK.Entities.Database
                                         is_catch_sold = @is_catch_sold,
                                         is_multigear = @is_multigear,
                                         count_gear_types = @num_gear_type,
+                                        number_species_catch_composition = @count_species_catch_comp,
                                         WHERE v_unload_id = @Vessel_unload_id";
 
 

@@ -886,6 +886,12 @@ namespace NSAP_ODK.Entities.Database
                 no_fishers = ((int)vu.NumberOfFishers).ToString();
             }
 
+            string no_species_catch_composition = string.Empty;
+            if(vu.NumberOfSpeciesInCatchComposition!=null)
+            {
+                no_species_catch_composition = ((int)vu.NumberOfSpeciesInCatchComposition).ToString();
+            }
+
             if (Utilities.Global.Settings.UsemySQL)
             {
                 if (vu.VesselID == null)
@@ -1029,6 +1035,7 @@ namespace NSAP_ODK.Entities.Database
             myDict.Add("is_multigear", vu.IsMultiGear.ToString());
             myDict.Add("count_gear_types", vu.CountGearTypesUsed.ToString());
             myDict.Add("sampling_sequence", sequence);
+            myDict.Add("number_species_catch_composition", no_species_catch_composition);
 
             _csv_1.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload_1"));
 

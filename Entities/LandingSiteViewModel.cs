@@ -17,10 +17,10 @@ namespace NSAP_ODK.Entities
         //public event EventHandler<EntityChangedEventArgs> EntityChanged;
 
 
-        private string WhereLandingSiteIsUsed(List<NSAPRegionFMAFishingGroundLandingSite>listUsedLS, LandingSite ls)
+        private string WhereLandingSiteIsUsed(List<NSAPRegionFMAFishingGroundLandingSite> listUsedLS, LandingSite ls)
         {
             string whereUsed = "";
-            foreach(NSAPRegionFMAFishingGroundLandingSite usedLS in listUsedLS.Where(t=>t.LandingSite.LandingSiteID==ls.LandingSiteID))
+            foreach (NSAPRegionFMAFishingGroundLandingSite usedLS in listUsedLS.Where(t => t.LandingSite.LandingSiteID == ls.LandingSiteID))
             {
                 whereUsed += $"{usedLS.NSAPRegionFMAFishingGround.FishingGround}, ";
             }
@@ -229,8 +229,7 @@ namespace NSAP_ODK.Entities
             LandingSiteCollection.Add(ls);
             return _editSuccess;
         }
-
-        public bool UpdateRecordInRepo(LandingSite ls)
+          public bool UpdateRecordInRepo(LandingSite ls)
         {
             if (ls.LandingSiteID == 0)
                 throw new Exception("Error: ID cannot be null");
@@ -244,6 +243,11 @@ namespace NSAP_ODK.Entities
                     break;
                 }
                 index++;
+            }
+            if (_editSuccess )//&& !EditedLandingSiteIDs.Contains(ls.LandingSiteID))
+            {
+                //EditedLandingSiteIDs.Add(ls.LandingSiteID);
+                NSAPEntities.NSAPRegionViewModel.EditedLandingSite = ls;
             }
             return _editSuccess;
         }

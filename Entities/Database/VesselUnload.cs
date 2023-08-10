@@ -97,6 +97,7 @@ namespace NSAP_ODK.Entities.Database
                 IsMultigear = vesselUnload.IsMultiGear;
                 CountGearTypesUsed = vesselUnload.CountGearTypesUsed;
                 MainGearName = vesselUnload.GearUsed;
+                NumberOfSpeciesInCatchComposition = vesselUnload.NumberOfSpeciesInCatchComposition;
 
                 //if (vesselUnload.VesselCatchViewModel == null)
                 //{
@@ -110,7 +111,7 @@ namespace NSAP_ODK.Entities.Database
         public NSAPRegion NSAPRegion { get; set; }
 
         //public List<VesselCatch> VesselCatches { get; set; }
-
+        public int? NumberOfSpeciesInCatchComposition { get; set; }
         public bool FishingTripIsCompleted { get; set; }
         public string Region { get; set; }
 
@@ -639,6 +640,8 @@ namespace NSAP_ODK.Entities.Database
         private NSAPEnumerator _nsapEnumerator;
         private double _runningSum = 0;
         private bool _speciesWeightIsZero;
+
+        public int? NumberOfSpeciesInCatchComposition { get; set; }
         public int? SequenceOfSampling { get; set; }
         public int? CountGearTypesUsed { get; set; }
         public LandedCatchValidationResult LandedCatchValidationResult

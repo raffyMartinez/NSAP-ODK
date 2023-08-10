@@ -14,6 +14,7 @@ namespace NSAP_ODK.Entities
     {
         public event EventHandler VesselListEvent;
         private bool _editSuccess;
+        private LandingSite _editedLandingSite;
         public DBSummary TotalOfSummary { get; set; }
 
         public Dictionary<DateTime, DBSummary> RegionMonthSampledSummaryDictionary { get; private set; }
@@ -111,6 +112,33 @@ namespace NSAP_ODK.Entities
             return listLS;
         }
 
+        public LandingSite EditedLandingSite
+        {
+            get { return _editedLandingSite; }
+            set
+            {
+                _editedLandingSite = value;
+                foreach(var item in NSAPRegionsWithEntitiesRepositories)
+                {
+                    foreach(var fma in item.Value.NSAPRegion.FMAs)
+                    {
+                        foreach(var fg in fma.FishingGrounds)
+                        {
+                            foreach(var ls in fg.LandingSites)
+                            {
+                                if(ls.LandingSite.LandingSiteID==_editedLandingSite.LandingSiteID)
+                                {
+                                    ls.LandingSite = _editedLandingSite;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                }
+            }
+        }
+
         public void SetUpSummaryForLandingSite(NSAPRegion region, FMA fma, FishingGround fishingGround, string landingSite)
         {
             RegionMonthSampledSummaryDictionary = new Dictionary<DateTime, DBSummary>();
@@ -151,7 +179,7 @@ namespace NSAP_ODK.Entities
                 //        t.Parent.Parent.LandingSiteName == landingSite &&
                 //        t.MonthSampled == month.Key
                 //    ).ToList();
-                var gearUnloads = NSAPEntities.LandingSiteSamplingViewModel.GetGearUnloads(region.Code, fma.FMAID,fishingGround.Code,landingSite,month.Key);
+                var gearUnloads = NSAPEntities.LandingSiteSamplingViewModel.GetGearUnloads(region.Code, fma.FMAID, fishingGround.Code, landingSite, month.Key);
                 var landings = NSAPEntities.LandingSiteSamplingViewModel.GetVesselUnloads(gearUnloads);
 
                 smmry.VesselUnloadCount = landings.Count;
@@ -458,7 +486,13 @@ namespace NSAP_ODK.Entities
 
         //    return thisList.ToList();
         //}
+        public bool UpdateLandingSiteInFishingGround(string regionCode)
+        {
+            bool success = false;
+            var nrwer = NSAPRegionsWithEntitiesRepositories[regionCode];
 
+            return success;
+        }
         public int SetNSAPRegionsWithEntitiesRepositories()
         {
             NSAPRegionsWithEntitiesRepositories = new Dictionary<string, NSAPRegionWithEntitiesRepository>();
@@ -570,12 +604,12 @@ namespace NSAP_ODK.Entities
             //return NSAPRegionCollection.Where(t => t.Code == regionCode).FirstOrDefault().NSAPEnumerators.Where(t => t.RowID == nsapEnumerator).FirstOrDefault().Enumerator;
         }
 
-        public List<FishingGround>GetRegionFMAFishingGrounds(string regionCode, int fmaCode)
+        public List<FishingGround> GetRegionFMAFishingGrounds(string regionCode, int fmaCode)
         {
             List<FishingGround> listFG = new List<FishingGround>();
             var region = NSAPRegionCollection.Where(t => t.Code == regionCode).FirstOrDefault();
             var regionFMA = region.FMAs.Where(t => t.FMAID == fmaCode).FirstOrDefault();
-            foreach(var item in regionFMA.FishingGrounds)
+            foreach (var item in regionFMA.FishingGrounds)
             {
                 listFG.Add(item.FishingGround);
             }
