@@ -248,6 +248,8 @@ namespace NSAP_ODK.Utilities
 
         public static void LoadEntities()
         {
+            bool tablesUpdated = LandingSiteSamplingRepository.UpdateColumns();
+
             EntityLoaded?.Invoke(null, new EntityLoadedEventArg { IsStarting = true, EntityCount = 18 });
 
             EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "GPS" });
@@ -327,7 +329,8 @@ namespace NSAP_ODK.Utilities
                     EntityLoaded?.Invoke(null, new EntityLoadedEventArg { Count = NSAPEntities.NotFishSpeciesViewModel.Count });
                 }
 
-                if (LandingSiteSamplingRepository.UpdateColumns())
+                //if (LandingSiteSamplingRepository.UpdateColumns())
+                if(tablesUpdated)
                 {
 
                     EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "Landing site sampling" });

@@ -22,7 +22,7 @@ namespace NSAP_ODK.Entities.Database
         public static bool UpdateColumns()
         {
             bool proceed = false;
-
+            int fieldSize = 0;
             if (TotalWtSpRepository.CheckForTWSPTable() && VesselUnloadRepository.CheckForWtValidationTable() && UnmatchedFieldsFromJSONFileRepository.CheckTableExist())
             {
                 var cols = CreateTablesInAccess.GetColumnNames("dbo_LC_FG_sample_day");
@@ -63,8 +63,8 @@ namespace NSAP_ODK.Entities.Database
                                                         cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_unload_1");
                                                         if (cols.Contains("json_filename"))
                                                         {
-                                                            int fs = VesselUnloadRepository.GetFieldSize("json_filename");
-                                                            if (fs != 255)
+                                                            fieldSize = VesselUnloadRepository.GetFieldSize("json_filename");
+                                                            if (fieldSize != 255)
                                                             {
                                                                 proceed = VesselUnloadRepository.UpdateTableDefinitionEx("json_filename", 255);
                                                             }
@@ -94,13 +94,21 @@ namespace NSAP_ODK.Entities.Database
                                                     if (proceed)
                                                     {
                                                         //cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_unload_1");
-                                                        proceed = cols.Contains("ref_no") || VesselUnloadRepository.AddFieldToTable1("ref_no");
+                                                        
+
+                                                            proceed = cols.Contains("ref_no") || VesselUnloadRepository.AddFieldToTable1("ref_no");
+                                                        
+
                                                         if (proceed)
                                                         {
                                                             proceed = cols.Contains("is_catch_sold") || VesselUnloadRepository.AddFieldToTable1("is_catch_sold");
                                                             if (proceed)
                                                             {
-                                                                proceed = VesselUnloadRepository.UpdateTableDefinitionEx("ref_no", 100);
+                                                                VesselUnloadRepository.RefNoFieldSize = VesselUnloadRepository.GetFieldSize("ref_no");
+                                                                if (VesselUnloadRepository.RefNoFieldSize < 150)
+                                                                {
+                                                                    proceed = VesselUnloadRepository.UpdateTableDefinitionEx("ref_no", 100);
+                                                                }
                                                             }
                                                             if (proceed)
                                                             {

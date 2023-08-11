@@ -38,7 +38,10 @@ namespace NSAP_ODK.Entities.Database
                 hash = (hash * 16777619) ^ RegionID.GetHashCode();
                 hash = (hash * 16777619) ^ FMAId.GetHashCode();
                 hash = (hash * 16777619) ^ FishingGroundID.GetHashCode();
-                hash = (hash * 16777619) ^ LandingSiteNameText.GetHashCode();
+                if (!string.IsNullOrEmpty(LandingSiteNameText))
+                {
+                    hash = (hash * 16777619) ^ LandingSiteNameText.GetHashCode();
+                }
                 hash = (hash * 16777619) ^ EnumeratorNameToUse.GetHashCode();
                 return hash;
             }

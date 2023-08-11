@@ -33,6 +33,8 @@ namespace NSAP_ODK.Entities.Database
             }
             return fieldSize;
         }
+
+        public static int RefNoFieldSize { get; set; }
         public static bool UpdateTableDefinitionEx(string colName = null, int? colWidth = null, string relationshipToRemove = "")
         {
             bool success = false;
@@ -74,7 +76,7 @@ namespace NSAP_ODK.Entities.Database
                         case "ref_no":
                             if (colWidth != null)
                             {
-                                sql = $"ALTER TABLE dbo_vessel_unload_1 ALTER Column {colName} text(150)";
+                                sql = $"ALTER TABLE dbo_vessel_unload_1 ALTER Column {colName} varchar(150)";
                             }
                             break;
                         case "json_filename":
@@ -103,6 +105,10 @@ namespace NSAP_ODK.Entities.Database
                     catch (OleDbException dbex)
                     {
                         if (dbex.Message.Contains($"CHECK constraint '{relationshipToRemove}' does not exist."))
+                        {
+                            success = true;
+                        }
+                        else if (!success && colName == "ref_no" && colWidth != null)
                         {
                             success = true;
                         }
@@ -1949,6 +1955,8 @@ namespace NSAP_ODK.Entities.Database
 
                                 using (OleDbCommand update1 = new OleDbCommand(sql, conn))
                                 {
+
+
                                     update1.Parameters.Add("@unloadid", OleDbType.Integer).Value = item.PK;
                                     update1.Parameters.Add("@operation_success", OleDbType.Boolean).Value = item.OperationIsSuccessful;
                                     update1.Parameters.Add("@operation_tracked", OleDbType.Boolean).Value = item.OperationIsTracked;
@@ -2009,6 +2017,12 @@ namespace NSAP_ODK.Entities.Database
                                     }
 
                                     string notes = item.Notes == null ? "" : item.Notes;
+                                    string refNo = item.RefNo;
+                                    if (RefNoFieldSize < 150)
+                                    {
+                                        notes = $"RefNo:{refNo}\r\nNotes:{notes}";
+                                        refNo = "";
+                                    }
                                     update1.Parameters.Add("@notes", OleDbType.VarChar).Value = notes;
 
                                     if (item.NSAPEnumeratorID == null)
@@ -2038,7 +2052,7 @@ namespace NSAP_ODK.Entities.Database
                                     {
                                         update1.Parameters.Add("@num_fishers", OleDbType.Integer).Value = item.NumberOfFishers;
                                     }
-                                    update1.Parameters.Add("@ref_no", OleDbType.VarChar).Value = item.RefNo;
+                                    update1.Parameters.Add("@ref_no", OleDbType.VarChar).Value = refNo;
                                     update1.Parameters.Add("@is_catch_sold", OleDbType.Boolean).Value = item.IsCatchSold;
                                     update1.Parameters.Add("@is_multigear", OleDbType.Boolean).Value = item.IsMultiGear;
 
@@ -2777,7 +2791,9 @@ namespace NSAP_ODK.Entities.Database
                                     cmd_1.Parameters.Add("@num_fisher", OleDbType.Integer).Value = item.NumberOfFishers;
                                 }
 
+
                                 cmd_1.Parameters.Add("@ref_no", OleDbType.VarWChar).Value = item.RefNo;
+
 
                                 cmd_1.Parameters.Add("@is_catch_sold", OleDbType.Boolean).Value = item.IsCatchSold;
 
