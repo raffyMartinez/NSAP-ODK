@@ -110,7 +110,8 @@ namespace NSAP_ODK.Entities.Database
                         }
                         else if (!success && colName == "ref_no" && colWidth != null)
                         {
-                            success = true;
+                            //success = true;
+                            success = CreateNewRefNoFieldAndCopy();
                         }
                         else
                         {
@@ -128,6 +129,77 @@ namespace NSAP_ODK.Entities.Database
 
                 cmd.Connection.Close();
                 conn.Close();
+            }
+            return success;
+        }
+
+        private static bool CreateNewRefNoFieldAndCopy()
+        {
+            bool success = false;
+            using (var conn = new OleDbConnection(Global.ConnectionString))
+            {
+                conn.Open();
+                string sql = "ALTER TABLE dbo_vessel_unload_1 Add Column ref_no_1 varchar(150)";
+
+                OleDbCommand cmd = new OleDbCommand();
+                cmd.Connection = conn;
+                cmd.CommandText = sql;
+
+                try
+                {
+                    cmd.ExecuteNonQuery();
+                    cmd.CommandText = "Update dbo_vessel_unload_1 SET dbo_vessel_unload_1.ref_no_1 = dbo_vessel_unload_1.ref_no";
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        cmd.CommandText = "ALTER TABLE dbo_vessel_unload_1 DROP COLUMN ref_no";
+                        try
+                        {
+                            cmd.ExecuteNonQuery();
+                            cmd.CommandText = "ALTER TABLE dbo_vessel_unload_1 Add Column ref_no varchar(150)";
+                            try
+                            {
+                                cmd.ExecuteNonQuery();
+                                cmd.CommandText = "Update dbo_vessel_unload_1 SET dbo_vessel_unload_1.ref_no = dbo_vessel_unload_1.ref_no_1";
+                                try
+                                {
+                                    cmd.ExecuteNonQuery();
+                                    cmd.CommandText = "ALTER TABLE dbo_vessel_unload_1 DROP COLUMN ref_no_1";
+                                    try
+                                    {
+                                        cmd.ExecuteNonQuery();
+                                        success = true;
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Logger.Log(ex);
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Logger.Log(ex);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Log(ex);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(ex);
+                }
+
             }
             return success;
         }

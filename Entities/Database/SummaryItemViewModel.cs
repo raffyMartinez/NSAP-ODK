@@ -24,6 +24,28 @@ namespace NSAP_ODK.Entities.Database
 
         public event EventHandler<BuildSummaryReportEventArg> BuildingSummaryTable;
         public event EventHandler<BuildOrphanedEntityEventArg> BuildingOrphanedEntity;
+        public LandingSiteSampling GetLandingSiteSampling(int ls_id, string fg_id, DateTime sdate)
+        {
+            SummaryItem item= null; ;
+            try
+            {
+                item = SummaryItemCollection.FirstOrDefault(t => t.LandingSiteID == ls_id && t.FishingGroundID == fg_id && ((DateTime)t.SamplingDate).Date == sdate);
+            }
+            catch(Exception ex)
+            {
+                return null;
+            }
+            if (item == null)
+            {
+                return null;
+            }
+            else
+            {
+                LandingSiteSampling lss = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(item.SamplingDayID);
+                return lss;
+                //return NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(item.SamplingDayID);
+            }
+        }
         public LandingSiteSampling GetLandingSiteSampling(string landingUUID)
         {
             var item = SummaryItemCollection.FirstOrDefault(t => t.SamplingDayUUID == landingUUID);
@@ -42,11 +64,16 @@ namespace NSAP_ODK.Entities.Database
             return SummaryItemCollection.ToList().FirstOrDefault(t => t.VesselUnloadID == vu.PK);
         }
 
+        public SummaryItem GetItem(string enumeratorName, string refNo)
+        {
+            SummaryItem si = SummaryItemCollection.FirstOrDefault(t => t.EnumeratorNameToUse == enumeratorName && t.RefNo == refNo);
+            return si;
+        }
+
         public SummaryItem GetItemEx(string samplingDayUUID)
         {
-            //var l = SummaryItemCollection.Where(t => t.SamplingDayUUID == samplingDayUUID);
-            //var si = SummaryItemCollection.FirstOrDefault(t => t.SamplingDayUUID == samplingDayUUID);
-            return SummaryItemCollection.FirstOrDefault(t => t.SamplingDayUUID == samplingDayUUID);
+            SummaryItem si = SummaryItemCollection.FirstOrDefault(t => t.SamplingDayUUID == samplingDayUUID);
+            return si;
         }
         public SummaryItem GetItem(string odkROWID)
         {
@@ -381,7 +408,7 @@ namespace NSAP_ODK.Entities.Database
             }
             else
             {
-                return SummaryItemCollection.Max(t => (int)t.VesselUnloadID);
+                return SummaryItemCollection.Where(t=>t.VesselUnloadID!=null).Max(t => (int)t.VesselUnloadID);
             }
         }
 
@@ -2751,7 +2778,13 @@ namespace NSAP_ODK.Entities.Database
                     break;
             }
         }
-
+        public int CountLandings
+        {
+            get
+            {
+                return SummaryItemCollection.Where(t => t.VesselUnloadID != null).Count();
+            }
+        }
         public int Count
         {
             get

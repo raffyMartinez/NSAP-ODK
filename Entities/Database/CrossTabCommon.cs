@@ -87,7 +87,30 @@ namespace NSAP_ODK.Entities.Database
 
         public string Gear { get { return _vesselUnload_FishingGear.GearUsedName; } }
         //public string Gears { get { return _vesselUnload.Gears; } }
-
+        public double? GearCatchWeight { get 
+            {
+                if (_vesselUnload_FishingGear.Parent.Parent.Parent.IsMultiVessel)
+                {
+                    return _vesselUnload_FishingGear.WeightOfCatch;
+                }
+                else
+                {
+                    return _vesselUnload_FishingGear.Parent.WeightOfCatch;
+                }
+            } 
+        }
+        public int? GearCatchSpeciesCount { get 
+            {
+                if (_vesselUnload_FishingGear.Parent.Parent.Parent.IsMultiVessel)
+                {
+                    return _vesselUnload_FishingGear.CountItemsInCatchComposition;
+                }
+                else
+                {
+                    return _vesselUnload_FishingGear.Parent.CountCatchCompositionItems;
+                }
+            } 
+        }
         public string Province { get; private set; }
 
 
@@ -183,13 +206,24 @@ namespace NSAP_ODK.Entities.Database
         }
         public CrossTabCommon(VesselCatch vc, VesselUnload_FishingGear vufg)
         {
-            _samplingDate = vc.Parent.Parent.Parent.SamplingDate;
-            _landingSiteSampling = vc.Parent.Parent.Parent;
-            _gearUnload = vc.Parent.Parent;
-            _vesselUnload = vc.Parent;
-            _vesselCatch = vc;
-            _vesselUnload_FishingGear = vufg;
-            //CommonProperties = CrossTabManager.UnloadCrossTabCommonPropertyDictionary[_vesselUnload.PK];
+            if (vufg.Parent.Parent.Parent.IsMultiVessel)
+            {
+                _samplingDate = vc.ParentFishingGear.Parent.Parent.Parent.SamplingDate;
+                _landingSiteSampling = vc.ParentFishingGear.Parent.Parent.Parent;
+                _gearUnload = vc.ParentFishingGear.Parent.Parent;
+                _vesselUnload = vc.ParentFishingGear.Parent;
+            }
+            else
+            {
+                _samplingDate = vc.Parent.Parent.Parent.SamplingDate;
+                _landingSiteSampling = vc.Parent.Parent.Parent;
+                _gearUnload = vc.Parent.Parent;
+                _vesselUnload = vc.Parent;
+            }
+                _vesselCatch = vc;
+                _vesselUnload_FishingGear = vufg;
+                //CommonProperties = CrossTabManager.UnloadCrossTabCommonPropertyDictionary[_vesselUnload.PK];
+            
             CommonProperties = CrossTabManager.UnloadCrossTabCommonPropertyDictionary[vufg.Guid.ToString()];
         }
         public CrossTabCommon(VesselUnload_FishingGear vufg)

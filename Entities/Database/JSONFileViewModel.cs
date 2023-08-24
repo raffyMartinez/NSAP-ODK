@@ -230,7 +230,8 @@ namespace NSAP_ODK.Entities.Database
             string r = "";
             int start = 0;
             string searchstring = json;
-            if (json.IndexOf(Environment.NewLine) < json.Length)
+            int newlineindex = json.IndexOf(Environment.NewLine);
+            if ( newlineindex>0 && newlineindex  < json.Length)
             {
                 search = "\"intronote\": \"Version ";
                 var lines = json.Split('\n');

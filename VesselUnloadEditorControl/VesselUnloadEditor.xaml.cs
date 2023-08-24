@@ -528,6 +528,10 @@ namespace NSAP_ODK.VesselUnloadEditorControl
             propertyGrid.NameColumnWidth = 350;
             propertyGrid.AutoGenerateProperties = false;
 
+            if(VesselUnload.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection==null)
+            {
+                VesselUnload.VesselUnload_FishingGearsViewModel.RefreshCollection();
+            }
             Entities.ItemSources.GearsInNSAPRegionItemsSource.UnloadGears = VesselUnload.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection.ToList();
 
             propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "RegionCode", DisplayName = "NSAP Region", DisplayOrder = 1, Description = "NSAP region", Category = "Header" });

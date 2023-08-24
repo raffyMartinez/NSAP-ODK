@@ -72,6 +72,7 @@ namespace NSAP_ODK.Entities.Database
         public double RaisingFactor { get; set; }
         public double? SumOfCatchCompositionWeight { get; set; }
         public double? SumOfCatchCompositionSampleWeight { get; set; }
+        public bool IsSamplingDay { get; set; }
         public SamplingTypeFlag SamplingTypeFlag { get; set; }
         public WeightValidationFlag WeightValidationFlag { get; set; }
         public string JSONFileName { get; set; }
@@ -344,7 +345,9 @@ namespace NSAP_ODK.Entities.Database
                         LandingSiteText = LandingSiteText,
                         FishingGround = FishingGround,
                         SamplingDate = ((DateTime)SamplingDate).Date,
-                        PK = SamplingDayID
+                        PK = SamplingDayID,
+                        IsMultiVessel = IsMultiVessel
+
                     };
 
                     _gearUnload = new GearUnload
@@ -483,7 +486,7 @@ namespace NSAP_ODK.Entities.Database
         public double? WeightOfCatch { get; set; }
         public double? WeightOfCatchSample { get; set; }
         public bool HasCatchComposition { get; set; }
-
+        public bool IsMultiVessel { get; set; }
         public bool IsTripCompleted { get; set; }
 
         public bool IsCatchSold { get; set; }

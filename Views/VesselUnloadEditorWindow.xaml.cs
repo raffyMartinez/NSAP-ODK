@@ -64,7 +64,13 @@ namespace NSAP_ODK.Views
                         Title = "Edit fishing gears used in operation";
 
                         //GearItemsSource.UnloadGears = null;
-                        GearsInNSAPRegionItemsSource.GearUnloads = VesselUnload_FishingGear_Edited.VesselUnload_FishingGear.Parent.Parent.Parent.GearUnloadViewModel.GearUnloadCollection.ToList();
+                        var ls_sampling = VesselUnload_FishingGear_Edited.VesselUnload_FishingGear.Parent.Parent.Parent;
+                        if(ls_sampling.GearUnloadViewModel==null)
+                        {
+                            ls_sampling.GearUnloadViewModel = new GearUnloadViewModel(ls_sampling);
+                        }
+                        //GearsInNSAPRegionItemsSource.GearUnloads = VesselUnload_FishingGear_Edited.VesselUnload_FishingGear.Parent.Parent.Parent.GearUnloadViewModel.GearUnloadCollection.ToList();
+                        GearsInNSAPRegionItemsSource.GearUnloads = ls_sampling.GearUnloadViewModel.GearUnloadCollection.ToList();
                         GearsInNSAPRegionItemsSource.AllowBlankGearName = false;
                         GearsInNSAPRegionItemsSource.UnloadGears = null;
                         propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "GearUsedName", DisplayName = "Name of fishing gear", DisplayOrder = 1, Description = "Select gear from the list", Category = "Header" });

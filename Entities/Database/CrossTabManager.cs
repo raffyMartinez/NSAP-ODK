@@ -418,6 +418,12 @@ namespace NSAP_ODK.Entities.Database
             dc = new DataColumn { ColumnName = "Gear" };
             _effortCrostabDataTable.Columns.Add(dc);
 
+            dc = new DataColumn { ColumnName = "Weight of catch of gear" };
+            _effortCrostabDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "# species in catch of gear" };
+            _effortCrostabDataTable.Columns.Add(dc);
+
             dc = new DataColumn { ColumnName = "Ref #" };
             _effortCrostabDataTable.Columns.Add(dc);
 
@@ -511,6 +517,8 @@ namespace NSAP_ODK.Entities.Database
 
                 //row["Gears"] = ctcp.Gears;
                 row["Gear"] = ctcp.Gear;
+                row["Weight of catch of gear"] = ctcp.GearCatchWeight;
+                row["# species in catch of gear"] = ctcp.GearCatchSpeciesCount;
                 row["Ref #"] = ctcp.RefNo;
                 row["Is a fishing boat used"] = ctcp.IsBoatUsed;
                 row["Fishing vessel"] = ctcp.FBName;

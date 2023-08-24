@@ -42,6 +42,8 @@ namespace NSAP_ODK.Entities.Database
         //}
         private Gear _gear;
         public VesselUnload_Gear_Spec_ViewModel VesselUnload_Gear_Specs_ViewModel { get; set; }
+
+        public VesselCatchViewModel VesselCatchViewModel { get; set; }
         public void SetChildEntities()
         {
             if (VesselUnload_Gear_Specs_ViewModel == null)
@@ -66,6 +68,8 @@ namespace NSAP_ODK.Entities.Database
         public string GearCode { get; set; }
 
         public double? WeightOfCatch { get; set; }
+
+        public int? CountItemsInCatchComposition { get; set; }
         public int? CountUsed { get; set; }
         public int? Sequence { get; set; }
         public Gear Gear
@@ -131,6 +135,8 @@ namespace NSAP_ODK.Entities.Database
         public string GearText { get; set; }
         [ReadOnly(true)]
         public int RowID { get; set; }
+
+        public double? WeightOfCatch { get; set; }
         public VesselUnload_FishingGear VesselUnload_FishingGear { get; private set; }
     }
 }

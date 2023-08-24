@@ -1303,14 +1303,30 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if (VesselCatchViewModel == null)
+                List<VesselCatch> vcs = new List<VesselCatch>();
+                if (Parent.Parent.IsMultiVessel)
                 {
-                    VesselCatchViewModel = new VesselCatchViewModel(this);
+                    foreach(var fg in VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection)
+                    {
+                        foreach(VesselCatch c in fg.VesselCatchViewModel.VesselCatchCollection)
+                        {
+                            vcs.Add(c);
+                        }
+                    }
+                    return vcs;
 
                 }
-                SetSubModels();
-                GetCounts();
-                return VesselCatchViewModel.VesselCatchCollection.ToList();
+                else
+                {
+                    if (VesselCatchViewModel == null)
+                    {
+                        VesselCatchViewModel = new VesselCatchViewModel(this);
+
+                    }
+                    SetSubModels();
+                    GetCounts();
+                    return VesselCatchViewModel.VesselCatchCollection.ToList();
+                }
 
             }
         }

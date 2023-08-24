@@ -14,7 +14,7 @@ namespace NSAP_ODK.Entities.Database
         public VesselCatchFlattened(VesselCatch vesselCatch)
         {
             ID = vesselCatch.PK;
-            ParentID = vesselCatch.Parent.PK;
+            ParentID = vesselCatch.Parent.Parent.PK;
             CatchName = vesselCatch.CatchName;
             Taxa = vesselCatch.Taxa.ToString();
             Catch_kg = vesselCatch.Catch_kg;
@@ -127,6 +127,7 @@ namespace NSAP_ODK.Entities.Database
     {
         public bool IsCatchSold { get; set; }
         private VesselUnload _parent;
+        private VesselUnload_FishingGear _parentFishingGear;
 
         public double? PriceOfSpecies { get; set; }
 
@@ -372,6 +373,20 @@ namespace NSAP_ODK.Entities.Database
 
                 return CatchMaturityViewModel.CatchMaturityCollection.ToList();
                 //.Where(t => t.Parent.PK == PK).ToList();
+            }
+        }
+
+        public VesselUnload_FishingGear ParentFishingGear
+        {
+            set { _parentFishingGear = value; }
+            get
+            {
+                if (_parentFishingGear == null)
+                {
+                    // _parentEx = NSAPEntities
+                    return null;
+                }
+                return _parentFishingGear;
             }
         }
         public VesselUnload Parent

@@ -14,6 +14,39 @@ namespace NSAP_ODK.Entities.Database
     {
         public List<VesselUnload_FishingGear> VesselUnload_FishingGears { get; set; }
         private VesselUnload _parent;
+        
+        public static bool AddFieldToTable(string fieldName)
+        {
+            bool success = false;
+            string sql = "";
+            switch(fieldName)
+            {
+                case "catch_weight":
+                    sql = $"ALTER TABLE dbo_vesselunload_fishinggear ADD Column {fieldName} double";
+                    break;
+                case "species_comp_count":
+                    sql = $"ALTER TABLE dbo_vesselunload_fishinggear ADD Column {fieldName} int";
+                    break;
+            }
+            using (var conn = new OleDbConnection(Global.ConnectionString))
+            {
+                conn.Open();
+                using(var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = sql;
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        success = true;
+                    }
+                    catch(Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+                return success;
+        }
         public static bool CheckTableExists()
         {
             bool tableExists = false;
@@ -393,14 +426,28 @@ namespace NSAP_ODK.Entities.Database
                             OleDbDataReader dr = cmd.ExecuteReader();
                             while (dr.Read())
                             {
+                                double? catch_wt = null;
+                                int? catch_sp_count = null;
+                                if(dr["catch_weight"]!=DBNull.Value)
+                                {
+                                    catch_wt = (double)dr["catch_weight"];
+                                }
+
+                                if(dr["species_comp_count"]!=DBNull.Value)
+                                {
+                                    catch_sp_count = (int)dr["species_comp_count"];
+                                }
                                 VesselUnload_FishingGear vufg = new VesselUnload_FishingGear
                                 {
                                     RowID = (int)dr["row_id"],
                                     Parent = _parent,
                                     GearText = dr["gear_text"].ToString(),
                                     GearCode = dr["gear_code"].ToString(),
+                                    WeightOfCatch = catch_wt,
+                                    CountItemsInCatchComposition = catch_sp_count
                                 };
                                 vufg.VesselUnload_Gear_Specs_ViewModel = new VesselUnload_Gear_Spec_ViewModel(vufg);
+                                vufg.VesselCatchViewModel = new VesselCatchViewModel(vufg);
                                 thisList.Add(vufg);
                             }
 

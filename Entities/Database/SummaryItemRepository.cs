@@ -568,6 +568,7 @@ namespace NSAP_ODK.Entities.Database
                     using (var cmd = con.CreateCommand())
                     {
                         cmd.CommandText = @"SELECT 
+                                                sd.sampleday AS is_sampling_day,    
                                                 sd.unload_day_id,
                                                 sd.sdate AS SamplingDayDate,
                                                 sd1.device_id,
@@ -606,6 +607,7 @@ namespace NSAP_ODK.Entities.Database
                                                 vu1.form_version,
                                                 vu1.RowID,
                                                 sd1.RowID AS sd_rowid,
+                                                sd1.is_multivessel,
                                                 vu1.XFormIdentifier AS xform_identifier,
                                                 vu1.datetime_submitted,
                                                 vu1.is_multigear,
@@ -646,9 +648,9 @@ namespace NSAP_ODK.Entities.Database
                                                 RIGHT JOIN dbo_vessel_unload_1 AS vu1 ON en.EnumeratorID = vu1.EnumeratorID) ON vu.v_unload_id = vu1.v_unload_id) ON fv.VesselID = vu.boat_id) 
                                                 LEFT JOIN dbo_vessel_unload_stats AS vu_st ON vu.v_unload_id = vu_st.v_unload_id) ON gr.GearCode = gu.gr_id) ON ls.LandingSiteID = sd.land_ctr_id) ON nr.Code = sd.region_id) 
                                                 LEFT JOIN dbo_vessel_unload_weight_validation AS vu_wv ON vu.v_unload_id = vu_wv.v_unload_id
-                                                WHERE vu.v_unload_id Is Not Null                                                
-                                                ORDER BY vu1.SamplingDate;";
-
+                                                                                               
+                                                ORDER BY vu1.SamplingDate";
+                        //WHERE vu.v_unload_id Is Not Null  removed befoe ORDER BY clause
                         try
                         {
                             con.Open();
@@ -675,16 +677,23 @@ namespace NSAP_ODK.Entities.Database
                                 int? count_maturity = null;
                                 int? count_twsp = null;
                                 int? count_gear_types = null;
+                                
 
                                 double? weight_catch = null;
                                 double? weight_catch_sample = null;
 
                                 double? total_catch_comp_wt = null;
                                 double? total_catch_comp_sample_wt = null;
+                                bool isSamplingDay = false;
 
                                 if (dr["catch_total"] != DBNull.Value)
                                 {
                                     weight_catch = (double)dr["catch_total"];
+                                }
+
+                                if(dr["is_sampling_day"]!=DBNull.Value)
+                                {
+                                    isSamplingDay = (bool)dr["is_sampling_day"];
                                 }
 
                                 if (dr["catch_samp"] != DBNull.Value)
@@ -786,7 +795,8 @@ namespace NSAP_ODK.Entities.Database
                                 si.XFormIdentifier = dr["xform_identifier"].ToString();
                                 si.SamplingDayID = (int)dr["unload_day_id"];
                                 si.SamplingDayDate = (DateTime)dr["SamplingDayDate"];
-
+                                si.IsSamplingDay = isSamplingDay;
+                                si.IsMultiVessel = (bool)dr["is_multivessel"];
                                 if (dr["unload_gr_id"] != DBNull.Value)
                                 {
                                     si.GearUnloadID = (int)dr["unload_gr_id"];
@@ -795,6 +805,10 @@ namespace NSAP_ODK.Entities.Database
                                 if (dr["v_unload_id"] != DBNull.Value)
                                 {
                                     si.VesselUnloadID = (int)dr["v_unload_id"];
+                                }
+                                else
+                                {
+
                                 }
 
                                 if (dr["type_of_sampling_flag"] != DBNull.Value)
@@ -888,10 +902,10 @@ namespace NSAP_ODK.Entities.Database
 
                                 items.Add(si);
                                 count++;
-                                if (count == 21537)
-                                {
+                                //if (count == 21537)
+                                //{
 
-                                }
+                                //}
                             }
                         }
                         catch (Exception ex)

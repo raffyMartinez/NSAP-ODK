@@ -41,13 +41,14 @@ namespace NSAP_ODK.Entities.Database
         public static void SetUpFishingGearSubModel(VesselUnload vu)
         {
             VesselUnload_FishingGear vufg;
+           // bool isMultiVessel = vu.Parent.Parent.IsMultiVessel;
 
             if (!vu.IsMultiGear)
             {
                 //if (vu.VesselUnload_FishingGearsViewModel == null || vu.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection == null)
-                if (vu.VesselUnload_FishingGearsViewModel == null || vu.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection.Count==0)
+                if (vu.VesselUnload_FishingGearsViewModel == null || vu.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection.Count == 0)
                 {
-                    vu.VesselUnload_FishingGearsViewModel = new VesselUnload_FishingGearViewModel(isNew:true);
+                    vu.VesselUnload_FishingGearsViewModel = new VesselUnload_FishingGearViewModel(isNew: true);
                     vufg = new VesselUnload_FishingGear
                     {
                         GearCode = vu.Parent.GearID,
@@ -85,22 +86,31 @@ namespace NSAP_ODK.Entities.Database
                 {
                     //Console.WriteLine("sub model already in place");
                 }
-            
+
                 //return vu;
             }
             else
             {
-                if(vu.VesselUnload_FishingGearsViewModel==null)
+                if (vu.VesselUnload_FishingGearsViewModel == null)
                 {
                     vu.VesselUnload_FishingGearsViewModel = new VesselUnload_FishingGearViewModel(vu);
-                    foreach( VesselUnload_FishingGear fg in vu.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection)
-                    {
-                        if(fg.VesselUnload_Gear_Specs_ViewModel==null)
-                        {
-                            fg.VesselUnload_Gear_Specs_ViewModel = new VesselUnload_Gear_Spec_ViewModel(fg);
-                        }
-                    }
+
                 }
+                //foreach (VesselUnload_FishingGear fg in vu.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection)
+                //{
+
+                //    if (fg.VesselUnload_Gear_Specs_ViewModel == null)
+                //    {
+                //        fg.VesselUnload_Gear_Specs_ViewModel = new VesselUnload_Gear_Spec_ViewModel(fg);
+                //    }
+
+
+                //    if (fg.VesselCatchViewModel == null)
+                //    {
+                //        fg.VesselCatchViewModel = new VesselCatchViewModel(fg);
+                //    }
+
+                //}
             }
         }
 
@@ -887,7 +897,7 @@ namespace NSAP_ODK.Entities.Database
             }
 
             string no_species_catch_composition = string.Empty;
-            if(vu.NumberOfSpeciesInCatchComposition!=null)
+            if (vu.NumberOfSpeciesInCatchComposition != null)
             {
                 no_species_catch_composition = ((int)vu.NumberOfSpeciesInCatchComposition).ToString();
             }
@@ -996,14 +1006,22 @@ namespace NSAP_ODK.Entities.Database
 
             myDict.Clear();
 
-            string sequence="";
-            if(Utilities.Global.Settings.UsemySQL)
+            string sequence = "";
+            if (Utilities.Global.Settings.UsemySQL)
             {
-                sequence=@"\N";
+                sequence = @"\N";
             }
-            if(vu.Parent.Parent.IsMultiVessel)
+            if (vu.Parent.Parent.IsMultiVessel)
             {
                 sequence = ((int)vu.SequenceOfSampling).ToString();
+            }
+
+            string refNo = vu.RefNo;
+            string notes = vu.Notes;
+            if (VesselUnloadRepository.RefNoFieldSize < 150)
+            {
+                notes = $"RefNo:{refNo}\r\nNotes:{vu.Notes}";
+                refNo = "";
             }
 
             myDict.Add("v_unload_id", vu.PK.ToString());
@@ -1021,7 +1039,7 @@ namespace NSAP_ODK.Entities.Database
             myDict.Add("form_version", vu.FormVersion);
             myDict.Add("GPS", vu.GPSCode);
             myDict.Add("SamplingDate", date_sampled);
-            myDict.Add("Notes", vu.Notes);
+            myDict.Add("Notes", notes);
             myDict.Add("EnumeratorID", enum_id);
             myDict.Add("EnumeratorText", enum_text);
             myDict.Add("DateAdded", date_added);
@@ -1030,7 +1048,7 @@ namespace NSAP_ODK.Entities.Database
             myDict.Add("trip_is_completed", vu.FishingTripIsCompleted.ToString());
             myDict.Add("NumberOfFishers", no_fishers);
             myDict.Add("json_filename", vu.JSONFileName);
-            myDict.Add("ref_no", vu.RefNo);
+            myDict.Add("ref_no", refNo);
             myDict.Add("is_catch_sold", vu.IsCatchSold.ToString());
             myDict.Add("is_multigear", vu.IsMultiGear.ToString());
             myDict.Add("count_gear_types", vu.CountGearTypesUsed.ToString());

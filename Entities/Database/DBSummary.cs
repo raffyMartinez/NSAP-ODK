@@ -45,7 +45,8 @@ namespace NSAP_ODK.Entities.Database
             FishingGearCount = NSAPEntities.GearViewModel.Count;
             LandingSiteCount = NSAPEntities.LandingSiteViewModel.Count;
             GearSpecificationCount = NSAPEntities.EffortSpecificationViewModel.Count;
-            VesselUnloadCount = NSAPEntities.SummaryItemViewModel.Count;
+            //VesselUnloadCount = NSAPEntities.SummaryItemViewModel.Count;
+            VesselUnloadCount = NSAPEntities.SummaryItemViewModel.CountLandings;
             GearUnloadCount = GearUnloadViewModel.GearUnloadCount();
             EnumeratorCount = NSAPEntities.NSAPEnumeratorViewModel.Count;
             FishingVesselCount = NSAPEntities.FishingVesselViewModel.Count;

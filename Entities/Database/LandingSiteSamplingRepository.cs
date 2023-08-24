@@ -94,10 +94,10 @@ namespace NSAP_ODK.Entities.Database
                                                     if (proceed)
                                                     {
                                                         //cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_unload_1");
-                                                        
 
-                                                            proceed = cols.Contains("ref_no") || VesselUnloadRepository.AddFieldToTable1("ref_no");
-                                                        
+
+                                                        proceed = cols.Contains("ref_no") || VesselUnloadRepository.AddFieldToTable1("ref_no");
+
 
                                                         if (proceed)
                                                         {
@@ -107,7 +107,8 @@ namespace NSAP_ODK.Entities.Database
                                                                 VesselUnloadRepository.RefNoFieldSize = VesselUnloadRepository.GetFieldSize("ref_no");
                                                                 if (VesselUnloadRepository.RefNoFieldSize < 150)
                                                                 {
-                                                                    proceed = VesselUnloadRepository.UpdateTableDefinitionEx("ref_no", 100);
+                                                                    proceed = VesselUnloadRepository.UpdateTableDefinitionEx("ref_no", 150);
+                                                                    VesselUnloadRepository.RefNoFieldSize = VesselUnloadRepository.GetFieldSize("ref_no");
                                                                 }
                                                             }
                                                             if (proceed)
@@ -128,9 +129,20 @@ namespace NSAP_ODK.Entities.Database
                                                             {
                                                                 if (cols.Contains("other_price_unit") || VesselCatchRepository.AddFieldToTable("other_price_unit"))
                                                                 {
-                                                                    proceed = cols.Contains("is_catch_sold") || VesselCatchRepository.AddFieldToTable("is_catch_sold");
+                                                                    if (cols.Contains("vessel_unload_gear_id") || VesselCatchRepository.AddFieldToTable("vessel_unload_gear_id"))
+                                                                    {
+                                                                        proceed = cols.Contains("is_catch_sold") || VesselCatchRepository.AddFieldToTable("is_catch_sold");
+                                                                    }
                                                                 }
                                                             }
+                                                        }
+                                                    }
+                                                    if(proceed)
+                                                    {
+                                                        cols = CreateTablesInAccess.GetColumnNames("dbo_vesselunload_fishinggear");
+                                                        if(cols.Contains("catch_weight")|| VesselUnload_FishingGearRepository.AddFieldToTable("catch_weight"))
+                                                        {
+                                                            proceed = cols.Contains("species_comp_count")|| VesselUnload_FishingGearRepository.AddFieldToTable("species_comp_count");
                                                         }
                                                     }
 
@@ -261,7 +273,14 @@ namespace NSAP_ODK.Entities.Database
                     const string sql = "SELECT Max(unload_day_id) AS max_id FROM dbo_LC_FG_sample_day";
                     using (OleDbCommand getMax = new OleDbCommand(sql, conn))
                     {
-                        max_rec_no = (int)getMax.ExecuteScalar();
+                        try
+                        {
+                            max_rec_no = (int)getMax.ExecuteScalar();
+                        }
+                        catch
+                        {
+                            max_rec_no = 0;
+                        }
                     }
                 }
             }

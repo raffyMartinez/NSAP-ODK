@@ -385,6 +385,7 @@ namespace NSAP_ODK.Views
             switch (((Button)sender).Name)
             {
                 case "buttonDownloadMedia":
+                    #region buttonDownloadMedia
                     if (DownloadCSVFromServer && this.Owner.GetType().Name == "EditWindowEx" && await DownloadFormMedia())
                     {
                         Global.CSVMediaSaveFolder = _downloadedMediaSaveFolder;
@@ -392,7 +393,9 @@ namespace NSAP_ODK.Views
                         //((ODKResultsWindow)Owner).CSVFileDownloaded();
                     }
                     break;
+                #endregion
                 case "ButtonLogout":
+                    #region ButtonLogout
                     _userNameStatic = "";
                     _passwordStatic = "";
                     _tokenStatic = "";
@@ -400,13 +403,17 @@ namespace NSAP_ODK.Views
                     ((ODKResultsWindow)Owner).EnableLoginFromADifferentUser(enable: false);
                     CloseWindow();
                     break;
+                #endregion
                 case "buttonSpecifyColumn":
+                    #region buttonSpecifyColumn
                     var scuw = new SelectColumnToUpdateWindow();
                     scuw.Owner = this;
                     scuw.ShowDialog();
 
                     break;
+                #endregion
                 case "buttonUpload":
+                    #region buttonUpload
                     OpenFileDialog ofd = new OpenFileDialog();
                     ofd.Title = "Select CSV file for uploading";
                     ofd.Filter = "CSV file (*.csv)|*.csv";
@@ -443,7 +450,9 @@ namespace NSAP_ODK.Views
                         }
                     }
                     break;
+                #endregion
                 case "buttonReplace":
+                    #region buttonReplace
                     _replaceCSVFilesSuccess = false;
                     _metadataFilesForReplacement.Clear();
                     foreach (Metadata metadata in dataGrid.Items)
@@ -491,7 +500,9 @@ namespace NSAP_ODK.Views
                         MessageBox.Show("Select at least one media file", Utilities.Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                     break;
+                #endregion
                 case "ButtonDownload":
+                    #region ButtonDownload
                     bool proceed = true;
 
                     int defaultDLSize = Utilities.Settings.DefaultDownloadSizeForBatchMode;
@@ -559,6 +570,7 @@ namespace NSAP_ODK.Views
                             switch (_downloadOption)
                             {
                                 case "excel":
+                                    #region excel
                                     ProgressBar.Value = 0;
                                     ProgressBar.Maximum = 5;
                                     if (_parentWindow.ODKServerDownload == ODKServerDownload.ServerDownloadVesselUnload)
@@ -624,7 +636,9 @@ namespace NSAP_ODK.Views
                                         MessageBox.Show("Excel download not yet implemented", Utilities.Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Exclamation);
                                     }
                                     break;
+                                #endregion
                                 case "json":
+                                    #region json
                                     ProgressBar.Value = 0;
                                     ProgressBar.Maximum = 5;
                                     if (!string.IsNullOrEmpty(_jsonOption))
@@ -655,11 +669,6 @@ namespace NSAP_ODK.Views
                                         }
                                         else
                                         {
-                                            //using (var httpClient = new HttpClient())
-                                            //{
-
-                                            //uri to download selected fields
-                                            //$"https://kc.kobotoolbox.org/api/v1/data/{_formID}?fields=[landing_site_sampling_group/count_sampled_landings,today]&format=json"
                                             switch (_jsonOption)
                                             {
                                                 case "all":
@@ -769,7 +778,7 @@ namespace NSAP_ODK.Views
                                                     {
                                                         case ODKServerDownload.ServerDownloadVesselUnload:
                                                             string json;
-                                                            if(_formSummary.IsMultiVessel)
+                                                            if (_formSummary.IsMultiVessel)
                                                             {
                                                                 json = the_response.ToString();
                                                             }
@@ -872,6 +881,7 @@ namespace NSAP_ODK.Views
                                         MessageBox.Show("Please select a download option for JSON", Utilities.Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
                                     }
                                     break;
+                                    #endregion
                             }
                         }
                         else if (SaveDownloadAsJSON)
@@ -882,8 +892,9 @@ namespace NSAP_ODK.Views
                     }
                     ButtonDownload.IsEnabled = true;
                     break;
-
+                #endregion
                 case "ButtonLogin":
+                    #region ButtonLogin
                     if (TextBoxUserName.Text.Trim().Length == 0 || TextBoxPassword.Password.Trim().Length == 0)
                     {
                         MessageBox.Show("User name and password are required", Utilities.Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
@@ -948,7 +959,7 @@ namespace NSAP_ODK.Views
                 case "ButtonClose":
                     CloseWindow();
                     break;
-
+                    #endregion
             }
         }
 
@@ -1161,7 +1172,7 @@ namespace NSAP_ODK.Views
             vfbd.Description = "Select folder for saving downloaded JSON files";
             vfbd.UseDescriptionForTitle = true;
             vfbd.ShowNewFolderButton = true;
-            if(Global.Settings.JSONFolder==null)
+            if (Global.Settings.JSONFolder == null)
             {
                 vfbd.SelectedPath = System.AppDomain.CurrentDomain.BaseDirectory;
             }
@@ -1622,7 +1633,7 @@ namespace NSAP_ODK.Views
 
             }
 
-            if(_formSummary.IsMultiVessel)
+            if (_formSummary.IsMultiVessel)
             {
                 rbDownloadCount.Visibility = Visibility.Visible;
             }
@@ -1723,7 +1734,7 @@ namespace NSAP_ODK.Views
                         _formID = ((TreeViewItem)treeViewItem.Parent).Header.ToString();
                         var koboform = _koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID));
 
-                        
+
                         //_version = koboform.version;
                         //_xlsFormIdString = koboform.xlsForm_idstring;
                         _xlsFormVersion = koboform.xlsform_version;

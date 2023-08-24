@@ -455,7 +455,9 @@ namespace NSAP_ODK.Views
             jsonFile.RowID = NSAPEntities.JSONFileViewModel.NextRecordNumber;
             if (IsMultiVessel)
             {
-
+                jsonFile.Earliest = MultiVesselGear_UnloadServerRepository.DownloadedLandingsEarliestLandingDate();
+                jsonFile.Latest = MultiVesselGear_UnloadServerRepository.DownloadedLandingsLatestLandingDate();
+                jsonFile.Count = MultiVesselGear_UnloadServerRepository.DownloadedLandingsCount();
             }
             else
             {
@@ -511,7 +513,7 @@ namespace NSAP_ODK.Views
                 }
             }
 
-            Console.WriteLine($"jsonfile filename is {jsonFile.FileName}");
+            //Console.WriteLine($"jsonfile filename is {jsonFile.FileName}");
             if (!JsonFileIsSaved(jsonFile))
             {
                 await NSAPEntities.JSONFileViewModel.Save(jsonFile);
@@ -1770,7 +1772,7 @@ namespace NSAP_ODK.Views
                                         int savedCount = 0;
                                         if (IsMultiVessel)
                                         {
-                                            if (await MultiVesselGear_UnloadServerRepository.UploadToDBAsync(_jsonFile.FileName))
+                                               if (await MultiVesselGear_UnloadServerRepository.UploadToDBAsync(_jsonFile.FileName))
                                             {
                                                 //_targetGrid.ItemsSource = MultiVesselGear_UnloadServerRepository.SampledVesselLandings;
                                                 sourceCount = MultiVesselGear_UnloadServerRepository.SampledVesselLandings.Count;

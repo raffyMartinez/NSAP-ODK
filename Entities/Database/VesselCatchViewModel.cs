@@ -120,6 +120,16 @@ namespace NSAP_ODK.Entities.Database
         //    var tableColumns = CreateTablesInAccess.GetColumnNames("dbo_vessel_catch", makeLowerCase: true);
         //    if (tableColumns.Contains(""))
         //}
+
+        public VesselCatchViewModel(VesselUnload_FishingGear vufg)
+        {
+            if(vufg!=null)
+            {
+                VesselCatches = new VesselCatchRepository(vufg);
+                VesselCatchCollection = new ObservableCollection<VesselCatch>(VesselCatches.VesselCatches);
+                VesselCatchCollection.CollectionChanged += VesselCatches_CollectionChanged;
+            }
+        }
         public VesselCatchViewModel(VesselUnload vu)
         {
             if (vu != null)
@@ -619,6 +629,30 @@ namespace NSAP_ODK.Entities.Database
             string catch_kg = item.Catch_kg == null ? "" : ((double)item.Catch_kg).ToString();
             string sample_kg = item.Sample_kg == null ? "" : ((double)item.Sample_kg).ToString();
             string price_sp = item.PriceOfSpecies == null ? "" : ((double)item.PriceOfSpecies).ToString();
+            string parent_id = "";
+            string parent_gear_id = "";
+            try
+            {
+                if (item.Parent != null)
+                {
+                    parent_id = item.Parent.PK.ToString();
+                }
+            }
+            catch
+            {
+                //ignore
+            }
+            try
+            {
+                if (item.ParentFishingGear != null)
+                {
+                    parent_gear_id = item.ParentFishingGear.RowID.ToString();
+                }
+            }
+            catch
+            {
+                //ignore
+            }
 
             if (Utilities.Global.Settings.UsemySQL)
             {
@@ -655,7 +689,8 @@ namespace NSAP_ODK.Entities.Database
             {
                 Dictionary<string, string> myDict = new Dictionary<string, string>();
                 myDict.Add("catch_id", item.PK.ToString());
-                myDict.Add("v_unload_id", item.Parent.PK.ToString());
+                myDict.Add("v_unload_id", parent_id);
+                myDict.Add("vessel_unload_gear_id", parent_gear_id);
                 myDict.Add("species_id", sp_id);
                 myDict.Add("catch_kg", catch_kg);
                 myDict.Add("samp_kg", sample_kg);

@@ -574,6 +574,14 @@ namespace NSAP_ODK.Entities.Database
         {
             return GearUnloadCollection.Where(t => t.GearUsedText == gearText).ToList();
         }
+
+        public GearUnload GetGearUnloadEx(string gearUsedName)
+        {
+            GearUnload gu = GearUnloadCollection.FirstOrDefault(t => t.GearUsedName == gearUsedName);
+            //return GearUnloadCollection.FirstOrDefault(t=>t.GearUsedName==gearUsedName);
+            return gu;
+
+        }
         public GearUnload GetGearUnload(int pk, bool loadVesselViewModel = false)
         {
             var gu = GearUnloadCollection.FirstOrDefault(n => n.PK == pk);
