@@ -53,7 +53,10 @@ namespace NSAP_ODK.Entities.Database
                     {
                         GearCode = vu.Parent.GearID,
                         GearText = vu.Parent.GearUsedText,
-                        Parent = vu
+                        Parent = vu,
+                        WeightOfCatch = vu.WeightOfCatch,
+                        CountItemsInCatchComposition = vu.CountCatchCompositionItems
+                        
                     };
 
                     vu.VesselUnload_FishingGearsViewModel.AddRecordToRepo(vufg, isTemporary: true);
@@ -116,25 +119,59 @@ namespace NSAP_ODK.Entities.Database
 
         public static string StatusText(VesselUnload vu)
         {
-            if (vu.VesselCatchViewModel?.Count > 0)
+            string catch_wt = "";
+            string sample_wt = "0";
+            if (vu.IsMultiGear)
             {
-                string catch_wt = ((double)vu.WeightOfCatch).ToString("0.00");
-                string sample_wt = "0";
-                if (vu.WeightOfCatchSample != null)
+                double catch_comp_wt = 0;
+                double total_sample_wt = 0;
+                if (vu.VesselUnload_FishingGearsViewModel.Count() > 0)
                 {
-                    sample_wt = ((double)vu.WeightOfCatchSample).ToString("0.00");
+                    catch_wt = ((double)vu.WeightOfCatch).ToString("0.00"); ;
+                    if (vu.WeightOfCatchSample != null)
+                    {
+                        sample_wt = ((double)vu.WeightOfCatchSample).ToString("0.00");
+                    }
+                    foreach(VesselUnload_FishingGear vufg in vu.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection)
+                    {
+                        foreach(VesselCatch vc in vufg.VesselCatchViewModel.VesselCatchCollection)
+                        {
+                            catch_comp_wt += (double)vc.Catch_kg;
+                            if(vc.FromTotalCatch==false && vc.Sample_kg!=null )
+                            {
+                                total_sample_wt += (double)vc.Sample_kg;
+                            }
+                        }
+                    }
+                    return $"Weight of catch: {catch_wt}    Weight of sample: {sample_wt}   Total weight of catch composition: {catch_comp_wt}   Total weight of sampled species: {total_sample_wt}";
                 }
-                var catch_composition_wt = vu.VesselCatchViewModel.VesselCatchCollection.Sum(t => (double)t.Catch_kg).ToString("0.00");
-                var total_sample_wt_catch_comp = vu.VesselCatchViewModel.VesselCatchCollection
-                    .Where(t => t.FromTotalCatch == false && t.Sample_kg != null)
-                    .Sum(t => (double)t.Sample_kg)
-                    .ToString("0.00");
-                return $"Weight of catch: {catch_wt}    Weight of sample: {sample_wt}    Total weight of catch composition: {catch_composition_wt}    Total weight of sampled species: {total_sample_wt_catch_comp}";
-
+                else
+                {
+                    return "Catch composition is empty";
+                }
             }
             else
             {
-                return "Catch composition is empty";
+                if (vu.VesselCatchViewModel?.Count > 0)
+                {
+                    catch_wt = ((double)vu.WeightOfCatch).ToString("0.00");
+                    
+                    if (vu.WeightOfCatchSample != null)
+                    {
+                        sample_wt = ((double)vu.WeightOfCatchSample).ToString("0.00");
+                    }
+                    var catch_composition_wt = vu.VesselCatchViewModel.VesselCatchCollection.Sum(t => (double)t.Catch_kg).ToString("0.00");
+                    var total_sample_wt_catch_comp = vu.VesselCatchViewModel.VesselCatchCollection
+                        .Where(t => t.FromTotalCatch == false && t.Sample_kg != null)
+                        .Sum(t => (double)t.Sample_kg)
+                        .ToString("0.00");
+                    return $"Weight of catch: {catch_wt}    Weight of sample: {sample_wt}    Total weight of catch composition: {catch_composition_wt}    Total weight of sampled species: {total_sample_wt_catch_comp}";
+
+                }
+                else
+                {
+                    return "Catch composition is empty";
+                }
             }
         }
         public ObservableCollection<VesselUnload> VesselUnloadCollection { get; set; }

@@ -461,7 +461,7 @@ namespace NSAP_ODK.Entities.Database
 
             foreach (var spec in NSAPEntities.EffortSpecificationViewModel.EffortSpecCollection.OrderBy(t => t.Name))
             {
-                dc = new DataColumn { ColumnName = spec.Name };
+                dc = new DataColumn { ColumnName = spec.Name.Replace("/", " or ") };
                 switch (spec.ValueType)
                 {
                     case ODKValueType.isBoolean:
@@ -562,20 +562,26 @@ namespace NSAP_ODK.Entities.Database
                     {
                         if (ve.EffortSpecification != null)
                         {
+                            string spec_name = ve.EffortSpecification.Name.Replace("/", " or ");
+                            //var r = row[spec_name];
                             switch (ve.EffortSpecification.ValueType)
                             {
                                 case ODKValueType.isBoolean:
-                                    row[ve.EffortSpecification.Name] = bool.Parse(ve.EffortValue);
+                                    //row[ve.EffortSpecification.Name] = bool.Parse(ve.EffortValue);
+                                    row[spec_name] = bool.Parse(ve.EffortValue);
                                     break;
                                 case ODKValueType.isDecimal:
-                                    row[ve.EffortSpecification.Name] = double.Parse(ve.EffortValue);
+                                    //row[ve.EffortSpecification.Name] = double.Parse(ve.EffortValue);
+                                    row[spec_name] = double.Parse(ve.EffortValue);
                                     break;
                                 case ODKValueType.isInteger:
-                                    row[ve.EffortSpecification.Name] = int.Parse(ve.EffortValue);
+                                    //row[ve.EffortSpecification.Name] = int.Parse(ve.EffortValue);
+                                    row[spec_name] = double.Parse(ve.EffortValue);
                                     break;
                                 case ODKValueType.isText:
                                 case ODKValueType.isUndefined:
-                                    row[ve.EffortSpecification.Name] = ve.EffortValue;
+                                    //row[ve.EffortSpecification.Name] = ve.EffortValue;
+                                    row[spec_name] = ve.EffortValue;
                                     break;
                             }
                         }
@@ -708,7 +714,7 @@ namespace NSAP_ODK.Entities.Database
 
             foreach (var spec in NSAPEntities.EffortSpecificationViewModel.EffortSpecCollection.OrderBy(t => t.Name))
             {
-                dc = new DataColumn { ColumnName = spec.Name };
+                dc = new DataColumn { ColumnName = spec.Name.Replace("/"," or ") };
                 switch (spec.ValueType)
                 {
                     case ODKValueType.isBoolean:
@@ -806,20 +812,21 @@ namespace NSAP_ODK.Entities.Database
                     {
                         if (ve.EffortSpecification != null)
                         {
+                            string spec_name = ve.EffortSpecification.Name.Replace("/", " or ");
                             switch (ve.EffortSpecification.ValueType)
                             {
                                 case ODKValueType.isBoolean:
-                                    row[ve.EffortSpecification.Name] = bool.Parse(ve.EffortValue);
+                                    row[spec_name] = bool.Parse(ve.EffortValue);
                                     break;
                                 case ODKValueType.isDecimal:
-                                    row[ve.EffortSpecification.Name] = double.Parse(ve.EffortValue);
+                                    row[spec_name] = double.Parse(ve.EffortValue);
                                     break;
                                 case ODKValueType.isInteger:
-                                    row[ve.EffortSpecification.Name] = int.Parse(ve.EffortValue);
+                                    row[spec_name] = int.Parse(ve.EffortValue);
                                     break;
                                 case ODKValueType.isText:
                                 case ODKValueType.isUndefined:
-                                    row[ve.EffortSpecification.Name] = ve.EffortValue;
+                                    row[spec_name] = ve.EffortValue;
                                     break;
                             }
                         }

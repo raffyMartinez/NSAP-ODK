@@ -15,7 +15,10 @@ namespace NSAP_ODK.Entities.Database
         private bool _set_csv_on_update=false;
         public ObservableCollection<VesselUnload_FishingGear> VesselUnload_FishingGearsCollection { get; set; }
         private VesselUnload_FishingGearRepository VesselUnload_FishingGears { get; set; }
-
+        public int Count()
+        {
+            return VesselUnload_FishingGearsCollection.Count;
+        }
         public void RefreshCollection()
         {
             VesselUnload_FishingGearsCollection = new ObservableCollection<VesselUnload_FishingGear>(VesselUnload_FishingGears.VesselUnload_FishingGears);

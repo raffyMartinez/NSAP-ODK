@@ -461,8 +461,7 @@ namespace NSAP_ODK.Entities.Database
                         OleDbDataReader dr = cmd.ExecuteReader();
                         while(dr.Read())
                         {
-                            while (dr.Read())
-                            {
+
                                 VesselCatch item = new VesselCatch();
                                 item.ParentFishingGear = vufg;
                                 item.PK = (int)dr["catch_id"];
@@ -486,7 +485,7 @@ namespace NSAP_ODK.Entities.Database
                                 item.GearCode = vufg.GearCode;
                                 item.GearText = vufg.GearText;
                                 thisList.Add(item);
-                            }
+                            
                         }
                     }
                 }
