@@ -11,7 +11,6 @@ namespace NSAP_ODK.Entities.Database
     public class CountLandings
     {
         [JsonProperty("_id")]
-
         public int LandingsId { get; set; }
         [JsonProperty("today")]
         public string Today { get; set; }
@@ -1010,6 +1009,7 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
         }
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group")]
         [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition")]
         public List<MultiVesselGear_GearCatchComposition> GearCatchCompositionItems
         {
@@ -1023,7 +1023,7 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
         }
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat")]
         //public List<MultiVesselGear_CatchCompositionItem> CatchCompositionItems
         //{
         //    get { return _catchCompositionItems; }
@@ -1360,7 +1360,7 @@ namespace NSAP_ODK.Entities.Database
     public class MultiVesselGear_GearCatchComposition
     {
         //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/selected_gear_catch_comp")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_grouprepeat_gear_catch_compositionselected_gear_catch_comp { get; set; }
+        //public string repeat_landingsgroup_sampled_landingcatch_comp_grouprepeat_gear_catch_composition/inside_repeat_gear_groupselected_gear_catch_comp { get; set; }
         private MultiVesselGear_SampledLanding _parent;
         private List<MultiVesselGear_CatchCompositionItem> _catchCompositionItems;
         public MultiVesselGear_SampledLanding Parent
@@ -1373,7 +1373,7 @@ namespace NSAP_ODK.Entities.Database
         public string GearName { get; set; }
 
         //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/gear_code_catch_comp")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_grouprepeat_gear_catch_compositiongear_code_catch_comp { get; set; }
+        //public string repeat_landingsgroup_sampled_landingcatch_comp_grouprepeat_gear_catch_composition/inside_repeat_gear_groupgear_code_catch_comp { get; set; }
 
         [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/selected_gear__catch_comp_code")]
         public string GearCode { get; set; }
@@ -1381,13 +1381,13 @@ namespace NSAP_ODK.Entities.Database
         [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/weight_catch_of_gear")]
         public double? WeightOfCatch { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_items_count")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_items_count")]
         public int? NumberOfSpeciesInCatchComposition { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat_count")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_grouprepeat_gear_catch_compositioncatch_composition_repeat_count { get; set; }
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat_count")]
+        //public string repeat_landingsgroup_sampled_landingcatch_comp_grouprepeat_gear_catch_composition/inside_repeat_gear_groupcatch_composition_repeat_count { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat")]
         public List<MultiVesselGear_CatchCompositionItem> CatchCompositionItems
         {
             get { return _catchCompositionItems; }
@@ -1401,23 +1401,23 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/count_species_comp")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/count_species_comp")]
         public int? CountOfSpeciesComposition { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/sum_total")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/sum_total")]
         public double? SumTotalWeight { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/raising_factor_text")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/raising_factor_text")]
         public string RaisingFactorText { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/sum_sample")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/sum_sample")]
         public double? SumSampleWeight { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/sum_species_weight")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/sum_species_weight")]
         public double? SumSpeciesWeight { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/sum_species_weight_coalesce")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_grouprepeat_gear_catch_compositionsum_species_weight_coalesce { get; set; }
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/sum_species_weight_coalesce")]
+        //public string repeat_landingsgroup_sampled_landingcatch_comp_grouprepeat_gear_catch_composition/inside_repeat_gear_groupsum_species_weight_coalesce { get; set; }
     }
     public class MultiVesselGear_CatchLenFreq
     {
@@ -1443,13 +1443,13 @@ namespace NSAP_ODK.Entities.Database
             get { return _parent; }
             set { _parent = value; }
         }
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/length_freq_repeat/group_LF/length_class")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/length_freq_repeat/group_LF/length_class")]
         public double LengthClass { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/length_freq_repeat/group_LF/freq")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/length_freq_repeat/group_LF/freq")]
         public int Frequency { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/length_freq_repeat/group_LF/lf_grp_title")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/length_freq_repeat/group_LF/lf_grp_title")]
         //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_grouplength_freq_repeatgroup_LFlf_grp_title { get; set; }
     }
 
@@ -1497,19 +1497,19 @@ namespace NSAP_ODK.Entities.Database
             get { return _parent; }
             set { _parent = value; }
         }
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/len_wt_repeat/len_wt_group/len_lenwt")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/len_wt_repeat/len_wt_group/len_lenwt")]
         public double Length { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/len_wt_repeat/len_wt_group/wt_lenwt")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/len_wt_repeat/len_wt_group/wt_lenwt")]
         public double Weight { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/len_wt_repeat/len_wt_group/sex_lw")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/len_wt_repeat/len_wt_group/sex_lw")]
         public string Sex { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/len_wt_repeat/len_wt_group/lw_grp_title")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/len_wt_repeat/len_wt_group/lw_grp_title")]
         //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_grouplen_wt_repeatlen_wt_grouplw_grp_title { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/len_wt_repeat/len_wt_group/wt_lenwt_kg")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/len_wt_repeat/len_wt_group/wt_lenwt_kg")]
         public double Weight_kg { get; set; }
     }
 
@@ -1575,7 +1575,7 @@ namespace NSAP_ODK.Entities.Database
             set { _parent = value; }
         }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/gms_repeat_group")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/gms_repeat_group")]
         public List<MultiVesselGear_CatchGMS> CatchGMSes
         {
             get { return _catchGMSes; }
@@ -1588,7 +1588,7 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
         }
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/length_list_repeat")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/length_list_repeat")]
         public List<MultiVesselGear_CatchLength> CatchLengths
         {
             get { return _catchLengths; }
@@ -1602,7 +1602,7 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/len_wt_repeat")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/len_wt_repeat")]
         public List<MultiVesselGear_CatchLenWt> CatchLengthWeights
         {
             get { return _catchLengthWeights; }
@@ -1616,7 +1616,7 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/length_freq_repeat")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/length_freq_repeat")]
         public List<MultiVesselGear_CatchLenFreq> CatchLenFreqs
         {
             get { return _catchLenFreqs; }
@@ -1630,49 +1630,49 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/show_taxa_image")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/show_taxa_image")]
         //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_groupshow_taxa_image { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/taxa_no_im")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/taxa_no_im")]
         //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_grouptaxa_no_im { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/taxa")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/taxa")]
         public string SelectedTaxa { get; set; }
 
         public Taxa Taxa { get { return NSAPEntities.TaxaViewModel.GetTaxa(SelectedTaxa); } }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/select_spName")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/select_spName")]
 
         public string SelectSpeciesNameFromList { get; set; }
 
         public bool IsSelectSpeciesNameFromList { get { return SelectSpeciesNameFromList == "yes"; } }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/species_csv_source")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/species_csv_source")]
         //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_groupspecies_csv_source { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/search_species")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/search_species")]
         //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_groupsearch_species { get; set; }
 
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/spName_other")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/spName_other")]
         public string SpeciesNameOther { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/species")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/species")]
         public int? SelectedFishSpeciesID { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/species_notfish")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/species_notfish")]
         public int? SelectedNonFishSpeciesID { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/gear_species")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/gear_species")]
         //public int gear_species { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/gear_species_name")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/gear_species_name")]
         public string NameOfGearUsedForCatching { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/gear_species_code")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/gear_species_code")]
         //public string gear_species_code { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/gear_species_code_final")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/gear_species_code_final")]
         public string CodeOfGearUsedForCatching { get; set; }
 
         public Gear GearUsedForCatching
@@ -1690,130 +1690,130 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/sp_id")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/sp_id")]
         public int? SpeciesID { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/len_max_1")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/len_max_1")]
         //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_grouplen_max_1 { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/len_max")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/len_max")]
         //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_grouplen_max { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/species_name_selected")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/species_name_selected")]
         //this will 
         public string SpeciesNameSelected { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/size_type_name")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/size_type_name")]
         //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_groupsize_type_name { get; set; }
 
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/from_total_catch")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/from_total_catch")]
         public string From_total_catch { get; set; }
 
         public bool FromTotalCatch { get { return From_total_catch == "yes"; } }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/species_sample_wt_sampled")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/species_sample_wt_sampled")]
         public double? WeightOfSpeciesSampled { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/species_wt_1")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/species_wt_1")]
         public double? WeightOfSpecies { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/species_wt")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/species_wt")]
         public double? Species_wt { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/species_wt_rounded")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/species_wt_rounded")]
         //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_groupspecies_wt_rounded { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/measure_len_and_gms")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/measure_len_and_gms")]
         public string Measure_len_and_gms { get; set; }
 
         public bool MeasureLengthAndGMS { get { return Measure_len_and_gms == "yes"; } }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/has_measurement")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/has_measurement")]
         //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_grouphas_measurement { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/what_is_measured")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/what_is_measured")]
         //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_groupwhat_is_measured { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/species_sample_wt_sampled")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/species_sample_wt_sampled")]
         //public double? WeightOfSampleOfSpeciesFromSample { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/species_sample_wt_total")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/species_sample_wt_total")]
         public double? WeightOfSampleOfSpeciesFromTotal { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/max_len_hint")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/max_len_hint")]
         //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_groupmax_len_hint { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/enforce_maxlen")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/enforce_maxlen")]
         public string Enforce_maxlen { get; set; }
 
         public bool EnforceMaxLen { get { return Enforce_maxlen == "yes"; } }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/species_sample_wt")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/species_sample_wt")]
         public double? Species_sample_wt { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/species_sample_wt_from_sample")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/species_sample_wt_from_sample")]
         //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_groupspecies_sample_wt_from_sample { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/from_total_catch_code")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/from_total_catch_code")]
         //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_groupfrom_total_catch_code { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/include_sex_for_length")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/include_sex_for_length")]
         public string Include_sex_when_measuring_length { get; set; }
 
 
 
         public bool IncludeSexWhenMeasuringLength { get { return Include_sex_when_measuring_length == "yes"; } }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/len_max_hint")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/len_max_hint")]
         //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_grouplen_max_hint { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/wt_unit_name")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/wt_unit_name")]
         //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_groupwt_unit_name { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/max_size_hint")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/max_size_hint")]
         //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_groupmax_size_hint { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/species_wt_check")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/species_wt_check")]
         //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_groupspecies_wt_check { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/overwt_prompt")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/overwt_prompt")]
         //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_groupoverwt_prompt { get; set; }
 
 
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/sum_wt_from_lenwt")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/sum_wt_from_lenwt")]
         //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupsum_wt_from_lenwt { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/sum_wt_from_lenwt_coalesce")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/sum_wt_from_lenwt_coalesce")]
         //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupsum_wt_from_lenwt_coalesce { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/sum_wt_from_gms")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/sum_wt_from_gms")]
         //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupsum_wt_from_gms { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/sum_wt_from_gms_coalesce")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/sum_wt_from_gms_coalesce")]
         //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupsum_wt_from_gms_coalesce { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/repeat_title")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/repeat_title")]
         //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_grouprepeat_title { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/is_species_sold")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/is_species_sold")]
         public string Is_species_sold { get; set; }
 
         public bool IsSpeciesSold { get { return Is_species_sold == "yes"; } }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/price_of_species")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/price_of_species")]
         public double? Price_of_species { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/pricing_unit")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/pricing_unit")]
         public string Pricing_unit { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/other_pricing_unit")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/other_pricing_unit")]
         public string OtherPricingUnit { get; set; }
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/type_of_measure")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/type_of_measure")]
         public string Type_of_measure { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/species_data_group/individual_wt_unit")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/individual_wt_unit")]
         public string Individual_wt_unit { get; set; }
 
 
@@ -1863,31 +1863,31 @@ namespace NSAP_ODK.Entities.Database
             get { return _parent; }
             set { _parent = value; }
         }
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/individual_length")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/individual_length")]
         public double? Individual_length { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/individual_weight")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/individual_weight")]
         public double? Individual_weight { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/stomach_content_wt")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/stomach_content_wt")]
         public double? Stomach_content_weight { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/sex")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/sex")]
         public string Sex { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/gms_repeat")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/gms_repeat")]
         public string GMS { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/gonad_wt")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/gonad_wt")]
         public double? GonadWt { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/gut_content_category")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/gut_content_category")]
         public string GutContentCategory { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/combined_gms_fields")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/combined_gms_fields")]
         //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupgms_repeat_groupgms_groupcombined_gms_fields { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/individual_weight_kg")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/individual_weight_kg")]
         public double? Individual_weight_kg { get; set; }
     }
 
@@ -1938,10 +1938,10 @@ namespace NSAP_ODK.Entities.Database
             get { return _parent; }
             set { _parent = value; }
         }
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/length_list_repeat/length_list_group/length")]
+        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/length_list_repeat/length_list_group/length")]
         public double Length { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/catch_composition_repeat/speciesname_group/length_list_repeat/length_list_group/ll_grp_title")]
+        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/length_list_repeat/length_list_group/ll_grp_title")]
         //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_grouplength_list_repeatlength_list_groupll_grp_title { get; set; }
     }
 
@@ -2047,7 +2047,8 @@ namespace NSAP_ODK.Entities.Database
             set { _parent = value; }
         }
         [JsonProperty("repeat_landings/group_sampled_landing/efforts_group/repeat_gear_effort/effort_group_inside/effort_repeat/group_effort/effort_type")]
-        public int EffortType { get; set; }
+        public string EffortTypePadded { get; set; }
+        public int EffortType { get { return int.Parse(EffortTypePadded); } }
 
         [JsonProperty("repeat_landings/group_sampled_landing/efforts_group/repeat_gear_effort/effort_group_inside/effort_repeat/group_effort/response_type")]
         public string ResponseType { get; set; }

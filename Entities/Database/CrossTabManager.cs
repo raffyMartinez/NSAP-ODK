@@ -121,6 +121,10 @@ namespace NSAP_ODK.Entities.Database
             foreach (var unload in unloads)
             {
                 VesselUnloadViewModel.SetUpFishingGearSubModel(unload);
+                if(unload.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection==null)
+                {
+                    unload.VesselUnload_FishingGearsViewModel = new VesselUnload_FishingGearViewModel(unload);
+                }
                 foreach (VesselUnload_FishingGear vufg in unload.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection)
                 {
                     CrossTabCommon ctc = new CrossTabCommon(vufg);

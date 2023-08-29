@@ -2089,7 +2089,8 @@ namespace NSAP_ODK.Entities.Database
         public MultiGearEffortSpecContainer Parent { get; set; }
 
         [JsonProperty("efforts_group/repeat_gear_effort/effort_group_inside/effort_repeat/group_effort/effort_type")]
-        public int EffortType { get; set; }
+        public string EffortTypePadded { get; set; }
+        public int EffortType { get { return int.Parse(EffortTypePadded); } }
 
         [JsonProperty("efforts_group/repeat_gear_effort/effort_group_inside/effort_repeat/group_effort/response_type")]
         public string ResponseType { get; set; }
@@ -2779,7 +2780,7 @@ namespace NSAP_ODK.Entities.Database
 
             GearUnloadViewModel.CurrentIDNumber = NSAPEntities.SummaryItemViewModel.GetGearUnloadMaxRecordNumber();
 
-            
+
             if (loopCount == 0)
             {
                 int idFromDB = GearUnloadRepository.MaxRecordNumberFromDB();

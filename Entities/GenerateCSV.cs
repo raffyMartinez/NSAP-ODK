@@ -22,6 +22,7 @@ namespace NSAP_ODK.Entities
         private static List<int> _majorGrid51N = new List<int>();
         private static string _fileName;
         private static string _folderSaveLocation;
+        private static int _id_width = 8;
 
         static GenerateCSV()
         {
@@ -270,7 +271,7 @@ namespace NSAP_ODK.Entities
                             .Where(t => t.FishingVessel.FisheriesSector == FisheriesSector.Municipal)
                             .OrderBy(t => t.FishingVessel.ToString()))
                         {
-                            sb.AppendLine($"{fv.FishingVessel.FisheriesSector.ToString().Substring(0, 1)},{fv.FishingVessel.ID},\"{fv.FishingVessel.NameToUse(addPrefix: false)}\",{reg.Code}");
+                            sb.AppendLine($"{fv.FishingVessel.FisheriesSector.ToString().Substring(0, 1)},{fv.FishingVessel.ID.ToString().PadLeft(_id_width,'0')},\"{fv.FishingVessel.NameToUse(addPrefix: false)}\",{reg.Code}");
                             counter++;
                         }
                     }
@@ -287,7 +288,7 @@ namespace NSAP_ODK.Entities
                             .Where(t => t.FishingVessel.FisheriesSector == FisheriesSector.Commercial)
                             .OrderBy(t => t.FishingVessel.ToString()))
                         {
-                            sb.AppendLine($"{fv.FishingVessel.FisheriesSector.ToString().Substring(0, 1)},{fv.FishingVessel.ID},\"{fv.FishingVessel.NameToUse(addPrefix: false)}\",{reg.Code}");
+                            sb.AppendLine($"{fv.FishingVessel.FisheriesSector.ToString().Substring(0, 1)},{fv.FishingVessel.ID.ToString().PadLeft(_id_width,'0')},\"{fv.FishingVessel.NameToUse(addPrefix: false)}\",{reg.Code}");
                             counter++;
                         }
                     }
@@ -452,7 +453,7 @@ namespace NSAP_ODK.Entities
             {
                 foreach (var g in r.Gears)
                 {
-                    sb.AppendLine($"{g.RowID},\"{g.Gear.GearName}\",{g.Gear.Code}");
+                    sb.AppendLine($"{g.RowID.ToString().PadLeft(_id_width, '0')},\"{g.Gear.GearName}\",{g.Gear.Code}");
                     counter++;
                 }
             }
@@ -540,7 +541,7 @@ namespace NSAP_ODK.Entities
             {
                 foreach (var gear in region.Gears.OrderBy(t => t.NSAPRegion.Name).ThenBy(t => t.Gear.GearName))
                 {
-                    sb.AppendLine($"gear,{gear.RowID},{gear.Gear.GearName},{region.Code}");
+                    sb.AppendLine($"gear,{gear.RowID.ToString().PadLeft(_id_width,'0')},{gear.Gear.GearName},{region.Code}");
                     counter++;
                 }
             }
@@ -575,7 +576,7 @@ namespace NSAP_ODK.Entities
                 }
                 if (proceed)
                 {
-                    sb.AppendLine($"effort_spec,{item.Value.EffortSpecification.ID},{item.Value.EffortSpecification.Name},{item.Value.Gear.Code}");
+                    sb.AppendLine($"effort_spec,{item.Value.EffortSpecification.ID.ToString().PadLeft(_id_width,'0')},{item.Value.EffortSpecification.Name},{item.Value.Gear.Code}");
                     counter++;
                 }
                 proceed = true;
@@ -591,7 +592,7 @@ namespace NSAP_ODK.Entities
                 }
                 if (proceed)
                 {
-                    sb.AppendLine($"effort_spec,{item.ID},{item.Name},_OT");
+                    sb.AppendLine($"effort_spec,{item.ID.ToString().PadLeft(_id_width,'0')},{item.Name},_OT");
                     counter++;
                 }
                 proceed = true;
@@ -772,7 +773,7 @@ namespace NSAP_ODK.Entities
                             valueType = "U";
                             break;
                     }
-                    sb.AppendLine($"{spec.ID},\"{spec.Name}\",{valueType}");
+                    sb.AppendLine($"{spec.ID.ToString().PadLeft(_id_width, '0')},\"{spec.Name}\",{valueType}");
                     counter++;
                 }
             }

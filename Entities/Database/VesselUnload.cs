@@ -1157,7 +1157,7 @@ namespace NSAP_ODK.Entities.Database
             get
             {
                 List<VesselUnload_Gear_Spec> vu_gses = new List<VesselUnload_Gear_Spec>();
-                if (VesselUnload_FishingGearsViewModel == null)
+                if (VesselUnload_FishingGearsViewModel == null || VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection==null)
                 {
                     VesselUnload_FishingGearsViewModel = new VesselUnload_FishingGearViewModel(this);
                 }
@@ -1306,6 +1306,10 @@ namespace NSAP_ODK.Entities.Database
                 List<VesselCatch> vcs = new List<VesselCatch>();
                 if (Parent.Parent.IsMultiVessel)
                 {
+                    if(VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection==null)
+                    {
+                        VesselUnload_FishingGearsViewModel = new VesselUnload_FishingGearViewModel(this);
+                    }
                     foreach(var fg in VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection)
                     {
                         foreach(VesselCatch c in fg.VesselCatchViewModel.VesselCatchCollection)
