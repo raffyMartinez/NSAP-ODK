@@ -54,7 +54,14 @@ namespace NSAP_ODK.Entities.Database
                 }
                 else if (string.IsNullOrEmpty(colName) && relationshipToRemove.Length > 0)
                 {
-                    sql = $"ALTER TABLE dbo_vessel_unload DROP CONSTRAINT {relationshipToRemove}";
+
+                    string tableName = "dbo_vessel_unload";
+                    if(relationshipToRemove.Contains("gps"))
+                    {
+                        tableName = "dbo_vessel_unload_1";
+                    }
+                    sql = $"ALTER TABLE {tableName} DROP CONSTRAINT {relationshipToRemove}";
+                    
 
                 }
                 else

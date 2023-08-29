@@ -113,7 +113,10 @@ namespace NSAP_ODK.Entities.Database
                                                             }
                                                             if (proceed)
                                                             {
-                                                                proceed = VesselUnloadRepository.UpdateTableDefinitionEx(relationshipToRemove: "fishingVesseldbo_vessel_unload");
+                                                                if(VesselUnloadRepository.UpdateTableDefinitionEx(relationshipToRemove: "fishingVesseldbo_vessel_unload"))
+                                                                {
+                                                                    proceed = VesselUnloadRepository.UpdateTableDefinitionEx(relationshipToRemove: "gpsdbo_vessel_unload_1");
+                                                                }
                                                             }
                                                         }
                                                     }

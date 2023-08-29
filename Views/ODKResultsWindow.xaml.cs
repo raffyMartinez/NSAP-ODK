@@ -1841,7 +1841,7 @@ namespace NSAP_ODK.Views
                                         msg += $"\r\n\r\nThere were {_ufg_count} landings with unrecognized fishing grounds";
                                     }
 
-                                    if (!VesselUnloadServerRepository.DelayedSave)// || _savedCount==0)
+                                    if (!VesselUnloadServerRepository.DelayedSave && !MultiVesselGear_UnloadServerRepository.DelayedSave)// || _savedCount==0)
                                     {
                                         TimedMessageBox.Show(msg, "NSAP-ODK Database", 5000);
                                     }
