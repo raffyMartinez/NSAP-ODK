@@ -299,7 +299,7 @@ namespace NSAP_ODK.Entities.Database
             }
             return this_list;
         }
-        public static string GetColumnNamesCSV(string tableName)
+        public static string GetColumnNamesCSV(string tableName, List<string> excludeColumns = null)
         {
             string csv = "";
             using (var con = new OleDbConnection(Global.ConnectionString))
@@ -314,7 +314,12 @@ namespace NSAP_ODK.Entities.Database
                         var nameCol = table.Columns["ColumnName"];
                         foreach (DataRow row in table.Rows)
                         {
-                            csv += $"{row[nameCol]},";
+                            string colName = row[nameCol].ToString();
+                            if (excludeColumns == null || !excludeColumns.Contains(colName))
+                            {
+                                csv += $"{row[nameCol]},";
+                            }
+
                         }
                     }
                 }

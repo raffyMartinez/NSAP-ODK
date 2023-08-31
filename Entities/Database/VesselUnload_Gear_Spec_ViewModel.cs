@@ -66,7 +66,7 @@ namespace NSAP_ODK.Entities.Database
 
             Dictionary<string, string> myDict = new Dictionary<string, string>();
             myDict.Add("effort_row_id", item.RowID.ToString());
-            myDict.Add("v_unload_id", "");
+            //myDict.Add("v_unload_id", "");
             myDict.Add("effort_spec_id", item.EffortSpecID.ToString());
             myDict.Add("effort_value_numeric", effort_numeric);
             myDict.Add("effort_value_text", item.EffortValueText);
@@ -88,7 +88,8 @@ namespace NSAP_ODK.Entities.Database
                 }
                 else
                 {
-                    return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_vessel_effort")}\r\n{_csv.ToString()}";
+
+                    return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_vessel_effort", excludeColumns: new List<string> { "v_unload_id"})}\r\n{_csv.ToString()}";
                 }
             }
         }
