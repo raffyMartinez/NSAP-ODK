@@ -78,6 +78,7 @@ namespace NSAP_ODK.Entities.Database
         public string LandingSiteText { get; set; }
         public int FMAID { get; set; }
 
+        //public string Notes { get; set; }
         public FishingGround FishingGround
         {
             set { _fishingGround = value; }

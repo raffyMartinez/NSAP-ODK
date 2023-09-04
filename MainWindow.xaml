@@ -100,6 +100,13 @@
                 <MenuItem Header="dummy" x:Name="menuDummy"  IsCheckable="True" Checked="OnMenuItemChecked" Visibility="Collapsed"/>
             </MenuItem>
 
+            <MenuItem Header="Calendar" x:Name="menuCalendar" Visibility="Collapsed">
+                <MenuItem Header="Sampled/Monitored landings calendar" x:Name="menuSampledCalendar" IsCheckable="True"  Checked="OnMenuItemChecked"/>
+                <MenuItem Header="Number of landings by gear calendar" x:Name="menuAllLandingsCalendar" IsCheckable="True" Checked="OnMenuItemChecked" />
+                <MenuItem Header="Weight of landed catch by gear calendar" x:Name="menuWeightLandingsCalendar" IsCheckable="True" Checked="OnMenuItemChecked" />
+                <MenuItem Header="Total number of landings by day calendar" x:Name="menuTotalLandingsCalendar" IsCheckable="True" Checked="OnMenuItemChecked" />
+            </MenuItem>
+
             <MenuItem Header="NSAP Data" x:Name="menuNSAPData">
                 <MenuItem Header="_Manage" x:Name="menuImport" Click="OnMenuClicked"/>
                 <Separator />

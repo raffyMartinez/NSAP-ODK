@@ -26,12 +26,12 @@ namespace NSAP_ODK.Entities.Database
         public event EventHandler<BuildOrphanedEntityEventArg> BuildingOrphanedEntity;
         public LandingSiteSampling GetLandingSiteSampling(int ls_id, string fg_id, DateTime sdate)
         {
-            SummaryItem item= null; ;
+            SummaryItem item = null; ;
             try
             {
                 item = SummaryItemCollection.FirstOrDefault(t => t.LandingSiteID == ls_id && t.FishingGroundID == fg_id && ((DateTime)t.SamplingDate).Date == sdate);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return null;
             }
@@ -408,7 +408,7 @@ namespace NSAP_ODK.Entities.Database
             }
             else
             {
-                return SummaryItemCollection.Where(t=>t.VesselUnloadID!=null).Max(t => (int)t.VesselUnloadID);
+                return SummaryItemCollection.Where(t => t.VesselUnloadID != null).Max(t => (int)t.VesselUnloadID);
             }
         }
 
@@ -883,7 +883,7 @@ namespace NSAP_ODK.Entities.Database
                     }
                 }
             }
-            return gus;
+            return gus.OrderByDescending(t => t.Parent.SamplingDate).ToList();
         }
 
         private void GetCountSampledLandingsOfGear(GearUnload gu, List<LandingSiteSampling> lss)
@@ -2522,6 +2522,8 @@ namespace NSAP_ODK.Entities.Database
                 RegionID = ls.NSAPRegionID,
                 FishingGroundID = ls.FishingGroundID,
                 DateAdded = ls.DateAdded,
+                LandingSiteHasOperation = ls.HasFishingOperation,
+                LandingSiteSamplingNotes = ls.Remarks
             };
 
             SummaryItemCollection.Add(si);
@@ -2548,6 +2550,11 @@ namespace NSAP_ODK.Entities.Database
                 GearUnloadCatch = gu.Catch,
                 GearCode = gu.GearID,
                 GearText = gu.GearUsedText,
+
+                GearUnloadNumberCommercialLandings = gu.NumberOfCommercialLandings,
+                GearUnloadNumberMunicipalLandings = gu.NumberOfMunicipalLandings,
+                GearUnloadWeightCommercialLandings = gu.WeightOfCommercialLandings,
+                GearUnloadWeightMunicipalLandings = gu.WeightOfMunicipalLandings,
             };
 
             SummaryItemCollection.Add(si);
@@ -2574,6 +2581,10 @@ namespace NSAP_ODK.Entities.Database
                 GearCode = vu.Parent.GearID,
                 GearText = vu.Parent.GearUsedText,
                 RefNo = vu.RefNo,
+                GearUnloadNumberCommercialLandings = vu.Parent.NumberOfCommercialLandings,
+                GearUnloadNumberMunicipalLandings = vu.Parent.NumberOfMunicipalLandings,
+                GearUnloadWeightCommercialLandings = vu.Parent.WeightOfCommercialLandings,
+                GearUnloadWeightMunicipalLandings = vu.Parent.WeightOfMunicipalLandings,
                 //GearName = vu.Parent.Gear.GearName,
 
                 VesselUnloadID = vu.PK,

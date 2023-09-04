@@ -70,10 +70,15 @@ namespace NSAP_ODK.Entities.Database
                 List<MultiVesselGear_SampledLanding> sampledLandings = new List<MultiVesselGear_SampledLanding>();
                 foreach (MultiVesselGear_Root root in MultiVesselLandings)
                 {
-                    if (root.SampledFishLandings != null)
+                    if (root.SampledFishLandingsEx != null)
                     {
-                        sampledLandings.AddRange(root.SampledFishLandings);
+                        sampledLandings.AddRange(root.SampledFishLandingsEx);
                     }
+
+                    //if (root.SampledFishLandings != null)
+                    //{
+                    //    sampledLandings.AddRange(root.SampledFishLandings);
+                    //}
                 }
                 return sampledLandings;
             }
@@ -202,6 +207,7 @@ namespace NSAP_ODK.Entities.Database
                             EnumeratorID = root.RegionEnumeratorID,
                             EnumeratorText = root.RegionEnumeratorText,
                             JSONFileName = jsonFileName,
+                            Remarks = root.ReasonNoLanding
                         };
                         if (NSAPEntities.LandingSiteSamplingViewModel.AddRecordToRepo(lss))
                         {
@@ -246,11 +252,15 @@ namespace NSAP_ODK.Entities.Database
                                         LandingSiteSamplingID = lss.PK,
                                         Boats = gear.NumberOfLandingsOfGear,
                                         Catch = gear.WeightOfCatchOfGear,
+                                        NumberOfCommercialLandings = gear.NumberOfLandingsCommercial,
+                                        NumberOfMunicipalLandings = gear.NumberOfLandingsMunicipal,
+                                        WeightOfMunicipalLandings = gear.WeightOfCatchMunicipal,
+                                        WeightOfCommercialLandings = gear.WeightOfCatchCommercial,
                                         Remarks = gear.GearRemarks,
                                         Sequence = gear.GearLoopCounter,
                                         GearID = gear.GearCode == "_OT" ? "" : gear.GearCode,
                                         GearUsedText = gear.GearUsedText,
-                                        DelayedSave = DelayedSave
+                                        DelayedSave = DelayedSave,
                                     };
 
                                     proceed = false;
@@ -434,7 +444,7 @@ namespace NSAP_ODK.Entities.Database
 
                                                     proceed = countSavedInLoop == gearList.Count;
 
-                                                    if (sl.IncludeCatchComp )
+                                                    if (sl.IncludeCatchComp)
                                                     {
                                                         if (sl.GearCatchCompositionItems != null && sl.GearCatchCompositionItems.Count > 0)
                                                         {
@@ -598,7 +608,7 @@ namespace NSAP_ODK.Entities.Database
                                                     }
                                                     else
                                                     {
-                                                        foreach(VesselUnload_FishingGear vufg in vu.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection.ToList())
+                                                        foreach (VesselUnload_FishingGear vufg in vu.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection.ToList())
                                                         {
                                                             if (sl.LandingGearsWithWeight == null)
                                                             {
@@ -621,7 +631,7 @@ namespace NSAP_ODK.Entities.Database
                                                         {
                                                             gu.VesselUnloadViewModel.UpdateWeightValidation(NSAPEntities.SummaryItemViewModel.CurrentEntity, vu);
                                                             //vu.VesselCatchViewModel.Dispose();
-                                                            
+
                                                         }
                                                         vu.VesselUnload_FishingGearsViewModel.Dispose();
                                                         savedCount++;
@@ -644,7 +654,12 @@ namespace NSAP_ODK.Entities.Database
                                     }
                                     else
                                     {
-
+                                        if (NSAPEntities.SummaryItemViewModel.AddRecordToRepo(gu))
+                                        {
+                                            savedCount++;
+                                            UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.Uploading });
+                                            TotalUploadCount++;
+                                        }
                                     }
                                 }
 
@@ -652,6 +667,15 @@ namespace NSAP_ODK.Entities.Database
                             }
 
 
+                        }
+                        else if (!lss.HasFishingOperation)
+                        {
+                            if (NSAPEntities.SummaryItemViewModel.AddRecordToRepo(lss))
+                            {
+                                savedCount++;
+                                UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.Uploading });
+                                TotalUploadCount++;
+                            }
                         }
                         else if (lss.NumberOfGearTypesInLandingSite != lss.GearUnloadViewModel.Count)
                         {
@@ -869,8 +893,21 @@ namespace NSAP_ODK.Entities.Database
         [JsonProperty("repeat_gears/group_gear/count_landings_of_gear")]
         public int? NumberOfLandingsOfGear { get; set; }
 
+        [JsonProperty("repeat_gears/group_gear/count_landings_of_gear_c")]
+        public int NumberOfLandingsCommercial { get; set; }
+
+        [JsonProperty("repeat_gears/group_gear/count_landings_of_gear_m")]
+        public int NumberOfLandingsMunicipal { get; set; }
+
+        [JsonProperty("repeat_gears/group_gear/catch_of_gear_c")]
+        public double? WeightOfCatchCommercial { get; set; }
+        [JsonProperty("repeat_gears/group_gear/catch_of_gear_m")]
+        public double? WeightOfCatchMunicipal { get; set; }
+
         [JsonProperty("repeat_gears/group_gear/catch_of_gear")]
         public double? WeightOfCatchOfGear { get; set; }
+
+        
 
         [JsonProperty("repeat_gears/group_gear/repeat_gear_code")]
         public string GearCode { get; set; }
@@ -2260,6 +2297,43 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
         }
+
+        public List<MultiVesselGear_SampledLanding> SampledFishLandingsEx
+        {
+            get
+            {
+                var list = SampledFishLandings;
+                if (list == null)
+                {
+                    list = new List<MultiVesselGear_SampledLanding>();
+                }
+                if (GearsInLandingSite != null)
+                {
+                    foreach (var item in GearsInLandingSite.Where(t => t.Parent.IsSamplingDay == false).ToList())
+                    {
+                        MultiVesselGear_SampledLanding sl = new MultiVesselGear_SampledLanding
+                        {
+                            Parent = this,
+                            Main_gear_code = item.GearCode,
+                            Main_gear_name = item.GearName,
+                            Remarks = ReasonNoLanding
+                        };
+                        list.Add(sl);
+                    }
+                }
+
+                if (list.Count == 0)
+                {
+                    MultiVesselGear_SampledLanding sl = new MultiVesselGear_SampledLanding
+                    {
+                        Parent = this,
+                        Remarks = ReasonNoLanding
+                    };
+                    list.Add(sl);
+                }
+                return list.OrderByDescending(t => t.SamplingDate).ToList();
+            }
+        }
         [JsonProperty("repeat_landings")]
         public List<MultiVesselGear_SampledLanding> SampledFishLandings
         {
@@ -2349,7 +2423,8 @@ namespace NSAP_ODK.Entities.Database
 
         [JsonProperty("landing_site_sampling_group/region_enumerator_text")]
         public string RegionEnumeratorText { get; set; }
-
+        [JsonProperty("landing_site_sampling_group/reason_no_landings")]
+        public string ReasonNoLanding { get; set; }
         public NSAPEnumerator NSAPEnumerator
         {
             get
@@ -2551,7 +2626,11 @@ namespace NSAP_ODK.Entities.Database
         [JsonProperty("landing_site_sampling_group/is_sampling_day")]
         public string Is_sampling_day { get; set; }
 
-        public bool IsSamplingDay { get { return Is_sampling_day == "yes"; } }
+        public bool IsSamplingDay
+        {
+            get { return Is_sampling_day == "yes"; }
+            set { Is_sampling_day = "yes"; }
+        }
 
         [JsonProperty("landing_site_sampling_group/are_there_landings")]
         public string Are_there_landings { get; set; }

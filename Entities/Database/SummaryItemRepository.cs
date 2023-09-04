@@ -565,9 +565,150 @@ namespace NSAP_ODK.Entities.Database
             {
                 using (var con = new OleDbConnection(Global.ConnectionString))
                 {
+
+
                     using (var cmd = con.CreateCommand())
                     {
-                        cmd.CommandText = @"SELECT 
+                        bool proceed = false;
+                        con.Open();
+                        cmd.CommandText = @"DROP TABLE  temp_GearUnload";
+                        try
+                        {
+                            cmd.ExecuteNonQuery();
+                            proceed = true;
+                        }
+                        catch (Exception ex)
+                        {
+                            if (ex.Message == "Table 'temp_GearUnload' does not exist.")
+                            {
+                                proceed = true;
+                            }
+                            else
+                            {
+                                Logger.Log(ex);
+                            }
+
+                        }
+                        if(proceed)
+                        {
+                            cmd.CommandText = @"CREATE TABLE temp_GearUnload
+                                                    (unload_gr_id INT,
+                                                    unload_day_id INT,
+                                                    sector char(1),
+                                                    boats INT,
+                                                    catch DOUBLE,
+                                                    gr_id varchar(10),
+                                                    gr_text varchar(255),
+                                                    remarks varchar(255))";
+                            try
+                            {
+                                cmd.ExecuteNonQuery();
+                                proceed = true;
+                            }
+                            catch(Exception ex)
+                            {
+                                Logger.Log(ex);
+                            }
+                        }
+                        if (proceed)
+                        {
+                            try
+                            {
+                                cmd.CommandText = @"INSERT INTO temp_GearUnload ( unload_gr_id, unload_day_id, sector, boats, catch, gr_id, gr_text, remarks )
+                                                    SELECT 
+                                                        dbo_gear_unload.unload_gr_id, 
+                                                        dbo_gear_unload.unload_day_id, 
+                                                        'c' AS sector, 
+                                                        dbo_gear_unload.gear_count_commercial, 
+                                                        dbo_gear_unload.gear_catch_commercial, 
+                                                        dbo_gear_unload.gr_id, 
+                                                        dbo_gear_unload.gr_text, 
+                                                        dbo_gear_unload.remarks
+                                                        FROM dbo_gear_unload
+                                                     WHERE dbo_gear_unload.gear_count_commercial>0";
+                                cmd.ExecuteNonQuery();
+                                proceed = true;
+
+                                cmd.CommandText = @"INSERT INTO temp_GearUnload ( unload_gr_id, unload_day_id, sector, boats, catch, gr_id, gr_text, remarks )
+                                                    SELECT 
+                                                        dbo_gear_unload.unload_gr_id, 
+                                                        dbo_gear_unload.unload_day_id, 
+                                                        'm' AS Expr1, 
+                                                        dbo_gear_unload.gear_count_municipal, 
+                                                        dbo_gear_unload.gear_catch_municipal, 
+                                                        dbo_gear_unload.gr_id, 
+                                                        dbo_gear_unload.gr_text, 
+                                                        dbo_gear_unload.remarks
+                                                        FROM dbo_gear_unload
+                                                     WHERE dbo_gear_unload.gear_count_municipal>0";
+
+                                cmd.ExecuteNonQuery();
+                                proceed = true;
+
+                                cmd.CommandText = @"INSERT INTO temp_GearUnload ( unload_gr_id, unload_day_id, sector, boats, catch, gr_id, gr_text, remarks )
+                                                    SELECT 
+                                                        dbo_gear_unload.unload_gr_id,                                                         
+                                                        dbo_gear_unload.unload_day_id,
+                                                        dbo_gear_unload.sector, 
+                                                        dbo_gear_unload.boats, 
+                                                        dbo_gear_unload.catch, 
+                                                        dbo_gear_unload.gr_id, 
+                                                        dbo_gear_unload.gr_text,
+                                                        dbo_gear_unload.remarks
+                                                    FROM dbo_gear_unload
+                                                    WHERE sector = 'c'";
+
+                                cmd.ExecuteNonQuery();
+                                proceed = true;
+
+                                cmd.CommandText = @"INSERT INTO temp_GearUnload ( unload_gr_id, unload_day_id, sector, boats, catch, gr_id, gr_text, remarks )
+                                                    SELECT 
+                                                        dbo_gear_unload.unload_gr_id,                                                         
+                                                        dbo_gear_unload.unload_day_id,
+                                                        dbo_gear_unload.sector, 
+                                                        dbo_gear_unload.boats, 
+                                                        dbo_gear_unload.catch, 
+                                                        dbo_gear_unload.gr_id, 
+                                                        dbo_gear_unload.gr_text,
+                                                        dbo_gear_unload.remarks
+                                                    FROM dbo_gear_unload
+                                                    WHERE sector = 'm'";
+
+                                cmd.ExecuteNonQuery();
+                                proceed = true;
+
+                                //union
+
+                                //SELECT unload_day_id, unload_gr_id, 'm' AS sector_name, gear_count_municipal, gear_catch_municipal, gr_id, gr_text, remarks
+                                //    FROM dbo_gear_unload
+                                //    WHERE gear_count_municipal > 0
+
+                                //    union
+
+                                //    SELECT unload_day_id, unload_gr_id, sector, boats, catch, gr_id, gr_text,remarks
+                                //    FROM dbo_gear_unload
+                                //    WHERE sector = 'c'
+
+
+                                //    union
+
+                                //    SELECT unload_day_id, unload_gr_id, sector, boats, catch, gr_id, gr_text,remarks
+                                //    FROM dbo_gear_unload
+                                //    WHERE sector = 'm'
+
+                                //    INTO temp_GearUnload";
+
+                                //cmd.ExecuteNonQuery();
+                                //proceed = true;
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Log(ex);
+                            }
+                        }
+                        if (proceed)
+                        {
+                            cmd.CommandText = @"SELECT 
                                                 sd.sampleday AS is_sampling_day,    
                                                 sd.unload_day_id,
                                                 sd.sdate AS SamplingDayDate,
@@ -587,9 +728,12 @@ namespace NSAP_ODK.Entities.Database
                                                 gr.GearCode AS gear_code,
                                                 gr.GearName AS gear_name,
                                                 gu.gr_text AS gear_text,
+                                                gu.gear_count_municipal,
+                                                gu.gear_count_commercial,
+                                                gu.gear_catch_municipal,
+                                                gear_catch_commercial,
                                                 gu.boats,
                                                 gu.catch,
-                                                gu.sp_twsp_count,
                                                 vu.v_unload_id,
                                                 vu.catch_total,
                                                 vu.catch_samp,
@@ -650,268 +794,291 @@ namespace NSAP_ODK.Entities.Database
                                                 LEFT JOIN dbo_vessel_unload_weight_validation AS vu_wv ON vu.v_unload_id = vu_wv.v_unload_id
                                                                                                
                                                 ORDER BY vu1.SamplingDate";
-                        //WHERE vu.v_unload_id Is Not Null  removed befoe ORDER BY clause
-                        try
-                        {
-                            con.Open();
-                            var dr = cmd.ExecuteReader();
-                            int id = 0;
-
-                            while (dr.Read())
+                            //WHERE vu.v_unload_id Is Not Null  removed befoe ORDER BY clause
+                            try
                             {
-                                //int? gr_unload_id = null;
-                                //int? vs_unload_id = null;
-                                int? ls_id = null;
-                                int? en_id = null;
-                                int? gu_boats = null;
-                                double? gu_catch = null;
-                                int? vessel_id = null;
-                                int? no_fishers = null;
-                                int? count_catch_comp = null;
-                                int? count_efforts = null;
-                                int? count_gear_soaks = null;
-                                int? count_grids = null;
-                                int? count_len_wt = null;
-                                int? count_len = null;
-                                int? count_len_freq = null;
-                                int? count_maturity = null;
-                                int? count_twsp = null;
-                                int? count_gear_types = null;
-                                
+                                //con.Open();
+                                var dr = cmd.ExecuteReader();
+                                int id = 0;
 
-                                double? weight_catch = null;
-                                double? weight_catch_sample = null;
-
-                                double? total_catch_comp_wt = null;
-                                double? total_catch_comp_sample_wt = null;
-                                bool isSamplingDay = false;
-
-                                if (dr["catch_total"] != DBNull.Value)
+                                while (dr.Read())
                                 {
-                                    weight_catch = (double)dr["catch_total"];
-                                }
-
-                                if(dr["is_sampling_day"]!=DBNull.Value)
-                                {
-                                    isSamplingDay = (bool)dr["is_sampling_day"];
-                                }
-
-                                if (dr["catch_samp"] != DBNull.Value)
-                                {
-                                    weight_catch_sample = (double)dr["catch_samp"];
-                                }
-
-                                if (dr["landing_site_id"] != DBNull.Value)
-                                {
-                                    ls_id = (int)dr["landing_site_id"];
-                                }
-
-                                if (dr["enumerator_id"] != DBNull.Value)
-                                {
-                                    en_id = (int)dr["enumerator_id"];
-                                }
-
-                                if (dr["count_gear_types"] != DBNull.Value)
-                                {
-                                    count_gear_types = (int)dr["count_gear_types"];
-                                }
-
-                                if (dr["boats"] != DBNull.Value)
-                                {
-                                    gu_boats = (int)dr["boats"];
-                                }
-
-                                if (dr["catch"] != DBNull.Value)
-                                {
-                                    gu_catch = (double)dr["catch"];
-                                }
-                                if (dr["sp_twsp_count"] != DBNull.Value)
-                                {
-                                    count_twsp = (int)dr["sp_twsp_count"];
-                                }
-                                if (dr["vessel_id"] != DBNull.Value)
-                                {
-                                    vessel_id = (int)dr["vessel_id"];
-                                }
-                                if (dr["no_fishers"] != DBNull.Value)
-                                {
-                                    no_fishers = (int)dr["no_fishers"];
-                                }
-                                if (dr["count_catch_composition"] != DBNull.Value)
-                                {
-                                    count_catch_comp = (int)dr["count_catch_composition"];
-                                }
-
-                                if (dr["count_effort"] != DBNull.Value)
-                                {
-                                    count_efforts = (int)dr["count_effort"];
-                                }
-
-                                if (dr["count_grid"] != DBNull.Value)
-                                {
-                                    count_grids = (int)dr["count_grid"];
-                                }
-
-                                if (dr["count_soak"] != DBNull.Value)
-                                {
-                                    count_gear_soaks = (int)dr["count_soak"];
-                                }
-
-                                if (dr["count_lengths"] != DBNull.Value)
-                                {
-                                    count_len = (int)dr["count_lengths"];
-                                }
-
-                                if (dr["count_lenfreq"] != DBNull.Value)
-                                {
-                                    count_len_freq = (int)dr["count_lenfreq"];
-                                }
-
-                                if (dr["count_lenwt"] != DBNull.Value)
-                                {
-                                    count_len_wt = (int)dr["count_lenwt"];
-                                }
-
-                                if (dr["count_maturity"] != DBNull.Value)
-                                {
-                                    count_maturity = (int)dr["count_maturity"];
-                                }
-
-                                if (dr["total_wt_catch_composition"] != DBNull.Value)
-                                {
-                                    total_catch_comp_wt = (double)dr["total_wt_catch_composition"];
-                                }
-
-                                if (dr["total_wt_sampled_species"] != DBNull.Value)
-                                {
-                                    total_catch_comp_sample_wt = (double)dr["total_wt_sampled_species"];
-                                }
+                                    //int? gr_unload_id = null;
+                                    //int? vs_unload_id = null;
+                                    int? ls_id = null;
+                                    int? en_id = null;
+                                    int? gu_boats = null;
+                                    double? gu_catch = null;
+                                    int? vessel_id = null;
+                                    int? no_fishers = null;
+                                    int? count_catch_comp = null;
+                                    int? count_efforts = null;
+                                    int? count_gear_soaks = null;
+                                    int? count_grids = null;
+                                    int? count_len_wt = null;
+                                    int? count_len = null;
+                                    int? count_len_freq = null;
+                                    int? count_maturity = null;
+                                    int? count_twsp = null;
+                                    int? count_gear_types = null;
 
 
-                                SummaryItem si = new SummaryItem();
-                                si.ID = ++id;
-                                si.ODKRowID = dr["RowID"].ToString();
-                                si.SamplingDayUUID = dr["sd_rowid"].ToString();
-                                si.XFormIdentifier = dr["xform_identifier"].ToString();
-                                si.SamplingDayID = (int)dr["unload_day_id"];
-                                si.SamplingDayDate = (DateTime)dr["SamplingDayDate"];
-                                si.IsSamplingDay = isSamplingDay;
-                                si.IsMultiVessel = (bool)dr["is_multivessel"];
-                                if (dr["unload_gr_id"] != DBNull.Value)
-                                {
-                                    si.GearUnloadID = (int)dr["unload_gr_id"];
-                                }
+                                    double? weight_catch = null;
+                                    double? weight_catch_sample = null;
 
-                                if (dr["v_unload_id"] != DBNull.Value)
-                                {
-                                    si.VesselUnloadID = (int)dr["v_unload_id"];
-                                }
-                                else
-                                {
+                                    double? total_catch_comp_wt = null;
+                                    double? total_catch_comp_sample_wt = null;
+                                    bool isSamplingDay = false;
 
-                                }
+                                    if (dr["catch_total"] != DBNull.Value)
+                                    {
+                                        weight_catch = (double)dr["catch_total"];
+                                    }
 
-                                if (dr["type_of_sampling_flag"] != DBNull.Value)
-                                {
-                                    si.SamplingTypeFlag = (SamplingTypeFlag)(int)dr["type_of_sampling_flag"];
-                                }
+                                    if (dr["is_sampling_day"] != DBNull.Value)
+                                    {
+                                        isSamplingDay = (bool)dr["is_sampling_day"];
+                                    }
 
-                                if (dr["validity_flag"] != DBNull.Value)
-                                {
-                                    si.WeightValidationFlag = (WeightValidationFlag)(int)dr["validity_flag"];
-                                }
+                                    if (dr["catch_samp"] != DBNull.Value)
+                                    {
+                                        weight_catch_sample = (double)dr["catch_samp"];
+                                    }
 
-                                si.WeightOfCatch = weight_catch;
-                                si.WeightOfCatchSample = weight_catch_sample;
-                                si.SumOfCatchCompositionWeight = total_catch_comp_wt;
-                                si.SumOfCatchCompositionSampleWeight = total_catch_comp_sample_wt;
-                                if (dr["weight_difference"] != DBNull.Value)
-                                {
-                                    si.DifferenceCatchWtandSumCatchCompWeight = (double)dr["weight_difference"];
-                                }
-                                if (dr["raising_factor"] != DBNull.Value)
-                                {
-                                    si.RaisingFactor = (double)dr["raising_factor"];
-                                }
+                                    if (dr["landing_site_id"] != DBNull.Value)
+                                    {
+                                        ls_id = (int)dr["landing_site_id"];
+                                    }
 
-                                si.RegionID = dr["reg_code"].ToString();
-                                si.RegionSequence = (int)dr["reg_seq"];
-                                si.FMAId = (int)dr["fma_id"];
-                                si.FishingGroundID = dr["fishing_ground_code"].ToString();
-                                si.LandingSiteID = ls_id;
-                                si.LandingSiteName = dr["landing_site_name"].ToString();
-                                si.LandingSiteText = dr["landing_site_text"].ToString();
-                                si.LandingSiteHasOperation = (bool)dr["has_fishing_operation"];
-                                si.GearCode = dr["gear_code"].ToString();
-                                si.GearName = dr["gear_name"].ToString();
-                                si.GearText = dr["gear_text"].ToString();
-                                si.GearUnloadBoats = gu_boats;
-                                si.GearUnloadCatch = gu_catch;
-                                si.TWSpCount = count_twsp;
-                                si.UserName = dr["user_name"].ToString();
-                                si.EnumeratorID = en_id;
-                                si.EnumeratorName = dr["enumerator_name"].ToString();
-                                si.EnumeratorText = dr["enumerator_text"].ToString();
-                                si.FormVersion = dr["form_version"].ToString().Replace("Version ", "");
+                                    if (dr["enumerator_id"] != DBNull.Value)
+                                    {
+                                        en_id = (int)dr["enumerator_id"];
+                                    }
 
-                                if (dr["sampling_date"] != DBNull.Value)
-                                {
-                                    si.SamplingDate = (DateTime)dr["sampling_date"];
-                                }
+                                    if (dr["count_gear_types"] != DBNull.Value)
+                                    {
+                                        count_gear_types = (int)dr["count_gear_types"];
+                                    }
 
-                                si.DateAdded = dr["date_added"] == DBNull.Value ? DateTime.Now : (DateTime)dr["date_added"];
-                                si.IsSuccess = (bool)dr["is_success"];
-                                si.IsTracked = (bool)dr["is_tracked"];
-                                si.SectorCode = dr["sector_code"].ToString();
-                                si.HasCatchComposition = (bool)dr["has_catch_composition"];
-                                si.IsMultiGear = (bool)dr["is_multigear"];
-                                si.IsCatchSold = (bool)dr["is_catch_sold"];
-                                si.IsTripCompleted = (bool)dr["trip_is_completed"];
-                                si.CatchCompositionRows = count_catch_comp;
-                                si.VesselID = vessel_id;
-                                si.VesselName = dr["vessel_name"].ToString();
-                                si.VesselText = dr["vessel_text"].ToString();
-                                si.NumberOfFishers = no_fishers;
-                                si.GPSCode = dr["gps"].ToString();
-                                si.CatchMaturityRows = count_maturity;
-                                si.FishingGridRows = count_grids;
-                                si.GearSoakRows = count_gear_soaks;
-                                si.LenFreqRows = count_len_freq;
-                                si.LengthRows = count_len;
-                                si.LenWtRows = count_len_wt;
-                                si.VesselEffortRows = count_efforts;
-                                si.RefNo = dr["ref_no"].ToString();
-                                si.JSONFileName = dr["json_filename"].ToString();
-                                if (dr["datetime_submitted"] != DBNull.Value)
-                                {
-                                    si.DateSubmitted = (DateTime)dr["datetime_submitted"];
-                                }
-                                if (string.IsNullOrEmpty(si.EnumeratorText))
-                                {
-                                    si.EnumeratorText = si.UserName;
-                                }
+                                    if (dr["boats"] != DBNull.Value)
+                                    {
+                                        gu_boats = (int)dr["boats"];
+                                    }
 
-                                if (si.IsMultiGear)
-                                {
-                                    si.CountFishingGearTypesUsed = count_gear_types;
-                                }
-                                else
-                                {
-                                    si.CountFishingGearTypesUsed = 1;
-                                }
+                                    if (dr["catch"] != DBNull.Value)
+                                    {
+                                        gu_catch = (double)dr["catch"];
+                                    }
+                                    //if (dr["sp_twsp_count"] != DBNull.Value)
+                                    //{
+                                    //    count_twsp = (int)dr["sp_twsp_count"];
+                                    //}
+                                    if (dr["vessel_id"] != DBNull.Value)
+                                    {
+                                        vessel_id = (int)dr["vessel_id"];
+                                    }
+                                    if (dr["no_fishers"] != DBNull.Value)
+                                    {
+                                        no_fishers = (int)dr["no_fishers"];
+                                    }
+                                    if (dr["count_catch_composition"] != DBNull.Value)
+                                    {
+                                        count_catch_comp = (int)dr["count_catch_composition"];
+                                    }
 
-                                items.Add(si);
-                                count++;
-                                //if (count == 21537)
-                                //{
+                                    if (dr["count_effort"] != DBNull.Value)
+                                    {
+                                        count_efforts = (int)dr["count_effort"];
+                                    }
 
-                                //}
+                                    if (dr["count_grid"] != DBNull.Value)
+                                    {
+                                        count_grids = (int)dr["count_grid"];
+                                    }
+
+                                    if (dr["count_soak"] != DBNull.Value)
+                                    {
+                                        count_gear_soaks = (int)dr["count_soak"];
+                                    }
+
+                                    if (dr["count_lengths"] != DBNull.Value)
+                                    {
+                                        count_len = (int)dr["count_lengths"];
+                                    }
+
+                                    if (dr["count_lenfreq"] != DBNull.Value)
+                                    {
+                                        count_len_freq = (int)dr["count_lenfreq"];
+                                    }
+
+                                    if (dr["count_lenwt"] != DBNull.Value)
+                                    {
+                                        count_len_wt = (int)dr["count_lenwt"];
+                                    }
+
+                                    if (dr["count_maturity"] != DBNull.Value)
+                                    {
+                                        count_maturity = (int)dr["count_maturity"];
+                                    }
+
+                                    if (dr["total_wt_catch_composition"] != DBNull.Value)
+                                    {
+                                        total_catch_comp_wt = (double)dr["total_wt_catch_composition"];
+                                    }
+
+                                    if (dr["total_wt_sampled_species"] != DBNull.Value)
+                                    {
+                                        total_catch_comp_sample_wt = (double)dr["total_wt_sampled_species"];
+                                    }
+
+
+                                    SummaryItem si = new SummaryItem();
+                                    si.ID = ++id;
+                                    si.ODKRowID = dr["RowID"].ToString();
+                                    si.SamplingDayUUID = dr["sd_rowid"].ToString();
+                                    si.XFormIdentifier = dr["xform_identifier"].ToString();
+                                    si.SamplingDayID = (int)dr["unload_day_id"];
+                                    si.SamplingDayDate = (DateTime)dr["SamplingDayDate"];
+                                    si.IsSamplingDay = isSamplingDay;
+                                    si.IsMultiVessel = (bool)dr["is_multivessel"];
+                                    si.LandingSiteSamplingNotes = dr["remarks"].ToString();
+                                    if (dr["unload_gr_id"] != DBNull.Value)
+                                    {
+                                        si.GearUnloadID = (int)dr["unload_gr_id"];
+                                    }
+
+                                    if (dr["v_unload_id"] != DBNull.Value)
+                                    {
+                                        si.VesselUnloadID = (int)dr["v_unload_id"];
+                                    }
+                                    else
+                                    {
+
+                                    }
+
+                                    if (dr["type_of_sampling_flag"] != DBNull.Value)
+                                    {
+                                        si.SamplingTypeFlag = (SamplingTypeFlag)(int)dr["type_of_sampling_flag"];
+                                    }
+
+                                    if (dr["validity_flag"] != DBNull.Value)
+                                    {
+                                        si.WeightValidationFlag = (WeightValidationFlag)(int)dr["validity_flag"];
+                                    }
+
+                                    si.WeightOfCatch = weight_catch;
+                                    si.WeightOfCatchSample = weight_catch_sample;
+                                    si.SumOfCatchCompositionWeight = total_catch_comp_wt;
+                                    si.SumOfCatchCompositionSampleWeight = total_catch_comp_sample_wt;
+                                    if (dr["weight_difference"] != DBNull.Value)
+                                    {
+                                        si.DifferenceCatchWtandSumCatchCompWeight = (double)dr["weight_difference"];
+                                    }
+                                    if (dr["raising_factor"] != DBNull.Value)
+                                    {
+                                        si.RaisingFactor = (double)dr["raising_factor"];
+                                    }
+
+                                    si.RegionID = dr["reg_code"].ToString();
+                                    si.RegionSequence = (int)dr["reg_seq"];
+                                    si.FMAId = (int)dr["fma_id"];
+                                    si.FishingGroundID = dr["fishing_ground_code"].ToString();
+                                    si.LandingSiteID = ls_id;
+                                    si.LandingSiteName = dr["landing_site_name"].ToString();
+                                    si.LandingSiteText = dr["landing_site_text"].ToString();
+                                    si.LandingSiteHasOperation = (bool)dr["has_fishing_operation"];
+                                    si.GearCode = dr["gear_code"].ToString();
+                                    si.GearName = dr["gear_name"].ToString();
+                                    si.GearText = dr["gear_text"].ToString();
+                                    si.GearUnloadBoats = gu_boats;
+                                    si.GearUnloadCatch = gu_catch;
+
+                                    if (dr["gear_count_municipal"] != DBNull.Value)
+                                    {
+                                        si.GearUnloadNumberMunicipalLandings = (int)dr["gear_count_municipal"]; 
+                                    }
+
+                                    if (dr["gear_count_commercial"] != DBNull.Value)
+                                    {
+                                        si.GearUnloadNumberCommercialLandings = (int)dr["gear_count_commercial"];
+                                    }
+
+                                    if (dr["gear_catch_municipal"] != DBNull.Value)
+                                    {
+                                        si.GearUnloadWeightMunicipalLandings = (double)dr["gear_catch_municipal"];
+                                    }
+
+                                    if (dr["gear_catch_commercial"] != DBNull.Value)
+                                    {
+                                        si.GearUnloadWeightCommercialLandings = (double)dr["gear_catch_commercial"];
+                                    }
+
+                                    //si.TWSpCount = count_twsp;
+                                    si.UserName = dr["user_name"].ToString();
+                                    si.EnumeratorID = en_id;
+                                    si.EnumeratorName = dr["enumerator_name"].ToString();
+                                    si.EnumeratorText = dr["enumerator_text"].ToString();
+                                    si.FormVersion = dr["form_version"].ToString().Replace("Version ", "");
+
+                                    if (dr["sampling_date"] != DBNull.Value)
+                                    {
+                                        si.SamplingDate = (DateTime)dr["sampling_date"];
+                                    }
+
+                                    si.DateAdded = dr["date_added"] == DBNull.Value ? DateTime.Now : (DateTime)dr["date_added"];
+                                    si.IsSuccess = (bool)dr["is_success"];
+                                    si.IsTracked = (bool)dr["is_tracked"];
+                                    si.SectorCode = dr["sector_code"].ToString();
+                                    si.HasCatchComposition = (bool)dr["has_catch_composition"];
+                                    si.IsMultiGear = (bool)dr["is_multigear"];
+                                    si.IsCatchSold = (bool)dr["is_catch_sold"];
+                                    si.IsTripCompleted = (bool)dr["trip_is_completed"];
+                                    si.CatchCompositionRows = count_catch_comp;
+                                    si.VesselID = vessel_id;
+                                    si.VesselName = dr["vessel_name"].ToString();
+                                    si.VesselText = dr["vessel_text"].ToString();
+                                    si.NumberOfFishers = no_fishers;
+                                    si.GPSCode = dr["gps"].ToString();
+                                    si.CatchMaturityRows = count_maturity;
+                                    si.FishingGridRows = count_grids;
+                                    si.GearSoakRows = count_gear_soaks;
+                                    si.LenFreqRows = count_len_freq;
+                                    si.LengthRows = count_len;
+                                    si.LenWtRows = count_len_wt;
+                                    si.VesselEffortRows = count_efforts;
+                                    si.RefNo = dr["ref_no"].ToString();
+                                    si.JSONFileName = dr["json_filename"].ToString();
+                                    if (dr["datetime_submitted"] != DBNull.Value)
+                                    {
+                                        si.DateSubmitted = (DateTime)dr["datetime_submitted"];
+                                    }
+                                    if (string.IsNullOrEmpty(si.EnumeratorText))
+                                    {
+                                        si.EnumeratorText = si.UserName;
+                                    }
+
+                                    if (si.IsMultiGear)
+                                    {
+                                        si.CountFishingGearTypesUsed = count_gear_types;
+                                    }
+                                    else
+                                    {
+                                        si.CountFishingGearTypesUsed = 1;
+                                    }
+
+                                    items.Add(si);
+                                    count++;
+                                    //if (count == 21537)
+                                    //{
+
+                                    //}
+                                }
                             }
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Log($"error at loop {count}");
-                            Logger.Log(ex);
+                            catch (Exception ex)
+                            {
+                                Logger.Log($"error at loop {count}");
+                                Logger.Log(ex);
+                            }
                         }
                     }
                 }

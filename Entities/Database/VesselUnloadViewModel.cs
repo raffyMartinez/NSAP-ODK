@@ -125,7 +125,7 @@ namespace NSAP_ODK.Entities.Database
             {
                 double catch_comp_wt = 0;
                 double total_sample_wt = 0;
-                if (vu.VesselUnload_FishingGearsViewModel.Count() > 0)
+                if (vu.HasCatchComposition && vu.VesselUnload_FishingGearsViewModel.Count() > 0)
                 {
                     catch_wt = ((double)vu.WeightOfCatch).ToString("0.00"); ;
                     if (vu.WeightOfCatchSample != null)

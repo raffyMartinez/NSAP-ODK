@@ -84,11 +84,15 @@
 
                     <StackPanel Orientation="Horizontal" x:Name="panelMonthView">
                         <StackPanel.ContextMenu>
-                            <ContextMenu>
+                            <ContextMenu x:Name="contextMenuMonthView">
                                 <MenuItem Header="Crosstab report" Click="OnContextMenuClick" x:Name="contextMenuCrosstabMonth"/>
                                 <MenuItem Header="Edit gear unload" Click="OnContextMenuClick" x:Name="contextMenuGearUnloadMonth"/>
                                 <Separator/>
                                 <MenuItem Header="Weight and weight validation for landings" Click="OnContextMenuClick" x:Name="contextMenuWeightValidation"/>
+                                <!--<Separator/>
+                                <MenuItem Header="Monitored landings calendar"  IsCheckable="True" IsChecked="True" Checked="OnContextMenuCheckChange"  x:Name="contextMenuMonitoriedLandingsCalendar"/>
+                                <MenuItem Header="All landings calendar" IsCheckable="True" Checked="OnContextMenuCheckChange"  x:Name="contextMenuAllLandingsCalendar"/>
+                                <MenuItem Header="Total landed weight calendar" IsCheckable="True" Checked="OnContextMenuCheckChange"  x:Name="contextMenuTotalLandedWtCalendar"/>-->
                             </ContextMenu>
                         </StackPanel.ContextMenu>
                         <!-- <Image Width="16" Height="16" Margin="3,0" Source="Images\Region.png" /> -->

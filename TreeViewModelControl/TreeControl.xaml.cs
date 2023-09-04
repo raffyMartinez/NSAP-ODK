@@ -28,6 +28,7 @@ namespace NSAP_ODK.TreeViewModelControl
         public event EventHandler<AllSamplingEntitiesEventHandler> TreeContextMenu;
         public TreeViewItemViewModel _selectedItem;
         private tv_NSAPViewModel _nsapViewModel;
+        string _currentCheckedMenuName="contextMenuMonitoriedLandingsCalendar";
 
         public TreeControl()
         {
@@ -35,6 +36,7 @@ namespace NSAP_ODK.TreeViewModelControl
             {
                 InitializeComponent();
             }
+            CalendarView = CalendarViewType.calendarViewTypeSampledLandings;
         }
 
 
@@ -105,12 +107,14 @@ namespace NSAP_ODK.TreeViewModelControl
                     break;
 
                 case "tv_MonthViewModel":
+                    
                     args.MonthSampled = DateTime.Parse(((tv_MonthViewModel)tvi)._month);
                     args.LandingSite = ((tv_MonthViewModel)tvi)._landingSite;
                     args.LandingSiteText = ((tv_MonthViewModel)tvi)._landingSiteName;
                     args.FishingGround = ((tv_MonthViewModel)tvi)._fishingGround;
                     args.FMA = ((tv_MonthViewModel)tvi)._fma;
                     args.NSAPRegion = ((tv_MonthViewModel)tvi)._nsapRegion;
+                    args.CalendarView = CalendarView;
                     
                     //tv_CurrentEntities.CurrentMonth = args.MonthSampled;
                     break;
@@ -178,6 +182,85 @@ namespace NSAP_ODK.TreeViewModelControl
             TreeContextMenu?.Invoke(this, args);
         }
 
+        public CalendarViewType CalendarView { get; private set; }
+
+        private void MenuItem_Checked(object sender, RoutedEventArgs e)
+        {
+
+        }
+        private void UncheckEditMenuItems(ContextMenu cm, MenuItem source)
+        {
+            foreach (var mi in cm.Items)
+            {
+                if (mi.GetType().Name != "Separator")
+                {
+                    var menu = (MenuItem)mi;
+                    if (menu.IsCheckable)
+                    {
+
+                        if (menu.Name != source.Name)
+                        {
+                            menu.IsChecked = false;
+                        }
+
+
+                    }
+                    //if (menu.Name != ((MenuItem)e.Source).Name)
+                    //{
+                    //menu.IsChecked = false;
+                    //}
+                }
+            }
+        }
+        private void OnContextMenuCheckChange(object sender, RoutedEventArgs e)
+        {
+            var mi = (MenuItem)sender;
+            if(mi.Name==_currentCheckedMenuName)
+            {
+                mi.IsChecked = true;
+                e.Handled = true;
+                return;
+            }
+            _currentCheckedMenuName = mi.Name;
+            UncheckEditMenuItems(mi.Parent as ContextMenu, source: mi);
+            if (mi.IsCheckable)
+            {
+                switch (mi.Name)
+                {
+                    case "contextMenuMonitoriedLandingsCalendar":
+                        if (mi.IsChecked)
+                        {
+                            CalendarView = CalendarViewType.calendarViewTypeSampledLandings;
+                        }
+                        break;
+                    case "contextMenuAllLandingsCalendar":
+                        if (mi.IsChecked)
+                        {
+                            CalendarView = CalendarViewType.calendarViewTypeCountAllLandingsByGear;
+                        }
+                        break;
+                    case "contextMenuTotalLandedWtCalendar":
+                        if(mi.IsChecked)
+                        {
+                            CalendarView = CalendarViewType.calendarViewTypeWeightAllLandingsByGear;
+                        }
+                        break;
+                }
+
+                var tvi = treeView.SelectedItem;
+                AllSamplingEntitiesEventHandler args = new AllSamplingEntitiesEventHandler();
+                args.MonthSampled = DateTime.Parse(((tv_MonthViewModel)tvi)._month);
+                args.LandingSite = ((tv_MonthViewModel)tvi)._landingSite;
+                args.LandingSiteText = ((tv_MonthViewModel)tvi)._landingSiteName;
+                args.FishingGround = ((tv_MonthViewModel)tvi)._fishingGround;
+                args.FMA = ((tv_MonthViewModel)tvi)._fma;
+                args.NSAPRegion = ((tv_MonthViewModel)tvi)._nsapRegion;
+                args.CalendarView = CalendarView;
+                args.TreeViewEntity = tvi.GetType().Name;
+
+                TreeViewItemSelected?.Invoke(this, args);
+            }
+        }
     }
 
 }

@@ -8,6 +8,7 @@ namespace NSAP_ODK.TreeViewModelControl
 {
     public class AllSamplingEntitiesEventHandler : EventArgs
     {
+        public Entities.Database.CalendarViewType CalendarView { get; set; }
         public NSAPRegion NSAPRegion { get; set; }
 
         public LandingSite LandingSite { get; set; }

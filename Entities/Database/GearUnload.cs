@@ -78,6 +78,10 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
+        public int? NumberOfMunicipalLandings { get; set; }
+        public int? NumberOfCommercialLandings { get; set; }
+        public double? WeightOfCommercialLandings { get; set; }
+        public double? WeightOfMunicipalLandings { get; set; }
         public int? Sequence { get; set; }
         public TotalWtSpViewModel TotalWtSpViewModel { get; set; }
         public int NumberOfSampledLandings
@@ -102,7 +106,7 @@ namespace NSAP_ODK.Entities.Database
             {
                 VesselUnloadViewModel.IgnoreCollectionChange = true;
                 VesselUnloadViewModel.VesselUnloadCollection.Clear();
-                foreach(var item in value)
+                foreach (var item in value)
                 {
                     VesselUnloadViewModel.VesselUnloadCollection.Add(item);
                 }
@@ -173,7 +177,7 @@ namespace NSAP_ODK.Entities.Database
             }
             else
             {
-                
+
                 return $"{Parent.LandingSite.LandingSiteName} {GearUsedName} {Parent.SamplingDate.ToString("MMM-dd-yyyy")} - ({ListVesselUnload.Count} - sector:{SectorCode})";
             }
         }

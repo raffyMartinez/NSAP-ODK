@@ -1772,7 +1772,7 @@ namespace NSAP_ODK.Views
                                         int savedCount = 0;
                                         if (IsMultiVessel)
                                         {
-                                               if (await MultiVesselGear_UnloadServerRepository.UploadToDBAsync(_jsonFile.FileName))
+                                            if (await MultiVesselGear_UnloadServerRepository.UploadToDBAsync(_jsonFile.FileName))
                                             {
                                                 //_targetGrid.ItemsSource = MultiVesselGear_UnloadServerRepository.SampledVesselLandings;
                                                 sourceCount = MultiVesselGear_UnloadServerRepository.SampledVesselLandings.Count;
@@ -2215,6 +2215,10 @@ namespace NSAP_ODK.Views
             }
         }
 
+        /// <summary>
+        /// Shows the result of the downloaded JSON from the server as a datagrid
+        /// </summary>
+        /// <param name="result"></param>
         private void ShowResultFromAPI(string result)
         {
             DataGridTextColumn col;
@@ -2358,6 +2362,7 @@ namespace NSAP_ODK.Views
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("Parent.LandingSiteName") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Number of gears used", Binding = new Binding("NumberOfGearsUsedInSampledLanding") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Names of gears used", Binding = new Binding("NamesOfGearsUsed") });
+                    _targetGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "Is sampling day", Binding = new Binding("Parent.IsSamplingDay") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing gear code", Binding = new Binding("Main_gear_code") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing gear", Binding = new Binding("Main_gear_name") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Ref#", Binding = new Binding("Reference_number") });
@@ -2383,6 +2388,7 @@ namespace NSAP_ODK.Views
                     else
                     {
                         _targetGrid.ItemsSource = MultiVesselGear_UnloadServerRepository.SampledVesselLandings;
+                        
                     }
                     break;
                 case "effort":

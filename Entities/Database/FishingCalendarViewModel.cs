@@ -9,7 +9,13 @@ using System.Data;
 using System.Diagnostics;
 namespace NSAP_ODK.Entities.Database
 {
-
+    public enum CalendarViewType
+    {
+        calendarViewTypeSampledLandings,
+        calendarViewTypeCountAllLandingsByGear,
+        calendarViewTypeWeightAllLandingsByGear,
+        calendarViewTypeCountAllLandings,
+    }
     public class FishingCalendarDay
     {
         public List<bool> IsProcessed { get; set; }
@@ -53,7 +59,7 @@ namespace NSAP_ODK.Entities.Database
         public int CountVesselUnloads { get; set; }
         public DataTable DataTable { get; set; }
 
-        public void BuildCalendar(string view = "numberOfSampledLandings")
+        public void BuildCalendar(CalendarViewType calendarView)
         {
             DataTable = new DataTable();
             DataTable.Columns.Add("GearName");
@@ -77,9 +83,13 @@ namespace NSAP_ODK.Entities.Database
                 row["Sector"] = item.Sector;
                 row["Month"] = item.MonthYear.ToString("MMM-yyyy");
                 int counter = 1;
-                switch (view)
+
+
+
+
+                switch (calendarView)
                 {
-                    case "numberOfSampledLandings":
+                    case CalendarViewType.calendarViewTypeSampledLandings:
 
                         foreach (var day in item.NumberOfSampledLandings)
                         {
@@ -96,7 +106,7 @@ namespace NSAP_ODK.Entities.Database
                             counter++;
                         }
                         break;
-                    case "numberOfBoatsLanded":
+                    case CalendarViewType.calendarViewTypeCountAllLandingsByGear:
                         foreach (var day in item.NumberOfBoatsPerDay)
                         {
                             if (day != null)
@@ -112,35 +122,43 @@ namespace NSAP_ODK.Entities.Database
                             counter++;
                         }
                         break;
-                    case "totalCatchPerDay":
+                    case CalendarViewType.calendarViewTypeWeightAllLandingsByGear:
                         foreach (var day in item.TotalCatchPerDay)
                         {
                             row[counter.ToString()] = day == null ? "" : day.ToString();
                             counter++;
                         }
                         break;
-                    case "gearUnloadItem":
-
+                    case CalendarViewType.calendarViewTypeCountAllLandings:
+                        foreach (var day in item.NumberOfBoatsPerDay)
+                        {
+                            row[counter.ToString()] = day == null ? "" : day.ToString();
+                            counter++;
+                        }
                         break;
+
                 }
                 DataTable.Rows.Add(row);
             }
         }
 
         public List<GearUnload> UnloadList { get; private set; }
-        public FishingCalendarViewModel(List<GearUnload> unloadList)
+        public FishingCalendarViewModel(List<GearUnload> unloadList, CalendarViewType calendarView, DateTime monthYear)
         {
             UnloadList = unloadList;
 
+
+            var fishingCalendarDays = new ObservableCollection<FishingCalendarDay>();
+            DateTime samplingMonthYear = monthYear;
+            _numberOfDays = DateTime.DaysInMonth(samplingMonthYear.Year, samplingMonthYear.Month);
             if (UnloadList.Count > 0)
             {
-
                 int c = 0;
                 List<string> gearNames = new List<string>();
-                var fishingCalendarDays = new ObservableCollection<FishingCalendarDay>();
 
-                DateTime samplingMonthYear = UnloadList[0].Parent.SamplingDate;
-                _numberOfDays = DateTime.DaysInMonth(samplingMonthYear.Year, samplingMonthYear.Month);
+
+                //DateTime samplingMonthYear = UnloadList[0].Parent.SamplingDate;
+                //_numberOfDays = DateTime.DaysInMonth(samplingMonthYear.Year, samplingMonthYear.Month);
 
 
                 FishingCalendarDay calendarDay = null;
@@ -226,7 +244,11 @@ namespace NSAP_ODK.Entities.Database
                 }
 
                 FishingCalendarList = fishingCalendarDays;
-                BuildCalendar();
+                BuildCalendar(calendarView);
+            }
+            else
+            {
+                //for building empty calendar with one or two empty rows
             }
         }
 

@@ -80,7 +80,7 @@ namespace NSAP_ODK.Entities.Database
                         connection.Open();
                         transaction = connection.BeginTransaction(IsolationLevel.ReadCommitted);
                         cmd.Transaction = transaction;
-                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "start importing csv", TotalTableCount = 17 });
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "start importing csv", TotalTableCount = 18 });
                         _importCSVCount = 0;
 
                         currentTableName = "dbo_LC_FG_sample_day";
@@ -99,6 +99,12 @@ namespace NSAP_ODK.Entities.Database
                         currentTableName = "dbo_gear_unload";
                         File.WriteAllText(csv_file, GearUnloadViewModel.CSV);
                         cmd.CommandText = $@"INSERT INTO dbo_gear_unload SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
+                        cmd.ExecuteNonQuery();
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = currentTableName, CurrentTableCount = ++_importCSVCount });
+
+                        currentTableName = "temp_GearUnload";
+                        File.WriteAllText(csv_file, GearUnloadViewModel.TempCSV);
+                        cmd.CommandText = $@"INSERT INTO temp_GearUnload SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
                         cmd.ExecuteNonQuery();
                         AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = currentTableName, CurrentTableCount = ++_importCSVCount });
 

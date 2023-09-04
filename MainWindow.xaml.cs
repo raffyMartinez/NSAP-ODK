@@ -38,6 +38,8 @@ namespace NSAP_ODK
     /// </summary>
     public partial class MainWindow : Window
     {
+        private CalendarViewType _calendarOption;
+        private bool _calendarFirstInvokeDone = false;
         WeightValidationTallyWindow _wvtw;
         private NSAPEntity _nsapEntity;
         private string _csvSaveToFolder = "";
@@ -389,6 +391,22 @@ namespace NSAP_ODK
             dataGridEFormVersionStats.DataContext = NSAPEntities.SummaryItemViewModel.ListServerUploadsByMonths().Where(t => t.Koboserver?.ServerID == ks.ServerID).OrderBy(t => t.MonthOfSubmission);
         }
 
+        private void SetUpCalendarMenu()
+        {
+
+            foreach (MenuItem m in menuCalendar.Items)
+            {
+                if (m.Name == "menuSampledCalendar")
+                {
+                    m.IsChecked = true;
+                }
+                else
+                {
+                    m.IsChecked = false;
+                }
+            }
+        }
+
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
             Global.RequestLogIn += OnMysQLRequestLogin;
@@ -414,6 +432,9 @@ namespace NSAP_ODK
                         buttonDelete.IsEnabled = false;
                         buttonEdit.IsEnabled = false;
                         dbPathLabel.Content = Global.MDBPath;
+
+
+                        //SetUpCalendarMenu();
                         menuDatabaseSummary.IsChecked = true;
 
                         CrossTabManager.CrossTabEvent += OnCrossTabEvent;
@@ -427,6 +448,7 @@ namespace NSAP_ODK
                             NSAPEntities.FishingVesselViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
                         }
                         CreateTablesInAccess.GetMDBColumnInfo(Global.ConnectionString);
+
                     }
                     else
                     {
@@ -1002,7 +1024,7 @@ namespace NSAP_ODK
                         summaryTreeNodeEnumerators.Items.Add(item1);
                     }
                     summaryTreeNodeOverall.IsSelected = true;
-                    if (NSAPEntities.SummaryItemViewModel!=null && NSAPEntities.SummaryItemViewModel.Count > 0)
+                    if (NSAPEntities.SummaryItemViewModel != null && NSAPEntities.SummaryItemViewModel.Count > 0)
                     {
                         summaryTreeNodeDatabases.Items.Clear();
                         foreach (var item in NSAPEntities.KoboServerViewModel.KoboserverCollection)
@@ -1443,7 +1465,7 @@ namespace NSAP_ODK
                     //pathToFbSpeciesMD = ;
                     ew.PathToFBSpeciesMDB = GetPathToFBSpeciesMDB();
                 }
-                proceed = NSAPEntities.FBSpeciesViewModel!=null && NSAPEntities.FBSpeciesViewModel.Count > 0 || ew.PathToFBSpeciesMDB.Length > 0 ;
+                proceed = NSAPEntities.FBSpeciesViewModel != null && NSAPEntities.FBSpeciesViewModel.Count > 0 || ew.PathToFBSpeciesMDB.Length > 0;
             }
             else
             {
@@ -1844,6 +1866,41 @@ namespace NSAP_ODK
             }
         }
 
+        private void SetupCalendar(CalendarViewType calendarView)
+        {
+            if (_allSamplingEntitiesEventHandler == null)
+            {
+                return;
+            }
+            else
+            {
+                _allSamplingEntitiesEventHandler.CalendarView = calendarView;
+                switch (calendarView)
+                {
+                    case CalendarViewType.calendarViewTypeSampledLandings:
+                        MonthLabel.Content = $"Calendar of sampled/monitored landings per gear for {((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).ToString("MMMM-yyyy")}";
+                        break;
+                    case CalendarViewType.calendarViewTypeCountAllLandingsByGear:
+                        MonthLabel.Content = $"Calendar of number of boats landing per gear for {((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).ToString("MMMM-yyyy")}";
+                        break;
+                    case CalendarViewType.calendarViewTypeWeightAllLandingsByGear:
+                        MonthLabel.Content = $"Calendar of weight of catch per gear for {((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).ToString("MMMM-yyyy")}";
+                        break;
+                    case CalendarViewType.calendarViewTypeCountAllLandings:
+                        MonthLabel.Content = $"Calendar of total number of landings per day for {((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).ToString("MMMM-yyyy")}";
+                        break;
+                }
+
+                MonthSubLabel.Content = $"{_allSamplingEntitiesEventHandler.LandingSiteText}, {_allSamplingEntitiesEventHandler.FishingGround}, {_allSamplingEntitiesEventHandler.FMA}, {_allSamplingEntitiesEventHandler.NSAPRegion}";
+                GridNSAPData.Visibility = Visibility.Visible;
+                GridNSAPData.SelectionUnit = DataGridSelectionUnit.Cell;
+                PropertyGrid.Visibility = Visibility.Collapsed;
+                NSAPEntities.NSAPRegion = _allSamplingEntitiesEventHandler.NSAPRegion;
+                MakeCalendar(_allSamplingEntitiesEventHandler);
+            }
+
+
+        }
         public void ShowDBSummary()
         {
             menuDummy.IsChecked = true;
@@ -1863,7 +1920,8 @@ namespace NSAP_ODK
             UncheckEditMenuItems((MenuItem)e.Source);
 
             ContextMenu contextMenu = new ContextMenu();
-            switch (((MenuItem)sender).Name)
+            string menuName = ((MenuItem)sender).Name;
+            switch (menuName)
             {
                 case "menuDatabaseSummary":
                     _nsapEntity = NSAPEntity.DBSummary;
@@ -1947,6 +2005,38 @@ namespace NSAP_ODK
                     buttonOrphan.Visibility = Visibility.Visible;
                     textOfTitle = "List of non-fish species names";
                     break;
+
+                case "menuSampledCalendar":
+                case "menuAllLandingsCalendar":
+                case "menuWeightLandingsCalendar":
+                case "menuTotalLandingsCalendar":
+                    foreach (MenuItem mi in menuCalendar.Items)
+                    {
+                        if (mi.Name != menuName)
+                        {
+                            mi.IsChecked = false;
+                        }
+                    }
+
+                    switch (menuName)
+                    {
+                        case "menuSampledCalendar":
+                            _calendarOption = CalendarViewType.calendarViewTypeSampledLandings;
+                            break;
+                        case "menuAllLandingsCalendar":
+                            _calendarOption = CalendarViewType.calendarViewTypeCountAllLandingsByGear;
+                            break;
+                        case "menuWeightLandingsCalendar":
+                            _calendarOption = CalendarViewType.calendarViewTypeWeightAllLandingsByGear;
+                            break;
+                        case "menuTotalLandingsCalendar":
+                            _calendarOption = CalendarViewType.calendarViewTypeCountAllLandings;
+                            break;
+                    }
+                    SetupCalendar(_calendarOption);
+                    SetupCalendarView("");
+                    return;
+                    //break;
             }
 
             dataGridSpecies.ContextMenu = null;
@@ -3096,22 +3186,30 @@ namespace NSAP_ODK
                     //calendar view
                     if (_currentDisplayMode == DataDisplayMode.ODKData)
                     {
-
-                        if (_gearUnloads != null && _gearUnloads.Count > 0 && _gearUnloadWindow == null)
+                        switch (_calendarOption)
                         {
-                            _gearUnloadWindow = new GearUnloadWindow(_gearUnloads, _treeItemData, this);
-                            _gearUnloadWindow.Owner = this;
+                            case CalendarViewType.calendarViewTypeSampledLandings:
+                                if (_gearUnloads != null && _gearUnloads.Count > 0 && _gearUnloadWindow == null)
+                                {
+                                    _gearUnloadWindow = new GearUnloadWindow(_gearUnloads, _treeItemData, this);
+                                    _gearUnloadWindow.Owner = this;
 
-                            _gearUnloadWindow.Show();
+                                    _gearUnloadWindow.Show();
+                                }
+                                else
+                                {
+                                    if (_gearUnloadWindow != null && !_gearUnloadWindow.IsLoaded)
+                                    {
+                                        _gearUnloadWindow.Close();
+                                        _gearUnloadWindow = null;
+                                    }
+                                }
+                                break;
+                            case CalendarViewType.calendarViewTypeCountAllLandingsByGear:
+                            case CalendarViewType.calendarViewTypeWeightAllLandingsByGear:
+                                break;
                         }
-                        else
-                        {
-                            if (_gearUnloadWindow != null && !_gearUnloadWindow.IsLoaded)
-                            {
-                                _gearUnloadWindow.Close();
-                                _gearUnloadWindow = null;
-                            }
-                        }
+
 
                     }
                     else if (_currentDisplayMode == DataDisplayMode.DownloadHistory)
@@ -3293,20 +3391,39 @@ namespace NSAP_ODK
 
         private void MakeCalendar(TreeViewModelControl.AllSamplingEntitiesEventHandler e)
         {
-            var listGearUnload = NSAPEntities.SummaryItemViewModel.GearUnloadsByMonth((DateTime)e.MonthSampled, bySector: true);
+            List<GearUnload> listGearUnload = new List<GearUnload>();
+            switch (e.CalendarView)
+            {
+                case CalendarViewType.calendarViewTypeSampledLandings:
+                    listGearUnload = NSAPEntities.SummaryItemViewModel.GearUnloadsByMonth((DateTime)e.MonthSampled, bySector: true);
+                    break;
+                case CalendarViewType.calendarViewTypeCountAllLandingsByGear:
+                case CalendarViewType.calendarViewTypeWeightAllLandingsByGear:
+                    listGearUnload = GearUnloadViewModel.GetGearUnloadsForCalendar(e.LandingSite, (DateTime)e.MonthSampled);
+                    break;
+                case CalendarViewType.calendarViewTypeCountAllLandings:
+                    listGearUnload = GearUnloadViewModel.GetTotalNumberLandingsPerDayCalendar(e.LandingSite, (DateTime)e.MonthSampled);
+                    break;
+
+            }
+
+
             //var listGearUnload = NSAPEntities.SummaryItemViewModel.GearUnloadsByMonth(e,bySector:true);
 
-            if (listGearUnload.Count > 0)
-            {
-                _fishingCalendarViewModel = new FishingCalendarViewModel(listGearUnload.OrderBy(t => t.GearUsedName).ToList());
-                GridNSAPData.Columns.Clear();
-                GridNSAPData.AutoGenerateColumns = true;
-                GridNSAPData.DataContext = _fishingCalendarViewModel.DataTable;
-            }
+
+
+
+            _fishingCalendarViewModel = new FishingCalendarViewModel(listGearUnload.OrderBy(t => t.GearUsedName).ToList(), e.CalendarView, (DateTime)e.MonthSampled);
+            GridNSAPData.Columns.Clear();
+            GridNSAPData.AutoGenerateColumns = true;
+            GridNSAPData.DataContext = _fishingCalendarViewModel.DataTable;
+
+
         }
 
         private void OnTreeViewItemSelected(object sender, TreeViewModelControl.AllSamplingEntitiesEventHandler e)
         {
+            menuCalendar.Visibility = Visibility.Collapsed;
             buttonFix.Visibility = Visibility.Collapsed;
             _fishingCalendarViewModel = null;
             gridCalendarHeader.Visibility = Visibility.Visible;
@@ -3335,15 +3452,40 @@ namespace NSAP_ODK
                     SetUpSummaryGrid(SummaryLevelType.LandingSite, GridNSAPData, treeviewData: e);
                     break;
                 case "tv_MonthViewModel":
+                    _allSamplingEntitiesEventHandler = e;
                     GridNSAPData.SelectionUnit = DataGridSelectionUnit.Cell;
+                    menuCalendar.Visibility = Visibility.Visible;
 
-                    MonthLabel.Content = $"Fisheries landing sampling calendar for {((DateTime)e.MonthSampled).ToString("MMMM-yyyy")}";
-                    MonthSubLabel.Content = $"{e.LandingSiteText}, {e.FishingGround}, {e.FMA}, {e.NSAPRegion}";
-                    GridNSAPData.Visibility = Visibility.Visible;
-                    GridNSAPData.SelectionUnit = DataGridSelectionUnit.Cell;
-                    PropertyGrid.Visibility = Visibility.Collapsed;
-                    NSAPEntities.NSAPRegion = e.NSAPRegion;
-                    MakeCalendar(e);
+                    SetUpCalendarMenu();
+                    if (_calendarFirstInvokeDone)
+                    {
+                        SetupCalendar(e.CalendarView);
+                    }
+
+                    if (!_calendarFirstInvokeDone)
+                    {
+                        _calendarFirstInvokeDone = true;
+                    }
+
+                    //switch (e.CalendarView)
+                    //{
+                    //    case "monitoredLandingsCalendar":
+                    //        MonthLabel.Content = $"Calendar of sampled/monitored landings per gear for {((DateTime)e.MonthSampled).ToString("MMMM-yyyy")}";
+                    //        break;
+                    //    case "allLandingsCalendar":
+                    //        MonthLabel.Content = $"Calendar of number of boats landing per gear for {((DateTime)e.MonthSampled).ToString("MMMM-yyyy")}";
+                    //        break;
+                    //    case "totalLandedWtCalendar":
+                    //        MonthLabel.Content = $"Calendar of weight of catch per gear for {((DateTime)e.MonthSampled).ToString("MMMM-yyyy")}";
+                    //        break;
+                    //}
+
+                    //MonthSubLabel.Content = $"{e.LandingSiteText}, {e.FishingGround}, {e.FMA}, {e.NSAPRegion}";
+                    //GridNSAPData.Visibility = Visibility.Visible;
+                    //GridNSAPData.SelectionUnit = DataGridSelectionUnit.Cell;
+                    //PropertyGrid.Visibility = Visibility.Collapsed;
+                    //NSAPEntities.NSAPRegion = e.NSAPRegion;
+                    //MakeCalendar(e);
 
 
 
@@ -3351,6 +3493,49 @@ namespace NSAP_ODK
             }
 
             //if (e.TreeViewEntity != "tv_MonthViewModel")
+            //if (_calendarTreeSelectedEntity != "tv_MonthViewModel")
+            //{
+            //    MonthLabel.Content = labelContent;
+            //    MonthSubLabel.Visibility = Visibility.Collapsed;
+            //    labelSummary.Content = labelContent;
+            //    dataGridSummary.Visibility = Visibility.Visible;
+            //    GridNSAPData.Visibility = Visibility.Visible;
+            //    panelOpening.Visibility = Visibility.Visible;
+            //}
+            //else
+            //{
+            //    MonthSubLabel.Visibility = Visibility.Visible;
+            //    _acceptDataGridCellClick = true;
+            //}
+            //var totlaLandingsCount = "";
+            //if (_fishingCalendarViewModel != null)
+            //{
+            //    int totalLandingsCount = _fishingCalendarViewModel.CountVesselUnloads;
+            //    totlaLandingsCount = $", Total landings: {totalLandingsCount}";
+            //    int vuCountInGU = 0;
+            //    foreach (var gu in _fishingCalendarViewModel.UnloadList)
+            //    {
+            //        vuCountInGU += gu.ListVesselUnload.Count;
+            //    }
+            //    if (vuCountInGU != totalLandingsCount)
+            //    {
+            //        totlaLandingsCount += $" ({vuCountInGU})";
+            //        buttonFix.Visibility = Visibility.Visible;
+            //    }
+            //}
+            //if (GridNSAPData.Items.Count > 0)
+            //{
+            //    labelRowCount.Content = $"Rows: {GridNSAPData.Items.Count}{totlaLandingsCount}";
+            //}
+            //else
+            //{
+            //    labelRowCount.Content = "Older eforms cannot encode data. Use Catch and Effort eForm version 7.14";
+            //}
+            SetupCalendarView(labelContent);
+        }
+
+        private void SetupCalendarView(string labelContent)
+        {
             if (_calendarTreeSelectedEntity != "tv_MonthViewModel")
             {
                 MonthLabel.Content = labelContent;
@@ -3381,9 +3566,15 @@ namespace NSAP_ODK
                     buttonFix.Visibility = Visibility.Visible;
                 }
             }
-            labelRowCount.Content = $"Rows: {GridNSAPData.Items.Count}{totlaLandingsCount}";
+            if (GridNSAPData.Items.Count > 0)
+            {
+                labelRowCount.Content = $"Rows: {GridNSAPData.Items.Count}{totlaLandingsCount}";
+            }
+            else
+            {
+                labelRowCount.Content = "Older eforms cannot encode data. Use Catch and Effort eForm version 7.14";
+            }
         }
-
         private async void OnSelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {
             var type = GridNSAPData.DataContext.GetType().ToString();
@@ -3746,7 +3937,7 @@ namespace NSAP_ODK
                                 GridNSAPData.Columns.Add(new DataGridCheckBoxColumn { Header = "Is catch sold", Binding = new Binding("IsCatchSold") });
                                 GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "# of gears used ", Binding = new Binding("CountFishingGearTypesUsed") });
                             }
-                            
+
                         }
                         break;
                     case "gearUnload":
@@ -3775,7 +3966,7 @@ namespace NSAP_ODK
                         col.IsReadOnly = true;
                         GridNSAPData.Columns.Add(col);
 
-
+                        GridNSAPData.Columns.Add(new DataGridCheckBoxColumn { Header = "Sampling day", Binding = new Binding("Parent.IsSamplingDay"), IsReadOnly = true });
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("GearUsedName"), IsReadOnly = true });
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "# of sampled landings", Binding = new Binding("NumberOfSampledLandingsEx"), IsReadOnly = true });
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Boats", Binding = new Binding("Boats"), IsReadOnly = false, CellStyle = AlignRightStyle });

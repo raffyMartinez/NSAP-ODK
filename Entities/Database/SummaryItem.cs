@@ -78,6 +78,7 @@ namespace NSAP_ODK.Entities.Database
         public string JSONFileName { get; set; }
         public double? DifferenceCatchWtandSumCatchCompWeight { get; set; }
         public bool LandingSiteHasOperation { get; set; }
+        public string LandingSiteSamplingNotes { get; set; }
         public string UserName { get; set; }
         public string XFormIdentifier { get; set; }
         public string ODKRowID { get; set; }
@@ -346,7 +347,10 @@ namespace NSAP_ODK.Entities.Database
                         FishingGround = FishingGround,
                         SamplingDate = ((DateTime)SamplingDate).Date,
                         PK = SamplingDayID,
-                        IsMultiVessel = IsMultiVessel
+                        IsMultiVessel = IsMultiVessel,
+                        IsSamplingDay = IsSamplingDay,
+                        Remarks = LandingSiteSamplingNotes,
+
 
                     };
 
@@ -436,7 +440,11 @@ namespace NSAP_ODK.Entities.Database
         public string GearText { get; set; }
         public int? EnumeratorID { get; set; }
         public string EnumeratorName { get; set; }
+        public int? GearUnloadNumberCommercialLandings { get; set; }
+        public int? GearUnloadNumberMunicipalLandings { get; set; }
 
+        public double? GearUnloadWeightMunicipalLandings { get; set; }
+        public double? GearUnloadWeightCommercialLandings { get; set; }
         public string EnumeratorNameToUse
         {
             get

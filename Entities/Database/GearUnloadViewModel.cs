@@ -16,6 +16,7 @@ namespace NSAP_ODK.Entities.Database
         public ObservableCollection<GearUnload> GearUnloadCollection { get; set; }
         private GearUnloadRepository GearUnloads { get; set; }
         private static StringBuilder _csv = new StringBuilder();
+        private static StringBuilder _temp_csv = new StringBuilder();
         public GearUnloadViewModel(LandingSiteSampling parent)
         {
             GearUnloads = new GearUnloadRepository(parent);
@@ -187,12 +188,22 @@ namespace NSAP_ODK.Entities.Database
             Dictionary<string, string> myDict = new Dictionary<string, string>();
             string boat_ct = "";
             string catch_wt = "";
+            string municipal_catch_wt = "";
+            string commercial_catch_wt = "";
             string gr_id = "";
             string gr_text = item.GearUsedText;
             if (!string.IsNullOrEmpty(item.GearID))
             {
                 gr_id = "\"{item.GearID}\"";
                 gr_text = "";
+            }
+            if (item.WeightOfCommercialLandings != null)
+            {
+                commercial_catch_wt = ((double)item.WeightOfCommercialLandings).ToString();
+            }
+            if (item.WeightOfMunicipalLandings != null)
+            {
+                municipal_catch_wt = ((double)item.WeightOfMunicipalLandings).ToString();
             }
             if (item.Boats != null)
             {
@@ -238,14 +249,70 @@ namespace NSAP_ODK.Entities.Database
             myDict.Add("sp_twsp_count", item.SpeciesWithTWSpCount.ToString());
             myDict.Add("sector", item.SectorCode);
             myDict.Add("gear_sequence", gear_sequence);
+            myDict.Add("gear_count_municipal", item.NumberOfMunicipalLandings.ToString());
+            myDict.Add("gear_count_commercial", item.NumberOfCommercialLandings.ToString());
+            myDict.Add("gear_catch_municipal", municipal_catch_wt);
+            myDict.Add("gear_catch_commercial", commercial_catch_wt);
 
             _csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_gear_unload"));
 
+
+            myDict.Clear();
+            if (item.NumberOfMunicipalLandings > 0)
+            {
+                myDict.Add("unload_gr_id", item.PK.ToString());
+                myDict.Add("unload_day_id", item.Parent.PK.ToString());
+                myDict.Add("sector", "m");
+                myDict.Add("boats", item.NumberOfMunicipalLandings.ToString());
+                myDict.Add("catch", municipal_catch_wt);
+                myDict.Add("gr_id", item.GearID);
+                myDict.Add("gr_text", gr_text);
+                myDict.Add("remarks", item.Remarks);
+
+                _temp_csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "temp_GearUnload"));
+            }
+
+            myDict.Clear();
+            if (item.NumberOfCommercialLandings > 0)
+            {
+                myDict.Add("unload_gr_id", item.PK.ToString());
+                myDict.Add("unload_day_id", item.Parent.PK.ToString());
+                myDict.Add("sector", "c");
+                myDict.Add("boats", item.NumberOfCommercialLandings.ToString());
+                myDict.Add("catch", commercial_catch_wt);
+                myDict.Add("gr_id", item.GearID);
+                myDict.Add("gr_text", gr_text);
+                myDict.Add("remarks", item.Remarks);
+
+                _temp_csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "temp_GearUnload"));
+            }
             //_csv.AppendLine($"{item.PK},{item.Parent.PK},{gr_id},{boat_ct},{catch_wt},\"{gr_text}\",\"{item.Remarks}\",{item.SpeciesWithTWSpCount},\"{item.SectorCode}\"");
 
             return true;
         }
 
+        public static List<GearUnload> GetGearUnloadsForCalendar(LandingSite ls, DateTime month_year)
+        {
+            return GearUnloadRepository.GearUnloadsForCalendar(ls, month_year);
+        }
+        public static List<GearUnload>GetTotalNumberLandingsPerDayCalendar(LandingSite ls, DateTime month_year)
+        {
+            return GearUnloadRepository.NumberOfDailyLandingsForCalendar(ls, month_year);
+        }
+        public static string TempCSV
+        {
+            get
+            {
+                if (Global.Settings.UsemySQL)
+                {
+                    return $"{NSAPMysql.MySQLConnect.GetColumnNamesCSV("dbo_gear_unload")}\r\n{_csv}";
+                }
+                else
+                {
+                    return $"{CreateTablesInAccess.GetColumnNamesCSV("temp_GearUnload")}\r\n{_temp_csv}";
+                }
+            }
+        }
         public static string CSV
         {
             get
