@@ -370,6 +370,17 @@ namespace NSAP_ODK.Entities.Database
             return list;
 
         }
+
+        public List<LandingSiteSampling>GetLandingSiteSamplings(FMA fma, FishingGround fg, LandingSite ls, DateTime monthSampled)
+        {
+            return LandingSiteSamplingCollection
+                .Where(t => t.FMAID == fma.FMAID &&
+                    t.FishingGroundID == fg.Code &&
+                    t.LandingSiteID == ls.LandingSiteID &&
+                    t.SamplingDate >= monthSampled.Date &&
+                    t.SamplingDate < monthSampled.AddMonths(1).Date)
+                .ToList();
+        }
         public LandingSiteSampling GetLandingSiteSampling(string samplingUUID)
         {
             return LandingSiteSamplingCollection.FirstOrDefault(t => t.RowID == samplingUUID);

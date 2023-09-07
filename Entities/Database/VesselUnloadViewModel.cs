@@ -41,7 +41,7 @@ namespace NSAP_ODK.Entities.Database
         public static void SetUpFishingGearSubModel(VesselUnload vu)
         {
             VesselUnload_FishingGear vufg;
-           // bool isMultiVessel = vu.Parent.Parent.IsMultiVessel;
+            // bool isMultiVessel = vu.Parent.Parent.IsMultiVessel;
 
             if (!vu.IsMultiGear)
             {
@@ -56,7 +56,7 @@ namespace NSAP_ODK.Entities.Database
                         Parent = vu,
                         WeightOfCatch = vu.WeightOfCatch,
                         CountItemsInCatchComposition = vu.CountCatchCompositionItems
-                        
+
                     };
 
                     vu.VesselUnload_FishingGearsViewModel.AddRecordToRepo(vufg, isTemporary: true);
@@ -132,12 +132,12 @@ namespace NSAP_ODK.Entities.Database
                     {
                         sample_wt = ((double)vu.WeightOfCatchSample).ToString("0.00");
                     }
-                    foreach(VesselUnload_FishingGear vufg in vu.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection)
+                    foreach (VesselUnload_FishingGear vufg in vu.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection)
                     {
-                        foreach(VesselCatch vc in vufg.VesselCatchViewModel.VesselCatchCollection)
+                        foreach (VesselCatch vc in vufg.VesselCatchViewModel.VesselCatchCollection)
                         {
                             catch_comp_wt += (double)vc.Catch_kg;
-                            if(vc.FromTotalCatch==false && vc.Sample_kg!=null )
+                            if (vc.FromTotalCatch == false && vc.Sample_kg != null)
                             {
                                 total_sample_wt += (double)vc.Sample_kg;
                             }
@@ -155,7 +155,7 @@ namespace NSAP_ODK.Entities.Database
                 if (vu.VesselCatchViewModel?.Count > 0)
                 {
                     catch_wt = ((double)vu.WeightOfCatch).ToString("0.00");
-                    
+
                     if (vu.WeightOfCatchSample != null)
                     {
                         sample_wt = ((double)vu.WeightOfCatchSample).ToString("0.00");
@@ -859,6 +859,10 @@ namespace NSAP_ODK.Entities.Database
         {
             Dictionary<string, string> myDict = new Dictionary<string, string>();
             string date_submitted = vu.DateTimeSubmitted.ToString();
+            if (vu.Parent.Parent.IsMultiVessel)
+            {
+                date_submitted = ((DateTime)vu.Parent.Parent.DateSubmitted).ToString();
+            }
             string date_added = vu.DateAddedToDatabase.ToString();
             string date_sampled = vu.SamplingDate.ToString();
             string boat_id = string.Empty;

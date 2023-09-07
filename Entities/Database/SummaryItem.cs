@@ -223,15 +223,27 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if (SamplingDate == null)
+                if (SamplingDayDate == null)
                 {
                     return null;
                 }
                 else
                 {
-                    return new DateTime(((DateTime)SamplingDate).Year, ((DateTime)SamplingDate).Month, 1);
+                    //return new DateTime(((DateTime)SamplingDate).Year, ((DateTime)SamplingDate).Month, 1);
+                    return new DateTime(((DateTime)SamplingDayDate).Year, ((DateTime)SamplingDayDate).Month, 1);
                 }
             }
+            //get
+            //{
+            //    if (SamplingDate == null)
+            //    {
+            //        return null;
+            //    }
+            //    else
+            //    {
+            //        return new DateTime(((DateTime)SamplingDate).Year, ((DateTime)SamplingDate).Month, 1);
+            //    }
+            //}
         }
 
         public DateTime? MonthSubmitted
@@ -345,7 +357,8 @@ namespace NSAP_ODK.Entities.Database
                         LandingSite = LandingSite,
                         LandingSiteText = LandingSiteText,
                         FishingGround = FishingGround,
-                        SamplingDate = ((DateTime)SamplingDate).Date,
+                        //SamplingDate = ((DateTime)SamplingDate).Date,
+                        SamplingDate = SamplingDayDate,
                         PK = SamplingDayID,
                         IsMultiVessel = IsMultiVessel,
                         IsSamplingDay = IsSamplingDay,
@@ -353,17 +366,25 @@ namespace NSAP_ODK.Entities.Database
 
 
                     };
-
-                    _gearUnload = new GearUnload
+                    if (GearUnloadID == null)
                     {
-                        Parent = lss,
-                        GearID = GearCode,
-                        Boats = GearUnloadBoats,
-                        Catch = GearUnloadCatch,
-                        GearUsedText = GearText,
-                        Gear = Gear,
-                        PK = (int)GearUnloadID
-                    };
+                        return null;
+                    }
+                    else
+                    {
+                        _gearUnload = new GearUnload
+                        {
+                            Parent = lss,
+                            GearID = GearCode,
+                            Boats = GearUnloadBoats,
+                            Catch = GearUnloadCatch,
+                            GearUsedText = GearText,
+                            Gear = Gear,
+                            PK = (int)GearUnloadID
+                        };
+                    }
+
+
                 }
                 return _gearUnload;
             }

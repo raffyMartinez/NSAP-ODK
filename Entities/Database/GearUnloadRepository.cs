@@ -218,6 +218,7 @@ namespace NSAP_ODK.Entities.Database
         public static List<GearUnload> NumberOfDailyLandingsForCalendar(LandingSite ls, DateTime month_year)
         {
             List<GearUnload> thisList = new List<GearUnload>();
+            int? boats = null;
             if (Global.Settings.UsemySQL)
             {
 
@@ -232,7 +233,12 @@ namespace NSAP_ODK.Entities.Database
                         cmd.Parameters.AddWithValue("@start_date", month_year.Date.ToString("M/d/yyyy"));
                         cmd.Parameters.AddWithValue("@end_date", month_year.AddMonths(1).ToString("M/d/yyyy"));
 
-                        cmd.CommandText = @"SELECT dbo_LC_FG_sample_day.unload_day_id, dbo_LC_FG_sample_day.land_ctr_id, dbo_LC_FG_sample_day.sdate, dbo_LC_FG_sample_day_1.number_landings
+                        cmd.CommandText = @"SELECT 
+                                                dbo_LC_FG_sample_day.unload_day_id, 
+                                                dbo_LC_FG_sample_day.land_ctr_id, 
+                                                dbo_LC_FG_sample_day.sdate, 
+                                                dbo_LC_FG_sample_day_1.number_landings,
+                                                dbo_LC_FG_sample_day.has_fishing_operation
                                             FROM 
                                                 dbo_LC_FG_sample_day INNER JOIN 
                                                 dbo_LC_FG_sample_day_1 ON 
@@ -240,7 +246,9 @@ namespace NSAP_ODK.Entities.Database
                                             WHERE
                                                 dbo_LC_FG_sample_day.land_ctr_id=@ls_id AND 
                                                 dbo_LC_FG_sample_day.sdate >= @start_date AND 
-                                                dbo_LC_FG_sample_day.sdate < @end_date";
+                                                dbo_LC_FG_sample_day.sdate < @end_date
+                                            ORDER BY
+                                                dbo_LC_FG_sample_day.sdate";
 
                         try
                         {
@@ -249,20 +257,29 @@ namespace NSAP_ODK.Entities.Database
                             int loopCount = 0;
                             while (dr.Read())
                             {
+                                boats = null;
+                                if(dr["number_landings"]!=DBNull.Value)
+                                {
+                                    boats = (int)dr["number_landings"];
+                                }
                                 GearUnload gu = new GearUnload
                                 {
                                     Parent = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling((int)dr["unload_day_id"]),
                                     PK = ++loopCount,
                                     SectorCode = "",
-                                    Boats = (int)dr["number_landings"],
+                                    Boats = boats,
                                     Catch = 0,
                                     GearID = "",
                                     GearUsedText = "All gears",
                                     Remarks = "",
                                 };
-                                if (gu.GearID.Length > 0)
+                                //if (gu.GearID.Length > 0)
+                                //{
+                                //    gu.Gear = NSAPEntities.GearViewModel.GetGear(gu.GearID);
+                                //}
+                                if(!(bool)dr["has_fishing_operation"])
                                 {
-                                    gu.Gear = NSAPEntities.GearViewModel.GetGear(gu.GearID);
+                                    gu.Boats = 0;
                                 }
                                 thisList.Add(gu);
                             }

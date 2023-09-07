@@ -207,7 +207,8 @@ namespace NSAP_ODK.Entities.Database
                             EnumeratorID = root.RegionEnumeratorID,
                             EnumeratorText = root.RegionEnumeratorText,
                             JSONFileName = jsonFileName,
-                            Remarks = root.ReasonNoLanding
+                            Remarks = root.ReasonNoLanding,
+                            DateSubmitted = root.SubmissionTime,
                         };
                         if (NSAPEntities.LandingSiteSamplingViewModel.AddRecordToRepo(lss))
                         {
@@ -321,7 +322,7 @@ namespace NSAP_ODK.Entities.Database
                                                     DateAddedToDatabase = DateTime.Now,
                                                     FormVersion = sl.Parent.FormVersion == -1 ? "" : sl.Parent.FormVersion.ToString(),
                                                     XFormIdentifier = sl.Parent._xform_id_string,
-                                                    NumberOfSpeciesInCatchComposition = sl.NumberSpeciesInCatchComposition
+                                                    NumberOfSpeciesInCatchComposition = sl.NumberSpeciesInCatchComposition,
                                                 };
                                                 if (gu.VesselUnloadViewModel.AddRecordToRepo(vu))
                                                 {

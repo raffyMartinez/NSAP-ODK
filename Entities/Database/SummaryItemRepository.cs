@@ -589,7 +589,7 @@ namespace NSAP_ODK.Entities.Database
                             }
 
                         }
-                        if(proceed)
+                        if (proceed)
                         {
                             cmd.CommandText = @"CREATE TABLE temp_GearUnload
                                                     (unload_gr_id INT,
@@ -605,7 +605,7 @@ namespace NSAP_ODK.Entities.Database
                                 cmd.ExecuteNonQuery();
                                 proceed = true;
                             }
-                            catch(Exception ex)
+                            catch (Exception ex)
                             {
                                 Logger.Log(ex);
                             }
@@ -752,6 +752,8 @@ namespace NSAP_ODK.Entities.Database
                                                 vu1.RowID,
                                                 sd1.RowID AS sd_rowid,
                                                 sd1.is_multivessel,
+                                                sd1.XFormIdentifier AS lss_xformid,
+                                                sd1.datetime_submitted as lss_date_submitted,
                                                 vu1.XFormIdentifier AS xform_identifier,
                                                 vu1.datetime_submitted,
                                                 vu1.is_multigear,
@@ -822,6 +824,7 @@ namespace NSAP_ODK.Entities.Database
                                     int? count_twsp = null;
                                     int? count_gear_types = null;
 
+                                    string xform_id = dr["xform_identifier"].ToString();
 
                                     double? weight_catch = null;
                                     double? weight_catch_sample = null;
@@ -936,11 +939,16 @@ namespace NSAP_ODK.Entities.Database
                                     si.ID = ++id;
                                     si.ODKRowID = dr["RowID"].ToString();
                                     si.SamplingDayUUID = dr["sd_rowid"].ToString();
-                                    si.XFormIdentifier = dr["xform_identifier"].ToString();
                                     si.SamplingDayID = (int)dr["unload_day_id"];
                                     si.SamplingDayDate = (DateTime)dr["SamplingDayDate"];
                                     si.IsSamplingDay = isSamplingDay;
                                     si.IsMultiVessel = (bool)dr["is_multivessel"];
+                                    if (si.IsMultiVessel)
+                                    {
+                                        xform_id = dr["lss_xformid"].ToString();
+                                    }
+                                    //si.XFormIdentifier = dr["xform_identifier"].ToString();
+                                    si.XFormIdentifier = xform_id;
                                     si.LandingSiteSamplingNotes = dr["remarks"].ToString();
                                     if (dr["unload_gr_id"] != DBNull.Value)
                                     {
@@ -995,7 +1003,7 @@ namespace NSAP_ODK.Entities.Database
 
                                     if (dr["gear_count_municipal"] != DBNull.Value)
                                     {
-                                        si.GearUnloadNumberMunicipalLandings = (int)dr["gear_count_municipal"]; 
+                                        si.GearUnloadNumberMunicipalLandings = (int)dr["gear_count_municipal"];
                                     }
 
                                     if (dr["gear_count_commercial"] != DBNull.Value)
@@ -1051,6 +1059,10 @@ namespace NSAP_ODK.Entities.Database
                                     if (dr["datetime_submitted"] != DBNull.Value)
                                     {
                                         si.DateSubmitted = (DateTime)dr["datetime_submitted"];
+                                    }
+                                    else if (dr["lss_date_submitted"] != DBNull.Value)
+                                    {
+                                        si.DateSubmitted = (DateTime)dr["lss_date_submitted"];
                                     }
                                     if (string.IsNullOrEmpty(si.EnumeratorText))
                                     {

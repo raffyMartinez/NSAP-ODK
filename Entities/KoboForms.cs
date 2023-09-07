@@ -198,8 +198,15 @@ namespace NSAP_ODK.Entities
                     case KoboFormType.FormTypeCatchAndEffort:
                         try
                         {
-                            //v = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.Count(t => t.XFormIdentifier == XLSForm_IDString);
-                            v = NSAPEntities.SummaryItemViewModel.CountRecordsByFormID(XLSForm_IDString);
+                            if (IsMultiVessel)
+                            {
+                                v = NSAPEntities.SummaryItemViewModel.CountRecordsByFormID(XLSForm_IDString,isMultiVessel:true);
+                            }
+                            else
+                            {
+                                //v = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.Count(t => t.XFormIdentifier == XLSForm_IDString);
+                                v = NSAPEntities.SummaryItemViewModel.CountRecordsByFormID(XLSForm_IDString);
+                            }
                         }
                         catch
                         {

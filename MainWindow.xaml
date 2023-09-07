@@ -105,6 +105,8 @@
                 <MenuItem Header="Number of landings by gear calendar" x:Name="menuAllLandingsCalendar" IsCheckable="True" Checked="OnMenuItemChecked" />
                 <MenuItem Header="Weight of landed catch by gear calendar" x:Name="menuWeightLandingsCalendar" IsCheckable="True" Checked="OnMenuItemChecked" />
                 <MenuItem Header="Total number of landings by day calendar" x:Name="menuTotalLandingsCalendar" IsCheckable="True" Checked="OnMenuItemChecked" />
+                <!--<Separator/>
+                <MenuItem Header="Refresh" x:Name="menuCalendarRefresh" Click="OnMenuClicked"/>-->
             </MenuItem>
 
             <MenuItem Header="NSAP Data" x:Name="menuNSAPData">
