@@ -323,6 +323,7 @@ namespace NSAP_ODK.Entities.Database
                                                     FormVersion = sl.Parent.FormVersion == -1 ? "" : sl.Parent.FormVersion.ToString(),
                                                     XFormIdentifier = sl.Parent._xform_id_string,
                                                     NumberOfSpeciesInCatchComposition = sl.NumberSpeciesInCatchComposition,
+                                                    IncludeEffortIndicators = sl.IncludeEffort
                                                 };
                                                 if (gu.VesselUnloadViewModel.AddRecordToRepo(vu))
                                                 {
@@ -338,18 +339,21 @@ namespace NSAP_ODK.Entities.Database
                                                         }
                                                         foreach (MultiVesselGear_FishingGrid mvg_fg in sl.FishingGrids)
                                                         {
-                                                            FishingGroundGrid fgg = new FishingGroundGrid
+                                                            if (!string.IsNullOrEmpty(sl.UTMZone) && !string.IsNullOrEmpty(mvg_fg.GridNameComplete))
                                                             {
-                                                                PK = FishingGroundGridViewModel.CurrentIDNumber + 1,
-                                                                Parent = vu,
-                                                                VesselUnloadID = vu.PK,
-                                                                UTMZoneText = sl.UTMZone,
-                                                                Grid = mvg_fg.GridNameComplete,
-                                                                DelayedSave = DelayedSave
-                                                            };
-                                                            if (vu.FishingGroundGridViewModel.AddRecordToRepo(fgg))
-                                                            {
-                                                                FishingGroundGridViewModel.CurrentIDNumber = fgg.PK;
+                                                                FishingGroundGrid fgg = new FishingGroundGrid
+                                                                {
+                                                                    PK = FishingGroundGridViewModel.CurrentIDNumber + 1,
+                                                                    Parent = vu,
+                                                                    VesselUnloadID = vu.PK,
+                                                                    UTMZoneText = sl.UTMZone,
+                                                                    Grid = mvg_fg.GridNameComplete,
+                                                                    DelayedSave = DelayedSave
+                                                                };
+                                                                if (vu.FishingGroundGridViewModel.AddRecordToRepo(fgg))
+                                                                {
+                                                                    FishingGroundGridViewModel.CurrentIDNumber = fgg.PK;
+                                                                }
                                                             }
                                                         }
                                                         vu.FishingGroundGridViewModel.Dispose();
@@ -611,9 +615,9 @@ namespace NSAP_ODK.Entities.Database
                                                     {
                                                         foreach (VesselUnload_FishingGear vufg in vu.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection.ToList())
                                                         {
-                                                            if (sl.LandingGearsWithWeight == null)
+                                                            if (sl.LandingGearsWithWeight == null )
                                                             {
-                                                                vufg.WeightOfCatch = null;
+                                                                vufg.WeightOfCatch = sl.CatchTotal;
                                                             }
                                                             else
                                                             {

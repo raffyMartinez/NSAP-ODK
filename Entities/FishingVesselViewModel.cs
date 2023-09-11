@@ -10,6 +10,7 @@ namespace NSAP_ODK.Entities
 {
     public class FishingVesselViewModel
     {
+        private int? _maxRecNumber;
         public event EventHandler<ProcessingItemsEventArg> ProcessingItemsEvent;
         public event EventHandler<Database.EntityBulkImportEventArg> BulkImportFishingVessels;
         private bool _editSuccess;
@@ -21,6 +22,18 @@ namespace NSAP_ODK.Entities
             return Task.Run(() => ImportVessels(vesselNames, region, fs));
         }
 
+        public int MaxRecordNumber
+        {
+            get
+            {
+                if (_maxRecNumber == null)
+                {
+                    _maxRecNumber = FishingVessels.MaxRecordNumber();
+                }
+                return (int)_maxRecNumber + 1;
+            }
+            set { _maxRecNumber = value; }
+        }
         public bool Cancel { get; set; }
 
         public List<EntityValidationMessage> EntityValidationMessages { get; set; }
@@ -191,6 +204,10 @@ namespace NSAP_ODK.Entities
             if (fv == null)
                 throw new ArgumentNullException("Error: The argument is Null");
             FishingVesselCollection.Add(fv);
+            if (_editSuccess)
+            {
+                _maxRecNumber++;
+            }
             return _editSuccess;
         }
 

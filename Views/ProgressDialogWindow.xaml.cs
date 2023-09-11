@@ -92,6 +92,7 @@ namespace NSAP_ODK.Views
         public Koboserver Koboserver { get; set; }
         public List<System.IO.FileInfo> BatchJSONFiles { get; set; }
         public NSAPRegion Region { get; set; }
+        public LandingSite LandingSite { get; set; }
         public string ListToImportFromTextBox { get; set; }
         public List<FileInfoJSONMetadata> FileInfoJSONMetadatas { get; set; }
         public FisheriesSector Sector { get; set; }
@@ -181,13 +182,24 @@ namespace NSAP_ODK.Views
                 case "import fishing vessels":
                     textBlockDescription.Text = "Importing fishing vessels";
                     NSAPEntities.FishingVesselViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
-                    if (await NSAPEntities.FishingVesselViewModel.ImportVesselsAsync(ListToImportFromTextBox, Region, Sector))
+                    if (Region != null)
                     {
-                        panelStatus.Visibility = Visibility.Collapsed;
-                        ((MainWindow)Owner).RefreshEntityGrid();
-                        //_proceedAndClose = true;
+                        if (await NSAPEntities.FishingVesselViewModel.ImportVesselsAsync(ListToImportFromTextBox, Region, Sector))
+                        {
+                            panelStatus.Visibility = Visibility.Collapsed;
+                            ((MainWindow)Owner).RefreshEntityGrid();
+                            //_proceedAndClose = true;
+                        }
+                    }
+                    else
+                    {
+                        if(await NSAPEntities.LandingSiteViewModel.CurrentEntity.LandingSite_FishingVesselViewModel.ImportVesselsAsync(ListToImportFromTextBox,Sector))
+                        {
+
+                        }
                     }
                     NSAPEntities.FishingVesselViewModel.ProcessingItemsEvent -= OnProcessingItemsEvent;
+
                     break;
                 case "fix mismatch in calendar days":
                     SamplingCalendaryMismatchFixer.ProcessingItemsEvent += OnProcessingItemsEvent;

@@ -41,6 +41,32 @@ namespace NSAP_ODK.Entities.Database
                     });
             }
         }
+
+        public List<Day_GearLanded> GetGearLandingsForDay(LandingSite ls, DateTime monthSampled)
+        {
+            List<Day_GearLanded> a_list = new List<Day_GearLanded>();
+            foreach (LandingSiteSampling lss in LandingSiteSamplingCollection
+                .OrderBy(t => t.SamplingDate)
+                .Where(t => t.LandingSiteID == ls.LandingSiteID && t.SamplingDate.Date >= monthSampled && t.SamplingDate.Date < monthSampled.AddMonths(1)))
+            {
+                if (lss.GearsInLandingSite.Count==0)
+                {
+                    a_list.Add(new Day_GearLanded { LandingSiteSampling = lss, GearInLandingSite = null });
+                }
+                else
+                {
+                    foreach (GearInLandingSite gls in lss.GearsInLandingSite)
+                    {
+                        a_list.Add(new Day_GearLanded { LandingSiteSampling = lss, GearInLandingSite = gls });
+                    }
+                }
+            }
+            return a_list;
+        }
+        public List<GearInLandingSite> GetGearsInLandingSiteSampling(LandingSiteSampling lss)
+        {
+            return LandingSiteSamplings.GetGearsInLandingSite(lss);
+        }
         public List<LandingSiteSampling> GetSampledLandings(string enumeratorText, string landingSiteName)
         {
             return LandingSiteSamplingCollection.Where(t => t.EnumeratorID == null && t.EnumeratorText == enumeratorText && t.LandingSiteName == landingSiteName).ToList();
@@ -371,7 +397,7 @@ namespace NSAP_ODK.Entities.Database
 
         }
 
-        public List<LandingSiteSampling>GetLandingSiteSamplings(FMA fma, FishingGround fg, LandingSite ls, DateTime monthSampled)
+        public List<LandingSiteSampling> GetLandingSiteSamplings(FMA fma, FishingGround fg, LandingSite ls, DateTime monthSampled)
         {
             return LandingSiteSamplingCollection
                 .Where(t => t.FMAID == fma.FMAID &&

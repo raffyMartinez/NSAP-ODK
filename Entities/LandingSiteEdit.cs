@@ -21,13 +21,15 @@ namespace NSAP_ODK.Entities
             Latitude = ls.Latitude;
             Longitude = ls.Longitude;
             Barangay = ls.Barangay;
-
+            //CountFishingVessels = ls.CountFishingVessels;
         }
         public string Barangay { get; set; }
         public LandingSiteEdit()
         {
             IsNew = true;
         }
+
+        public int? CountFishingVessels { get;  }
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
         [ReadOnly(true)]

@@ -37,6 +37,19 @@ namespace NSAP_ODK.Entities.Database
         private NSAPRegion _nsapRegion;
         private FMA _fma;
         private FishingGround _fishingGround;
+        private List<GearInLandingSite> _gearsInLandingSite;
+
+        public List<GearInLandingSite> GearsInLandingSite { 
+            get 
+            {
+                if(_gearsInLandingSite==null)
+                {
+                    _gearsInLandingSite = NSAPEntities.LandingSiteSamplingViewModel.GetGearsInLandingSiteSampling(this);
+                }
+                return _gearsInLandingSite; 
+            } 
+            set { _gearsInLandingSite = value; } 
+        }
         public bool HasFishingOperation { get; set; }
         public bool IsMultiVessel { get; set; }
         public bool DelayedSave { get; set; }

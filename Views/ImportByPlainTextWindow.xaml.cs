@@ -19,10 +19,19 @@ namespace NSAP_ODK.Views
         private NSAPRegion _selectedRegion;
         private bool _errorMessageHandled;
         private DispatcherTimer _timer;
+        private LandingSite _landingSite;
         public ImportByPlainTextWindow()
         {
             InitializeComponent();
             Loaded += OnWindowLoaded;
+        }
+
+        public ImportByPlainTextWindow(LandingSite ls, NSAPEntity entityType)
+        {
+            InitializeComponent();
+            Loaded += OnWindowLoaded;
+            _landingSite = ls;
+            NSAPEntityType = entityType;
         }
 
         private void FillRegionRadioButtons()
@@ -78,7 +87,18 @@ namespace NSAP_ODK.Views
                 case NSAPEntity.FishingVessel:
                     Title = "Import fishing vessels";
                     panelSector.Visibility = Visibility.Visible;
-                    FillRegionRadioButtons();
+                    if (_landingSite == null)
+                    {
+                        FillRegionRadioButtons();
+                    }
+                    else
+                    {
+                        labelRegion.Content = "Landing site";
+                        panelRegions.Children.Clear();
+                        TextBlock tb = new TextBlock { Text = _landingSite.ToString(), TextWrapping = TextWrapping.Wrap };
+                        panelRegions.Children.Add(new CheckBox { Content = tb, Margin = new Thickness(10, 5, 0, 0), IsChecked = true, IsEnabled = false });
+                        //panelRegions.Visibility = Visibility.Collapsed;
+                    }
                     break;
             }
             labelTitle.Content = Title;
@@ -140,6 +160,8 @@ namespace NSAP_ODK.Views
             int importCount = 0;
             switch (((Button)sender).Name)
             {
+                case "buttonSelect":
+                    break;
                 case "buttonOk":
                     string msg = "";
                     if (textBox.Text.Length > 0 && CheckedRegions() > 0)
@@ -154,12 +176,15 @@ namespace NSAP_ODK.Views
                                     fs = FisheriesSector.Commercial;
                                 }
 
-                                foreach (RadioButton rb in panelRegions.Children)
+                                if (_landingSite == null)
                                 {
-                                    if ((bool)rb.IsChecked)
+                                    foreach (RadioButton rb in panelRegions.Children)
                                     {
-                                        region = (NSAPRegion)rb.Tag;
-                                        break;
+                                        if ((bool)rb.IsChecked)
+                                        {
+                                            region = (NSAPRegion)rb.Tag;
+                                            break;
+                                        }
                                     }
                                 }
 
@@ -167,6 +192,7 @@ namespace NSAP_ODK.Views
                                 pdw.Sector = fs;
                                 pdw.ListToImportFromTextBox = textBox.Text;
                                 pdw.Region = region;
+                                pdw.LandingSite = _landingSite;
 
                                 pdw.Owner = Owner;
                                 if (pdw.Visibility == Visibility.Visible)

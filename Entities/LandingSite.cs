@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using NSAP_ODK.Entities.Database;
 namespace NSAP_ODK.Entities
 {
     public class LandingSite
@@ -39,7 +39,18 @@ namespace NSAP_ODK.Entities
         public double? Longitude { get; set; }
 
         public bool IsUsed { get; set; }
-
+        public int? CountFishingVessels
+        {
+            get
+            {
+                NSAPEntities.LandingSiteViewModel.CurrentEntity = this;
+                if (LandingSite_FishingVesselViewModel == null)
+                {
+                    LandingSite_FishingVesselViewModel = new LandingSite_FishingVesselViewModel(this);
+                }
+                return LandingSite_FishingVesselViewModel.Count;
+            }
+        }
         public string WhereUsed { get; set; }
         public override bool Equals(object obj)
         {
@@ -53,7 +64,7 @@ namespace NSAP_ODK.Entities
                 return LandingSiteID == otherLS.LandingSiteID;
             }
         }
-
+        public LandingSite_FishingVesselViewModel LandingSite_FishingVesselViewModel { get; set; }
         public override int GetHashCode()
         {
 

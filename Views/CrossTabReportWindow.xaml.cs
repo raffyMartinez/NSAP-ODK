@@ -111,7 +111,7 @@ namespace NSAP_ODK.Views
                 dataGrid.Columns.Clear();
 
                 dataGrid.AutoGenerateColumns = false;
-                if (topic != "effort" && topic != "effort_all")
+                if (topic != "effort" && topic != "effort_all" && topic != "daily_landings")
                 {
                     SetupGridColumns();
                 }
@@ -141,6 +141,11 @@ namespace NSAP_ODK.Views
                 switch (topic)
 
                 {
+                    case "daily_landings":
+                        dataGrid.DataContext = CrossTabManager.CrossTabDailyLandings;
+                        dataGrid.AutoGenerateColumns = true;
+                        mainLabel.Content = "Crosstab of daily operations in landing site";
+                        break;
                     case "effort":
                         dataGrid.DataContext = CrossTabManager.CrossTabEfforts;
                         dataGrid.AutoGenerateColumns = true;

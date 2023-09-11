@@ -3012,6 +3012,7 @@ namespace NSAP_ODK.Entities.Database
                                     IsCatchSold = landing.IsCatchSold,
                                     JSONFileName = jsonFileName,
                                     IsMultiGear = landing.IsMultiGear,
+                                    IncludeEffortIndicators = landing.IncludeEffort
                                 };
 
                                 if (vu.IsMultiGear)

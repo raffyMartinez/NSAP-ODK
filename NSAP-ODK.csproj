@@ -190,6 +190,7 @@
     <Compile Include="Entities\Database\CreateTablesInAccess.cs" />
     <Compile Include="Entities\Database\CreateTablesInAccessEventArgs.cs" />
     <Compile Include="Entities\Database\CrossTabLengthWeight.cs" />
+    <Compile Include="Entities\Database\Day_GearLanded.cs" />
     <Compile Include="Entities\Database\DeleteLandingSiteSamplingFromOrphanEventArg.cs" />
     <Compile Include="Entities\Database\DeleteRegionEntityFail.cs" />
     <Compile Include="Entities\Database\DeleteVesselUnloadFromOrphanEventArg.cs" />
@@ -197,6 +198,10 @@
     <Compile Include="Entities\Database\DownloadedJsonMetadata.cs" />
     <Compile Include="Entities\Database\EntityBulkImportEventArg.cs" />
     <Compile Include="Entities\Database\FileInfoJSONMetadata.cs" />
+    <Compile Include="Entities\Database\GearInLandingSite.cs" />
+    <Compile Include="Entities\Database\LandingSite_FishingVessel.cs" />
+    <Compile Include="Entities\Database\LandingSite_FishingVesselViewModel.cs" />
+    <Compile Include="Entities\Database\LandingSite_FishingVessel_Repository.cs" />
     <Compile Include="Entities\Database\ObjectDataHolder_KeyValuePair.cs" />
     <Compile Include="Entities\Database\ProcessingItemsEventArg.cs" />
     <Compile Include="Entities\Database\GearAtLandingSiteDaysPerMonth.cs" />

@@ -1480,7 +1480,7 @@ namespace NSAP_ODK
                 ew.Owner = this;
                 if ((bool)ew.ShowDialog())
                 {
-                    //SetDataGridSource();
+                    SetDataGridSource();
                 }
             }
 
@@ -1903,6 +1903,9 @@ namespace NSAP_ODK
                     case CalendarViewType.calendarViewTypeCountAllLandings:
                         MonthLabel.Content = $"Calendar of total number of landings per day for {((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).ToString("MMMM-yyyy")}";
                         break;
+                    case CalendarViewType.calendarViewTypeGearDailyLandings:
+                        MonthLabel.Content = $"Calendar of daily landings per gear per day for {((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).ToString("MMMM-yyyy")}";
+                        break;
                 }
 
                 //MonthSubLabel.Content = $"{_allSamplingEntitiesEventHandler.LandingSiteText}, {_allSamplingEntitiesEventHandler.FishingGround}, {_allSamplingEntitiesEventHandler.FMA}, {_allSamplingEntitiesEventHandler.NSAPRegion}";
@@ -2024,6 +2027,7 @@ namespace NSAP_ODK
                 case "menuAllLandingsCalendar":
                 case "menuWeightLandingsCalendar":
                 case "menuTotalLandingsCalendar":
+                case "menuDailyGearLandingCalendar":
                     foreach (Control mi in menuCalendar.Items)
                     {
                         var s = mi.GetType().Name;
@@ -2045,6 +2049,7 @@ namespace NSAP_ODK
                         case "menuSampledCalendar":
                             _calendarOption = CalendarViewType.calendarViewTypeSampledLandings;
                             break;
+
                         case "menuAllLandingsCalendar":
                             _calendarOption = CalendarViewType.calendarViewTypeCountAllLandingsByGear;
                             break;
@@ -2053,6 +2058,9 @@ namespace NSAP_ODK
                             break;
                         case "menuTotalLandingsCalendar":
                             _calendarOption = CalendarViewType.calendarViewTypeCountAllLandings;
+                            break;
+                        case "menuDailyGearLandingCalendar":
+                            _calendarOption = CalendarViewType.calendarViewTypeGearDailyLandings;
                             break;
                     }
                     if (!_cancelBuildCalendar)
@@ -2470,16 +2478,6 @@ namespace NSAP_ODK
                     break;
                 case "menuCalendarDayMismatch":
                     ShowFixMismatchCalendarWindow();
-                    //FixCalendarVesselUnloadWindow fcdmw = FixCalendarVesselUnloadWindow.GetInstance();
-                    //fcdmw.Owner = this;
-                    //if (fcdmw.Visibility == Visibility.Visible)
-                    //{
-                    //    fcdmw.BringIntoView();
-                    //}
-                    //else
-                    //{
-                    //    fcdmw.Show();
-                    //}
                     break;
                 case "menuMoveToFishingGround":
 
@@ -3144,7 +3142,7 @@ namespace NSAP_ODK
             switch (((DataGrid)sender).Name)
             {
                 case "dataGridSummary":
-
+                    #region dataGridSummary
                     if (dataGridSummary.SelectedItem != null)
                     {
                         switch (_summaryLevelType)
@@ -3214,7 +3212,9 @@ namespace NSAP_ODK
                     }
 
                     break;
+                #endregion
                 case "GridNSAPData":
+                    #region GridNSAPData
                     //calendar view
                     if (_currentDisplayMode == DataDisplayMode.ODKData)
                     {
@@ -3250,7 +3250,7 @@ namespace NSAP_ODK
                                         if (_gearUnloads.Count > 0)
                                         {
                                             var lss = _gearUnloads[0].Parent;
-                                            if(lss.HasFishingOperation)
+                                            if (lss.HasFishingOperation)
                                             {
                                                 msg = "There are fish landings on the selected date";
                                             }
@@ -3314,7 +3314,9 @@ namespace NSAP_ODK
                     }
 
                     break;
+                #endregion
                 case "dataGridSpecies":
+                    #region dataGridSpecies
                     var fs = (FishSpecies)dataGridSpecies.SelectedItem;
 
                     if (fs != null)
@@ -3324,8 +3326,9 @@ namespace NSAP_ODK
                     }
 
                     break;
-
+                #endregion
                 case "dataGridEntities":
+                    #region dataGridEntities
                     switch (_nsapEntity)
                     {
                         case NSAPEntity.GPS:
@@ -3408,8 +3411,11 @@ namespace NSAP_ODK
                             break;
                     }
 
+
                     break;
+                    #endregion
             }
+
             if (id.Length > 0)
             {
                 EditWindowEx ew = new EditWindowEx(_nsapEntity, id);
@@ -3419,7 +3425,6 @@ namespace NSAP_ODK
                     SetDataGridSource();
                 }
             }
-
         }
 
         private void ShowVesselUnloadsInWindow(List<VesselUnload> unloads, string formTitle = null)
@@ -3447,6 +3452,7 @@ namespace NSAP_ODK
         private void MakeCalendar(TreeViewModelControl.AllSamplingEntitiesEventHandler e)
         {
             List<GearUnload> listGearUnload = new List<GearUnload>();
+            List<Day_GearLanded> listDay_GearLanded = new List<Day_GearLanded>();
             switch (e.CalendarView)
             {
                 case CalendarViewType.calendarViewTypeSampledLandings:
@@ -3464,6 +3470,9 @@ namespace NSAP_ODK
                 case CalendarViewType.calendarViewTypeCountAllLandings:
                     listGearUnload = GearUnloadViewModel.GetTotalNumberLandingsPerDayCalendar(e.LandingSite, (DateTime)e.MonthSampled);
                     break;
+                case CalendarViewType.calendarViewTypeGearDailyLandings:
+                    listDay_GearLanded = NSAPEntities.LandingSiteSamplingViewModel.GetGearLandingsForDay(e.LandingSite, (DateTime)e.MonthSampled);
+                    break;
 
             }
 
@@ -3471,13 +3480,18 @@ namespace NSAP_ODK
             //var listGearUnload = NSAPEntities.SummaryItemViewModel.GearUnloadsByMonth(e,bySector:true);
 
 
-
-
-            _fishingCalendarViewModel = new FishingCalendarViewModel(listGearUnload.OrderBy(t => t.GearUsedName).ToList(), e.CalendarView, (DateTime)e.MonthSampled, e);
             GridNSAPData.Columns.Clear();
             GridNSAPData.AutoGenerateColumns = true;
+            if (e.CalendarView == CalendarViewType.calendarViewTypeGearDailyLandings)
+            {
+                _fishingCalendarViewModel = new FishingCalendarViewModel(listDay_GearLanded, (DateTime)e.MonthSampled, e);
+            }
+            else
+            {
+                _fishingCalendarViewModel = new FishingCalendarViewModel(listGearUnload.OrderBy(t => t.GearUsedName).ToList(), e.CalendarView, (DateTime)e.MonthSampled, e);
+            }
+
             GridNSAPData.DataContext = _fishingCalendarViewModel.DataTable;
-            Console.WriteLine(GridNSAPData.Items.Count);
             _hasNonSamplingDayColumns = false;
             foreach (DataGridColumn c in GridNSAPData.Columns)
             {
@@ -3574,7 +3588,7 @@ namespace NSAP_ODK
                 _acceptDataGridCellClick = true;
             }
             var totlaLandingsCount = "";
-            if (_fishingCalendarViewModel != null)
+            if (_fishingCalendarViewModel != null && _allSamplingEntitiesEventHandler.CalendarView!=CalendarViewType.calendarViewTypeGearDailyLandings)
             {
                 int totalLandingsCount = _fishingCalendarViewModel.CountVesselUnloads;
                 totlaLandingsCount = $", Total landings: {totalLandingsCount}";

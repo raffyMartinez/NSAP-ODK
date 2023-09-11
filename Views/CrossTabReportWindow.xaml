@@ -24,6 +24,7 @@
             </MenuItem>
         </Menu>
         <TreeView Grid.Row="2" SelectedItemChanged="OnTreeItemChanged" x:Name="treeView">
+            <TreeViewItem Header="Daily landings" Tag="daily_landings"/>
             <TreeViewItem Header="Effort (all operations)" Tag="effort_all"/>
             <TreeViewItem Header="Effort" Tag="effort"/>
             <TreeViewItem Header="Length frequency" Tag="lenfreq"/>

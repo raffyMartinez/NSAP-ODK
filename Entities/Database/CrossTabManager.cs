@@ -10,7 +10,7 @@ namespace NSAP_ODK.Entities.Database
 {
     public static class CrossTabManager
     {
-
+        private static List<CrossTabDailyGearLanding> _crosstab_DailyGearLandings;
         private static List<CrossTabEffort> _crossTabEfforts;
         private static List<CrossTabEffort_VesselUnloadGear> _crossTabEfforts_vesselunloadGear;  // crosstab with species composition and will only
                                                                                                  // contain sampled landings with species composition
@@ -21,6 +21,7 @@ namespace NSAP_ODK.Entities.Database
         private static List<CrossTabLenFreq> _crossTabLenFreqs;
         private static List<CrossTabMaturity> _crossTabMaturities;
         private static List<CrossTabLength> _crossTabLengths;
+        private static DataTable _dailyLandingDataTable;
         private static DataTable _effortSpeciesCrostabDataTable;
         private static DataTable _effortCrostabDataTable;
         private static List<GearUnload> _gearUnloads;
@@ -29,7 +30,7 @@ namespace NSAP_ODK.Entities.Database
         private static DataSet _crossTabDataSet;
         //public static Dictionary<int, CrossTabCommonProperties> UnloadCrossTabCommonPropertyDictionary { get; set; } = new Dictionary<int, CrossTabCommonProperties>();
 
-
+        public static Dictionary<int, CrossTabDailyGearLanding> DailyGearLandingCrossTabDictionary { get; set; } = new Dictionary<int, CrossTabDailyGearLanding>();
         public static Dictionary<string, CrossTabCommonProperties> UnloadCrossTabCommonPropertyDictionary { get; set; } = new Dictionary<string, CrossTabCommonProperties>();
 
         public static event EventHandler<CrossTabReportEventArg> CrossTabEvent;
@@ -43,6 +44,7 @@ namespace NSAP_ODK.Entities.Database
         {
             int counter = 0;
             _sev = sev;
+            _crosstab_DailyGearLandings = new List<CrossTabDailyGearLanding>();
             _crossTabEfforts_vesselunloadGear = new List<CrossTabEffort_VesselUnloadGear>();
             _crossTabEffortsAll_vesselUnloadGear = new List<CrossTabEffortAll_VesselUnloadGear>();
             _crossTabEfforts = new List<CrossTabEffort>();
@@ -70,7 +72,15 @@ namespace NSAP_ODK.Entities.Database
 
                     foreach (var ls in _landingSiteSamplings)
                     {
-                        _gearUnloads.AddRange(ls.GearUnloadViewModel.GearUnloadCollection.Where(r => r.ListVesselUnload.Count > 0).ToList());
+                        if (ls.HasFishingOperation)
+                        {
+                            if (ls.GearsInLandingSite == null)
+                            {
+                                ls.GearsInLandingSite = NSAPEntities.LandingSiteSamplingViewModel.GetGearsInLandingSiteSampling(ls);
+                            }
+                            _gearUnloads.AddRange(ls.GearUnloadViewModel.GearUnloadCollection.Where(r => r.ListVesselUnload.Count > 0).ToList());
+                        }
+
                     }
 
                     break;
@@ -81,15 +91,32 @@ namespace NSAP_ODK.Entities.Database
                                t.FishingGround.Code == _sev.FishingGround.Code &&
                                t.LandingSiteID == _sev.LandingSite.LandingSiteID &&
                                t.SamplingDate.Date >= (DateTime)_sev.MonthSampled &&
-                               t.SamplingDate.Date < ((DateTime)_sev.MonthSampled).AddMonths(1)).ToList();
+                               t.SamplingDate.Date < ((DateTime)_sev.MonthSampled).AddMonths(1))
+                               .OrderBy(t => t.SamplingDate)
+                               .ToList();
 
                     foreach (var ls in _landingSiteSamplings)
                     {
+                        if (ls.HasFishingOperation && ls.GearsInLandingSite == null)
+                        {
+                            ls.GearsInLandingSite = NSAPEntities.LandingSiteSamplingViewModel.GetGearsInLandingSiteSampling(ls);
+                        }
                         if (ls.GearUnloadViewModel == null)
                         {
+
                             ls.GearUnloadViewModel = new GearUnloadViewModel(ls);
                         }
-                        _gearUnloads.AddRange(ls.GearUnloadViewModel.GearUnloadCollection.Where(r => r.ListVesselUnload.Count > 0).ToList());
+                        //_gearUnloads.AddRange(ls.GearUnloadViewModel.GearUnloadCollection.Where(r => r.ListVesselUnload.Count > 0).ToList());
+                        if (ls.GearUnloadViewModel.GearUnloadCollection.Count == 0)
+                        {
+                            GearUnload gu = new GearUnload();
+                            gu.Parent = ls;
+                            _gearUnloads.Add(gu);
+                        }
+                        else
+                        {
+                            _gearUnloads.AddRange(ls.GearUnloadViewModel.GearUnloadCollection);
+                        }
                     }
                     break;
                 case "contextMenuCrosstabGear":
@@ -104,14 +131,46 @@ namespace NSAP_ODK.Entities.Database
                                t.Parent.SamplingDate.Date < ((DateTime)_sev.MonthSampled).AddMonths(1)).ToList();
                     break;
             }
+            DailyGearLandingCrossTabDictionary.Clear();
+            int counter_1 = 0;
+            foreach (LandingSiteSampling lss in _landingSiteSamplings)
+            {
+                CrossTabDailyGearLanding ctdgl = null;
+                if (lss.GearsInLandingSite.Count == 0)
+                {
+                    ctdgl = new CrossTabDailyGearLanding(lss);
+                    ctdgl.Sequence = counter_1++;
 
+                    _crosstab_DailyGearLandings.Add(ctdgl);
+                    DailyGearLandingCrossTabDictionary.Add(ctdgl.Sequence, ctdgl);
+                }
+                else
+                {
+                    foreach (GearInLandingSite gls in lss.GearsInLandingSite)
+                    {
+                        ctdgl = new CrossTabDailyGearLanding(gls);
+                        ctdgl.Sequence = counter_1++;
 
+                        _crosstab_DailyGearLandings.Add(ctdgl);
+                        DailyGearLandingCrossTabDictionary.Add(ctdgl.Sequence, ctdgl);
+                    }
+                }
+
+            }
 
             List<VesselUnload> unloads = new List<VesselUnload>();
 
             foreach (var gu in _gearUnloads)
             {
+                //if (gu.ListVesselUnload.Count == 0)
+                //{
+                //VesselUnload vu = new VesselUnload { Parent = gu, SamplingDate = gu.Parent.SamplingDate, NSAPEnumeratorID = gu.Parent.EnumeratorID };
+                //unloads.Add(vu);
+                //}
+                //else
+                //{
                 unloads.AddRange(gu.ListVesselUnload);
+                //}
             }
 
             CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { RowsToPrepare = unloads.Count, Context = "Start" });
@@ -121,7 +180,7 @@ namespace NSAP_ODK.Entities.Database
             foreach (var unload in unloads)
             {
                 VesselUnloadViewModel.SetUpFishingGearSubModel(unload);
-                if(unload.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection==null)
+                if (unload.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection == null)
                 {
                     unload.VesselUnload_FishingGearsViewModel = new VesselUnload_FishingGearViewModel(unload);
                 }
@@ -136,8 +195,11 @@ namespace NSAP_ODK.Entities.Database
 
                     _crossTabEffortsAll_vesselUnloadGear.Add(new CrossTabEffortAll_VesselUnloadGear { CrossTabCommon = ctc, VesselUnload_FishingGear = vufg });
 
-                    //List<VesselCatch> vesselCatch =  unload.ListVesselCatch;
-                    List<VesselCatch> vesselCatch = unload.ListVesselCatch.Where(t => t.GearNameUsedEx == vufg.GearUsedName).ToList();
+                    List<VesselCatch> vesselCatch = new List<VesselCatch>();
+                    if (unload.HasCatchComposition)
+                    {
+                        vesselCatch = unload.ListVesselCatch.Where(t => t.GearNameUsedEx == vufg.GearUsedName).ToList();
+                    }
 
                     if (UnloadCrossTabCommonPropertyDictionary.Count == 1)
                     {
@@ -198,6 +260,7 @@ namespace NSAP_ODK.Entities.Database
             }
 
             CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { IsDone = true, Context = "PreparingDisplayRows" });
+            BuildDailyLandingCrossTabDataTable();
             BuildEffortCrossTabDataTable();
             BuildEffortSpeciesCrossTabDataTable();
 
@@ -374,6 +437,17 @@ namespace NSAP_ODK.Entities.Database
             DataColumn dc = new DataColumn { ColumnName = "Data ID", DataType = typeof(string) };
             _effortCrostabDataTable.Columns.Add(dc);
 
+            //dc = new DataColumn { ColumnName = "Has fishing operation", DataType = typeof(bool) };
+            //_effortCrostabDataTable.Columns.Add(dc);
+
+            //dc = new DataColumn { ColumnName = "Day notes", DataType = typeof(string) };
+            //_effortCrostabDataTable.Columns.Add(dc);
+
+            //dc = new DataColumn { ColumnName = "Sampling day", DataType = typeof(bool) };
+            //_effortCrostabDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Successful fishing operation", DataType = typeof(bool) };
+            _effortCrostabDataTable.Columns.Add(dc);
 
             dc = new DataColumn { ColumnName = "Year", DataType = typeof(int) };
             _effortCrostabDataTable.Columns.Add(dc);
@@ -431,6 +505,9 @@ namespace NSAP_ODK.Entities.Database
             dc = new DataColumn { ColumnName = "Ref #" };
             _effortCrostabDataTable.Columns.Add(dc);
 
+            dc = new DataColumn { ColumnName = "Has catch composition", DataType = typeof(bool) };
+            _effortCrostabDataTable.Columns.Add(dc);
+
             dc = new DataColumn { ColumnName = "Is a fishing boat used", DataType = typeof(bool) };
             _effortCrostabDataTable.Columns.Add(dc);
 
@@ -440,14 +517,13 @@ namespace NSAP_ODK.Entities.Database
             dc = new DataColumn { ColumnName = "# of fishers", DataType = typeof(int) };
             _effortCrostabDataTable.Columns.Add(dc);
 
-            dc = new DataColumn { ColumnName = "Fishing vessels landded", DataType = typeof(int) };
+            dc = new DataColumn { ColumnName = "Fishing vessels landed", DataType = typeof(int) };
             _effortCrostabDataTable.Columns.Add(dc);
 
             dc = new DataColumn { ColumnName = "Fishing vessels monitored", DataType = typeof(int) };
             _effortCrostabDataTable.Columns.Add(dc);
 
-            dc = new DataColumn { ColumnName = "Sampling day", DataType = typeof(bool) };
-            _effortCrostabDataTable.Columns.Add(dc);
+
 
             dc = new DataColumn { ColumnName = "Catch composition count", DataType = typeof(int) };
             _effortCrostabDataTable.Columns.Add(dc);
@@ -461,6 +537,9 @@ namespace NSAP_ODK.Entities.Database
             _effortCrostabDataTable.Columns.Add(dc);
 
             dc = new DataColumn { ColumnName = "Notes", DataType = typeof(string) };
+            _effortCrostabDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Include effort indicators", DataType = typeof(bool) };
             _effortCrostabDataTable.Columns.Add(dc);
 
             foreach (var spec in NSAPEntities.EffortSpecificationViewModel.EffortSpecCollection.OrderBy(t => t.Name))
@@ -491,6 +570,10 @@ namespace NSAP_ODK.Entities.Database
                 var row = _effortCrostabDataTable.NewRow();
                 CrossTabCommonProperties ctcp = item.CrossTabCommon.CommonProperties;
                 row["Data ID"] = ctcp.DataID;
+                //row["Has fishing operation"] = ctcp.HasFishLanding;
+                //row["Day notes"] = ctcp.SamplingDayNote;
+                //row["Sampling day"] = ctcp.SamplingDay;
+                row["Successful fishing operation"] = ctcp.OperationSuccessful;
                 row["Fishing ground"] = ctcp.FishingGround;
                 row["Year"] = ctcp.Year;
                 row["Month"] = ctcp.Month;
@@ -508,7 +591,7 @@ namespace NSAP_ODK.Entities.Database
                 row["FMA"] = ctcp.FMA;
 
 
-                row["Sector"] = ctcp.Sector;
+                row["Sector"] = ctcp.UnloadSector;
 
 
                 if (ctcp.FishingGroundGrid != null)
@@ -524,6 +607,7 @@ namespace NSAP_ODK.Entities.Database
                 row["Weight of catch of gear"] = ctcp.GearCatchWeight;
                 row["# species in catch of gear"] = ctcp.GearCatchSpeciesCount;
                 row["Ref #"] = ctcp.RefNo;
+                row["Has catch composition"] = ctcp.HasCatchComposition;
                 row["Is a fishing boat used"] = ctcp.IsBoatUsed;
                 row["Fishing vessel"] = ctcp.FBName;
 
@@ -538,14 +622,14 @@ namespace NSAP_ODK.Entities.Database
 
                 if (ctcp.FBL != null)
                 {
-                    row["Fishing vessels landded"] = ctcp.FBL;
+                    row["Fishing vessels landed"] = ctcp.FBL;
                 }
 
 
                 row["Fishing vessels monitored"] = ctcp.FBM;
 
 
-                row["Sampling day"] = ctcp.SamplingDay;
+
                 row["Catch composition count"] = ctcp.VesselUnload.ListVesselCatch.Count;
                 if (ctcp.TotalWeight == null)
                 {
@@ -558,7 +642,7 @@ namespace NSAP_ODK.Entities.Database
 
                 row["Is the catch sold"] = ctcp.IsCatchSold;
                 row["Notes"] = ctcp.Notes;
-
+                row["Include effort indicators"] = ctcp.IncludeEffortIndicators;
                 //foreach (var ve in ctcp.VesselUnload.ListVesselEffort)
                 foreach (var ve in ctcp.VesselUnload_FishingGear.VesselUnload_Gear_Specs_ViewModel.VesselUnload_Gear_SpecCollection.ToList())
                 {
@@ -605,7 +689,120 @@ namespace NSAP_ODK.Entities.Database
 
 
         }
+        private static void BuildDailyLandingCrossTabDataTable()
+        {
+            _dailyLandingDataTable = new DataTable();
 
+            DataColumn dc = new DataColumn { ColumnName = "Sequence", DataType = typeof(int) };
+            _dailyLandingDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Sampling date", DataType = typeof(string) };
+            _dailyLandingDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Region", DataType = typeof(string) };
+            _dailyLandingDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "FMA", DataType = typeof(string) };
+            _dailyLandingDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Fishing ground", DataType = typeof(string) };
+            _dailyLandingDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Landing site", DataType = typeof(string) };
+            _dailyLandingDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Enumerator", DataType = typeof(string) };
+            _dailyLandingDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Has landings", DataType = typeof(bool) };
+            _dailyLandingDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Note", DataType = typeof(string) };
+            _dailyLandingDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "# of landings", DataType = typeof(int) };
+            _dailyLandingDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Is sampling day", DataType = typeof(bool) };
+            _dailyLandingDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "# of landings monitored", DataType = typeof(int) };
+            _dailyLandingDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "# of gear types", DataType = typeof(int) };
+            _dailyLandingDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Gear", DataType = typeof(string) };
+            _dailyLandingDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Sector", DataType = typeof(string) };
+            _dailyLandingDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Number of landings of gear", DataType = typeof(int) };
+            _dailyLandingDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Total weight of catch of gear", DataType = typeof(int) };
+            _dailyLandingDataTable.Columns.Add(dc);
+
+            foreach (var item in _crosstab_DailyGearLandings)
+            {
+                if (item.LandingSiteSampling.IsMultiVessel)
+                {
+                    var row = _dailyLandingDataTable.NewRow();
+                    //CrossTabCommonProperties ctcp = UnloadCrossTabCommonPropertyDictionary[item.VesselUnload.PK];
+                    CrossTabDailyGearLanding ctdgl = DailyGearLandingCrossTabDictionary[item.Sequence];
+                    row["Sequence"] = ctdgl.Sequence + 1;
+                    row["Sampling date"] = ctdgl.LandingSiteSampling.SamplingDate.ToString("MMM dd, yyyy");
+                    row["Region"] = ctdgl.LandingSiteSampling.NSAPRegion.ShortName;
+                    row["FMA"] = ctdgl.LandingSiteSampling.FMA;
+                    row["Fishing ground"] = ctdgl.LandingSiteSampling.FishingGround;
+                    row["Landing site"] = ctdgl.LandingSiteSampling.LandingSiteName;
+                    row["Enumerator"] = ctdgl.LandingSiteSampling.EnumeratorName;
+                    row["Has landings"] = ctdgl.LandingSiteSampling.HasFishingOperation;
+                    row["Note"] = ctdgl.LandingSiteSampling.Remarks;
+                    row["Is sampling day"] = ctdgl.LandingSiteSampling.IsSamplingDay;
+                    if (ctdgl.LandingSiteSampling.HasFishingOperation)
+                    {
+                        row["# of landings"] = ctdgl.LandingSiteSampling.NumberOfLandings;
+                        if (ctdgl.LandingSiteSampling.IsSamplingDay)
+                        {
+                            row["# of landings monitored"] = ctdgl.LandingSiteSampling.NumberOfLandingsSampled;
+                        }
+                        else
+                        {
+                            row["# of landings monitored"] = DBNull.Value;
+                        }
+                        row["# of gear types"] = ctdgl.LandingSiteSampling.NumberOfGearTypesInLandingSite;
+                    }
+                    else
+                    {
+                        row["# of landings"] = DBNull.Value;
+                        row["# of landings monitored"] = DBNull.Value; ;
+                        row["# of gear types"] = DBNull.Value;
+                    }
+
+                    if (ctdgl.GearInLandingSite.CountGearLandings != null)
+                    {
+                        row["Gear"] = ctdgl.GearInLandingSite.GearUsedName;
+                        row["Sector"] = ctdgl.GearInLandingSite.SectorName;
+                        row["Number of landings of gear"] = ctdgl.GearInLandingSite.CountGearLandings;
+                        row["Total weight of catch of gear"] = ctdgl.GearInLandingSite.WeightGearLandings;
+
+                    }
+                    else
+                    {
+                        row["Gear"] = DBNull.Value;
+                        row["Sector"] = DBNull.Value;
+                        row["Number of landings of gear"] = DBNull.Value;
+                        row["Total weight of catch of gear"] = DBNull.Value;
+                    }
+
+
+                    _dailyLandingDataTable.Rows.Add(row);
+                }
+            }
+
+        }
         private static void BuildEffortSpeciesCrossTabDataTable()
         {
             _effortSpeciesCrostabDataTable = new DataTable();
@@ -718,7 +915,7 @@ namespace NSAP_ODK.Entities.Database
 
             foreach (var spec in NSAPEntities.EffortSpecificationViewModel.EffortSpecCollection.OrderBy(t => t.Name))
             {
-                dc = new DataColumn { ColumnName = spec.Name.Replace("/"," or ") };
+                dc = new DataColumn { ColumnName = spec.Name.Replace("/", " or ") };
                 switch (spec.ValueType)
                 {
                     case ODKValueType.isBoolean:
@@ -761,7 +958,7 @@ namespace NSAP_ODK.Entities.Database
 
                 row["Region"] = ctcp.Region;
                 row["FMA"] = ctcp.FMA;
-                row["Sector"] = ctcp.Sector;
+                row["Sector"] = ctcp.UnloadSector;
 
                 if (ctcp.FishingGroundGrid != null)
                 {
@@ -857,6 +1054,7 @@ namespace NSAP_ODK.Entities.Database
 
         public static List<CrossTabLenFreq> CrossTabLenFreqs { get { return _crossTabLenFreqs; } }
 
+        public static DataTable CrossTabDailyLandings { get { return _dailyLandingDataTable; } }
         public static DataTable CrossTabEfforts { get { return _effortSpeciesCrostabDataTable; } }
 
         public static DataTable CrossTabAllEfforts { get { return _effortCrostabDataTable; } }
@@ -872,7 +1070,9 @@ namespace NSAP_ODK.Entities.Database
                 {
                     _effortSpeciesCrostabDataTable.TableName = "Effort";
                     _effortCrostabDataTable.TableName = "Effort (all)";
+                    _dailyLandingDataTable.TableName = "Daily landings";
 
+                    _crossTabDataSet.Tables.Add(_dailyLandingDataTable);
                     _crossTabDataSet.Tables.Add(_effortCrostabDataTable);
                     _crossTabDataSet.Tables.Add(_effortSpeciesCrostabDataTable);
                     _crossTabDataSet.Tables.Add(ListToDataTable(CrossTabLengths, "Length"));

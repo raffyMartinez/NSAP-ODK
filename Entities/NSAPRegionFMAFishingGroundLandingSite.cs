@@ -15,7 +15,7 @@ namespace NSAP_ODK.Entities
         public NSAPRegionFMAFishingGround NSAPRegionFMAFishingGround { get; set; }
         public LandingSite LandingSite { get; set; }
 
-
+        public int? NumberOfFishingVessels { get { return LandingSite.CountFishingVessels; } }
         //[ItemsSource(typeof(LandingSiteItemsSource))]
         public DateTime DateStart { get; set; }
         public DateTime? DateEnd { get; set; }

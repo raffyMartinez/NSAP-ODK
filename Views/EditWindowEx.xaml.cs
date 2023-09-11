@@ -741,7 +741,8 @@ namespace NSAP_ODK.Views
                             Province = nsffls.Province,
                             Municipality = nsffls.Municipality,
                             FMAFishingGround = nsffls.FMAFishingGround,
-                            Barangay = nsffls.Barangay
+                            Barangay = nsffls.Barangay,
+                            NumberOfFishingVessel = nsffls.NumberOfFishingVessel
                         };
                     }
                     Entities.ItemSources.LandingSiteMunicipalityItemsSource.Province = NSAPEntities.ProvinceViewModel.GetProvince(nsapRegionFMAFGLS.Province);
@@ -750,6 +751,7 @@ namespace NSAP_ODK.Views
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LandingSiteID", DisplayName = "Landing site*", DisplayOrder = 4, Description = "Name of landing site.\r\nDouble click to directly add a new landing site to the fishing ground" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DateStart", DisplayName = "Date included in the list", DisplayOrder = 5, Description = "Date when landing site was included in the fishing ground" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DateEnd", DisplayName = "Date removed from the list", DisplayOrder = 6, Description = "Date when landing site was removed from the fishing ground" });
+                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "NumberOfFishingVessel", DisplayName = "# of fishing vessels", DisplayOrder = 7, Description = "Number of fishing vessels landing" });
 
                     if (_isNew)
                     {
@@ -1228,8 +1230,9 @@ namespace NSAP_ODK.Views
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Barangay", DisplayName = "Barangay", DisplayOrder = 4, Description = "Barangay of landing site" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Longitude", DisplayName = "Longitude", DisplayOrder = 5, Description = "Longitude of landing site's location" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Latitude", DisplayName = "Latitude", DisplayOrder = 6, Description = "Latitude of landing site's location" });
+                    //PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "CountFishingVessels", DisplayName = "# fishing vessels", DisplayOrder = 7, Description = "Count of fishing vessels that land in the landing site" });
                     if (!_isNew)
-                        PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "ID", DisplayName = "Database identifier", DisplayOrder = 7, Description = "Identifier of the landing site in database" });
+                        PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "ID", DisplayName = "Database identifier", DisplayOrder = 8, Description = "Identifier of the landing site in database" });
 
                     PropertyGrid.SelectedObject = landingSiteEdit;
                     break;
@@ -1736,7 +1739,7 @@ namespace NSAP_ODK.Views
             switch (((Button)sender).Name)
             {
                 case "buttonCleanup":
-
+                    #region buttonCleanup
                     var msg_cleanup = $"Cleaning up removes {_propertyFriendlyName} in the database that do not belong to the selected region\r\nIs this what you want to do?";
                     var result = MessageBox.Show(msg_cleanup, Utilities.Global.MessageBoxCaption, MessageBoxButton.YesNo, MessageBoxImage.Question);
                     if (result == MessageBoxResult.Yes)
@@ -1757,10 +1760,12 @@ namespace NSAP_ODK.Views
                         }
                     }
                     break;
+                #endregion
                 case "buttonValidate":
                     ValidateRegionCSV();
                     break;
                 case "buttonAddToFB":
+                    #region AddToFB
                     if (_selectedFishSpecies != null && NSAPEntities.FishSpeciesViewModel.AddRecordToRepo(_selectedFishSpecies))
                     {
                         //labelFishSpecies.Content = "The selected species has been added to the fish species list.";
@@ -1782,6 +1787,7 @@ namespace NSAP_ODK.Views
 
                     }
                     break;
+                #endregion
                 case "buttonUpdate":
                     //progressLabel.Content = "Waiting for Fishbase species update file";
                     //statusBar.Visibility = Visibility.Visible;
@@ -2674,6 +2680,10 @@ namespace NSAP_ODK.Views
                 case "buttonAdd":
                     switch (_nsapEntity)
                     {
+                        case NSAPEntity.NSAPRegionFMAFishingGroundLandingSite:
+                            var iw = new ImportByPlainTextWindow(NSAPEntities.LandingSiteViewModel.CurrentEntity,NSAPEntity.FishingVessel);
+                            iw.ShowDialog();
+                            break;
                         case NSAPEntity.Province:
                             ewx = new EditWindowEx(NSAPEntity.Municipality);
                             break;
@@ -2948,6 +2958,12 @@ namespace NSAP_ODK.Views
 
             switch (_selectedProperty)
             {
+                case "NumberOfFishingVessel":
+                    LabelBottom.Content = $"List of fishing vessels landing in {NSAPEntities.LandingSiteViewModel.CurrentEntity}";
+                    //rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
+                    rowBottomLabel.Height = new GridLength(40);
+                    SetUpSubForm();
+                    break;
                 case "MunicipalityCount":
                     LabelBottom.Content = $"List of municipalities in {NSAPEntities.ProvinceViewModel.CurrentEntity}";
                     //rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
@@ -3032,6 +3048,10 @@ namespace NSAP_ODK.Views
             NSAPRegion nsr = null;
             switch (_selectedProperty)
             {
+                case "NumberOfFishingVessel":
+                    LandingSite ls = NSAPEntities.LandingSiteViewModel.GetLandingSite(((NSAPRegionFMAFishingGroundLandingSiteEdit)PropertyGrid.SelectedObject).LandingSiteID);
+                    sfDataGrid.ItemsSource = ls.LandingSite_FishingVesselViewModel.LandingSite_FishingVessel_Collection.OrderBy(t => t.FishingVessel.Name).ToList();
+                    break;
                 case "MunicipalityCount":
                     Province prv = (Province)PropertyGrid.SelectedObject;
                     if (prv.ProvinceName?.Length > 0 && prv.Municipalities != null)
@@ -3136,6 +3156,12 @@ namespace NSAP_ODK.Views
             SetUpSubFormSource();
             switch (_selectedProperty)
             {
+                case "NumberOfFishingVessel":
+                    sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("ID"), Visibility = Visibility.Hidden });
+                    sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Name", Binding = new Binding("FishingVessel.Name") });
+                    sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("FishingVessel.SectorString") });
+                    sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Added", Binding = new Binding("DateAdded") });
+                    break;
                 case "MunicipalityCount":
                     sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("MunicipalityID"), Visibility = Visibility.Hidden });
                     sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Municipality", Binding = new Binding("MunicipalityName") });

@@ -78,10 +78,13 @@ namespace NSAP_ODK.Entities.Database
                         }
                     }
 
-                    foreach (VesselCatch vc in vu.ListVesselCatch)
+                    if (vu.HasCatchComposition)
                     {
-                        vc.GearCode = vufg.GearCode;
-                        vc.GearText = vufg.GearText;
+                        foreach (VesselCatch vc in vu.ListVesselCatch)
+                        {
+                            vc.GearCode = vufg.GearCode;
+                            vc.GearText = vufg.GearText;
+                        }
                     }
                     //Console.WriteLine("sub model created");
                 }
@@ -1041,6 +1044,7 @@ namespace NSAP_ODK.Entities.Database
             myDict.Add("is_boat_used", vu.IsBoatUsed.ToString());
             myDict.Add("raising_factor", raising_factor);
 
+
             //_csv.AppendLine($"{vu.Parent.PK},{vu.PK},{boat_id},{catch_wt},{sample_wt},{boxes_total},{boxes_sampled},\"{vu.VesselText}\",{Convert.ToInt32(vu.IsBoatUsed)},{raising_factor}");
             _csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload"));
 
@@ -1095,10 +1099,9 @@ namespace NSAP_ODK.Entities.Database
             myDict.Add("count_gear_types", vu.CountGearTypesUsed.ToString());
             myDict.Add("sampling_sequence", sequence);
             myDict.Add("number_species_catch_composition", no_species_catch_composition);
+            myDict.Add("include_effort_indicators", vu.IncludeEffortIndicators.ToString());
 
             _csv_1.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload_1"));
-
-            //_csv_1.AppendLine($"{vu.PK},{Convert.ToInt32(vu.OperationIsSuccessful)},{Convert.ToInt32(vu.OperationIsTracked)},{departure},{arrival},\"{vu.SectorCode}\",\"{vu.ODKRowID}\",\"{vu.XFormIdentifier}\",{xFormDate},\"{vu.UserName}\",\"{vu.DeviceID}\",{date_submitted},\"{vu.FormVersion}\",\"{vu.GPSCode}\",{date_sampled},\"{vu.Notes}\",{enum_id},\"{enum_text}\",{date_added},{Convert.ToInt32(vu.FromExcelDownload)},{Convert.ToInt32(vu.FishingTripIsCompleted)},{Convert.ToInt32(vu.HasCatchComposition)},{no_fishers},\"{vu.RefNo}\", {Convert.ToInt32(vu.IsCatchSold)},\"{vu.JSONFileName}\" ");
 
 
 

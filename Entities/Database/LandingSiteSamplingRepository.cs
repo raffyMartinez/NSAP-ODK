@@ -109,7 +109,10 @@ namespace NSAP_ODK.Entities.Database
                                         {
                                             if (cols.Contains("number_species_catch_composition") || VesselUnloadRepository.UpdateTableDefinitionEx("number_species_catch_composition"))
                                             {
-                                                proceed = true;
+                                                if (cols.Contains("include_effort_indicators") || VesselUnloadRepository.UpdateTableDefinitionEx("include_effort_indicators"))
+                                                {
+                                                    proceed = true;
+                                                }
                                             }
                                         }
                                     }
@@ -202,19 +205,11 @@ namespace NSAP_ODK.Entities.Database
                         if (proceed)
                         {
                             proceed = VesselUnload_FishingGearRepository.CheckTableExists();
-                            //proceed = false;
-                            //if (VesselUnload_FishingGearRepository.CheckTableExists())
-                            //{
-                            //    cols = CreateTablesInAccess.GetColumnNames("dbo_vesselunload_fishinggear");
-                            //    if (cols.Contains("count_landings") || VesselUnload_FishingGearRepository.AddFieldToTable("count_landings"))
-                            //    {
-                            //        if (cols.Contains("catch_of_gear") || VesselUnload_FishingGearRepository.AddFieldToTable("catch_of_gear"))
-                            //        {
-                            //            proceed = cols.Contains("gear_sequence") || VesselUnload_FishingGearRepository.AddFieldToTable("gear_sequence");
-                            //        }
-                            //    }
-                            //}
+                        }
 
+                        if (proceed)
+                        {
+                            proceed = LandingSite_FishingVessel_Repository.CheckTableExists();
                         }
 
                         if (proceed)
@@ -454,6 +449,7 @@ namespace NSAP_ODK.Entities.Database
                                         item.NumberOfLandings = (int)dr["number_landings"];
                                     }
                                 }
+                                item.GearsInLandingSite = null;//GetGearsInLandingSite(item);
                                 thisList.Add(item);
                                 loopCount++;
                             }
@@ -490,7 +486,77 @@ namespace NSAP_ODK.Entities.Database
             }
             return thisList;
         }
+        public List<GearInLandingSite> GetGearsInLandingSite(LandingSiteSampling lss)
+        {
+            List<GearInLandingSite> listGears = new List<GearInLandingSite>();
+            if (Global.Settings.UsemySQL)
+            {
 
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@id", lss.PK);
+                        cmd.CommandText = "Select * from temp_GearUnload where unload_day_id=@id";
+                        con.Open();
+                        var dr = cmd.ExecuteReader();
+                        while (dr.Read())
+                        {
+                            int? boat_count = null;
+                            double? catch_wt = null;
+                            if (dr["boats"] != DBNull.Value)
+                            {
+                                boat_count = (int)dr["boats"];
+                            }
+                            if (dr["catch"] != DBNull.Value)
+                            {
+                                catch_wt = (double)dr["catch"];
+                            }
+                            FisheriesSector s;
+                            switch (dr["sector"].ToString())
+                            {
+                                case "c":
+                                    s = FisheriesSector.Commercial;
+                                    break;
+                                case "m":
+                                    s = FisheriesSector.Municipal;
+                                    break;
+                                case "a":
+                                    s = FisheriesSector.Aquaculture;
+                                    break;
+                                default:
+                                    s = FisheriesSector.Unknown;
+                                    break;
+                            }
+
+                            GearInLandingSite gear = new GearInLandingSite
+                            {
+                                Parent = lss,
+                                GearCode = dr["gr_id"].ToString(),
+                                GearText = dr["gr_text"].ToString(),
+                                Sector = s,
+
+                            };
+                            if(gear.Sector==FisheriesSector.Municipal)
+                            {
+                                gear.CountLandingsMunicipal = boat_count;
+                                gear.WeightCatchMunicipal = catch_wt;
+                            }
+                            else if(gear.Sector==FisheriesSector.Commercial)
+                            {
+                                gear.CountLandingsCommercial = boat_count;
+                                gear.WeightCatchCommercial = catch_wt;
+                            }
+                            listGears.Add(gear);
+                        }
+                    }
+                }
+            }
+            return listGears;
+        }
         private static bool UpdateHasFishingOperationField()
         {
             bool success = false;

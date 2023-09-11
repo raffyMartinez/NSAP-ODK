@@ -391,6 +391,7 @@ namespace NSAP_ODK.Entities.Database
             RaisingFactor = vesselUnload.RaisingFactor;
             IsMultigear = vesselUnload.IsMultiGear;
             IsCatchSold = vesselUnload.IsCatchSold;
+            IncludeEffortIndicators = vesselUnload.IncludeEffortIndicators;
             Notes = vesselUnload.Notes;
 
             OperationIsTracked = vesselUnload.OperationIsTracked;
@@ -412,6 +413,7 @@ namespace NSAP_ODK.Entities.Database
             CountGearTypesUsed = vesselUnload.CountGearTypesUsed;
             ODKRowID = vesselUnload.ODKRowID;
         }
+        public bool IncludeEffortIndicators { get; private set; }
         public int? CountGearTypesUsed { get; private set; }
         public bool IsCatchSold { get; private set; }
         public string Region { get; private set; }
@@ -640,7 +642,7 @@ namespace NSAP_ODK.Entities.Database
         private NSAPEnumerator _nsapEnumerator;
         private double _runningSum = 0;
         private bool _speciesWeightIsZero;
-
+        public bool IncludeEffortIndicators { get; set; }
         public int? NumberOfSpeciesInCatchComposition { get; set; }
         public int? SequenceOfSampling { get; set; }
         public int? CountGearTypesUsed { get; set; }
@@ -1072,7 +1074,16 @@ namespace NSAP_ODK.Entities.Database
                 }
                 else
                 {
-                    return NSAPEntities.NSAPEnumeratorViewModel.GetNSAPEnumerator((int)NSAPEnumeratorID).Name;
+                    NSAPEnumerator ne = NSAPEntities.NSAPEnumeratorViewModel.GetNSAPEnumerator((int)NSAPEnumeratorID);
+                    if (ne != null)
+                    {
+                        return ne.Name;
+                    }
+                    else
+                    {
+                        return string.Empty;
+                    }
+                    //return NSAPEntities.NSAPEnumeratorViewModel.GetNSAPEnumerator((int)NSAPEnumeratorID).Name;
                 }
             }
         }
@@ -1157,7 +1168,7 @@ namespace NSAP_ODK.Entities.Database
             get
             {
                 List<VesselUnload_Gear_Spec> vu_gses = new List<VesselUnload_Gear_Spec>();
-                if (VesselUnload_FishingGearsViewModel == null || VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection==null)
+                if (VesselUnload_FishingGearsViewModel == null || VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection == null)
                 {
                     VesselUnload_FishingGearsViewModel = new VesselUnload_FishingGearViewModel(this);
                 }
@@ -1306,15 +1317,18 @@ namespace NSAP_ODK.Entities.Database
                 List<VesselCatch> vcs = new List<VesselCatch>();
                 if (Parent.Parent.IsMultiVessel)
                 {
-                    if(VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection==null)
+                    if (VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection == null)
                     {
                         VesselUnload_FishingGearsViewModel = new VesselUnload_FishingGearViewModel(this);
                     }
-                    foreach(var fg in VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection)
+                    foreach (var fg in VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection)
                     {
-                        foreach(VesselCatch c in fg.VesselCatchViewModel.VesselCatchCollection)
+                        if (fg.CountItemsInCatchComposition > 0)
                         {
-                            vcs.Add(c);
+                            foreach (VesselCatch c in fg.VesselCatchViewModel.VesselCatchCollection)
+                            {
+                                vcs.Add(c);
+                            }
                         }
                     }
                     return vcs;

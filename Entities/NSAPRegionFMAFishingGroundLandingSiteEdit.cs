@@ -32,6 +32,7 @@ namespace NSAP_ODK.Entities
             RowID = landingSite.RowID;
             IsNew = false;
             Barangay = landingSite.LandingSite.Barangay;
+            NumberOfFishingVessel = landingSite.NumberOfFishingVessels;
         }
 
         [ReadOnly(true)]
@@ -47,7 +48,7 @@ namespace NSAP_ODK.Entities
                     DateEnd = this.DateEnd,
                     DateStart = this.DateStart,
                     LandingSite = this.LandingSite,
-                    NSAPRegionFMAFishingGround = this.FMAFishingGround
+                    NSAPRegionFMAFishingGround = this.FMAFishingGround,
                 };
             }
         }
@@ -55,6 +56,8 @@ namespace NSAP_ODK.Entities
 
         [Editor(typeof(DateTimePickerEditor), typeof(DateTimePicker))]
         public DateTime DateStart { get; set; }
+
+        public int? NumberOfFishingVessel { get; set; } 
 
 
         [Editor(typeof(DateTimePickerEditor), typeof(DateTimePicker))]

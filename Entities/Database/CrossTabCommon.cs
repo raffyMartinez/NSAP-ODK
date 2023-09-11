@@ -6,7 +6,85 @@ using System.Threading.Tasks;
 
 namespace NSAP_ODK.Entities.Database
 {
+    public class CrossTabDailyGearLanding
+    {
+        private LandingSiteSampling _landingSiteSampling;
+        private GearInLandingSite _gearInLandingSite;
+        public CrossTabDailyGearLanding(LandingSiteSampling lss)
+        {
+            LandingSiteSampling = lss;
+            GearInLandingSite gu = new GearInLandingSite
+            {
+                Parent = lss,
+                GearText = "N/A"
+            };
+            GearInLandingSite = gu;
+        }
+        public CrossTabDailyGearLanding(GearInLandingSite gu)
+        {
+            GearInLandingSite = gu;
+        }
+        public LandingSiteSampling LandingSiteSampling
+        {
+            get { return _landingSiteSampling; }
+            set
+            {
+                _landingSiteSampling = value;
+            }
+        }
 
+        public GearInLandingSite GearInLandingSite
+        {
+            get { return _gearInLandingSite; }
+            set
+            {
+                _gearInLandingSite = value;
+                LandingSiteSampling = _gearInLandingSite.Parent;
+                NSAPRegion = LandingSiteSampling.NSAPRegion;
+                FMA = LandingSiteSampling.FMA;
+                FishingGroundName = LandingSiteSampling.FishingGround.Name;
+                LandingSiteName = LandingSiteSampling.LandingSiteName;
+                EnumeratorName = LandingSiteSampling.EnumeratorName;
+                HasFishLanding = LandingSiteSampling.HasFishingOperation;
+                CountGearTypeOfAllLandings = LandingSiteSampling.NumberOfGearTypesInLandingSite;
+                NumberOfSampledLandings = LandingSiteSampling.NumberOfLandingsSampled;
+                TotalNumberVesselsLanding = LandingSiteSampling.NumberOfLandings;
+                GearName = _gearInLandingSite.GearUsedName;
+                if(HasFishLanding )
+                {
+                    CountCommercialLandings = _gearInLandingSite.CountLandingsCommercial;
+                    CountMunicipalLandings = _gearInLandingSite.CountLandingsMunicipal;
+                    WeightCommercialLandings = _gearInLandingSite.WeightCatchCommercial;
+                    WeightMunicipalLandings = _gearInLandingSite.WeightCatchMunicipal;
+                }
+
+            }
+        }
+        #region Properties
+        public int Sequence { get; set; }
+        public FMA FMA { get; private set; }
+        public string FishingGroundName { get; private set; }
+        public string LandingSiteName { get; private set; }
+        public string EnumeratorName { get; private set; }
+        public bool HasFishLanding { get; private set; }
+        public NSAPRegion NSAPRegion { get; set; }
+        public string Notes { get; private set; }
+
+        public int? CountGearTypeOfAllLandings { get; private set; }
+
+        public int? NumberOfSampledLandings { get; private set; }
+        public int? TotalNumberVesselsLanding { get; private set; }
+
+        //public int? CountVesselsLandingOfGear { get; private set; }
+        //public double? WeightCatchOfGear { get; private set; }
+
+        public string GearName { get; private set; }
+        public int? CountCommercialLandings { get; private set; }
+        public int? CountMunicipalLandings { get; private set; }
+        public double? WeightCommercialLandings { get; private set; }
+        public double? WeightMunicipalLandings { get; private set; }
+        #endregion
+    }
     public class CrossTabCommonProperties
     {
         private VesselUnload _vesselUnload;
@@ -63,9 +141,25 @@ namespace NSAP_ODK.Entities.Database
         }
 
 
-        public int DataID { get { return _vesselUnload.PK; } }
-
+        public int? DataID
+        {
+            get
+            {
+                if (_vesselUnload.PK == 0)
+                {
+                    return null;
+                }
+                else
+                {
+                    return _vesselUnload.PK;
+                }
+            }
+        }
+        public bool IncludeEffortIndicators { get { return _vesselUnload.IncludeEffortIndicators; } set { IncludeEffortIndicators = value; } }
+        public bool OperationSuccessful { get { return _vesselUnload.OperationIsSuccessful; } set { OperationSuccessful = value; } }
         public string RefNo { get { return _vesselUnload.RefNo; } }
+
+        public bool HasCatchComposition { get { return _vesselUnload.HasCatchComposition; } }
         public string Enumerator { get { return _vesselUnload.EnumeratorName; } }
         public DateTime MonthSampled { get { return new DateTime(_samplingDate.Year, _samplingDate.Month, 1); } }
 
@@ -75,6 +169,9 @@ namespace NSAP_ODK.Entities.Database
         public DateTime SamplingDate { get { return _samplingDate; } }
         public string Notes { get { return _vesselUnload.Notes; } }
         public bool SamplingDay { get { return _landingSiteSampling.IsSamplingDay; } set { SamplingDay = value; } }
+        public bool HasFishLanding { get { return _landingSiteSampling.HasFishingOperation; } set { HasFishLanding = value; } }
+
+        public string SamplingDayNote { get { return _landingSiteSampling.Remarks; } set { SamplingDayNote = value; } }
 
         public string Region { get { return _landingSiteSampling.NSAPRegion.ShortName; } }
         public string FMA { get { return _landingSiteSampling.FMA.Name; } }
@@ -87,7 +184,9 @@ namespace NSAP_ODK.Entities.Database
 
         public string Gear { get { return _vesselUnload_FishingGear.GearUsedName; } }
         //public string Gears { get { return _vesselUnload.Gears; } }
-        public double? GearCatchWeight { get 
+        public double? GearCatchWeight
+        {
+            get
             {
                 if (_vesselUnload_FishingGear.Parent.Parent.Parent.IsMultiVessel)
                 {
@@ -97,9 +196,11 @@ namespace NSAP_ODK.Entities.Database
                 {
                     return _vesselUnload_FishingGear.Parent.WeightOfCatch;
                 }
-            } 
+            }
         }
-        public int? GearCatchSpeciesCount { get 
+        public int? GearCatchSpeciesCount
+        {
+            get
             {
                 if (_vesselUnload_FishingGear.Parent.Parent.Parent.IsMultiVessel)
                 {
@@ -109,21 +210,56 @@ namespace NSAP_ODK.Entities.Database
                 {
                     return _vesselUnload_FishingGear.Parent.CountCatchCompositionItems;
                 }
-            } 
+            }
         }
         public string Province { get; private set; }
 
 
         public string Municipality { get; private set; }
 
-        public string Sector { get { return _vesselUnload.Sector; } }
+        public string UnloadSector { get { return _vesselUnload.Sector; } }
+        public string GearSector { get { return _gearUnload.Sector; } }
 
         public string FishingGroundGrid { get; private set; }
 
         public double? xCoordinate { get; private set; }
         public double? yCoordinate { get; private set; }
         public string FBName { get { return _vesselUnload.VesselName; } }
-        public int? FBL { get { return _gearUnload.Boats; } }
+        public int? FBL
+        {
+            get
+            {
+                var lss = _vesselUnload.Parent.Parent;
+                if (lss.IsMultiVessel)
+                {
+
+                    int c = 0;
+                    GearInLandingSite gls = lss.GearsInLandingSite.FirstOrDefault(t => t.GearUsedName == Gear && t.SectorName == UnloadSector);
+                    if (gls != null)
+                    {
+                        switch (UnloadSector)
+                        {
+                            case "Municipal":
+                                c = (int)gls.CountLandingsMunicipal;
+                                break;
+                            case "Commercial":
+                                c = (int)gls.CountLandingsCommercial;
+                                break;
+                        }
+                        return c;
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                    //return lss.GearsInLandingSite.FirstOrDefault(t=>t.GearUsedName==Gear && t.SectorCode==UnloadSector).
+                }
+                else
+                {
+                    return _gearUnload.Boats;
+                }
+            }
+        }
         public int? FBM { get { return _gearUnload.ListVesselUnload.Count; } }
 
         public double? TotalWeight { get { return _vesselUnload.WeightOfCatch; } }
@@ -220,10 +356,10 @@ namespace NSAP_ODK.Entities.Database
                 _gearUnload = vc.Parent.Parent;
                 _vesselUnload = vc.Parent;
             }
-                _vesselCatch = vc;
-                _vesselUnload_FishingGear = vufg;
-                //CommonProperties = CrossTabManager.UnloadCrossTabCommonPropertyDictionary[_vesselUnload.PK];
-            
+            _vesselCatch = vc;
+            _vesselUnload_FishingGear = vufg;
+            //CommonProperties = CrossTabManager.UnloadCrossTabCommonPropertyDictionary[_vesselUnload.PK];
+
             CommonProperties = CrossTabManager.UnloadCrossTabCommonPropertyDictionary[vufg.Guid.ToString()];
         }
         public CrossTabCommon(VesselUnload_FishingGear vufg)
@@ -252,7 +388,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if(_vesselCatch==null)
+                if (_vesselCatch == null)
                 {
                     _family = "UNKNOWN";
                 }
@@ -284,7 +420,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if(_vesselCatch==null)
+                if (_vesselCatch == null)
                 {
                     _sn = "UNKNOWN";
                 }

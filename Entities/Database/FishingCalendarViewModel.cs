@@ -15,6 +15,7 @@ namespace NSAP_ODK.Entities.Database
         calendarViewTypeCountAllLandingsByGear,
         calendarViewTypeWeightAllLandingsByGear,
         calendarViewTypeCountAllLandings,
+        calendarViewTypeGearDailyLandings
     }
     public class FishingCalendarDay
     {
@@ -26,6 +27,8 @@ namespace NSAP_ODK.Entities.Database
         public string GearName { get; set; }
         public DateTime MonthYear { get; set; }
         public List<GearUnload> GearUnloads { get; set; }
+
+
         public List<int?> NumberOfBoatsPerDay { get; set; }
         public List<double?> TotalCatchPerDay { get; set; }
         public List<bool?> SamplingDay { get; set; }
@@ -60,7 +63,7 @@ namespace NSAP_ODK.Entities.Database
         public int CountVesselUnloads { get; set; }
         public DataTable DataTable { get; set; }
 
-        public void BuildCalendar (CalendarViewType calendarView)
+        public void BuildCalendar(CalendarViewType calendarView)
         {
             DataTable = new DataTable();
             DataTable.Columns.Add("GearName");
@@ -90,6 +93,13 @@ namespace NSAP_ODK.Entities.Database
 
                 switch (calendarView)
                 {
+                    case CalendarViewType.calendarViewTypeGearDailyLandings:
+                        foreach (var day in item.NumberOfBoatsPerDay)
+                        {
+                            row[counter.ToString()] = day == null ? "" : day.ToString();
+                            counter++;
+                        }
+                        break;
                     case CalendarViewType.calendarViewTypeSampledLandings:
 
                         foreach (var day in item.NumberOfSampledLandings)
@@ -144,6 +154,113 @@ namespace NSAP_ODK.Entities.Database
         }
         public List<bool?> ListDayIsSamplingDay { get; set; }
         public List<GearUnload> UnloadList { get; private set; }
+        public List<Day_GearLanded> Day_GearLandedList { get; private set; }
+
+        public FishingCalendarViewModel(List<Day_GearLanded> day_GearLandedList, DateTime monthYear, TreeViewModelControl.AllSamplingEntitiesEventHandler e)
+        {
+            _e = e;
+            Day_GearLandedList = day_GearLandedList;
+            var fishingCalendarDays = new ObservableCollection<FishingCalendarDay>();
+            DateTime samplingMonthYear = monthYear;
+            _numberOfDays = DateTime.DaysInMonth(samplingMonthYear.Year, samplingMonthYear.Month);
+
+            ListDayIsSamplingDay = new List<bool?>();
+            List<LandingSiteSampling> list_lss = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSamplings(_e.FMA, _e.FishingGround, _e.LandingSite, (DateTime)_e.MonthSampled);
+            for (int n = 1; n <= _numberOfDays; n++)
+            {
+                var lss = list_lss.FirstOrDefault(t => t.SamplingDate.Day == n);
+                if (lss != null)
+                {
+                    ListDayIsSamplingDay.Add(lss.IsSamplingDay);
+                }
+                else
+                {
+                    ListDayIsSamplingDay.Add(null);
+                }
+            }
+
+
+            if (day_GearLandedList.Count > 0)
+            {
+                List<string> gearNames = new List<string>();
+                FishingCalendarDay calendarDay = null;
+                string sector = "";
+                foreach (var item in Day_GearLandedList
+                    .Where(t => t.GearInLandingSite != null)
+                    .OrderBy(t => t.GearInLandingSite.GearUsedName)
+                    .ThenBy(t => t.GearInLandingSite.SectorCode)
+                    .ThenBy(t => t.LandingSiteSampling.SamplingDate))
+                {
+                    //if (item.GearInLandingSite != null)
+                    //{
+                    if (!gearNames.Contains(item.GearInLandingSite.GearAndSector))
+                    {
+                        switch (item.GearInLandingSite.SectorCode)
+                        {
+                            case "c":
+                                sector = "Commercial";
+                                break;
+                            case "m":
+                                sector = "Municipal";
+                                break;
+                            default:
+                                sector = "Not defined";
+                                break;
+                        }
+
+
+                        calendarDay = new FishingCalendarDay
+                        {
+                            Gear = item.GearInLandingSite.Gear,
+                            MonthYear = samplingMonthYear,
+                            GearName = item.GearInLandingSite.GearUsedName,
+                            Sector = sector,
+                        };
+                        calendarDay.NumberOfBoatsPerDay = new List<int?>();
+                        calendarDay.TotalCatchPerDay = new List<double?>();
+                        calendarDay.IsProcessed = new List<bool>();
+
+                        gearNames.Add(item.GearAndSector);
+
+                        for (int n = 1; n <= _numberOfDays; n++)
+                        {
+                            if (item.LandingSiteSampling.SamplingDate.Day == n)
+                            {
+                                calendarDay.NumberOfBoatsPerDay.Add(item.Boats);
+                                calendarDay.TotalCatchPerDay.Add(item.CatchWt);
+                                calendarDay.IsProcessed.Add(true);
+
+                            }
+                            else
+                            {
+                                calendarDay.NumberOfBoatsPerDay.Add(null);
+                                calendarDay.TotalCatchPerDay.Add(null);
+                                calendarDay.IsProcessed.Add(false);
+                            }
+
+                        }
+                        fishingCalendarDays.Add(calendarDay);
+                    }
+                    else
+                    {
+                        int day = item.LandingSiteSampling.SamplingDate.Day - 1;
+                        if (!calendarDay.IsProcessed[day])
+                        {
+                            calendarDay.NumberOfBoatsPerDay[day] = item.Boats;
+                            calendarDay.TotalCatchPerDay[day] = item.CatchWt;
+                            calendarDay.IsProcessed[day] = true;
+                        }
+                    }
+                    //}
+                    //else
+                    //{
+
+                    //}
+                }
+                FishingCalendarList = fishingCalendarDays;
+                BuildCalendar(CalendarViewType.calendarViewTypeGearDailyLandings);
+            }
+        }
         public FishingCalendarViewModel(List<GearUnload> unloadList, CalendarViewType calendarView, DateTime monthYear, TreeViewModelControl.AllSamplingEntitiesEventHandler e)
         {
             _e = e;
@@ -170,7 +287,7 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
 
-            
+
 
 
             if (UnloadList.Count > 0)

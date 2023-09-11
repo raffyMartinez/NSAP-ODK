@@ -78,6 +78,7 @@ namespace NSAP_ODK.Entities.Database
                             sql = $@"ALTER TABLE dbo_vessel_unload_1 ADD COLUMN {colName}  int";
                             break;
                         case "is_multigear":
+                        case "include_effort_indicators":
                             sql = $@"ALTER TABLE dbo_vessel_unload_1 ADD COLUMN {colName}  BIT";
                             break;
                         case "ref_no":
@@ -1519,7 +1520,7 @@ namespace NSAP_ODK.Entities.Database
                                 item.RefNo = dr["ref_no"].ToString();
                                 item.IsCatchSold = (bool)dr["is_catch_sold"];
                                 item.IsMultiGear = (bool)dr["is_multigear"];
-
+                                item.IncludeEffortIndicators = (bool)dr["include_effort_indicators"];
                                 item.NumberOfSpeciesInCatchComposition = null;
                                 if (dr["number_species_catch_composition"] != DBNull.Value)
                                 {
@@ -2029,8 +2030,8 @@ namespace NSAP_ODK.Entities.Database
                                                 RowID, XFormIdentifier, XFormDate, SamplingDate,
                                                 user_name,device_id,datetime_submitted,form_version,
                                                 GPS,Notes,EnumeratorID,EnumeratorText,DateAdded,sector_code,FromExcelDownload,HasCatchComposition,
-                                                NumberOfFishers,ref_no,is_catch_sold,is_multigear,count_gear_types,number_species_catch_composition)
-                                    Values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                                                NumberOfFishers,ref_no,is_catch_sold,is_multigear,count_gear_types,number_species_catch_composition,include_effort)
+                                    Values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
                                 using (OleDbCommand update1 = new OleDbCommand(sql, conn))
                                 {
@@ -2151,6 +2152,7 @@ namespace NSAP_ODK.Entities.Database
                                     {
                                         update.Parameters.Add("@count_species_catch_comp", OleDbType.Integer).Value = item.NumberOfSpeciesInCatchComposition;
                                     }
+                                    update1.Parameters.Add("@include_effort", OleDbType.Boolean).Value = item.IncludeEffortIndicators;
                                     try
                                     {
                                         success = update1.ExecuteNonQuery() > 0;
@@ -2892,6 +2894,7 @@ namespace NSAP_ODK.Entities.Database
                                 {
                                     cmd_1.Parameters.Add("@count_species_catch_comp", OleDbType.Integer).Value = item.NumberOfSpeciesInCatchComposition;
                                 }
+                                cmd_1.Parameters.Add("@include_effort", OleDbType.Boolean).Value = item.IncludeEffortIndicators;
 
                                 cmd_1.Parameters.Add("@Vessel_unload_id", OleDbType.Integer).Value = item.PK;
 
@@ -2923,6 +2926,7 @@ namespace NSAP_ODK.Entities.Database
                                         is_multigear = @is_multigear,
                                         count_gear_types = @num_gear_type,
                                         number_species_catch_composition = @count_species_catch_comp,
+                                        include_effort_indicators = @include_effort,
                                         WHERE v_unload_id = @Vessel_unload_id";
 
 

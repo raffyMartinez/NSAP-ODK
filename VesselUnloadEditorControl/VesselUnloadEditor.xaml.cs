@@ -86,43 +86,6 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                 labelCatch.Content = "No selected catch";
 
                 VesselUnloadViewModel.SetUpFishingGearSubModel(_vesselUnload);
-
-                //VesselUnload_FishingGear vufg;
-
-                //if (!_vesselUnload.IsMultiGear && _vesselUnload.VesselUnload_FishingGearsViewModel == null || _vesselUnload.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection == null)
-                //{
-                //    _vesselUnload.VesselUnload_FishingGearsViewModel = new VesselUnload_FishingGearViewModel();
-                //    vufg = new VesselUnload_FishingGear
-                //    {
-                //        GearCode = _vesselUnload.Parent.GearID,
-                //        GearText = _vesselUnload.Parent.GearUsedText,
-                //        Parent = _vesselUnload
-                //    };
-                //    _vesselUnload.VesselUnload_FishingGearsViewModel.AddRecordToRepo(vufg, isTemporary: true);
-
-                //    if (vufg.VesselUnload_Gear_Specs_ViewModel == null || vufg.VesselUnload_Gear_Specs_ViewModel.VesselUnload_Gear_SpecCollection == null)
-                //    {
-                //        vufg.VesselUnload_Gear_Specs_ViewModel = new VesselUnload_Gear_Spec_ViewModel();
-
-                //        foreach (var eff in _vesselUnload.ListVesselEffort)
-                //        {
-                //            VesselUnload_Gear_Spec vufg_spec = new VesselUnload_Gear_Spec
-                //            {
-                //                Parent = vufg,
-                //                EffortSpecID = eff.EffortSpecID,
-                //                EffortValueNumeric = eff.EffortValueNumeric,
-                //                EffortValueText = eff.EffortValueText
-                //            };
-                //            vufg.VesselUnload_Gear_Specs_ViewModel.AddRecordToRepo(vufg_spec, isTemporary: true);
-                //        }
-                //    }
-
-                //    foreach (VesselCatch vc in _vesselUnload.ListVesselCatch)
-                //    {
-                //        vc.GearCode = vufg.GearCode;
-                //        vc.GearText = vufg.GearText;
-                //    }
-                //}
             }
         }
 
@@ -133,58 +96,6 @@ namespace NSAP_ODK.VesselUnloadEditorControl
             set
             {
                 _editMode = value;
-                //if (_editMode)
-                //{
-                //    VesselUnloadEdited = new VesselUnload
-                //    {
-                //        FishingGroundGridViewModel = null,
-                //        GearSoakViewModel = null,
-                //        VesselEffortViewModel = null,
-                //        VesselUnload_FishingGearsViewModel = null,
-                //        VesselCatchViewModel = null,
-                //        Parent = _vesselUnload.Parent,
-                //        SamplingDate = _vesselUnload.SamplingDate,
-                //        OperationIsSuccessful = _vesselUnload.OperationIsSuccessful,
-                //        HasCatchComposition = _vesselUnload.HasCatchComposition,
-                //        FishingTripIsCompleted = _vesselUnload.FishingTripIsCompleted,
-                //        PK = _vesselUnload.PK,
-                //        SequenceOfSampling = _vesselUnload.SequenceOfSampling,
-                //        CountGearTypesUsed = _vesselUnload.CountGearTypesUsed,
-                //        JSONFileName = _vesselUnload.JSONFileName,
-                //        IsCatchSold = _vesselUnload.IsCatchSold,
-                //        WeightOfCatch = _vesselUnload.WeightOfCatch,
-                //        WeightOfCatchSample = _vesselUnload.WeightOfCatchSample,
-                //        Boxes = _vesselUnload.Boxes,
-                //        BoxesSampled = _vesselUnload.BoxesSampled,
-                //        NumberOfFishers = _vesselUnload.NumberOfFishers,
-                //        SectorCode = _vesselUnload.SectorCode,
-                //        IsBoatUsed = _vesselUnload.IsBoatUsed,
-                //        VesselID = _vesselUnload.VesselID,
-                //        VesselText = _vesselUnload.VesselText,
-                //        OperationIsTracked = _vesselUnload.OperationIsTracked,
-                //        DepartureFromLandingSite = _vesselUnload.DepartureFromLandingSite,
-                //        ArrivalAtLandingSite = _vesselUnload.ArrivalAtLandingSite,
-                //    };
-
-
-                //    if (_vesselUnload.IsMultiGear)
-                //    {
-
-                //    }
-                //    if (!_vesselUnload.Parent.Parent.IsMultiVessel)
-                //    {
-                //        VesselUnloadEdited.EnumeratorText = _vesselUnload.EnumeratorText;
-                //        VesselUnloadEdited.NSAPEnumerator = _vesselUnload.NSAPEnumerator;
-                //        VesselUnloadEdited.ODKRowID = _vesselUnload.ODKRowID;
-                //    }
-
-                //}
-
-                //propertyGrid.SelectedObject = null;
-                ////propertyGrid.SelectedObject = VesselUnloadEdited;
-
-                //SetupPropertyGridForDisplay(VesselUnloadEdited);
-                ////UnloadView = "treeItemVesselUnload";
             }
         }
 
@@ -494,7 +405,8 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "IsCatchSold", DisplayName = "Was the catch sold at the landing site", DisplayOrder = 19, Description = "Catch sold by the fisher at the landing site", Category = "Effort" });
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "IsMultigear", DisplayName = "Multiple gears can be documented", DisplayOrder = 20, Description = "The sampling is able to document multiple fishing gears used", Category = "Effort" });
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "CountGearTypesUsed", DisplayName = "Number of gears used", DisplayOrder = 21, Description = "Number of gears used in the sampled landing", Category = "Effort" });
-                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Notes", DisplayName = "Notes", DisplayOrder = 22, Description = "Notes", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "IncludeEffortIndicators", DisplayName = "Include effort indicators", DisplayOrder = 22, Description = "INclude fishing effort indicators of the sampled landing", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Notes", DisplayName = "Notes", DisplayOrder = 23, Description = "Notes", Category = "Effort" });
 
 
                 if (_vesselUnloadEdit.IsMultigear)

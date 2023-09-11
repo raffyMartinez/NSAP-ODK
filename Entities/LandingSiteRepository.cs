@@ -110,6 +110,7 @@ namespace NSAP_ODK.Entities
                                 {
                                     ls.Longitude = Convert.ToDouble(dr["Longitude"]);
                                 }
+                                //ls.LandingSite_FishingVesselViewModel = null;
                                 listLandingSites.Add(ls);
                             }
                         }

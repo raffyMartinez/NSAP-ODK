@@ -8,6 +8,30 @@ namespace NSAP_ODK.Entities
     {
 
         public FisheriesSector FisheriesSector { get; set; }
+
+        public string SectorString
+        {
+            get
+            {
+                string sectorString = "";
+                switch(FisheriesSector)
+                {
+                    case FisheriesSector.Aquaculture:
+                        sectorString = "Aquaculture";
+                        break;
+                    case FisheriesSector.Commercial:
+                        sectorString = "Commercial";
+                        break;
+                    case FisheriesSector.Municipal:
+                        sectorString = "Municipal";
+                        break;
+                    case FisheriesSector.Unknown:
+                        sectorString = "Unknown";
+                        break;
+                }
+                return sectorString;
+            }
+        }
         public List<Engine> Engines { get; set; }
         public string RegistrationNumber { get; set; }
         public string Name { get; set; }
