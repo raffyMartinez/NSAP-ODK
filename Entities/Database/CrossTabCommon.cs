@@ -13,12 +13,12 @@ namespace NSAP_ODK.Entities.Database
         public CrossTabDailyGearLanding(LandingSiteSampling lss)
         {
             LandingSiteSampling = lss;
-            GearInLandingSite gu = new GearInLandingSite
-            {
-                Parent = lss,
-                GearText = "N/A"
-            };
-            GearInLandingSite = gu;
+            //GearInLandingSite gu = new GearInLandingSite
+            //{
+            //    Parent = lss,
+            //    GearText = "N/A"
+            //};
+            //GearInLandingSite = gu;
         }
         public CrossTabDailyGearLanding(GearInLandingSite gu)
         {
@@ -40,50 +40,10 @@ namespace NSAP_ODK.Entities.Database
             {
                 _gearInLandingSite = value;
                 LandingSiteSampling = _gearInLandingSite.Parent;
-                NSAPRegion = LandingSiteSampling.NSAPRegion;
-                FMA = LandingSiteSampling.FMA;
-                FishingGroundName = LandingSiteSampling.FishingGround.Name;
-                LandingSiteName = LandingSiteSampling.LandingSiteName;
-                EnumeratorName = LandingSiteSampling.EnumeratorName;
-                HasFishLanding = LandingSiteSampling.HasFishingOperation;
-                CountGearTypeOfAllLandings = LandingSiteSampling.NumberOfGearTypesInLandingSite;
-                NumberOfSampledLandings = LandingSiteSampling.NumberOfLandingsSampled;
-                TotalNumberVesselsLanding = LandingSiteSampling.NumberOfLandings;
-                GearName = _gearInLandingSite.GearUsedName;
-                if(HasFishLanding )
-                {
-                    CountCommercialLandings = _gearInLandingSite.CountLandingsCommercial;
-                    CountMunicipalLandings = _gearInLandingSite.CountLandingsMunicipal;
-                    WeightCommercialLandings = _gearInLandingSite.WeightCatchCommercial;
-                    WeightMunicipalLandings = _gearInLandingSite.WeightCatchMunicipal;
-                }
-
             }
         }
-        #region Properties
         public int Sequence { get; set; }
-        public FMA FMA { get; private set; }
-        public string FishingGroundName { get; private set; }
-        public string LandingSiteName { get; private set; }
-        public string EnumeratorName { get; private set; }
-        public bool HasFishLanding { get; private set; }
-        public NSAPRegion NSAPRegion { get; set; }
-        public string Notes { get; private set; }
 
-        public int? CountGearTypeOfAllLandings { get; private set; }
-
-        public int? NumberOfSampledLandings { get; private set; }
-        public int? TotalNumberVesselsLanding { get; private set; }
-
-        //public int? CountVesselsLandingOfGear { get; private set; }
-        //public double? WeightCatchOfGear { get; private set; }
-
-        public string GearName { get; private set; }
-        public int? CountCommercialLandings { get; private set; }
-        public int? CountMunicipalLandings { get; private set; }
-        public double? WeightCommercialLandings { get; private set; }
-        public double? WeightMunicipalLandings { get; private set; }
-        #endregion
     }
     public class CrossTabCommonProperties
     {

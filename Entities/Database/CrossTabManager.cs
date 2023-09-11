@@ -136,7 +136,8 @@ namespace NSAP_ODK.Entities.Database
             foreach (LandingSiteSampling lss in _landingSiteSamplings)
             {
                 CrossTabDailyGearLanding ctdgl = null;
-                if (lss.GearsInLandingSite.Count == 0)
+                //if (lss.GearsInLandingSite.Count == 0)
+                if(lss.GearsInLandingSite.Count==0)
                 {
                     ctdgl = new CrossTabDailyGearLanding(lss);
                     ctdgl.Sequence = counter_1++;
@@ -146,7 +147,10 @@ namespace NSAP_ODK.Entities.Database
                 }
                 else
                 {
-                    foreach (GearInLandingSite gls in lss.GearsInLandingSite)
+                    foreach (GearInLandingSite gls in lss.GearsInLandingSite
+                        .OrderBy(t=>t.GearUsedName)
+                        .ThenBy(t=>t.SectorCode)
+                        )
                     {
                         ctdgl = new CrossTabDailyGearLanding(gls);
                         ctdgl.Sequence = counter_1++;
@@ -781,7 +785,8 @@ namespace NSAP_ODK.Entities.Database
                         row["# of gear types"] = DBNull.Value;
                     }
 
-                    if (ctdgl.GearInLandingSite.CountGearLandings != null)
+                    //if (ctdgl.GearInLandingSite.CountGearLandings != null)
+                    if (ctdgl.GearInLandingSite!= null)
                     {
                         row["Gear"] = ctdgl.GearInLandingSite.GearUsedName;
                         row["Sector"] = ctdgl.GearInLandingSite.SectorName;
