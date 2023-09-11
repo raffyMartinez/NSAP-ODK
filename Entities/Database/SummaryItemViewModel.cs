@@ -29,7 +29,7 @@ namespace NSAP_ODK.Entities.Database
             SummaryItem item = null; ;
             try
             {
-                item = SummaryItemCollection.FirstOrDefault(t => t.LandingSiteID == ls_id && t.FishingGroundID == fg_id && ((DateTime)t.SamplingDate).Date == sdate);
+                item = SummaryItemCollection.FirstOrDefault(t => t.LandingSiteID == ls_id && t.FishingGroundID == fg_id && t.SamplingDayDate.Date == sdate);
             }
             catch (Exception ex)
             {
@@ -2583,6 +2583,7 @@ namespace NSAP_ODK.Entities.Database
                 ID = SummaryItemCollection.Count + 1,
 
                 SamplingDayID = gu.Parent.PK,
+                SamplingDayDate = gu.Parent.SamplingDate,
                 LandingSiteID = gu.Parent.LandingSiteID,
                 LandingSiteText = gu.Parent.LandingSiteText,
                 FMAId = gu.Parent.FMAID,
@@ -2618,6 +2619,7 @@ namespace NSAP_ODK.Entities.Database
 
                 SamplingDayID = vu.Parent.Parent.PK,
                 SamplingDayUUID = vu.Parent.Parent.RowID,
+                SamplingDayDate = vu.Parent.Parent.SamplingDate,
                 LandingSiteID = vu.Parent.Parent.LandingSiteID,
                 LandingSiteText = vu.Parent.Parent.LandingSiteText,
                 FMAId = vu.Parent.Parent.FMAID,

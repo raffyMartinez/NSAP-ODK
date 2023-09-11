@@ -142,7 +142,7 @@ namespace NSAP_ODK.Entities.Database
             string ls = LandingSite == null ? LandingSiteText : LandingSite.ToString();
             string gr = Gear != null ? Gear.GearName : GearText;
             string gu_id = $"gu_ID:{GearUnloadID}";
-            string s_date = SamplingDate == null ? "no sampling" : $"{(DateTime)SamplingDate:MMM-dd-yyyy}";
+            string s_date = SamplingDayDate == null ? "no sampling" : $"{(DateTime)SamplingDayDate:MMM-dd-yyyy}";
             return $"{GroupingString} {ID}-{Region.ShortName}-{FMA.Name}-{FishingGround.Name}-{ls}-{gr}-{gu_id}-{s_date}-sector:{SectorCode}";
         }
 

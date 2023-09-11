@@ -174,7 +174,7 @@ namespace NSAP_ODK.Entities.Database
                 {
                     if (lss == null && root.LandingSiteID != null)
                     {
-                        lss = NSAPEntities.SummaryItemViewModel.GetLandingSiteSampling(ls_id: (int)root.LandingSite.LandingSiteID, fg_id: root.FishingGround.Code, sdate: root.SamplingDate);
+                        lss = NSAPEntities.SummaryItemViewModel.GetLandingSiteSampling(ls_id: (int)root.LandingSite.LandingSiteID, fg_id: root.FishingGround.Code, sdate: root.SamplingDate.Date);
                     }
 
                     if (lss == null)
@@ -237,7 +237,7 @@ namespace NSAP_ODK.Entities.Database
                         {
                             proceed = true;
                         }
-                        if (proceed)
+                        if (proceed && root.AreThereLandings)
                         {
                             GearUnload gu;
                             foreach (MultiVesselGear_Gear gear in root.GearsInLandingSite)
@@ -2288,7 +2288,10 @@ namespace NSAP_ODK.Entities.Database
         private static int _pk;
         private int _rowid;
         private bool? _isSaved;
-
+        public override string ToString()
+        {
+            return $"{SamplingDate.ToString("yyyy-MMM-dd")} - {LandingSiteName} - {fishing_ground_name}";
+        }
         [JsonProperty("repeat_gears")]
         public List<MultiVesselGear_Gear> GearsInLandingSite
         {

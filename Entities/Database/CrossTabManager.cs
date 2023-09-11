@@ -28,9 +28,7 @@ namespace NSAP_ODK.Entities.Database
         private static List<LandingSiteSampling> _landingSiteSamplings;
         private static TreeViewModelControl.AllSamplingEntitiesEventHandler _sev;
         private static DataSet _crossTabDataSet;
-        //public static Dictionary<int, CrossTabCommonProperties> UnloadCrossTabCommonPropertyDictionary { get; set; } = new Dictionary<int, CrossTabCommonProperties>();
 
-        public static Dictionary<int, CrossTabDailyGearLanding> DailyGearLandingCrossTabDictionary { get; set; } = new Dictionary<int, CrossTabDailyGearLanding>();
         public static Dictionary<string, CrossTabCommonProperties> UnloadCrossTabCommonPropertyDictionary { get; set; } = new Dictionary<string, CrossTabCommonProperties>();
 
         public static event EventHandler<CrossTabReportEventArg> CrossTabEvent;
@@ -106,7 +104,6 @@ namespace NSAP_ODK.Entities.Database
 
                             ls.GearUnloadViewModel = new GearUnloadViewModel(ls);
                         }
-                        //_gearUnloads.AddRange(ls.GearUnloadViewModel.GearUnloadCollection.Where(r => r.ListVesselUnload.Count > 0).ToList());
                         if (ls.GearUnloadViewModel.GearUnloadCollection.Count == 0)
                         {
                             GearUnload gu = new GearUnload();
@@ -131,32 +128,28 @@ namespace NSAP_ODK.Entities.Database
                                t.Parent.SamplingDate.Date < ((DateTime)_sev.MonthSampled).AddMonths(1)).ToList();
                     break;
             }
-            DailyGearLandingCrossTabDictionary.Clear();
             int counter_1 = 0;
             foreach (LandingSiteSampling lss in _landingSiteSamplings)
             {
                 CrossTabDailyGearLanding ctdgl = null;
-                //if (lss.GearsInLandingSite.Count == 0)
-                if(lss.GearsInLandingSite.Count==0)
+                if (lss.GearsInLandingSite.Count == 0)
                 {
                     ctdgl = new CrossTabDailyGearLanding(lss);
                     ctdgl.Sequence = counter_1++;
 
                     _crosstab_DailyGearLandings.Add(ctdgl);
-                    DailyGearLandingCrossTabDictionary.Add(ctdgl.Sequence, ctdgl);
                 }
                 else
                 {
                     foreach (GearInLandingSite gls in lss.GearsInLandingSite
-                        .OrderBy(t=>t.GearUsedName)
-                        .ThenBy(t=>t.SectorCode)
+                        .OrderBy(t => t.GearUsedName)
+                        .ThenBy(t => t.SectorCode)
                         )
                     {
                         ctdgl = new CrossTabDailyGearLanding(gls);
                         ctdgl.Sequence = counter_1++;
 
                         _crosstab_DailyGearLandings.Add(ctdgl);
-                        DailyGearLandingCrossTabDictionary.Add(ctdgl.Sequence, ctdgl);
                     }
                 }
 
@@ -166,15 +159,7 @@ namespace NSAP_ODK.Entities.Database
 
             foreach (var gu in _gearUnloads)
             {
-                //if (gu.ListVesselUnload.Count == 0)
-                //{
-                //VesselUnload vu = new VesselUnload { Parent = gu, SamplingDate = gu.Parent.SamplingDate, NSAPEnumeratorID = gu.Parent.EnumeratorID };
-                //unloads.Add(vu);
-                //}
-                //else
-                //{
                 unloads.AddRange(gu.ListVesselUnload);
-                //}
             }
 
             CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { RowsToPrepare = unloads.Count, Context = "Start" });
@@ -193,10 +178,7 @@ namespace NSAP_ODK.Entities.Database
                     CrossTabCommon ctc = new CrossTabCommon(vufg);
 
 
-                    //CrossTabCommon ctc = new CrossTabCommon(unload);
                     UnloadCrossTabCommonPropertyDictionary.Add(vufg.Guid.ToString(), ctc.CommonProperties);
-                    //UnloadCrossTabCommonPropertyDictionary.Add(vufg.RowID, ctc.CommonProperties);
-
                     _crossTabEffortsAll_vesselUnloadGear.Add(new CrossTabEffortAll_VesselUnloadGear { CrossTabCommon = ctc, VesselUnload_FishingGear = vufg });
 
                     List<VesselCatch> vesselCatch = new List<VesselCatch>();
@@ -213,24 +195,20 @@ namespace NSAP_ODK.Entities.Database
                     foreach (var vc in vesselCatch)
                     {
                         ctc = new CrossTabCommon(vc, vufg);
-                        //_crossTabEfforts.Add(new CrossTabEffort { CrossTabCommon = ctc, VesselUnload = unload });
                         _crossTabEfforts_vesselunloadGear.Add(new CrossTabEffort_VesselUnloadGear { CrossTabCommon = ctc, VesselUnload_FishingGear = vufg });
 
                         foreach (var clf in vc.ListCatchLenFreq)
                         {
-                            //ctc = new CrossTabCommon(clf, vufg);
                             _crossTabLenFreqs.Add(new CrossTabLenFreq { CrossTabCommon = ctc, Length = clf.LengthClass, Freq = clf.Frequency, Sex = clf.Sex });
                         }
 
                         foreach (var cm in vc.ListCatchMaturity)
                         {
-                            //ctc = new CrossTabCommon(cm, vufg);
                             _crossTabMaturities.Add(new CrossTabMaturity
                             {
                                 CrossTabCommon = ctc,
                                 Length = cm.Length,
                                 Weight = cm.Weight,
-                                //WeightUnit = ctc.WeightUnit,
                                 Sex = cm.Sex,
                                 MaturityStage = cm.Maturity,
                                 GutContent = cm.GutContentClassification,
@@ -240,18 +218,15 @@ namespace NSAP_ODK.Entities.Database
 
                         foreach (var cl in vc.ListCatchLength)
                         {
-                            //ctc = new CrossTabCommon(cl, vufg);
                             _crossTabLengths.Add(new CrossTabLength { CrossTabCommon = ctc, Length = cl.Length, Sex = cl.Sex });
                         }
 
                         foreach (var clw in vc.ListCatchLengthWeight)
                         {
-                            //ctc = new CrossTabCommon(clw, vufg);
                             _crossTabLenWts.Add(new CrossTabLengthWeight
                             {
                                 Length = clw.Length,
                                 Weight = clw.Weight,
-                                //WeightUnit = ctc.WeightUnit,
                                 Sex = clw.Sex,
                                 CrossTabCommon = ctc,
                             });
@@ -272,164 +247,7 @@ namespace NSAP_ODK.Entities.Database
             CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { IsDone = true, Context = "DoneAddingRows" });
             return counter;
         }
-        //private static int GearByMonthYear1(TreeViewModelControl.AllSamplingEntitiesEventHandler sev)
-        //{
-        //    int counter = 0;
-        //    _sev = sev;
-        //    _crossTabEfforts = new List<CrossTabEffort>();
-        //    _crossTabLenFreqs = new List<CrossTabLenFreq>();
-        //    _crossTabMaturities = new List<CrossTabMaturity>();
-        //    _crossTabLengths = new List<CrossTabLength>();
-        //    _crossTabEffortsAll = new List<CrossTabEffortAll>();
-        //    _crossTabLenWts = new List<CrossTabLengthWeight>();
 
-        //    string topic = _sev.ContextMenuTopic;
-
-        //    _landingSiteSamplings = new List<LandingSiteSampling>();
-        //    _gearUnloads = new List<GearUnload>();
-
-        //    CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { Context = "FilteringCatchData" });
-
-        //    switch (topic)
-        //    {
-        //        case "contextMenuCrosstabLandingSite":
-        //            _landingSiteSamplings = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection
-        //                .Where(t => t.NSAPRegion.Code == _sev.NSAPRegion.Code &&
-        //                       t.FMA.FMAID == _sev.FMA.FMAID &&
-        //                       t.FishingGround.Code == _sev.FishingGround.Code &&
-        //                       t.LandingSiteName == _sev.LandingSiteText).ToList();
-
-        //            foreach (var ls in _landingSiteSamplings)
-        //            {
-        //                _gearUnloads.AddRange(ls.GearUnloadViewModel.GearUnloadCollection.Where(r => r.ListVesselUnload.Count > 0).ToList());
-        //            }
-
-        //            break;
-        //        case "contextMenuCrosstabMonth":
-        //            _landingSiteSamplings = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection
-        //                .Where(t => t.NSAPRegion.Code == _sev.NSAPRegion.Code &&
-        //                       t.FMA.FMAID == _sev.FMA.FMAID &&
-        //                       t.FishingGround.Code == _sev.FishingGround.Code &&
-        //                       t.LandingSiteID == _sev.LandingSite.LandingSiteID &&
-        //                       t.SamplingDate.Date >= (DateTime)_sev.MonthSampled &&
-        //                       t.SamplingDate.Date < ((DateTime)_sev.MonthSampled).AddMonths(1)).ToList();
-
-        //            foreach (var ls in _landingSiteSamplings)
-        //            {
-        //                if (ls.GearUnloadViewModel == null)
-        //                {
-        //                    ls.GearUnloadViewModel = new GearUnloadViewModel(ls);
-        //                }
-        //                _gearUnloads.AddRange(ls.GearUnloadViewModel.GearUnloadCollection.Where(r => r.ListVesselUnload.Count > 0).ToList());
-        //            }
-        //            break;
-        //        case "contextMenuCrosstabGear":
-        //            _gearUnloads = NSAPEntities.GearUnloadViewModel.GearUnloadCollection
-        //             .Where(t => t.ListVesselUnload.Count > 0 &&
-        //                       t.Parent.NSAPRegion.Code == _sev.NSAPRegion.Code &&
-        //                       t.Parent.FMA.FMAID == _sev.FMA.FMAID &&
-        //                       t.Parent.FishingGround.Code == _sev.FishingGround.Code &&
-        //                       t.Parent.LandingSiteName == _sev.LandingSiteText &&
-        //                       t.GearUsedName == _sev.GearUsed &&
-        //                       t.Parent.SamplingDate.Date >= (DateTime)_sev.MonthSampled &&
-        //                       t.Parent.SamplingDate.Date < ((DateTime)_sev.MonthSampled).AddMonths(1)).ToList();
-        //            break;
-        //    }
-
-
-
-        //    List<VesselUnload> unloads = new List<VesselUnload>();
-
-        //    foreach (var gu in _gearUnloads)
-        //    {
-        //        unloads.AddRange(gu.ListVesselUnload);
-        //    }
-
-        //    CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { RowsToPrepare = unloads.Count, Context = "Start" });
-
-        //    UnloadCrossTabCommonPropertyDictionary.Clear();
-        //    foreach (var unload in unloads)
-        //    {
-        //        VesselUnloadViewModel.SetUpFishingGearSubModel(unload);
-        //        //foreach (VesselUnload_FishingGear vufg in unload.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection)
-        //        //{
-        //        CrossTabCommon ctc = new CrossTabCommon(unload);
-
-
-        //        //CrossTabCommon ctc = new CrossTabCommon(unload);
-        //        UnloadCrossTabCommonPropertyDictionary.Add("", ctc.CommonProperties);
-        //        //UnloadCrossTabCommonPropertyDictionary.Add(vufg.RowID, ctc.CommonProperties);
-
-        //        _crossTabEffortsAll.Add(new CrossTabEffortAll { CrossTabCommon = ctc, VesselUnload = unload });
-
-        //        List<VesselCatch> vesselCatch = unload.ListVesselCatch;
-
-        //        if (UnloadCrossTabCommonPropertyDictionary.Count == 1)
-        //        {
-        //            CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { Context = "RowsPrepared" });
-        //        }
-
-        //        foreach (var vc in vesselCatch)
-        //        {
-        //            ctc = new CrossTabCommon(vc);
-        //            _crossTabEfforts.Add(new CrossTabEffort { CrossTabCommon = ctc, VesselUnload = unload });
-
-
-        //            foreach (var clf in vc.ListCatchLenFreq)
-        //            {
-        //                ctc = new CrossTabCommon(clf);
-        //                _crossTabLenFreqs.Add(new CrossTabLenFreq { CrossTabCommon = ctc, Length = clf.LengthClass, Freq = clf.Frequency, Sex = clf.Sex });
-        //            }
-
-        //            foreach (var cm in vc.ListCatchMaturity)
-        //            {
-        //                ctc = new CrossTabCommon(cm);
-        //                _crossTabMaturities.Add(new CrossTabMaturity
-        //                {
-        //                    CrossTabCommon = ctc,
-        //                    Length = cm.Length,
-        //                    Weight = cm.Weight,
-        //                    //WeightUnit = ctc.WeightUnit,
-        //                    Sex = cm.Sex,
-        //                    MaturityStage = cm.Maturity,
-        //                    GutContent = cm.GutContentClassification,
-        //                    GonadWeight = cm.GonadWeight
-        //                });
-        //            }
-
-        //            foreach (var cl in vc.ListCatchLength)
-        //            {
-        //                ctc = new CrossTabCommon(cl);
-        //                _crossTabLengths.Add(new CrossTabLength { CrossTabCommon = ctc, Length = cl.Length, Sex = cl.Sex });
-        //            }
-
-        //            foreach (var clw in vc.ListCatchLengthWeight)
-        //            {
-        //                ctc = new CrossTabCommon(clw);
-        //                _crossTabLenWts.Add(new CrossTabLengthWeight
-        //                {
-        //                    Length = clw.Length,
-        //                    Weight = clw.Weight,
-        //                    //WeightUnit = ctc.WeightUnit,
-        //                    Sex = clw.Sex,
-        //                    CrossTabCommon = ctc,
-        //                });
-        //            }
-
-        //        }
-        //        counter++;
-        //        CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { RowsToPrepare = unloads.Count, RowsPrepared = counter, Context = "AddingRows" });
-        //        //}
-        //    }
-
-        //    CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { IsDone = true, Context = "PreparingDisplayRows" });
-        //    BuildEffortCrossTabDataTable();
-        //    BuildEffortSpeciesCrossTabDataTable();
-
-
-        //    CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { IsDone = true, Context = "DoneAddingRows" });
-        //    return counter;
-        //}
 
         public static TreeViewModelControl.AllSamplingEntitiesEventHandler AllSamplingEntitiesEventHandler { get { return _sev; } }
 
@@ -441,14 +259,6 @@ namespace NSAP_ODK.Entities.Database
             DataColumn dc = new DataColumn { ColumnName = "Data ID", DataType = typeof(string) };
             _effortCrostabDataTable.Columns.Add(dc);
 
-            //dc = new DataColumn { ColumnName = "Has fishing operation", DataType = typeof(bool) };
-            //_effortCrostabDataTable.Columns.Add(dc);
-
-            //dc = new DataColumn { ColumnName = "Day notes", DataType = typeof(string) };
-            //_effortCrostabDataTable.Columns.Add(dc);
-
-            //dc = new DataColumn { ColumnName = "Sampling day", DataType = typeof(bool) };
-            //_effortCrostabDataTable.Columns.Add(dc);
 
             dc = new DataColumn { ColumnName = "Successful fishing operation", DataType = typeof(bool) };
             _effortCrostabDataTable.Columns.Add(dc);
@@ -568,15 +378,11 @@ namespace NSAP_ODK.Entities.Database
                 _effortCrostabDataTable.Columns.Add(dc);
             }
 
-            //foreach (var item in _crossTabEffortsAll)
             foreach (var item in _crossTabEffortsAll_vesselUnloadGear)
             {
                 var row = _effortCrostabDataTable.NewRow();
                 CrossTabCommonProperties ctcp = item.CrossTabCommon.CommonProperties;
                 row["Data ID"] = ctcp.DataID;
-                //row["Has fishing operation"] = ctcp.HasFishLanding;
-                //row["Day notes"] = ctcp.SamplingDayNote;
-                //row["Sampling day"] = ctcp.SamplingDay;
                 row["Successful fishing operation"] = ctcp.OperationSuccessful;
                 row["Fishing ground"] = ctcp.FishingGround;
                 row["Year"] = ctcp.Year;
@@ -606,7 +412,6 @@ namespace NSAP_ODK.Entities.Database
                 }
 
 
-                //row["Gears"] = ctcp.Gears;
                 row["Gear"] = ctcp.Gear;
                 row["Weight of catch of gear"] = ctcp.GearCatchWeight;
                 row["# species in catch of gear"] = ctcp.GearCatchSpeciesCount;
@@ -647,7 +452,7 @@ namespace NSAP_ODK.Entities.Database
                 row["Is the catch sold"] = ctcp.IsCatchSold;
                 row["Notes"] = ctcp.Notes;
                 row["Include effort indicators"] = ctcp.IncludeEffortIndicators;
-                //foreach (var ve in ctcp.VesselUnload.ListVesselEffort)
+
                 foreach (var ve in ctcp.VesselUnload_FishingGear.VesselUnload_Gear_Specs_ViewModel.VesselUnload_Gear_SpecCollection.ToList())
                 {
                     try
@@ -655,24 +460,24 @@ namespace NSAP_ODK.Entities.Database
                         if (ve.EffortSpecification != null)
                         {
                             string spec_name = ve.EffortSpecification.Name.Replace("/", " or ");
-                            //var r = row[spec_name];
+
                             switch (ve.EffortSpecification.ValueType)
                             {
                                 case ODKValueType.isBoolean:
-                                    //row[ve.EffortSpecification.Name] = bool.Parse(ve.EffortValue);
+
                                     row[spec_name] = bool.Parse(ve.EffortValue);
                                     break;
                                 case ODKValueType.isDecimal:
-                                    //row[ve.EffortSpecification.Name] = double.Parse(ve.EffortValue);
+
                                     row[spec_name] = double.Parse(ve.EffortValue);
                                     break;
                                 case ODKValueType.isInteger:
-                                    //row[ve.EffortSpecification.Name] = int.Parse(ve.EffortValue);
+
                                     row[spec_name] = double.Parse(ve.EffortValue);
                                     break;
                                 case ODKValueType.isText:
                                 case ODKValueType.isUndefined:
-                                    //row[ve.EffortSpecification.Name] = ve.EffortValue;
+
                                     row[spec_name] = ve.EffortValue;
                                     break;
                             }
@@ -748,63 +553,58 @@ namespace NSAP_ODK.Entities.Database
             dc = new DataColumn { ColumnName = "Total weight of catch of gear", DataType = typeof(int) };
             _dailyLandingDataTable.Columns.Add(dc);
 
-            foreach (var item in _crosstab_DailyGearLandings)
+            foreach (var item in _crosstab_DailyGearLandings
+                                   .Where(t => t.LandingSiteSampling.IsMultiVessel)
+                                   .OrderBy(t => t.Sequence))
             {
-                if (item.LandingSiteSampling.IsMultiVessel)
+                var row = _dailyLandingDataTable.NewRow();
+                row["Sequence"] = item.Sequence + 1;
+                row["Sampling date"] = item.LandingSiteSampling.SamplingDate.ToString("MMM dd, yyyy");
+                row["Region"] = item.LandingSiteSampling.NSAPRegion.ShortName;
+                row["FMA"] = item.LandingSiteSampling.FMA;
+                row["Fishing ground"] = item.LandingSiteSampling.FishingGround;
+                row["Landing site"] = item.LandingSiteSampling.LandingSiteName;
+                row["Enumerator"] = item.LandingSiteSampling.EnumeratorName;
+                row["Has landings"] = item.LandingSiteSampling.HasFishingOperation;
+                row["Note"] = item.LandingSiteSampling.Remarks;
+                row["Is sampling day"] = item.LandingSiteSampling.IsSamplingDay;
+                if (item.LandingSiteSampling.HasFishingOperation)
                 {
-                    var row = _dailyLandingDataTable.NewRow();
-                    //CrossTabCommonProperties ctcp = UnloadCrossTabCommonPropertyDictionary[item.VesselUnload.PK];
-                    CrossTabDailyGearLanding ctdgl = DailyGearLandingCrossTabDictionary[item.Sequence];
-                    row["Sequence"] = ctdgl.Sequence + 1;
-                    row["Sampling date"] = ctdgl.LandingSiteSampling.SamplingDate.ToString("MMM dd, yyyy");
-                    row["Region"] = ctdgl.LandingSiteSampling.NSAPRegion.ShortName;
-                    row["FMA"] = ctdgl.LandingSiteSampling.FMA;
-                    row["Fishing ground"] = ctdgl.LandingSiteSampling.FishingGround;
-                    row["Landing site"] = ctdgl.LandingSiteSampling.LandingSiteName;
-                    row["Enumerator"] = ctdgl.LandingSiteSampling.EnumeratorName;
-                    row["Has landings"] = ctdgl.LandingSiteSampling.HasFishingOperation;
-                    row["Note"] = ctdgl.LandingSiteSampling.Remarks;
-                    row["Is sampling day"] = ctdgl.LandingSiteSampling.IsSamplingDay;
-                    if (ctdgl.LandingSiteSampling.HasFishingOperation)
+                    row["# of landings"] = item.LandingSiteSampling.NumberOfLandings;
+                    if (item.LandingSiteSampling.IsSamplingDay)
                     {
-                        row["# of landings"] = ctdgl.LandingSiteSampling.NumberOfLandings;
-                        if (ctdgl.LandingSiteSampling.IsSamplingDay)
-                        {
-                            row["# of landings monitored"] = ctdgl.LandingSiteSampling.NumberOfLandingsSampled;
-                        }
-                        else
-                        {
-                            row["# of landings monitored"] = DBNull.Value;
-                        }
-                        row["# of gear types"] = ctdgl.LandingSiteSampling.NumberOfGearTypesInLandingSite;
+                        row["# of landings monitored"] = item.LandingSiteSampling.NumberOfLandingsSampled;
                     }
                     else
                     {
-                        row["# of landings"] = DBNull.Value;
-                        row["# of landings monitored"] = DBNull.Value; ;
-                        row["# of gear types"] = DBNull.Value;
+                        row["# of landings monitored"] = DBNull.Value;
                     }
-
-                    //if (ctdgl.GearInLandingSite.CountGearLandings != null)
-                    if (ctdgl.GearInLandingSite!= null)
-                    {
-                        row["Gear"] = ctdgl.GearInLandingSite.GearUsedName;
-                        row["Sector"] = ctdgl.GearInLandingSite.SectorName;
-                        row["Number of landings of gear"] = ctdgl.GearInLandingSite.CountGearLandings;
-                        row["Total weight of catch of gear"] = ctdgl.GearInLandingSite.WeightGearLandings;
-
-                    }
-                    else
-                    {
-                        row["Gear"] = DBNull.Value;
-                        row["Sector"] = DBNull.Value;
-                        row["Number of landings of gear"] = DBNull.Value;
-                        row["Total weight of catch of gear"] = DBNull.Value;
-                    }
-
-
-                    _dailyLandingDataTable.Rows.Add(row);
+                    row["# of gear types"] = item.LandingSiteSampling.NumberOfGearTypesInLandingSite;
                 }
+                else
+                {
+                    row["# of landings"] = DBNull.Value;
+                    row["# of landings monitored"] = DBNull.Value; ;
+                    row["# of gear types"] = DBNull.Value;
+                }
+
+                if (item.GearInLandingSite != null)
+                {
+                    row["Gear"] = item.GearInLandingSite.GearUsedName;
+                    row["Sector"] = item.GearInLandingSite.SectorName;
+                    row["Number of landings of gear"] = item.GearInLandingSite.CountGearLandings;
+                    row["Total weight of catch of gear"] = item.GearInLandingSite.WeightGearLandings;
+
+                }
+                else
+                {
+                    row["Gear"] = DBNull.Value;
+                    row["Sector"] = DBNull.Value;
+                    row["Number of landings of gear"] = DBNull.Value;
+                    row["Total weight of catch of gear"] = DBNull.Value;
+                }
+                _dailyLandingDataTable.Rows.Add(row);
+
             }
 
         }
@@ -940,12 +740,9 @@ namespace NSAP_ODK.Entities.Database
                 _effortSpeciesCrostabDataTable.Columns.Add(dc);
             }
 
-            //foreach (var item in _crossTabEfforts)
-            //foreach(var item in _crossTabEffortsAll_UnloadGear)
             foreach (var item in _crossTabEfforts_vesselunloadGear)
             {
                 var row = _effortSpeciesCrostabDataTable.NewRow();
-                //CrossTabCommonProperties ctcp = UnloadCrossTabCommonPropertyDictionary[item.VesselUnload.PK];
                 CrossTabCommonProperties ctcp = UnloadCrossTabCommonPropertyDictionary[item.VesselUnload_FishingGear.Guid.ToString()];
                 row["Data ID"] = ctcp.DataID;
                 row["Fishing ground"] = ctcp.FishingGround;
@@ -972,7 +769,6 @@ namespace NSAP_ODK.Entities.Database
                     row["Latitude"] = ctcp.yCoordinate;
                 }
 
-                //row["Gear"] = ctcp.Gears;
                 row["Gear"] = ctcp.Gear;
 
                 row["Ref #"] = ctcp.RefNo;
@@ -1011,7 +807,6 @@ namespace NSAP_ODK.Entities.Database
                 row["Weight unit"] = item.CrossTabCommon.WeightUnit;
 
 
-                //foreach (var ve in ctcp.VesselUnload.ListVesselEffort)
                 foreach (var ve in ctcp.VesselUnload_FishingGear.VesselUnload_Gear_Specs_ViewModel.VesselUnload_Gear_SpecCollection.ToList())
                 {
                     try
@@ -1130,10 +925,6 @@ namespace NSAP_ODK.Entities.Database
                                     {
                                         table.Columns.Add(ptd.Name, Nullable.GetUnderlyingType(ptd.PropertyType) ?? ptd.PropertyType);
                                     }
-                                    //if(ptd.Name != "VesselUnload_FishingGear")
-                                    //{
-                                    //    table.Columns.Add(ptd.Name, Nullable.GetUnderlyingType(ptd.PropertyType) ?? ptd.PropertyType);
-                                    //}
                                 }
                             }
                             else
@@ -1203,16 +994,6 @@ namespace NSAP_ODK.Entities.Database
                                         case "WeightUnit":
                                             row[ptd.Name] = ctc.WeightUnit;
                                             break;
-                                            //case "TWS":
-                                            //    if (ctc.TWS == null)
-                                            //    {
-                                            //        row[ptd.Name] = DBNull.Value;
-                                            //    }
-                                            //    else
-                                            //    {
-                                            //        row[ptd.Name] = (double)ctc.TWS;
-                                            //    }
-                                            //    break;
                                     }
                                 }
                             }
@@ -1241,9 +1022,6 @@ namespace NSAP_ODK.Entities.Database
                                         case "Weight":
                                             row[prop.Name] = (item as CrossTabLengthWeight).Weight;
                                             break;
-                                        //case "WeightUnit":
-                                        //    row[prop.Name] = (item as CrossTabLengthWeight).WeightUnit;
-                                        //    break;
                                         case "Sex":
                                             row[prop.Name] = (item as CrossTabLengthWeight).Sex;
                                             break;
@@ -1290,9 +1068,6 @@ namespace NSAP_ODK.Entities.Database
                                                 row[prop.Name] = wt;
                                             }
                                             break;
-                                        //case "WeightUnit":
-                                        //    row[prop.Name] = (item as CrossTabLengthWeight).WeightUnit;
-                                        //    break;
                                         case "Sex":
                                             row[prop.Name] = (item as CrossTabMaturity)?.Sex;
                                             break;
