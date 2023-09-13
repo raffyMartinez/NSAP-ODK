@@ -625,6 +625,9 @@
     <Compile Include="Views\SelectColumnToUpdateWindow.xaml.cs">
       <DependentUpon>SelectColumnToUpdateWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\SelectDeleteActionDialog.xaml.cs">
+      <DependentUpon>SelectDeleteActionDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\SelectImportActionWindow.xaml.cs">
       <DependentUpon>SelectImportActionWindow.xaml</DependentUpon>
     </Compile>
@@ -817,6 +820,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\SelectColumnToUpdateWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\SelectDeleteActionDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

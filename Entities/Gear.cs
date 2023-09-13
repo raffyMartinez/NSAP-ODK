@@ -2,8 +2,23 @@
 using System.Runtime.CompilerServices;
 using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
 using NSAP_ODK.Entities.ItemSources;
+using System.Collections.Generic;
 namespace NSAP_ODK.Entities
 {
+    public class GearWithExtras
+    {
+        public GearWithExtras(Gear gear)
+        {
+            Gear = gear;
+        }
+
+        public int UseCount { get; set; }
+
+        public List<FishingGround> FishingGrounds = new List<FishingGround>();
+        public Gear Gear { get; private set; }
+    }
+
+
     public class GearFlattened
     {
         public string GearName { get; set; }
@@ -23,6 +38,8 @@ namespace NSAP_ODK.Entities
             Gear.GearName = GearName;
             Gear.Code = Code;
             Gear.IsGenericGear = IsGeneric;
+            Gear.GearIsNotUsed = GearIsNotUsed;
+
 
             if (IsNew)
             {
@@ -61,6 +78,8 @@ namespace NSAP_ODK.Entities
 
             return Gear;
         }
+
+        public bool GearIsNotUsed { get; set; }
 
         public Gear Gear { get; set; }
         public string GearName { get; set; }
@@ -113,6 +132,7 @@ namespace NSAP_ODK.Entities
             BaseGear = gear.BaseGear.Code;
             IsGeneric = gear.IsGenericGear;
             IsNew = false;
+            GearIsNotUsed = gear.GearIsNotUsed;
 
             if(gear.GearEffortSpecificationViewModel==null)
             {
@@ -137,6 +157,8 @@ namespace NSAP_ODK.Entities
         {
             //EffortSpecifications = new List<GearEffortSpecification>();
         }
+
+        public bool GearIsNotUsed { get; set; }
 
         public Gear(string gearName, string code, string gearID)
         {

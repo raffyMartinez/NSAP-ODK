@@ -271,7 +271,7 @@ namespace NSAP_ODK.Entities
                             .Where(t => t.FishingVessel.FisheriesSector == FisheriesSector.Municipal)
                             .OrderBy(t => t.FishingVessel.ToString()))
                         {
-                            sb.AppendLine($"{fv.FishingVessel.FisheriesSector.ToString().Substring(0, 1)},{fv.FishingVessel.ID.ToString().PadLeft(_id_width,'0')},\"{fv.FishingVessel.NameToUse(addPrefix: false)}\",{reg.Code}");
+                            sb.AppendLine($"{fv.FishingVessel.FisheriesSector.ToString().Substring(0, 1)},{fv.FishingVessel.ID.ToString().PadLeft(_id_width, '0')},\"{fv.FishingVessel.NameToUse(addPrefix: false)}\",{reg.Code}");
                             counter++;
                         }
                     }
@@ -288,7 +288,7 @@ namespace NSAP_ODK.Entities
                             .Where(t => t.FishingVessel.FisheriesSector == FisheriesSector.Commercial)
                             .OrderBy(t => t.FishingVessel.ToString()))
                         {
-                            sb.AppendLine($"{fv.FishingVessel.FisheriesSector.ToString().Substring(0, 1)},{fv.FishingVessel.ID.ToString().PadLeft(_id_width,'0')},\"{fv.FishingVessel.NameToUse(addPrefix: false)}\",{reg.Code}");
+                            sb.AppendLine($"{fv.FishingVessel.FisheriesSector.ToString().Substring(0, 1)},{fv.FishingVessel.ID.ToString().PadLeft(_id_width, '0')},\"{fv.FishingVessel.NameToUse(addPrefix: false)}\",{reg.Code}");
                             counter++;
                         }
                     }
@@ -451,7 +451,8 @@ namespace NSAP_ODK.Entities
             foreach (var r in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection
                 .Where(t => NSAPEntities.Regions.Contains(t.Code)))
             {
-                foreach (var g in r.Gears)
+                var l = r.Gears.Where(t => t.DateEnd == null);
+                foreach (var g in r.Gears.Where(t => t.DateEnd == null))
                 {
                     sb.AppendLine($"{g.RowID.ToString().PadLeft(_id_width, '0')},\"{g.Gear.GearName}\",{g.Gear.Code}");
                     counter++;
@@ -495,7 +496,8 @@ namespace NSAP_ODK.Entities
             {
                 foreach (var fma in region.FMAs)
                 {
-                    foreach (var fg in fma.FishingGrounds)
+                    foreach (var fg in fma.FishingGrounds
+                        .Where(t=>t.DateEnd==null))
                     {
                         sb.AppendLine($"fg,{fg.RowID},{fg.FishingGround.Name},{fg.RegionFMA.RowID}");
                         counter++;
@@ -515,6 +517,7 @@ namespace NSAP_ODK.Entities
                     foreach (var fg in fma.FishingGrounds)
                     {
                         foreach (var ls in fg.LandingSites
+                            .Where(t=>t.DateEnd==null)
                             .OrderBy(t => t.LandingSite.ToString()))
                         {
 
@@ -539,9 +542,12 @@ namespace NSAP_ODK.Entities
             foreach (var region in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection
                  .Where(t => NSAPEntities.Regions.Contains(t.Code)))
             {
-                foreach (var gear in region.Gears.OrderBy(t => t.NSAPRegion.Name).ThenBy(t => t.Gear.GearName))
+                foreach (var gear in region.Gears
+                    .Where(t => t.DateEnd == null)
+                    .OrderBy(t => t.NSAPRegion.Name)
+                    .ThenBy(t => t.Gear.GearName))
                 {
-                    sb.AppendLine($"gear,{gear.RowID.ToString().PadLeft(_id_width,'0')},{gear.Gear.GearName},{region.Code}");
+                    sb.AppendLine($"gear,{gear.RowID.ToString().PadLeft(_id_width, '0')},{gear.Gear.GearName},{region.Code}");
                     counter++;
                 }
             }
@@ -554,7 +560,9 @@ namespace NSAP_ODK.Entities
             foreach (var region in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection
                  .Where(t => NSAPEntities.Regions.Contains(t.Code)))
             {
-                foreach (var enumerator in region.NSAPEnumerators.OrderBy(t => t.Enumerator.Name))
+                foreach (var enumerator in region.NSAPEnumerators
+                    .Where(t => t.DateEnd == null)
+                    .OrderBy(t => t.Enumerator.Name))
                 {
                     sb.AppendLine($@"enumerator,{enumerator.RowID},""{enumerator.Enumerator.Name}"",{region.Code}");
                     counter++;
@@ -576,7 +584,7 @@ namespace NSAP_ODK.Entities
                 }
                 if (proceed)
                 {
-                    sb.AppendLine($"effort_spec,{item.Value.EffortSpecification.ID.ToString().PadLeft(_id_width,'0')},{item.Value.EffortSpecification.Name},{item.Value.Gear.Code}");
+                    sb.AppendLine($"effort_spec,{item.Value.EffortSpecification.ID.ToString().PadLeft(_id_width, '0')},{item.Value.EffortSpecification.Name},{item.Value.Gear.Code}");
                     counter++;
                 }
                 proceed = true;
@@ -592,7 +600,7 @@ namespace NSAP_ODK.Entities
                 }
                 if (proceed)
                 {
-                    sb.AppendLine($"effort_spec,{item.ID.ToString().PadLeft(_id_width,'0')},{item.Name},_OT");
+                    sb.AppendLine($"effort_spec,{item.ID.ToString().PadLeft(_id_width, '0')},{item.Name},_OT");
                     counter++;
                 }
                 proceed = true;

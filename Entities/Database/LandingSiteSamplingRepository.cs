@@ -48,6 +48,12 @@ namespace NSAP_ODK.Entities.Database
                     }
                     if (proceed)
                     {
+                        cols = CreateTablesInAccess.GetColumnNames("gear");
+                        proceed = cols.Contains("GearIsNotUsed") || GearRepository.AddFieldToTable("GearIsNotUsed");
+                    }
+
+                    if (proceed)
+                    {
                         cols = CreateTablesInAccess.GetColumnNames("dbo_gear_unload");
                         if (cols.Contains("sp_twsp_count") || GearUnloadRepository.AddFieldToTable("sp_twsp_count"))
                         {
@@ -540,12 +546,12 @@ namespace NSAP_ODK.Entities.Database
                                 Sector = s,
 
                             };
-                            if(gear.Sector==FisheriesSector.Municipal)
+                            if (gear.Sector == FisheriesSector.Municipal)
                             {
                                 gear.CountLandingsMunicipal = boat_count;
                                 gear.WeightCatchMunicipal = catch_wt;
                             }
-                            else if(gear.Sector==FisheriesSector.Commercial)
+                            else if (gear.Sector == FisheriesSector.Commercial)
                             {
                                 gear.CountLandingsCommercial = boat_count;
                                 gear.WeightCatchCommercial = catch_wt;

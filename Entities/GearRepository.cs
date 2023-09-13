@@ -32,7 +32,7 @@ namespace NSAP_ODK.Entities
                         g.Code = dr["gear_code"].ToString();
                         g.GearName = dr["gear_name"].ToString();
                         g.CodeOfBaseGear = dr["generic_code"].ToString();
-                        g.IsGenericGear = Convert.ToBoolean(dr["is_generic"]);
+                        g.IsGenericGear = (bool)dr["is_generic"];
                         thisList.Add(g);
                     }
                 }
@@ -68,6 +68,7 @@ namespace NSAP_ODK.Entities
                                 g.CodeOfBaseGear = dr["GenericCode"].ToString().ToUpper();
                                 g.IsGenericGear = (bool)dr["IsGeneric"];
                                 g.Code = dr["GearCode"].ToString().ToUpper();
+                                g.GearIsNotUsed = (bool)dr["GearIsNotUsed"];
                                 listGears.Add(g);
                             }
                         }
@@ -130,6 +131,38 @@ namespace NSAP_ODK.Entities
             }
             return success;
         }
+
+        public static bool AddFieldToTable(string colName)
+        {
+            bool success = false;
+            string sql = "";
+            using (var con = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    switch(colName)
+                    {
+                        case "GearIsNotUsed":
+                            sql = $"ALTER TABLE gear ADD COLUMN {colName} YESNO";
+                            break;
+                    }
+
+                    cmd.CommandText = sql;
+
+                    try
+                    {
+                        con.Open();
+                        cmd.ExecuteNonQuery();
+                        success = true;
+                    }
+                    catch(Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+                return success;
+        }
         public bool Add(Gear g)
         {
             bool success = false;
@@ -142,7 +175,7 @@ namespace NSAP_ODK.Entities
                 using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
                     conn.Open();
-                    var sql = "Insert into gear (GearName,GearCode,GenericCode,IsGeneric) Values (?,?,?,?)";
+                    var sql = "Insert into gear (GearName,GearCode,GenericCode,IsGeneric,GearIsNotUsed) Values (?,?,?,?,?)";
 
                     using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
@@ -157,6 +190,7 @@ namespace NSAP_ODK.Entities
                             update.Parameters.Add("@genericcode", OleDbType.VarChar).Value = g.BaseGear.Code.ToUpper();
                         }
                         update.Parameters.Add("@isgeneric", OleDbType.Boolean).Value = g.IsGenericGear;
+                        update.Parameters.Add("@is_not_used", OleDbType.Boolean).Value = g.GearIsNotUsed;
                         try
                         {
                             success = update.ExecuteNonQuery() > 0;
@@ -185,6 +219,7 @@ namespace NSAP_ODK.Entities
                     update.Parameters.Add("@genericcode", MySqlDbType.VarChar).Value = g.BaseGear.Code.ToUpper();
                     update.Parameters.AddWithValue("@isgeneric", g.IsGenericGear);
                     update.Parameters.Add("@gearcode", MySqlDbType.VarChar).Value = g.Code.ToUpper();
+                    //update.Parameters.Add("@is_used", MySqlDbType.VarChar).Value = g.Code.ToUpper();
 
                     update.CommandText = @"UPDATE gears SET
                                            gear_name = @gearname,
@@ -226,12 +261,14 @@ namespace NSAP_ODK.Entities
                         update.Parameters.Add("@gearname", OleDbType.VarChar).Value = g.GearName;
                         update.Parameters.Add("@genericcode", OleDbType.VarChar).Value = g.BaseGear.Code.ToUpper();
                         update.Parameters.Add("@isgeneric", OleDbType.Boolean).Value = g.IsGenericGear;
+                        update.Parameters.Add("@is_not_used", OleDbType.Boolean).Value = g.GearIsNotUsed;
                         update.Parameters.Add("@gearcode", OleDbType.VarChar).Value = g.Code.ToUpper();
 
                         update.CommandText = @"UPDATE gear SET
                                            GearName = @gearname,
                                            GenericCode = @genericcode,
-                                           IsGeneric = @isgeneric 
+                                           IsGeneric = @isgeneric,
+                                           GearIsNotUsed = @is_not_used
                                            WHERE GearCode = @gearcode";
                         try
                         {

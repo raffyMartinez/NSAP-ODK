@@ -1244,6 +1244,7 @@ namespace NSAP_ODK
                     dataGridEntities.Columns.Add(new DataGridTextColumn { Header = "Name", Binding = new Binding("GearName") });
                     dataGridEntities.Columns.Add(new DataGridCheckBoxColumn { Header = "Is generic gear", Binding = new Binding("IsGenericGear") });
                     dataGridEntities.Columns.Add(new DataGridTextColumn { Header = "Base gear", Binding = new Binding("BaseGear") });
+                    dataGridEntities.Columns.Add(new DataGridCheckBoxColumn { Header = "Not used", Binding = new Binding("GearIsNotUsed") });
                     break;
 
                 case NSAPEntity.FishingGround:
@@ -3420,10 +3421,12 @@ namespace NSAP_ODK
             {
                 EditWindowEx ew = new EditWindowEx(_nsapEntity, id);
                 ew.Owner = this;
+
                 if ((bool)ew.ShowDialog())
                 {
                     SetDataGridSource();
                 }
+
             }
         }
 
@@ -3588,7 +3591,7 @@ namespace NSAP_ODK
                 _acceptDataGridCellClick = true;
             }
             var totlaLandingsCount = "";
-            if (_fishingCalendarViewModel != null && _allSamplingEntitiesEventHandler.CalendarView!=CalendarViewType.calendarViewTypeGearDailyLandings)
+            if (_fishingCalendarViewModel != null && _allSamplingEntitiesEventHandler.CalendarView != CalendarViewType.calendarViewTypeGearDailyLandings)
             {
                 int totalLandingsCount = _fishingCalendarViewModel.CountVesselUnloads;
                 totlaLandingsCount = $", Total landings: {totalLandingsCount}";
