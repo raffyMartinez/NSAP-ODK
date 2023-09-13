@@ -712,10 +712,47 @@ namespace NSAP_ODK.Views
 
         private void OnsfDataGridSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            bool unRemove = false;
             if (_selectedProperty != "BaseGearEffortSpecifiers")
             {
                 buttonEdit.IsEnabled = true;
                 buttonDelete.IsEnabled = true;
+            }
+            switch (sfDataGrid.SelectedItem.GetType().Name)
+            {
+                case "NSAPRegionFMAFishingGroundLandingSite":
+                    if (((NSAPRegionFMAFishingGroundLandingSite)sfDataGrid.SelectedItem).DateEnd != null)
+                    {
+                        unRemove = true;
+                    }
+                    break;
+                case "NSAPRegionGear":
+                    if (((NSAPRegionGear)sfDataGrid.SelectedItem).DateEnd != null)
+                    {
+                        unRemove = true;
+                    }
+
+                    break;
+                case "NSAPRegionEnumerator":
+                    if (((NSAPRegionEnumerator)sfDataGrid.SelectedItem).DateEnd != null)
+                    {
+                        unRemove = true;
+                    }
+                    break;
+                case "NSAPRegionFMAFishingGround":
+                    if (((NSAPRegionFMAFishingGround)sfDataGrid.SelectedItem).DateEnd != null)
+                    {
+                        unRemove = true;
+                    }
+                    break;
+            }
+            if (unRemove)
+            {
+                buttonDelete.Content = "Unremove";
+            }
+            else
+            {
+                buttonDelete.Content = "Delete";
             }
         }
 
@@ -1826,227 +1863,276 @@ namespace NSAP_ODK.Views
                     break;
                 case "buttonDelete":
                     #region buttonDelete
-                    bool refreshNeeded = true;
-                    SelectDeleteActionDialog sd;
-                    NSAPRegion nsr = NSAPEntities.NSAPRegionViewModel.CurrentEntity;
-                    var entitiesRepository = NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(nsr);
-                    switch (_nsapEntity)
+                    if (((Button)sender).Content.ToString() == "Unremove")
                     {
-                        case NSAPEntity.NSAPRegionGear:
+                        switch (_nsapEntity)
+                        {
+                            case NSAPEntity.NSAPRegionFMAFishingGround:
+                                var nrls = (NSAPRegionFMAFishingGroundLandingSite)sfDataGrid.SelectedItem;
+                                nrls.DateEnd = null;
 
-                            break;
-                        case NSAPEntity.FishingGearEffortSpecification:
-                            #region FishingGearEffortSpecification
-                            var ges = (GearEffortSpecification)sfDataGrid.SelectedItem;
-                            sd = new SelectDeleteActionDialog();
-                            if ((bool)sd.ShowDialog())
-                            {
-                                switch (sd.DeleteAction)
+                                if (NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(nrls.NSAPRegionFMAFishingGround.RegionFMA.NSAPRegion).UnremoveLandingSite(nrls))
                                 {
-                                    case DeleteAction.deleteActionDelete:
-                                        if (!ges.EffortSpecification.IsForAllTypesFishing)
-                                        {
-                                            var g = NSAPEntities.GearViewModel.GetGear(ges.Gear.Code);
-                                            success = g.GearEffortSpecificationViewModel.DeleteRecordFromRepo(ges);
-                                        }
-                                        else
-                                        {
-                                            MessageBox.Show("Cannot delete a universal effort specification", Utilities.Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
-                                        }
-                                        break;
-                                    case DeleteAction.deleteActionRemove:
-                                        //DateTime dateRemoved = DateTime.Now;
-                                        //success = entitiesRepository.RemoveGearSpec(ges, dateRemoved);
-                                        //refreshNeeded = false;
-                                        break;
+                                    sfDataGrid.Items.Refresh();
                                 }
-                            }
-                            break;
-                        #endregion
-                        case NSAPEntity.NSAPRegionFMAFishingGround:
-                            #region nsapregionfmafishingground
-                            NSAPRegionFMAFishingGround nrfg = (NSAPRegionFMAFishingGround)_nsapObject;
-                            NSAPRegionFMAFishingGroundLandingSite regionLandingSite = (NSAPRegionFMAFishingGroundLandingSite)sfDataGrid.SelectedItem;
-                            sd = new SelectDeleteActionDialog();
-                            if ((bool)sd.ShowDialog())
-                            {
-                                switch (sd.DeleteAction)
+                                break;
+                            case NSAPEntity.NSAPRegionFMA:
+                                var nrfg = (NSAPRegionFMAFishingGround)sfDataGrid.SelectedItem;
+                                nrfg.DateEnd = null;
+                                
+                                if (NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(nrfg.RegionFMA.NSAPRegion).UnremoveFishingGround(nrfg))
                                 {
-                                    case DeleteAction.deleteActionDelete:
-                                        if (entitiesRepository.DeleteLandingSite(regionLandingSite.RowID))
-                                        {
-                                            success = nrfg.LandingSites.Remove(regionLandingSite);
-                                        }
-                                        break;
-                                    case DeleteAction.deleteActionRemove:
-                                        DateTime dateRemoved = DateTime.Now;
-                                        success = entitiesRepository.RemoveLandingSite(regionLandingSite, dateRemoved);
-                                        refreshNeeded = false;
-                                        break;
+                                    sfDataGrid.Items.Refresh();
                                 }
-                            }
-                            break;
-                        #endregion
-                        case NSAPEntity.NSAPRegionFMA:
-                            #region nsapregionfma
-                            NSAPRegionFMA regionFMA = (NSAPRegionFMA)_nsapObject;
-                            NSAPRegionFMAFishingGround regionFishingGround = (NSAPRegionFMAFishingGround)sfDataGrid.SelectedItem;
-                            sd = new SelectDeleteActionDialog();
-                            if ((bool)sd.ShowDialog())
-                            {
-                                switch (sd.DeleteAction)
-                                {
-                                    case DeleteAction.deleteActionDelete:
-                                        if (entitiesRepository.DeleteFishingGround(regionFishingGround.RowID))
-                                        {
-                                            success = regionFMA.FishingGrounds.Remove(regionFishingGround);
-
-                                        }
-                                        else
-                                        {
-                                            MessageBox.Show(entitiesRepository.DatabaseErrorMessage,
-                                                "Cannot delete fishing ground",
-                                                MessageBoxButton.OK,
-                                                MessageBoxImage.Information);
-                                        }
-                                        break;
-                                    case DeleteAction.deleteActionRemove:
-                                        DateTime dateRemoved = DateTime.Now;
-                                        success = entitiesRepository.RemoveFishingGround(regionFishingGround, dateRemoved);
-                                        refreshNeeded = false;
-                                        break;
-                                }
-                            }
-
-                            break;
-                        #endregion
-                        case NSAPEntity.NSAPRegion:
-                            #region nsapregion
-                            NSAPRegion region = (NSAPRegion)_nsapObject;
-                            if (sfDataGrid.SelectedItem != null)
-                            {
+                                break;
+                            case NSAPEntity.NSAPRegion:
                                 switch (_selectedProperty)
                                 {
                                     case "Gears":
-
-                                        NSAPRegionGear regionGear = (NSAPRegionGear)sfDataGrid.SelectedItem;
-                                        var duplicateGears = nsr.Gears.Where(t => t.GearCode == regionGear.GearCode).ToList();
-                                        bool deleteSelectedOnly = true;
-                                        if (duplicateGears.Count > 1)
+                                        var nsr = (NSAPRegionGear)sfDataGrid.SelectedItem;
+                                        nsr.DateEnd = null;
+                                        if (NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(nsr.NSAPRegion).UnremoveGear(nsr))
                                         {
-                                            var res = MessageBox.Show($"{regionGear.Gear.GearName} is duplicated\r\nWould you like to delete the duplicated items?\r\n\r\nSelect Yes to remove all duplicates\r\n" +
-                                                                      "Select No to delete the selected item\r\nSelect Cancel to cancel and ignore", Utilities.Global.MessageBoxCaption, MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
-
-                                            switch (res)
-                                            {
-                                                case MessageBoxResult.Yes:
-                                                    deleteSelectedOnly = false;
-                                                    success = true;
-                                                    int loopCount = 1;
-                                                    while (loopCount < duplicateGears.Count)
-                                                    {
-                                                        if (success)
-                                                        {
-                                                            success = entitiesRepository.DeleteGear(duplicateGears[loopCount].RowID) && nsr.Gears.Remove(duplicateGears[loopCount]);
-                                                        }
-
-                                                        loopCount++;
-                                                    }
-                                                    if (success)
-                                                    {
-                                                        return;
-                                                    }
-                                                    break;
-                                                case MessageBoxResult.No:
-                                                    break;
-                                                default:
-                                                    return;
-                                            }
-                                        }
-
-                                        sd = new SelectDeleteActionDialog();
-                                        if ((bool)sd.ShowDialog())
-                                        {
-                                            var deleteAction = sd.DeleteAction;
-                                            if (deleteAction == DeleteAction.deleteActionDelete)
-                                            {
-                                                if (deleteSelectedOnly && entitiesRepository.DeleteGear(regionGear.RowID))
-                                                {
-                                                    success = nsr.Gears.Remove(regionGear);
-                                                }
-                                            }
-                                            else if (deleteAction == DeleteAction.deleteActionRemove)
-                                            {
-                                                DateTime dateRemoved = DateTime.Now;
-                                                success = entitiesRepository.RemoveGear(regionGear, dateRemoved);
-                                            }
-                                        }
-                                        break;
-                                    case "Vessels":
-                                        if (sfDataGrid.SelectedItems.Count > 1)
-                                        {
-                                            List<NSAPRegionFishingVessel> regionVessels = new List<NSAPRegionFishingVessel>();
-                                            foreach (var item in sfDataGrid.SelectedItems)
-                                            {
-                                                regionVessels.Add((NSAPRegionFishingVessel)item);
-                                            }
-                                            ProgressDialogWindow pdw = ProgressDialogWindow.GetInstance("delete region vessels");
-                                            pdw.NSAPRegionFishingVessels = regionVessels;
-                                            pdw.Owner = this;
-                                            if (pdw.Visibility == Visibility.Visible)
-                                            {
-                                                pdw.BringIntoView();
-                                            }
-                                            else
-                                            {
-                                                pdw.Show();
-                                            }
-                                        }
-                                        else
-                                        {
-                                            NSAPRegionFishingVessel regionVessel = (NSAPRegionFishingVessel)sfDataGrid.SelectedItem;
-                                            if (entitiesRepository.DeleteFishingVessel(regionVessel.RowID))
-                                            {
-                                                success = nsr.FishingVessels.Remove(regionVessel);
-                                            }
+                                            sfDataGrid.Items.Refresh();
                                         }
                                         break;
                                     case "Enumerators":
-                                        NSAPRegionEnumerator regionEnumerator = (NSAPRegionEnumerator)sfDataGrid.SelectedItem;
-                                        sd = new SelectDeleteActionDialog();
-                                        if ((bool)sd.ShowDialog())
+                                        var nse = (NSAPRegionEnumerator)sfDataGrid.SelectedItem;
+                                        nse.DateEnd = null;
+                                        if (NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(nse.NSAPRegion).UnremoveEnumerator(nse))
                                         {
-                                            switch (sd.DeleteAction)
-                                            {
-
-                                                case DeleteAction.deleteActionDelete:
-
-                                                    if (entitiesRepository.DeleteEnumerator(regionEnumerator.RowID))
-                                                    {
-                                                        success = nsr.NSAPEnumerators.Remove(regionEnumerator);
-                                                    }
-                                                    break;
-                                                case DeleteAction.deleteActionRemove:
-                                                    DateTime dateRemoved = DateTime.Now;
-                                                    success = entitiesRepository.RemoveEnumerator(regionEnumerator, dateRemoved);
-                                                    break;
-                                            }
+                                            sfDataGrid.Items.Refresh();
                                         }
                                         break;
                                 }
-                            }
-                            break;
-                            #endregion
-                    }
-
-                    if (success)
-                    {
-                        if (refreshNeeded)
-                        {
-                            ((NSAPRegionEdit)PropertyGrid.SelectedObject).Refresh();
+                                break;
                         }
-                        SetUpSubFormSource();
-                        PropertyGrid.Update();
+                    }
+                    else
+                    {
+                        bool refreshNeeded = true;
+                        SelectDeleteActionDialog sd;
+                        NSAPRegion nsr = NSAPEntities.NSAPRegionViewModel.CurrentEntity;
+                        var entitiesRepository = NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(nsr);
+                        switch (_nsapEntity)
+                        {
+                            case NSAPEntity.NSAPRegionGear:
+
+                                break;
+                            case NSAPEntity.FishingGearEffortSpecification:
+                                #region FishingGearEffortSpecification
+                                var ges = (GearEffortSpecification)sfDataGrid.SelectedItem;
+                                sd = new SelectDeleteActionDialog();
+                                if ((bool)sd.ShowDialog())
+                                {
+                                    switch (sd.DeleteAction)
+                                    {
+                                        case DeleteAction.deleteActionDelete:
+                                            if (!ges.EffortSpecification.IsForAllTypesFishing)
+                                            {
+                                                var g = NSAPEntities.GearViewModel.GetGear(ges.Gear.Code);
+                                                success = g.GearEffortSpecificationViewModel.DeleteRecordFromRepo(ges);
+                                            }
+                                            else
+                                            {
+                                                MessageBox.Show("Cannot delete a universal effort specification", Utilities.Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
+                                            }
+                                            break;
+                                        case DeleteAction.deleteActionRemove:
+                                            //DateTime dateRemoved = DateTime.Now;
+                                            //success = entitiesRepository.RemoveGearSpec(ges, dateRemoved);
+                                            //refreshNeeded = false;
+                                            break;
+                                    }
+                                }
+                                break;
+                            #endregion
+                            case NSAPEntity.NSAPRegionFMAFishingGround:
+                                #region nsapregionfmafishingground
+                                NSAPRegionFMAFishingGround nrfg = (NSAPRegionFMAFishingGround)_nsapObject;
+                                NSAPRegionFMAFishingGroundLandingSite regionLandingSite = (NSAPRegionFMAFishingGroundLandingSite)sfDataGrid.SelectedItem;
+                                sd = new SelectDeleteActionDialog();
+                                if ((bool)sd.ShowDialog())
+                                {
+                                    switch (sd.DeleteAction)
+                                    {
+                                        case DeleteAction.deleteActionDelete:
+                                            if (entitiesRepository.DeleteLandingSite(regionLandingSite.RowID))
+                                            {
+                                                success = nrfg.LandingSites.Remove(regionLandingSite);
+                                            }
+                                            break;
+                                        case DeleteAction.deleteActionRemove:
+                                            DateTime dateRemoved = DateTime.Now;
+                                            success = entitiesRepository.RemoveLandingSite(regionLandingSite, dateRemoved);
+                                            refreshNeeded = false;
+                                            break;
+                                    }
+                                }
+                                break;
+                            #endregion
+                            case NSAPEntity.NSAPRegionFMA:
+                                #region nsapregionfma
+                                NSAPRegionFMA regionFMA = (NSAPRegionFMA)_nsapObject;
+                                NSAPRegionFMAFishingGround regionFishingGround = (NSAPRegionFMAFishingGround)sfDataGrid.SelectedItem;
+                                sd = new SelectDeleteActionDialog();
+                                if ((bool)sd.ShowDialog())
+                                {
+                                    switch (sd.DeleteAction)
+                                    {
+                                        case DeleteAction.deleteActionDelete:
+                                            if (entitiesRepository.DeleteFishingGround(regionFishingGround.RowID))
+                                            {
+                                                success = regionFMA.FishingGrounds.Remove(regionFishingGround);
+
+                                            }
+                                            else
+                                            {
+                                                MessageBox.Show(entitiesRepository.DatabaseErrorMessage,
+                                                    "Cannot delete fishing ground",
+                                                    MessageBoxButton.OK,
+                                                    MessageBoxImage.Information);
+                                            }
+                                            break;
+                                        case DeleteAction.deleteActionRemove:
+                                            DateTime dateRemoved = DateTime.Now;
+                                            success = entitiesRepository.RemoveFishingGround(regionFishingGround, dateRemoved);
+                                            refreshNeeded = false;
+                                            break;
+                                    }
+                                }
+
+                                break;
+                            #endregion
+                            case NSAPEntity.NSAPRegion:
+                                #region nsapregion
+                                NSAPRegion region = (NSAPRegion)_nsapObject;
+                                if (sfDataGrid.SelectedItem != null)
+                                {
+                                    switch (_selectedProperty)
+                                    {
+                                        case "Gears":
+
+                                            NSAPRegionGear regionGear = (NSAPRegionGear)sfDataGrid.SelectedItem;
+                                            var duplicateGears = nsr.Gears.Where(t => t.GearCode == regionGear.GearCode).ToList();
+                                            bool deleteSelectedOnly = true;
+                                            if (duplicateGears.Count > 1)
+                                            {
+                                                var res = MessageBox.Show($"{regionGear.Gear.GearName} is duplicated\r\nWould you like to delete the duplicated items?\r\n\r\nSelect Yes to remove all duplicates\r\n" +
+                                                                          "Select No to delete the selected item\r\nSelect Cancel to cancel and ignore", Utilities.Global.MessageBoxCaption, MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+
+                                                switch (res)
+                                                {
+                                                    case MessageBoxResult.Yes:
+                                                        deleteSelectedOnly = false;
+                                                        success = true;
+                                                        int loopCount = 1;
+                                                        while (loopCount < duplicateGears.Count)
+                                                        {
+                                                            if (success)
+                                                            {
+                                                                success = entitiesRepository.DeleteGear(duplicateGears[loopCount].RowID) && nsr.Gears.Remove(duplicateGears[loopCount]);
+                                                            }
+
+                                                            loopCount++;
+                                                        }
+                                                        if (success)
+                                                        {
+                                                            return;
+                                                        }
+                                                        break;
+                                                    case MessageBoxResult.No:
+                                                        break;
+                                                    default:
+                                                        return;
+                                                }
+                                            }
+
+                                            sd = new SelectDeleteActionDialog();
+                                            if ((bool)sd.ShowDialog())
+                                            {
+                                                var deleteAction = sd.DeleteAction;
+                                                if (deleteAction == DeleteAction.deleteActionDelete)
+                                                {
+                                                    if (deleteSelectedOnly && entitiesRepository.DeleteGear(regionGear.RowID))
+                                                    {
+                                                        success = nsr.Gears.Remove(regionGear);
+                                                    }
+                                                }
+                                                else if (deleteAction == DeleteAction.deleteActionRemove)
+                                                {
+                                                    DateTime dateRemoved = DateTime.Now;
+                                                    success = entitiesRepository.RemoveGear(regionGear, dateRemoved);
+                                                }
+                                            }
+                                            break;
+                                        case "Vessels":
+                                            if (sfDataGrid.SelectedItems.Count > 1)
+                                            {
+                                                List<NSAPRegionFishingVessel> regionVessels = new List<NSAPRegionFishingVessel>();
+                                                foreach (var item in sfDataGrid.SelectedItems)
+                                                {
+                                                    regionVessels.Add((NSAPRegionFishingVessel)item);
+                                                }
+                                                ProgressDialogWindow pdw = ProgressDialogWindow.GetInstance("delete region vessels");
+                                                pdw.NSAPRegionFishingVessels = regionVessels;
+                                                pdw.Owner = this;
+                                                if (pdw.Visibility == Visibility.Visible)
+                                                {
+                                                    pdw.BringIntoView();
+                                                }
+                                                else
+                                                {
+                                                    pdw.Show();
+                                                }
+                                            }
+                                            else
+                                            {
+                                                NSAPRegionFishingVessel regionVessel = (NSAPRegionFishingVessel)sfDataGrid.SelectedItem;
+                                                if (entitiesRepository.DeleteFishingVessel(regionVessel.RowID))
+                                                {
+                                                    success = nsr.FishingVessels.Remove(regionVessel);
+                                                }
+                                            }
+                                            break;
+                                        case "Enumerators":
+                                            NSAPRegionEnumerator regionEnumerator = (NSAPRegionEnumerator)sfDataGrid.SelectedItem;
+                                            sd = new SelectDeleteActionDialog();
+                                            if ((bool)sd.ShowDialog())
+                                            {
+                                                switch (sd.DeleteAction)
+                                                {
+
+                                                    case DeleteAction.deleteActionDelete:
+
+                                                        if (entitiesRepository.DeleteEnumerator(regionEnumerator.RowID))
+                                                        {
+                                                            success = nsr.NSAPEnumerators.Remove(regionEnumerator);
+                                                        }
+                                                        break;
+                                                    case DeleteAction.deleteActionRemove:
+                                                        DateTime dateRemoved = DateTime.Now;
+                                                        success = entitiesRepository.RemoveEnumerator(regionEnumerator, dateRemoved);
+                                                        break;
+                                                }
+                                            }
+                                            break;
+                                    }
+                                }
+                                break;
+                                #endregion
+                        }
+
+                        if (success)
+                        {
+                            if (refreshNeeded)
+                            {
+                                ((NSAPRegionEdit)PropertyGrid.SelectedObject).Refresh();
+                            }
+                            SetUpSubFormSource();
+                            PropertyGrid.Update();
+                        }
+
                     }
                     break;
                 #endregion
@@ -3161,6 +3247,18 @@ namespace NSAP_ODK.Views
         private void SetUpSubFormSource()
         {
             NSAPRegion nsr = null;
+            try
+            {
+                sfDataGrid.ItemsSource = null;
+
+            }
+            catch
+            {
+                //sfDataGrid.Items.Clear();
+                //ignore;
+            }
+            sfDataGrid.Items.Clear();
+
             switch (_selectedProperty)
             {
                 case "NumberOfFishingVessel":
@@ -3230,6 +3328,19 @@ namespace NSAP_ODK.Views
                 case "Enumerators":
                     nsr = NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(_entityID);
                     sfDataGrid.ItemsSource = nsr.NSAPEnumerators.OrderBy(t => t.Enumerator.Name);
+                    //var eList = nsr.NSAPEnumerators.OrderBy(t => t.Enumerator.Name);
+                    //try
+                    //{
+                    //    sfDataGrid.ItemsSource = null;
+                    //    sfDataGrid.Items.Clear();
+
+                    //    //sfDataGrid.ItemsSource = nsr.NSAPEnumerators.OrderBy(t => t.Enumerator.Name);
+                    //    sfDataGrid.ItemsSource = eList;
+                    //}
+                    //catch (Exception ex)
+                    //{
+                    //    Logger.Log(ex);
+                    //}
                     break;
             }
         }
@@ -3264,10 +3375,8 @@ namespace NSAP_ODK.Views
         private void SetUpSubForm()
         {
             sfDataGrid.Visibility = Visibility.Visible;
-            //spgFishSpeciesPropertyGrid.Visibility = Visibility.Collapsed;
             panelForNewFishSpecies.Visibility = Visibility.Collapsed;
             sfDataGrid.Columns.Clear();
-            //sfDataGrid.Items.Clear();
             SetUpSubFormSource();
             switch (_selectedProperty)
             {

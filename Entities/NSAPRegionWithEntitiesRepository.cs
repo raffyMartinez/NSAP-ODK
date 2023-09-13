@@ -2442,6 +2442,147 @@ namespace NSAP_ODK.Entities
             }
             return success;
         }
+        public bool UnremoveFishingGround(NSAPRegionFMAFishingGround fg)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.Add("@dateEnd", OleDbType.Date).Value = DBNull.Value;
+                        cmd.Parameters.Add("@id", OleDbType.Integer).Value = fg.RowID;
+                        cmd.CommandText = "Update NSAPRegionFMAFishingGrounds set DateEnd=@dateEnd Where RowID=@id";
+                        try
+                        {
+                            con.Open();
+                            success = cmd.ExecuteNonQuery() > 0;
+                            if (success)
+                            {
+                                fg.RegionFMA.FishingGrounds.FirstOrDefault(t => t.FishingGroundCode == fg.FishingGroundCode).DateEnd = null;
+
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
+
+        public bool UnremoveLandingSite(NSAPRegionFMAFishingGroundLandingSite nrls)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.Add("@dateEnd", OleDbType.Date).Value = DBNull.Value;
+                        cmd.Parameters.Add("@id", OleDbType.Integer).Value = nrls.RowID;
+                        cmd.CommandText = "Update NSAPRegionLandingSite set DateEnd=@dateEnd Where RowID=@id";
+                        try
+                        {
+                            con.Open();
+                            success = cmd.ExecuteNonQuery() > 0;
+                            if (success)
+                            {
+                                nrls.NSAPRegionFMAFishingGround.LandingSites.FirstOrDefault(t => t.LandingSite.LandingSiteID == nrls.LandingSite.LandingSiteID).DateEnd = null;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
+
+        public bool UnremoveGear(NSAPRegionGear g)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.Add("@dateEnd", OleDbType.Date).Value = DBNull.Value;
+                        cmd.Parameters.Add("@id", OleDbType.Integer).Value = g.RowID;
+                        cmd.CommandText = "Update NSAPRegionGear set DateEnd=@dateEnd Where RowID=@id";
+                        try
+                        {
+                            con.Open();
+                            success = cmd.ExecuteNonQuery() > 0;
+                            if (success)
+                            {
+                                NSAPEntities.NSAPRegionViewModel.CurrentEntity.Gears.FirstOrDefault(t => t.GearCode == g.GearCode).DateEnd = null;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
+
+        public bool UnremoveEnumerator(NSAPRegionEnumerator nse)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.Add("@dateEnd", OleDbType.Date).Value = DBNull.Value;
+                        cmd.Parameters.Add("@id", OleDbType.Integer).Value = nse.RowID;
+                        cmd.CommandText = "Update NSAPRegionEnumerator set DateEnd=@dateEnd Where RowID=@id";
+                        try
+                        {
+                            con.Open();
+                            success = cmd.ExecuteNonQuery() > 0;
+                            if (success)
+                            {
+                                NSAPEntities.NSAPRegionViewModel.CurrentEntity.NSAPEnumerators.FirstOrDefault(t => t.EnumeratorID == nse.EnumeratorID).DateEnd = null;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
+
         public bool DeleteEnumerator(int id)
         {
             DatabaseErrorMessage = "";
@@ -2478,7 +2619,7 @@ namespace NSAP_ODK.Entities
             return success;
         }
 
-        internal bool RemoveGearSpec(GearEffortSpecification ges, DateTime dateRemoved)
+        public bool RemoveGearSpec(GearEffortSpecification ges, DateTime dateRemoved)
         {
             bool success = false;
             if (Global.Settings.UsemySQL)
@@ -2501,7 +2642,7 @@ namespace NSAP_ODK.Entities
                             if (success)
                             {
                                 //rls.NSAPRegionFMAFishingGround.LandingSites.FirstOrDefault(t => t.LandingSite.LandingSiteID == rls.LandingSite.LandingSiteID).DateEnd = dateRemoved;
-                                
+
                             }
                         }
                         catch (Exception ex)
@@ -2514,7 +2655,7 @@ namespace NSAP_ODK.Entities
             return success;
         }
 
-        internal bool RemoveLandingSite(NSAPRegionFMAFishingGroundLandingSite rls, DateTime dateRemoved)
+        public bool RemoveLandingSite(NSAPRegionFMAFishingGroundLandingSite rls, DateTime dateRemoved)
         {
             bool success = false;
             if (Global.Settings.UsemySQL)
@@ -2576,7 +2717,7 @@ namespace NSAP_ODK.Entities
             return success;
         }
 
-        internal bool RemoveFishingGround(NSAPRegionFMAFishingGround fg, DateTime dateRemoved)
+        public bool RemoveFishingGround(NSAPRegionFMAFishingGround fg, DateTime dateRemoved)
         {
             bool success = false;
             if (Global.Settings.UsemySQL)
@@ -2682,7 +2823,7 @@ namespace NSAP_ODK.Entities
             return success;
         }
 
-        internal bool RemoveEnumerator(NSAPRegionEnumerator regionEnumerator, DateTime dateRemoved)
+        public bool RemoveEnumerator(NSAPRegionEnumerator regionEnumerator, DateTime dateRemoved)
         {
             bool success = false;
             if (Global.Settings.UsemySQL)

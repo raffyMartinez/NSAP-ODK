@@ -19,7 +19,7 @@
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition />
-            <ColumnDefinition Width="80"/>
+            <ColumnDefinition Width="90"/>
         </Grid.ColumnDefinitions>
 
         <Label Content="Top label" VerticalAlignment="Bottom" x:Name="LabelTop" />
@@ -41,7 +41,7 @@
 
 
         <DataGrid x:Name="sfDataGrid" AutoGenerateColumns="false" IsReadOnly="True" Grid.Row="3" Grid.Column="0"
-                  Height="Auto" VerticalAlignment="Top"
+                  Height="Auto" VerticalAlignment="Top" 
                   MinHeight="150"  MouseDoubleClick="OnDataGridMouseDoubleClick" Margin="10" Visibility="Collapsed">
 
             <DataGrid.CellStyle>
