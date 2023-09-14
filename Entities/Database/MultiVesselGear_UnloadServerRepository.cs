@@ -226,7 +226,12 @@ namespace NSAP_ODK.Entities.Database
                         proceed = false;
                         if (!lss.HasFishingOperation)
                         {
-
+                            lss.HasFishingOperation = root.AreThereLandings;
+                            if (lss.HasFishingOperation && lss.GearUnloadViewModel == null)
+                            {
+                                lss.GearUnloadViewModel = new GearUnloadViewModel(lss);
+                            }
+                            proceed = lss.HasFishingOperation;
                         }
                         else if (lss.GearUnloadViewModel == null)
                         {
@@ -615,7 +620,7 @@ namespace NSAP_ODK.Entities.Database
                                                     {
                                                         foreach (VesselUnload_FishingGear vufg in vu.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection.ToList())
                                                         {
-                                                            if (sl.LandingGearsWithWeight == null )
+                                                            if (sl.LandingGearsWithWeight == null)
                                                             {
                                                                 vufg.WeightOfCatch = sl.CatchTotal;
                                                             }
@@ -912,7 +917,7 @@ namespace NSAP_ODK.Entities.Database
         [JsonProperty("repeat_gears/group_gear/catch_of_gear")]
         public double? WeightOfCatchOfGear { get; set; }
 
-        
+
 
         [JsonProperty("repeat_gears/group_gear/repeat_gear_code")]
         public string GearCode { get; set; }

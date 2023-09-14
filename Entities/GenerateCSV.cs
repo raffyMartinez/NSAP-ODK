@@ -97,7 +97,7 @@ namespace NSAP_ODK.Entities
             Dictionary<FisheriesSector, string> filePaths = new Dictionary<FisheriesSector, string>();
             filePaths.Add(FisheriesSector.Municipal, $"{_folderSaveLocation}\\vessel_name_municipal.csv");
             filePaths.Add(FisheriesSector.Commercial, $"{_folderSaveLocation}\\vessel_name_commercial.csv");
-            result += await GenerateFishingVesselNamesCSV(filePaths);
+            result += await GenerateFishingVesselNamesCSV(filePaths, byLandingSite: true);
 
 
             return result;
@@ -256,56 +256,124 @@ namespace NSAP_ODK.Entities
         }
 
 
-        private static async Task<int> WriteToVesselFileName(FisheriesSector fisheriesSector, string fileName)
+        private static async Task<int> WriteToVesselFileName(FisheriesSector fisheriesSector, string fileName, bool byLandingSite = false)
         {
 
             int counter = 0;
             StringBuilder sb = new StringBuilder("sector_key,name_key,label_key,region_key\r\n");
-            switch (fisheriesSector)
+            if (byLandingSite)
             {
-                case FisheriesSector.Municipal:
-                    foreach (var reg in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection
-                         .Where(t => NSAPEntities.Regions.Contains(t.Code)))
-                    {
-                        foreach (var fv in reg.FishingVessels
-                            .Where(t => t.FishingVessel.FisheriesSector == FisheriesSector.Municipal)
-                            .OrderBy(t => t.FishingVessel.ToString()))
+                sb = new StringBuilder("sector_key,name_key,label_key,landingsite_key\r\n");
+                switch (fisheriesSector)
+                {
+                    case FisheriesSector.Municipal:
+                        foreach (var region in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection
+                            .Where(t => NSAPEntities.Regions.Contains(t.Code)))
                         {
-                            sb.AppendLine($"{fv.FishingVessel.FisheriesSector.ToString().Substring(0, 1)},{fv.FishingVessel.ID.ToString().PadLeft(_id_width, '0')},\"{fv.FishingVessel.NameToUse(addPrefix: false)}\",{reg.Code}");
-                            counter++;
+                            foreach (var fma in region.FMAs)
+                            {
+                                foreach (var fg in fma.FishingGrounds)
+                                {
+                                    foreach (var ls in fg.LandingSites
+                                        .Where(t => t.DateEnd == null)
+                                        .OrderBy(t => t.LandingSite.ToString()))
+                                    {
+                                        if (ls.LandingSite.LandingSite_FishingVesselViewModel == null)
+                                        {
+                                            ls.LandingSite.LandingSite_FishingVesselViewModel = new Database.LandingSite_FishingVesselViewModel(ls.LandingSite);
+                                        }
+                                        foreach (var fv in ls.LandingSite.LandingSite_FishingVesselViewModel.LandingSite_FishingVessel_Collection
+                                            .Where(t => t.FishingVessel.FisheriesSector == FisheriesSector.Municipal && t.DateRemoved==null)
+                                            .OrderBy(t => t.FishingVessel.Name))
+                                        {
+                                            sb.AppendLine($"{fv.FishingVessel.FisheriesSector.ToString().Substring(0, 1)},{fv.FishingVessel.ID.ToString().PadLeft(_id_width, '0')},\"{fv.FishingVessel.NameToUse(addPrefix: false)}\",{ls.RowID}");
+                                            counter++;
+                                        }
+                                    }
+                                }
+                            }
                         }
-                    }
-
-                    await LogAsync(sb.ToString(), fileName);
-
-                    break;
-                case FisheriesSector.Commercial:
-                    sb = new StringBuilder("sector_key,name_key,label_key,region_key\r\n");
-                    foreach (var reg in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection
-                         .Where(t => NSAPEntities.Regions.Contains(t.Code)))
-                    {
-                        foreach (var fv in reg.FishingVessels
-                            .Where(t => t.FishingVessel.FisheriesSector == FisheriesSector.Commercial)
-                            .OrderBy(t => t.FishingVessel.ToString()))
+                        await LogAsync(sb.ToString(), fileName);
+                        break;
+                    case FisheriesSector.Commercial:
+                        foreach (var region in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection
+                            .Where(t => NSAPEntities.Regions.Contains(t.Code)))
                         {
-                            sb.AppendLine($"{fv.FishingVessel.FisheriesSector.ToString().Substring(0, 1)},{fv.FishingVessel.ID.ToString().PadLeft(_id_width, '0')},\"{fv.FishingVessel.NameToUse(addPrefix: false)}\",{reg.Code}");
-                            counter++;
+                            foreach (var fma in region.FMAs)
+                            {
+                                foreach (var fg in fma.FishingGrounds)
+                                {
+                                    foreach (var ls in fg.LandingSites
+                                        .Where(t => t.DateEnd == null)
+                                        .OrderBy(t => t.LandingSite.ToString()))
+                                    {
+                                        if (ls.LandingSite.LandingSite_FishingVesselViewModel == null)
+                                        {
+                                            ls.LandingSite.LandingSite_FishingVesselViewModel = new Database.LandingSite_FishingVesselViewModel(ls.LandingSite);
+                                        }
+                                        foreach (var fv in ls.LandingSite.LandingSite_FishingVesselViewModel.LandingSite_FishingVessel_Collection
+                                            .Where(t => t.FishingVessel.FisheriesSector == FisheriesSector.Commercial && t.DateRemoved==null)
+                                            .OrderBy(t => t.FishingVessel.Name))
+                                        {
+                                            sb.AppendLine($"{fv.FishingVessel.FisheriesSector.ToString().Substring(0, 1)},{fv.FishingVessel.ID.ToString().PadLeft(_id_width, '0')},\"{fv.FishingVessel.NameToUse(addPrefix: false)}\",{ls.RowID}");
+                                            counter++;
+                                        }
+                                    }
+                                }
+                            }
                         }
-                    }
+                        await LogAsync(sb.ToString(), fileName);
+                        break;
+                }
+            }
+            else
+            {
+                switch (fisheriesSector)
+                {
+                    case FisheriesSector.Municipal:
+                        foreach (var reg in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection
+                             .Where(t => NSAPEntities.Regions.Contains(t.Code)))
+                        {
+                            foreach (var fv in reg.FishingVessels
+                                .Where(t => t.FishingVessel.FisheriesSector == FisheriesSector.Municipal)
+                                .OrderBy(t => t.FishingVessel.ToString()))
+                            {
+                                sb.AppendLine($"{fv.FishingVessel.FisheriesSector.ToString().Substring(0, 1)},{fv.FishingVessel.ID.ToString().PadLeft(_id_width, '0')},\"{fv.FishingVessel.NameToUse(addPrefix: false)}\",{reg.Code}");
+                                counter++;
+                            }
+                        }
+
+                        await LogAsync(sb.ToString(), fileName);
+
+                        break;
+                    case FisheriesSector.Commercial:
+                        sb = new StringBuilder("sector_key,name_key,label_key,region_key\r\n");
+                        foreach (var reg in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection
+                             .Where(t => NSAPEntities.Regions.Contains(t.Code)))
+                        {
+                            foreach (var fv in reg.FishingVessels
+                                .Where(t => t.FishingVessel.FisheriesSector == FisheriesSector.Commercial)
+                                .OrderBy(t => t.FishingVessel.ToString()))
+                            {
+                                sb.AppendLine($"{fv.FishingVessel.FisheriesSector.ToString().Substring(0, 1)},{fv.FishingVessel.ID.ToString().PadLeft(_id_width, '0')},\"{fv.FishingVessel.NameToUse(addPrefix: false)}\",{reg.Code}");
+                                counter++;
+                            }
+                        }
 
 
-                    await LogAsync(sb.ToString(), fileName);
+                        await LogAsync(sb.ToString(), fileName);
 
-                    break;
+                        break;
+                }
             }
             return counter;
         }
-        public static async Task<int> GenerateFishingVesselNamesCSV(Dictionary<FisheriesSector, string> filePaths)
+        public static async Task<int> GenerateFishingVesselNamesCSV(Dictionary<FisheriesSector, string> filePaths, bool byLandingSite = false)
         {
             int counter = 0;
             foreach (var item in filePaths)
             {
-                counter += await WriteToVesselFileName(item.Key, item.Value);
+                counter += await WriteToVesselFileName(item.Key, item.Value, byLandingSite);
                 FilesCount++;
             }
             return counter;
@@ -497,7 +565,7 @@ namespace NSAP_ODK.Entities
                 foreach (var fma in region.FMAs)
                 {
                     foreach (var fg in fma.FishingGrounds
-                        .Where(t=>t.DateEnd==null))
+                        .Where(t => t.DateEnd == null))
                     {
                         sb.AppendLine($"fg,{fg.RowID},{fg.FishingGround.Name},{fg.RegionFMA.RowID}");
                         counter++;
@@ -517,7 +585,7 @@ namespace NSAP_ODK.Entities
                     foreach (var fg in fma.FishingGrounds)
                     {
                         foreach (var ls in fg.LandingSites
-                            .Where(t=>t.DateEnd==null)
+                            .Where(t => t.DateEnd == null)
                             .OrderBy(t => t.LandingSite.ToString()))
                         {
 

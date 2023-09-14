@@ -720,6 +720,12 @@ namespace NSAP_ODK.Views
             }
             switch (sfDataGrid.SelectedItem.GetType().Name)
             {
+                case "LandingSite_FishingVessel":
+                    if (((Entities.Database.LandingSite_FishingVessel)sfDataGrid.SelectedItem).DateRemoved != null)
+                    {
+                        unRemove = true;
+                    }
+                    break;
                 case "NSAPRegionFMAFishingGroundLandingSite":
                     if (((NSAPRegionFMAFishingGroundLandingSite)sfDataGrid.SelectedItem).DateEnd != null)
                     {
@@ -770,6 +776,10 @@ namespace NSAP_ODK.Views
 
                     NSAPRegionFMAFishingGroundLandingSiteEdit nsapRegionFMAFGLS = new NSAPRegionFMAFishingGroundLandingSiteEdit();
                     var landingSite = (NSAPRegionFMAFishingGroundLandingSite)_nsapObject;
+                    if(landingSite.LandingSite!=null && landingSite.LandingSite.LandingSite_FishingVesselViewModel==null)
+                    {
+                        landingSite.LandingSite.LandingSite_FishingVesselViewModel = new Entities.Database.LandingSite_FishingVesselViewModel(landingSite.LandingSite);
+                    }
                     Title = "Landing site in fishing ground";
                     LabelTop.Content = $"New landing site in {landingSite.NSAPRegionFMAFishingGround}";
                     if (!_isNew)
@@ -1266,7 +1276,12 @@ namespace NSAP_ODK.Views
                     if (!_isNew)
                     {
                         LabelTop.Content = "Details of landing site";
-                        landingSiteEdit = new LandingSiteEdit(NSAPEntities.LandingSiteViewModel.GetLandingSite(int.Parse(_entityID)));
+                        var ls = NSAPEntities.LandingSiteViewModel.GetLandingSite(int.Parse(_entityID));
+                        if(ls.LandingSite_FishingVesselViewModel==null)
+                        {
+                            ls.LandingSite_FishingVesselViewModel = new Entities.Database.LandingSite_FishingVesselViewModel(ls);
+                        }
+                        landingSiteEdit = new LandingSiteEdit(ls);
                     }
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Name", DisplayName = "Name", DisplayOrder = 1, Description = "Name of landing site" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Province", DisplayName = "Province", DisplayOrder = 2, Description = "Province where landing site is located" });
@@ -1274,6 +1289,7 @@ namespace NSAP_ODK.Views
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Barangay", DisplayName = "Barangay", DisplayOrder = 4, Description = "Barangay of landing site" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Longitude", DisplayName = "Longitude", DisplayOrder = 5, Description = "Longitude of landing site's location" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Latitude", DisplayName = "Latitude", DisplayOrder = 6, Description = "Latitude of landing site's location" });
+                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "CountFishingVessels", DisplayName = "# fishing vessels", DisplayOrder = 7, Description = "Number of fishing vessels that land in the landing site" });
                     //PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "CountFishingVessels", DisplayName = "# fishing vessels", DisplayOrder = 7, Description = "Count of fishing vessels that land in the landing site" });
                     if (!_isNew)
                         PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "ID", DisplayName = "Database identifier", DisplayOrder = 8, Description = "Identifier of the landing site in database" });
@@ -1867,6 +1883,26 @@ namespace NSAP_ODK.Views
                     {
                         switch (_nsapEntity)
                         {
+                            case NSAPEntity.LandingSite:
+                                var fv = (Entities.Database.LandingSite_FishingVessel)sfDataGrid.SelectedItem;
+                                fv.DateRemoved = null;
+
+                                if(fv.LandingSite.LandingSite_FishingVesselViewModel.UnremoveFishingVessel(fv))
+                                {
+                                    sfDataGrid.Items.Refresh();
+                                    buttonDelete.Content = "Delete";
+                                }
+                                break;
+                            case NSAPEntity.NSAPRegionFMAFishingGroundLandingSite:
+                                var lsfv = (Entities.Database.LandingSite_FishingVessel)sfDataGrid.SelectedItem;
+                                lsfv.DateRemoved = null;
+
+                                if(NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(((NSAPRegionFMAFishingGroundLandingSite)_nsapObject).NSAPRegionFMAFishingGround.RegionFMA.NSAPRegion).UnremoveLandingSiteVessel(lsfv))
+                                {
+                                    sfDataGrid.Items.Refresh();
+                                    buttonDelete.Content = "Delete";
+                                }
+                                break;
                             case NSAPEntity.NSAPRegionFMAFishingGround:
                                 var nrls = (NSAPRegionFMAFishingGroundLandingSite)sfDataGrid.SelectedItem;
                                 nrls.DateEnd = null;
@@ -1874,6 +1910,7 @@ namespace NSAP_ODK.Views
                                 if (NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(nrls.NSAPRegionFMAFishingGround.RegionFMA.NSAPRegion).UnremoveLandingSite(nrls))
                                 {
                                     sfDataGrid.Items.Refresh();
+                                    buttonDelete.Content = "Delete";
                                 }
                                 break;
                             case NSAPEntity.NSAPRegionFMA:
@@ -1883,6 +1920,7 @@ namespace NSAP_ODK.Views
                                 if (NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(nrfg.RegionFMA.NSAPRegion).UnremoveFishingGround(nrfg))
                                 {
                                     sfDataGrid.Items.Refresh();
+                                    buttonDelete.Content = "Delete";
                                 }
                                 break;
                             case NSAPEntity.NSAPRegion:
@@ -1894,6 +1932,7 @@ namespace NSAP_ODK.Views
                                         if (NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(nsr.NSAPRegion).UnremoveGear(nsr))
                                         {
                                             sfDataGrid.Items.Refresh();
+                                            buttonDelete.Content = "Delete";
                                         }
                                         break;
                                     case "Enumerators":
@@ -1902,6 +1941,7 @@ namespace NSAP_ODK.Views
                                         if (NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(nse.NSAPRegion).UnremoveEnumerator(nse))
                                         {
                                             sfDataGrid.Items.Refresh();
+                                            buttonDelete.Content = "Delete";
                                         }
                                         break;
                                 }
@@ -1911,11 +1951,47 @@ namespace NSAP_ODK.Views
                     else
                     {
                         bool refreshNeeded = true;
+                        DateTime dateRemoved = DateTime.Now;
                         SelectDeleteActionDialog sd;
                         NSAPRegion nsr = NSAPEntities.NSAPRegionViewModel.CurrentEntity;
                         var entitiesRepository = NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(nsr);
                         switch (_nsapEntity)
                         {
+                            case NSAPEntity.LandingSite:
+                                var fv = (Entities.Database.LandingSite_FishingVessel)sfDataGrid.SelectedItem;
+                                sd = new SelectDeleteActionDialog();
+                                if ((bool)sd.ShowDialog())
+                                {
+                                    switch(sd.DeleteAction)
+                                    {
+                                        case DeleteAction.deleteActionDelete:
+                                            break;
+                                        case DeleteAction.deleteActionRemove:
+                                            success = fv.LandingSite.LandingSite_FishingVesselViewModel.RemoveFishingVessel(fv, dateRemoved);
+                                            //success = entitiesRepository.RemoveLandingSiteVessel(fv, dateRemoved);
+                                            refreshNeeded = false;
+                                            break;
+                                    }
+                                }
+                                break;
+                            case NSAPEntity.NSAPRegionFMAFishingGroundLandingSite:
+                                NSAPRegionFMAFishingGroundLandingSite nrls = (NSAPRegionFMAFishingGroundLandingSite)_nsapObject;
+                                var lsfv = (Entities.Database.LandingSite_FishingVessel)sfDataGrid.SelectedItem;
+                                sd = new SelectDeleteActionDialog();
+                                if((bool)sd.ShowDialog())
+                                {
+                                    switch(sd.DeleteAction)
+                                    {
+                                        case DeleteAction.deleteActionDelete:
+                                            break;
+                                        case DeleteAction.deleteActionRemove:
+                                            //DateTime dateRemoved = DateTime.Now;
+                                            success = entitiesRepository.RemoveLandingSiteVessel(lsfv, dateRemoved);
+                                            refreshNeeded = false;
+                                            break;
+                                    }
+                                }
+                                break;
                             case NSAPEntity.NSAPRegionGear:
 
                                 break;
@@ -1963,7 +2039,7 @@ namespace NSAP_ODK.Views
                                             }
                                             break;
                                         case DeleteAction.deleteActionRemove:
-                                            DateTime dateRemoved = DateTime.Now;
+                                            //DateTime dateRemoved = DateTime.Now;
                                             success = entitiesRepository.RemoveLandingSite(regionLandingSite, dateRemoved);
                                             refreshNeeded = false;
                                             break;
@@ -1995,7 +2071,7 @@ namespace NSAP_ODK.Views
                                             }
                                             break;
                                         case DeleteAction.deleteActionRemove:
-                                            DateTime dateRemoved = DateTime.Now;
+                                            //DateTime dateRemoved = DateTime.Now;
                                             success = entitiesRepository.RemoveFishingGround(regionFishingGround, dateRemoved);
                                             refreshNeeded = false;
                                             break;
@@ -2061,7 +2137,7 @@ namespace NSAP_ODK.Views
                                                 }
                                                 else if (deleteAction == DeleteAction.deleteActionRemove)
                                                 {
-                                                    DateTime dateRemoved = DateTime.Now;
+                                                    //DateTime dateRemoved = DateTime.Now;
                                                     success = entitiesRepository.RemoveGear(regionGear, dateRemoved);
                                                 }
                                             }
@@ -2111,7 +2187,7 @@ namespace NSAP_ODK.Views
                                                         }
                                                         break;
                                                     case DeleteAction.deleteActionRemove:
-                                                        DateTime dateRemoved = DateTime.Now;
+                                                        //DateTime dateRemoved = DateTime.Now;
                                                         success = entitiesRepository.RemoveEnumerator(regionEnumerator, dateRemoved);
                                                         break;
                                                 }
@@ -3159,6 +3235,11 @@ namespace NSAP_ODK.Views
 
             switch (_selectedProperty)
             {
+                case "CountFishingVessels":
+                    LabelBottom.Content = $"List of fishing vessels landing in {NSAPEntities.LandingSiteViewModel.CurrentEntity}";
+                    rowBottomLabel.Height = new GridLength(40);
+                    SetUpSubForm();
+                    break;
                 case "NumberOfFishingVessel":
                     LabelBottom.Content = $"List of fishing vessels landing in {NSAPEntities.LandingSiteViewModel.CurrentEntity}";
                     //rowDataGrid.Height = new GridLength(4, GridUnitType.Star);
@@ -3261,7 +3342,12 @@ namespace NSAP_ODK.Views
 
             switch (_selectedProperty)
             {
+                case "CountFishingVessels":
+                    var ls_fvm = ((LandingSiteEdit)PropertyGrid.SelectedObject).LandingSite.LandingSite_FishingVesselViewModel;
+                    sfDataGrid.ItemsSource = ls_fvm.LandingSite_FishingVessel_Collection;
+                    break;
                 case "NumberOfFishingVessel":
+
                     LandingSite ls = NSAPEntities.LandingSiteViewModel.GetLandingSite(((NSAPRegionFMAFishingGroundLandingSiteEdit)PropertyGrid.SelectedObject).LandingSiteID);
                     sfDataGrid.ItemsSource = ls.LandingSite_FishingVesselViewModel.LandingSite_FishingVessel_Collection.OrderBy(t => t.FishingVessel.Name).ToList();
                     break;
@@ -3380,11 +3466,13 @@ namespace NSAP_ODK.Views
             SetUpSubFormSource();
             switch (_selectedProperty)
             {
+                case "CountFishingVessels":
                 case "NumberOfFishingVessel":
                     sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("ID"), Visibility = Visibility.Hidden });
                     sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Name", Binding = new Binding("FishingVessel.Name") });
                     sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("FishingVessel.SectorString") });
                     sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Added", Binding = new Binding("DateAdded") });
+                    sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Removed", Binding = new Binding("DateRemoved") });
                     break;
                 case "MunicipalityCount":
                     sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("MunicipalityID"), Visibility = Visibility.Hidden });
@@ -3452,7 +3540,10 @@ namespace NSAP_ODK.Views
             foreach (DataGridColumn c in sfDataGrid.Columns)
             {
                 if (c.GetType().Name == "DataGridTextColumn" && (((Binding)((DataGridTextColumn)c).Binding).Path.Path == "DateStart"
-                    || ((Binding)((DataGridTextColumn)c).Binding).Path.Path == "DateEnd"))
+                    || ((Binding)((DataGridTextColumn)c).Binding).Path.Path == "DateEnd"
+                    || ((Binding)((DataGridTextColumn)c).Binding).Path.Path == "DateAdded"
+                    || ((Binding)((DataGridTextColumn)c).Binding).Path.Path == "DateRemoved")
+                    )
                 {
                     ((Binding)((DataGridTextColumn)c).Binding).StringFormat = "MMM-dd-yyyy";
                 }

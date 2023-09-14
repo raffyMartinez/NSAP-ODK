@@ -2478,6 +2478,41 @@ namespace NSAP_ODK.Entities
             return success;
         }
 
+        public bool UnremoveLandingSiteVessel(LandingSite_FishingVessel lsfv)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.Add("@dateEnd", OleDbType.Date).Value = DBNull.Value;
+                        cmd.Parameters.Add("@id", OleDbType.Integer).Value = lsfv.PK;
+                        cmd.CommandText = "Update landingsite_fishingvessel set date_removed=@dateEnd Where row_id=@id";
+                        try
+                        {
+                            con.Open();
+                            success = cmd.ExecuteNonQuery() > 0;
+                            if (success)
+                            {
+                                lsfv.LandingSite.LandingSite_FishingVesselViewModel.LandingSite_FishingVessel_Collection.FirstOrDefault(t => t.PK == lsfv.PK).DateRemoved = null;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
+
         public bool UnremoveLandingSite(NSAPRegionFMAFishingGroundLandingSite nrls)
         {
             bool success = false;
@@ -2571,6 +2606,42 @@ namespace NSAP_ODK.Entities
                             if (success)
                             {
                                 NSAPEntities.NSAPRegionViewModel.CurrentEntity.NSAPEnumerators.FirstOrDefault(t => t.EnumeratorID == nse.EnumeratorID).DateEnd = null;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
+
+        internal bool RemoveLandingSiteVessel(LandingSite_FishingVessel lsfv, DateTime dateRemoved)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.Add("@dateEnd", OleDbType.Date).Value = dateRemoved;
+                        cmd.Parameters.Add("@id", OleDbType.Integer).Value = lsfv.PK;
+                        cmd.CommandText = "Update landingsite_fishingvessel set date_removed=@dateEnd Where row_id=@id";
+                        try
+                        {
+                            con.Open();
+                            success = cmd.ExecuteNonQuery() > 0;
+                            if (success)
+                            {
+                                lsfv.LandingSite.LandingSite_FishingVesselViewModel.LandingSite_FishingVessel_Collection.FirstOrDefault(t => t.PK == lsfv.PK).DateRemoved = dateRemoved;
+                                //fg.RegionFMA.FishingGrounds.FirstOrDefault(t => t.FishingGroundCode == fg.FishingGroundCode).DateEnd = dateRemoved;
                             }
                         }
                         catch (Exception ex)

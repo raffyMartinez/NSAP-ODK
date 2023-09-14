@@ -2558,6 +2558,7 @@ namespace NSAP_ODK.Entities.Database
                 ID = SummaryItemCollection.Count + 1,
 
                 SamplingDayID = ls.PK,
+                SamplingDayDate = ls.SamplingDate,
                 LandingSiteID = ls.LandingSiteID,
                 LandingSiteText = ls.LandingSiteText,
                 FMAId = ls.FMAID,

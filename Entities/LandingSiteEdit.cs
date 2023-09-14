@@ -21,6 +21,7 @@ namespace NSAP_ODK.Entities
             Latitude = ls.Latitude;
             Longitude = ls.Longitude;
             Barangay = ls.Barangay;
+            CountFishingVessels = ls.LandingSite_FishingVesselViewModel.Count;
             //CountFishingVessels = ls.CountFishingVessels;
         }
         public string Barangay { get; set; }

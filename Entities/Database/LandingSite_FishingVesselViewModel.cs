@@ -25,6 +25,16 @@ namespace NSAP_ODK.Entities.Database
             LandingSite_FishingVessel_Collection.CollectionChanged += LandingSite_FishingVessel_Collection_CollectionChanged;
         }
 
+        public bool RemoveFishingVessel(Entities.Database.LandingSite_FishingVessel fv, DateTime dateRemoved)
+        {
+            return landingSite_FishingVessels.RemoveFishingVessel(fv, dateRemoved);
+        }
+
+        public bool UnremoveFishingVessel(LandingSite_FishingVessel fv)
+        {
+            return landingSite_FishingVessels.UnremoveFishingVessel(fv);
+        }
+
         public Task<bool> ImportVesselsAsync(string vesselNames,  FisheriesSector fs)
         {
             return Task.Run(() => ImportVessels(vesselNames, fs));
@@ -179,5 +189,7 @@ namespace NSAP_ODK.Entities.Database
                     break;
             }
         }
+
+
     }
 }
