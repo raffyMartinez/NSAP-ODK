@@ -74,7 +74,10 @@ namespace NSAP_ODK.Views
             if (_timerEnable)
             {
                 panelStatus.Visibility = Visibility.Collapsed;
-                Owner.Focus();
+                if (Owner != null)
+                {
+                    Owner.Focus();
+                }
                 Close();
             }
             else
@@ -137,7 +140,7 @@ namespace NSAP_ODK.Views
                     if (listZeroCatchWeight != null && listZeroCatchWeight.Count > 0)
                     {
                         SpeciesWithZeroWeightListingWindow slw = SpeciesWithZeroWeightListingWindow.GetInstance();
-                        if(slw.Visibility==Visibility.Visible)
+                        if (slw.Visibility == Visibility.Visible)
                         {
                             slw.BringIntoView();
                         }
@@ -181,25 +184,29 @@ namespace NSAP_ODK.Views
                     break;
                 case "import fishing vessels":
                     textBlockDescription.Text = "Importing fishing vessels";
-                    NSAPEntities.FishingVesselViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
+                    
                     if (Region != null)
                     {
+                        NSAPEntities.FishingVesselViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
                         if (await NSAPEntities.FishingVesselViewModel.ImportVesselsAsync(ListToImportFromTextBox, Region, Sector))
                         {
                             panelStatus.Visibility = Visibility.Collapsed;
                             ((MainWindow)Owner).RefreshEntityGrid();
-                            //_proceedAndClose = true;
                         }
+                        NSAPEntities.FishingVesselViewModel.ProcessingItemsEvent -= OnProcessingItemsEvent;
+
                     }
                     else
                     {
-                        if(await NSAPEntities.LandingSiteViewModel.CurrentEntity.LandingSite_FishingVesselViewModel.ImportVesselsAsync(ListToImportFromTextBox,Sector))
+                        NSAPEntities.LandingSiteViewModel.CurrentEntity.LandingSite_FishingVesselViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
+                        if (await NSAPEntities.LandingSiteViewModel.CurrentEntity.LandingSite_FishingVesselViewModel.ImportVesselsAsync(ListToImportFromTextBox, Sector))
                         {
-
+                            panelStatus.Visibility = Visibility.Collapsed;
+                            //DialogResult = true;
                         }
+                        NSAPEntities.LandingSiteViewModel.CurrentEntity.LandingSite_FishingVesselViewModel.ProcessingItemsEvent -= OnProcessingItemsEvent;
                     }
-                    NSAPEntities.FishingVesselViewModel.ProcessingItemsEvent -= OnProcessingItemsEvent;
-
+                    
                     break;
                 case "fix mismatch in calendar days":
                     SamplingCalendaryMismatchFixer.ProcessingItemsEvent += OnProcessingItemsEvent;
@@ -244,7 +251,10 @@ namespace NSAP_ODK.Views
 
         }
 
-
+        private void LandingSite_FishingVesselViewModel_ProcessingItemsEvent(object sender, ProcessingItemsEventArg e)
+        {
+            throw new NotImplementedException();
+        }
 
         private void OnProcessingItemsEvent(object sender, ProcessingItemsEventArg e)
         {

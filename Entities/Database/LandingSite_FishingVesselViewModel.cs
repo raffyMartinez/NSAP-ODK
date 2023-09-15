@@ -35,7 +35,7 @@ namespace NSAP_ODK.Entities.Database
             return landingSite_FishingVessels.UnremoveFishingVessel(fv);
         }
 
-        public Task<bool> ImportVesselsAsync(string vesselNames,  FisheriesSector fs)
+        public Task<bool> ImportVesselsAsync(string vesselNames, FisheriesSector fs)
         {
             return Task.Run(() => ImportVessels(vesselNames, fs));
         }
@@ -62,6 +62,7 @@ namespace NSAP_ODK.Entities.Database
             List<EntityValidationMessage> entityMessages = new List<EntityValidationMessage>();
             List<string> vesselsToImport = vesselNames.Split('\n').ToList();
             ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "start", TotalCountToProcess = vesselsToImport.Count });
+
             foreach (var item in vesselsToImport.Where(t => t.Length > 0))
             {
                 string to_import = string.Join(" ", item.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)).Trim('\r');
@@ -100,6 +101,7 @@ namespace NSAP_ODK.Entities.Database
                     return importCount > 0;
                 }
             }
+
             ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "import_done" });
             return importCount > 0;
         }
@@ -107,7 +109,10 @@ namespace NSAP_ODK.Entities.Database
         {
             if (lf == null)
                 throw new ArgumentNullException("Error: The argument is Null");
-            LandingSite_FishingVessel_Collection.Add(lf);
+            App.Current.Dispatcher.Invoke((System.Action)delegate
+            {
+                LandingSite_FishingVessel_Collection.Add(lf);
+            });
             return _editSuccess;
         }
         public bool Update(LandingSite_FishingVessel lf)

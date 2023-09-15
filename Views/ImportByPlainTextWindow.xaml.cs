@@ -290,7 +290,7 @@ namespace NSAP_ODK.Views
                     }
                     else
                     {
-                        MessageBox.Show("Provide an item to import and a selected region", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                        MessageBox.Show("Provide one or more items to import and a selected landing site", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
 
                     break;
