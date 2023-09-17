@@ -45,6 +45,9 @@ namespace NSAP_ODK.Views
             _timer.Tick += OnTimerTick;
             switch (TaskToDo)
             {
+                case "import fishing vessel names from DB":
+                    labelBigTitle.Content = "Import names of fishing vessels saved in database";
+                    break;
                 case "delete region vessels":
                     labelBigTitle.Content = "Delete fishing vessels of region";
                     break;
@@ -91,6 +94,7 @@ namespace NSAP_ODK.Views
         {
             _instance = null;
         }
+        public List<string> VesselNamesFromDB { get; private set; }
         public List<NSAPRegionFishingVessel> NSAPRegionFishingVessels { get; set; }
         public Koboserver Koboserver { get; set; }
         public List<System.IO.FileInfo> BatchJSONFiles { get; set; }
@@ -133,6 +137,12 @@ namespace NSAP_ODK.Views
 
             switch (TaskToDo)
             {
+                case "import fishing vessel names from DB":
+                    NSAPEntities.SummaryItemViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
+                    textBlockDescription.Text = "Importing names of fishing vessels";
+                    VesselNamesFromDB = await NSAPEntities.SummaryItemViewModel.GetVesselTextFromLandingSiteAsync(LandingSite);
+                    NSAPEntities.SummaryItemViewModel.ProcessingItemsEvent -= OnProcessingItemsEvent;
+                    break;
                 case "identify zero weight catch composition":
                     textBlockDescription.Text = "Identifying catch composition with weight of zero";
                     VesselCatchRepository.ProcessingItemsEvent += OnProcessingItemsEvent;
@@ -184,7 +194,7 @@ namespace NSAP_ODK.Views
                     break;
                 case "import fishing vessels":
                     textBlockDescription.Text = "Importing fishing vessels";
-                    
+
                     if (Region != null)
                     {
                         NSAPEntities.FishingVesselViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
@@ -206,7 +216,7 @@ namespace NSAP_ODK.Views
                         }
                         NSAPEntities.LandingSiteViewModel.CurrentEntity.LandingSite_FishingVesselViewModel.ProcessingItemsEvent -= OnProcessingItemsEvent;
                     }
-                    
+
                     break;
                 case "fix mismatch in calendar days":
                     SamplingCalendaryMismatchFixer.ProcessingItemsEvent += OnProcessingItemsEvent;
@@ -302,6 +312,8 @@ namespace NSAP_ODK.Views
                     break;
                 case "processing start":
                 case "start":
+                case "finished getting list of vessel text":
+
                     progressBar.Dispatcher.BeginInvoke
                     (
                       DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
@@ -322,10 +334,16 @@ namespace NSAP_ODK.Views
                 case "imported_entity":
                 case "JSON file analyzed":
                 case "item found":
+                case "Added name to list":
+
                     processName = "Found";
                     if (e.Intent == "item fixed")
                     {
                         processName = "Fixed";
+                    }
+                    else if(e.Intent=="added name to list")
+                    {
+                        processName = $"Added ({e.ProcessedItemName})";
                     }
                     else if (e.Intent == "entity id removed")
                     {
@@ -372,6 +390,7 @@ namespace NSAP_ODK.Views
                 case "done analyzing JSON file":
                 case "done removing entity id":
                 case "cancel":
+                case "finished adding names to list":
                     progressBar.Dispatcher.BeginInvoke
                     (
                       DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
@@ -389,6 +408,10 @@ namespace NSAP_ODK.Views
                               processName = "sorting";
                               switch (e.Intent)
                               {
+                                  case "finished adding names to list":
+                                      processName = "adding";
+                                      DialogResult = true;
+                                      break;
                                   case "done searching":
                                       processName = "searching";
                                       break;

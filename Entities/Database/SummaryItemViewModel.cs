@@ -854,29 +854,53 @@ namespace NSAP_ODK.Entities.Database
         public List<GearUnload> GetGearUnloadsMultiVessel(DateTime date_download)
         {
             List<GearUnload> gus = new List<GearUnload>();
+
             var list_lss = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection
-                .Where(t => t.IsMultiVessel && ((DateTime)t.DateAdded).Date == date_download.Date)
-                .ToList();
+            .Where(t => t.IsMultiVessel && ((DateTime)t.DateAdded).Date == date_download.Date)
+            .ToList();
+
+            int counter = 0;
             foreach (LandingSiteSampling lss in list_lss)
             {
-                foreach (GearUnload gu in lss.GearUnloadViewModel.GearUnloadCollection)
+                counter++;
+                try
                 {
-                    GearUnload g_u = new GearUnload
+                    if (lss.GearUnloadViewModel != null)
                     {
-                        PK = (int)gu.PK,
-                        Parent = gu.Parent,
-                        NumberOfCommercialLandings = gu.NumberOfCommercialLandings,
-                        NumberOfMunicipalLandings= gu.NumberOfMunicipalLandings,
-                        WeightOfCommercialLandings = gu.WeightOfCommercialLandings,
-                        WeightOfMunicipalLandings = gu.WeightOfMunicipalLandings,
-                        SectorCode = gu.SectorCode,
-                        Gear = gu.Gear,
-                        GearID = gu.GearID,
-                        GearUsedText = gu.GearUsedText,
-                    };
-                    gus.Add(g_u);
+                        foreach (GearUnload gu in lss.GearUnloadViewModel.GearUnloadCollection)
+                        {
+                            counter++;
+                            try
+                            {
+                                GearUnload g_u = new GearUnload
+                                {
+                                    PK = (int)gu.PK,
+                                    Parent = gu.Parent,
+                                    NumberOfCommercialLandings = gu.NumberOfCommercialLandings,
+                                    NumberOfMunicipalLandings = gu.NumberOfMunicipalLandings,
+                                    WeightOfCommercialLandings = gu.WeightOfCommercialLandings,
+                                    WeightOfMunicipalLandings = gu.WeightOfMunicipalLandings,
+                                    SectorCode = gu.SectorCode,
+                                    Gear = gu.Gear,
+                                    GearID = gu.GearID,
+                                    GearUsedText = gu.GearUsedText,
+                                };
+                                gus.Add(g_u);
+
+                            }
+                            catch (Exception ex)
+                            {
+                                Utilities.Logger.Log(ex);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Utilities.Logger.Log(ex);
                 }
             }
+
             return gus.OrderByDescending(t => t.Parent.SamplingDate).ToList();
         }
         public List<GearUnload> GetGearUnloadsEx(DateTime date_download)
@@ -2624,6 +2648,38 @@ namespace NSAP_ODK.Entities.Database
             SummaryItemCollection.Add(si);
             return _editSuccess;
 
+        }
+
+        public Task<List<string>> GetVesselTextFromLandingSiteAsync(LandingSite ls)
+        {
+            return Task.Run(() => GetVesselTextFromLandingSite(ls));
+        }
+        public List<string> GetVesselTextFromLandingSite(LandingSite ls)
+        {
+            ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "start getting vessel text", });
+
+            List<string> vessels = new List<string>();
+
+            var itemList = SummaryItemCollection
+                .Where(
+                    t => t.LandingSiteID == ls.LandingSiteID &&
+                    !string.IsNullOrEmpty(t.VesselText)
+                    )
+                .GroupBy(t => t.VesselText);
+
+            ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "finished getting list of vessel text", TotalCountToProcess = itemList.Count() });
+            int countProcessed = 0;
+
+            foreach (var v in itemList)
+            {
+                vessels.Add(v.Key);
+                countProcessed++;
+                ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "added name to list", ProcessedItemName = v.Key, CountProcessed = countProcessed });
+            }
+
+            ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "finished adding names to list", CountProcessed = countProcessed });
+            
+            return vessels.OrderBy(t => t).ToList();
         }
         public bool AddRecordToRepo(GearUnload gu)
         {

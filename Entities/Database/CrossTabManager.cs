@@ -578,15 +578,30 @@ namespace NSAP_ODK.Entities.Database
                     {
                         row["# of landings"] = item.LandingSiteSampling.NumberOfLandings;
                     }
+
                     if (item.LandingSiteSampling.IsSamplingDay)
                     {
-                        row["# of landings monitored"] = item.LandingSiteSampling.NumberOfLandingsSampled;
+                        if (item.LandingSiteSampling.NumberOfLandingsSampled == null)
+                        {
+                            row["# of landings monitored"] = DBNull.Value;
+                        }
+                        else
+                        {
+                            row["# of landings monitored"] = item.LandingSiteSampling.NumberOfLandingsSampled;
+                        }
                     }
                     else
                     {
                         row["# of landings monitored"] = DBNull.Value;
                     }
-                    row["# of gear types"] = item.LandingSiteSampling.NumberOfGearTypesInLandingSite;
+                    if (item.LandingSiteSampling.NumberOfGearTypesInLandingSite == null)
+                    {
+                        row["# of gear types"] = DBNull.Value;
+                    }
+                    else
+                    {
+                        row["# of gear types"] = item.LandingSiteSampling.NumberOfGearTypesInLandingSite;
+                    }
                 }
                 else
                 {

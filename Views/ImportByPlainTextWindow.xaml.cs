@@ -97,6 +97,7 @@ namespace NSAP_ODK.Views
                         panelRegions.Children.Clear();
                         TextBlock tb = new TextBlock { Text = _landingSite.ToString(), TextWrapping = TextWrapping.Wrap };
                         panelRegions.Children.Add(new CheckBox { Content = tb, Margin = new Thickness(10, 5, 0, 0), IsChecked = true, IsEnabled = false });
+                        checkboxImportVesselName.Visibility = Visibility.Visible;
                         //panelRegions.Visibility = Visibility.Collapsed;
                     }
                     break;
@@ -163,111 +164,139 @@ namespace NSAP_ODK.Views
                 case "buttonSelect":
                     break;
                 case "buttonOk":
+                    bool proceed = false;
                     string msg = "";
-                    if (textBox.Text.Length > 0 && CheckedRegions() > 0)
+                    if (CheckedRegions() > 0)
                     {
                         switch (NSAPEntityType)
                         {
                             case NSAPEntity.FishingVessel:
-                                //bool autoPrefix = (bool)checkboxIncludePrefix.IsChecked;
+                                ProgressDialogWindow pdw = null;
                                 FisheriesSector fs = FisheriesSector.Municipal;
                                 if (!(bool)checkboxMunicipalSector.IsChecked)
                                 {
                                     fs = FisheriesSector.Commercial;
                                 }
 
-                                if (_landingSite == null)
+                                if ((bool)checkboxImportVesselName.IsChecked && textBox.Text.Length == 0)
                                 {
-                                    foreach (RadioButton rb in panelRegions.Children)
+                                    if (_landingSite != null)
                                     {
-                                        if ((bool)rb.IsChecked)
+                                        pdw = ProgressDialogWindow.GetInstance("import fishing vessel names from DB");
+                                        proceed = true;
+                                    }
+                                }
+                                else if (textBox.Text.Length > 0)
+                                {
+                                    if (_landingSite == null)
+                                    {
+                                        foreach (RadioButton rb in panelRegions.Children)
                                         {
-                                            region = (NSAPRegion)rb.Tag;
-                                            break;
+                                            if ((bool)rb.IsChecked)
+                                            {
+                                                region = (NSAPRegion)rb.Tag;
+                                                break;
+                                            }
                                         }
                                     }
+
+                                    pdw = ProgressDialogWindow.GetInstance("import fishing vessels");
+                                    proceed = true;
                                 }
-
-                                ProgressDialogWindow pdw = ProgressDialogWindow.GetInstance("import fishing vessels");
-                                pdw.Sector = fs;
-                                pdw.ListToImportFromTextBox = textBox.Text;
-                                pdw.Region = region;
-                                pdw.LandingSite = _landingSite;
-
-                                pdw.Owner = Owner;
-                                if (pdw.Visibility == Visibility.Visible)
+                                if (proceed)
                                 {
-                                    pdw.BringIntoView();
-                                }
-                                else
-                                {
-                                    pdw.Show();
-                                }
-                                _timer.Interval = TimeSpan.FromSeconds(3);
-                                _timer.Start();
-                                //NSAPEntities.FishingVesselViewModel.BulkImportFishingVessels += FishingVesselViewModel_BulkImportFishingVessels;
-                                //importCount = await NSAPEntities.FishingVesselViewModel.ImportVesselsAsync(textBox.Text, region, fs);
-                                //NSAPEntities.FishingVesselViewModel.BulkImportFishingVessels -= FishingVesselViewModel_BulkImportFishingVessels;
+                                    pdw.Sector = fs;
+                                    pdw.ListToImportFromTextBox = textBox.Text;
+                                    pdw.Region = region;
+                                    pdw.LandingSite = _landingSite;
 
-                                break;
-                            case NSAPEntity.GPS:
-
-                                NSAPEntities.GPSViewModel.ImportGPSCSV = textBox.Text;
-                                msg = NSAPEntities.GPSViewModel.GPSImportErrorMessage;
-                                if (NSAPEntities.GPSViewModel.GPSCSVImportSuccess)
-                                {
-                                    if (NSAPEntities.GPSViewModel.GPSImportErrorMessage?.Length > 0)
+                                    pdw.Owner = Owner;
+                                    if ((bool)checkboxImportVesselName.IsChecked)
                                     {
-                                        msg = NSAPEntities.GPSViewModel.GPSImportErrorMessage;
-                                    }
-                                }
-                                importCount = NSAPEntities.GPSViewModel.ImportGPSCSVImportedCount;
-
-
-                                break;
-                            case NSAPEntity.Enumerator:
-                                foreach (var item in textBox.Text.Split('\n').ToList())
-                                {
-                                    var nse = new NSAPEnumerator { Name = item.Trim(), ID = NSAPEntities.NSAPEnumeratorViewModel.NextRecordNumber };
-                                    if (NSAPEntities.NSAPEnumeratorViewModel.EntityValidated(nse, out entityMessages, true))
-                                    {
-                                        //if (NSAPEntities.NSAPEnumeratorViewModel.AddRecordToRepo(new NSAPEnumerator { Name = item.Trim(), ID = NSAPEntities.NSAPEnumeratorViewModel.NextRecordNumber }))
-                                        if (NSAPEntities.NSAPEnumeratorViewModel.AddRecordToRepo(nse))
+                                        if((bool)pdw.ShowDialog())
                                         {
-                                            foreach (CheckBox c in panelRegions.Children)
-                                            {
-                                                if ((bool)c.IsChecked)
-                                                {
-                                                    region = NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(c.Tag.ToString());
-                                                    var nre = NSAPRegionWithEntitiesRepository.CreateRegionEnumerator
-                                                    (
-                                                        enumerator: NSAPEntities.NSAPEnumeratorViewModel.CurrentEntity,
-                                                        region: region,
-                                                        added: DateTime.Now
-                                                    );
-
-                                                    var rvm = NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(region);
-                                                    rvm.AddEnumerator(nre);
-                                                }
-                                            }
-                                            importCount++;
+                                            textBox.Text = string.Join("\n", pdw.VesselNamesFromDB);
                                         }
                                     }
                                     else
                                     {
-                                        foreach (var msg1 in entityMessages)
+                                        if (pdw.Visibility == Visibility.Visible)
                                         {
-                                            if (msg1.MessageType == MessageType.Error)
+                                            pdw.BringIntoView();
+                                        }
+                                        else
+                                        {
+                                            pdw.Show();
+                                        }
+                                        _timer.Interval = TimeSpan.FromSeconds(3);
+                                        _timer.Start();
+                                    }
+                                }
+                                break;
+                            case NSAPEntity.GPS:
+                                if (textBox.Text.Length > 0)
+                                {
+                                    NSAPEntities.GPSViewModel.ImportGPSCSV = textBox.Text;
+                                    msg = NSAPEntities.GPSViewModel.GPSImportErrorMessage;
+                                    if (NSAPEntities.GPSViewModel.GPSCSVImportSuccess)
+                                    {
+                                        if (NSAPEntities.GPSViewModel.GPSImportErrorMessage?.Length > 0)
+                                        {
+                                            msg = NSAPEntities.GPSViewModel.GPSImportErrorMessage;
+                                        }
+                                    }
+                                    importCount = NSAPEntities.GPSViewModel.ImportGPSCSVImportedCount;
+                                    proceed = true;
+                                }
+
+                                break;
+                            case NSAPEntity.Enumerator:
+                                if (textBox.Text.Length > 0)
+                                {
+                                    foreach (var item in textBox.Text.Split('\n').ToList())
+                                    {
+                                        var nse = new NSAPEnumerator { Name = item.Trim(), ID = NSAPEntities.NSAPEnumeratorViewModel.NextRecordNumber };
+                                        if (NSAPEntities.NSAPEnumeratorViewModel.EntityValidated(nse, out entityMessages, true))
+                                        {
+                                            //if (NSAPEntities.NSAPEnumeratorViewModel.AddRecordToRepo(new NSAPEnumerator { Name = item.Trim(), ID = NSAPEntities.NSAPEnumeratorViewModel.NextRecordNumber }))
+                                            if (NSAPEntities.NSAPEnumeratorViewModel.AddRecordToRepo(nse))
                                             {
-                                                Logger.Log($"Batch import by text error in adding new enumerator: {msg1.Message} after adding {nse.Name}");
+                                                foreach (CheckBox c in panelRegions.Children)
+                                                {
+                                                    if ((bool)c.IsChecked)
+                                                    {
+                                                        region = NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(c.Tag.ToString());
+                                                        var nre = NSAPRegionWithEntitiesRepository.CreateRegionEnumerator
+                                                        (
+                                                            enumerator: NSAPEntities.NSAPEnumeratorViewModel.CurrentEntity,
+                                                            region: region,
+                                                            added: DateTime.Now
+                                                        );
+
+                                                        var rvm = NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(region);
+                                                        rvm.AddEnumerator(nre);
+                                                    }
+                                                }
+                                                importCount++;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            foreach (var msg1 in entityMessages)
+                                            {
+                                                if (msg1.MessageType == MessageType.Error)
+                                                {
+                                                    Logger.Log($"Batch import by text error in adding new enumerator: {msg1.Message} after adding {nse.Name}");
+                                                }
                                             }
                                         }
                                     }
+                                    proceed = true;
                                 }
                                 break;
                         }
 
-                        if (NSAPEntityType != NSAPEntity.FishingVessel)
+                        if (proceed && NSAPEntityType != NSAPEntity.FishingVessel)
                         {
                             ((MainWindow)Owner).RefreshEntityGrid();
                             if (importCount > 0)
@@ -414,6 +443,23 @@ namespace NSAP_ODK.Views
                     }
 
                     break;
+            }
+        }
+
+        private void OnImportText_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            checkboxImportVesselName.IsChecked = false;
+            TextBox txt = (TextBox)sender;
+            if (NSAPEntityType == NSAPEntity.FishingVessel)
+            {
+                if (string.IsNullOrEmpty(txt.Text))
+                {
+                    checkboxImportVesselName.IsEnabled = true;
+                }
+                else
+                {
+                    checkboxImportVesselName.IsEnabled = false;
+                }
             }
         }
     }
