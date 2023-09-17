@@ -152,7 +152,15 @@ namespace NSAP_ODK.Entities.Database
                 }
                 else
                 {
-                    return NSAPEntities.GearViewModel.GetGear(GearID).GearName;
+                    var gear = NSAPEntities.GearViewModel.GetGear(GearID);
+                    if (gear == null)
+                    {
+                        return "";
+                    }
+                    else
+                    {
+                        return NSAPEntities.GearViewModel.GetGear(GearID).GearName;
+                    }
                 }
             }
         }

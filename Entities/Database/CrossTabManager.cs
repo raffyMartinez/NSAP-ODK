@@ -570,7 +570,14 @@ namespace NSAP_ODK.Entities.Database
                 row["Is sampling day"] = item.LandingSiteSampling.IsSamplingDay;
                 if (item.LandingSiteSampling.HasFishingOperation)
                 {
-                    row["# of landings"] = item.LandingSiteSampling.NumberOfLandings;
+                    if (item.LandingSiteSampling.NumberOfLandings == null)
+                    {
+                        row["# of landings"] = DBNull.Value;
+                    }
+                    else
+                    {
+                        row["# of landings"] = item.LandingSiteSampling.NumberOfLandings;
+                    }
                     if (item.LandingSiteSampling.IsSamplingDay)
                     {
                         row["# of landings monitored"] = item.LandingSiteSampling.NumberOfLandingsSampled;

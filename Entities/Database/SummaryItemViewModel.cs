@@ -477,7 +477,7 @@ namespace NSAP_ODK.Entities.Database
                             gear_unloads.Add(gu);
 
                         }
-                            VesselUnloadHit++;
+                        VesselUnloadHit++;
                     }
                     else
                     {
@@ -646,15 +646,15 @@ namespace NSAP_ODK.Entities.Database
         {
             return SummaryItemCollection.Max(t => (int)t.VesselUnloadID) + 1;
         }
-        public int CountRecordsByFormID(string xlsFormIDString, bool isMultiVessel=false)
+        public int CountRecordsByFormID(string xlsFormIDString, bool isMultiVessel = false)
         {
             int ct;
             if (isMultiVessel)
             {
-                  ct=  SummaryItemCollection
-                    .Where(t => t.XFormIdentifier == xlsFormIDString)
-                    .GroupBy(t => t.SamplingDayUUID)
-                    .Select(grp => grp.First()).Count();
+                ct = SummaryItemCollection
+                  .Where(t => t.XFormIdentifier == xlsFormIDString)
+                  .GroupBy(t => t.SamplingDayUUID)
+                  .Select(grp => grp.First()).Count();
             }
             else
             {
@@ -843,15 +843,20 @@ namespace NSAP_ODK.Entities.Database
             return lastDate;
 
         }
+        public Task<List<GearUnload>> GetGearUnloadsMultiVesselAsync(DateTime date_download)
+        {
+            return Task.Run(() => GetGearUnloadsMultiVessel(date_download));
+        }
         public Task<List<GearUnload>> GetGearUnloadsAsync(DateTime date_download)
         {
             return Task.Run(() => GetGearUnloadsEx(date_download));
         }
-
-        public List<GearUnload> GetGearUnloadsEx(DateTime date_download)
+        public List<GearUnload> GetGearUnloadsMultiVessel(DateTime date_download)
         {
             List<GearUnload> gus = new List<GearUnload>();
-            var list_lss = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection.Where(t => ((DateTime)t.DateAdded).Date == date_download.Date).ToList();
+            var list_lss = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection
+                .Where(t => t.IsMultiVessel && ((DateTime)t.DateAdded).Date == date_download.Date)
+                .ToList();
             foreach (LandingSiteSampling lss in list_lss)
             {
                 foreach (GearUnload gu in lss.GearUnloadViewModel.GearUnloadCollection)
@@ -860,14 +865,53 @@ namespace NSAP_ODK.Entities.Database
                     {
                         PK = (int)gu.PK,
                         Parent = gu.Parent,
-                        Boats = gu.Boats,
-                        Catch = gu.Catch,
+                        NumberOfCommercialLandings = gu.NumberOfCommercialLandings,
+                        NumberOfMunicipalLandings= gu.NumberOfMunicipalLandings,
+                        WeightOfCommercialLandings = gu.WeightOfCommercialLandings,
+                        WeightOfMunicipalLandings = gu.WeightOfMunicipalLandings,
+                        SectorCode = gu.SectorCode,
                         Gear = gu.Gear,
                         GearID = gu.GearID,
                         GearUsedText = gu.GearUsedText,
                     };
-                    //GetCountSampledLandingsOfGear(g_u, list_lss);
                     gus.Add(g_u);
+                }
+            }
+            return gus.OrderByDescending(t => t.Parent.SamplingDate).ToList();
+        }
+        public List<GearUnload> GetGearUnloadsEx(DateTime date_download)
+        {
+            List<GearUnload> gus = new List<GearUnload>();
+            var list_lss = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection.Where(t => ((DateTime)t.DateAdded).Date == date_download.Date).ToList();
+            int loopCount = 0;
+            foreach (LandingSiteSampling lss in list_lss)
+            {
+                if (lss.GearUnloadViewModel != null)
+                {
+                    if (lss.IsMultiVessel)
+                    {
+
+                    }
+                    else
+                    {
+                        foreach (GearUnload gu in lss.GearUnloadViewModel.GearUnloadCollection)
+                        {
+                            GearUnload g_u = new GearUnload
+                            {
+                                PK = (int)gu.PK,
+                                Parent = gu.Parent,
+                                Boats = gu.Boats,
+                                Catch = gu.Catch,
+                                Gear = gu.Gear,
+                                GearID = gu.GearID,
+                                GearUsedText = gu.GearUsedText,
+                            };
+                            loopCount++;
+                            Console.WriteLine($"loopCount: {loopCount}");
+                            //GetCountSampledLandingsOfGear(g_u, list_lss);
+                            gus.Add(g_u);
+                        }
+                    }
                 }
             }
 
@@ -2156,7 +2200,7 @@ namespace NSAP_ODK.Entities.Database
                                                             t.FMAId == _treeViewData.FMA.FMAID &&
                                                             t.FishingGroundID == _treeViewData.FishingGround.Code).ToList();
 
-
+                        //to do: t.landingsite name is null when createing calendar after downloading JSON from server and saving to local DB
                         _fishing_ground_summaryItems = items.GroupBy(t => t.LandingSiteNameText.Trim())
                                                             .OrderBy(t => t.First().LandingSiteName).ToList();
                         foreach (var fg in _fishing_ground_summaryItems)
@@ -2572,6 +2616,10 @@ namespace NSAP_ODK.Entities.Database
                 SamplingDayUUID = ls.RowID,
                 IsMultiVessel = ls.IsMultiVessel
             };
+            if (ls.LandingSiteID == null && string.IsNullOrEmpty(ls.LandingSiteText))
+            {
+                si.LandingSiteText = "";
+            }
 
             SummaryItemCollection.Add(si);
             return _editSuccess;
@@ -2608,7 +2656,10 @@ namespace NSAP_ODK.Entities.Database
                 GearUnloadWeightCommercialLandings = gu.WeightOfCommercialLandings,
                 GearUnloadWeightMunicipalLandings = gu.WeightOfMunicipalLandings,
             };
-
+            if (gu.Parent.LandingSiteID == null && string.IsNullOrEmpty(gu.Parent.LandingSiteText))
+            {
+                si.LandingSiteText = "";
+            }
             SummaryItemCollection.Add(si);
             return _editSuccess;
         }
@@ -2670,6 +2721,14 @@ namespace NSAP_ODK.Entities.Database
                 IsMultiVessel = vu.Parent.Parent.IsMultiVessel
 
             };
+            if (vu.Parent.Parent.LandingSiteID == null && string.IsNullOrEmpty(vu.Parent.Parent.LandingSiteText))
+            {
+                si.LandingSiteText = "";
+            }
+            else
+            {
+
+            }
 
             if (vu.Parent.Parent.IsMultiVessel)
             {
@@ -2687,7 +2746,7 @@ namespace NSAP_ODK.Entities.Database
             {
                 si.EnumeratorName = vu.EnumeratorName;
             }
-            if (!string.IsNullOrEmpty(vu.Parent.GearID) && vu.Parent.GearID != "_OT")
+            if (vu.Parent.Gear != null && !string.IsNullOrEmpty(vu.Parent.GearID) && vu.Parent.GearID != "_OT")
             {
                 si.GearName = vu.Parent.Gear.GearName;
             }

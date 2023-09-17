@@ -215,6 +215,7 @@ namespace NSAP_ODK.Views
             labelProgress.Content = "";
             ImportExcel.UploadSubmissionToDB += OnUploadSubmissionToDB;
             VesselUnloadServerRepository.UploadSubmissionToDB += OnUploadSubmissionToDB;
+            MultiVesselGear_UnloadServerRepository.UploadSubmissionToDB += OnUploadSubmissionToDBMultiVessel;
             VesselUnloadServerRepository.ClearUnrecgnizedFishingGroundsList();
             labelDuplicated.Content = string.Empty;
 
@@ -258,6 +259,8 @@ namespace NSAP_ODK.Views
             CreateTablesInAccess.AccessTableEvent += CreateTablesInAccess_AccessTableEvent;
             NSAPMysql.MySQLConnect.AccessTableEvent += CreateTablesInAccess_AccessTableEvent;
         }
+
+
 
         private void CreateTablesInAccess_AccessTableEvent(object sender, CreateTablesInAccessEventArgs e)
         {
@@ -1949,6 +1952,98 @@ namespace NSAP_ODK.Views
         {
             get { return _unrecognizedFishingGrounds.OrderBy(t => t.SamplingDate).ToList(); }
         }
+
+        private void OnUploadSubmissionToDBMultiVessel(object sender, UploadToDbEventArg e)
+        {
+            switch (e.Intent)
+            {
+                case UploadToDBIntent.EndOfUpload:
+                    labelProgress.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              labelProgress.Content = $"Uploadind done. Number of landing days processed: {e.LandingSiteSamplingProcessedCount}";
+
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case UploadToDBIntent.LandingSiteSamplingProcessed:
+                    progressBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              progressBar.Value = e.LandingSiteSamplingProcessedCount;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+                    break;
+                case UploadToDBIntent.VesselUnloadSaved:
+                    labelProgress.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              labelProgress.Content = $"Number of landings processed: {e.VesselUnloadSavedCount}";
+
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case UploadToDBIntent.StartOfUpload:
+                    progressBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              progressBar.IsIndeterminate = false;
+                              progressBar.Maximum = e.LandingSiteSamplingCount;
+
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+                    break;
+                case UploadToDBIntent.UpdateFound:
+                    progressBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                            {
+                                progressBar.IsIndeterminate = false;
+                                //do what you need to do on UI Thread
+                                return null;
+                            }
+                         ), null);
+                    break;
+                    break;
+                case UploadToDBIntent.Searching:
+
+                    progressBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              progressBar.IsIndeterminate = true;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+                    labelProgress.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              labelProgress.Content = "Searching...";
+
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+            }
+        }
         private void OnUploadSubmissionToDB(object sender, UploadToDbEventArg e)
         {
             switch (e.Intent)
@@ -2388,7 +2483,7 @@ namespace NSAP_ODK.Views
                     else
                     {
                         _targetGrid.ItemsSource = MultiVesselGear_UnloadServerRepository.SampledVesselLandings;
-                        
+
                     }
                     break;
                 case "effort":
@@ -3079,6 +3174,7 @@ namespace NSAP_ODK.Views
                 this.SavePlacement();
                 ImportExcel.UploadSubmissionToDB -= OnUploadSubmissionToDB;
                 VesselUnloadServerRepository.UploadSubmissionToDB -= OnUploadSubmissionToDB;
+                MultiVesselGear_UnloadServerRepository.UploadSubmissionToDB -= OnUploadSubmissionToDBMultiVessel;
                 if (!_unrecognizedFGAlredyViewed && _unrecognizedFishingGrounds.Count > 0)
                 {
                     if (MessageBox.Show(

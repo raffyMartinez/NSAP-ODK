@@ -180,7 +180,10 @@ namespace NSAP_ODK.Entities.Database
                             cols = CreateTablesInAccess.GetColumnNames("dbo_vesselunload_fishinggear");
                             if (cols.Contains("catch_weight") || VesselUnload_FishingGearRepository.AddFieldToTable("catch_weight"))
                             {
-                                proceed = cols.Contains("species_comp_count") || VesselUnload_FishingGearRepository.AddFieldToTable("species_comp_count");
+                                if (cols.Contains("sample_weight") || VesselUnload_FishingGearRepository.AddFieldToTable("sample_weight"))
+                                {
+                                    proceed = cols.Contains("species_comp_count") || VesselUnload_FishingGearRepository.AddFieldToTable("species_comp_count");
+                                }
                             }
                         }
 

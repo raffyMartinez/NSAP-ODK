@@ -14,14 +14,15 @@ namespace NSAP_ODK.Entities.Database
     {
         public List<VesselUnload_FishingGear> VesselUnload_FishingGears { get; set; }
         private VesselUnload _parent;
-        
+
         public static bool AddFieldToTable(string fieldName)
         {
             bool success = false;
             string sql = "";
-            switch(fieldName)
+            switch (fieldName)
             {
                 case "catch_weight":
+                case "sample_weight":
                     sql = $"ALTER TABLE dbo_vesselunload_fishinggear ADD Column {fieldName} double";
                     break;
                 case "species_comp_count":
@@ -31,7 +32,7 @@ namespace NSAP_ODK.Entities.Database
             using (var conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                using(var cmd = conn.CreateCommand())
+                using (var cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = sql;
                     try
@@ -39,13 +40,13 @@ namespace NSAP_ODK.Entities.Database
                         cmd.ExecuteNonQuery();
                         success = true;
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Logger.Log(ex);
                     }
                 }
             }
-                return success;
+            return success;
         }
         public static bool CheckTableExists()
         {
@@ -184,7 +185,7 @@ namespace NSAP_ODK.Entities.Database
                 {
                     conn.Open();
 
-                    var sql = "Insert into dbo_vesselunload_fishinggear(row_id, vessel_unload_id,gear_code,gear_text) Values (?,?,?,?)";
+                    var sql = "Insert into dbo_vesselunload_fishinggear(row_id, vessel_unload_id,gear_code,gear_text) Values (?,?,?,?,?,?,?)";
                     using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
                         try
@@ -199,14 +200,14 @@ namespace NSAP_ODK.Entities.Database
                             {
                                 update.Parameters.Add("@gear_code", OleDbType.VarChar).Value = item.Gear.Code;
                             }
-                            if (string.IsNullOrEmpty(item.GearCode))
-                            {
-                                update.Parameters.Add("@gear_code", OleDbType.VarChar).Value = DBNull.Value;
-                            }
-                            else
-                            {
-                                update.Parameters.Add("@gear_code", OleDbType.VarChar).Value = item.GearCode;
-                            }
+                            //if (string.IsNullOrEmpty(item.GearCode))
+                            //{
+                            //    update.Parameters.Add("@gear_code", OleDbType.VarChar).Value = DBNull.Value;
+                            //}
+                            //else
+                            //{
+                            //    update.Parameters.Add("@gear_code", OleDbType.VarChar).Value = item.GearCode;
+                            //}
                             if (string.IsNullOrEmpty(item.GearText))
                             {
                                 update.Parameters.Add("@gear_text", OleDbType.VarChar).Value = DBNull.Value;
@@ -214,6 +215,24 @@ namespace NSAP_ODK.Entities.Database
                             else
                             {
                                 update.Parameters.Add("@gear_text", OleDbType.VarChar).Value = item.GearText;
+                            }
+
+                            if(item.WeightOfCatch!=null)
+                            {
+                                update.Parameters.Add("@wt_catch", OleDbType.Double).Value = item.WeightOfCatch;
+                            }
+                            else
+                            {
+                                update.Parameters.Add("@wt_catch", OleDbType.Double).Value = DBNull.Value;
+                            }
+
+                            if (item.WeightOfSample != null)
+                            {
+                                update.Parameters.Add("@wt_sample", OleDbType.Double).Value = item.WeightOfSample;
+                            }
+                            else
+                            {
+                                update.Parameters.Add("@wt_sample", OleDbType.Double).Value = DBNull.Value;
                             }
 
 
@@ -323,12 +342,33 @@ namespace NSAP_ODK.Entities.Database
                         {
                             update.Parameters.Add("@gear_text", OleDbType.Double).Value = item.GearText;
                         }
+
+                        if (item.WeightOfCatch != null)
+                        {
+                            update.Parameters.Add("@wt_catch", OleDbType.Double).Value = item.WeightOfCatch;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@wt_catch", OleDbType.Double).Value = DBNull.Value;
+                        }
+
+                        if (item.WeightOfSample != null)
+                        {
+                            update.Parameters.Add("@wt_sample", OleDbType.Double).Value = item.WeightOfSample;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@wt_sample", OleDbType.Double).Value = DBNull.Value;
+                        }
+
                         update.Parameters.Add("@id", OleDbType.Integer).Value = item.RowID;
 
                         update.CommandText = @"Update dbo_vesselunload_fishinggear set
                                             v_unload_id=@unload_id,
                                             gear_code = @gear_code,
-                                            gear_text = @gear_text
+                                            gear_text = @gear_text,
+                                            catch_weight = @wt_catch,
+                                            sample_weight = @wt_sample
                                         WHERE row_id = @id";
 
                         try
@@ -428,15 +468,21 @@ namespace NSAP_ODK.Entities.Database
                             {
                                 double? catch_wt = null;
                                 int? catch_sp_count = null;
-                                if(dr["catch_weight"]!=DBNull.Value)
+                                double? sample_wt = null;
+                                if (dr["catch_weight"] != DBNull.Value)
                                 {
                                     catch_wt = (double)dr["catch_weight"];
                                 }
+                                if (dr["sample_weight"] != DBNull.Value)
+                                {
+                                    sample_wt = (double)dr["sample_weight"];
+                                }
 
-                                if(dr["species_comp_count"]!=DBNull.Value)
+                                if (dr["species_comp_count"] != DBNull.Value)
                                 {
                                     catch_sp_count = (int)dr["species_comp_count"];
                                 }
+
                                 VesselUnload_FishingGear vufg = new VesselUnload_FishingGear
                                 {
                                     RowID = (int)dr["row_id"],
@@ -444,6 +490,7 @@ namespace NSAP_ODK.Entities.Database
                                     GearText = dr["gear_text"].ToString(),
                                     GearCode = dr["gear_code"].ToString(),
                                     WeightOfCatch = catch_wt,
+                                    WeightOfSample = sample_wt,        
                                     CountItemsInCatchComposition = catch_sp_count
                                 };
                                 vufg.VesselUnload_Gear_Specs_ViewModel = new VesselUnload_Gear_Spec_ViewModel(vufg);

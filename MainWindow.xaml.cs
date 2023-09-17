@@ -962,6 +962,7 @@ namespace NSAP_ODK
                         tvItem.Items.Add(new TreeViewItem { Header = "Weights", Tag = "weights" });
                         tvItem.Items.Add(new TreeViewItem { Header = "Tracked fishing effort", Tag = "tracked" });
                         tvItem.Items.Add(new TreeViewItem { Header = "Gear unload", Tag = "gearUnload" });
+                        tvItem.Items.Add(new TreeViewItem { Header = "Gear unload (Multiple vessel)", Tag = "gearUnload_mv" });
                         tvItem.Items.Add(new TreeViewItem { Header = "Unload summary", Tag = "unloadSummary" });
 
                         TreeViewItem tv = new TreeViewItem { Header = "JSON analysis", Tag = "jsonAnalysis" };
@@ -3984,6 +3985,36 @@ namespace NSAP_ODK
                             }
 
                         }
+                        break;
+                    case "gearUnload_mv":
+                        dt = DateTime.Parse(((TreeViewItem)tvItem.Parent).Header.ToString()).Date;
+                        GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetGearUnloadsMultiVesselAsync(dt);
+                        GridNSAPData.Columns.Clear();
+                        GridNSAPData.AutoGenerateColumns = false;
+
+                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "ID ", Binding = new Binding("PK"), IsReadOnly = true });
+                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Region ", Binding = new Binding("Parent.NSAPRegion.Name"), IsReadOnly = true });
+                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "FMA ", Binding = new Binding("Parent.FMA.Name"), IsReadOnly = true });
+                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("Parent.FishingGround"), IsReadOnly = true });
+                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("Parent.LandingSiteName"), IsReadOnly = true });
+
+                        col = new DataGridTextColumn()
+                        {
+                            Binding = new Binding("Parent.SamplingDate"),
+                            Header = "Sampling date"
+                        };
+                        col.Binding.StringFormat = "MMM-dd-yyyy";
+                        col.IsReadOnly = true;
+                        GridNSAPData.Columns.Add(col);
+
+                        GridNSAPData.Columns.Add(new DataGridCheckBoxColumn { Header = "Sampling day", Binding = new Binding("Parent.IsSamplingDay"), IsReadOnly = true });
+                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("GearUsedName"), IsReadOnly = true });
+                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "# of landings", Binding = new Binding("Parent.NumberOfLandings"), IsReadOnly = true });
+                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "# of sampled landings", Binding = new Binding("Parent.NumberOfLandingsSampled"), IsReadOnly = true });
+                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "# of commercial landings", Binding = new Binding("NumberOfCommercialLandings"), IsReadOnly = true });
+                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "# of municipal landings", Binding = new Binding("NumberOfMunicipalLandings"), IsReadOnly = true });
+                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Weight of catch of commercial landings", Binding = new Binding("WeightOfCommercialLandings"), IsReadOnly = true });
+                        GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Weight of catch of municipal landings", Binding = new Binding("WeightOfMunicipalLandings"), IsReadOnly = true });
                         break;
                     case "gearUnload":
                         dt = DateTime.Parse(((TreeViewItem)tvItem.Parent).Header.ToString()).Date;

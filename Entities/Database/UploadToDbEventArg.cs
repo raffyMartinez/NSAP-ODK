@@ -21,13 +21,20 @@ namespace NSAP_ODK.Entities.Database
         Searching,
         SummaryItemProcessed,
         WeightValidationUpdated,
-        BatchCSVUploaded
+        BatchCSVUploaded,
+        VesselUnloadSaved,
+        LandingSiteSamplingProcessed
 
     }
     public class UploadToDbEventArg:EventArgs
     {
         public int VesselUnloadWeightValidationUpdateCount { get; set; }
         public string EntitySaved { get; set; }
+
+        public int LandingSiteSamplingCount { get; set; }
+        public int LandingSiteSamplingSavedCount { get; set; }
+        public int LandingSiteSamplingProcessedCount { get; set; }
+        public int LandingSiteSamplingProcessingDone { get; set; }
         public int VesselUnloadSavedCount { get; set; }
         public int SummaryItemProcessedCount { get; set; }
 

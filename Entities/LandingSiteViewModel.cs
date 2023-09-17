@@ -172,6 +172,11 @@ namespace NSAP_ODK.Entities
         }
 
         public LandingSite CurrentEntity { get; set; }
+        public LandingSite GetLandingSite(string landingSiteName)
+        {
+            CurrentEntity = LandingSiteCollection.FirstOrDefault(n => n.ToString() == landingSiteName);
+            return CurrentEntity;
+        }
         public LandingSite GetLandingSite(int landingSiteID)
         {
             CurrentEntity = LandingSiteCollection.FirstOrDefault(n => n.LandingSiteID == landingSiteID);
@@ -229,7 +234,7 @@ namespace NSAP_ODK.Entities
             LandingSiteCollection.Add(ls);
             return _editSuccess;
         }
-          public bool UpdateRecordInRepo(LandingSite ls)
+        public bool UpdateRecordInRepo(LandingSite ls)
         {
             if (ls.LandingSiteID == 0)
                 throw new Exception("Error: ID cannot be null");
@@ -244,7 +249,7 @@ namespace NSAP_ODK.Entities
                 }
                 index++;
             }
-            if (_editSuccess )//&& !EditedLandingSiteIDs.Contains(ls.LandingSiteID))
+            if (_editSuccess)//&& !EditedLandingSiteIDs.Contains(ls.LandingSiteID))
             {
                 //EditedLandingSiteIDs.Add(ls.LandingSiteID);
                 NSAPEntities.NSAPRegionViewModel.EditedLandingSite = ls;

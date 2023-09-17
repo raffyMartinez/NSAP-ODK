@@ -128,6 +128,7 @@ namespace NSAP_ODK.Entities.Database
         public bool IsCatchSold { get; set; }
         private VesselUnload _parent;
         private VesselUnload_FishingGear _parentFishingGear;
+        private bool _fromTotalCatch;
 
         public double? PriceOfSpecies { get; set; }
 
@@ -201,7 +202,21 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
         }
-        public bool FromTotalCatch { get; set; }
+        public bool FromTotalCatch {
+            get 
+            {
+                if (ParentFishingGear==null || ParentFishingGear.WeightOfSample == null)
+                {
+                    return true;
+                }
+                else
+                {
+                    return _fromTotalCatch;
+                }
+            } 
+            set { _fromTotalCatch = value; } 
+        }
+
 
         private string FishSpeciesName(int speciesID)
         {

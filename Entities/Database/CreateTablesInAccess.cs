@@ -406,6 +406,7 @@ namespace NSAP_ODK.Entities.Database
         {
             StringBuilder csv = new StringBuilder();
             string columns = "";
+            var columnList = MDBColumnInfos.Where(t => t.TableName == tableName).OrderBy(t => t.Sequence).ToList();
             foreach (var item in MDBColumnInfos.Where(t => t.TableName == tableName).OrderBy(t => t.Sequence))
             {
                 try
@@ -438,6 +439,10 @@ namespace NSAP_ODK.Entities.Database
                                 break;
                         }
                         //columns += $"{item.ColumnName},";
+                    }
+                    else
+                    {
+
                     }
                 }
                 catch (Exception ex)

@@ -201,6 +201,7 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                 case "treeItemFishingGears":
                     effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("GearUsedName") });
                     effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight of catch", Binding = new Binding("WeightOfCatch") });
+                    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight of sample", Binding = new Binding("WeightOfSample") });
                     effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Number of species in catch", Binding = new Binding("CountItemsInCatchComposition") });
                     effortDataGrid.DataContext = _vesselUnload.ListUnloadFishingGears;
                     //Console.WriteLine(_vesselUnload.ListUnloadFishingGears[0].Catches[0].CatchNameEx);

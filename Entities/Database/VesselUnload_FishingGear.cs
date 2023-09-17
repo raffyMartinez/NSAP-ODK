@@ -68,6 +68,7 @@ namespace NSAP_ODK.Entities.Database
         public string GearCode { get; set; }
 
         public double? WeightOfCatch { get; set; }
+        public double? WeightOfSample { get; set; }
 
         public int? CountItemsInCatchComposition { get; set; }
         public int? CountUsed { get; set; }
@@ -104,7 +105,21 @@ namespace NSAP_ODK.Entities.Database
                 }
                 else
                 {
-                    return Gear.ToString();
+                    if (Gear == null)
+                    {
+                        if (string.IsNullOrEmpty(GearCode))
+                        {
+                               return "";
+                        }
+                        else
+                        {
+                            return GearCode;
+                        }
+                    }
+                    else
+                    {
+                        return Gear.ToString();
+                    }
                 }
             }
         }

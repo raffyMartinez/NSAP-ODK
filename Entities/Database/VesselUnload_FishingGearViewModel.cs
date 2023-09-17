@@ -12,7 +12,7 @@ namespace NSAP_ODK.Entities.Database
         private bool _editSucceeded;
         private static StringBuilder _csv = new StringBuilder();
         private bool _isTemporary = false;
-        private bool _set_csv_on_update=false;
+        private bool _set_csv_on_update = false;
         public ObservableCollection<VesselUnload_FishingGear> VesselUnload_FishingGearsCollection { get; set; }
         private VesselUnload_FishingGearRepository VesselUnload_FishingGears { get; set; }
         public int Count()
@@ -36,7 +36,7 @@ namespace NSAP_ODK.Entities.Database
 
                 if (parent.Parent.Parent.IsMultiVessel)
                 {
-                    foreach(VesselUnload_FishingGear vufg in VesselUnload_FishingGearsCollection)
+                    foreach (VesselUnload_FishingGear vufg in VesselUnload_FishingGearsCollection)
                     {
 
                     }
@@ -94,13 +94,18 @@ namespace NSAP_ODK.Entities.Database
             //    gear_code = "";
             //}
             string catch_wt = "";
-            if(item.WeightOfCatch!=null)
+            string sample_wt = "";
+            if (item.WeightOfCatch != null)
             {
                 catch_wt = ((double)item.WeightOfCatch).ToString();
             }
+            if (item.WeightOfSample != null)
+            {
+                sample_wt = ((double)item.WeightOfSample).ToString();
+            }
 
             string sp_count = "";
-            if(item.CountItemsInCatchComposition!=null)
+            if (item.CountItemsInCatchComposition != null)
             {
                 sp_count = ((int)item.CountItemsInCatchComposition).ToString();
             }
@@ -110,6 +115,7 @@ namespace NSAP_ODK.Entities.Database
             myDict.Add("gear_code", string.IsNullOrEmpty(item.GearText) ? item.GearCode : "");
             myDict.Add("gear_text", item.GearText);
             myDict.Add("catch_weight", catch_wt);
+            myDict.Add("sample_weight", sample_wt);
             myDict.Add("species_comp_count", sp_count);
 
 
@@ -199,7 +205,7 @@ namespace NSAP_ODK.Entities.Database
             return _editSucceeded;
         }
 
-        public bool UpdateRecordInRepo(VesselUnload_FishingGear vu_fg, bool update_wt_ct=false)
+        public bool UpdateRecordInRepo(VesselUnload_FishingGear vu_fg, bool update_wt_ct = false)
         {
             _set_csv_on_update = update_wt_ct;
             _editSucceeded = false;
