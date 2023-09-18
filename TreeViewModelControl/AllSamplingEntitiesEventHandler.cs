@@ -4,10 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NSAP_ODK.Entities;
+using System.Windows.Controls;
 namespace NSAP_ODK.TreeViewModelControl
 {
     public class AllSamplingEntitiesEventHandler : EventArgs
     {
+        public TreeViewItemViewModel TreeViewItem { get; set; }
         public Entities.Database.CalendarViewType CalendarView { get; set; }
         public NSAPRegion NSAPRegion { get; set; }
 

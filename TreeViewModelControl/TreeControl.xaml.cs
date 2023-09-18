@@ -79,6 +79,7 @@ namespace NSAP_ODK.TreeViewModelControl
             _selectedItem = (TreeViewItemViewModel)tvi;
             AllSamplingEntitiesEventHandler args = new AllSamplingEntitiesEventHandler();
             string treeViewEntity = tvi.GetType().Name;
+            //args.TreeViewItem = _selectedItem;
             args.TreeViewEntity = treeViewEntity;
             switch (treeViewEntity)
             {
@@ -103,6 +104,7 @@ namespace NSAP_ODK.TreeViewModelControl
                     args.FMA = ((tv_LandingSiteViewModel)tvi)._fma;
                     args.NSAPRegion = ((tv_LandingSiteViewModel)tvi)._region;
                     args.LandingSiteText = ((tv_LandingSiteViewModel)tvi)._landingSiteText;
+                    args.TreeViewItem = (tv_LandingSiteViewModel)tvi;
                     //tv_CurrentEntities.CurrentLandingSite = args.LandingSite;
                     break;
 

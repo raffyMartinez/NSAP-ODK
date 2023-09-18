@@ -39,6 +39,16 @@ namespace NSAP_ODK.Entities
         public double? Longitude { get; set; }
 
         public bool IsUsed { get; set; }
+
+        public int?CountLandings
+        {
+            get
+            {
+                return NSAPEntities.SummaryItemViewModel.SummaryItemCollection
+                    .Where(t=>t.LandingSiteID==LandingSiteID)
+                    .Count(t => t.LandingSiteHasOperation);
+            }
+        }
         public int? CountFishingVessels
         {
             get

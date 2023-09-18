@@ -9,12 +9,12 @@ namespace NSAP_ODK.Entities
 {
     public class NSAPRegionFMAFishingGroundLandingSite
     {
-       
+
         //[ReadOnly(true)]
         public int RowID { get; set; }
         public NSAPRegionFMAFishingGround NSAPRegionFMAFishingGround { get; set; }
         public LandingSite LandingSite { get; set; }
-
+        public int? NumberOfLandings { get { return LandingSite.CountLandings; } }
         public int? NumberOfFishingVessels { get { return LandingSite.CountFishingVessels; } }
         //[ItemsSource(typeof(LandingSiteItemsSource))]
         public DateTime DateStart { get; set; }

@@ -1949,6 +1949,7 @@ namespace NSAP_ODK
                         _selectedTreeNode.IsSelected = false;
                     }
                     buttonExport.Visibility = Visibility.Collapsed;
+                    menuCalendar.Visibility = Visibility.Collapsed;
                     break;
                 case "menuGPS":
                     _nsapEntity = NSAPEntity.GPS;
@@ -2458,8 +2459,8 @@ namespace NSAP_ODK
         private async void OnMenuClicked(object sender, RoutedEventArgs e)
         {
             string fileName = "";
-
-            string itemName = ((MenuItem)sender).Name;
+            MenuItem mi = (MenuItem)sender;
+            string itemName = mi.Name;
 
             if (itemName == "menuDownloadHistory" || itemName == "menuNSAPCalendar")
             {
@@ -2556,15 +2557,21 @@ namespace NSAP_ODK
                     ShowSettingsWindow();
                     break;
                 case "menuEnumeratorFirstSampling":
-                    var fsw = FirstSamplingOfEnumeratorsWindow.GetInstance();
-                    fsw.FirstSamplings = NSAPEntities.NSAPEnumeratorViewModel.GetFirstSamplingOfEnumerators();
-                    if (fsw.Visibility == Visibility.Visible)
+
+                    ProgressDialogWindow pdw = new ProgressDialogWindow("get enumerators first sampling");
+                    if ((bool)pdw.ShowDialog())
                     {
-                        fsw.BringIntoView();
-                    }
-                    else
-                    {
-                        fsw.Show();
+                        var fsw = FirstSamplingOfEnumeratorsWindow.GetInstance();
+                        //fsw.FirstSamplings = NSAPEntities.NSAPEnumeratorViewModel.GetFirstSamplingOfEnumerators();
+                        fsw.FirstSamplings = pdw.FirstSamplingsOfEnumerators;
+                        if (fsw.Visibility == Visibility.Visible)
+                        {
+                            fsw.BringIntoView();
+                        }
+                        else
+                        {
+                            fsw.Show();
+                        }
                     }
 
                     break;
@@ -2760,10 +2767,11 @@ namespace NSAP_ODK
                     }
                     break;
                 case "menuDownloadHistory":
-
+                    menuCalendar.Visibility = Visibility.Collapsed;
                     _currentDisplayMode = DataDisplayMode.DownloadHistory;
                     ColumnForTreeView.Width = new GridLength(1, GridUnitType.Star);
                     SetDataDisplayMode();
+                    
                     break;
                 case "menuExportExcelTracked":
                     //ExportNSAPToExcel(tracked: true);
@@ -3083,6 +3091,7 @@ namespace NSAP_ODK
         public bool OpenImportedDatabaseInApplication { get; set; }
         private void ShowNSAPCalendar()
         {
+            menuCalendar.Visibility = Visibility.Collapsed;
             _currentDisplayMode = DataDisplayMode.ODKData;
             ColumnForTreeView.Width = new GridLength(2, GridUnitType.Star);
             SetDataDisplayMode();
@@ -3528,6 +3537,7 @@ namespace NSAP_ODK
             GridNSAPData.SelectionUnit = DataGridSelectionUnit.FullRow;
             _calendarTreeSelectedEntity = e.TreeViewEntity;
             _treeItemData = e;
+            var tvi = ((TreeViewModelControl.TreeControl)sender)._selectedItem;
             //switch (e.TreeViewEntity)
             switch (_calendarTreeSelectedEntity)
             {
@@ -3546,6 +3556,12 @@ namespace NSAP_ODK
                 case "tv_LandingSiteViewModel":
                     labelContent = $"Summary of database content for {e.LandingSiteText}, {e.FishingGround.Name}, {e.FMA.Name}, {e.NSAPRegion.Name}";
                     SetUpSummaryGrid(SummaryLevelType.LandingSite, GridNSAPData, treeviewData: e);
+                    //var months_sampled = NSAPEntities.SummaryItemViewModel.GetMonthsSampledInLandingSite(e.LandingSite);
+                    //;if (e.TreeViewItem.Children.Count != months_sampled.Count)
+                    if (e.TreeViewItem.Children.Count != NSAPEntities.SummaryItemViewModel.GetMonthsSampledInLandingSite(e.LandingSite).Count())
+                    {
+                        ((TreeViewModelControl.tv_LandingSiteViewModel)e.TreeViewItem).Refresh();
+                    }
                     break;
                 case "tv_MonthViewModel":
                     _allSamplingEntitiesEventHandler = e;
@@ -4483,47 +4499,6 @@ namespace NSAP_ODK
             dataGridSummary.Visibility = Visibility.Visible;
             panelOpening.Visibility = Visibility.Visible;
         }
-        private void ShowEnumeratorSummary(NSAPEnumerator enumerator, DateTime? monthSampled = null)
-        {
-            string titleLabel = "Enumerator summaries";
-            List<EnumeratorSummary> summaries = new List<EnumeratorSummary>();
-            if (enumerator.Name != "Summary of enumerators")
-            {
-                titleLabel = $"Summary for {enumerator.ToString()}";
-                if (monthSampled != null)
-                {
-                    SetUpSummaryGrid(SummaryLevelType.EnumeratedMonth, dataGridSummary);
-                    summaries = NSAPEntities.NSAPEnumeratorViewModel.GetSummary(enumerator, (DateTime)monthSampled);
-                    titleLabel = $"Monthly summary for {enumerator.ToString()} on {((DateTime)monthSampled).ToString("MMMM, yyyy")}";
-                }
-                else
-                {
-                    SetUpSummaryGrid(SummaryLevelType.Enumerator, dataGridSummary);
-                    summaries = NSAPEntities.NSAPEnumeratorViewModel.GetSummary(enumerator);
-
-
-                }
-            }
-            else
-            {
-                SetUpSummaryGrid(SummaryLevelType.SummaryOfEnumerators, dataGridSummary);
-                var region = ((TreeViewItem)_selectedTreeNode.Parent).Tag as NSAPRegion;
-                summaries = NSAPEntities.NSAPEnumeratorViewModel.GetSummary(region, summaryForAll: true);
-
-                titleLabel = $"Summary of enumerators for {region.Name}";
-                labelSummary2.Content = "Total count of landings enumerated and number of landings with catch composition, by enumerator";
-                labelSummary2.Visibility = Visibility.Visible;
-
-            }
-
-            dataGridSummary.DataContext = summaries;
-
-
-            labelSummary.Content = titleLabel;
-            dataGridSummary.Visibility = Visibility.Visible;
-            panelOpening.Visibility = Visibility.Visible;
-
-        }
         private void OnSummaryTreeItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             labelSummary.Content = "To be implemented";
@@ -4568,6 +4543,7 @@ namespace NSAP_ODK
         }
         private async void OnToolbarButtonClick(object sender, RoutedEventArgs e)
         {
+            menuCalendar.Visibility = Visibility.Collapsed;
             CloseTallyWindow();
             bool showStatus = false;
             menuDatabaseSummary.IsChecked = false;
@@ -4745,5 +4721,7 @@ namespace NSAP_ODK
         {
             ShowImportWindow(openLogInWindow: true);
         }
+
+
     }
 }

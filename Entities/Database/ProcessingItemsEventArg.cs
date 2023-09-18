@@ -8,6 +8,8 @@ namespace NSAP_ODK.Entities.Database
 {
     public class ProcessingItemsEventArg : EventArgs
     {
+        
+        public bool DoNotShowRunningTotal { get; set; }
         public string Intent { get; set; }
         public int TotalCountToProcess { get; set; }
         public int CountProcessed { get; set; }

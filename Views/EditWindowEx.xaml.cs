@@ -3480,6 +3480,7 @@ namespace NSAP_ODK.Views
                     sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Date added", Binding = new Binding("DateStart") });
                     sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Date removed", Binding = new Binding("DateEnd") });
                     sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "# of boats", Binding = new Binding("NumberOfFishingVessels") });
+                    sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "# of landings", Binding = new Binding("NumberOfLandings") });
                     break;
 
                 case "FishingGroundCount":

@@ -1212,6 +1212,19 @@ namespace NSAP_ODK.Entities.Database
                 return null;
             }
         }
+
+        public List<DateTime> GetMonthsSampledInLandingSite(LandingSite ls)
+        {
+            List<DateTime> results = new List<DateTime>();
+            foreach (var em_group in SummaryItemCollection.Where(t => t.LandingSiteID == ls.LandingSiteID)
+                .OrderBy(t => t.SamplingDayDate)
+                .GroupBy(t => ((DateTime)t.SamplingDayDate).ToString("MMM-yyyy")))
+            {
+
+                results.Add(new DateTime(((DateTime)em_group.First().SamplingDayDate).Year, ((DateTime)em_group.First().SamplingDayDate).Month, 1));
+            }
+            return results;
+        }
         public List<DateTime> GetMonthsSampledByEnumerator(NSAPEnumerator en)
         {
             List<DateTime> results = new List<DateTime>();
@@ -1776,6 +1789,49 @@ namespace NSAP_ODK.Entities.Database
             ProcessBuildEvent(status: BuildSummaryReportStatus.StatusBuildEnd, totalRowsFetched: resuts.Count);
             return resuts.OrderBy(t => t.DBSummary.FishingGround.Name).ToList();
         }
+
+        public Task<List<NSAPRegionEnumerator>> GetFirstSamplingOfEnumeratorsASync()
+        {
+            return Task.Run(() => GetFirstSamplingOfEnumerators());
+        }
+        public List<NSAPRegionEnumerator> GetFirstSamplingOfEnumerators()
+        {
+            ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "start sorting"}); ;
+            HashSet<NSAPRegionEnumerator> thisList = new HashSet<NSAPRegionEnumerator>();
+            bool success = false;
+            int found_count = 0;
+            foreach (var region in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection)
+            {
+                var unloads = GetVesselUnloads(region);
+
+                if (unloads.Count() > 0)
+                    foreach (var nre in region.NSAPEnumerators.Where(t => t.DateFirstSampling == null))
+                    {
+                        {
+                            var enumerators_firstSampling = unloads
+                                .Where(t => t.NSAPEnumeratorID == nre.EnumeratorID)
+                                .OrderBy(t => t.SamplingDate).FirstOrDefault();
+
+                            if (enumerators_firstSampling != null)
+                            {
+                                nre.DateFirstSampling = enumerators_firstSampling.SamplingDate;
+                                nre.FirstSampling = enumerators_firstSampling;
+                                thisList.Add(nre);
+
+                                found_count++;
+                                if(found_count==1)
+                                {
+                                    ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "processing start", TotalCountToProcess=NSAPEntities.NSAPEnumeratorViewModel.Count });
+                                }
+                                ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "enumerator first sampling found", CountProcessed = found_count, DoNotShowRunningTotal = true });
+                            }
+                        }
+
+                    }
+            }
+            ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "getting enumerators first sampling done" });
+            return thisList.ToList();
+        }
         public Task<List<SummaryResults>> GetRegionSummaryAsync(NSAPRegion region)
         {
             return Task.Run(() => GetRegionSummary(region));
@@ -1975,6 +2031,37 @@ namespace NSAP_ODK.Entities.Database
 
             }
             return en_fvs;
+        }
+
+        public List<VesselUnload> GetVesselUnloads(NSAPRegion region)
+        {
+            List<VesselUnload> unloads = new List<VesselUnload>();
+            var reg_fg_ls = SummaryItemCollection.Where(
+            t => t.Region.Code == region.Code &&
+            t.IsSamplingDay == true &&
+            t.LandingSiteHasOperation == true
+            )
+
+            .GroupBy(t => new
+            {
+                SamplingDayID = t.SamplingDayID,
+                GearUnloadID = t.GearUnloadID
+            })
+            .Select(sampling => new
+            {
+                SamplingDay_id = sampling.Key.SamplingDayID,
+                GU_id = sampling.Key.GearUnloadID
+            }).ToList();
+
+
+            foreach (var si in reg_fg_ls)
+            {
+                unloads.AddRange(NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(si.SamplingDay_id)
+                        .GearUnloadViewModel.GetGearUnload((int)si.GU_id, true)
+                        .VesselUnloadViewModel.VesselUnloadCollection.ToList());
+            }
+
+            return unloads;
         }
         public List<VesselUnload> GetVesselUnloads(string summaryRegion, string summaryFMA)
         {
@@ -2678,7 +2765,7 @@ namespace NSAP_ODK.Entities.Database
             }
 
             ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "finished adding names to list", CountProcessed = countProcessed });
-            
+
             return vessels.OrderBy(t => t).ToList();
         }
         public bool AddRecordToRepo(GearUnload gu)

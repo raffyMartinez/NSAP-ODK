@@ -45,6 +45,9 @@ namespace NSAP_ODK.Views
             _timer.Tick += OnTimerTick;
             switch (TaskToDo)
             {
+                case "get enumerators first sampling":
+                    labelBigTitle.Content = "Get first sampling of enumeartors";
+                    break;
                 case "import fishing vessel names from DB":
                     labelBigTitle.Content = "Import names of fishing vessels saved in database";
                     break;
@@ -95,6 +98,7 @@ namespace NSAP_ODK.Views
             _instance = null;
         }
         public List<string> VesselNamesFromDB { get; private set; }
+        public List<NSAPRegionEnumerator> FirstSamplingsOfEnumerators { get; private set; }
         public List<NSAPRegionFishingVessel> NSAPRegionFishingVessels { get; set; }
         public Koboserver Koboserver { get; set; }
         public List<System.IO.FileInfo> BatchJSONFiles { get; set; }
@@ -137,6 +141,13 @@ namespace NSAP_ODK.Views
 
             switch (TaskToDo)
             {
+                case "get enumerators first sampling":
+                    NSAPEntities.SummaryItemViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
+                    textBlockDescription.Text = "Getting first sampling of enumerators";
+                    FirstSamplingsOfEnumerators = await NSAPEntities.SummaryItemViewModel.GetFirstSamplingOfEnumeratorsASync();
+                    NSAPEntities.SummaryItemViewModel.ProcessingItemsEvent -= OnProcessingItemsEvent;
+                    DialogResult = true;
+                    break;
                 case "import fishing vessel names from DB":
                     NSAPEntities.SummaryItemViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
                     textBlockDescription.Text = "Importing names of fishing vessels";
@@ -284,7 +295,7 @@ namespace NSAP_ODK.Views
 
 
                           progressBar.IsIndeterminate = true;
-                          if (e.Intent == "start fixing" || e.Intent == "start analyzing JSON files")
+                          if (e.Intent == "start fixing" || e.Intent == "start analyzing JSON files" || e.Intent == "start get first sampling of enumerators")
                           {
                               progressBar.IsIndeterminate = false;
                               _countToProcess = e.TotalCountToProcess;
@@ -314,6 +325,7 @@ namespace NSAP_ODK.Views
                 case "start":
                 case "finished getting list of vessel text":
 
+
                     progressBar.Dispatcher.BeginInvoke
                     (
                       DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
@@ -335,13 +347,18 @@ namespace NSAP_ODK.Views
                 case "JSON file analyzed":
                 case "item found":
                 case "Added name to list":
+                case "enumerator first sampling found":
 
                     processName = "Found";
                     if (e.Intent == "item fixed")
                     {
                         processName = "Fixed";
                     }
-                    else if(e.Intent=="added name to list")
+                    else if (e.Intent == "enumerator first sampling found")
+                    {
+                        processName = "First sampling of enumerator";
+                    }
+                    else if (e.Intent == "added name to list")
                     {
                         processName = $"Added ({e.ProcessedItemName})";
                     }
@@ -375,7 +392,14 @@ namespace NSAP_ODK.Views
                         (
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
-                              progressLabel.Content = $"{processName} item {e.CountProcessed} of {_countToProcess}";
+                              if (e.DoNotShowRunningTotal)
+                              {
+                                  progressLabel.Content = $"{processName} item {e.CountProcessed} processed";
+                              }
+                              else
+                              {
+                                  progressLabel.Content = $"{processName} item {e.CountProcessed} of {_countToProcess}";
+                              }
                               //do what you need to do on UI Thread
                               return null;
                           }
@@ -391,6 +415,8 @@ namespace NSAP_ODK.Views
                 case "done removing entity id":
                 case "cancel":
                 case "finished adding names to list":
+                case "getting enumerators first sampling done":
+
                     progressBar.Dispatcher.BeginInvoke
                     (
                       DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
@@ -408,6 +434,9 @@ namespace NSAP_ODK.Views
                               processName = "sorting";
                               switch (e.Intent)
                               {
+                                  case "getting enumerators first sampling done":
+                                      processName = "getting first sampling of enumerators";
+                                      break;
                                   case "finished adding names to list":
                                       processName = "adding";
                                       DialogResult = true;

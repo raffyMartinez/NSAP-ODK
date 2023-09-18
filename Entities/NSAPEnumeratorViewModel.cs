@@ -5,6 +5,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using NSAP_ODK.Entities.Database;
 using System.Data;
+using System.Threading.Tasks;
 
 namespace NSAP_ODK.Entities
 {
@@ -54,14 +55,20 @@ namespace NSAP_ODK.Entities
             ds.Tables.Add(dt);
             return ds;
         }
+
+        public Task<List<NSAPRegionEnumerator>> GetFirstSamplingOfEnumeratorsASync()
+        {
+            return Task.Run(() => GetFirstSamplingOfEnumerators());
+        }
         public List<NSAPRegionEnumerator> GetFirstSamplingOfEnumerators()
         {
             HashSet<NSAPRegionEnumerator> thisList = new HashSet<NSAPRegionEnumerator>();
             bool success = false;
             foreach (var region in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection)
             {
-                var unloads = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.Where(
-                    t => t.Parent.Parent.NSAPRegionID == region.Code);
+                ////var unloads = NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection.Where(
+                //    t => t.Parent.Parent.NSAPRegionID == region.Code);
+                var unloads = NSAPEntities.SummaryItemViewModel.GetVesselUnloads(region);
 
                 if (unloads.Count() > 0)
                     foreach (var nre in region.NSAPEnumerators.Where(t => t.DateFirstSampling == null))
