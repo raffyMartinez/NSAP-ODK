@@ -96,6 +96,7 @@ namespace NSAP_ODK.TreeViewModelControl
                     args.FishingGround = ((tv_FishingGroundViewModel)tvi)._fishingGround;
                     args.FMA = ((tv_FishingGroundViewModel)tvi)._fma;
                     args.NSAPRegion = ((tv_FishingGroundViewModel)tvi)._region;
+                    args.TreeViewItem = (tv_FishingGroundViewModel)tvi;
                     //tv_CurrentEntities.CurrentFishingGround = args.FishingGround;
                     break;
                 case "tv_LandingSiteViewModel":

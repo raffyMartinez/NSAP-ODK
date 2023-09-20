@@ -2771,7 +2771,7 @@ namespace NSAP_ODK
                     _currentDisplayMode = DataDisplayMode.DownloadHistory;
                     ColumnForTreeView.Width = new GridLength(1, GridUnitType.Star);
                     SetDataDisplayMode();
-                    
+
                     break;
                 case "menuExportExcelTracked":
                     //ExportNSAPToExcel(tracked: true);
@@ -3552,13 +3552,24 @@ namespace NSAP_ODK
                 case "tv_FishingGroundViewModel":
                     labelContent = $"Summary of database content for {e.FishingGround.Name}, {e.FMA.Name}, {e.NSAPRegion.Name}";
                     SetUpSummaryGrid(SummaryLevelType.FishingGround, GridNSAPData, treeviewData: e);
+                    try
+                    {
+                        if (e.TreeViewItem.Children.Count != NSAPEntities.SummaryItemViewModel.GetLandingSitesSampledInFishingGround(e.FishingGround, e.FMA, e.NSAPRegion).Count())
+                        {
+                            ((TreeViewModelControl.tv_FishingGroundViewModel)e.TreeViewItem).Refresh();
+                        }
+                    }
+                    catch
+                    {
+                        //
+                    }
                     break;
                 case "tv_LandingSiteViewModel":
                     labelContent = $"Summary of database content for {e.LandingSiteText}, {e.FishingGround.Name}, {e.FMA.Name}, {e.NSAPRegion.Name}";
                     SetUpSummaryGrid(SummaryLevelType.LandingSite, GridNSAPData, treeviewData: e);
                     //var months_sampled = NSAPEntities.SummaryItemViewModel.GetMonthsSampledInLandingSite(e.LandingSite);
                     //;if (e.TreeViewItem.Children.Count != months_sampled.Count)
-                    if (e.TreeViewItem.Children.Count != NSAPEntities.SummaryItemViewModel.GetMonthsSampledInLandingSite(e.LandingSite).Count())
+                    if (e.TreeViewItem.Children.Count != NSAPEntities.SummaryItemViewModel.GetMonthsSampledInLandingSite(e.LandingSite, e.FishingGround).Count())
                     {
                         ((TreeViewModelControl.tv_LandingSiteViewModel)e.TreeViewItem).Refresh();
                     }

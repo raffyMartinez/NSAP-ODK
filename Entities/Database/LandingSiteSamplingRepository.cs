@@ -40,7 +40,10 @@ namespace NSAP_ODK.Entities.Database
                                 {
                                     if (cols.Contains("json_filename") || UpdateTableDefinition("json_filename"))
                                     {
-                                        proceed = true;
+                                        if (cols.Contains("can_sample_from_catch_composition") || UpdateTableDefinition("can_sample_from_catch_composition"))
+                                        {
+                                            proceed = true;
+                                        }
                                     }
                                 }
                             }
@@ -459,6 +462,7 @@ namespace NSAP_ODK.Entities.Database
                                     }
                                 }
                                 item.GearsInLandingSite = null;//GetGearsInLandingSite(item);
+                                item.SamplingFromCatchCompositionIsAllowed = (bool)dr["can_sample_from_catch_composition"];
                                 thisList.Add(item);
                                 loopCount++;
                             }
@@ -614,8 +618,7 @@ namespace NSAP_ODK.Entities.Database
                         sql = $@"ALTER TABLE dbo_LC_FG_sample_day_1 ADD COLUMN {colName} INTEGER DEFAULT NULL";
                         break;
                     case "has_fishing_operation":
-                        sql = $@"ALTER TABLE dbo_LC_FG_sample_day ADD COLUMN {colName} YESNO";
-                        break;
+                    case "can_sample_from_catch_composition":
                     case "is_multivessel":
                         sql = $@"ALTER TABLE dbo_LC_FG_sample_day_1 ADD COLUMN {colName} YESNO";
                         break;
@@ -885,7 +888,7 @@ namespace NSAP_ODK.Entities.Database
                             }
                             update.Parameters.Add("@fma_id", OleDbType.Integer).Value = item.FMAID;
                             update.Parameters.Add("@has_operation", OleDbType.Boolean).Value = item.HasFishingOperation;
-
+                            
                             success = update.ExecuteNonQuery() > 0;
                             if (success)
                             {
@@ -904,8 +907,9 @@ namespace NSAP_ODK.Entities.Database
                                         form_version,
                                         RowID,
                                         EnumeratorID,
-                                        EnumeratorText
-                                    ) Values (?,?,?,?,?,?,?,?,?,?,?)";
+                                        EnumeratorText,
+                                        can_sample_from_catch_composition
+                                    ) Values (?,?,?,?,?,?,?,?,?,?,?,?)";
 
 
                                 using (OleDbCommand update1 = new OleDbCommand(sql, conn))
@@ -998,6 +1002,7 @@ namespace NSAP_ODK.Entities.Database
                                     {
                                         update1.Parameters.Add("@enum_text", OleDbType.VarChar).Value = item.EnumeratorText;
                                     }
+                                    update1.Parameters.Add("@can_sample", OleDbType.Boolean).Value = item.SamplingFromCatchCompositionIsAllowed;
 
                                     try
                                     {
@@ -1277,6 +1282,7 @@ namespace NSAP_ODK.Entities.Database
                                 {
                                     update1.Parameters.Add("@enum_text", OleDbType.VarChar).Value = item.EnumeratorText;
                                 }
+                                update1.Parameters.Add("@can_sample", OleDbType.Boolean).Value = item.SamplingFromCatchCompositionIsAllowed;
                                 update1.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
 
                                 update1.CommandText = @"Update dbo_LC_FG_sample_day_1 set
@@ -1289,7 +1295,8 @@ namespace NSAP_ODK.Entities.Database
                                                     form_version = @form_version,
                                                     RowID = @row_id,
                                                     EnumeratorID = @enum_id,
-                                                    EnumeratorText = @enum_text
+                                                    EnumeratorText = @enum_text,
+                                                    can_sample_from_catch_composition = @can_sample,
                                                  WHERE unload_day_id = @pk";
 
                                 success = false;

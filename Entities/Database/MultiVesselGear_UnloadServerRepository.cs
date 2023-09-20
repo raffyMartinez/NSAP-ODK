@@ -215,6 +215,7 @@ namespace NSAP_ODK.Entities.Database
                                 JSONFileName = jsonFileName,
                                 Remarks = root.ReasonNoLanding,
                                 DateSubmitted = root.SubmissionTime,
+                                SamplingFromCatchCompositionIsAllowed = root.SamplingFromCatchCompositionAllowed
                             };
                             if (root.LandingSite == null)
                             {
@@ -2519,6 +2520,11 @@ namespace NSAP_ODK.Entities.Database
 
         [JsonProperty("landing_site_sampling_group/select_enumerator")]
         public string SelectEnumerator { get; set; }
+
+        [JsonProperty("landing_site_sampling_group/sampling_from_catch_allowed")]
+        public string SamplingFromCatchAllowed { get; set; }
+
+        public bool SamplingFromCatchCompositionAllowed { get { return SamplingFromCatchAllowed == "yes"; } }
 
         public bool IsSelectEnumerator { get { return SelectEnumerator == "yes"; } }
 

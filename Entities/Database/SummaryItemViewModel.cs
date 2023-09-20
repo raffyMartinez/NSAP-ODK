@@ -1212,11 +1212,23 @@ namespace NSAP_ODK.Entities.Database
                 return null;
             }
         }
+        public List<LandingSite> GetLandingSitesSampledInFishingGround(FishingGround fg, FMA fma, NSAPRegion r)
+        {
+            List<LandingSite> results = new List<LandingSite>();
+            foreach (var em_group in SummaryItemCollection.Where(t => t.FishingGroundID == fg.Code && t.FMAId == fma.FMAID && t.RegionID == r.Code)
+                .OrderBy(t => t.SamplingDayDate)
+                .GroupBy(t => ((DateTime)t.SamplingDayDate).ToString("MMM-yyyy")))
+            {
 
-        public List<DateTime> GetMonthsSampledInLandingSite(LandingSite ls)
+                //results.Add(new DateTime(((DateTime)em_group.First().SamplingDayDate).Year, ((DateTime)em_group.First().SamplingDayDate).Month, 1));
+                results.Add(em_group.First().LandingSite);
+            }
+            return results;
+        }
+        public List<DateTime> GetMonthsSampledInLandingSite(LandingSite ls, FishingGround fg)
         {
             List<DateTime> results = new List<DateTime>();
-            foreach (var em_group in SummaryItemCollection.Where(t => t.LandingSiteID == ls.LandingSiteID)
+            foreach (var em_group in SummaryItemCollection.Where(t => t.LandingSiteID == ls.LandingSiteID && t.FishingGroundID == fg.Code)
                 .OrderBy(t => t.SamplingDayDate)
                 .GroupBy(t => ((DateTime)t.SamplingDayDate).ToString("MMM-yyyy")))
             {
@@ -1796,7 +1808,7 @@ namespace NSAP_ODK.Entities.Database
         }
         public List<NSAPRegionEnumerator> GetFirstSamplingOfEnumerators()
         {
-            ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "start sorting"}); ;
+            ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "start sorting" }); ;
             HashSet<NSAPRegionEnumerator> thisList = new HashSet<NSAPRegionEnumerator>();
             bool success = false;
             int found_count = 0;
@@ -1819,9 +1831,9 @@ namespace NSAP_ODK.Entities.Database
                                 thisList.Add(nre);
 
                                 found_count++;
-                                if(found_count==1)
+                                if (found_count == 1)
                                 {
-                                    ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "processing start", TotalCountToProcess=NSAPEntities.NSAPEnumeratorViewModel.Count });
+                                    ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "processing start", TotalCountToProcess = NSAPEntities.NSAPEnumeratorViewModel.Count });
                                 }
                                 ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "enumerator first sampling found", CountProcessed = found_count, DoNotShowRunningTotal = true });
                             }
@@ -2722,6 +2734,7 @@ namespace NSAP_ODK.Entities.Database
                 FishingGroundID = ls.FishingGroundID,
                 DateAdded = ls.DateAdded,
                 LandingSiteHasOperation = ls.HasFishingOperation,
+                SamplingFromCatchCompositionAllowed = ls.SamplingFromCatchCompositionIsAllowed,
                 LandingSiteSamplingNotes = ls.Remarks,
                 XFormIdentifier = ls.XFormIdentifier,
                 SamplingDayUUID = ls.RowID,
@@ -2778,6 +2791,7 @@ namespace NSAP_ODK.Entities.Database
                 SamplingDayDate = gu.Parent.SamplingDate,
                 LandingSiteID = gu.Parent.LandingSiteID,
                 LandingSiteText = gu.Parent.LandingSiteText,
+                SamplingFromCatchCompositionAllowed = gu.Parent.SamplingFromCatchCompositionIsAllowed,
                 FMAId = gu.Parent.FMAID,
                 RegionSequence = gu.Parent.NSAPRegion.Sequence,
                 RegionID = gu.Parent.NSAPRegionID,
@@ -2840,6 +2854,7 @@ namespace NSAP_ODK.Entities.Database
                 VesselID = vu.VesselID,
                 VesselText = vu.VesselText,
                 HasCatchComposition = vu.HasCatchComposition,
+                SamplingFromCatchCompositionAllowed = vu.Parent.Parent.SamplingFromCatchCompositionIsAllowed,
                 IsTracked = vu.OperationIsTracked,
                 IsTripCompleted = vu.FishingTripIsCompleted,
                 SamplingDate = vu.SamplingDate,

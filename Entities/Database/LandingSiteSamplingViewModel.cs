@@ -653,6 +653,7 @@ namespace NSAP_ODK.Entities.Database
             myDict.Add("number_landings", number_landings);
             myDict.Add("number_gear_types_in_landingsite", number_gear_types);
             myDict.Add("json_filename", item.JSONFileName);
+            myDict.Add("can_sample_from_catch_composition", item.SamplingFromCatchCompositionIsAllowed.ToString());
 
 
             _csv_1.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_LC_FG_sample_day_1"));

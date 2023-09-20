@@ -512,6 +512,7 @@ namespace NSAP_ODK.Entities.Database
                 return code;
             }
         }
+        public bool SamplingFromCatchCompositionAllowed { get; set; }
         public double? WeightOfCatch { get; set; }
         public double? WeightOfCatchSample { get; set; }
         public bool HasCatchComposition { get; set; }

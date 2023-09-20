@@ -39,16 +39,16 @@ namespace NSAP_ODK.Entities.Database
         private FishingGround _fishingGround;
         private List<GearInLandingSite> _gearsInLandingSite;
 
-        public List<GearInLandingSite> GearsInLandingSite { 
-            get 
+        public List<GearInLandingSite> GearsInLandingSite {
+            get
             {
-                if(_gearsInLandingSite==null)
+                if (_gearsInLandingSite == null)
                 {
                     _gearsInLandingSite = NSAPEntities.LandingSiteSamplingViewModel.GetGearsInLandingSiteSampling(this);
                 }
-                return _gearsInLandingSite; 
-            } 
-            set { _gearsInLandingSite = value; } 
+                return _gearsInLandingSite;
+            }
+            set { _gearsInLandingSite = value; }
         }
         public bool HasFishingOperation { get; set; }
         public bool IsMultiVessel { get; set; }
@@ -59,6 +59,8 @@ namespace NSAP_ODK.Entities.Database
         public int? LandingSiteID { get; set; }
         public string FishingGroundID { get; set; }
         public string Remarks { get; set; }
+
+        public bool SamplingFromCatchCompositionIsAllowed { get; set; }
 
         public string JSONFileName { get; set; }
         public bool IsSamplingDay { get; set; }
