@@ -28,6 +28,7 @@ namespace NSAP_ODK.Utilities
 
         public const string UserSettingsFilename = "settings.xml";
 
+        public static string _KoboFormsFolder = $@"{AppDomain.CurrentDomain.BaseDirectory}Koboforms";
         public static string _DefaultSettingspath =
             AppDomain.CurrentDomain.BaseDirectory +
             "\\Settings\\" + UserSettingsFilename;
@@ -124,6 +125,15 @@ namespace NSAP_ODK.Utilities
             else
             {
                 Logger.Log("Settings file not read");
+            }
+
+            if(!Directory.Exists(_KoboFormsFolder))
+            {
+                Directory.CreateDirectory(_KoboFormsFolder);
+            }
+            else
+            {
+
             }
             //DoAppProceed();
         }

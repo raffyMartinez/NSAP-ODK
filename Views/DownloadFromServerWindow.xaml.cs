@@ -47,10 +47,12 @@ namespace NSAP_ODK.Views
         public static event Action RefreshDatabaseSummaryTable;
         public event EventHandler<DownloadMediaFromServerEventArgs> DownloadMediaFromServerEvent;
 
+        private string _koboforms_json = $"{Global._KoboFormsFolder}\\koboforms.json";
         private int? _totalCountSampledLandings;
         //private int _numberOfSubmissions;
         private int? _numberToDownloadPerBatch;
         private List<KoboForm> _koboForms;
+        private List<KoboForm> _koboForms_old;
         private string _versionID;
         private string _formID;
         private string _description;
@@ -862,9 +864,14 @@ namespace NSAP_ODK.Views
                                                     Close();
 
                                                 }
-                                                catch (HttpRequestException)
+                                                catch (HttpRequestException http_ex)
                                                 {
+                                                    Logger.Log(http_ex);
                                                     MessageBox.Show("Request time out\r\nYou may try again", Utilities.Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
+                                                }
+                                                catch(TaskCanceledException t_ex)
+                                                {
+
                                                 }
                                                 catch (Exception ex)
                                                 {
@@ -925,7 +932,7 @@ namespace NSAP_ODK.Views
                                     bytes = await response.Content.ReadAsByteArrayAsync();
                                     encoding = Encoding.GetEncoding("utf-8");
 
-
+                                    //response is token
                                     the_response = encoding.GetString(bytes, 0, bytes.Length);
                                     var arr = the_response.Trim('}').Split(':');
                                     _tokenStatic = arr[1].Trim('"');
@@ -986,10 +993,17 @@ namespace NSAP_ODK.Views
                     try
                     {
                         ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData });
+                        //server response for ok connection
                         var response = await _httpClient.SendAsync(request);
                         var bytes = await response.Content.ReadAsByteArrayAsync();
                         var encoding = Encoding.GetEncoding("utf-8");
+
                         var the_response = encoding.GetString(bytes, 0, bytes.Length);
+                        //the_response is just json containing forms that you have access, list of media attachements, and basic description of the eform such as
+                        // formid, owner, title, list of users with permissions, description
+                        //encrypted (yes or no), id_string, date_created, date_modified, last_submission_time
+                        //uuid, number of submissions
+
                         if (the_response.Contains("Invalid username/password"))
                         {
                             MessageBox.Show("Invalid username or password\r\nTry again",
@@ -1002,19 +1016,61 @@ namespace NSAP_ODK.Views
                             TextBoxUserName.Text = "";
                             TextBoxPassword.Clear();
                             ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.GotJSONString, JSONString = the_response });
+
+                            //we save the koboform if not yet saved
+                            if (!File.Exists(_koboforms_json))
+                            {
+                                using (StreamWriter sw = File.CreateText(_koboforms_json))
+                                {
+                                    sw.Write(the_response);
+                                    sw.Close();
+                                }
+                            }
+                            else
+                            {
+                                //we creare a list of koboforms from the saved file
+                                StreamReader sr = File.OpenText(_koboforms_json);
+                                _koboForms_old = KoboForms.MakeFormObjects(sr.ReadToEnd());
+                            }
+
+
+                            //from the_respones, make koboform objects
                             _koboForms = KoboForms.MakeFormObjects(the_response);
+
+
                             ResetFormNumericIDs();
+
+                            //we compare the old forms with the ones downloaded
+                            //foreach koboform, we get the version (the one showed in the logoscreen of the eform)
+                            //as well as the media attachments (specifically csvs) for each eform
                             foreach (KoboForm kf in _koboForms)
                             {
-                                KoboForms.ResetVersion_and_ID();
-                                if (await KoboForms.GetVersionFromXLSForm(kf, _userNameStatic, _passwordStatic, _httpClient))
+                                KoboForm old_kf = null;
+                                if (_koboForms_old != null)
                                 {
-                                    kf.xlsform_version = KoboForms.XLSFormVersion;
-                                    kf.xlsForm_idstring = KoboForms.XLSForm_idString;
-                                    //kf.Version_ID = KoboForms.Version_ID;
-                                    //kf.eFormVersion = KoboForms.e
+                                    old_kf = _koboForms_old.FirstOrDefault(t => t.formid == kf.formid);
+                                }
+                                KoboForms.ResetVersion_and_ID();
+
+                                // test the downloaded koboform is unchanged from the one saved
+                                if (old_kf != null && old_kf.hash == kf.hash && old_kf.date_modified == kf.date_modified)
+                                {
+                                    await KoboForms.GetVersionFromXLSForm(kf);
                                     ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.GotXLSFormVersion, FormName = kf.title });
                                 }
+                                else
+                                {
+
+                                    if (await KoboForms.GetVersionFromXLSForm(kf, _userNameStatic, _passwordStatic, _httpClient))
+                                    {
+                                        kf.xlsform_version = KoboForms.XLSFormVersion;
+                                        kf.xlsForm_idstring = KoboForms.XLSForm_idString;
+                                        //kf.Version_ID = KoboForms.Version_ID;
+                                        //kf.eFormVersion = KoboForms.e
+                                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.GotXLSFormVersion, FormName = kf.title });
+                                    }
+                                }
+
                             }
 
                             AddFormIDToTree();
