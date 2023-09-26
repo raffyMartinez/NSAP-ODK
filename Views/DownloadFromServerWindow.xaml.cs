@@ -512,13 +512,22 @@ namespace NSAP_ODK.Views
                     {
                         defaultDLSize = (int)Global.Settings.DownloadSizeForBatchMode;
                     }
+                    if (_formSummary.KoboForm.title.Contains("Multi-VesselGear"))
+                    {
+                        defaultDLSize = Utilities.Settings.DefaultDownloadSizeForBatchModeMultiVessel;
+                        if (Global.Settings.DownloadSizeForBatchModeMultiVessel != null)
+                        {
+                            defaultDLSize = (int)Global.Settings.DownloadSizeForBatchModeMultiVessel;
+                        }
+                    }
                     int sizeToDownload = _formSummary.NumberOfSubmissions - _formSummary.NumberSavedToDatabase;
-
+                    
 
 
                     if (!_hasDownloadOptions)
                     {
                         DownloadOptionDownloadAll = sizeToDownload <= defaultDLSize;
+
                         bool showDLOptions = _formSummary.NumberSavedToDatabase == 0 && sizeToDownload > defaultDLSize;
 
                         if (!showDLOptions && _formSummary.NumberSavedToDatabase > 0)
@@ -534,6 +543,7 @@ namespace NSAP_ODK.Views
                         {
 
                             DownloadFromServerOptionsWindow dsow = new DownloadFromServerOptionsWindow();
+                            dsow.KoboForm = _formSummary.KoboForm;
                             dsow.Owner = this;
                             dsow.CountItemsToDownload = sizeToDownload;
                             if ((bool)rbAll.IsChecked)
@@ -764,6 +774,7 @@ namespace NSAP_ODK.Views
                                                 {
                                                     ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData });
 
+                                                    
                                                     var response = await _httpClient.SendAsync(request);
                                                     var bytes = await response.Content.ReadAsByteArrayAsync();
                                                     Encoding encoding = Encoding.GetEncoding("utf-8");
@@ -869,7 +880,7 @@ namespace NSAP_ODK.Views
                                                     Logger.Log(http_ex);
                                                     MessageBox.Show("Request time out\r\nYou may try again", Utilities.Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
                                                 }
-                                                catch(TaskCanceledException t_ex)
+                                                catch (TaskCanceledException t_ex)
                                                 {
 
                                                 }
@@ -1018,20 +1029,37 @@ namespace NSAP_ODK.Views
                             ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.GotJSONString, JSONString = the_response });
 
                             //we save the koboform if not yet saved
-                            if (!File.Exists(_koboforms_json))
-                            {
-                                using (StreamWriter sw = File.CreateText(_koboforms_json))
-                                {
-                                    sw.Write(the_response);
-                                    sw.Close();
-                                }
-                            }
-                            else
+                            //if (!File.Exists(_koboforms_json))
+                            //{
+                            //    using (StreamWriter sw = File.CreateText(_koboforms_json))
+                            //    {
+                            //        sw.Write(the_response);
+                            //        sw.Close();
+                            //    }
+                            //}
+                            //else
+                            //{
+                            //    //we creare a list of koboforms from the saved file
+                            //    StreamReader sr = File.OpenText(_koboforms_json);
+                            //    _koboForms_old = KoboForms.MakeFormObjects(sr.ReadToEnd());
+                            //}
+
+                            if (File.Exists(_koboforms_json))
                             {
                                 //we creare a list of koboforms from the saved file
-                                StreamReader sr = File.OpenText(_koboforms_json);
-                                _koboForms_old = KoboForms.MakeFormObjects(sr.ReadToEnd());
+                                using (StreamReader sr = File.OpenText(_koboforms_json))
+                                {
+                                    _koboForms_old = KoboForms.MakeFormObjects(sr.ReadToEnd());
+                                }
                             }
+                            //we save the latest koboforms as a json file
+                            using (StreamWriter sw = File.CreateText(_koboforms_json))
+                            {
+                                sw.Write(the_response);
+                                sw.Close();
+                            }
+
+
 
 
                             //from the_respones, make koboform objects
@@ -1110,6 +1138,7 @@ namespace NSAP_ODK.Views
                     ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData, Loop = currentLoop, Loops = loops });
 
                     var response = await _httpClient.SendAsync(request);
+
 
                     var bytes = await response.Content.ReadAsByteArrayAsync();
                     Encoding encoding = Encoding.GetEncoding("utf-8");
@@ -1203,11 +1232,12 @@ namespace NSAP_ODK.Views
                     the_response = null;
 
                 }
-                catch (HttpRequestException)
+                catch (HttpRequestException _htex)
                 {
                     //MessageBox.Show("Request time out\r\nYou may try again");
                     //_downloadBatchCancel = true;
-                    _downloadTimeout = true;
+                    Logger.Log(_htex);
+                    _downloadBatchCancel = true;
                 }
                 catch (Exception ex)
                 {
@@ -1853,6 +1883,7 @@ namespace NSAP_ODK.Views
         private async void OnFormLoaded(object sender, RoutedEventArgs e)
         {
             _httpClient = MainWindow.HttpClient;
+            //_httpClient.Timeout = new TimeSpan(0, 10, 0);
             Title = "Download from server";
             GridGrids.Visibility = Visibility.Collapsed;
             rbAll.IsChecked = true;

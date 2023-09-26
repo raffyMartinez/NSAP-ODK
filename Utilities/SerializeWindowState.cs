@@ -125,7 +125,14 @@ namespace NSAP_ODK.Utilities
             }
             catch (Exception exception)
             {
-                Logger.Log("Couldn't read position for " + className, exception);
+                if (exception.Message.Contains("Could not find file"))
+                {
+                    //fail silently
+                }
+                else
+                {
+                    Logger.Log (exception);
+                }
             }
         }
 

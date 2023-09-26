@@ -862,26 +862,50 @@ namespace NSAP_ODK.Views
                     }
                     else
                     {
-                        if (!firstLoopDone && NSAPEntities.SummaryItemViewModel.Count == 0)
+                        if (!firstLoopDone  )
                         {
-                            VesselUnloadServerRepository.ResetGroupIDs();
+                            if (NSAPEntities.SummaryItemViewModel.Count == 0)
+                            {
+                                VesselUnloadServerRepository.ResetGroupIDs();
+                            }
+                            else if (IsMultiVessel)
+                            {
+                                MultiVesselGear_UnloadServerRepository.ResetGroupIDs();// VesselUnloadServerRepository.DelayedSave);
+                            }
+                            
                             firstLoopDone = true;
                         }
                         FileInfoJSONMetadata jm = (FileInfoJSONMetadata)tvi.Tag;
                         VesselUnloadServerRepository.DelayedSave = !Global.Settings.UsemySQL;
-                        await Upload(verbose: !VesselUnloadServerRepository.DelayedSave, fromJSONBatchFiles: true, loopCount: nodeProcessedCount, jsonFileName: jm.JSONFileInfo.Name); ;
-
-                        if (_downloadedJsonMetadata?.BatchSize != null)
+                        bool success = await Upload(verbose: !VesselUnloadServerRepository.DelayedSave, fromJSONBatchFiles: true, loopCount: nodeProcessedCount, jsonFileName: jm.JSONFileInfo.Name); ;
+                        if (success)
                         {
-                            if ((int)_downloadedJsonMetadata.BatchSize <= VesselUnloadServerRepository.TotalUploadCount)
+                            if (_downloadedJsonMetadata?.BatchSize != null)
+                            {
+                                if (IsMultiVessel)
+                                {
+                                    if ((int)_downloadedJsonMetadata.BatchSize <= MultiVesselGear_UnloadServerRepository.TotalUploadCount)
+                                    {
+                                        await SaveUploadedJsonInLoop(isHistoryJson: false);
+                                    }
+                                }
+                                else
+                                {
+                                    if ((int)_downloadedJsonMetadata.BatchSize <= VesselUnloadServerRepository.TotalUploadCount)
+                                    {
+                                        await SaveUploadedJsonInLoop(isHistoryJson: false);
+                                    }
+                                }
+
+                            }
+                            else if (VesselUnloadServerRepository.TotalUploadCount >= 5000)
                             {
                                 await SaveUploadedJsonInLoop(isHistoryJson: false);
                             }
-
                         }
-                        else if (VesselUnloadServerRepository.TotalUploadCount >= 5000)
+                        else
                         {
-                            await SaveUploadedJsonInLoop(isHistoryJson: false);
+
                         }
                     }
                     nodeProcessedCount++;
@@ -1750,6 +1774,9 @@ namespace NSAP_ODK.Views
                                 proceed = false;
                                 if (IsMultiVessel)
                                 {
+                                    //MultiVesselGear_UnloadServerRepository.ResetTotalUploadCounter();
+                                    //MultiVesselGear_UnloadServerRepository.DelayedSave = true;
+                                    //MultiVesselGear_UnloadServerRepository.ResetGroupIDs();// VesselUnloadServerRepository.DelayedSave);
                                     MultiVesselGear_UnloadServerRepository.JSONFileCreationTime = _jsonFileUseCreationDateForHistory;
                                     proceed = await MultiVesselGear_UnloadServerRepository.UploadToDBAsync(jsonFileName: jsonFileName);
                                 }
@@ -1758,6 +1785,8 @@ namespace NSAP_ODK.Views
                                     VesselUnloadServerRepository.JSONFileCreationTime = _jsonFileUseCreationDateForHistory;
                                     proceed = await VesselUnloadServerRepository.UploadToDBAsync(jsonFileName: jsonFileName, loopCount: loopCount);
                                 }
+                                _uploadToDBSuccess = proceed;
+                                success = _uploadToDBSuccess;
                             }
                             else
                             {

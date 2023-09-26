@@ -68,10 +68,20 @@ namespace NSAP_ODK.Views
                     textDownloadSizeForBatchMode.Text = ((int)Utilities.Global.Settings.DownloadSizeForBatchMode).ToString();
                 }
 
+                if (Utilities.Global.Settings.DownloadSizeForBatchModeMultiVessel == null)
+                {
+                    textDownloadSizeForBatchModeMultivessel.Text = Utilities.Settings.DefaultDownloadSizeForBatchModeMultiVessel.ToString();
+                }
+                else
+                {
+                    textDownloadSizeForBatchModeMultivessel.Text = ((int)Utilities.Global.Settings.DownloadSizeForBatchModeMultiVessel).ToString();
+                }
+
                 textAcceptableDiff.Text = ((int)Utilities.Global.Settings.AcceptableWeightsDifferencePercent).ToString();
             }
             else
             {
+                textDownloadSizeForBatchModeMultivessel.Text = "100";
                 textDownloadSizeForBatchMode.Text = "2000";
                 textCutoffWidth.Text = "11";
                 textAcceptableDiff.Text = "10";
@@ -298,6 +308,11 @@ namespace NSAP_ODK.Views
                         {
                             Utilities.Global.Settings.DownloadSizeForBatchMode = v;
                             Utilities.Settings.DefaultDownloadSizeForBatchMode = v;
+                        }
+                        if (int.TryParse(textDownloadSizeForBatchModeMultivessel.Text, out v))
+                        {
+                            Utilities.Global.Settings.DownloadSizeForBatchModeMultiVessel = v;
+                            Utilities.Settings.DefaultDownloadSizeForBatchModeMultiVessel = v;
                         }
                         Utilities.Global.SaveGlobalSettings();
 

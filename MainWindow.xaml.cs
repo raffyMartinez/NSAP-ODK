@@ -87,7 +87,10 @@ namespace NSAP_ODK
         public DBView DBView { get; set; }
         public static HttpClient HttpClient
         {
-            get { return _httpClient; }
+            get
+            {
+                return _httpClient;
+            }
         }
 
         public DataDisplayMode DataDisplayMode { get { return _currentDisplayMode; } }
@@ -451,7 +454,7 @@ namespace NSAP_ODK
                             NSAPEntities.FishingVesselViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
                         }
                         CreateTablesInAccess.GetMDBColumnInfo(Global.ConnectionString);
-
+                        _httpClient.Timeout = new TimeSpan(0, 10, 0);
                     }
                     else
                     {

@@ -39,6 +39,18 @@ namespace NSAP_ODK.Views
             {
                 txtNumberToDownload.Text = ((int)Utilities.Global.Settings.DownloadSizeForBatchMode).ToString();
             }
+
+            if(KoboForm.title.Contains("Multi-VesselGear"))
+            {
+                if (Utilities.Global.Settings.DownloadSizeForBatchModeMultiVessel == null)
+                {
+                    txtNumberToDownload.Text = Utilities.Settings.DefaultDownloadSizeForBatchModeMultiVessel.ToString();
+                }
+                else
+                {
+                    txtNumberToDownload.Text = ((int)Utilities.Global.Settings.DownloadSizeForBatchModeMultiVessel).ToString();
+                }
+            }
         }
 
         private bool FormValidated()
@@ -94,6 +106,8 @@ namespace NSAP_ODK.Views
                     break;
             }
         }
+
+        public Entities.KoboForm KoboForm { get; set; }
 
         private void OnRBChecked(object sender, RoutedEventArgs e)
         {

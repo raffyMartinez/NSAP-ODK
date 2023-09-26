@@ -13,6 +13,7 @@ namespace NSAP_ODK.Utilities
 
         public static int DefaultCutoffUndesizedCW = 11;
         public static int DefaultDownloadSizeForBatchMode = 2000;
+        public static int DefaultDownloadSizeForBatchModeMultiVessel = 100;
         public static int DefaultWeigthDiffPercent = 10;
 
         private static int? _acceptableWeightsDifferencePercent;
@@ -43,6 +44,7 @@ namespace NSAP_ODK.Utilities
 
 
         public int? DownloadSizeForBatchMode { get; set; }
+        public int? DownloadSizeForBatchModeMultiVessel { get; set; }
 
 
         //public List<string> Setting2 { get; set; }

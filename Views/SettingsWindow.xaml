@@ -39,6 +39,11 @@
             </WrapPanel>
 
             <WrapPanel Margin="10 2">
+                <TextBlock Text="Enable batch mode for Multi-VesselGear eform if DL > than" Width="205"  TextWrapping="Wrap" TextAlignment="Right"/>
+                <TextBox x:Name="textDownloadSizeForBatchModeMultivessel" Width="60" Margin="10 0" HorizontalContentAlignment="Right"/>
+            </WrapPanel>
+
+            <WrapPanel Margin="10 2">
                 <Label Content="Acceptable difference in weights (%)" Width="205" HorizontalContentAlignment="Right"/>
                 <TextBox x:Name="textAcceptableDiff" Width="60" Margin="10 0" HorizontalContentAlignment="Right"/>
             </WrapPanel>
