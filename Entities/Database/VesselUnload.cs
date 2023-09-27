@@ -1317,6 +1317,10 @@ namespace NSAP_ODK.Entities.Database
                 List<VesselCatch> vcs = new List<VesselCatch>();
                 if (Parent.Parent.IsMultiVessel)
                 {
+                    if(VesselUnload_FishingGearsViewModel==null)
+                    {
+                        VesselUnload_FishingGearsViewModel = new VesselUnload_FishingGearViewModel(this);
+                    }
                     if (VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection == null)
                     {
                         VesselUnload_FishingGearsViewModel = new VesselUnload_FishingGearViewModel(this);

@@ -1240,6 +1240,7 @@ namespace NSAP_ODK.Views
                     _downloadBatchCancel = true;
                 }
                 catch (Exception ex)
+                
                 {
                     Logger.Log(ex);
                     ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.StoppedDueToError });

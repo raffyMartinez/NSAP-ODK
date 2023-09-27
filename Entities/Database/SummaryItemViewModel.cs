@@ -1478,10 +1478,14 @@ namespace NSAP_ODK.Entities.Database
         public List<SummaryResults> GetEnumeratorSummaryLatestUpload(NSAPRegion reg, string enumerator, DateTime lastSampling)
         {
             List<SummaryResults> resuts = new List<SummaryResults>();
+            //var lastSamplings = SummaryItemCollection
+            //                    .Where(t => t.Region.Code == reg.Code && t.EnumeratorNameToUse == enumerator && ((DateTime)t.SamplingDate).Date == lastSampling.Date)
+            //                    .OrderBy(t => t.SamplingDate)
             var lastSamplings = SummaryItemCollection
-                                .Where(t => t.Region.Code == reg.Code && t.EnumeratorNameToUse == enumerator && ((DateTime)t.SamplingDate).Date == lastSampling.Date)
-                                .OrderBy(t => t.SamplingDate)
-                                .GroupBy(t => t.LandingSiteNameText);
+                    .Where(t => t.Region.Code == reg.Code && t.EnumeratorNameToUse == enumerator && ((DateTime)t.SamplingDayDate).Date == lastSampling.Date)
+                    .OrderBy(t => t.SamplingDate)
+                    .GroupBy(t => t.LandingSiteNameText);//                    .GroupBy(t => t.LandingSiteNameText);
+
             int seq = 0;
             foreach (var ls in lastSamplings)
             {

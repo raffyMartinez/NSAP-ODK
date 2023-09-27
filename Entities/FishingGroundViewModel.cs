@@ -76,6 +76,13 @@ namespace NSAP_ODK.Entities
             return CurrentEntity;
 
         }
+
+        public FishingGround GetFishingGroundFromName(string fishing_ground_name)
+        {
+            CurrentEntity = FishingGroundCollection.FirstOrDefault(n => n.Name == fishing_ground_name);
+            return CurrentEntity;
+
+        }
         private void FishingGroundCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             _editSuccess = false;

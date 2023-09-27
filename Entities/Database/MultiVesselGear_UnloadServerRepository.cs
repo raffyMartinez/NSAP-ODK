@@ -178,10 +178,42 @@ namespace NSAP_ODK.Entities.Database
                     LandingSiteSampling lss = NSAPEntities.SummaryItemViewModel.GetLandingSiteSampling(root.SubmissionUUID);
                     if (lss == null)
                     {
-                        if (lss == null && root.LandingSiteID != null && root.LandingSite != null)
+                        LandingSite fls = null;
+                        FishingGround fg = null;
+                        if (root.LandingSite == null)
                         {
-                            lss = NSAPEntities.SummaryItemViewModel.GetLandingSiteSampling(ls_id: (int)root.LandingSite.LandingSiteID, fg_id: root.FishingGround.Code, sdate: root.SamplingDate.Date);
+                            fls = NSAPEntities.LandingSiteViewModel.GetLandingSite(root.LandingSiteName);
                         }
+                        if (root.FishingGround == null)
+                        {
+                            fg = NSAPEntities.FishingGroundViewModel.GetFishingGroundFromName(root.Fishing_ground_name);
+
+                        }
+
+                        if (root.LandingSiteID != null && root.LandingSite != null)
+                        {
+                            if (root.FishingGround != null)
+                            {
+                                lss = NSAPEntities.SummaryItemViewModel.GetLandingSiteSampling(ls_id: (int)root.LandingSite.LandingSiteID, fg_id: root.FishingGround.Code, sdate: root.SamplingDate.Date);
+                            }
+                            else
+                            {
+                                lss = NSAPEntities.SummaryItemViewModel.GetLandingSiteSampling(ls_id: (int)root.LandingSite.LandingSiteID, fg_id: fg.Code, sdate: root.SamplingDate.Date);
+                            }
+
+                        }
+                        else if (fls != null)
+                        {
+                            if (root.FishingGround != null)
+                            {
+                                lss = NSAPEntities.SummaryItemViewModel.GetLandingSiteSampling(ls_id: fls.LandingSiteID, fg_id: root.FishingGround.Code, sdate: root.SamplingDate.Date);
+                            }
+                            else
+                            {
+                                lss = NSAPEntities.SummaryItemViewModel.GetLandingSiteSampling(ls_id: fls.LandingSiteID, fg_id: fg.Code, sdate: root.SamplingDate.Date);
+                            }
+                        }
+
 
                         if (lss == null)//&& root.LandingSite!=null)
                         {
@@ -191,7 +223,7 @@ namespace NSAP_ODK.Entities.Database
                             {
                                 PK = LandingSiteSamplingViewModel.CurrentIDNumber + 1,
                                 //LandingSiteID = root.LandingSite == null ? null : (int?)root.LandingSite.LandingSiteID,
-                                FishingGroundID = root.RegionFishingGround.FishingGround.Code,
+                                //FishingGroundID = root.RegionFishingGround.FishingGround.Code,
                                 IsSamplingDay = root.IsSamplingDay,
                                 SamplingDate = root.SamplingDate.Date,
                                 NSAPRegionID = root.NSAPRegion.Code,
@@ -217,30 +249,55 @@ namespace NSAP_ODK.Entities.Database
                                 DateSubmitted = root.SubmissionTime,
                                 SamplingFromCatchCompositionIsAllowed = root.SamplingFromCatchCompositionAllowed
                             };
+
+                            if (root.RegionFishingGround != null)
+                            {
+                                lss.FishingGroundID = root.RegionFishingGround.FishingGroundCode;
+                            }
+                            else if (fg != null)
+                            {
+                                lss.FishingGroundID = fg.Code;
+                            }
+                            else
+                            {
+                            }
+
                             if (root.LandingSite == null)
                             {
-                                if (root.LandingSiteID != null)
+                                if (fls != null)
                                 {
-                                    var found_landing_site = NSAPEntities.LandingSiteViewModel.GetLandingSite(root.LandingSiteName);
-                                    if (found_landing_site != null)
-                                    {
-                                        lss.LandingSiteID = found_landing_site.LandingSiteID;
-                                    }
-                                    else
-                                    {
-                                        lss.LandingSiteText = root.LandingSiteName;
-                                        //Utilities.Logger.LogUploadJSONToLocalDB($"Landing site from JSON is null\r\nName is {root.LandingSiteName} with landing site ID of {root.LandingSiteID}");
-                                    }
+                                    lss.LandingSiteID = fls.LandingSiteID;
                                 }
                                 else
                                 {
                                     lss.LandingSiteText = root.LandingSiteText;
                                 }
+                                //if (root.LandingSiteID != null)
+                                //{
+                                //    var found_landing_site = NSAPEntities.LandingSiteViewModel.GetLandingSite(root.LandingSiteName);
+                                //    if (found_landing_site != null)
+                                //    {
+                                //        lss.LandingSiteID = found_landing_site.LandingSiteID;
+                                //    }
+                                //    else
+                                //    {
+                                //        lss.LandingSiteText = root.LandingSiteName;
+                                //        //Utilities.Logger.LogUploadJSONToLocalDB($"Landing site from JSON is null\r\nName is {root.LandingSiteName} with landing site ID of {root.LandingSiteID}");
+                                //    }
+                                //}
+                                //else
+                                //{
+                                //    lss.LandingSiteText = root.LandingSiteText;
+                                //}
+                                //lss.LandingSiteText = root.LandingSiteText;
                             }
                             else
                             {
                                 lss.LandingSiteID = root.LandingSite.LandingSiteID;
                             }
+
+
+
                             if (NSAPEntities.LandingSiteSamplingViewModel.AddRecordToRepo(lss))
                             {
                                 LandingSiteSamplingViewModel.CurrentIDNumber = lss.PK;
@@ -1293,25 +1350,32 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if (_landingGears == null)
+                if (_gearsUsedInSampledLanding != null)
                 {
-                    _landingGears = new List<MultiVesselGear_LandingGear>();
-                    var gears = _gearsUsedInSampledLanding.Split(' ');
-                    foreach (string g in gears)
+                    if (_landingGears == null)
                     {
-
-                        var gg = _parent.GearsInLandingSite.FirstOrDefault(t => t.GearLoopCounter == int.Parse(g));
-                        MultiVesselGear_LandingGear lg = new MultiVesselGear_LandingGear
+                        _landingGears = new List<MultiVesselGear_LandingGear>();
+                        var gears = _gearsUsedInSampledLanding.Split(' ');
+                        foreach (string g in gears)
                         {
-                            GearCode = gg.GearCode,
-                            GearText = gg.GearUsedText,
-                            Parent = this,
-                        };
-                        _landingGears.Add(lg);
-                    }
-                }
 
-                return _landingGears;
+                            var gg = _parent.GearsInLandingSite.FirstOrDefault(t => t.GearLoopCounter == int.Parse(g));
+                            MultiVesselGear_LandingGear lg = new MultiVesselGear_LandingGear
+                            {
+                                GearCode = gg.GearCode,
+                                GearText = gg.GearUsedText,
+                                Parent = this,
+                            };
+                            _landingGears.Add(lg);
+                        }
+                    }
+
+                    return _landingGears;
+                }
+                else
+                {
+                    return null;
+                }
             }
         }
 
@@ -1319,19 +1383,33 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                var gears = "";
-                foreach (MultiVesselGear_LandingGear lg in SampledLandingGears)
+                if (SampledLandingGears != null)
                 {
-                    gears += $"{lg.GearName}, ";
+                    var gears = "";
+                    foreach (MultiVesselGear_LandingGear lg in SampledLandingGears)
+                    {
+                        gears += $"{lg.GearName}, ";
+                    }
+                    return gears.Trim(',', ' ');
                 }
-                return gears.Trim(',', ' ');
+                else
+                {
+                    return string.Empty;
+                }
             }
         }
         public int NumberOfGearsUsedInSampledLanding
         {
             get
             {
-                return GearsUsedInSampledLanding.Split(' ').Length;
+                if (GearsUsedInSampledLanding == null)
+                {
+                    return 0;
+                }
+                else
+                {
+                    return GearsUsedInSampledLanding.Split(' ').Length;
+                }
             }
         }
 
@@ -2387,7 +2465,7 @@ namespace NSAP_ODK.Entities.Database
         private bool? _isSaved;
         public override string ToString()
         {
-            return $"{SamplingDate.ToString("yyyy-MMM-dd")} - {LandingSiteName} - {fishing_ground_name}";
+            return $"{SamplingDate.ToString("yyyy-MMM-dd")} - {LandingSiteName} - {Fishing_ground_name}";
         }
         [JsonProperty("repeat_gears")]
         public List<MultiVesselGear_Gear> GearsInLandingSite
@@ -2761,7 +2839,8 @@ namespace NSAP_ODK.Entities.Database
         [JsonProperty("landing_site_sampling_group/count_total_landing")]
         public int? CountTotalLanding { get; set; }
         public int fma_number { get; set; }
-        public string fishing_ground_name { get; set; }
+        [JsonProperty("fishing_ground_name")]
+        public string Fishing_ground_name { get; set; }
 
         [JsonProperty("landing_site_sampling_group/landing_site_text")]
         public string LandingSiteText { get; set; }
