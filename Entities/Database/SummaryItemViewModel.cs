@@ -77,7 +77,7 @@ namespace NSAP_ODK.Entities.Database
         }
         public SummaryItem GetItem(string odkROWID)
         {
-            return SummaryItemCollection.ToList().FirstOrDefault(t => t.ODKRowID == odkROWID);
+            return SummaryItemCollection.FirstOrDefault(t => t.ODKRowID == odkROWID);
             //lock (collectionLock)
             //{
             //    return SummaryItemCollection.ToList().FirstOrDefault(t => t.ODKRowID == odkROWID);

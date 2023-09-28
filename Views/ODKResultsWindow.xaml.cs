@@ -1,7 +1,6 @@
 ﻿using Microsoft.Win32;
 using NSAP_ODK.Entities;
 using NSAP_ODK.Entities.Database;
-using NSAP_ODK.Entities.Database;
 using NSAP_ODK.Utilities;
 using System;
 using System.Collections.Generic;
@@ -841,7 +840,6 @@ namespace NSAP_ODK.Views
             foreach (TreeViewItem tvi in _jsonDateDownloadnode.Items)
             {
                 tvi.IsSelected = true;
-                //ProcessJsonFileForDisplay((FileInfoJSONMetadata)tvi.Tag);
                 if (!VesselUnloadServerRepository.CancelUpload)
                 {
                     if (updateXFormID)
@@ -1765,18 +1763,14 @@ namespace NSAP_ODK.Views
                 {
                     if (_isJSONData)
                     {
-
                         if (_targetGrid.Items.Count > 0)
                         {
 
-                            if (fromJSONBatchFiles)// && await VesselUnloadServerRepository.UploadToDBAsync())
+                            if (fromJSONBatchFiles)
                             {
                                 proceed = false;
                                 if (IsMultiVessel)
                                 {
-                                    //MultiVesselGear_UnloadServerRepository.ResetTotalUploadCounter();
-                                    //MultiVesselGear_UnloadServerRepository.DelayedSave = true;
-                                    //MultiVesselGear_UnloadServerRepository.ResetGroupIDs();// VesselUnloadServerRepository.DelayedSave);
                                     MultiVesselGear_UnloadServerRepository.JSONFileCreationTime = _jsonFileUseCreationDateForHistory;
                                     proceed = await MultiVesselGear_UnloadServerRepository.UploadToDBAsync(jsonFileName: jsonFileName);
                                 }
@@ -1873,7 +1867,7 @@ namespace NSAP_ODK.Views
                                         msg += $"\r\n\r\nThere were {_ufg_count} landings with unrecognized fishing grounds";
                                     }
 
-                                    if (!VesselUnloadServerRepository.DelayedSave && !MultiVesselGear_UnloadServerRepository.DelayedSave)// || _savedCount==0)
+                                    if (!VesselUnloadServerRepository.DelayedSave && !MultiVesselGear_UnloadServerRepository.DelayedSave)
                                     {
                                         TimedMessageBox.Show(msg, "NSAP-ODK Database", 5000);
                                     }
@@ -1896,7 +1890,6 @@ namespace NSAP_ODK.Views
                                 msg,
                                 "NSAP-ODK Database",
                                 5000);
-                            //MessageBox.Show("You do not have any downloaded data", "No data", MessageBoxButton.OK, MessageBoxImage.Information);
                         }
                     }
                     else
@@ -1935,29 +1928,6 @@ namespace NSAP_ODK.Views
                         success = true;
 
                     }
-                    //if (await LandingSiteBoatLandingsFromServerRepository.UploadToDBAsync())
-                    //{
-                    //    dataGridExcel.ItemsSource = null;
-                    //    dataGridExcel.ItemsSource = LandingSiteBoatLandingsFromServerRepository.LandingSiteBoatLandings;
-                    //    int result = NSAPEntities.GearUnloadViewModel.FixGearUnload();
-                    //    success = true;
-                    //    if (result > 0)
-                    //    {
-                    //        MessageBox.Show($"Finished uploading to database and fixed {result} gear unloads", "Upload done", MessageBoxButton.OK, MessageBoxImage.Information);
-                    //    }
-                    //    else
-                    //    {
-                    //        MessageBox.Show("Finished uploading to database", "Upload done", MessageBoxButton.OK, MessageBoxImage.Information);
-                    //    }
-                    //}
-                    //else if (_savedCount == 0 && LandingSiteBoatLandingsFromServerRepository.LandingSiteBoatLandings.Count > 0)
-                    //{
-                    //    MessageBox.Show("All records already saved to the database");
-                    //}
-                    //else
-                    //{
-                    //    MessageBox.Show("No records were saved even though at least one should have been saved.\r\nPls contact developer");
-                    //}
                 }
             }
 
@@ -1992,7 +1962,7 @@ namespace NSAP_ODK.Views
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
 
-                              labelProgress.Content = $"Uploadind done. Number of landing days processed: {e.LandingSiteSamplingProcessedCount}";
+                              labelProgress.Content = $"Uploading done. Number of landing days processed: {e.LandingSiteSamplingProcessedCount}";
 
                               //do what you need to do on UI Thread
                               return null;
@@ -2045,7 +2015,6 @@ namespace NSAP_ODK.Views
                                 return null;
                             }
                          ), null);
-                    break;
                     break;
                 case UploadToDBIntent.Searching:
 
@@ -3223,7 +3192,6 @@ namespace NSAP_ODK.Views
 
         private void ProcessJsonFileForDisplay(FileInfoJSONMetadata fm, bool includeJSONWhenReset = false)
         {
-            bool isMultivessel = false;
             rowJSONGrid.Height = new GridLength(1, GridUnitType.Star);
             JSON = File.ReadAllText(fm.JSONFileInfo.FullName);
 

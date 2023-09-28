@@ -310,6 +310,12 @@ namespace NSAP_ODK.Entities.Database
             dc = new DataColumn { ColumnName = "Gear" };
             _effortCrostabDataTable.Columns.Add(dc);
 
+            dc = new DataColumn { ColumnName = "Time of set" ,DataType = typeof(DateTime)};
+            _effortCrostabDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Time of haul", DataType = typeof(DateTime) };
+            _effortCrostabDataTable.Columns.Add(dc);
+
             dc = new DataColumn { ColumnName = "Weight of catch of gear" };
             _effortCrostabDataTable.Columns.Add(dc);
 
@@ -380,7 +386,12 @@ namespace NSAP_ODK.Entities.Database
 
             foreach (var item in _crossTabEffortsAll_vesselUnloadGear)
             {
+                
                 var row = _effortCrostabDataTable.NewRow();
+                if(item.CrossTabCommon.VesselUnload.GearSoakViewModel==null)
+                {
+                    item.CrossTabCommon.VesselUnload.GearSoakViewModel = new GearSoakViewModel(item.CrossTabCommon.VesselUnload);
+                }
                 CrossTabCommonProperties ctcp = item.CrossTabCommon.CommonProperties;
                 row["Data ID"] = ctcp.DataID;
                 row["Successful fishing operation"] = ctcp.OperationSuccessful;
@@ -413,6 +424,18 @@ namespace NSAP_ODK.Entities.Database
 
 
                 row["Gear"] = ctcp.Gear;
+
+                if (ctcp.DateTimeGearSet == null ||ctcp.DateTimeGearHaul==null)
+                {
+                    row["Time of set"] = DBNull.Value;
+                    row["Time of haul"] = DBNull.Value;
+                }
+                else
+                {
+                    row["Time of set"] = ctcp.DateTimeGearSet;
+                    row["Time of haul"] = ctcp.DateTimeGearHaul;
+                }
+
                 row["Weight of catch of gear"] = ctcp.GearCatchWeight;
                 row["# species in catch of gear"] = ctcp.GearCatchSpeciesCount;
                 row["Ref #"] = ctcp.RefNo;
@@ -687,6 +710,12 @@ namespace NSAP_ODK.Entities.Database
             dc = new DataColumn { ColumnName = "Gear" };
             _effortSpeciesCrostabDataTable.Columns.Add(dc);
 
+            dc = new DataColumn { ColumnName = "Time of set", DataType = typeof(DateTime) };
+            _effortSpeciesCrostabDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Time of haul", DataType = typeof(DateTime) };
+            _effortSpeciesCrostabDataTable.Columns.Add(dc);
+
             dc = new DataColumn { ColumnName = "Ref #" };
             _effortSpeciesCrostabDataTable.Columns.Add(dc);
 
@@ -792,6 +821,17 @@ namespace NSAP_ODK.Entities.Database
                 }
 
                 row["Gear"] = ctcp.Gear;
+
+                if (ctcp.DateTimeGearSet == null ||ctcp.DateTimeGearHaul==null)
+                {
+                    row["Time of set"] = DBNull.Value;
+                    row["Time of haul"] = DBNull.Value;
+                }
+                else
+                {
+                    row["Time of set"] = ctcp.DateTimeGearSet;
+                    row["Time of haul"] = ctcp.DateTimeGearHaul;
+                }
 
                 row["Ref #"] = ctcp.RefNo;
                 row["Is a fishing boat used"] = ctcp.IsBoatUsed;

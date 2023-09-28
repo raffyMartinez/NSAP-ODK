@@ -19,6 +19,16 @@ namespace NSAP_ODK.Entities.Database
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
+        public DateTime GetFirstSet()
+        {
+            return GearSoakCollection.OrderBy(t => t.TimeAtSet).First().TimeAtSet;
+        }
+
+        public DateTime GetLastHaul()
+        {
+            return GearSoakCollection.OrderByDescending(t => t.TimeAtHaul).First().TimeAtHaul;
+        }
         public static int CurrentIDNumber { get; set; }
         protected virtual void Dispose(bool disposing)
         {

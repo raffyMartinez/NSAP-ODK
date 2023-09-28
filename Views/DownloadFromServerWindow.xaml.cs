@@ -20,12 +20,10 @@ using Xceed.Wpf.Toolkit.PropertyGrid;
 using NSAP_ODK.Utilities;
 using System.IO;
 using Ookii.Dialogs.Wpf;
-using NSAP_ODK.Entities.Database;
 using System.Net;
 using Microsoft.Win32;
 using System.Net.Http.Headers;
 using System.Windows.Threading;
-using Ookii.Dialogs.Wpf;
 using System.Xml.Serialization;
 
 namespace NSAP_ODK.Views

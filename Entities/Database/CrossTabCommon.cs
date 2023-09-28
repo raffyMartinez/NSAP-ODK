@@ -53,7 +53,33 @@ namespace NSAP_ODK.Entities.Database
         private GearUnload _gearUnload;
         private VesselUnload_FishingGear _vesselUnload_FishingGear;
 
-
+        public DateTime? DateTimeGearSet { 
+            get 
+            {
+                if (_vesselUnload.GearSoakViewModel != null && _vesselUnload.GearSoakViewModel.Count > 0)
+                {
+                    return _vesselUnload.GearSoakViewModel.GetFirstSet();
+                }
+                else
+                {
+                    return null;
+                }
+            } 
+        }
+        public DateTime? DateTimeGearHaul 
+        {
+            get
+            {
+                if (_vesselUnload.GearSoakViewModel != null && _vesselUnload.GearSoakViewModel.Count > 0)
+                {
+                    return _vesselUnload.GearSoakViewModel.GetLastHaul();
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
         public VesselUnload_FishingGear VesselUnload_FishingGear
         {
             get { return _vesselUnload_FishingGear; }
@@ -239,6 +265,8 @@ namespace NSAP_ODK.Entities.Database
         private VesselUnload_FishingGear _vesselUnload_FishingGear;
         private string _family;
         private string _sn;
+
+        public VesselUnload VesselUnload { get { return _vesselUnload; } }
 
         public override string ToString()
         {

@@ -159,16 +159,14 @@ namespace NSAP_ODK.Entities.Database
 
             UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.Searching });
             UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { LandingSiteSamplingCount = MultiVesselLandings.Count, Intent = UploadToDBIntent.StartOfUpload });
-            //if (LandingSiteSamplingViewModel.CurrentIDNumber == 0)
-            //{
+
             LandingSiteSamplingViewModel.CurrentIDNumber = NSAPEntities.SummaryItemViewModel.GetLandingSiteSamplingMaxRecordNumber(fromCollection: true);
             int maxID = LandingSiteSamplingRepository.MaxRecordNumber_from_db();
             if (maxID > LandingSiteSamplingViewModel.CurrentIDNumber)
             {
                 LandingSiteSamplingViewModel.CurrentIDNumber = maxID;
             }
-            //LandingSiteSamplingViewModel.CurrentIDNumber = NSAPEntities.SummaryItemViewModel.GetLandingSiteSamplingMaxRecordNumber(fromCollection: true);
-            //}
+
             foreach (MultiVesselGear_Root root in MultiVesselLandings)
             {
                 try
@@ -215,15 +213,13 @@ namespace NSAP_ODK.Entities.Database
                         }
 
 
-                        if (lss == null)//&& root.LandingSite!=null)
+                        if (lss == null)
                         {
 
                             //if we are here then it means that the current landing site sampling is not yet saved
                             lss = new LandingSiteSampling
                             {
                                 PK = LandingSiteSamplingViewModel.CurrentIDNumber + 1,
-                                //LandingSiteID = root.LandingSite == null ? null : (int?)root.LandingSite.LandingSiteID,
-                                //FishingGroundID = root.RegionFishingGround.FishingGround.Code,
                                 IsSamplingDay = root.IsSamplingDay,
                                 SamplingDate = root.SamplingDate.Date,
                                 NSAPRegionID = root.NSAPRegion.Code,
@@ -260,6 +256,7 @@ namespace NSAP_ODK.Entities.Database
                             }
                             else
                             {
+                                //what to do if there is a fishing ground that is not recognized
                             }
 
                             if (root.LandingSite == null)
@@ -272,24 +269,6 @@ namespace NSAP_ODK.Entities.Database
                                 {
                                     lss.LandingSiteText = root.LandingSiteText;
                                 }
-                                //if (root.LandingSiteID != null)
-                                //{
-                                //    var found_landing_site = NSAPEntities.LandingSiteViewModel.GetLandingSite(root.LandingSiteName);
-                                //    if (found_landing_site != null)
-                                //    {
-                                //        lss.LandingSiteID = found_landing_site.LandingSiteID;
-                                //    }
-                                //    else
-                                //    {
-                                //        lss.LandingSiteText = root.LandingSiteName;
-                                //        //Utilities.Logger.LogUploadJSONToLocalDB($"Landing site from JSON is null\r\nName is {root.LandingSiteName} with landing site ID of {root.LandingSiteID}");
-                                //    }
-                                //}
-                                //else
-                                //{
-                                //    lss.LandingSiteText = root.LandingSiteText;
-                                //}
-                                //lss.LandingSiteText = root.LandingSiteText;
                             }
                             else
                             {
@@ -304,11 +283,6 @@ namespace NSAP_ODK.Entities.Database
                                 proceed = true;
                             }
                         }
-                        //else if(root.LandingSite==null)
-                        //{
-                        //    proceed = false;
-                        //    
-                        //}
                         else
                         {
                             proceed = true;
@@ -341,7 +315,6 @@ namespace NSAP_ODK.Entities.Database
                                 foreach (MultiVesselGear_Gear gear in root.GearsInLandingSite)
                                 {
                                     gu = lss.GearUnloadViewModel.GetGearUnloadEx(gear.GearName);
-                                    //if (lss.GearUnloadViewModel.GetGearUnload(gear.GearName, gear.NumberOfLandingsOfGear, gear.WeightOfCatchOfGear) == null)
                                     if (gu == null)
                                     {
                                         gu = new GearUnload
@@ -357,8 +330,6 @@ namespace NSAP_ODK.Entities.Database
                                             WeightOfCommercialLandings = gear.WeightOfCatchCommercial,
                                             Remarks = gear.GearRemarks,
                                             Sequence = gear.GearLoopCounter,
-                                            //GearID = gear.GearCode == "_OT" ? "" : gear.GearCode,
-                                            //GearUsedText = gear.GearUsedText,
                                             DelayedSave = DelayedSave,
                                         };
                                         var gear2 = NSAPEntities.GearViewModel.GetGear(gear.GearCode);
@@ -500,7 +471,6 @@ namespace NSAP_ODK.Entities.Database
                                                         int countSavedInLoop = 0;
                                                         foreach (MultiVesselGear_LandingGear mvg_lg in sl.SampledLandingGears)
                                                         {
-                                                            //MultiVesselGear_Gear mvgg = root.GearsInLandingSite.FirstOrDefault(t => t.GearLoopCounter == int.Parse(g));
                                                             VesselUnload_FishingGear vufg = new VesselUnload_FishingGear
                                                             {
                                                                 GearCode = mvg_lg.GearCode == "_OT" ? "" : mvg_lg.GearCode,
@@ -510,7 +480,7 @@ namespace NSAP_ODK.Entities.Database
                                                                 DelayedSave = true,
                                                             };
 
-                                                            if (vu.VesselUnload_FishingGearsViewModel.AddRecordToRepo(vufg))// && sl.CatchCompositionItems.Count > 0)
+                                                            if (vu.VesselUnload_FishingGearsViewModel.AddRecordToRepo(vufg))
                                                             {
                                                                 VesselUnload_FishingGearViewModel.CurrentIDNumber = vufg.RowID;
                                                                 if (vufg.VesselUnload_Gear_Specs_ViewModel == null)
@@ -551,13 +521,6 @@ namespace NSAP_ODK.Entities.Database
                                                                     Utilities.Logger.LogUploadJSONToLocalDB($"Fishing gear from JSON not found in local database\r\nGear code is {vufg.GearCode}");
                                                                 }
 
-                                                                //VesselUnload_FishingGearViewModel.
-
-
-                                                                //if (sl.IncludeCatchComp)
-                                                                //{
-                                                                //    vufg.VesselCatchViewModel = new VesselCatchViewModel(isNew: true);
-                                                                //}
                                                                 countSavedInLoop++;
                                                             }
                                                             vufg.VesselUnload_Gear_Specs_ViewModel.Dispose();
@@ -585,11 +548,7 @@ namespace NSAP_ODK.Entities.Database
                                                                         vufg.WeightOfCatch = item.WeightOfCatch;
                                                                         vufg.WeightOfSample = item.WeightOfSample;
                                                                         vu.VesselUnload_FishingGearsViewModel.UpdateRecordInRepo(vufg, update_wt_ct: true);
-                                                                        //vu.CountCatchCompositionItems = sl.CatchCompositionItems.Count;
-                                                                        //if (vu.VesselCatchViewModel == null)
-                                                                        //{
-                                                                        //    vu.VesselCatchViewModel = new VesselCatchViewModel(isNew: true);
-                                                                        //}
+
                                                                         foreach (MultiVesselGear_CatchCompositionItem mvg_cci in item.CatchCompositionItems)
                                                                         {
                                                                             VesselCatch vc = new VesselCatch
@@ -729,7 +688,6 @@ namespace NSAP_ODK.Entities.Database
                                                                             }
                                                                         }
                                                                         vufg.VesselCatchViewModel.Dispose();
-                                                                        //vu.VesselCatchViewModel.Dispose();
                                                                     }
                                                                     else
                                                                     {
@@ -756,15 +714,12 @@ namespace NSAP_ODK.Entities.Database
                                                                 vu.VesselUnload_FishingGearsViewModel.UpdateRecordInRepo(vufg, update_wt_ct: true);
                                                             }
                                                         }
-                                                        //vu.VesselUnload_FishingGearsViewModel.Dispose();
-
 
                                                         if (gu.VesselUnloadViewModel.UpdateUnloadStats(vu) && NSAPEntities.SummaryItemViewModel.AddRecordToRepo(vu))
                                                         {
                                                             if (sl.IncludeCatchComp)
                                                             {
                                                                 gu.VesselUnloadViewModel.UpdateWeightValidation(NSAPEntities.SummaryItemViewModel.CurrentEntity, vu);
-                                                                //vu.VesselCatchViewModel.Dispose();
 
                                                             }
                                                             vu.VesselUnload_FishingGearsViewModel.Dispose();
@@ -772,6 +727,7 @@ namespace NSAP_ODK.Entities.Database
                                                             sl.SavedInLocalDatabase = true;
                                                             UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadSavedCount = savedCount, Intent = UploadToDBIntent.VesselUnloadSaved });
                                                             TotalUploadCount++;
+                                                            
                                                         }
                                                         else
                                                         {
@@ -791,7 +747,6 @@ namespace NSAP_ODK.Entities.Database
                                             if (NSAPEntities.SummaryItemViewModel.AddRecordToRepo(gu))
                                             {
                                                 savedCount++;
-                                                //UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.Uploading });
                                                 TotalUploadCount++;
                                             }
                                         }
@@ -807,7 +762,6 @@ namespace NSAP_ODK.Entities.Database
                                 if (NSAPEntities.SummaryItemViewModel.AddRecordToRepo(lss))
                                 {
                                     savedCount++;
-                                    //UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.Uploading });
                                     TotalUploadCount++;
                                 }
                             }
@@ -1120,6 +1074,7 @@ namespace NSAP_ODK.Entities.Database
                         else
                         {
                             Utilities.Logger.Log("VesselUnloadServerRepository.SavedVesselUnloadObject Error when getting savedVeselUnloadObject when in release mode", ex);
+                            _savedVesselUnloadObject = null;
                         }
                     }
                 }
