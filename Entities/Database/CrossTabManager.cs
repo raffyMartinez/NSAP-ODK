@@ -310,10 +310,10 @@ namespace NSAP_ODK.Entities.Database
             dc = new DataColumn { ColumnName = "Gear" };
             _effortCrostabDataTable.Columns.Add(dc);
 
-            dc = new DataColumn { ColumnName = "Time of set" ,DataType = typeof(DateTime)};
+            dc = new DataColumn { ColumnName = "Date of set" ,DataType = typeof(DateTime)};
             _effortCrostabDataTable.Columns.Add(dc);
 
-            dc = new DataColumn { ColumnName = "Time of haul", DataType = typeof(DateTime) };
+            dc = new DataColumn { ColumnName = "Date of haul", DataType = typeof(DateTime) };
             _effortCrostabDataTable.Columns.Add(dc);
 
             dc = new DataColumn { ColumnName = "Weight of catch of gear" };
@@ -427,13 +427,13 @@ namespace NSAP_ODK.Entities.Database
 
                 if (ctcp.DateTimeGearSet == null ||ctcp.DateTimeGearHaul==null)
                 {
-                    row["Time of set"] = DBNull.Value;
-                    row["Time of haul"] = DBNull.Value;
+                    row["Date of set"] = DBNull.Value;
+                    row["Date of haul"] = DBNull.Value;
                 }
                 else
                 {
-                    row["Time of set"] = ctcp.DateTimeGearSet;
-                    row["Time of haul"] = ctcp.DateTimeGearHaul;
+                    row["Date of set"] = ctcp.DateTimeGearSet;
+                    row["Date of haul"] = ctcp.DateTimeGearHaul;
                 }
 
                 row["Weight of catch of gear"] = ctcp.GearCatchWeight;
@@ -710,10 +710,10 @@ namespace NSAP_ODK.Entities.Database
             dc = new DataColumn { ColumnName = "Gear" };
             _effortSpeciesCrostabDataTable.Columns.Add(dc);
 
-            dc = new DataColumn { ColumnName = "Time of set", DataType = typeof(DateTime) };
+            dc = new DataColumn { ColumnName = "Date of set", DataType = typeof(DateTime) };
             _effortSpeciesCrostabDataTable.Columns.Add(dc);
 
-            dc = new DataColumn { ColumnName = "Time of haul", DataType = typeof(DateTime) };
+            dc = new DataColumn { ColumnName = "Date of haul", DataType = typeof(DateTime) };
             _effortSpeciesCrostabDataTable.Columns.Add(dc);
 
             dc = new DataColumn { ColumnName = "Ref #" };
@@ -824,13 +824,13 @@ namespace NSAP_ODK.Entities.Database
 
                 if (ctcp.DateTimeGearSet == null ||ctcp.DateTimeGearHaul==null)
                 {
-                    row["Time of set"] = DBNull.Value;
-                    row["Time of haul"] = DBNull.Value;
+                    row["Date of set"] = DBNull.Value;
+                    row["Date of haul"] = DBNull.Value;
                 }
                 else
                 {
-                    row["Time of set"] = ctcp.DateTimeGearSet;
-                    row["Time of haul"] = ctcp.DateTimeGearHaul;
+                    row["Date of set"] = ctcp.DateTimeGearSet;
+                    row["Date of haul"] = ctcp.DateTimeGearHaul;
                 }
 
                 row["Ref #"] = ctcp.RefNo;

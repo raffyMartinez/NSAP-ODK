@@ -71,6 +71,7 @@ namespace NSAP_ODK.Entities
         public static Grid25InlandLocationViewModel Grid25InlandLocationViewModel;
         public static MajorGridFMAViewModel MajorGridFMAViewModel;
         public static LandingSiteSamplingViewModel LandingSiteSamplingViewModel;
+        public static LandingSiteSamplingSubmissionViewModel LandingSiteSamplingSubmissionViewModel;
         public static GearUnloadViewModel GearUnloadViewModel;
         public static VesselUnloadViewModel VesselUnloadViewModel;
         public static VesselEffortViewModel VesselEffortViewModel;
@@ -131,6 +132,7 @@ namespace NSAP_ODK.Entities
             VesselUnload_FishingGearViewModel.ClearCSV();
             VesselUnloadViewModel.ClearCSV();
             GearUnloadViewModel.ClearCSV();
+            LandingSiteSamplingSubmissionViewModel.ClearCSV();
             LandingSiteSamplingViewModel.ClearCSV();
         }
 
@@ -174,6 +176,7 @@ namespace NSAP_ODK.Entities
             VesselUnloadRepository.ClearTable(otherConnectionString);
             TotalWtSpRepository.ClearTable(otherConnectionString);
             GearUnloadRepository.ClearTable(otherConnectionString);
+            LandingSiteSamplingSubmissionRepository.ClearTable(otherConnectionString);
             if (LandingSiteSamplingRepository.ClearTable(otherConnectionString))
             {
                 success = true;

@@ -45,6 +45,9 @@ namespace NSAP_ODK.Views
             _timer.Tick += OnTimerTick;
             switch (TaskToDo)
             {
+                case "delete multivessel gear data":
+                    labelBigTitle.Content = "Delete multivessel and gear data";
+                    break;
                 case "get enumerators first sampling":
                     labelBigTitle.Content = "Get first sampling of enumeartors";
                     break;
@@ -107,6 +110,8 @@ namespace NSAP_ODK.Views
         public string ListToImportFromTextBox { get; set; }
         public List<FileInfoJSONMetadata> FileInfoJSONMetadatas { get; set; }
         public FisheriesSector Sector { get; set; }
+
+
         private string GetJSONFolder(bool savedHistory = true)
         {
             string description = "Locate folder containing saved JSON history files";
@@ -133,6 +138,8 @@ namespace NSAP_ODK.Views
             }
             return "";
         }
+
+
         public async Task DoTask()
         {
             string labelSuccessFindingMismatch = "Mismatched items were found";
@@ -141,6 +148,50 @@ namespace NSAP_ODK.Views
 
             switch (TaskToDo)
             {
+                case "delete multivessel gear data":
+                    progressLabel.Visibility = Visibility.Collapsed;
+                    NSAPEntities.SummaryItemViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
+                    textBlockDescription.Text = "Deleting multi vessel and gear data";
+                    if (await CatchMaturityRepository.DeleteMultivesselDataAsync())
+                    {
+                        if (await CatchLenFreqRepository.DeleteMultivesselDataAsync())
+                        {
+                            if (await CatchLengthRepository.DeleteMultivesselDataAsync())
+                            {
+                                if (await CatchLenWeightRepository.DeleteMultivesselDataAsync())
+                                {
+                                    if (await VesselCatchRepository.DeleteMultivesselDataAsync())
+                                    {
+                                        if (await VesselUnload_Gear_Spec_Repository.DeleteMultivesselDataAsync())
+                                        {
+                                            if (await VesselUnload_FishingGearRepository.DeleteMultivesselDataAsync())
+                                            {
+                                                if (await FishingGroundGridRepository.DeleteMultivesselDataAsync())
+                                                {
+                                                    if (await GearSoakRepository.DeleteMultivesselDataAsync())
+                                                    {
+                                                        if(await VesselUnloadRepository.DeleteMultivesselDataAsync())
+                                                        {
+                                                            if(await GearUnloadRepository.DeleteMultivesselDataAsync())
+                                                            {
+                                                                if(await LandingSiteSamplingRepository.DeleteMultivesselDataAsync())
+                                                                {
+                                                                    DialogResult = true;
+                                                                }
+                                                            }
+                                                        }
+
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    NSAPEntities.SummaryItemViewModel.ProcessingItemsEvent -= OnProcessingItemsEvent;
+                    break;
                 case "get enumerators first sampling":
                     NSAPEntities.SummaryItemViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
                     textBlockDescription.Text = "Getting first sampling of enumerators";
@@ -407,6 +458,7 @@ namespace NSAP_ODK.Views
 
                     break;
                 case "done deleting":
+                case "done deleting multivessel data":
                 case "done searching":
                 case "done sorting":
                 case "done fixing":
@@ -436,6 +488,10 @@ namespace NSAP_ODK.Views
                               {
                                   case "getting enumerators first sampling done":
                                       processName = "getting first sampling of enumerators";
+                                      break;
+                                  case "done deleting multivessel data":
+                                      processName = "deleting";
+                                      DialogResult = true;
                                       break;
                                   case "finished adding names to list":
                                       processName = "adding";

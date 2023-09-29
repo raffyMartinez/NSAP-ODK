@@ -237,47 +237,9 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                 case "treeItemCatchComposition":
                     effortDataGrid.Columns.Clear();
                     effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("PK") });
-                    //if (_editMode)
-                    //{
-
-                    //effortDataGrid.IsReadOnly = false;
-                    //DataGridComboBoxColumn taxaColumn = new DataGridComboBoxColumn();
-
-                    //taxaColumn.Header = "Taxa";
-                    //var cmbItems = new ObservableCollection<string>();
-                    ////ObservableCollection<KeyValuePair<string, string>> taxaItems = new ObservableCollection<KeyValuePair<string, string>>();
-                    //foreach (var item in NSAPEntities.TaxaViewModel.TaxaCollection)
-                    //{
-
-                    //    //taxaItems.Add(new KeyValuePair<string, string>(item.Code, item.Name));
-                    //    cmbItems.Add(item.Name);
-                    //}
-                    ////myDGCBC.ItemsSource = taxaItems;
-                    //taxaColumn.ItemsSource = cmbItems;
-                    ////myDGCBC.DisplayMemberPath = "Value";
-                    ////myDGCBC.SelectedValuePath = "Key";
-                    //taxaColumn.SelectedItemBinding = new Binding("TaxaName");
-                    //effortDataGrid.Columns.Add(taxaColumn);
-
-                    //DataGridComboBoxColumn genusColumn = new DataGridComboBoxColumn();
-                    //genusColumn.Header = "Genus";
-
-
-
-
-                    //effortDataGrid.DataContext = _vesselUnload.ListVesselCatchEdited;
-                    //}
-                    //else
-                    //{
-
-
                     effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Taxa", Binding = new Binding("Taxa") });
                     effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Name", Binding = new Binding("CatchNameEx") });
-
-                    //if (VesselUnload.IsMultiGear)
-                    //{
                     effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("GearNameUsedEx") });
-                    //}
 
                     col = new DataGridTextColumn()
                     {
@@ -301,10 +263,6 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                     effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Price", Binding = new Binding("PriceOfSpecies") });
                     effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Unit", Binding = new Binding("PriceUnit") });
                     effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Other unit", Binding = new Binding("OtherPriceUnit") });
-
-                    //effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("Catch_kg") });
-                    //effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight of sample", Binding = new Binding("Sample_kg") });
-                    //effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "TWS", Binding = new Binding("TWS") });
                     effortDataGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "From total catch", Binding = new Binding("FromTotalCatch") });
                     effortDataGrid.DataContext = _vesselUnload.ListVesselCatch;
                     //}
@@ -343,7 +301,6 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                     catchDataGrid.DataContext = VesselCatch?.ListCatchMaturity;
                     break;
             }
-            //effortDataGrid.Items.Refresh();
             labelCatch.Content = $"{GetContextLabel()} {VesselCatch?.CatchName}";
         }
         private Style AlignRightStyle

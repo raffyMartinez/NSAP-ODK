@@ -61,6 +61,7 @@ namespace NSAP_ODK.Entities.Database
         //}
 
         public static event EventHandler<UploadToDbEventArg> UploadSubmissionToDB;
+        private static HashSet<string> _undetectedGears = new HashSet<string>();
         public static Task<bool> UploadToDBAsync(string jsonFileName = "")
         {
             return Task.Run(() => UploadToDatabase(jsonFileName: jsonFileName));
@@ -135,8 +136,13 @@ namespace NSAP_ODK.Entities.Database
             MultiVesselGear_CatchLenWt.SetRowIDs();
         }
 
+        public static int LandingSiteSamplingProcessedCount { get; set; }
+        public static int LandingSiteSamplingUniqueCount { get; set; }
         public static void ResetTotalUploadCounter(bool uploadingDone = false)
         {
+            _undetectedGears.Clear();
+            LandingSiteSamplingProcessedCount = 0;
+            LandingSiteSamplingUniqueCount = 0;
             TotalUploadCount = 0;
             if (uploadingDone)
             {
@@ -145,13 +151,14 @@ namespace NSAP_ODK.Entities.Database
                 UnmatchedEnumeratorIDs.Clear();
             }
         }
+
         public static int TotalUploadCount { get; private set; }
         public static bool UpdateInProgress { get; set; }
         public static bool UploadInProgress { get; set; }
         public static HashSet<UnmatchedEnumeratorJSONFile> UnmatchedEnumeratorIDs { get; set; } = new HashSet<UnmatchedEnumeratorJSONFile>();
         public static bool UploadToDatabase(List<VesselLanding> resolvedLandings = null, string jsonFileName = "")
         {
-            Utilities.Logger.LogUploadJSONToLocalDB($"start uploading JSON to local db with {MultiVesselLandings.Count} landing days");
+            Utilities.Logger.LogUploadJSONToLocalDB($"start uploading JSON to local db with {MultiVesselLandings.Count} landing days count");
             DelayedSave = true;
             bool proceed = false;
             int savedCount = 0;
@@ -173,7 +180,8 @@ namespace NSAP_ODK.Entities.Database
                 {
                     lss_loop_count++;
                     Console.WriteLine($"lss_loop_count is {lss_loop_count}");
-                    LandingSiteSampling lss = NSAPEntities.SummaryItemViewModel.GetLandingSiteSampling(root.SubmissionUUID);
+                    //LandingSiteSampling lss = NSAPEntities.SummaryItemViewModel.GetLandingSiteSampling(root.SubmissionUUID);
+                    LandingSiteSampling lss = NSAPEntities.LandingSiteSamplingSubmissionViewModel.GetLandingSiteSampling(root.SubmissionUUID);
                     if (lss == null)
                     {
                         LandingSite fls = null;
@@ -279,13 +287,29 @@ namespace NSAP_ODK.Entities.Database
 
                             if (NSAPEntities.LandingSiteSamplingViewModel.AddRecordToRepo(lss))
                             {
+                                LandingSiteSamplingUniqueCount++;
                                 LandingSiteSamplingViewModel.CurrentIDNumber = lss.PK;
                                 proceed = true;
                             }
                         }
                         else
                         {
+                            Utilities.Logger.LogUploadJSONToLocalDB($"Duplicated LSS: {lss.ToString()}\tPosition: {lss_loop_count}\tJSON:{jsonFileName}\tSubmission UUID:{root.SubmissionUUID}");
                             proceed = true;
+                        }
+
+                        if (proceed)
+                        {
+                            LandingSiteSamplingSubmission lsss = new LandingSiteSamplingSubmission
+                            {
+                                SubmissionID = root.SubmissionUUID,
+                                DateAdded = DateTime.Now,
+                                JSONFile = jsonFileName,
+                                LandingSiteSampling = lss,
+                                XFormIdentifier =root._xform_id_string,
+                                DelayedSave = true
+                            };
+                            proceed = NSAPEntities.LandingSiteSamplingSubmissionViewModel.Add(lsss);
                         }
 
                         if (proceed)
@@ -368,6 +392,9 @@ namespace NSAP_ODK.Entities.Database
                                             {
                                                 foreach (MultiVesselGear_SampledLanding sl in root.SampledFishLandings.Where(t => t.Main_gear_used == gu.Sequence).ToList())
                                                 {
+                                                    //SummaryItem si_vu = NSAPEntities.SummaryItemViewModel.GetVesselUnload(lss.PK, sl.Reference_number);
+                                                    //if (si_vu == null)
+                                                    //{
                                                     VesselUnload vu = new VesselUnload
                                                     {
                                                         PK = VesselUnloadViewModel.CurrentIDNumber + 1,
@@ -518,7 +545,11 @@ namespace NSAP_ODK.Entities.Database
                                                                 }
                                                                 else
                                                                 {
-                                                                    Utilities.Logger.LogUploadJSONToLocalDB($"Fishing gear from JSON not found in local database\r\nGear code is {vufg.GearCode}");
+                                                                    if (!_undetectedGears.Contains(vufg.GearCode))
+                                                                    {
+                                                                        _undetectedGears.Add(vufg.GearCode);
+                                                                        Utilities.Logger.LogUploadJSONToLocalDB($"Gear not found in local DB: Gear code is {vufg.GearCode} Name:{vufg.GearUsedName}");
+                                                                    }
                                                                 }
 
                                                                 countSavedInLoop++;
@@ -691,7 +722,11 @@ namespace NSAP_ODK.Entities.Database
                                                                     }
                                                                     else
                                                                     {
-                                                                        Utilities.Logger.LogUploadJSONToLocalDB($"Fishing gear from JSON not found in local database\r\nGear code is {item.GearCode}");
+                                                                        if (!_undetectedGears.Contains(vufg.GearCode))
+                                                                        {
+                                                                            _undetectedGears.Add(vufg.GearCode);
+                                                                            Utilities.Logger.LogUploadJSONToLocalDB($"Gear not found in local DB: Gear code is {vufg.GearCode} Name:{vufg.GearUsedName}");
+                                                                        }
                                                                     }
                                                                 }
                                                             }
@@ -727,7 +762,7 @@ namespace NSAP_ODK.Entities.Database
                                                             sl.SavedInLocalDatabase = true;
                                                             UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadSavedCount = savedCount, Intent = UploadToDBIntent.VesselUnloadSaved });
                                                             TotalUploadCount++;
-                                                            
+
                                                         }
                                                         else
                                                         {
@@ -735,6 +770,7 @@ namespace NSAP_ODK.Entities.Database
                                                         }
 
                                                     }
+                                                    //}
                                                 }
                                             }
                                             else
@@ -779,7 +815,10 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
             UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { Intent = UploadToDBIntent.EndOfUpload });
-            Utilities.Logger.LogUploadJSONToLocalDB($"end uploading JSON to local db with {savedCount} landings");
+            Utilities.Logger.LogUploadJSONToLocalDB($"End uploading JSON to local db with {savedCount} landings");
+            LandingSiteSamplingProcessedCount += lss_loop_count;
+            Utilities.Logger.LogUploadJSONToLocalDB($"Landing site sampling processed count: {LandingSiteSamplingProcessedCount}");
+            Utilities.Logger.LogUploadJSONToLocalDB($"Landing site sampling unique count: {LandingSiteSamplingUniqueCount}");
             return savedCount > 0;
         }
         public static DateTime? JSONFileCreationTime { get; set; }
@@ -1514,7 +1553,6 @@ namespace NSAP_ODK.Entities.Database
 
         //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/sum_species_weight_coalesce")]
         //public string repeat_landingsgroup_sampled_landingcatch_comp_groupsum_species_weight_coalesce { get; set; }
-
 
         [JsonProperty("repeat_landings/group_sampled_landing/group_final_tally/ref_no")] //version 7.12
         public string Reference_number_12 { get; set; }

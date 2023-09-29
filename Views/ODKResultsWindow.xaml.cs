@@ -832,6 +832,7 @@ namespace NSAP_ODK.Views
 
         private async Task ProcessJSONSNodes(bool updateXFormID = false, bool locateUnsavedFromServerDownload = false, bool updateLandingSites = false, bool locateMissingLSInfo = false)
         {
+
             int nodeProcessedCount = 0;
             bool firstLoopDone = false;
             _jsonDateDownloadnode.IsExpanded = true;
@@ -903,7 +904,7 @@ namespace NSAP_ODK.Views
                         }
                         else
                         {
-
+                            //all data already saved 
                         }
                     }
                     nodeProcessedCount++;
@@ -1238,6 +1239,7 @@ namespace NSAP_ODK.Views
                         {
                             //NSAPEntities.ClearCSVData();
                             VesselUnloadServerRepository.ResetTotalUploadCounter();
+                            MultiVesselGear_UnloadServerRepository.ResetTotalUploadCounter();
                             VesselUnloadServerRepository.DelayedSave = true;
                             VesselUnloadServerRepository.ResetGroupIDs();//VesselUnloadServerRepository.DelayedSave);
                         }
@@ -1284,11 +1286,14 @@ namespace NSAP_ODK.Views
                 case "menuUploadAllJsonFiles":
                     #region menuUploadAllJsonFiles
                     //invoked when right clicking on xml file describing a set of downloaded json files
+                    //this is the actual call to process json files represented by tree node
                     ujhw = new UploadJSONHistoryOptionsWindow();
                     ujhw.JSONFilesToUploadType = JSONFilesToUploadType.UploadTypeDownloadedJsonNotDownloaded;
                     ujhw.Owner = this;
                     if ((bool)ujhw.ShowDialog())
                     {
+                        MultiVesselGear_UnloadServerRepository.ResetTotalUploadCounter();
+                        VesselUnloadServerRepository.ResetTotalUploadCounter();
                         await ProcessJSONSNodes();
                         await SaveUploadedJsonInLoop(closeWindow: true, verbose: true, isHistoryJson: false, allowDownloadAgain: true);
                     }
@@ -1333,26 +1338,12 @@ namespace NSAP_ODK.Views
 
                                 }
                             }
-                            //if (_formNameNode != null)
-                            //{
-                            //    MenuItem mi = new MenuItem
-                            //    {
-                            //        Header = "Analyze all JSON files",
-                            //        Name = "menuAnalyzeJSONDownloadedJSONFiles"
-                            //    };
-                            //    mi.Click += OnMenuClick;
-
-                            //    _formNameNode.ContextMenu = new ContextMenu();
-                            //    _formNameNode.ContextMenu.Items.Add(mi);
-                            //}
                         }
                     }
                     ResetView();
                     if (_countJSONFiles > 0)
                     {
                         _targetGrid = gridJSONContent;
-                        //ProcessJsonFileForDisplay((FileInfoJSONMetadata)_firstJSONFileNode.Tag);
-                        //treeViewJSONNavigator.Focus();
                     }
                     else
                     {

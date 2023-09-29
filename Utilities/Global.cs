@@ -347,6 +347,10 @@ namespace NSAP_ODK.Utilities
                     NSAPEntities.LandingSiteSamplingViewModel = new LandingSiteSamplingViewModel();
                     EntityLoaded?.Invoke(null, new EntityLoadedEventArg { Count = NSAPEntities.LandingSiteSamplingViewModel.Count });
 
+                    EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "Landing site submission" });
+                    NSAPEntities.LandingSiteSamplingSubmissionViewModel = new LandingSiteSamplingSubmissionViewModel();
+                    EntityLoaded?.Invoke(null, new EntityLoadedEventArg { Count = NSAPEntities.LandingSiteSamplingSubmissionViewModel.Count() });
+
                     EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "Summary item" });
                     NSAPEntities.SummaryItemViewModel = new SummaryItemViewModel();
                     EntityLoaded?.Invoke(null, new EntityLoadedEventArg { Count = NSAPEntities.SummaryItemViewModel.Count });

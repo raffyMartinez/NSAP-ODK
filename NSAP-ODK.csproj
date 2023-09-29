@@ -199,6 +199,9 @@
     <Compile Include="Entities\Database\EntityBulkImportEventArg.cs" />
     <Compile Include="Entities\Database\FileInfoJSONMetadata.cs" />
     <Compile Include="Entities\Database\GearInLandingSite.cs" />
+    <Compile Include="Entities\Database\LandingSiteSamplingSubmission.cs" />
+    <Compile Include="Entities\Database\LandingSiteSamplingSubmissionRepository.cs" />
+    <Compile Include="Entities\Database\LandingSiteSamplingSubmissionViewModel.cs" />
     <Compile Include="Entities\Database\LandingSite_FishingVessel.cs" />
     <Compile Include="Entities\Database\LandingSite_FishingVesselViewModel.cs" />
     <Compile Include="Entities\Database\LandingSite_FishingVessel_Repository.cs" />

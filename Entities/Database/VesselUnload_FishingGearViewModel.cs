@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using NPOI.POIFS.FileSystem;
+
 namespace NSAP_ODK.Entities.Database
 {
     public class VesselUnload_FishingGearViewModel : IDisposable
@@ -22,6 +24,67 @@ namespace NSAP_ODK.Entities.Database
         public void RefreshCollection()
         {
             VesselUnload_FishingGearsCollection = new ObservableCollection<VesselUnload_FishingGear>(VesselUnload_FishingGears.VesselUnload_FishingGears);
+        }
+
+        public bool DeleteCascade(VesselUnload_FishingGear gear)
+        {
+            bool success = false;
+            if (gear.VesselUnload_Gear_Specs_ViewModel == null)
+            {
+                gear.VesselUnload_Gear_Specs_ViewModel = new VesselUnload_Gear_Spec_ViewModel(gear);
+            }
+            foreach (VesselUnload_Gear_Spec spec in gear.VesselUnload_Gear_Specs_ViewModel.VesselUnload_Gear_SpecCollection.ToList())
+            {
+                gear.VesselUnload_Gear_Specs_ViewModel.DeleteRecordFromRepo(spec.RowID);
+            }
+
+
+
+            if (gear.VesselCatchViewModel == null)
+            {
+                gear.VesselCatchViewModel = new VesselCatchViewModel(gear);
+                foreach (VesselCatch vc in gear.VesselCatchViewModel.VesselCatchCollection.ToList())
+                {
+                    if (vc.CatchLenFreqViewModel == null)
+                    {
+                        vc.CatchLenFreqViewModel = new CatchLenFreqViewModel(vc);
+                    }
+                    foreach (CatchLenFreq clf in vc.CatchLenFreqViewModel.CatchLenFreqCollection.ToList())
+                    {
+                        vc.CatchLenFreqViewModel.DeleteRecordFromRepo(clf.PK);
+                    }
+
+                    if (vc.CatchLengthViewModel == null)
+                    {
+                        vc.CatchLengthViewModel = new CatchLengthViewModel(vc);
+                    }
+                    foreach (CatchLength cl in vc.CatchLengthViewModel.CatchLengthCollection.ToList())
+                    {
+                        vc.CatchLengthViewModel.DeleteRecordFromRepo(cl.PK);
+                    }
+
+                    if (vc.CatchLengthWeightViewModel == null)
+                    {
+                        vc.CatchLengthWeightViewModel = new CatchLengthWeightViewModel(vc);
+                    }
+                    foreach (CatchLengthWeight clw in vc.CatchLengthWeightViewModel.CatchLengthWeightCollection.ToList())
+                    {
+                        vc.CatchLengthWeightViewModel.DeleteRecordFromRepo(clw.PK);
+                    }
+
+                    if (vc.CatchMaturityViewModel == null)
+                    {
+                        vc.CatchMaturityViewModel = new CatchMaturityViewModel(vc);
+                    }
+                    foreach (CatchMaturity cm in vc.CatchMaturityViewModel.CatchMaturityCollection.ToList())
+                    {
+                        vc.CatchMaturityViewModel.DeleteRecordFromRepo(cm.PK);
+                    }
+
+                    gear.VesselCatchViewModel.DeleteRecordFromRepo(vc.PK);
+                }
+            }
+            return DeleteRecordFromRepo(gear.RowID);
         }
         public static int CurrentIDNumber { get; set; }
 

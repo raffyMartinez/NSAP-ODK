@@ -91,7 +91,7 @@ namespace NSAP_ODK.Utilities
             string log_uploadJSON_to_local_db = $"{AppDomain.CurrentDomain.BaseDirectory}/log_uploadJSON_to_local_db.txt";
             using (StreamWriter writer = new StreamWriter(log_uploadJSON_to_local_db, true))
             {
-                writer.WriteLine(s);
+                writer.WriteLine($"{s}\tTS:{DateTime.Now}");
             }
         }
 

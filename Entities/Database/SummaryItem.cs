@@ -413,12 +413,15 @@ namespace NSAP_ODK.Entities.Database
             {
                 if (_vesselUnload == null)
                 {
-                    if (GearUnload.VesselUnloadViewModel == null)
+                    if (GearUnload.VesselUnloadViewModel == null || GearUnload.VesselUnloadViewModel.VesselUnloadCollection.Count==0)
                     {
-                        GearUnload.VesselUnloadViewModel = new VesselUnloadViewModel(GearUnload);
+                        GearUnload.VesselUnloadViewModel = new VesselUnloadViewModel(GearUnload,updatesubViewModels:true);
                     }
                     _vesselUnload = GearUnload.VesselUnloadViewModel.VesselUnloadCollection.FirstOrDefault(t => t.PK == VesselUnloadID);
-                    _vesselUnload.VesselUnloadWeights = new VesselUnloadWeights(_vesselUnload);
+                    if (_vesselUnload != null)
+                    {
+                        _vesselUnload.VesselUnloadWeights = new VesselUnloadWeights(_vesselUnload);
+                    }
 
                 }
                 return _vesselUnload;

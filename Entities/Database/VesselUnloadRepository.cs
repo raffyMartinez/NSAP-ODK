@@ -56,12 +56,12 @@ namespace NSAP_ODK.Entities.Database
                 {
 
                     string tableName = "dbo_vessel_unload";
-                    if(relationshipToRemove.Contains("gps"))
+                    if (relationshipToRemove.Contains("gps"))
                     {
                         tableName = "dbo_vessel_unload_1";
                     }
                     sql = $"ALTER TABLE {tableName} DROP CONSTRAINT {relationshipToRemove}";
-                    
+
 
                 }
                 else
@@ -314,6 +314,79 @@ namespace NSAP_ODK.Entities.Database
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
+
+        public static Task<bool> DeleteMultivesselDataAsync()
+        {
+            return Task.Run(() => DeleteMultivesselData());
+        }
+        public static bool DeleteMultivesselData()
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = @"DELETE dbo_vessel_unload_1.*
+                                            FROM ((dbo_gear_unload INNER JOIN 
+                                                dbo_LC_FG_sample_day_1 ON dbo_gear_unload.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id) INNER JOIN 
+                                                dbo_vessel_unload ON dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) INNER JOIN 
+                                                dbo_vessel_unload_1 ON dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id
+                                            WHERE dbo_LC_FG_sample_day_1.is_multivessel=True";
+                        try
+                        {
+                            con.Open();
+                            if (cmd.ExecuteNonQuery() >= 0)
+                            {
+                                cmd.CommandText = @"DELETE dbo_LC_FG_sample_day_1.is_multivessel, dbo_vessel_unload_stats.*
+                                                            FROM((dbo_gear_unload INNER JOIN 
+                                                                dbo_LC_FG_sample_day_1 ON dbo_gear_unload.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id) INNER JOIN 
+                                                                dbo_vessel_unload ON dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) INNER JOIN 
+                                                                dbo_vessel_unload_stats ON dbo_vessel_unload.v_unload_id = dbo_vessel_unload_stats.v_unload_id
+                                                            WHERE dbo_LC_FG_sample_day_1.is_multivessel = True";
+
+
+                                try
+                                {
+                                    if (cmd.ExecuteNonQuery() >= 0)
+                                    {
+
+                                        cmd.CommandText = @"DELETE dbo_vessel_unload.*
+                                                    FROM (dbo_gear_unload INNER JOIN 
+                                                        dbo_LC_FG_sample_day_1 ON dbo_gear_unload.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id) INNER JOIN 
+                                                        dbo_vessel_unload ON dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id
+                                                    WHERE dbo_LC_FG_sample_day_1.is_multivessel = True";
+
+                                        try
+                                        {
+                                            success = cmd.ExecuteNonQuery() >= 0;
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Logger.Log(ex);
+                                        }
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Logger.Log(ex);
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
                     }
                 }
             }
@@ -965,6 +1038,29 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
+
+        public static bool CheckForLSS_SubmissionIDTable()
+        {
+            bool tableExists = false;
+            using (var conn = new OleDbConnection(Utilities.Global.ConnectionString))
+            {
+                conn.Open();
+                var schema = conn.GetOleDbSchemaTable(OleDbSchemaGuid.Tables, new object[] { null, null, null, "TABLE" });
+                if (schema.Rows
+                    .OfType<DataRow>()
+                    .Any(r => r.ItemArray[2].ToString() == "dbo_lss_submissionIDs"))
+                {
+                    tableExists = true;
+                }
+
+                if (!tableExists)
+                {
+                    tableExists = CreateTable("dbo_lss_submissionIDs");
+                }
+            }
+            return tableExists;
+
+        }
         public static bool CheckForWtValidationTable()
         {
             bool tableExists = false;
@@ -983,9 +1079,9 @@ namespace NSAP_ODK.Entities.Database
                 {
                     tableExists = CreateTable("dbo_vessel_unload_weight_validation");
                 }
-
-                return tableExists;
             }
+            return tableExists;
+
         }
         public static int? WeightValidationTableMaxID()
         {

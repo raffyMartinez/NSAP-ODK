@@ -2334,6 +2334,25 @@ namespace NSAP_ODK
             }
         }
 
+        public bool OpenRefreshedDatabase()
+        {
+            bool success = false;
+            SetDataDisplayMode();
+            ShowSplash();
+            samplingTree.ReadDatabase();
+            if (
+                NSAPEntities.NSAPRegionViewModel.Count > 0 &&
+                NSAPEntities.FishSpeciesViewModel.Count > 0 &&
+                NSAPEntities.NotFishSpeciesViewModel.Count > 0 &&
+                NSAPEntities.FMAViewModel.Count > 0
+                )
+            {
+                SetDataDisplayMode();
+                menuDatabaseSummary.IsChecked = true;
+                success = true;
+            }
+            return success;
+        }
         public bool OpenDatabaseInApp(string filename, out string backendPath)
         {
             backendPath = "";
@@ -2476,9 +2495,16 @@ namespace NSAP_ODK
             {
                 CloseTallyWindow();
             }
-
+            ProgressDialogWindow pdw = null;
             switch (itemName)
             {
+                case "menuDeleteMultiVesselData":
+                    pdw = new ProgressDialogWindow("delete multivessel gear data");
+                    if((bool)pdw.ShowDialog())
+                    {
+                        OpenRefreshedDatabase();
+                    }
+                    break;
                 case "menuCalendarRefresh":
                     break;
                 case "menuIdentifyZeroWtCatchComp":
@@ -2563,7 +2589,7 @@ namespace NSAP_ODK
                     break;
                 case "menuEnumeratorFirstSampling":
 
-                    ProgressDialogWindow pdw = new ProgressDialogWindow("get enumerators first sampling");
+                    pdw = new ProgressDialogWindow("get enumerators first sampling");
                     if ((bool)pdw.ShowDialog())
                     {
                         var fsw = FirstSamplingOfEnumeratorsWindow.GetInstance();

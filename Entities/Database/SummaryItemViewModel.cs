@@ -408,7 +408,16 @@ namespace NSAP_ODK.Entities.Database
             }
             else
             {
-                return SummaryItemCollection.Where(t => t.VesselUnloadID != null).Max(t => (int)t.VesselUnloadID);
+                var items = SummaryItemCollection.Where(t => t.VesselUnloadID != null).ToList();
+                if (items.Count == 0)
+                {
+                    return 0;
+                }
+                else
+                {
+                    return items.Max(t => (int)t.VesselUnloadID);
+                }
+
             }
         }
 
@@ -1126,6 +1135,11 @@ namespace NSAP_ODK.Entities.Database
             }
             ProcessBuildEvent(status: BuildSummaryReportStatus.StatusBuildEnd, totalRowsFetched: results.Count);
             return results;
+        }
+
+        public SummaryItem GetVesselUnload(int lss_id, string refNo)
+        {
+            return SummaryItemCollection.FirstOrDefault(t => t.SamplingDayID == lss_id && t.RefNo == refNo);
         }
         public VesselUnload GetVesselUnload(int unloadID)
         {

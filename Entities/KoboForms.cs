@@ -201,7 +201,9 @@ namespace NSAP_ODK.Entities
                         {
                             if (IsMultiVessel)
                             {
-                                v = NSAPEntities.SummaryItemViewModel.CountRecordsByFormID(XLSForm_IDString, isMultiVessel: true);
+                                //v = NSAPEntities.SummaryItemViewModel.CountRecordsByFormID(XLSForm_IDString, isMultiVessel: true);
+                                //v = NSAPEntities.LandingSiteSamplingSubmissionViewModel.Count();
+                                v = NSAPEntities.LandingSiteSamplingSubmissionViewModel.CountRecordsByFormID(XLSForm_IDString);
                             }
                             else
                             {

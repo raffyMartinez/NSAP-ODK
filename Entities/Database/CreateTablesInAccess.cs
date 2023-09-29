@@ -79,7 +79,7 @@ namespace NSAP_ODK.Entities.Database
                         connection.Open();
                         transaction = connection.BeginTransaction(IsolationLevel.ReadCommitted);
                         cmd.Transaction = transaction;
-                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "start importing csv", TotalTableCount = 18 });
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "start importing csv", TotalTableCount = 19 });
                         _importCSVCount = 0;
 
                         currentTableName = "dbo_LC_FG_sample_day";
@@ -91,6 +91,12 @@ namespace NSAP_ODK.Entities.Database
                         currentTableName = "dbo_LC_FG_sample_day_1";
                         File.WriteAllText(csv_file, LandingSiteSamplingViewModel.CSV_1);
                         cmd.CommandText = $@"INSERT INTO dbo_LC_FG_sample_day_1 SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
+                        cmd.ExecuteNonQuery();
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = currentTableName, CurrentTableCount = ++_importCSVCount });
+
+                        currentTableName = "dbo_lss_submissionIDs";
+                        File.WriteAllText(csv_file, LandingSiteSamplingSubmissionViewModel.CSV);
+                        cmd.CommandText = $@"INSERT INTO dbo_lss_submissionIDs SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
                         cmd.ExecuteNonQuery();
                         AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = currentTableName, CurrentTableCount = ++_importCSVCount });
 

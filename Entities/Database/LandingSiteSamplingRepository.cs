@@ -17,13 +17,16 @@ namespace NSAP_ODK.Entities.Database
         //private static int _maxRecordNumber;
         //private bool _addHasOperationColumn = false;
         //private string _dateFormat = "MMM-dd-yyyy";
-        public List<LandingSiteSampling> LandingSiteSamplings { get; set; }
+
 
         public static bool UpdateColumns()
         {
             bool proceed = false;
             int fieldSize = 0;
-            if (TotalWtSpRepository.CheckForTWSPTable() && VesselUnloadRepository.CheckForWtValidationTable() && UnmatchedFieldsFromJSONFileRepository.CheckTableExist())
+            if (TotalWtSpRepository.CheckForTWSPTable() &&
+                VesselUnloadRepository.CheckForWtValidationTable() &&
+                LandingSiteSamplingSubmissionRepository.CheckForLSS_SubmissionIDTable() &&
+                UnmatchedFieldsFromJSONFileRepository.CheckTableExist())
             {
                 var cols = CreateTablesInAccess.GetColumnNames("dbo_LC_FG_sample_day");
                 if (cols.Contains("has_fishing_operation") || UpdateTableDefinition("has_fishing_operation") &&
@@ -265,6 +268,55 @@ namespace NSAP_ODK.Entities.Database
             return proceed;
         }
 
+        public static Task<bool> DeleteMultivesselDataAsync()
+        {
+            return Task.Run(() => DeleteMultivesselData());
+        }
+        public static bool DeleteMultivesselData()
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = "Delete * from dbo_lss_submissionIDs";
+                        try
+                        {
+
+                            con.Open();
+                            if (cmd.ExecuteNonQuery() >= 0)
+                            {
+                                cmd.CommandText = @"DELETE  dbo_LC_FG_sample_day_1.*, dbo_LC_FG_sample_day.*
+                                                    FROM dbo_LC_FG_sample_day INNER JOIN 
+                                                        dbo_LC_FG_sample_day_1 ON dbo_LC_FG_sample_day.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id
+                                                    WHERE dbo_LC_FG_sample_day_1.is_multivessel = True;";
+                                try
+                                {
+                                    success = cmd.ExecuteNonQuery() >= 0;
+                                }
+                                catch (Exception ex)
+                                {
+                                    Logger.Log(ex);
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
+
+        public List<LandingSiteSampling> LandingSiteSamplings { get; set; }
 
         public LandingSiteSamplingRepository()
         {
@@ -888,7 +940,7 @@ namespace NSAP_ODK.Entities.Database
                             }
                             update.Parameters.Add("@fma_id", OleDbType.Integer).Value = item.FMAID;
                             update.Parameters.Add("@has_operation", OleDbType.Boolean).Value = item.HasFishingOperation;
-                            
+
                             success = update.ExecuteNonQuery() > 0;
                             if (success)
                             {

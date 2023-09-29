@@ -15,6 +15,44 @@ namespace NSAP_ODK.Entities.Database
         public List<VesselUnload_FishingGear> VesselUnload_FishingGears { get; set; }
         private VesselUnload _parent;
 
+        public static Task<bool> DeleteMultivesselDataAsync()
+        {
+            return Task.Run(() => DeleteMultivesselData());
+        }
+        public static bool DeleteMultivesselData()
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = @"DELETE  dbo_vesselunload_fishinggear.*
+                                            FROM ((dbo_gear_unload INNER JOIN 
+                                                dbo_LC_FG_sample_day_1 ON dbo_gear_unload.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id) INNER JOIN 
+                                                dbo_vessel_unload ON dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) INNER JOIN 
+                                                dbo_vesselunload_fishinggear ON dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id
+                                            WHERE dbo_LC_FG_sample_day_1.is_multivessel = True";
+                        try
+                        {
+                            con.Open();
+                            success = cmd.ExecuteNonQuery() >= 0;
+                            
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
         public static bool AddFieldToTable(string fieldName)
         {
             bool success = false;

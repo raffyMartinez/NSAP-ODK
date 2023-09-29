@@ -15,6 +15,41 @@ namespace NSAP_ODK.Entities.Database
     {
         public List<GearUnload> GearUnloads { get; set; }
 
+        public static Task<bool> DeleteMultivesselDataAsync()
+        {
+            return Task.Run(() => DeleteMultivesselData());
+        }
+        public static bool DeleteMultivesselData()
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = @"DELETE dbo_gear_unload.*
+                                            FROM dbo_gear_unload INNER JOIN 
+                                                dbo_LC_FG_sample_day_1 ON dbo_gear_unload.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id
+                                            WHERE dbo_LC_FG_sample_day_1.is_multivessel = True";
+                        try
+                        {
+                            con.Open();
+                            success = cmd.ExecuteNonQuery() >= 0;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
         public GearUnloadRepository(LandingSiteSampling ls)
         {
             GearUnloads = getGearUnloads(ls);
