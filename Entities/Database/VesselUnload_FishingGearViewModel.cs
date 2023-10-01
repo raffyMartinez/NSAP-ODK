@@ -140,6 +140,13 @@ namespace NSAP_ODK.Entities.Database
         {
             if (disposing)
             {
+                foreach(var vufg in VesselUnload_FishingGearsCollection)
+                {
+                    if (vufg.VesselCatchViewModel != null)
+                    {
+                        vufg.VesselCatchViewModel.Dispose();
+                    }
+                }
                 // free managed resources
                 VesselUnload_FishingGearsCollection.Clear();
                 VesselUnload_FishingGearsCollection = null;

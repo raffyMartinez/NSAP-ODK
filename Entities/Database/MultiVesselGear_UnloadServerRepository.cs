@@ -306,7 +306,7 @@ namespace NSAP_ODK.Entities.Database
                                 DateAdded = DateTime.Now,
                                 JSONFile = jsonFileName,
                                 LandingSiteSampling = lss,
-                                XFormIdentifier =root._xform_id_string,
+                                XFormIdentifier = root._xform_id_string,
                                 DelayedSave = true
                             };
                             proceed = NSAPEntities.LandingSiteSamplingSubmissionViewModel.Add(lsss);
@@ -458,6 +458,7 @@ namespace NSAP_ODK.Entities.Database
                                                                     if (vu.FishingGroundGridViewModel.AddRecordToRepo(fgg))
                                                                     {
                                                                         FishingGroundGridViewModel.CurrentIDNumber = fgg.PK;
+                                                                        vu.CountGrids++;
                                                                     }
                                                                 }
                                                             }
@@ -484,6 +485,7 @@ namespace NSAP_ODK.Entities.Database
                                                                 if (vu.GearSoakViewModel.AddRecordToRepo(gs))
                                                                 {
                                                                     GearSoakViewModel.CurrentIDNumber = gs.PK;
+                                                                    vu.CountGearSoak++;
                                                                 }
                                                             }
 
@@ -537,6 +539,7 @@ namespace NSAP_ODK.Entities.Database
                                                                                 if (vufg.VesselUnload_Gear_Specs_ViewModel.AddRecordToRepo(vugs))
                                                                                 {
                                                                                     VesselUnload_Gear_Spec_ViewModel.CurrentIDNumber = vugs.RowID;
+                                                                                    vufg.CountEffortIndicators++;
 
                                                                                 }
                                                                             }
@@ -554,7 +557,7 @@ namespace NSAP_ODK.Entities.Database
 
                                                                 countSavedInLoop++;
                                                             }
-                                                            vufg.VesselUnload_Gear_Specs_ViewModel.Dispose();
+                                                            //vufg.VesselUnload_Gear_Specs_ViewModel.Dispose();
                                                         }
 
 
@@ -607,13 +610,12 @@ namespace NSAP_ODK.Entities.Database
 
                                                                             if (vufg.VesselCatchViewModel.AddRecordToRepo(vc))
                                                                             {
-
                                                                                 VesselCatchViewModel.CurrentIDNumber = vc.PK;
                                                                                 if (mvg_cci.HasMeasurements)
                                                                                 {
                                                                                     if (mvg_cci.CatchGMSes != null && mvg_cci.CatchGMSes.Count > 0)
                                                                                     {
-                                                                                        vu.CountMaturityRows += mvg_cci.CatchGMSes.Count;
+                                                                                        vufg.CountMaturityRows += mvg_cci.CatchGMSes.Count;
                                                                                         if (vc.CatchMaturityViewModel == null)
                                                                                         {
                                                                                             vc.CatchMaturityViewModel = new CatchMaturityViewModel(isNew: true);
@@ -642,7 +644,7 @@ namespace NSAP_ODK.Entities.Database
                                                                                     }
                                                                                     if (mvg_cci.CatchLenFreqs != null && mvg_cci.CatchLenFreqs.Count > 0)
                                                                                     {
-                                                                                        vu.CountLenFreqRows += mvg_cci.CatchLenFreqs.Count;
+                                                                                        vufg.CountLenFreqRows += mvg_cci.CatchLenFreqs.Count;
                                                                                         if (vc.CatchLenFreqViewModel == null)
                                                                                         {
                                                                                             vc.CatchLenFreqViewModel = new CatchLenFreqViewModel(isNew: true);
@@ -667,7 +669,7 @@ namespace NSAP_ODK.Entities.Database
                                                                                     }
                                                                                     if (mvg_cci.CatchLengths != null && mvg_cci.CatchLengths.Count > 0)
                                                                                     {
-                                                                                        vu.CountLengthRows += mvg_cci.CatchLengths.Count;
+                                                                                        vufg.CountLengthRows += mvg_cci.CatchLengths.Count;
                                                                                         if (vc.CatchLengthViewModel == null)
                                                                                         {
                                                                                             vc.CatchLengthViewModel = new CatchLengthViewModel(isNew: true);
@@ -692,7 +694,7 @@ namespace NSAP_ODK.Entities.Database
 
                                                                                     if (mvg_cci.CatchLengthWeights != null && mvg_cci.CatchLengthWeights.Count > 0)
                                                                                     {
-                                                                                        vu.CountLenWtRows += mvg_cci.CatchLengthWeights.Count;
+                                                                                        vufg.CountLenWtRows += mvg_cci.CatchLengthWeights.Count;
                                                                                         if (vc.CatchLengthWeightViewModel == null)
                                                                                         {
                                                                                             vc.CatchLengthWeightViewModel = new CatchLengthWeightViewModel(isNew: true);
@@ -718,7 +720,7 @@ namespace NSAP_ODK.Entities.Database
                                                                                 }
                                                                             }
                                                                         }
-                                                                        vufg.VesselCatchViewModel.Dispose();
+                                                                        //vufg.VesselCatchViewModel.Dispose();
                                                                     }
                                                                     else
                                                                     {
@@ -737,15 +739,16 @@ namespace NSAP_ODK.Entities.Database
                                                             {
                                                                 if (sl.LandingGearsWithWeight == null)
                                                                 {
-                                                                    vufg.WeightOfCatch = sl.CatchTotal;
-                                                                    vufg.WeightOfSample = sl.CatchSampled;
+
+                                                                    vufg.WeightOfCatch = sl.CatchTotal == null ? 0 : sl.CatchTotal;
+                                                                    vufg.WeightOfSample = sl.CatchSampled==null? 0: sl.CatchSampled;
                                                                 }
                                                                 else
                                                                 {
                                                                     vufg.WeightOfCatch = sl.LandingGearsWithWeight.FirstOrDefault(t => t.GearName == vufg.GearUsedName).WeightOfCatch;
                                                                     vufg.WeightOfSample = sl.LandingGearsWithWeight.FirstOrDefault(t => t.GearName == vufg.GearUsedName).WeightOfSample;
                                                                 }
-                                                                vufg.CountItemsInCatchComposition = null;
+                                                                vufg.CountItemsInCatchComposition = 0;
                                                                 vu.VesselUnload_FishingGearsViewModel.UpdateRecordInRepo(vufg, update_wt_ct: true);
                                                             }
                                                         }
@@ -754,7 +757,9 @@ namespace NSAP_ODK.Entities.Database
                                                         {
                                                             if (sl.IncludeCatchComp)
                                                             {
-                                                                gu.VesselUnloadViewModel.UpdateWeightValidation(NSAPEntities.SummaryItemViewModel.CurrentEntity, vu);
+                                                                //gu.VesselUnloadViewModel.UpdateWeightValidation(NSAPEntities.SummaryItemViewModel.CurrentEntity, vu);
+                                                                gu.VesselUnloadViewModel.UpdateWeightValidation(vu);
+
 
                                                             }
                                                             vu.VesselUnload_FishingGearsViewModel.Dispose();

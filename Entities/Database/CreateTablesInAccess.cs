@@ -456,6 +456,7 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
             return csv.ToString().Trim(',');
+            //return csv.ToString();
         }
         public static Task<bool> DropTablesAsync()
         {

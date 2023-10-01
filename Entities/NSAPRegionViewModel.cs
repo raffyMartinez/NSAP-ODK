@@ -589,6 +589,16 @@ namespace NSAP_ODK.Entities
         {
             return GetEnumeratorsByRegionDictionary()[region];
         }
+        public NSAPRegion GetNSAPRegionFromSingleVesselLanding(VesselLanding vesselLanding)
+        {
+            CurrentEntity = vesselLanding.NSAPRegion;
+            return CurrentEntity;   
+        }
+        public NSAPRegion GetNSAPRegionFromMultiVesselLanding(MultiVesselGear_Root landing)
+        {
+            CurrentEntity = landing.NSAPRegion;
+            return CurrentEntity;
+        }
         public NSAPEnumerator GetEnumeratorInRegion(string regionCode, int nsapEnumerator)
         {
             var nsapregionEnumerator = NSAPRegionCollection.Where(t => t.Code == regionCode).FirstOrDefault().NSAPEnumerators.Where(t => t.RowID == nsapEnumerator).FirstOrDefault();

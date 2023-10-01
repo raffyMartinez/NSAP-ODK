@@ -219,7 +219,7 @@ namespace NSAP_ODK.Entities.Database
                         cmd.Parameters.Add("@date_parse", OleDbType.Date).Value = item.DateOfParsing;
                         cmd.Parameters.Add("@json_filename", OleDbType.VarChar).Value = item.JSONFileName;
                         cmd.Parameters.Add("@jsonfile_id", OleDbType.Integer).Value = item.JsonFileID;
-                        cmd.Parameters.Add("@region_id", OleDbType.VarChar).Value = item.NSAPRegion.Code;
+                        cmd.Parameters.Add("@region_id", OleDbType.VarChar).Value = item.NSAPRegion==null?"": item.NSAPRegion.Code;
                         // cmd.Parameters.AddWithValue("@ls_ids", item.AllLandingSiteIDs);
                         // cmd.Parameters.AddWithValue("@ls_names", item.AllLandingSiteNames);
                         // cmd.Parameters.AddWithValue("@enum_ids", item.AllEnumeratorIDs);

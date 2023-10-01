@@ -460,6 +460,7 @@ namespace NSAP_ODK.Views
                 jsonFile.Earliest = MultiVesselGear_UnloadServerRepository.DownloadedLandingsEarliestLandingDate();
                 jsonFile.Latest = MultiVesselGear_UnloadServerRepository.DownloadedLandingsLatestLandingDate();
                 jsonFile.Count = MultiVesselGear_UnloadServerRepository.DownloadedLandingsCount();
+                
             }
             else
             {
@@ -949,7 +950,7 @@ namespace NSAP_ODK.Views
         public SelectImportActionOption ImportActionOption { get; set; }
 
 
-        private async void OnMenuClick(object sender, RoutedEventArgs e)
+        private async void  OnMenuClick(object sender, RoutedEventArgs e)
         {
             UploadJSONHistoryOptionsWindow ujhw;
             int counter = 0;
@@ -3191,12 +3192,14 @@ namespace NSAP_ODK.Views
                 IsMultiVessel = true;
                 MultiVesselGear_UnloadServerRepository.JSON = JSON;
                 MultiVesselGear_UnloadServerRepository.CreateLandingsFromJSON();
+                NSAPEntities.NSAPRegionViewModel.GetNSAPRegionFromMultiVesselLanding(MultiVesselGear_UnloadServerRepository.MultiVesselLandings[0]);
             }
             else
             {
                 VesselUnloadServerRepository.JSON = JSON;
                 VesselUnloadServerRepository.CreateLandingsFromJSON();
                 VesselUnloadServerRepository.ResetLists(includeJSON: includeJSONWhenReset);
+                NSAPEntities.NSAPRegionViewModel.GetNSAPRegionFromSingleVesselLanding(VesselUnloadServerRepository.VesselLandings[0]);
             }
             _historyJSONFileForUploading = fm.JSONFileInfo.Name;
 

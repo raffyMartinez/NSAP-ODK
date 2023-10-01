@@ -111,5 +111,7 @@ namespace NSAP_ODK.Entities.Database
 
         public DateTime DateAdded { get; set; }
 
+        public NSAPRegion NSAPRegion { get; set; }
+
     }
 }

@@ -2503,6 +2503,8 @@ namespace NSAP_ODK
                     if((bool)pdw.ShowDialog())
                     {
                         OpenRefreshedDatabase();
+                        Button b = new Button { Name = "buttonSummary" };
+                        OnToolbarButtonClick(b, null);
                     }
                     break;
                 case "menuCalendarRefresh":

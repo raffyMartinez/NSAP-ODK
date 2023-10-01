@@ -13,5 +13,7 @@ namespace NSAP_ODK.Entities.Database
         public double? Species_kg { get; set; }
         public double? Species_sample_kg { get; set; }
         public bool FromTotalCatch { get; set; }
+
+        public int? VesselUnload_GearID { get; set; }
     }
 }

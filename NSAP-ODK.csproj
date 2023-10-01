@@ -184,6 +184,7 @@
     <Compile Include="Entities\Database\BoatLandingsFromServerRepository.cs" />
     <Compile Include="Entities\Database\BuildSummaryReportEventArg.cs" />
     <Compile Include="Entities\Database\CalendarDayLineage.cs" />
+    <Compile Include="Entities\Database\CatchWeightValidation.cs" />
     <Compile Include="Entities\Database\CatchWithZeroWeight.cs" />
     <Compile Include="Entities\Database\CollectedUnrecognizedFG.cs" />
     <Compile Include="Entities\Database\CopyTextFromDataGrid.cs" />

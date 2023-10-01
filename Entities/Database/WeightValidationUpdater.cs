@@ -24,6 +24,186 @@ namespace NSAP_ODK.Entities.Database
         public static List<VesselCatch> VesselCatches { get; set; }
 
         public static bool Cancel { get; set; }
+        public static VesselUnload VesselUnload { get; set; }
+        public static bool UpdateDatabaseMultiVessel()
+        {
+            bool success = false;
+            foreach (VesselUnload_FishingGear vufg in VesselUnload.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection.ToList())
+            {
+                bool hasSpeciesWtOfZero = false;
+                int countTotalEnum = 0;
+                int countFromSample = 0;
+                double? raisingFactor = null;
+                bool computeForRaisedValue = false;
+                double sumOfCatchCompositionSampleWeight = 0;
+                double sumOfCatchCompositionWeight = 0;
+                double? differenceCatchWtandSumCatchCompWeight = 0;
+                WeightValidationFlag wvf = WeightValidationFlag.WeightValidationNotValidated;
+                SamplingTypeFlag stf = SamplingTypeFlag.SamplingTypeNone;
+                List<VesselCatchWV> catchList = new List<VesselCatchWV>();
+
+
+                foreach (var c in vufg.VesselCatchViewModel?.VesselCatchCollection.ToList())
+                {
+                    VesselCatchWV vesselCatchWV = new VesselCatchWV
+                    {
+                        PK = c.VesselUnloadID,
+                        FromTotalCatch = c.FromTotalCatch,
+                        Species_kg = c.Catch_kg,
+                        Species_sample_kg = c.Sample_kg,
+                        VesselUnload_GearID = vufg.RowID
+                    };
+                    catchList.Add(vesselCatchWV);
+                }
+
+                if (vufg?.WeightOfCatch > 0 && vufg?.WeightOfSample > 0)
+                {
+                    //catch of gear is sampled
+                    computeForRaisedValue = true;
+                    double from_total_sum = 0;
+
+                    foreach (VesselCatchWV vc in catchList)
+                    {
+                        if (!hasSpeciesWtOfZero && vc.Species_kg == 0)
+                        {
+                            hasSpeciesWtOfZero = true;
+                        }
+                        if (vc.FromTotalCatch)
+                        {
+                            from_total_sum += (double)vc.Species_kg;
+                            countTotalEnum++;
+                        }
+                        else if (vc.Species_sample_kg != null)
+                        {
+                            sumOfCatchCompositionSampleWeight += (double)vc.Species_sample_kg;
+                            countFromSample++;
+                        }
+
+                    }
+                    raisingFactor=((double)vufg.WeightOfCatch - from_total_sum) / (double)vufg.WeightOfSample;
+                }
+                else
+                {
+                    //catch of gear is not sampled
+                    foreach (VesselCatchWV vc in catchList)
+                    {
+                        if (!hasSpeciesWtOfZero && vc.Species_kg == 0)
+                        {
+                            hasSpeciesWtOfZero = true;
+                        }
+                        sumOfCatchCompositionWeight += (double)vc.Species_kg;
+
+
+                        if (vc.FromTotalCatch)
+                        {
+                            countTotalEnum++;
+                        }
+                        else if (vc.Species_sample_kg != null)
+                        {
+                            countFromSample++;
+                        }
+
+
+                    }
+                }
+                if(computeForRaisedValue)
+                {
+                    foreach(VesselCatchWV vc in catchList)
+                    {
+                        if (vc.FromTotalCatch || vc.Species_sample_kg == null || vc.Species_sample_kg == 0)
+                        {
+                            sumOfCatchCompositionWeight += (double)vc.Species_kg;
+                        }
+                        else
+                        {
+                            sumOfCatchCompositionWeight += (double)vc.Species_sample_kg * (double)raisingFactor;
+                        }
+                    }
+                    
+                }
+
+                if (sumOfCatchCompositionWeight > 0)
+                {
+                    differenceCatchWtandSumCatchCompWeight = Math.Abs((double)vufg.WeightOfCatch - sumOfCatchCompositionWeight) / (double)vufg.WeightOfCatch * 100;
+                    if(hasSpeciesWtOfZero)
+                    {
+                        wvf = WeightValidationFlag.WeightValidationInValid;
+                    }
+                    else if (differenceCatchWtandSumCatchCompWeight <= (int)Global.Settings.AcceptableWeightsDifferencePercent)
+                    {
+                        wvf = WeightValidationFlag.WeightValidationValid;
+                    }
+                    else
+                    {
+                        //
+                    }
+                }
+                else if(hasSpeciesWtOfZero)
+                {
+                    wvf=WeightValidationFlag.WeightValidationInValid;
+                }
+                else if(sumOfCatchCompositionSampleWeight>vufg.WeightOfSample)
+                {
+                    wvf=WeightValidationFlag.WeightValidationInValid;
+                }
+
+                if(countFromSample>0 && countTotalEnum>0)
+                {
+                    stf = SamplingTypeFlag.SamplingTypeMixed;
+                }
+                else if(countFromSample>0)
+                {
+                    stf = SamplingTypeFlag.SamplingTypeSampled;
+                }
+                else if(countTotalEnum>0)
+                {
+                    stf = SamplingTypeFlag.SamplingTypeTotalEnumeration;
+                }
+
+                CatchWeightValidation cwv = new CatchWeightValidation {
+                    VesselUnload = VesselUnload,
+                    VesselUnload_FishingGear = vufg,
+                    TotalWeigthCatchComposition = sumOfCatchCompositionWeight,
+                    TotalWeightOfSampleFromCatch = sumOfCatchCompositionSampleWeight,
+                    RaisingFactor = raisingFactor,
+                    SamplingTypeFlag = stf,
+                    WeightValidationFlag = wvf,
+                    FormVersion = VesselUnload.Parent.Parent.FormVersion,
+                    DifferenceCatchWtandSumCatchCompWeight = differenceCatchWtandSumCatchCompWeight
+                };
+                CSV = MakeUnloadCSVLine(cwv);
+                return CSV.Length > 0;
+            }
+            return true;
+        }
+
+        private static string MakeUnloadCSVLine(CatchWeightValidation cwv)
+        {
+            var diff = "";
+            if (cwv.DifferenceCatchWtandSumCatchCompWeight != null)
+            {
+                if (cwv.DifferenceCatchWtandSumCatchCompWeight == 0 || cwv.DifferenceCatchWtandSumCatchCompWeight < 0.01)
+                {
+                    diff = "0";
+                }
+                else
+                {
+                    diff = ((double)cwv.DifferenceCatchWtandSumCatchCompWeight).ToString("N2");
+                }
+            }
+            string rv = cwv.VesselUnload.PK.ToString();
+            //it turns out when a value has decimal point, there are cases where only the whole number part is saved
+            //that is why the values (sum of catch comp wt, sum of catch comp sample wt) are in quotes
+            rv += $",\"{cwv.TotalWeigthCatchComposition}\"";
+            rv += $",\"{cwv.TotalWeightOfSampleFromCatch}\"";
+            rv += $",{(int)cwv.WeightValidationFlag}";
+            rv += $",{(int)cwv.SamplingTypeFlag}";
+            rv += $",\"{diff}\"";
+            rv += $",\"{cwv.FormVersion}\"";
+            rv += $",\"{cwv.RaisingFactor}\"";
+            rv += $",\"{cwv.VesselUnload_FishingGear.RowID}\"";
+            return rv;
+        }
 
         public static bool UpdateDatabase()
         {
@@ -105,9 +285,11 @@ namespace NSAP_ODK.Entities.Database
                         }
                     }
 
-
+                    
                     if (item.WeightOfCatch != null && item.WeightOfCatchSample != null && item.WeightOfCatch > 0 && item.WeightOfCatchSample > 0)
                     {
+                        //catch of vessel is sampled
+
                         computeForRaisedValue = true;
                         double from_total_sum = 0;
 
@@ -170,6 +352,7 @@ namespace NSAP_ODK.Entities.Database
                     {
                         if (item.ListOfCatch != null)
                         {
+                            //catch of vessel is not sampled
                             foreach (VesselCatchWV vc in item.ListOfCatch)
                             {
                                 if (!hasSpeciesWtOfZero && vc.Species_kg == 0)
@@ -316,7 +499,7 @@ namespace NSAP_ODK.Entities.Database
                     csv.Clear();
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Utilities.Logger.Log(ex);
             }
@@ -324,6 +507,8 @@ namespace NSAP_ODK.Entities.Database
             return !Cancel;
 
         }
+
+
         private static string MakeUnloadCSVLine(SummaryItem item)
         {
             var diff = "";

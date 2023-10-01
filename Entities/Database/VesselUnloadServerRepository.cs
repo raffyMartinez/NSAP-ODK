@@ -3092,7 +3092,7 @@ namespace NSAP_ODK.Entities.Database
                                                     {
                                                         VesselUnload_Gear_Spec_ViewModel.CurrentIDNumber = vu_gs.RowID;
                                                         VesselEffortViewModel.CurrentIDNumber = vu_gs.RowID;
-                                                        vu.CountEffortIndicators++;
+                                                        vu_fg.CountEffortIndicators++;
                                                     }
 
                                                 }

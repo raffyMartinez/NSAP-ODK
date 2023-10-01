@@ -255,6 +255,21 @@ namespace NSAP_ODK.Entities.Database
                             proceed = cols.Contains("version") || JSONFileRepository.AddFieldToTable("version");
                         }
 
+                        if (proceed)
+                        {
+                            cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_unload_weight_validation");
+                            proceed = cols.Contains("unload_gear") || VesselUnloadRepository.AddFieldToWeightValidationTable("unload_gear");
+                        }
+                        if (proceed)
+                        {
+                            cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_unload_stats");
+                            {
+                                if (cols.Contains("unload_gear") || VesselUnloadRepository.AddFieldToStatsTable("unload_gear"))
+                                {
+                                    proceed = cols.Contains("row_id") || VesselUnloadRepository.AddFieldToStatsTable("row_id");
+                                }
+                            }
+                        }
 
                     }
 

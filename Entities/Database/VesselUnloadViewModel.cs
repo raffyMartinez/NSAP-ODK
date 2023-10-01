@@ -215,11 +215,26 @@ namespace NSAP_ODK.Entities.Database
         }
         public bool IgnoreCollectionChange { get; set; }
         public static int CurrentIDNumber { get; set; }
+        public static int? CurrentUnloadStatIDNumber { get; set; }
 
+        public bool UpdateWeightValidation(VesselUnload vu)
+        {
+            WeightValidationUpdater.VesselUnload = vu;
+            if (WeightValidationUpdater.UpdateDatabaseMultiVessel())
+            {
+                if (WeightValidationUpdater.CSV.Length > 0)
+                {
+                    _weight_validataion_csv.AppendLine(WeightValidationUpdater.CSV);
+                    return true;
+                }
+            }
+            return false;
+        }
         public bool UpdateWeightValidation(SummaryItem si, VesselUnload vu)
         {
             try
             {
+
                 if (vu.VesselCatchViewModel != null)
                 {
                     WeightValidationUpdater.VesselCatches = vu.VesselCatchViewModel.VesselCatchCollection.ToList();
@@ -233,6 +248,7 @@ namespace NSAP_ODK.Entities.Database
                         }
                     }
                 }
+
             }
             catch (Exception ex)
             {
@@ -272,30 +288,77 @@ namespace NSAP_ODK.Entities.Database
         }
         public bool UpdateUnloadStats(VesselUnload vu)
         {
-            Dictionary<string, string> myDict = new Dictionary<string, string>();
-            if (vu.DelayedSave)
+            bool success = false;
+            Dictionary<string, string> myDict = null;
+            if (!vu.Parent.Parent.IsMultiVessel)
             {
-                myDict.Add("v_unload_id", vu.PK.ToString());
-                myDict.Add("count_effort", vu.CountEffortIndicators.ToString());
-                myDict.Add("count_grid", vu.CountGrids.ToString());
-                myDict.Add("count_soak", vu.CountGearSoak.ToString());
-                myDict.Add("count_catch_composition", vu.CountCatchCompositionItems.ToString());
-                myDict.Add("count_lengths", vu.CountLengthRows.ToString());
-                myDict.Add("count_lenfreq", vu.CountLenFreqRows.ToString());
-                myDict.Add("count_lenwt", vu.CountLenWtRows.ToString());
-                myDict.Add("count_maturity", vu.CountMaturityRows.ToString());
+                myDict = new Dictionary<string, string>();
+                if (vu.DelayedSave)
+                {
+                    myDict.Add("v_unload_id", vu.PK.ToString());
+                    myDict.Add("count_effort", vu.CountEffortIndicators.ToString());
+                    myDict.Add("count_grid", vu.CountGrids.ToString());
+                    myDict.Add("count_soak", vu.CountGearSoak.ToString());
+                    myDict.Add("count_catch_composition", vu.CountCatchCompositionItems.ToString());
+                    myDict.Add("count_lengths", vu.CountLengthRows.ToString());
+                    myDict.Add("count_lenfreq", vu.CountLenFreqRows.ToString());
+                    myDict.Add("count_lenwt", vu.CountLenWtRows.ToString());
+                    myDict.Add("count_maturity", vu.CountMaturityRows.ToString());
+                    myDict.Add("unload_gear", " ");
+                    if (CurrentUnloadStatIDNumber == null)
+                    {
+                        CurrentUnloadStatIDNumber = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastUnloadStatPK;
+                    }
+                    myDict.Add("row_id", (CurrentUnloadStatIDNumber + 1).ToString());
+                    CurrentUnloadStatIDNumber++;
 
+                    _unloadStats_csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload_stats"));
 
-                _unloadStats_csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload_stats"));
-
-                //_unloadStats_csv.AppendLine($"{vu.PK},{vu.CountEffortIndicators},{vu.CountGrids},{vu.CountGearSoak},{vu.CountCatchCompositionItems},{vu.CountLengthRows},{vu.CountLenFreqRows},{vu.CountLenWtRows},{vu.CountMaturityRows}");
-
-                return true;
+                    //_unloadStats_csv.AppendLine($"{vu.PK},{vu.CountEffortIndicators},{vu.CountGrids},{vu.CountGearSoak},{vu.CountCatchCompositionItems},{vu.CountLengthRows},{vu.CountLenFreqRows},{vu.CountLenWtRows},{vu.CountMaturityRows}");
+                    success = true;
+                }
+                else
+                {
+                    success = VesselUnloads.AddUnloadStats(vu);
+                }
             }
             else
             {
-                return VesselUnloads.AddUnloadStats(vu);
+                foreach (VesselUnload_FishingGear vufg in vu.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection)
+                {
+                    myDict = new Dictionary<string, string>();
+                    if (vu.DelayedSave)
+                    {
+                        myDict.Add("v_unload_id", " ");
+                        myDict.Add("count_effort", vufg.CountEffortIndicators.ToString());
+                        myDict.Add("count_grid", vu.CountGrids.ToString());
+                        myDict.Add("count_soak", vu.CountGearSoak.ToString());
+                        myDict.Add("count_catch_composition",  ((int)vufg.CountItemsInCatchComposition).ToString());
+                        myDict.Add("count_lengths", vufg.CountLengthRows.ToString());
+                        myDict.Add("count_lenfreq", vufg.CountLenFreqRows.ToString());
+                        myDict.Add("count_lenwt", vufg.CountLenWtRows.ToString());
+                        myDict.Add("count_maturity", vufg.CountMaturityRows.ToString());
+                        myDict.Add("unload_gear", vufg.RowID.ToString());
+
+                        if (CurrentUnloadStatIDNumber == null)
+                        {
+                            CurrentUnloadStatIDNumber = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastUnloadStatPK;
+                        }
+                        myDict.Add("row_id", (CurrentUnloadStatIDNumber + 1).ToString());
+                        CurrentUnloadStatIDNumber++;
+
+                        _unloadStats_csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload_stats"));
+
+                        success = true;
+                    }
+                    else
+                    {
+
+                    }
+                }
             }
+
+            return success;
         }
 
         public Task<int> UpdateUnloadStatsAsync()

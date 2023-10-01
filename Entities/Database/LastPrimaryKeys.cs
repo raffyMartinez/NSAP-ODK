@@ -23,8 +23,10 @@ namespace NSAP_ODK.Entities.Database
             LastVesselUnloadGearSpecPK = 0;
             LastLandingSiteSamplingPK = 0;
             LastGearUnloadPK = 0;
+            LastUnloadStatPK = 0;
         }
         public int LastGearUnloadPK { get; set; }
+        public int LastUnloadStatPK { get; set; }
         public int LastLandingSiteSamplingPK { get; set; }
         public int LastVesselUnloadPK { get; set; }
         public int LastFishingGridsPK { get; set; }

@@ -287,6 +287,144 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
+
+        private static bool FillUpStatsRowIDS2(int rowID, int vu_id)
+        {
+            bool success = false;
+            using (var con = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    cmd.Parameters.AddWithValue("@id", rowID);
+                    cmd.Parameters.AddWithValue("@vu_id", vu_id);
+
+                    cmd.CommandText = "UPDATE dbo_vessel_unload_stats SET row_id=@id WHERE v_unload_id=@vu_id";
+                    try
+                    {
+                        con.Open();
+                        success = cmd.ExecuteNonQuery() > 0;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+
+        }
+        private static bool FillUpStatsRowIDs()
+        {
+            int loop_count = 0;
+            int rows_count = 0;
+            using (var con = new OleDbConnection(Global.ConnectionString))
+            {
+
+                con.Open();
+
+                using (var cmd = con.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT Count(*) from dbo_vessel_unload_stats";
+                    rows_count = (int)cmd.ExecuteScalar();
+
+                    cmd.CommandText = "Select * from dbo_vessel_unload_stats";
+                    var dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        int vu_id = (int)dr["v_unload_id"];
+                        if(FillUpStatsRowIDS2(loop_count+1, vu_id))
+                        {
+                            loop_count++;
+                        }
+                    }
+                }
+
+
+            }
+
+            return loop_count==rows_count;
+        }
+        public static bool AddFieldToStatsTable(string fieldName)
+        {
+            bool success = false;
+            string sql = "";
+            switch (fieldName)
+            {
+                case "unload_gear":
+                    sql = $"ALTER TABLE dbo_vessel_unload_stats ADD COLUMN {fieldName} int";
+                    break;
+                case "row_id":
+                    sql = $"ALTER TABLE dbo_vessel_unload_stats ADD COLUMN {fieldName} int";
+                    break;
+            }
+            using (var con = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    con.Open();
+                    cmd.CommandText = sql;
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        success = true;
+                        if (success && fieldName == "row_id")
+                        {
+                            //fill up empty row_ids with incrementing ints
+                            if( FillUpStatsRowIDs())
+                            {
+                                //remove v_unload_id as primary key
+                                cmd.CommandText = $"DROP INDEX PrimaryKey on dbo_vessel_unload_stats";
+                                cmd.ExecuteNonQuery();
+                                success = true;
+
+                                if(success)
+                                {
+                                    cmd.CommandText = "ALTER TABLE dbo_vessel_unload_stats ADD CONSTRAINT PrimaryKey PRIMARY KEY(row_id) ";
+                                    cmd.ExecuteNonQuery();
+                                    success = true;
+                                }
+
+                            }
+
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
+        public static bool AddFieldToWeightValidationTable(string fieldName)
+        {
+            bool success = false;
+            string sql = "";
+            switch (fieldName)
+            {
+                case "unload_gear":
+                    sql = $"ALTER TABLE dbo_vessel_unload_weight_validation ADD COLUMN {fieldName} int";
+                    break;
+            }
+            using (var con = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    con.Open();
+                    cmd.CommandText = sql;
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        success = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
         public static bool AddFieldToTable1(string fieldName)
         {
             bool success = false;

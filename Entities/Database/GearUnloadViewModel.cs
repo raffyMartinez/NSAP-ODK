@@ -23,7 +23,7 @@ namespace NSAP_ODK.Entities.Database
             GearUnloadCollection = new ObservableCollection<GearUnload>(GearUnloads.GearUnloads);
             GearUnloadCollection.CollectionChanged += GearUnloadCollection_CollectionChanged;
         }
-
+       
         public static int CurrentIDNumber { get; set; }
         public static async Task<bool> DeleteVesselUnloads(List<OrphanedFishingGear> ofg)
         {

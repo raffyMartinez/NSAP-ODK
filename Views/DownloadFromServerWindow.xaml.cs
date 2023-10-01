@@ -693,7 +693,9 @@ namespace NSAP_ODK.Views
                                                     }
                                                     break;
                                                 case "all_not_downloaded":
-                                                    string lastSubmissionDate = (((DateTime)_lastSubmittedDate)).Date.ToString("yyyy-MM-ddTHH:mm:ss");
+                                                    //string lastSubmissionDate = (((DateTime)_lastSubmittedDate)).Date.ToString("yyyy-MM-ddTHH:mm:ss");
+                                                    string lastSubmissionDate = (((DateTime)_lastSubmittedDate).Add(new TimeSpan(1,0,0))).ToString("yyyy-MM-ddTHH:mm:ss");
+                                                    //lastSubmissionDate = (((DateTime)_lastSubmittedDate)).Add(new TimeSpan(6,0,0)).ToString("yyyy-MM-ddTHH:mm:ss");
                                                     api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gte\":\"{lastSubmissionDate}\"}}}}";
                                                     break;
                                                 case "predownload_sampling_count":
