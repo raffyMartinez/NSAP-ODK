@@ -52,7 +52,46 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
-        public VesselEffortRepository(VesselUnload vu)
+        public static Task<bool>DeleteMultivesselDataAsync(bool isMultivessel)
+        {
+            return Task.Run(() => DeleteMultivesselData(isMultivessel));
+        }
+        public static bool DeleteMultivesselData(bool isMultivessel)
+        {
+            bool success = false;
+            if (isMultivessel)
+            {
+                success = true;
+            }
+            else
+            {
+                if (Global.Settings.UsemySQL)
+                {
+
+                }
+                else
+                {
+                    using (var con = new OleDbConnection(Global.ConnectionString))
+                    {
+                        using (var cmd = con.CreateCommand())
+                        {
+                            cmd.CommandText = "DELETE * from dbo_vessel_effort where v_unload_id IS NOT NULL";
+                            try
+                            {
+                                con.Open();
+                                success = cmd.ExecuteNonQuery() >= 0;
+                            }
+                            catch(Exception ex)
+                            {
+                                Logger.Log(ex);
+                            }
+                        }
+                    }
+                }
+            }
+            return success;
+        }
+            public VesselEffortRepository(VesselUnload vu)
         {
             VesselEfforts = getVesselEfforts(vu);
         }

@@ -544,6 +544,9 @@
     <Compile Include="Views\backupMySQLWindow.xaml.cs">
       <DependentUpon>backupMySQLWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\DeleteOptionWindow.xaml.cs">
+      <DependentUpon>DeleteOptionWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\EnumeratorLandingSiteSummary.cs" />
     <Compile Include="Views\EnumeratorsAndLandingSitesWindow.xaml.cs">
       <DependentUpon>EnumeratorsAndLandingSitesWindow.xaml</DependentUpon>
@@ -712,6 +715,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\backupMySQLWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\DeleteOptionWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

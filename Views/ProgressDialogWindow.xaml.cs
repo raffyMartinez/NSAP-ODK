@@ -29,6 +29,7 @@ namespace NSAP_ODK.Views
         private static ProgressDialogWindow _instance;
         private bool _processStarted = false;
         private bool _timerEnable = true;
+        private bool _isMultiVesselDelete;
 
         private List<DeleteRegionEntityFail> _deleteRegionEntityFails;
 
@@ -45,8 +46,16 @@ namespace NSAP_ODK.Views
             _timer.Tick += OnTimerTick;
             switch (TaskToDo)
             {
+                case "delete all landing data":
+                    labelBigTitle.Content = "Delete all fish landing";
+                    break;
+                case "delete single vessel data":
+                    _isMultiVesselDelete = false;
+                    labelBigTitle.Content = "Delete fish landing data encoded using non multi-vesselgear eForm";
+                    break;
                 case "delete multivessel gear data":
-                    labelBigTitle.Content = "Delete multivessel and gear data";
+                    _isMultiVesselDelete = true;
+                    labelBigTitle.Content = "Delete fish landing data encoded using multi-vesselgear eForm";
                     break;
                 case "get enumerators first sampling":
                     labelBigTitle.Content = "Get first sampling of enumeartors";
@@ -148,35 +157,51 @@ namespace NSAP_ODK.Views
 
             switch (TaskToDo)
             {
+                case "delete all landing data":
+                    if (Utilities.Global.Settings.UsemySQL)
+                    {
+                        DialogResult = NSAPMysql.MySQLConnect.DeleteDataFromTables(useScript: true);
+                    }
+                    else if (NSAPEntities.ClearNSAPDatabaseTables())
+                    {
+                        NSAPEntities.LandingSiteSamplingViewModel.Clear();
+                        NSAPEntities.SummaryItemViewModel.Clear();
+                        DialogResult = true;
+                    }
+                    break;
+                case "delete single vessel data":
                 case "delete multivessel gear data":
                     progressLabel.Visibility = Visibility.Collapsed;
                     NSAPEntities.SummaryItemViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
                     textBlockDescription.Text = "Deleting multi vessel and gear data";
-                    if (await CatchMaturityRepository.DeleteMultivesselDataAsync())
+                    if (await CatchMaturityRepository.DeleteMultivesselDataAsync(_isMultiVesselDelete))
                     {
-                        if (await CatchLenFreqRepository.DeleteMultivesselDataAsync())
+                        if (await CatchLenFreqRepository.DeleteMultivesselDataAsync(_isMultiVesselDelete))
                         {
-                            if (await CatchLengthRepository.DeleteMultivesselDataAsync())
+                            if (await CatchLengthRepository.DeleteMultivesselDataAsync(_isMultiVesselDelete))
                             {
-                                if (await CatchLenWeightRepository.DeleteMultivesselDataAsync())
+                                if (await CatchLenWeightRepository.DeleteMultivesselDataAsync(_isMultiVesselDelete))
                                 {
-                                    if (await VesselCatchRepository.DeleteMultivesselDataAsync())
+                                    if (await VesselCatchRepository.DeleteMultivesselDataAsync(_isMultiVesselDelete))
                                     {
-                                        if (await VesselUnload_Gear_Spec_Repository.DeleteMultivesselDataAsync())
+                                        if (await VesselUnload_Gear_Spec_Repository.DeleteMultivesselDataAsync(_isMultiVesselDelete))
                                         {
-                                            if (await VesselUnload_FishingGearRepository.DeleteMultivesselDataAsync())
+                                            if (await VesselUnload_FishingGearRepository.DeleteMultivesselDataAsync(_isMultiVesselDelete))
                                             {
-                                                if (await FishingGroundGridRepository.DeleteMultivesselDataAsync())
+                                                if (await FishingGroundGridRepository.DeleteMultivesselDataAsync(_isMultiVesselDelete))
                                                 {
-                                                    if (await GearSoakRepository.DeleteMultivesselDataAsync())
+                                                    if (await GearSoakRepository.DeleteMultivesselDataAsync(_isMultiVesselDelete))
                                                     {
-                                                        if(await VesselUnloadRepository.DeleteMultivesselDataAsync())
+                                                        if (await VesselEffortRepository.DeleteMultivesselDataAsync(_isMultiVesselDelete))
                                                         {
-                                                            if(await GearUnloadRepository.DeleteMultivesselDataAsync())
+                                                            if (await VesselUnloadRepository.DeleteMultivesselDataAsync(_isMultiVesselDelete))
                                                             {
-                                                                if(await LandingSiteSamplingRepository.DeleteMultivesselDataAsync())
+                                                                if (await GearUnloadRepository.DeleteMultivesselDataAsync(_isMultiVesselDelete))
                                                                 {
-                                                                    DialogResult = true;
+                                                                    if (await LandingSiteSamplingRepository.DeleteMultivesselDataAsync(_isMultiVesselDelete))
+                                                                    {
+                                                                        DialogResult = true;
+                                                                    }
                                                                 }
                                                             }
                                                         }

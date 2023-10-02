@@ -8,6 +8,8 @@ using System.Data.OleDb;
 using NSAP_ODK.Utilities;
 using MySql.Data.MySqlClient;
 using NSAP_ODK.NSAPMysql;
+using DocumentFormat.OpenXml.Wordprocessing;
+
 namespace NSAP_ODK.Entities.Database
 {
     class VesselCatchRepository
@@ -18,11 +20,11 @@ namespace NSAP_ODK.Entities.Database
 
         private string _newColumnName;
 
-        public static Task<bool> DeleteMultivesselDataAsync()
+        public static Task<bool> DeleteMultivesselDataAsync(bool isMultivessel )
         {
-            return Task.Run(() => DeleteMultivesselData());
+            return Task.Run(() => DeleteMultivesselData(isMultivessel));
         }
-        public static bool DeleteMultivesselData()
+        public static bool DeleteMultivesselData(bool isMultivessel)
         {
             bool success = false;
             if (Global.Settings.UsemySQL)
@@ -35,13 +37,14 @@ namespace NSAP_ODK.Entities.Database
                 {
                     using (var cmd = con.CreateCommand())
                     {
-                        cmd.CommandText = @"DELETE dbo_vessel_catch.*
-                                                FROM (((dbo_gear_unload INNER JOIN 
-                                                    dbo_LC_FG_sample_day_1 ON dbo_gear_unload.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id) INNER JOIN 
-                                                    dbo_vessel_unload ON dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) INNER JOIN 
-                                                    dbo_vesselunload_fishinggear ON dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) INNER JOIN 
-                                                    dbo_vessel_catch ON dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id
-                                                WHERE dbo_LC_FG_sample_day_1.is_multivessel = True";
+                        if (isMultivessel)
+                        {
+                            cmd.CommandText = @"DELETE * FROM dbo_vessel_catch WHERE v_unload_id IS NULL";
+                        }
+                        else
+                        {
+                            cmd.CommandText = @"DELETE * FROM dbo_vessel_catch WHERE v_unload_id IS NOT NULL";
+                        }
                         try
                         {
                             con.Open();

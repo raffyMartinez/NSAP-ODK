@@ -258,7 +258,11 @@ namespace NSAP_ODK.Entities.Database
                         if (proceed)
                         {
                             cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_unload_weight_validation");
-                            proceed = cols.Contains("unload_gear") || VesselUnloadRepository.AddFieldToWeightValidationTable("unload_gear");
+                            if(cols.Contains("unload_gear") || VesselUnloadRepository.AddFieldToWeightValidationTable("unload_gear"))
+                            {
+                                proceed = cols.Contains("row_id")|| VesselUnloadRepository.AddFieldToWeightValidationTable("row_id");
+                            }
+
                         }
                         if (proceed)
                         {
@@ -283,11 +287,11 @@ namespace NSAP_ODK.Entities.Database
             return proceed;
         }
 
-        public static Task<bool> DeleteMultivesselDataAsync()
+        public static Task<bool> DeleteMultivesselDataAsync(bool isMultivessel)
         {
-            return Task.Run(() => DeleteMultivesselData());
+            return Task.Run(() => DeleteMultivesselData(isMultivessel));
         }
-        public static bool DeleteMultivesselData()
+        public static bool DeleteMultivesselData(bool isMultivessel)
         {
             bool success = false;
             if (Global.Settings.UsemySQL)
@@ -298,32 +302,43 @@ namespace NSAP_ODK.Entities.Database
             {
                 using (var con = new OleDbConnection(Global.ConnectionString))
                 {
+                    con.Open();
                     using (var cmd = con.CreateCommand())
                     {
-                        cmd.CommandText = "Delete * from dbo_lss_submissionIDs";
-                        try
+                        if (isMultivessel)
                         {
-
-                            con.Open();
-                            if (cmd.ExecuteNonQuery() >= 0)
+                            cmd.CommandText = "Delete * from dbo_lss_submissionIDs";
+                            try
                             {
-                                cmd.CommandText = @"DELETE  dbo_LC_FG_sample_day_1.*, dbo_LC_FG_sample_day.*
-                                                    FROM dbo_LC_FG_sample_day INNER JOIN 
-                                                        dbo_LC_FG_sample_day_1 ON dbo_LC_FG_sample_day.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id
-                                                    WHERE dbo_LC_FG_sample_day_1.is_multivessel = True;";
-                                try
-                                {
-                                    success = cmd.ExecuteNonQuery() >= 0;
-                                }
-                                catch (Exception ex)
-                                {
-                                    Logger.Log(ex);
-                                }
+
+
+                                success = cmd.ExecuteNonQuery() >= 0;
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Log(ex);
                             }
                         }
-                        catch (Exception ex)
+                        else
                         {
-                            Logger.Log(ex);
+                            success = true;
+                        }
+
+                        if (success)
+                        {
+                            cmd.Parameters.AddWithValue("@is_true", isMultivessel);
+                            cmd.CommandText = @"DELETE  dbo_LC_FG_sample_day_1.*, dbo_LC_FG_sample_day.*
+                                                    FROM dbo_LC_FG_sample_day INNER JOIN 
+                                                        dbo_LC_FG_sample_day_1 ON dbo_LC_FG_sample_day.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id
+                                                    WHERE dbo_LC_FG_sample_day_1.is_multivessel = @is_true";
+                            try
+                            {
+                                success = cmd.ExecuteNonQuery() >= 0;
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Log(ex);
+                            }
                         }
                     }
                 }

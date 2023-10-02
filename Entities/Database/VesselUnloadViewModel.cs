@@ -216,6 +216,7 @@ namespace NSAP_ODK.Entities.Database
         public bool IgnoreCollectionChange { get; set; }
         public static int CurrentIDNumber { get; set; }
         public static int? CurrentUnloadStatIDNumber { get; set; }
+        public static int? CurrentWeightValidationIDNumber { get; set; }
 
         public bool UpdateWeightValidation(VesselUnload vu)
         {

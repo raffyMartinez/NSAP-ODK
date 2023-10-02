@@ -126,7 +126,7 @@
                 <MenuItem Header="Update weight validation summary" x:Name="menuUpdateWeightValidation" Click="OnMenuClicked"/>
                 <MenuItem Header="Identify sampling calendar mismatch" x:Name="menuCalendarDayMismatch" Click="OnMenuClicked"/>
                 <MenuItem Header="Identify catch composition with zero weight" x:Name="menuIdentifyZeroWtCatchComp" Click="OnMenuClicked"/>
-                <MenuItem Header="Delete multi-vessel gear data" x:Name="menuDeleteMultiVesselData" Click="OnMenuClicked"/>
+                <MenuItem Header="Delete fish landing data" x:Name="menuDeleteLandingData" Click="OnMenuClicked"/>
                 <Separator/>
                 <MenuItem Header="Backup MySQL Database" x:Name="menuBackupMySQL" Click="OnMenuClicked" Visibility="Collapsed"/>
                 <MenuItem Header="Setup MysQL tables" x:Name="menuSetupMySQLTables" Click="OnMenuClicked" Visibility="Collapsed"/>

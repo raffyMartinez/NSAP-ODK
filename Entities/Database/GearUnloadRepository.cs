@@ -15,11 +15,11 @@ namespace NSAP_ODK.Entities.Database
     {
         public List<GearUnload> GearUnloads { get; set; }
 
-        public static Task<bool> DeleteMultivesselDataAsync()
+        public static Task<bool> DeleteMultivesselDataAsync(bool isMultivessel)
         {
-            return Task.Run(() => DeleteMultivesselData());
+            return Task.Run(() => DeleteMultivesselData(isMultivessel));
         }
-        public static bool DeleteMultivesselData()
+        public static bool DeleteMultivesselData(bool isMultivessel)
         {
             bool success = false;
             if (Global.Settings.UsemySQL)
@@ -32,10 +32,11 @@ namespace NSAP_ODK.Entities.Database
                 {
                     using (var cmd = con.CreateCommand())
                     {
+                        cmd.Parameters.AddWithValue("@is_true", isMultivessel);
                         cmd.CommandText = @"DELETE dbo_gear_unload.*
                                             FROM dbo_gear_unload INNER JOIN 
                                                 dbo_LC_FG_sample_day_1 ON dbo_gear_unload.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id
-                                            WHERE dbo_LC_FG_sample_day_1.is_multivessel = True";
+                                            WHERE dbo_LC_FG_sample_day_1.is_multivessel = @is_true";
                         try
                         {
                             con.Open();

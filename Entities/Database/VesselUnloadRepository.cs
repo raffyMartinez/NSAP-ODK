@@ -313,6 +313,66 @@ namespace NSAP_ODK.Entities.Database
             return success;
 
         }
+
+        private static bool FillUpWeightsRowIDs()
+        {
+            int loop_count = 0;
+            int rows_count = 0;
+            using (var con = new OleDbConnection(Global.ConnectionString))
+            {
+
+                con.Open();
+
+                using (var cmd = con.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT Count(*) from dbo_vessel_unload_weight_validation";
+                    rows_count = (int)cmd.ExecuteScalar();
+
+                    cmd.CommandText = "Select * from dbo_vessel_unload_weight_validation";
+                    var dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        int vu_id = (int)dr["v_unload_id"];
+                        if (FillUpWeightsRowIDS2(loop_count + 1, vu_id))
+                        {
+                            loop_count++;
+                        }
+                    }
+                }
+
+
+            }
+
+            return loop_count == rows_count;
+        }
+
+        private static bool FillUpWeightsRowIDS2(int rowID, int vu_id)
+        {
+            bool success = false;
+            using (var con = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    cmd.Parameters.AddWithValue("@id", rowID);
+                    cmd.Parameters.AddWithValue("@vu_id", vu_id);
+
+                    cmd.CommandText = "UPDATE dbo_vessel_unload_weight_validation SET row_id=@id WHERE v_unload_id=@vu_id";
+                    try
+                    {
+                        con.Open();
+                        success = cmd.ExecuteNonQuery() > 0;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+
+        }
+
+
         private static bool FillUpStatsRowIDs()
         {
             int loop_count = 0;
@@ -332,7 +392,7 @@ namespace NSAP_ODK.Entities.Database
                     while (dr.Read())
                     {
                         int vu_id = (int)dr["v_unload_id"];
-                        if(FillUpStatsRowIDS2(loop_count+1, vu_id))
+                        if (FillUpStatsRowIDS2(loop_count + 1, vu_id))
                         {
                             loop_count++;
                         }
@@ -342,7 +402,7 @@ namespace NSAP_ODK.Entities.Database
 
             }
 
-            return loop_count==rows_count;
+            return loop_count == rows_count;
         }
         public static bool AddFieldToStatsTable(string fieldName)
         {
@@ -370,14 +430,14 @@ namespace NSAP_ODK.Entities.Database
                         if (success && fieldName == "row_id")
                         {
                             //fill up empty row_ids with incrementing ints
-                            if( FillUpStatsRowIDs())
+                            if (FillUpStatsRowIDs())
                             {
                                 //remove v_unload_id as primary key
                                 cmd.CommandText = $"DROP INDEX PrimaryKey on dbo_vessel_unload_stats";
                                 cmd.ExecuteNonQuery();
                                 success = true;
 
-                                if(success)
+                                if (success)
                                 {
                                     cmd.CommandText = "ALTER TABLE dbo_vessel_unload_stats ADD CONSTRAINT PrimaryKey PRIMARY KEY(row_id) ";
                                     cmd.ExecuteNonQuery();
@@ -402,6 +462,7 @@ namespace NSAP_ODK.Entities.Database
             string sql = "";
             switch (fieldName)
             {
+                case "row_id":
                 case "unload_gear":
                     sql = $"ALTER TABLE dbo_vessel_unload_weight_validation ADD COLUMN {fieldName} int";
                     break;
@@ -416,6 +477,24 @@ namespace NSAP_ODK.Entities.Database
                     {
                         cmd.ExecuteNonQuery();
                         success = true;
+                        if(success && fieldName=="row_id")
+                        {
+                            if (FillUpWeightsRowIDs())
+                            {
+                                //remove v_unload_id as primary key
+                                cmd.CommandText = $"DROP INDEX PrimaryKey on dbo_vessel_unload_weight_validation";
+                                cmd.ExecuteNonQuery();
+                                success = true;
+
+                                if (success)
+                                {
+                                    cmd.CommandText = "ALTER TABLE dbo_vessel_unload_weight_validation ADD CONSTRAINT PrimaryKey PRIMARY KEY(row_id) ";
+                                    cmd.ExecuteNonQuery();
+                                    success = true;
+                                }
+
+                            }
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -458,11 +537,11 @@ namespace NSAP_ODK.Entities.Database
             return success;
         }
 
-        public static Task<bool> DeleteMultivesselDataAsync()
+        public static Task<bool> DeleteMultivesselDataAsync(bool isMultivessel)
         {
-            return Task.Run(() => DeleteMultivesselData());
+            return Task.Run(() => DeleteMultivesselData(isMultivessel));
         }
-        public static bool DeleteMultivesselData()
+        public static bool DeleteMultivesselData(bool isMultivessel)
         {
             bool success = false;
             if (Global.Settings.UsemySQL)
@@ -475,43 +554,74 @@ namespace NSAP_ODK.Entities.Database
                 {
                     using (var cmd = con.CreateCommand())
                     {
+                        cmd.Parameters.AddWithValue("@is_true", isMultivessel);
                         cmd.CommandText = @"DELETE dbo_vessel_unload_1.*
                                             FROM ((dbo_gear_unload INNER JOIN 
                                                 dbo_LC_FG_sample_day_1 ON dbo_gear_unload.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id) INNER JOIN 
                                                 dbo_vessel_unload ON dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) INNER JOIN 
                                                 dbo_vessel_unload_1 ON dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id
-                                            WHERE dbo_LC_FG_sample_day_1.is_multivessel=True";
+                                            WHERE dbo_LC_FG_sample_day_1.is_multivessel=@is_true";
                         try
                         {
                             con.Open();
                             if (cmd.ExecuteNonQuery() >= 0)
                             {
-                                cmd.CommandText = @"DELETE dbo_LC_FG_sample_day_1.is_multivessel, dbo_vessel_unload_stats.*
-                                                            FROM((dbo_gear_unload INNER JOIN 
-                                                                dbo_LC_FG_sample_day_1 ON dbo_gear_unload.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id) INNER JOIN 
-                                                                dbo_vessel_unload ON dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) INNER JOIN 
-                                                                dbo_vessel_unload_stats ON dbo_vessel_unload.v_unload_id = dbo_vessel_unload_stats.v_unload_id
-                                                            WHERE dbo_LC_FG_sample_day_1.is_multivessel = True";
+                                cmd.CommandText = @"DELETE dbo_vessel_unload_weight_validation.* 
+                                                    FROM ((dbo_LC_FG_sample_day_1 INNER JOIN 
+                                                        dbo_gear_unload ON dbo_LC_FG_sample_day_1.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                        dbo_vessel_unload ON dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) INNER JOIN 
+                                                        dbo_vessel_unload_weight_validation ON dbo_vessel_unload.v_unload_id = dbo_vessel_unload_weight_validation.v_unload_id
+                                                    WHERE dbo_LC_FG_sample_day_1.is_multivessel=@is_true";
+
 
 
                                 try
                                 {
                                     if (cmd.ExecuteNonQuery() >= 0)
                                     {
+                                        if (!isMultivessel)
+                                        {
+                                            cmd.CommandText = @"DELETE dbo_vessel_unload_stats.*
+                                                                        FROM((dbo_gear_unload INNER JOIN 
+                                                                            dbo_LC_FG_sample_day_1 ON dbo_gear_unload.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id) INNER JOIN 
+                                                                            dbo_vessel_unload ON dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) INNER JOIN 
+                                                                            dbo_vessel_unload_stats ON dbo_vessel_unload.v_unload_id = dbo_vessel_unload_stats.v_unload_id
+                                                                        WHERE dbo_LC_FG_sample_day_1.is_multivessel = @is_true";
+                                            try
+                                            {
+                                                success = cmd.ExecuteNonQuery() >= 0;
+                                            }
+                                            catch(Exception ex)
+                                            {
 
-                                        cmd.CommandText = @"DELETE dbo_vessel_unload.*
+                                            }
+                                        }
+                                        else
+                                        {
+                                            success = true;
+                                        }
+                                        //cmd.CommandText = @"DELETE dbo_vessel_unload_weight_validation.* 
+                                        //                    FROM ((dbo_LC_FG_sample_day_1 INNER JOIN 
+                                        //                        dbo_gear_unload ON dbo_LC_FG_sample_day_1.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                        //                        dbo_vessel_unload ON dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) INNER JOIN 
+                                        //                        dbo_vessel_unload_weight_validation ON dbo_vessel_unload.v_unload_id = dbo_vessel_unload_weight_validation.v_unload_id
+                                        //                    WHERE dbo_LC_FG_sample_day_1.is_multivessel=@is_true";
+                                        if (success)
+                                        {
+                                            cmd.CommandText = @"DELETE dbo_vessel_unload.*
                                                     FROM (dbo_gear_unload INNER JOIN 
                                                         dbo_LC_FG_sample_day_1 ON dbo_gear_unload.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id) INNER JOIN 
                                                         dbo_vessel_unload ON dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id
-                                                    WHERE dbo_LC_FG_sample_day_1.is_multivessel = True";
+                                                    WHERE dbo_LC_FG_sample_day_1.is_multivessel = @is_true";
 
-                                        try
-                                        {
-                                            success = cmd.ExecuteNonQuery() >= 0;
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            Logger.Log(ex);
+                                            try
+                                            {
+                                                success = cmd.ExecuteNonQuery() >= 0;
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                Logger.Log(ex);
+                                            }
                                         }
                                     }
                                 }

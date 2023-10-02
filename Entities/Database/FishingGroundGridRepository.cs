@@ -19,11 +19,11 @@ namespace NSAP_ODK.Entities.Database
             FishingGroundGrids = getFishingGroundGrids(vu);
         }
 
-        public static Task<bool> DeleteMultivesselDataAsync()
+        public static Task<bool> DeleteMultivesselDataAsync(bool isMultivessel)
         {
-            return Task.Run(() => DeleteMultivesselData());
+            return Task.Run(() => DeleteMultivesselData(isMultivessel));
         }
-        public static bool DeleteMultivesselData()
+        public static bool DeleteMultivesselData(bool isMultivessel)
         {
             bool success = false;
             if (Global.Settings.UsemySQL)
@@ -36,12 +36,13 @@ namespace NSAP_ODK.Entities.Database
                 {
                     using (var cmd = con.CreateCommand())
                     {
+                        cmd.Parameters.AddWithValue("@is_true", isMultivessel);
                         cmd.CommandText = @"DELETE dbo_fg_grid.*
                                             FROM ((dbo_gear_unload INNER JOIN 
                                                 dbo_LC_FG_sample_day_1 ON dbo_gear_unload.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id) INNER JOIN 
                                                 dbo_vessel_unload ON dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) INNER JOIN 
                                                 dbo_fg_grid ON dbo_vessel_unload.v_unload_id = dbo_fg_grid.v_unload_id
-                                            WHERE dbo_LC_FG_sample_day_1.is_multivessel = True";
+                                            WHERE dbo_LC_FG_sample_day_1.is_multivessel = @is_true";
                         try
                         {
                             con.Open();

@@ -14,11 +14,11 @@ namespace NSAP_ODK.Entities.Database
     {
         public List<GearSoak> GearSoaks { get; set; }
 
-        public static Task<bool> DeleteMultivesselDataAsync()
+        public static Task<bool> DeleteMultivesselDataAsync(bool isMultiVessel)
         {
-            return Task.Run(() => DeleteMultivesselData());
+            return Task.Run(() => DeleteMultivesselData(isMultiVessel));
         }
-        public static bool DeleteMultivesselData()
+        public static bool DeleteMultivesselData(bool isMultivessel)
         {
             bool success = false;
             if (Global.Settings.UsemySQL)
@@ -31,17 +31,18 @@ namespace NSAP_ODK.Entities.Database
                 {
                     using (var cmd = con.CreateCommand())
                     {
+                        cmd.Parameters.AddWithValue("@is_true", isMultivessel);
                         cmd.CommandText = @"DELETE dbo_gear_soak.*
                                             FROM ((dbo_gear_unload INNER JOIN 
                                                 dbo_LC_FG_sample_day_1 ON dbo_gear_unload.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id) INNER JOIN 
                                                 dbo_vessel_unload ON dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) INNER JOIN 
                                                 dbo_gear_soak ON dbo_vessel_unload.v_unload_id = dbo_gear_soak.v_unload_id
-                                            WHERE dbo_LC_FG_sample_day_1.is_multivessel = True";
+                                            WHERE dbo_LC_FG_sample_day_1.is_multivessel = @is_true";
                         try
                         {
                             con.Open();
                             success = cmd.ExecuteNonQuery() >= 0;
-                                                    }
+                        }
                         catch (Exception ex)
                         {
                             Logger.Log(ex);
@@ -332,7 +333,7 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
-        public static bool ClearTable(string otherConnectionString="")
+        public static bool ClearTable(string otherConnectionString = "")
         {
             bool success = false;
             string con_string = Global.ConnectionString;

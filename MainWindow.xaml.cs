@@ -2498,13 +2498,30 @@ namespace NSAP_ODK
             ProgressDialogWindow pdw = null;
             switch (itemName)
             {
-                case "menuDeleteMultiVesselData":
-                    pdw = new ProgressDialogWindow("delete multivessel gear data");
-                    if((bool)pdw.ShowDialog())
+                case "menuDeleteLandingData":
+                    DeleteOptionWindow dow = new DeleteOptionWindow();
+                    if ((bool)dow.ShowDialog())
                     {
-                        OpenRefreshedDatabase();
-                        Button b = new Button { Name = "buttonSummary" };
-                        OnToolbarButtonClick(b, null);
+                        string action = "";
+                        switch (dow.DeleteChoice)
+                        {
+                            case DeleteChoice.deleteChoiceMultiVesselGear:
+                                action = "delete multivessel gear data";
+                                break;
+                            case DeleteChoice.deleteChoiceSingleVesselGear:
+                                action = "delete single vessel data";
+                                break;
+                            case DeleteChoice.deleteChoiceBoth:
+                                action = "delete all landing data";
+                                break;
+                        }
+                        pdw = new ProgressDialogWindow(action);
+                        if ((bool)pdw.ShowDialog())
+                        {
+                            OpenRefreshedDatabase();
+                            Button b = new Button { Name = "buttonSummary" };
+                            OnToolbarButtonClick(b, null);
+                        }
                     }
                     break;
                 case "menuCalendarRefresh":

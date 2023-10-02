@@ -80,7 +80,7 @@ namespace NSAP_ODK.Entities.Database
                         }
 
                     }
-                    raisingFactor=((double)vufg.WeightOfCatch - from_total_sum) / (double)vufg.WeightOfSample;
+                    raisingFactor = ((double)vufg.WeightOfCatch - from_total_sum) / (double)vufg.WeightOfSample;
                 }
                 else
                 {
@@ -106,9 +106,9 @@ namespace NSAP_ODK.Entities.Database
 
                     }
                 }
-                if(computeForRaisedValue)
+                if (computeForRaisedValue)
                 {
-                    foreach(VesselCatchWV vc in catchList)
+                    foreach (VesselCatchWV vc in catchList)
                     {
                         if (vc.FromTotalCatch || vc.Species_sample_kg == null || vc.Species_sample_kg == 0)
                         {
@@ -119,13 +119,13 @@ namespace NSAP_ODK.Entities.Database
                             sumOfCatchCompositionWeight += (double)vc.Species_sample_kg * (double)raisingFactor;
                         }
                     }
-                    
+
                 }
 
                 if (sumOfCatchCompositionWeight > 0)
                 {
                     differenceCatchWtandSumCatchCompWeight = Math.Abs((double)vufg.WeightOfCatch - sumOfCatchCompositionWeight) / (double)vufg.WeightOfCatch * 100;
-                    if(hasSpeciesWtOfZero)
+                    if (hasSpeciesWtOfZero)
                     {
                         wvf = WeightValidationFlag.WeightValidationInValid;
                     }
@@ -138,29 +138,30 @@ namespace NSAP_ODK.Entities.Database
                         //
                     }
                 }
-                else if(hasSpeciesWtOfZero)
+                else if (hasSpeciesWtOfZero)
                 {
-                    wvf=WeightValidationFlag.WeightValidationInValid;
+                    wvf = WeightValidationFlag.WeightValidationInValid;
                 }
-                else if(sumOfCatchCompositionSampleWeight>vufg.WeightOfSample)
+                else if (sumOfCatchCompositionSampleWeight > vufg.WeightOfSample)
                 {
-                    wvf=WeightValidationFlag.WeightValidationInValid;
+                    wvf = WeightValidationFlag.WeightValidationInValid;
                 }
 
-                if(countFromSample>0 && countTotalEnum>0)
+                if (countFromSample > 0 && countTotalEnum > 0)
                 {
                     stf = SamplingTypeFlag.SamplingTypeMixed;
                 }
-                else if(countFromSample>0)
+                else if (countFromSample > 0)
                 {
                     stf = SamplingTypeFlag.SamplingTypeSampled;
                 }
-                else if(countTotalEnum>0)
+                else if (countTotalEnum > 0)
                 {
                     stf = SamplingTypeFlag.SamplingTypeTotalEnumeration;
                 }
 
-                CatchWeightValidation cwv = new CatchWeightValidation {
+                CatchWeightValidation cwv = new CatchWeightValidation
+                {
                     VesselUnload = VesselUnload,
                     VesselUnload_FishingGear = vufg,
                     TotalWeigthCatchComposition = sumOfCatchCompositionWeight,
@@ -177,8 +178,10 @@ namespace NSAP_ODK.Entities.Database
             return true;
         }
 
+
         private static string MakeUnloadCSVLine(CatchWeightValidation cwv)
         {
+            Dictionary<string, string> myDict = new Dictionary<string, string>();
             var diff = "";
             if (cwv.DifferenceCatchWtandSumCatchCompWeight != null)
             {
@@ -191,19 +194,35 @@ namespace NSAP_ODK.Entities.Database
                     diff = ((double)cwv.DifferenceCatchWtandSumCatchCompWeight).ToString("N2");
                 }
             }
-            string rv = cwv.VesselUnload.PK.ToString();
-            //it turns out when a value has decimal point, there are cases where only the whole number part is saved
-            //that is why the values (sum of catch comp wt, sum of catch comp sample wt) are in quotes
-            rv += $",\"{cwv.TotalWeigthCatchComposition}\"";
-            rv += $",\"{cwv.TotalWeightOfSampleFromCatch}\"";
-            rv += $",{(int)cwv.WeightValidationFlag}";
-            rv += $",{(int)cwv.SamplingTypeFlag}";
-            rv += $",\"{diff}\"";
-            rv += $",\"{cwv.FormVersion}\"";
-            rv += $",\"{cwv.RaisingFactor}\"";
-            rv += $",\"{cwv.VesselUnload_FishingGear.RowID}\"";
-            return rv;
+            if (cwv.VesselUnload.Parent.Parent.IsMultiVessel)
+            {
+                myDict.Add("v_unload_id", " ");
+                myDict.Add("unload_gear", cwv.VesselUnload_FishingGear.RowID.ToString());
+            }
+            else
+            {
+                myDict.Add("v_unload_id", cwv.VesselUnload.PK.ToString());
+                myDict.Add("unload_gear", " ");
+            }
+
+            myDict.Add("total_wt_catch_composition", cwv.TotalWeigthCatchComposition == null ? "" : ((double)cwv.TotalWeigthCatchComposition).ToString());
+            myDict.Add("total_wt_sampled_species", cwv.TotalWeightOfSampleFromCatch == null ? "" : ((double)cwv.TotalWeightOfSampleFromCatch).ToString());
+            myDict.Add("validity_flag", ((int)cwv.WeightValidationFlag).ToString());
+            myDict.Add("type_of_sampling_flag", ((int)cwv.SamplingTypeFlag).ToString());
+            myDict.Add("weight_difference", diff);
+            myDict.Add("form_version", cwv.FormVersion);
+            myDict.Add("raising_factor", cwv.RaisingFactor == null ? "" : ((double)cwv.RaisingFactor).ToString());
+
+            if (VesselUnloadViewModel.CurrentWeightValidationIDNumber == null)
+            {
+                VesselUnloadViewModel.CurrentWeightValidationIDNumber = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastWeightValidationPK;
+            }
+            myDict.Add("row_id", (VesselUnloadViewModel.CurrentWeightValidationIDNumber + 1).ToString());
+            VesselUnloadViewModel.CurrentWeightValidationIDNumber++;
+
+            return CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload_weight_validation");
         }
+
 
         public static bool UpdateDatabase()
         {
@@ -285,7 +304,7 @@ namespace NSAP_ODK.Entities.Database
                         }
                     }
 
-                    
+
                     if (item.WeightOfCatch != null && item.WeightOfCatchSample != null && item.WeightOfCatch > 0 && item.WeightOfCatchSample > 0)
                     {
                         //catch of vessel is sampled

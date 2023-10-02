@@ -421,6 +421,16 @@ namespace NSAP_ODK.Entities.Database
 
                         using (var cmd = con.CreateCommand())
                         {
+                            cmd.CommandText = "SELECT Max(row_id) AS max_id FROM dbo_vessel_unload_weight_validation;";
+                            try
+                            {
+                                lpks.LastWeightValidationPK = (int)cmd.ExecuteScalar();
+                            }
+                            catch { }
+                        }
+
+                        using (var cmd = con.CreateCommand())
+                        {
                             cmd.CommandText = "SELECT Max(row_id) AS max_id FROM dbo_vesselunload_fishinggear;";
                             try
                             {
@@ -542,6 +552,7 @@ namespace NSAP_ODK.Entities.Database
                 lpks.LastLandingSiteSamplingPK = LandingSiteSamplingViewModel.CurrentIDNumber;
                 lpks.LastVesselUnloadGearPK = VesselUnload_FishingGearViewModel.CurrentIDNumber;
                 lpks.LastUnloadStatPK = (int)VesselUnloadViewModel.CurrentUnloadStatIDNumber;
+                lpks.LastWeightValidationPK = (int)VesselUnloadViewModel.CurrentWeightValidationIDNumber;
 
                 if (lpks.LastVesselUnloadPK == 0 && NSAPEntities.SummaryItemViewModel.Count > 0)
                 {
