@@ -407,7 +407,7 @@ namespace NSAP_ODK.Entities.Database
                 Logger.Log(ex);
             }
         }
-        public static string CSVFromObjectDataDictionary(Dictionary<string, string> values, string tableName)
+        public static string CSVFromObjectDataDictionary(Dictionary<string, string> values, string tableName, bool ensureDoubleHasDecimalPoint = false)
         {
             StringBuilder csv = new StringBuilder();
             string columns = "";
@@ -422,8 +422,17 @@ namespace NSAP_ODK.Entities.Database
                         switch (item.TypeName)
                         {
                             case "Int32":
-                            case "Double":
                                 csv.Append($"{s},");
+                                break;
+                            case "Double":
+                                if (!s.Contains('.'))
+                                {
+                                    csv.Append($"{s}.0,");
+                                }
+                                else
+                                {
+                                    csv.Append($"{s},");
+                                }
                                 break;
                             case "String":
                             case "Guid":

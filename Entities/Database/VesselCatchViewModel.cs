@@ -9,6 +9,7 @@ namespace NSAP_ODK.Entities.Database
 {
     public class VesselCatchViewModel : IDisposable
     {
+
         public bool EditSuccess { get; set; }
         public ObservableCollection<VesselCatch> VesselCatchCollection { get; set; }
         private VesselCatchRepository VesselCatches { get; set; }
@@ -123,7 +124,7 @@ namespace NSAP_ODK.Entities.Database
 
         public VesselCatchViewModel(VesselUnload_FishingGear vufg)
         {
-            if(vufg!=null)
+            if (vufg != null)
             {
                 VesselCatches = new VesselCatchRepository(vufg);
                 VesselCatchCollection = new ObservableCollection<VesselCatch>(VesselCatches.VesselCatches);

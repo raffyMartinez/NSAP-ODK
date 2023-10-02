@@ -741,7 +741,7 @@ namespace NSAP_ODK.Entities.Database
                                                                 {
 
                                                                     vufg.WeightOfCatch = sl.CatchTotal == null ? 0 : sl.CatchTotal;
-                                                                    vufg.WeightOfSample = sl.CatchSampled==null? 0: sl.CatchSampled;
+                                                                    vufg.WeightOfSample = sl.CatchSampled == null ? 0 : sl.CatchSampled;
                                                                 }
                                                                 else
                                                                 {

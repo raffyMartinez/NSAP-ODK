@@ -27,6 +27,7 @@ namespace NSAP_ODK.Entities.Database
         public static VesselUnload VesselUnload { get; set; }
         public static bool UpdateDatabaseMultiVessel()
         {
+            string csv = "";
             bool success = false;
             foreach (VesselUnload_FishingGear vufg in VesselUnload.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection.ToList())
             {
@@ -172,10 +173,18 @@ namespace NSAP_ODK.Entities.Database
                     FormVersion = VesselUnload.Parent.Parent.FormVersion,
                     DifferenceCatchWtandSumCatchCompWeight = differenceCatchWtandSumCatchCompWeight
                 };
-                CSV = MakeUnloadCSVLine(cwv);
-                return CSV.Length > 0;
+                if (string.IsNullOrEmpty(csv))
+                {
+                    csv = MakeUnloadCSVLine(cwv);
+                }
+                else
+                {
+                    csv += $"\r\n{MakeUnloadCSVLine(cwv)}";
+                }
+                //return CSV.Length > 0;
             }
-            return true;
+            CSV = csv;
+            return CSV.Length > 0;
         }
 
 
