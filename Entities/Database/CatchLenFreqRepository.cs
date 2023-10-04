@@ -18,6 +18,7 @@ namespace NSAP_ODK.Entities.Database
         {
             return Task.Run(() => DeleteMultivesselData(isMultivessel));
         }
+       
         public static bool DeleteMultivesselData(bool isMultivessel)
         {
             bool success = false;

@@ -59,6 +59,8 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
+
+        
         public CatchLenWeightRepository(VesselCatch vc)
         {
             CatchLengthWeights = getCatchLengthWeights(vc);

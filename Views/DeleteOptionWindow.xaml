@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NSAP_ODK.Views"
         mc:Ignorable="d"
-        Title="Select delete option" Height="218" Width="390" ResizeMode="NoResize">
+        Title="Select delete option" Height="269" Width="390" ResizeMode="NoResize">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="40"/>
@@ -13,13 +13,14 @@
             <RowDefinition Height="50"/>
         </Grid.RowDefinitions>
         <Label Content="Select delete option" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-        <StackPanel Grid.Row="1" Margin="20">
+        <StackPanel Grid.Row="1" Margin="20 10">
             <CheckBox Content="Delete all data encoded using multi-vessel and gear eForm" Margin=" 0 5" x:Name="chkDeleteMultiVesselEform"/>
             <CheckBox Content="Delete all data encoded using earlier versions of eForm" Margin=" 0 5" x:Name="chkDeleteSingleeForm"/>
+            <TextBlock Text="Make sure you have a backup copy of the database before deleting data" TextWrapping="Wrap" Margin=" 0 30 0 0"/>
         </StackPanel>
         <WrapPanel Grid.Row="2" HorizontalAlignment="Right" VerticalAlignment="Center">
-            <Button x:Name="buttonCancel" Click="onButtonClick" Content="Cancel" Height="25" Width="50" Margin="5 0"/>
-            <Button x:Name="buttonOk" Click="onButtonClick" Content="Ok" Height="25" Width="50" Margin="5 0"/>
+            <Button x:Name="buttonCancel" Click="onButtonClick" Content="Cancel" Height="25" Width="50" Margin="5 0" IsCancel="True"/>
+            <Button x:Name="buttonOk" Click="onButtonClick" Content="Ok" Height="25" Width="50" Margin="5 0" IsDefault="True"/>
         </WrapPanel>
     </Grid>
 </Window>

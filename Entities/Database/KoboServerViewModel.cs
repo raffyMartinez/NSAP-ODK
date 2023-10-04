@@ -56,7 +56,14 @@ namespace NSAP_ODK.Entities.Database
             var fl_servers = KoboserverCollection.Where(t => t.IsFishLandingSurveyForm == true).ToList();
             foreach (var item in fl_servers)
             {
-                item.SavedInDBCount = NSAPEntities.SummaryItemViewModel.CountByFormID(item.ServerID);
+                if (item.IsFishLandingMultiVesselSurveyForm)
+                {
+                    item.SavedInDBCount = NSAPEntities.LandingSiteSamplingSubmissionViewModel.CountRecordsByFormID(item.ServerID);
+                }
+                else
+                {
+                    item.SavedInDBCount = NSAPEntities.SummaryItemViewModel.CountByFormID(item.ServerID);
+                }
                 UpdateRecordInRepo(item);
             }
             _updateSavedCount = false;
@@ -91,11 +98,21 @@ namespace NSAP_ODK.Entities.Database
                         SubmissionCount = kf.num_of_submissions,
                         DateLastAccessed = DateTime.Now,
                         UserCount = kf.users.Count,
-                        SavedInDBCount = NSAPEntities.SummaryItemViewModel.CountByFormID(kf.id_string),
+                        //SavedInDBCount = NSAPEntities.SummaryItemViewModel.CountByFormID(kf.id_string),
                         LastUploadedJSON = KoboserverCollection.FirstOrDefault(t => t.ServerNumericID == kf.formid)?.LastUploadedJSON,
-                        LastCreatedJSON = KoboserverCollection.FirstOrDefault(t => t.ServerNumericID == kf.formid)?.LastCreatedJSON
+                        LastCreatedJSON = KoboserverCollection.FirstOrDefault(t => t.ServerNumericID == kf.formid)?.LastCreatedJSON,
+                        
 
                     };
+
+                    if(ks.IsFishLandingMultiVesselSurveyForm)
+                    {
+                        ks.SavedInDBCount = NSAPEntities.LandingSiteSamplingSubmissionViewModel.CountRecordsByFormID(ks.ServerID);
+                    }
+                    else
+                    {
+                        ks.SavedInDBCount = NSAPEntities.SummaryItemViewModel.CountByFormID(kf.id_string);
+                    }
 
 
                     if (GetKoboServer(ks.ServerNumericID) == null)

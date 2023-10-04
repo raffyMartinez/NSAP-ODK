@@ -51,6 +51,44 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
+
+        public static Task<bool> DeleteServerDataAsync(string serverID)
+        {
+            return Task.Run(() => DeleteServerData(serverID));
+        }
+        private static bool DeleteServerData(string serverID)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        con.Open();
+                        cmd.Parameters.AddWithValue("@id", serverID);
+
+                        cmd.CommandText = @"DELETE  dbo_gear_unload.*
+                                            FROM dbo_gear_unload INNER JOIN 
+                                                dbo_LC_FG_sample_day_1 ON dbo_gear_unload.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id
+                                            WHERE dbo_LC_FG_sample_day_1.XFormIdentifier=@id";
+                        try
+                        {
+                            success = cmd.ExecuteNonQuery() >= 0;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
         public GearUnloadRepository(LandingSiteSampling ls)
         {
             GearUnloads = getGearUnloads(ls);

@@ -18,7 +18,7 @@ namespace NSAP_ODK.Entities.Database
         {
             CatchLengths = getCatchLengths(vc);
         }
-
+        
         public static Task<bool> DeleteMultivesselDataAsync(bool isMultivessel)
         {
             return Task.Run(() => DeleteMultivesselData(isMultivessel));

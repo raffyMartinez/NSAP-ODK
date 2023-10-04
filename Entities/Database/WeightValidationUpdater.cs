@@ -536,8 +536,41 @@ namespace NSAP_ODK.Entities.Database
 
         }
 
-
         private static string MakeUnloadCSVLine(SummaryItem item)
+        {
+            Dictionary<string, string> myDict = new Dictionary<string, string>();
+            var diff = "";
+            if (item.DifferenceCatchWtandSumCatchCompWeight != null)
+            {
+                if (item.DifferenceCatchWtandSumCatchCompWeight == 0 || item.DifferenceCatchWtandSumCatchCompWeight < 0.01)
+                {
+                    diff = "0";
+                }
+                else
+                {
+                    diff = ((double)item.DifferenceCatchWtandSumCatchCompWeight).ToString("N2");
+                }
+            }
+            myDict.Add("v_unload_id", item.VesselUnloadID.ToString());
+            myDict.Add("unload_gear", " ");
+            myDict.Add("total_wt_catch_composition", item.SumOfCatchCompositionWeight == null ? "" : ((double)item.SumOfCatchCompositionWeight).ToString());
+            myDict.Add("total_wt_sampled_species", item.SumOfCatchCompositionSampleWeight == null ? "" : ((double)item.SumOfCatchCompositionSampleWeight).ToString());
+            myDict.Add("validity_flag", ((int)item.WeightValidationFlag).ToString());
+            myDict.Add("type_of_sampling_flag", ((int)item.SamplingTypeFlag).ToString());
+            myDict.Add("weight_difference", diff);
+            myDict.Add("form_version", item.FormVersionCleaned);
+            myDict.Add("raising_factor", ((double)item.RaisingFactor).ToString());
+
+            if (VesselUnloadViewModel.CurrentWeightValidationIDNumber == null)
+            {
+                VesselUnloadViewModel.CurrentWeightValidationIDNumber = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastWeightValidationPK;
+            }
+            myDict.Add("row_id", (VesselUnloadViewModel.CurrentWeightValidationIDNumber + 1).ToString());
+            VesselUnloadViewModel.CurrentWeightValidationIDNumber++;
+            return CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload_weight_validation");
+
+        }
+        private static string MakeUnloadCSVLineEx(SummaryItem item)
         {
             var diff = "";
             if (item.DifferenceCatchWtandSumCatchCompWeight != null)

@@ -27,7 +27,8 @@ namespace NSAP_ODK.Entities.Database
                 CatchMaturities = getCatchMaturites();
             }
         }
-        public static Task<bool>DeleteMultivesselDataAsync(bool isMultivessel)
+
+        public static Task<bool> DeleteMultivesselDataAsync(bool isMultivessel)
         {
             return Task.Run(() => DeleteMultivesselData(isMultivessel));
         }
@@ -61,16 +62,16 @@ namespace NSAP_ODK.Entities.Database
                         try
                         {
                             con.Open();
-                            success = cmd.ExecuteNonQuery()>=0;
+                            success = cmd.ExecuteNonQuery() >= 0;
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             Logger.Log(ex);
                         }
                     }
                 }
             }
-                return success;
+            return success;
         }
         public int MaxRecordNumber()
         {
@@ -696,7 +697,7 @@ namespace NSAP_ODK.Entities.Database
 
             return success;
         }
-        public static bool ClearTable(string otherConnectionString="")
+        public static bool ClearTable(string otherConnectionString = "")
         {
             bool success = false;
             string con_string = Global.ConnectionString;

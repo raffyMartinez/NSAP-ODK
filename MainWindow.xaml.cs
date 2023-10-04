@@ -141,7 +141,10 @@ namespace NSAP_ODK
             _httpClient.Dispose();
         }
 
-
+        public Task<bool> ShowSplashAsync()
+        {
+            return Task.Run(() => ShowSplash());
+        }
         public bool ShowSplash()
         {
             SplashWindow sw = new SplashWindow();
@@ -359,6 +362,7 @@ namespace NSAP_ODK
                     dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "# saved", Binding = new Binding("SavedInDBCount"), CellStyle = AlignRightStyle });
                     dataGridEFormVersionStats.Columns.Add(new DataGridCheckBoxColumn { Header = "Fish landing form", Binding = new Binding("IsFishLandingSurveyForm") });
                     dataGridEFormVersionStats.Columns.Add(new DataGridCheckBoxColumn { Header = "MultiGear landing form", Binding = new Binding("IsFishLandingMultiGearSurveyForm") });
+                    dataGridEFormVersionStats.Columns.Add(new DataGridCheckBoxColumn { Header = "Multivessel landing form", Binding = new Binding("IsFishLandingMultiVesselSurveyForm") });
                     dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "Last uploaded JSON file", Binding = new Binding("LastUploadedJSON") });
                     dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "Last created JSON file", Binding = new Binding("LastCreatedJSON") });
 
@@ -415,7 +419,7 @@ namespace NSAP_ODK
             }
         }
 
-        private void OnWindowLoaded(object sender, RoutedEventArgs e)
+        private async void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
             Global.RequestLogIn += OnMysQLRequestLogin;
 
@@ -427,7 +431,12 @@ namespace NSAP_ODK
 
                 if (!Global.Settings.UsemySQL || !Global.MySQLLogInCancelled)
                 {
+                    //ShowSplash();
+
+                    //await ShowSplashAsync();
                     ShowSplash();
+
+
                     //CSVFIleManager.ReadCSVXML();
                     if (
                         NSAPEntities.NSAPRegionViewModel.Count > 0 &&
@@ -463,6 +472,7 @@ namespace NSAP_ODK
                         ShowDatabaseNotFoundView();
                     }
                     mainStatusLabel.Content = string.Empty;
+
                 }
                 else
                 {
@@ -2498,6 +2508,7 @@ namespace NSAP_ODK
             ProgressDialogWindow pdw = null;
             switch (itemName)
             {
+
                 case "menuDeleteLandingData":
                     DeleteOptionWindow dow = new DeleteOptionWindow();
                     if ((bool)dow.ShowDialog())
@@ -2588,7 +2599,31 @@ namespace NSAP_ODK
 
                     }
                     break;
+                case "menuDeleteLandingDataFromServer":
+                    //MessageBoxResult rs = MessageBoxResult.No;
+                    //if (_selectedKoboserver.SavedInDBCount > 0)
+                    //{
+                    //    rs = MessageBox.Show(
+                    //        "Delete fish landing data of selected server?",
+                    //        Global.MessageBoxCaption,
+                    //        MessageBoxButton.YesNo,
+                    //        MessageBoxImage.Question);
+                    //}
+                    //if (rs == MessageBoxResult.Yes)
+                    //{
+                    pdw = new ProgressDialogWindow("delete landing data from selected server");
+                    pdw.ServerID = _selectedKoboserver.ServerID;
+                    pdw.ServerIsMultiVessel = _selectedKoboserver.IsFishLandingMultiVesselSurveyForm;
+                    if ((bool)pdw.ShowDialog())
+                    {
+                        OpenRefreshedDatabase();
+                        Button b = new Button { Name = "buttonSummary" };
+                        OnToolbarButtonClick(b, null);
+                    }
+                    //}
+                    break;
                 case "menuRemoveKoboserver":
+
                     if (NSAPEntities.KoboServerViewModel.DeleteRecordFromRepo(_selectedKoboserver.ServerNumericID))
                     {
                         dataGridEFormVersionStats.DataContext = NSAPEntities.KoboServerViewModel.KoboserverCollection.ToList();

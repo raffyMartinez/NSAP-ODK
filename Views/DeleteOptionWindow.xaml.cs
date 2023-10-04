@@ -77,6 +77,7 @@ namespace NSAP_ODK.Views
                     }
                     break;
                 case "buttonCancel":
+                    Close();
                     break;
             }
         }

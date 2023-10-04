@@ -12,6 +12,7 @@ namespace NSAP_ODK.Entities.Database
 {
     class VesselUnloadRepository
     {
+        public static event EventHandler<UpdateTableRowsEventArg> TableRowsUpdatingEvent;
         public static event EventHandler<SetFishingGroundOfUnloadEventArg> ChangeFishingGroundOFUnloadEvent;
         private string _dateFormat = "MMM-dd-yyyy HH:mm";
         public List<VesselUnload> VesselUnloads { get; set; }
@@ -314,6 +315,10 @@ namespace NSAP_ODK.Entities.Database
 
         }
 
+        private static Task<bool> FillUpWeightsRowIDsAsync()
+        {
+            return Task.Run(() => FillUpWeightsRowIDs());
+        }
         private static bool FillUpWeightsRowIDs()
         {
             int loop_count = 0;
@@ -330,12 +335,16 @@ namespace NSAP_ODK.Entities.Database
 
                     cmd.CommandText = "Select * from dbo_vessel_unload_weight_validation";
                     var dr = cmd.ExecuteReader();
+
+                    TableRowsUpdatingEvent?.Invoke(null, new UpdateTableRowsEventArg { Intent = "start", TotalRowsToUpdate = rows_count });
+
                     while (dr.Read())
                     {
                         int vu_id = (int)dr["v_unload_id"];
                         if (FillUpWeightsRowIDS2(loop_count + 1, vu_id))
                         {
                             loop_count++;
+                            TableRowsUpdatingEvent?.Invoke(null, new UpdateTableRowsEventArg { Intent = "row updated", TableName = "Weight validation", RowsUpdatedCount = loop_count });
                         }
                     }
                 }
@@ -343,6 +352,7 @@ namespace NSAP_ODK.Entities.Database
 
             }
 
+            TableRowsUpdatingEvent?.Invoke(null, new UpdateTableRowsEventArg { Intent = "row updating done", TableName = "Weight validation", RowsUpdatedCount = loop_count });
             return loop_count == rows_count;
         }
 
@@ -389,12 +399,16 @@ namespace NSAP_ODK.Entities.Database
 
                     cmd.CommandText = "Select * from dbo_vessel_unload_stats";
                     var dr = cmd.ExecuteReader();
+
+                    TableRowsUpdatingEvent?.Invoke(null, new UpdateTableRowsEventArg { Intent = "start", TotalRowsToUpdate = rows_count });
+
                     while (dr.Read())
                     {
                         int vu_id = (int)dr["v_unload_id"];
                         if (FillUpStatsRowIDS2(loop_count + 1, vu_id))
                         {
                             loop_count++;
+                            TableRowsUpdatingEvent?.Invoke(null, new UpdateTableRowsEventArg { Intent = "row updated", TableName = "Unload summary statistics", RowsUpdatedCount = loop_count });
                         }
                     }
                 }
@@ -402,7 +416,13 @@ namespace NSAP_ODK.Entities.Database
 
             }
 
+            TableRowsUpdatingEvent?.Invoke(null, new UpdateTableRowsEventArg { Intent = "row updating done", TableName = "Unload summary statistics", RowsUpdatedCount = loop_count });
             return loop_count == rows_count;
+        }
+
+        public static Task<bool> AddFieldToStatsTableAsync(string fieldName)
+        {
+            return Task.Run(() => AddFieldToStatsTable(fieldName));
         }
         public static bool AddFieldToStatsTable(string fieldName)
         {
@@ -429,13 +449,25 @@ namespace NSAP_ODK.Entities.Database
                         success = true;
                         if (success && fieldName == "row_id")
                         {
-                            //fill up empty row_ids with incrementing ints
-                            if (FillUpStatsRowIDs())
+                            ////fill up empty row_ids with incrementing ints
+                            //if (FillUpStatsRowIDs())
+                            //{
+                            //remove v_unload_id as primary key
+                            cmd.CommandText = $"DROP INDEX PrimaryKey on dbo_vessel_unload_stats";
+                            cmd.ExecuteNonQuery();
+                            success = true;
+
+                            if (success)
                             {
-                                //remove v_unload_id as primary key
-                                cmd.CommandText = $"DROP INDEX PrimaryKey on dbo_vessel_unload_stats";
-                                cmd.ExecuteNonQuery();
-                                success = true;
+                                cmd.CommandText = "UPDATE dbo_vessel_unload_stats SET row_id = [v_unload_id]";
+                                try
+                                {
+                                    success = cmd.ExecuteNonQuery() > 0;
+                                }
+                                catch (Exception ex)
+                                {
+                                    Logger.Log(ex);
+                                }
 
                                 if (success)
                                 {
@@ -443,7 +475,6 @@ namespace NSAP_ODK.Entities.Database
                                     cmd.ExecuteNonQuery();
                                     success = true;
                                 }
-
                             }
 
                         }
@@ -456,6 +487,13 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
+
+        public static Task<bool> AddFieldToWeightValidationTableAsync(string fieldName)
+        {
+            return Task.Run(() => AddFieldToWeightValidationTable(fieldName));
+        }
+
+
         public static bool AddFieldToWeightValidationTable(string fieldName)
         {
             bool success = false;
@@ -477,14 +515,25 @@ namespace NSAP_ODK.Entities.Database
                     {
                         cmd.ExecuteNonQuery();
                         success = true;
-                        if(success && fieldName=="row_id")
+                        if (success && fieldName == "row_id")
                         {
-                            if (FillUpWeightsRowIDs())
+                            cmd.CommandText = $"DROP INDEX PrimaryKey on dbo_vessel_unload_weight_validation";
+                            cmd.ExecuteNonQuery();
+                            success = true;
+
+                            if (success)
                             {
-                                //remove v_unload_id as primary key
-                                cmd.CommandText = $"DROP INDEX PrimaryKey on dbo_vessel_unload_weight_validation";
-                                cmd.ExecuteNonQuery();
-                                success = true;
+
+                                cmd.CommandText = "UPDATE dbo_vessel_unload_weight_validation SET row_id = [v_unload_id]";
+                                try
+                                {
+                                    success = cmd.ExecuteNonQuery() > 0;
+                                }
+                                catch (Exception ex)
+                                {
+                                    Logger.Log(ex);
+                                }
+
 
                                 if (success)
                                 {
@@ -493,12 +542,56 @@ namespace NSAP_ODK.Entities.Database
                                     success = true;
                                 }
 
+
                             }
+
+
+
                         }
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
+
+        public static Task<bool> DeleteServerDataAsync(string serverID)
+        {
+            return Task.Run(() => DeleteServerData(serverID));
+        }
+        private static bool DeleteServerData(string serverID)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        con.Open();
+                        cmd.Parameters.AddWithValue("@id", serverID);
+
+                        cmd.CommandText = @"DELETE dbo_vessel_unload.*
+                                            FROM (dbo_gear_unload INNER JOIN 
+                                                dbo_LC_FG_sample_day_1 ON 
+                                                dbo_gear_unload.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id) INNER JOIN 
+                                                dbo_vessel_unload ON dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id
+                                            WHERE dbo_LC_FG_sample_day_1.XFormIdentifier=@id";
+                        try
+                        {
+                            success = cmd.ExecuteNonQuery() >= 0;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
                     }
                 }
             }
@@ -591,7 +684,7 @@ namespace NSAP_ODK.Entities.Database
                                             {
                                                 success = cmd.ExecuteNonQuery() >= 0;
                                             }
-                                            catch(Exception ex)
+                                            catch (Exception ex)
                                             {
 
                                             }

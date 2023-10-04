@@ -60,6 +60,61 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
+
+
+
+        public static Task<bool> DeleteServerDataAsync(string serverID, bool isMultiVessel)
+        {
+            return Task.Run(() => DeleteServerData(serverID, isMultiVessel));
+        }
+        private static bool DeleteServerData(string serverID, bool isMultiVessel)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        con.Open();
+                        cmd.Parameters.AddWithValue("@id", serverID);
+                        if (isMultiVessel)
+                        {
+                            cmd.CommandText = @"DELETE dbo_vessel_catch.*
+                                                FROM (((dbo_gear_unload INNER JOIN 
+                                                    dbo_LC_FG_sample_day_1 ON dbo_gear_unload.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id) INNER JOIN 
+                                                    dbo_vessel_unload ON dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) INNER JOIN 
+                                                    dbo_vesselunload_fishinggear ON dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) INNER JOIN 
+                                                    dbo_vessel_catch ON dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id
+                                                WHERE dbo_LC_FG_sample_day_1.XFormIdentifier=@id";
+                        }
+                        else
+                        {
+                            cmd.CommandText = @"DELETE  dbo_vessel_catch.*
+                                                FROM ((dbo_gear_unload INNER JOIN 
+                                                    dbo_LC_FG_sample_day_1 ON 
+                                                    dbo_gear_unload.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id) INNER JOIN 
+                                                    dbo_vessel_unload ON dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) INNER JOIN 
+                                                    dbo_vessel_catch ON dbo_vessel_unload.v_unload_id = dbo_vessel_catch.v_unload_id
+                                                 WHERE dbo_LC_FG_sample_day_1.XFormIdentifier=@id";
+                        }
+                        try
+                        {
+                            success = cmd.ExecuteNonQuery() >= 0;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
         public VesselCatchRepository(VesselUnload_FishingGear vufg)
         {
             VesselCatches = getVesselCatches(vufg);

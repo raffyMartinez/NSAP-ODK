@@ -52,6 +52,62 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
+
+        public static Task<bool> DeleteServerDataAsync(string serverID, bool isMultiVessel)
+        {
+            return Task.Run(() => DeleteServerData(serverID, isMultiVessel));
+        }
+        private static bool DeleteServerData(string serverID, bool isMultiVessel)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        con.Open();
+                        cmd.Parameters.AddWithValue("@id", serverID);
+                        if (isMultiVessel)
+                        {
+                            cmd.CommandText = @"DELETE dbo_vessel_effort.*
+                                                FROM ((dbo_gear_unload INNER JOIN 
+                                                    dbo_LC_FG_sample_day_1 ON 
+                                                    dbo_gear_unload.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id) INNER JOIN 
+                                                    dbo_vessel_unload ON 
+                                                    dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) INNER JOIN 
+                                                    (dbo_vesselunload_fishinggear INNER JOIN 
+                                                    dbo_vessel_effort ON dbo_vesselunload_fishinggear.row_id = dbo_vessel_effort.vessel_unload_fishing_gear_id) ON 
+                                                    dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id
+                                                WHERE dbo_LC_FG_sample_day_1.XFormIdentifier=@id";
+                        }
+                        else
+                        {
+                            cmd.CommandText = @"DELETE  dbo_vessel_effort.*
+                                                FROM ((dbo_gear_unload INNER JOIN 
+                                                    dbo_LC_FG_sample_day_1 ON 
+                                                    dbo_gear_unload.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id) INNER JOIN 
+                                                    dbo_vessel_unload ON dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) INNER JOIN 
+                                                    dbo_vessel_effort ON dbo_vessel_unload.v_unload_id = dbo_vessel_effort.v_unload_id
+                                                WHERE dbo_LC_FG_sample_day_1.XFormIdentifier=@id";
+                        }
+                        try
+                        {
+                            success = cmd.ExecuteNonQuery() >= 0;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
         public static Task<bool>DeleteMultivesselDataAsync(bool isMultivessel)
         {
             return Task.Run(() => DeleteMultivesselData(isMultivessel));

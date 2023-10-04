@@ -716,8 +716,6 @@ namespace NSAP_ODK.Views
                                                     break;
                                                 case "download_specific_form":
                                                     string uuid = txtFormUUID.Text;
-                                                    //api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_uuid\":{{\"$eq\":\"{uuid}\"}}}}";
-                                                    //api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"meta/instanceID\":{{\"$eq\":\"{uuid}\"}}}}";
                                                     api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_id\":{{\"$eq\":\"{uuid}\"}}}}";
                                                     break;
                                             }
@@ -1028,22 +1026,6 @@ namespace NSAP_ODK.Views
                             TextBoxPassword.Clear();
                             ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.GotJSONString, JSONString = the_response });
 
-                            //we save the koboform if not yet saved
-                            //if (!File.Exists(_koboforms_json))
-                            //{
-                            //    using (StreamWriter sw = File.CreateText(_koboforms_json))
-                            //    {
-                            //        sw.Write(the_response);
-                            //        sw.Close();
-                            //    }
-                            //}
-                            //else
-                            //{
-                            //    //we creare a list of koboforms from the saved file
-                            //    StreamReader sr = File.OpenText(_koboforms_json);
-                            //    _koboForms_old = KoboForms.MakeFormObjects(sr.ReadToEnd());
-                            //}
-
                             if (File.Exists(_koboforms_json))
                             {
                                 //we creare a list of koboforms from the saved file
@@ -1093,8 +1075,6 @@ namespace NSAP_ODK.Views
                                     {
                                         kf.xlsform_version = KoboForms.XLSFormVersion;
                                         kf.xlsForm_idstring = KoboForms.XLSForm_idString;
-                                        //kf.Version_ID = KoboForms.Version_ID;
-                                        //kf.eFormVersion = KoboForms.e
                                         ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.GotXLSFormVersion, FormName = kf.title });
                                     }
                                 }

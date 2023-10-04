@@ -325,6 +325,7 @@
                                 <ContextMenu>
                                     <MenuItem Header="Remove server" x:Name="menuRemoveKoboserver" Click="OnMenuClicked" />
                                     <MenuItem Header="Remove all servers of owner" x:Name="menuRemoveAllKoboserversOfOwner" Click="OnMenuClicked"/>
+                                    <MenuItem Header="Remove landing data downloaded from server" x:Name="menuDeleteLandingDataFromServer" Click="OnMenuClicked"/>
                                 </ContextMenu>
                             </DataGrid.ContextMenu>
                         </DataGrid>

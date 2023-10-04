@@ -194,6 +194,7 @@
     <Compile Include="Entities\Database\Day_GearLanded.cs" />
     <Compile Include="Entities\Database\DeleteLandingSiteSamplingFromOrphanEventArg.cs" />
     <Compile Include="Entities\Database\DeleteRegionEntityFail.cs" />
+    <Compile Include="Entities\Database\DeleteServerData.cs" />
     <Compile Include="Entities\Database\DeleteVesselUnloadFromOrphanEventArg.cs" />
     <Compile Include="Entities\Database\DownloadMediaFromServerEventArgs.cs" />
     <Compile Include="Entities\Database\DownloadedJsonMetadata.cs" />
@@ -298,6 +299,7 @@
     <Compile Include="Entities\Database\UpdateDatabaseColumnEventArg.cs" />
     <Compile Include="Entities\Database\UpdateHasCatchComposition.cs" />
     <Compile Include="Entities\Database\UpdateHasCatchCompositionRepo.cs" />
+    <Compile Include="Entities\Database\UpdateTableRowsEventArg.cs" />
     <Compile Include="Entities\Database\UpdateUnloadStatistics.cs" />
     <Compile Include="Entities\Database\UpdateXFormIdentifier.cs" />
     <Compile Include="Entities\Database\UpdateXFormIdentifierRepo.cs" />

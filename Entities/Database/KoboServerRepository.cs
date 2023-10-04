@@ -188,7 +188,14 @@ namespace NSAP_ODK.Entities.Database
                         cmd.Parameters.Add("@fname", OleDbType.VarChar).Value = ks.FormName;
                         cmd.Parameters.Add("@sid", OleDbType.VarChar).Value = ks.ServerID;
                         cmd.Parameters.Add("@owner", OleDbType.VarChar).Value = ks.Owner;
-                        cmd.Parameters.Add("@f_version", OleDbType.VarChar).Value = ks.FormVersion;
+                        if (ks.FormVersion == null)
+                        {
+                             cmd.Parameters.Add("@f_version", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            cmd.Parameters.Add("@f_version", OleDbType.VarChar).Value = ks.FormVersion;
+                        }
                         if (ks.eFormVersion == null)
                         {
                             cmd.Parameters.Add("@ef_version", OleDbType.VarChar).Value = DBNull.Value;

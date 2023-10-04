@@ -11,7 +11,6 @@ namespace NSAP_ODK.Entities.Database
         bool _dummy = false;
         public int ServerNumericID { get; set; }
         public string FormName { get; set; }
-
         public string ServerID { get; set; }
 
         public string Owner { get; set; }

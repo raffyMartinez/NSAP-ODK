@@ -7,12 +7,13 @@
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen"
         Loaded="OnWindowLoaded" ShowInTaskbar="False"
-        Title="SplashWindow" Height="285.165" Width="567.064" ResizeMode="NoResize" WindowStyle="None">
+        Title="SplashWindow" Height="401" Width="567.064" ResizeMode="NoResize" WindowStyle="None">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="4*"/>
+            <RowDefinition Height="*"/>
             <RowDefinition Height="30"/>
             <RowDefinition Height="40"/>
+            <RowDefinition Height="80" x:Name="rowProgressTableUpdate"/>
             <RowDefinition Height="30"/>
 
         </Grid.RowDefinitions>
@@ -23,5 +24,10 @@
         </StackPanel>
         <Label Grid.Row="1" Content="Loading data..." HorizontalContentAlignment="Center" x:Name="LabelLoading"/>
         <ProgressBar Grid.Row="2" Margin="75 12" x:Name="ProgressBarRead"/>
+        <StackPanel Grid.Row="3" x:Name="panelTableUpdateProgress">
+            <Label Content="Updating tables will only happen once. Please wait..." HorizontalAlignment="Center"/>
+            <ProgressBar x:Name="progressBarUpdateTableRow" Height="15" Margin="75 10 75 0"/>
+            <Label x:Name="labelUpdateTable" Content="labelUpdateTable" HorizontalAlignment="Center"/>
+        </StackPanel>
     </Grid>
 </Window>

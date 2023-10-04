@@ -18,8 +18,11 @@ namespace NSAP_ODK.Entities.Database
         //private bool _addHasOperationColumn = false;
         //private string _dateFormat = "MMM-dd-yyyy";
 
-
-        public static bool UpdateColumns()
+        //public static Task<bool>UpdateColumnsAsync()
+        //{
+        //    return Task.Run(()=>UpdateColumns());
+        //}
+        public static async void UpdateColumns()
         {
             bool proceed = false;
             int fieldSize = 0;
@@ -258,9 +261,12 @@ namespace NSAP_ODK.Entities.Database
                         if (proceed)
                         {
                             cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_unload_weight_validation");
-                            if(cols.Contains("unload_gear") || VesselUnloadRepository.AddFieldToWeightValidationTable("unload_gear"))
+                            if (cols.Contains("unload_gear") || await (VesselUnloadRepository.AddFieldToWeightValidationTableAsync("unload_gear")))
                             {
-                                proceed = cols.Contains("row_id")|| VesselUnloadRepository.AddFieldToWeightValidationTable("row_id");
+                                if(cols.Contains("row_id") || await VesselUnloadRepository.AddFieldToWeightValidationTableAsync("row_id"))
+                                {
+                                    proceed = true;
+                                }
                             }
 
                         }
@@ -268,9 +274,12 @@ namespace NSAP_ODK.Entities.Database
                         {
                             cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_unload_stats");
                             {
-                                if (cols.Contains("unload_gear") || VesselUnloadRepository.AddFieldToStatsTable("unload_gear"))
+                                if (cols.Contains("unload_gear") || await VesselUnloadRepository.AddFieldToStatsTableAsync("unload_gear"))
                                 {
-                                    proceed = cols.Contains("row_id") || VesselUnloadRepository.AddFieldToStatsTable("row_id");
+                                    if (cols.Contains("row_id") || await VesselUnloadRepository.AddFieldToStatsTableAsync("row_id"))
+                                    {
+
+                                    }
                                 }
                             }
                         }
@@ -284,9 +293,43 @@ namespace NSAP_ODK.Entities.Database
 
 
 
-            return proceed;
+            // return proceed;
         }
 
+        public static Task<bool> DeleteServerDataAsync(string serverID)
+        {
+            return Task.Run(() => DeleteServerData(serverID));
+        }
+        private static bool DeleteServerData(string serverID)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        con.Open();
+                        cmd.Parameters.AddWithValue("@id", serverID);
+
+                        cmd.CommandText = "DELETE  * FROM dbo_LC_FG_sample_day_1 WHERE dbo_LC_FG_sample_day_1.XFormIdentifier=@id";
+                        try
+                        {
+                            success = cmd.ExecuteNonQuery() >= 0;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
         public static Task<bool> DeleteMultivesselDataAsync(bool isMultivessel)
         {
             return Task.Run(() => DeleteMultivesselData(isMultivessel));

@@ -258,7 +258,9 @@ namespace NSAP_ODK.Utilities
 
         public static void LoadEntities()
         {
-            bool tablesUpdated = LandingSiteSamplingRepository.UpdateColumns();
+            bool tablesUpdated = false;
+            LandingSiteSamplingRepository.UpdateColumns();
+            tablesUpdated = true;
 
             EntityLoaded?.Invoke(null, new EntityLoadedEventArg { IsStarting = true, EntityCount = 18 });
 

@@ -33,13 +33,79 @@ namespace NSAP_ODK.Views
         {
             Utilities.Global.EntityLoading += Global_EntityLoading;
             Utilities.Global.EntityLoaded += Global_EntityLoaded;
+            VesselUnloadRepository.TableRowsUpdatingEvent += VesselUnloadRepository_TableRowsUpdatingEvent;
             await Task.Run(() => LoadEntities());
+            VesselUnloadRepository.TableRowsUpdatingEvent -= VesselUnloadRepository_TableRowsUpdatingEvent;
             Utilities.Global.EntityLoaded -= Global_EntityLoaded;
             Utilities.Global.EntityLoading -= Global_EntityLoading;
             LabelLoading.Content = "Finished reading database";
             //CSVFIleManager.ReadCSVXML();
             Close();
             //MessageBox.Show("Finished loading data");
+        }
+
+        private void VesselUnloadRepository_TableRowsUpdatingEvent(object sender, UpdateTableRowsEventArg e)
+        {
+            switch (e.Intent)
+            {
+                case "start":
+                    panelTableUpdateProgress.Dispatcher.BeginInvoke
+                        (
+                        DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                        {
+                            panelTableUpdateProgress.Visibility = Visibility.Visible;
+                            return null;
+                        }), null);
+
+                    progressBarUpdateTableRow.Dispatcher.BeginInvoke
+                    (
+                        DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                        {
+                            progressBarUpdateTableRow.Maximum = e.TotalRowsToUpdate;
+                            progressBarUpdateTableRow.Value = 0;
+                            //do what you need to do on UI Thread
+                            return null;
+                        }), null);
+                    break;
+                case "row updated":
+                    progressBarUpdateTableRow.Dispatcher.BeginInvoke
+                    (
+                        DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                        {
+                            progressBarUpdateTableRow.Value = e.RowsUpdatedCount;
+                            //do what you need to do on UI Thread
+                            return null;
+                        }), null);
+
+                    labelUpdateTable.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              labelUpdateTable.Content = $"Updating {e.TableName} row {e.RowsUpdatedCount} of {progressBarUpdateTableRow.Maximum}";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+                    break;
+                case "row updating done":
+                    progressBarUpdateTableRow.Dispatcher.BeginInvoke
+                    (
+                        DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                        {
+                            progressBarUpdateTableRow.Value = 0;
+                            //do what you need to do on UI Thread
+                            return null;
+                        }), null);
+
+                    labelUpdateTable.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              labelUpdateTable.Content = $"Finished updating {e.TableName}";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+                    break;
+            }
         }
 
         private void Global_EntityLoading(object sender, EntityLoadedEventArg e)
@@ -50,8 +116,8 @@ namespace NSAP_ODK.Views
                   DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                   {
                       LabelLoading.Content = $"Loading {_currentEntity}";
-                          //do what you need to do on UI Thread
-                          return null;
+                      //do what you need to do on UI Thread
+                      return null;
                   }), null);
         }
 
@@ -63,17 +129,18 @@ namespace NSAP_ODK.Views
         }
         private async void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
+            panelTableUpdateProgress.Visibility = Visibility.Collapsed;
             labelVersion.Content = $"Version: {Assembly.GetExecutingAssembly().GetName().Version.ToString()}";
             //ProgressBarRead.IsIndeterminate = true;
             await LoadEntitiesAsync();
             //ProgressBarRead.IsIndeterminate = false; // Maybe hide it, too
 
-           
+
 
         }
         private void LoadEntities()
         {
-            
+
             Utilities.Global.LoadEntities();
 
             // this will be run only once after updating the regions-enumerators table  
@@ -83,12 +150,12 @@ namespace NSAP_ODK.Views
             //{
             //    NSAPEntities.NSAPEnumeratorViewModel.FirstSamplingOfEnumerators = NSAPEntities.NSAPEnumeratorViewModel.GetFirstSamplingOfEnumerators();
             //}
-            
+
         }
 
         private void Global_EntityLoaded(object sender, EntityLoadedEventArg e)
         {
-            if(e.IsStarting)
+            if (e.IsStarting)
             {
                 ProgressBarRead.Dispatcher.BeginInvoke
                 (
@@ -96,11 +163,11 @@ namespace NSAP_ODK.Views
                     {
                         ProgressBarRead.Maximum = e.EntityCount;
                         ProgressBarRead.Value = 0;
-                    //do what you need to do on UI Thread
-                    return null;
-                }), null);
+                        //do what you need to do on UI Thread
+                        return null;
+                    }), null);
             }
-            else if(e.IsEnding)
+            else if (e.IsEnding)
             {
                 LabelLoading.Dispatcher.BeginInvoke
                     (
@@ -117,7 +184,7 @@ namespace NSAP_ODK.Views
                 (
                     DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                     {
-                        ProgressBarRead.Value ++;
+                        ProgressBarRead.Value++;
                         //do what you need to do on UI Thread
                         return null;
                     }), null);
@@ -127,8 +194,8 @@ namespace NSAP_ODK.Views
                       DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                       {
                           LabelLoading.Content = $"Finished loading {_currentEntity}";
-                              //do what you need to do on UI Thread
-                              return null;
+                          //do what you need to do on UI Thread
+                          return null;
                       }), null);
             }
         }
