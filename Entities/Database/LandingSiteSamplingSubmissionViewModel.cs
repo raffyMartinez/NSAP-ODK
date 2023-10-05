@@ -126,8 +126,6 @@ namespace NSAP_ODK.Entities.Database
                         {
                             _editSuccess = LandingSiteSamplingSubmissions.Add(newItem);
                         }
-                        //int newIndex = e.NewStartingIndex;
-                        //_editSuccess = CatchMaturities.Add(CatchMaturityCollection[newIndex]);
                     }
                     break;
 

@@ -153,58 +153,7 @@ namespace NSAP_ODK.Views
             }
             return "";
         }
-        private async Task<bool>DeleteLandingDataFromServer(string serverID, bool isMultivessel)
-        {
-            bool proceed = false;
 
-            return false;
-        }
-
-        private async Task<bool> DeleteMultivesselDataAsync(bool isMultivesselDelete)
-        {
-            if(await CatchMaturityRepository.DeleteMultivesselDataAsync(isMultivesselDelete))
-                    {
-                if (await CatchLenFreqRepository.DeleteMultivesselDataAsync(isMultivesselDelete))
-                {
-                    if (await CatchLengthRepository.DeleteMultivesselDataAsync(isMultivesselDelete))
-                    {
-                        if (await CatchLenWeightRepository.DeleteMultivesselDataAsync(isMultivesselDelete))
-                        {
-                            if (await VesselCatchRepository.DeleteMultivesselDataAsync(isMultivesselDelete))
-                            {
-                                if (await VesselUnload_Gear_Spec_Repository.DeleteMultivesselDataAsync(isMultivesselDelete))
-                                {
-                                    if (await VesselUnload_FishingGearRepository.DeleteMultivesselDataAsync(isMultivesselDelete))
-                                    {
-                                        if (await FishingGroundGridRepository.DeleteMultivesselDataAsync(isMultivesselDelete))
-                                        {
-                                            if (await GearSoakRepository.DeleteMultivesselDataAsync(isMultivesselDelete))
-                                            {
-                                                if (await VesselEffortRepository.DeleteMultivesselDataAsync(isMultivesselDelete))
-                                                {
-                                                    if (await VesselUnloadRepository.DeleteMultivesselDataAsync(isMultivesselDelete))
-                                                    {
-                                                        if (await GearUnloadRepository.DeleteMultivesselDataAsync(isMultivesselDelete))
-                                                        {
-                                                            if (await LandingSiteSamplingRepository.DeleteMultivesselDataAsync(_isMultiVesselDelete))
-                                                            {
-                                                                return  true;
-                                                            }
-                                                        }
-                                                    }
-                                                }
-
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return false;
-        }
         public async Task DoTask()
         {
             string labelSuccessFindingMismatch = "Mismatched items were found";
@@ -218,7 +167,7 @@ namespace NSAP_ODK.Views
                     textBlockDescription.Text = "Deleting multi vessel and gear data";
                     DeleteServerData.ServerID = ServerID;
                     DeleteServerData.IsMultiVessel = ServerIsMultiVessel;
-                    DialogResult = await DeleteServerData.DeleteAsync();
+                    DialogResult = await DeleteServerData.DeleteServerDataByServerIDAsync();
                     break;
                 case "delete all landing data":
                     if (Utilities.Global.Settings.UsemySQL)
@@ -236,7 +185,7 @@ namespace NSAP_ODK.Views
                 case "delete multivessel gear data":
                     progressLabel.Visibility = Visibility.Collapsed;
                     textBlockDescription.Text = "Deleting multi vessel and gear data";
-                    DialogResult = await DeleteMultivesselDataAsync(_isMultiVesselDelete);
+                    DialogResult = await DeleteServerData.DeleteServerDataByTypeAsync(_isMultiVesselDelete);
                     break;
                 case "get enumerators first sampling":
                     NSAPEntities.SummaryItemViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;

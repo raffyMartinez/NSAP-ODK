@@ -390,6 +390,7 @@ namespace NSAP_ODK.Entities.Database
 
                                             if (root.SampledFishLandings != null && root.SampledFishLandings.Count > 0)
                                             {
+                                                
                                                 foreach (MultiVesselGear_SampledLanding sl in root.SampledFishLandings.Where(t => t.Main_gear_used == gu.Sequence).ToList())
                                                 {
                                                     //SummaryItem si_vu = NSAPEntities.SummaryItemViewModel.GetVesselUnload(lss.PK, sl.Reference_number);

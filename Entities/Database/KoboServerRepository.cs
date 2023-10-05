@@ -554,7 +554,15 @@ namespace NSAP_ODK.Entities.Database
                         cmd.Parameters.Add("@fname", OleDbType.VarChar).Value = ks.FormName;
                         cmd.Parameters.Add("@sid", OleDbType.VarChar).Value = ks.ServerID;
                         cmd.Parameters.Add("@owner", OleDbType.VarChar).Value = ks.Owner;
-                        cmd.Parameters.Add("@f_version", OleDbType.VarChar).Value = ks.FormVersion;
+                        
+                        if(ks.FormVersion==null)
+                        {
+                            cmd.Parameters.Add("@f_version", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            cmd.Parameters.Add("@f_version", OleDbType.VarChar).Value = ks.FormVersion;
+                        }
                         if (ks.eFormVersion == null)
                         {
                             cmd.Parameters.Add("@ef_version", OleDbType.VarChar).Value = DBNull.Value;
@@ -576,7 +584,14 @@ namespace NSAP_ODK.Entities.Database
                         cmd.Parameters.Add("@s_count", OleDbType.Integer).Value = ks.SubmissionCount;
                         cmd.Parameters.Add("@u_count", OleDbType.Integer).Value = ks.UserCount;
                         cmd.Parameters.Add("@d_access", OleDbType.Date).Value = DateTime.Now;
-                        cmd.Parameters.Add("@saved_count", OleDbType.Integer).Value = ks.SavedInDBCount;
+                        if (ks.IsFishLandingMultiVesselSurveyForm)
+                        {
+                            cmd.Parameters.Add("@saved_count", OleDbType.Integer).Value = NSAPEntities.LandingSiteSamplingSubmissionViewModel.CountRecordsByFormID(ks.ServerID);
+                        }
+                        else
+                        {
+                            cmd.Parameters.Add("@saved_count", OleDbType.Integer).Value = ks.SavedInDBCount;
+                        }
 
                         if (ks.LastUploadedJSON == null)
                         {

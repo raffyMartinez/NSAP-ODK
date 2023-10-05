@@ -14,53 +14,6 @@ namespace NSAP_ODK.Entities.Database
     {
         public List<CatchLengthWeight> CatchLengthWeights { get; set; }
 
-        public static Task<bool> DeleteMultivesselDataAsync(bool isMultivessel)
-        {
-            return Task.Run(() => DeleteMultivesselData(isMultivessel));
-        }
-        public static bool DeleteMultivesselData(bool isMultivessel)
-        {
-            bool success = false;
-            if (Global.Settings.UsemySQL)
-            {
-
-            }
-            else
-            {
-                using (var con = new OleDbConnection(Global.ConnectionString))
-                {
-                    using (var cmd = con.CreateCommand())
-                    {
-                        if (isMultivessel)
-                        {
-                            cmd.CommandText = @"DELETE dbo_catch_len_wt.* 
-                                                FROM dbo_vessel_catch 
-                                                INNER JOIN dbo_catch_len_wt ON dbo_vessel_catch.catch_id = dbo_catch_len_wt.catch_id
-                                                WHERE dbo_vessel_catch.v_unload_id Is Null";
-                        }
-                        else
-                        {
-                            cmd.CommandText = @"DELETE dbo_catch_len_wt.* 
-                                                FROM dbo_vessel_catch 
-                                                INNER JOIN dbo_catch_len_wt ON dbo_vessel_catch.catch_id = dbo_catch_len_wt.catch_id
-                                                WHERE dbo_vessel_catch.v_unload_id Is Not Null";
-                        }
-                        try
-                        {
-                            con.Open();
-                            success = cmd.ExecuteNonQuery() >= 0;
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Log(ex);
-                        }
-                    }
-                }
-            }
-            return success;
-        }
-
-        
         public CatchLenWeightRepository(VesselCatch vc)
         {
             CatchLengthWeights = getCatchLengthWeights(vc);
