@@ -2853,6 +2853,7 @@ namespace NSAP_ODK.Entities.Database
                 RegionSequence = vu.Parent.Parent.NSAPRegion.Sequence,
                 RegionID = vu.Parent.Parent.NSAPRegionID,
                 FishingGroundID = vu.Parent.Parent.FishingGroundID,
+                LandingSiteSamplingSubmissionId = vu.LandingSiteSamplingSubmissionID,
 
                 GearUnloadID = vu.Parent.PK,
                 GearUnloadBoats = vu.Parent.Boats,

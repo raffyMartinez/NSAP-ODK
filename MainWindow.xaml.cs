@@ -2055,13 +2055,6 @@ namespace NSAP_ODK
                         }
                     }
 
-                    //menuSampledCalendar.IsChecked = false;
-                    //menuAllLandingsCalendar.IsChecked = false;
-                    //menuWeightLandingsCalendar.IsChecked = false;
-                    //menuTotalLandingsCalendar.IsChecked = false;
-
-
-
                     switch (menuName)
                     {
                         case "menuSampledCalendar":

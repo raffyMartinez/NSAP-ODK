@@ -1164,6 +1164,7 @@ namespace NSAP_ODK.Entities.Database
             myDict.Add("sampling_sequence", sequence);
             myDict.Add("number_species_catch_composition", no_species_catch_composition);
             myDict.Add("include_effort_indicators", vu.IncludeEffortIndicators.ToString());
+            myDict.Add("lss_submisionID", vu.LandingSiteSamplingSubmissionID);
 
             _csv_1.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload_1"));
 

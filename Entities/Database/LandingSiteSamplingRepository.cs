@@ -126,7 +126,8 @@ namespace NSAP_ODK.Entities.Database
                                             {
                                                 if (cols.Contains("include_effort_indicators") || VesselUnloadRepository.UpdateTableDefinitionEx("include_effort_indicators"))
                                                 {
-                                                    proceed = true;
+
+                                                    proceed = cols.Contains("lss_submisionID") || VesselUnloadRepository.UpdateTableDefinitionEx("lss_submisionID");
                                                 }
                                             }
                                         }

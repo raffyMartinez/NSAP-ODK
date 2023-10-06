@@ -146,6 +146,7 @@ namespace NSAP_ODK.Entities.Database
             return $"{GroupingString} {ID}-{Region.ShortName}-{FMA.Name}-{FishingGround.Name}-{ls}-{gr}-{gu_id}-{s_date}-sector:{SectorCode}";
         }
 
+        public string LandingSiteSamplingSubmissionId { get; set; }
         public double FormVersionNumeric
         {
             get

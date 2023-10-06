@@ -83,12 +83,14 @@ namespace NSAP_ODK.Entities.Database
                             sql = $@"ALTER TABLE dbo_vessel_unload_1 ADD COLUMN {colName}  BIT";
                             break;
                         case "ref_no":
+
                             if (colWidth != null)
                             {
-                                sql = $"ALTER TABLE dbo_vessel_unload_1 ALTER Column {colName} varchar(150)";
+                                sql = $"ALTER TABLE dbo_vessel_unload_1 ALTER Column {colName} varchar({colWidth})";
                             }
                             break;
                         case "json_filename":
+                        case "lss_submisionID":
                             sql = $@"ALTER TABLE dbo_vessel_unload_1 ADD COLUMN {colName}  varchar(255)";
                             break;
                     }
@@ -1816,6 +1818,7 @@ namespace NSAP_ODK.Entities.Database
                                 item.IsMultiGear = (bool)dr["is_multigear"];
                                 item.IncludeEffortIndicators = (bool)dr["include_effort_indicators"];
                                 item.NumberOfSpeciesInCatchComposition = null;
+                                item.LandingSiteSamplingSubmissionID = dr["lss_submisionID"].ToString();
                                 if (dr["number_species_catch_composition"] != DBNull.Value)
                                 {
                                     item.NumberOfSpeciesInCatchComposition = (int)dr["number_species_catch_composition"];
@@ -2324,8 +2327,8 @@ namespace NSAP_ODK.Entities.Database
                                                 RowID, XFormIdentifier, XFormDate, SamplingDate,
                                                 user_name,device_id,datetime_submitted,form_version,
                                                 GPS,Notes,EnumeratorID,EnumeratorText,DateAdded,sector_code,FromExcelDownload,HasCatchComposition,
-                                                NumberOfFishers,ref_no,is_catch_sold,is_multigear,count_gear_types,number_species_catch_composition,include_effort)
-                                    Values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                                                NumberOfFishers,ref_no,is_catch_sold,is_multigear,count_gear_types,number_species_catch_composition,include_effort,lss_submisionID)
+                                    Values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
                                 using (OleDbCommand update1 = new OleDbCommand(sql, conn))
                                 {
@@ -2447,6 +2450,7 @@ namespace NSAP_ODK.Entities.Database
                                         update.Parameters.Add("@count_species_catch_comp", OleDbType.Integer).Value = item.NumberOfSpeciesInCatchComposition;
                                     }
                                     update1.Parameters.Add("@include_effort", OleDbType.Boolean).Value = item.IncludeEffortIndicators;
+                                    update1.Parameters.Add("@lss_id", OleDbType.VarWChar).Value = item.LandingSiteSamplingSubmissionID;
                                     try
                                     {
                                         success = update1.ExecuteNonQuery() > 0;
@@ -3189,6 +3193,7 @@ namespace NSAP_ODK.Entities.Database
                                     cmd_1.Parameters.Add("@count_species_catch_comp", OleDbType.Integer).Value = item.NumberOfSpeciesInCatchComposition;
                                 }
                                 cmd_1.Parameters.Add("@include_effort", OleDbType.Boolean).Value = item.IncludeEffortIndicators;
+                                cmd_1.Parameters.Add("@lsss_id", OleDbType.VarWChar).Value = item.LandingSiteSamplingSubmissionID;
 
                                 cmd_1.Parameters.Add("@Vessel_unload_id", OleDbType.Integer).Value = item.PK;
 
@@ -3221,6 +3226,7 @@ namespace NSAP_ODK.Entities.Database
                                         count_gear_types = @num_gear_type,
                                         number_species_catch_composition = @count_species_catch_comp,
                                         include_effort_indicators = @include_effort,
+                                        lss_submisionID = @lsss_id,
                                         WHERE v_unload_id = @Vessel_unload_id";
 
 

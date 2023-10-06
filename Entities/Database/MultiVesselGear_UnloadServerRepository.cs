@@ -298,9 +298,10 @@ namespace NSAP_ODK.Entities.Database
                             proceed = true;
                         }
 
+                        LandingSiteSamplingSubmission lsss=null;
                         if (proceed)
                         {
-                            LandingSiteSamplingSubmission lsss = new LandingSiteSamplingSubmission
+                            lsss = new LandingSiteSamplingSubmission
                             {
                                 SubmissionID = root.SubmissionUUID,
                                 DateAdded = DateTime.Now,
@@ -429,7 +430,8 @@ namespace NSAP_ODK.Entities.Database
                                                         FormVersion = sl.Parent.FormVersion == -1 ? "" : sl.Parent.FormVersion.ToString(),
                                                         XFormIdentifier = sl.Parent._xform_id_string,
                                                         NumberOfSpeciesInCatchComposition = sl.NumberSpeciesInCatchComposition,
-                                                        IncludeEffortIndicators = sl.IncludeEffort
+                                                        IncludeEffortIndicators = sl.IncludeEffort,
+                                                        LandingSiteSamplingSubmissionID = lsss.SubmissionID
                                                     };
                                                     if (gu.VesselUnloadViewModel.AddRecordToRepo(vu))
                                                     {

@@ -777,6 +777,7 @@ namespace NSAP_ODK.Entities.Database
                                                 sd1.XFormIdentifier AS lss_xformid,
                                                 sd1.datetime_submitted as lss_date_submitted,
                                                 sd1.can_sample_from_catch_composition,
+                                                vu1.lss_submisionID,
                                                 vu1.XFormIdentifier AS xform_identifier,
                                                 vu1.datetime_submitted,
                                                 vu1.is_multigear,
@@ -967,6 +968,7 @@ namespace NSAP_ODK.Entities.Database
                                     si.IsSamplingDay = isSamplingDay;
                                     si.IsMultiVessel = (bool)dr["is_multivessel"];
                                     si.SamplingFromCatchCompositionAllowed = (bool)dr["can_sample_from_catch_composition"];
+                                    si.LandingSiteSamplingSubmissionId = dr["lss_submisionID"].ToString();
                                     if (si.IsMultiVessel)
                                     {
                                         xform_id = dr["lss_xformid"].ToString();

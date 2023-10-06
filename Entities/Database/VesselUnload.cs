@@ -642,6 +642,8 @@ namespace NSAP_ODK.Entities.Database
         private NSAPEnumerator _nsapEnumerator;
         private double _runningSum = 0;
         private bool _speciesWeightIsZero;
+
+        public string LandingSiteSamplingSubmissionID { get; set; }
         public bool IncludeEffortIndicators { get; set; }
         public int? NumberOfSpeciesInCatchComposition { get; set; }
         public int? SequenceOfSampling { get; set; }
