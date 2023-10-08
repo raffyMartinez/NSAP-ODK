@@ -192,6 +192,7 @@
     <Compile Include="Entities\Database\CreateTablesInAccessEventArgs.cs" />
     <Compile Include="Entities\Database\CrossTabLengthWeight.cs" />
     <Compile Include="Entities\Database\Day_GearLanded.cs" />
+    <Compile Include="Entities\Database\DeleteFromServerEventArg.cs" />
     <Compile Include="Entities\Database\DeleteLandingSiteSamplingFromOrphanEventArg.cs" />
     <Compile Include="Entities\Database\DeleteRegionEntityFail.cs" />
     <Compile Include="Entities\Database\DeleteServerData.cs" />

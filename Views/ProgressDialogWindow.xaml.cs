@@ -163,11 +163,13 @@ namespace NSAP_ODK.Views
             switch (TaskToDo)
             {
                 case "delete landing data from selected server":
+                    DeleteServerData.DeletingServerDataEvent += DeleteServerData_DeletingServerDataEvent;
                     progressLabel.Visibility = Visibility.Collapsed;
-                    textBlockDescription.Text = "Deleting multi vessel and gear data";
+                    textBlockDescription.Text = "Deleting fish landing data";
                     DeleteServerData.ServerID = ServerID;
                     DeleteServerData.IsMultiVessel = ServerIsMultiVessel;
                     DialogResult = await DeleteServerData.DeleteServerDataByServerIDAsync();
+                    DeleteServerData.DeletingServerDataEvent -= DeleteServerData_DeletingServerDataEvent;
                     break;
                 case "delete all landing data":
                     if (Utilities.Global.Settings.UsemySQL)
@@ -183,9 +185,11 @@ namespace NSAP_ODK.Views
                     break;
                 case "delete single vessel data":
                 case "delete multivessel gear data":
+                    DeleteServerData.DeletingServerDataEvent += DeleteServerData_DeletingServerDataEvent;
                     progressLabel.Visibility = Visibility.Collapsed;
-                    textBlockDescription.Text = "Deleting multi vessel and gear data";
+                    textBlockDescription.Text = "Deleting fish landing data";
                     DialogResult = await DeleteServerData.DeleteServerDataByTypeAsync(_isMultiVesselDelete);
+                    DeleteServerData.DeletingServerDataEvent -= DeleteServerData_DeletingServerDataEvent;
                     break;
                 case "get enumerators first sampling":
                     NSAPEntities.SummaryItemViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
@@ -316,6 +320,70 @@ namespace NSAP_ODK.Views
 
 
 
+        }
+
+        private void DeleteServerData_DeletingServerDataEvent(object sender, DeleteFromServerEventArg e)
+        {
+            switch(e.Intent)
+            {
+                case "start deleting":
+                    progressBar.Dispatcher.BeginInvoke
+                    (
+                      DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                      {
+
+
+                          progressBar.Maximum = e.CountToProcess;
+                          progressBar.Value = 0;
+                          //do what you need to do on UI Thread
+                          return null;
+                      }), null);
+
+
+                    break;
+                case "deleted from table":
+                    progressBar.Dispatcher.BeginInvoke
+                    (
+                      DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                      {
+
+                           progressBar.Value = e.CountProcessed;
+                          //do what you need to do on UI Thread
+                          return null;
+                      }), null);
+
+                    progressLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              progressLabel.Content = $"Deleted data in {e.TableName}: {e.CountProcessed} of {progressBar.Value}";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case "finished deleting":
+                    progressBar.Dispatcher.BeginInvoke
+                    (
+                      DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                      {
+
+                          progressBar.Value = 0;
+                          //do what you need to do on UI Thread
+                          return null;
+                      }), null);
+
+                    progressLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              progressLabel.Content = $"Finished all tables";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+            }
         }
 
         private void LandingSite_FishingVesselViewModel_ProcessingItemsEvent(object sender, ProcessingItemsEventArg e)

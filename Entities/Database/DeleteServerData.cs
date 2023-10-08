@@ -19,6 +19,7 @@ namespace NSAP_ODK.Entities.Database
     }
     public static class DeleteServerData
     {
+        public static event EventHandler<DeleteFromServerEventArg> DeletingServerDataEvent;
         public static string ServerID { get; set; }
         public static bool IsMultiVessel { get; set; }
 
@@ -36,6 +37,7 @@ namespace NSAP_ODK.Entities.Database
         }
         private static bool DeleteServerDataByType(bool isMultivessel)
         {
+            int processedCount = 1;
             bool success = false;
             try
             {
@@ -48,6 +50,9 @@ namespace NSAP_ODK.Entities.Database
                     //OleDbTransaction transaction = null;
                     using (var con = new OleDbConnection(Global.ConnectionString))
                     {
+                        DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "start deleting", CountToProcess = 25 });
+
+
                         using (var cmd = con.CreateCommand())
                         {
                             int r = 0;
@@ -69,6 +74,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vessel_catch.catch_id = dbo_catch_len.catch_id
                                                 WHERE dbo_LC_FG_sample_day_1.is_multivessel = @is_mv";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "length" });
 
                             //Length multi-gear landing
                             cmd.CommandText = @"DELETE dbo_catch_len.*
@@ -85,6 +91,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id
                                                 WHERE dbo_LC_FG_sample_day_1.is_multivessel=@is_mv";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "length" });
 
                             //Length Freq not multi-gear landing
                             cmd.CommandText = @"DELETE dbo_catch_len_freq.*
@@ -99,6 +106,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vessel_catch.catch_id = dbo_catch_len_freq.catch_id
                                                 WHERE dbo_LC_FG_sample_day_1.is_multivessel = @is_mv";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "length freq" });
 
                             //Length Freq multi-gear landing
                             cmd.CommandText = @"DELETE dbo_catch_len_freq.*
@@ -115,6 +123,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id
                                                 WHERE dbo_LC_FG_sample_day_1.is_multivessel=@is_mv";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "length freq" });
 
                             //Length Wt not multi-gear landing
                             cmd.CommandText = @"DELETE dbo_catch_len_wt.*
@@ -129,6 +138,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vessel_catch.catch_id = dbo_catch_len_wt.catch_id
                                                 WHERE dbo_LC_FG_sample_day_1.is_multivessel = @is_mv";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "length weight" });
 
                             //Length Wt multi-gear landing
                             cmd.CommandText = @"DELETE dbo_catch_len_wt.*
@@ -145,6 +155,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id
                                                 WHERE dbo_LC_FG_sample_day_1.is_multivessel=@is_mv";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "length weight" });
 
                             //Maturity not multi-gear landing
                             cmd.CommandText = @"DELETE dbo_catch_maturity.*
@@ -159,6 +170,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vessel_catch.catch_id = dbo_catch_maturity.catch_id
                                                 WHERE dbo_LC_FG_sample_day_1.is_multivessel = @is_mv";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "maturity" });
 
                             //Maturity multi-gear landing
                             cmd.CommandText = @"DELETE dbo_catch_maturity.*
@@ -175,6 +187,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id
                                                 WHERE dbo_LC_FG_sample_day_1.is_multivessel=@is_mv";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "maturity" });
 
                             //Catch not multi-gear
                             cmd.CommandText = @"DELETE  dbo_vessel_catch.*
@@ -187,6 +200,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vessel_unload.v_unload_id = dbo_vessel_catch.v_unload_id
                                                 WHERE dbo_LC_FG_sample_day_1.is_multivessel=@is_mv";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "catch composition" });
 
                             //Catch multi-gear
                             cmd.CommandText = @"DELETE  dbo_vessel_catch.*
@@ -201,6 +215,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id
                                                 WHERE dbo_LC_FG_sample_day_1.is_multivessel=@is_mv";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "catch composition" });
 
                             //effort multi-gear
                             cmd.CommandText = @"DELETE  dbo_vessel_effort.*
@@ -215,6 +230,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vesselunload_fishinggear.row_id = dbo_vessel_effort.vessel_unload_fishing_gear_id
                                                 WHERE dbo_LC_FG_sample_day_1.is_multivessel=@is_mv";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "effort indicators" });
 
                             //weight validation multigear
                             cmd.CommandText = @"DELETE  dbo_vessel_unload_weight_validation.*
@@ -229,6 +245,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vesselunload_fishinggear.row_id = dbo_vessel_unload_weight_validation.unload_gear
                                                 WHERE dbo_LC_FG_sample_day_1.is_multivessel=@is_mv";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "weight validation" });
 
                             //unload stats multigear
                             cmd.CommandText = @"DELETE  dbo_vessel_unload_stats.*
@@ -243,6 +260,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vesselunload_fishinggear.row_id = dbo_vessel_unload_stats.unload_gear
                                                 WHERE dbo_LC_FG_sample_day_1.is_multivessel=@is_mv";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "unload stats" });
 
                             //vesselunload gear multigear
                             cmd.CommandText = @"DELETE  dbo_vesselunload_fishinggear.*
@@ -255,6 +273,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id
                                                 WHERE dbo_LC_FG_sample_day_1.is_multivessel=@is_mv";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "vessel unload gears" });
 
                             //effort not multigear
                             cmd.CommandText = @"DELETE  dbo_vessel_effort.*
@@ -267,6 +286,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vessel_unload.v_unload_id = dbo_vessel_effort.v_unload_id
                                                 WHERE dbo_LC_FG_sample_day_1.is_multivessel=@is_mv";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "effort" });
 
                             //weight validation not multigear
                             cmd.CommandText = @"DELETE  dbo_vessel_unload_weight_validation.*
@@ -279,6 +299,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vessel_unload.v_unload_id = dbo_vessel_unload_weight_validation.v_unload_id
                                                 WHERE dbo_LC_FG_sample_day_1.is_multivessel=@is_mv";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "weight validation" });
 
                             //unload stats not multigear
                             cmd.CommandText = @"DELETE dbo_vessel_unload_stats.*
@@ -291,6 +312,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vessel_unload.v_unload_id = dbo_vessel_unload_stats.v_unload_id
                                                 WHERE dbo_LC_FG_sample_day_1.is_multivessel=@is_mv";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "unload stats" });
 
                             //fishing grid
                             cmd.CommandText = @"DELETE dbo_fg_grid.*
@@ -302,6 +324,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_fg_grid ON dbo_vessel_unload.v_unload_id = dbo_fg_grid.v_unload_id
                                                 WHERE dbo_LC_FG_sample_day_1.is_multivessel=@is_mv";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "fishing grid" });
 
                             //gear soak
                             cmd.CommandText = @"DELETE dbo_gear_soak.*
@@ -313,6 +336,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_gear_soak ON dbo_vessel_unload.v_unload_id = dbo_gear_soak.v_unload_id
                                                 WHERE dbo_LC_FG_sample_day_1.is_multivessel = @is_mv";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "gear soak" });
 
                             //v unload 1
                             cmd.CommandText = @"DELETE dbo_vessel_unload_1.*
@@ -325,6 +349,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id
                                                 WHERE dbo_LC_FG_sample_day_1.is_multivessel=@is_mv";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "vessel unload 1" });
 
                             //v unload
                             cmd.CommandText = @"DELETE  dbo_vessel_unload.*
@@ -335,6 +360,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id
                                                 WHERE dbo_LC_FG_sample_day_1.is_multivessel = @is_mv";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "vessel unload" });
 
                             //g unload
                             cmd.CommandText = @"DELETE dbo_gear_unload.*
@@ -343,6 +369,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_gear_unload.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id
                                                 WHERE dbo_LC_FG_sample_day_1.is_multivessel=@is_mv";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "gear unload" });
 
                             //landing site sampling json submission IDs
                             if (isMultivessel)
@@ -350,6 +377,7 @@ namespace NSAP_ODK.Entities.Database
                                 cmd.CommandText = "Delete * from dbo_lss_submissionIDs";
                                 r = cmd.ExecuteNonQuery();
                             }
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "submission ids" });
 
                             //lss 1 and lss
                             cmd.CommandText = @"DELETE  dbo_LC_FG_sample_day.*, dbo_LC_FG_sample_day_1.*
@@ -357,7 +385,15 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_LC_FG_sample_day_1 ON dbo_LC_FG_sample_day.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id
                                                 WHERE dbo_LC_FG_sample_day_1.is_multivessel=@is_mv";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "sampling day" });
 
+
+                            //delete sampling day with orphaned landing site
+                            success = LandingSiteSamplingRepository.DeleteSamplingWithOrphanedLandingSite();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "sampling day with orphaned landing site" });
+
+
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "finished deleting" });
 
                             //transaction.Commit();
                             success = true;
@@ -374,6 +410,7 @@ namespace NSAP_ODK.Entities.Database
 
         private static bool DeleteServerDataByServerID()
         {
+            int processedCount = 1;
             bool success = false;
             try
             {
@@ -389,10 +426,13 @@ namespace NSAP_ODK.Entities.Database
                         using (var cmd = con.CreateCommand())
                         {
                             int r = 0;
+
                             cmd.Parameters.AddWithValue("@id", ServerID);
                             con.Open();
                             //transaction = con.BeginTransaction(IsolationLevel.ReadCommitted);
                             //cmd.Transaction = transaction;
+
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "start deleting", CountToProcess = 26 });
 
                             //update xform ID for data saved in earlier versions of eForm
                             cmd.CommandText = @"UPDATE ((dbo_gear_unload INNER JOIN 
@@ -406,6 +446,7 @@ namespace NSAP_ODK.Entities.Database
                                                     WHERE dbo_vessel_unload_1.XFormIdentifier = @id";
                             r = cmd.ExecuteNonQuery();
                             success = r >= 0;
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "vessel unload 1 xform identifier" });
 
                             //Length not multi-gear landing
                             cmd.CommandText = @"DELETE dbo_catch_len.*
@@ -420,6 +461,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vessel_catch.catch_id = dbo_catch_len.catch_id
                                                 WHERE dbo_LC_FG_sample_day_1.XFormIdentifier = @id";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "length" });
 
                             //Length multi-gear landing
                             cmd.CommandText = @"DELETE dbo_catch_len.*
@@ -436,6 +478,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id
                                                 WHERE dbo_LC_FG_sample_day_1.XFormIdentifier = @id";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "length" });
 
                             //Length Freq not multi-gear landing
                             cmd.CommandText = @"DELETE dbo_catch_len_freq.*
@@ -450,6 +493,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vessel_catch.catch_id = dbo_catch_len_freq.catch_id
                                                 WHERE dbo_LC_FG_sample_day_1.XFormIdentifier = @id";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "length freq" });
 
                             //Length Freq multi-gear landing
                             cmd.CommandText = @"DELETE dbo_catch_len_freq.*
@@ -466,6 +510,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id
                                                 WHERE dbo_LC_FG_sample_day_1.XFormIdentifier = @id";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "length freq" });
 
                             //Length Wt not multi-gear landing
                             cmd.CommandText = @"DELETE dbo_catch_len_wt.*
@@ -480,6 +525,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vessel_catch.catch_id = dbo_catch_len_wt.catch_id
                                                 WHERE dbo_LC_FG_sample_day_1.XFormIdentifier = @id";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "length weight" });
 
                             //Length Wt multi-gear landing
                             cmd.CommandText = @"DELETE dbo_catch_len_wt.*
@@ -496,6 +542,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id
                                                 WHERE dbo_LC_FG_sample_day_1.XFormIdentifier = @id";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "length weight" });
 
                             //Maturity not multi-gear landing
                             cmd.CommandText = @"DELETE dbo_catch_maturity.*
@@ -510,6 +557,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vessel_catch.catch_id = dbo_catch_maturity.catch_id
                                                 WHERE dbo_LC_FG_sample_day_1.XFormIdentifier = @id";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "maturity" });
 
                             //Maturity multi-gear landing
                             cmd.CommandText = @"DELETE dbo_catch_maturity.*
@@ -526,6 +574,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id
                                                 WHERE dbo_LC_FG_sample_day_1.XFormIdentifier = @id";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "maturity" });
 
                             //Catch not multi-gear
                             cmd.CommandText = @"DELETE  dbo_vessel_catch.*
@@ -538,6 +587,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vessel_unload.v_unload_id = dbo_vessel_catch.v_unload_id
                                                 WHERE dbo_LC_FG_sample_day_1.XFormIdentifier = @id";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "catch composition" });
 
                             //Catch multi-gear
                             cmd.CommandText = @"DELETE  dbo_vessel_catch.*
@@ -552,6 +602,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id
                                                 WHERE dbo_LC_FG_sample_day_1.XFormIdentifier = @id";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "catch composition" });
 
                             //effort multi-gear
                             cmd.CommandText = @"DELETE  dbo_vessel_effort.*
@@ -566,7 +617,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vesselunload_fishinggear.row_id = dbo_vessel_effort.vessel_unload_fishing_gear_id
                                                 WHERE dbo_LC_FG_sample_day_1.XFormIdentifier = @id";
                             r = cmd.ExecuteNonQuery();
-
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "effort indicators" });
                             //weight validation multigear
                             cmd.CommandText = @"DELETE  dbo_vessel_unload_weight_validation.*
                                                 FROM (((dbo_gear_unload INNER JOIN 
@@ -580,6 +631,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vesselunload_fishinggear.row_id = dbo_vessel_unload_weight_validation.unload_gear
                                                 WHERE dbo_LC_FG_sample_day_1.XFormIdentifier = @id";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "weight validation" });
 
                             //unload stats multigear
                             cmd.CommandText = @"DELETE  dbo_vessel_unload_stats.*
@@ -594,6 +646,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vesselunload_fishinggear.row_id = dbo_vessel_unload_stats.unload_gear
                                                 WHERE dbo_LC_FG_sample_day_1.XFormIdentifier = @id";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "unload stats" });
 
                             //vesselunload gear multigear
                             cmd.CommandText = @"DELETE  dbo_vesselunload_fishinggear.*
@@ -606,6 +659,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id
                                                 WHERE dbo_LC_FG_sample_day_1.XFormIdentifier = @id";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "vessel unload gears" });
 
                             //effort not multigear
                             cmd.CommandText = @"DELETE  dbo_vessel_effort.*
@@ -618,6 +672,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vessel_unload.v_unload_id = dbo_vessel_effort.v_unload_id
                                                 WHERE dbo_LC_FG_sample_day_1.XFormIdentifier = @id";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "effort indicators" });
 
                             //weight validation not multigear
                             cmd.CommandText = @"DELETE  dbo_vessel_unload_weight_validation.*
@@ -630,6 +685,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vessel_unload.v_unload_id = dbo_vessel_unload_weight_validation.v_unload_id
                                                 WHERE dbo_LC_FG_sample_day_1.XFormIdentifier = @id";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "weight validation" });
 
                             //unload stats not multigear
                             cmd.CommandText = @"DELETE dbo_vessel_unload_stats.*
@@ -642,6 +698,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vessel_unload.v_unload_id = dbo_vessel_unload_stats.v_unload_id
                                                 WHERE dbo_LC_FG_sample_day_1.XFormIdentifier = @id";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "unload stats" });
 
                             //fishing grid
                             cmd.CommandText = @"DELETE dbo_fg_grid.*
@@ -653,6 +710,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_fg_grid ON dbo_vessel_unload.v_unload_id = dbo_fg_grid.v_unload_id
                                                 WHERE dbo_LC_FG_sample_day_1.XFormIdentifier = @id";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "fishing grid" });
 
                             //gear soak
                             cmd.CommandText = @"DELETE dbo_gear_soak.*
@@ -664,6 +722,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_gear_soak ON dbo_vessel_unload.v_unload_id = dbo_gear_soak.v_unload_id
                                                 WHERE dbo_LC_FG_sample_day_1.XFormIdentifier = @id";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "gear soak" });
 
                             //v unload 1
                             cmd.CommandText = @"DELETE dbo_vessel_unload_1.*
@@ -676,6 +735,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id
                                                 WHERE dbo_LC_FG_sample_day_1.XFormIdentifier = @id";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "vessel unload 1" });
 
                             //v unload
                             cmd.CommandText = @"DELETE  dbo_vessel_unload.*
@@ -686,6 +746,7 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id
                                                 WHERE dbo_LC_FG_sample_day_1.XFormIdentifier = @id";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "vessel unload" });
 
                             //g unload
                             cmd.CommandText = @"DELETE dbo_gear_unload.*
@@ -694,10 +755,12 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_gear_unload.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id
                                                 WHERE dbo_LC_FG_sample_day_1.XFormIdentifier = @id";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "gear unload" });
 
                             //landing site sampling json submission IDs
                             cmd.CommandText = "Delete * from dbo_lss_submissionIDs WHERE xFormIdentifier=@id";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "submission ids" });
 
 
                             //lss 1 and lss
@@ -706,9 +769,14 @@ namespace NSAP_ODK.Entities.Database
                                                     dbo_LC_FG_sample_day_1 ON dbo_LC_FG_sample_day.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id
                                                 WHERE dbo_LC_FG_sample_day_1.XFormIdentifier = @id";
                             r = cmd.ExecuteNonQuery();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "sampling day" });
 
+                            //delete sampling day with orphaned landing site
+                            success = LandingSiteSamplingRepository.DeleteSamplingWithOrphanedLandingSite();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "sampling day with orphaned landing site" });
 
                             //transaction.Commit();
+                            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "finished deleting" });
                             success = true;
                         }
                     }

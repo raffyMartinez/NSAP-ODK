@@ -264,7 +264,7 @@ namespace NSAP_ODK.Entities.Database
                             cols = CreateTablesInAccess.GetColumnNames("dbo_vessel_unload_weight_validation");
                             if (cols.Contains("unload_gear") || await (VesselUnloadRepository.AddFieldToWeightValidationTableAsync("unload_gear")))
                             {
-                                if(cols.Contains("row_id") || await VesselUnloadRepository.AddFieldToWeightValidationTableAsync("row_id"))
+                                if (cols.Contains("row_id") || await VesselUnloadRepository.AddFieldToWeightValidationTableAsync("row_id"))
                                 {
                                     proceed = true;
                                 }
@@ -1073,6 +1073,42 @@ namespace NSAP_ODK.Entities.Database
                             Logger.Log(ex);
                             success = false;
                         }
+                    }
+                }
+            }
+            return success;
+        }
+
+        public static bool DeleteSamplingWithOrphanedLandingSite()
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        con.Open();
+                        cmd.Parameters.AddWithValue("@remark", "orphaned landing site, could be removed");
+
+                        cmd.CommandText = @"DELETE  dbo_gear_unload.*
+                                            FROM dbo_LC_FG_sample_day INNER JOIN 
+                                                dbo_gear_unload ON 
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id
+                                            WHERE dbo_LC_FG_sample_day.remarks=@remark";
+                        cmd.ExecuteNonQuery();
+
+                        cmd.CommandText = @"DELETE  dbo_LC_FG_sample_day.*, dbo_LC_FG_sample_day_1.*
+                                                FROM dbo_LC_FG_sample_day INNER JOIN 
+                                                    dbo_LC_FG_sample_day_1 ON dbo_LC_FG_sample_day.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id
+                                                    WHERE dbo_LC_FG_sample_day.remarks = @remark";
+
+                        cmd.ExecuteNonQuery();
+                        success = true;
                     }
                 }
             }

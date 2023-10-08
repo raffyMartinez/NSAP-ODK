@@ -28,7 +28,6 @@ namespace NSAP_ODK.Entities.Database
         public DateTime MonthYear { get; set; }
         public List<GearUnload> GearUnloads { get; set; }
 
-
         public List<int?> NumberOfBoatsPerDay { get; set; }
         public List<double?> TotalCatchPerDay { get; set; }
         public List<bool?> SamplingDay { get; set; }
@@ -152,6 +151,7 @@ namespace NSAP_ODK.Entities.Database
                 DataTable.Rows.Add(row);
             }
         }
+
         public List<bool?> ListDayIsSamplingDay { get; set; }
         public List<GearUnload> UnloadList { get; private set; }
         public List<Day_GearLanded> Day_GearLandedList { get; private set; }
@@ -382,6 +382,17 @@ namespace NSAP_ODK.Entities.Database
                             //calendarDay.NumberOfSampledLandings[day] = VesselUnloadCount(day + 1, item.GearUsedName);
                             calendarDay.IsProcessed[day] = true;
                             //calendarDay.SamplingDay[day] = item.Parent.IsSamplingDay;
+                        }
+                        else
+                        {
+
+                            //fishingCalendarDays[day].GearUnloads.Add(item);
+                            //var g = calendarDay.GearUnloads[day];
+                            //g.ListVesselUnload.AddRange(item.ListVesselUnload);
+                            //calendarDay.GearUnloads[day].ListVesselUnload.AddRange(item.ListVesselUnload);
+                            calendarDay.NumberOfBoatsPerDay[day] += item.Boats ?? 0;
+                            calendarDay.TotalCatchPerDay[day] += item.Catch ?? 0;
+                            calendarDay.NumberOfSampledLandings[day] += item.NumberOfSampledLandings;
                         }
 
                     }

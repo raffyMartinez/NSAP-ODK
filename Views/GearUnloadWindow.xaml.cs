@@ -76,10 +76,11 @@ namespace NSAP_ODK.Views
 
         }
 
-        public GearUnloadWindow(List<GearUnload> gearUnloads, TreeViewModelControl.AllSamplingEntitiesEventHandler treeItemData, MainWindow parent)
+        public GearUnloadWindow(List<GearUnload> gearUnloads, TreeViewModelControl.AllSamplingEntitiesEventHandler treeItemData, MainWindow parent, string sector_code)
         {
             InitializeComponent();
             rowMenu.Height = new GridLength(0);
+            SectorCode = sector_code;
             _gearUnloads = gearUnloads;
             _treeItemData = treeItemData;
             if (_gearUnloads.Count > 0)
@@ -342,7 +343,7 @@ namespace NSAP_ODK.Views
                 return _vesselUnloads;
             }
         }
-
+        public string SectorCode { get; set; }
         public List<GearUnload> GearUnloads
         {
             set
@@ -468,7 +469,21 @@ namespace NSAP_ODK.Views
                         //_vesselUnloads = VesselUnloadViewModel.GetVesselUnloads(_gearUnloads);
                         if (_gearUnloads.Count > 0)
                         {
-                            _vesselUnloads = _gearUnloads[0].ListVesselUnload;
+                            //_vesselUnloads = _gearUnloads[0].ListVesselUnload;
+                            _vesselUnloads = new List<VesselUnload>();
+                            foreach(GearUnload gu in _gearUnloads)
+                            {
+                                foreach(VesselUnload vu in gu.ListVesselUnload)
+                                {
+                                    if(vu.SectorCode==SectorCode)
+                                    {
+                                        _vesselUnloads.Add(vu);
+                                    }
+                                }
+                                
+                            }
+
+                            
                             GridVesselUnload.DataContext = _vesselUnloads;
 
                             LabelTitle.Content = $"Vessel unloads from {_gearUnloads[0].Parent.LandingSite} using {_gearUnloads[0].GearUsedName} on {_gearUnloads[0].Parent.SamplingDate.ToString("MMM-dd-yyyy")}";

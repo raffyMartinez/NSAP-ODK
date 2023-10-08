@@ -39,6 +39,7 @@ namespace NSAP_ODK
     /// </summary>
     public partial class MainWindow : Window
     {
+        private string _sector_code = "";
         private bool _cancelBuildCalendar = false;
         private bool _hasNonSamplingDayColumns = false;
         private CalendarViewType _calendarOption;
@@ -3312,7 +3313,7 @@ namespace NSAP_ODK
                             case CalendarViewType.calendarViewTypeSampledLandings:
                                 if (_gearUnloads != null && _gearUnloads.Count > 0 && _gearUnloadWindow == null)
                                 {
-                                    _gearUnloadWindow = new GearUnloadWindow(_gearUnloads, _treeItemData, this);
+                                    _gearUnloadWindow = new GearUnloadWindow(_gearUnloads, _treeItemData, this, _sector_code);
                                     _gearUnloadWindow.Owner = this;
 
                                     _gearUnloadWindow.Show();
@@ -3728,10 +3729,12 @@ namespace NSAP_ODK
         }
         private async void OnSelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {
+
             var type = GridNSAPData.DataContext.GetType().ToString();
             switch (_currentDisplayMode)
             {
                 case DataDisplayMode.ODKData:
+
                     if (GridNSAPData.SelectedCells.Count == 1 && _acceptDataGridCellClick)
                     {
                         DataGridCellInfo cell = GridNSAPData.SelectedCells[0];
@@ -3768,16 +3771,16 @@ namespace NSAP_ODK
 
                         }
                         _fish_sector = (string)item.Row.ItemArray[2];
-                        string sector_code = "";
+
                         if (!string.IsNullOrEmpty(_fish_sector))
                         {
                             switch (_fish_sector)
                             {
                                 case "Commercial":
-                                    sector_code = "c";
+                                    _sector_code = "c";
                                     break;
                                 case "Municipal":
-                                    sector_code = "m";
+                                    _sector_code = "m";
                                     break;
                             }
                         }
@@ -3789,26 +3792,55 @@ namespace NSAP_ODK
                         }
                         else if (_gridCol >= 4)
                         {
+
+
                             GearUnload gear_unload_from_day = _fishingCalendarViewModel.FishingCalendarList.FirstOrDefault(t => t.GearName == _gearName && t.Sector == _fish_sector).GearUnloads[_gridCol - 4];
+
+                            //sectorCode = gear_unload_from_day.SectorCode;
 
                             if (gear_unload_from_day != null)
                             {
-                                GearUnload unload_to_display = new GearUnload
-                                {
 
-                                    GearID = gear_unload_from_day.GearID,
-                                    GearUsedText = gear_unload_from_day.GearUsedText,
-                                    PK = gear_unload_from_day.PK,
-                                    Remarks = gear_unload_from_day.Remarks,
-                                    LandingSiteSamplingID = gear_unload_from_day.LandingSiteSamplingID,
-                                    SectorCode = gear_unload_from_day.SectorCode,
-                                    VesselUnloadViewModel = new VesselUnloadViewModel(isNew: true),
-                                    ListVesselUnload = gear_unload_from_day.ListVesselUnload.Where(t => t.SectorCode == sector_code).ToList(),
-                                    Parent = gear_unload_from_day.Parent
-                                };
 
-                                _gearUnloads.Add(unload_to_display);
+                                //GearUnload unload_to_display = new GearUnload
+                                //{
+
+                                //    GearID = gear_unload_from_day.GearID,
+                                //    GearUsedText = gear_unload_from_day.GearUsedText,
+                                //    PK = gear_unload_from_day.PK,
+                                //    Remarks = gear_unload_from_day.Remarks,
+                                //    LandingSiteSamplingID = gear_unload_from_day.LandingSiteSamplingID,
+                                //    SectorCode = gear_unload_from_day.SectorCode,
+                                //    VesselUnloadViewModel = new VesselUnloadViewModel(isNew: true),
+                                //    ListVesselUnload = gear_unload_from_day.ListVesselUnload.Where(t => t.SectorCode == sector_code).ToList(),
+                                //    Parent = gear_unload_from_day.Parent
+                                //};
+
+                                //_gearUnloads.Add(unload_to_display);
+
+                                var lss = gear_unload_from_day.Parent;
+                                lss.GearUnloadViewModel = new GearUnloadViewModel(lss);
+                                List<GearUnload> list_gu = lss.GearUnloadViewModel.GearUnloadCollection
+                                    .Where(t => t.GearID == gear_unload_from_day.GearID).ToList();
+
+                                //foreach(GearUnload gu in list_gu)
+                                //{
+                                //    if(gu.SectorCode=="")
+                                //    {
+                                //        if (gu.ListVesselUnload[0].SectorCode == gear_unload_from_day.SectorCode)
+                                //        {
+                                //            gu.SectorCode = gu.ListVesselUnload[0].SectorCode;
+                                //        }
+                                //        else
+                                //        {
+                                //            list_gu.Remove(gu);
+                                //        }
+                                //    }
+                                //}
+                                _gearUnloads = list_gu;
                             }
+
+
                         }
                         //_gearUnloads.Add(gear_unload_from_day);
 
@@ -3821,7 +3853,9 @@ namespace NSAP_ODK
                         if (_gearUnloads != null && _gearUnloads.Count > 0)
                         {
                             //_gearUnloadWindow.GearUnload = _gearUnload;
+                            _gearUnloadWindow.SectorCode = _sector_code;
                             _gearUnloadWindow.GearUnloads = _gearUnloads;
+
                             try
                             {
                                 _gearUnloadWindow.Visibility = Visibility.Visible;

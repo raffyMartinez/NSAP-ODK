@@ -66,18 +66,18 @@ namespace NSAP_ODK.Entities.Database
 
         public SummaryItem GetItem(string enumeratorName, string refNo)
         {
-            SummaryItem si = SummaryItemCollection.FirstOrDefault(t => t.EnumeratorNameToUse == enumeratorName && t.RefNo == refNo);
+            SummaryItem si = SummaryItemCollection.ToList().FirstOrDefault(t => t.EnumeratorNameToUse == enumeratorName && t.RefNo == refNo);
             return si;
         }
 
         public SummaryItem GetItemEx(string samplingDayUUID)
         {
-            SummaryItem si = SummaryItemCollection.FirstOrDefault(t => t.SamplingDayUUID == samplingDayUUID);
+            SummaryItem si = SummaryItemCollection.ToList().FirstOrDefault(t => t.SamplingDayUUID == samplingDayUUID);
             return si;
         }
         public SummaryItem GetItem(string odkROWID)
         {
-            return SummaryItemCollection.FirstOrDefault(t => t.ODKRowID == odkROWID);
+            return SummaryItemCollection.ToList().FirstOrDefault(t => t.ODKRowID == odkROWID);
             //lock (collectionLock)
             //{
             //    return SummaryItemCollection.ToList().FirstOrDefault(t => t.ODKRowID == odkROWID);
