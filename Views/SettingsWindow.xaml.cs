@@ -1,4 +1,6 @@
 ﻿using Microsoft.Win32;
+using NSAP_ODK.Entities.Database;
+using NSAP_ODK.Utilities;
 using Ookii.Dialogs.Wpf;
 using System;
 using System.Collections.Generic;
@@ -274,6 +276,7 @@ namespace NSAP_ODK.Views
                     if (((MainWindow)Owner).LocateBackendDB(out string backend))
                     {
                         textBackenDB.Text = backend;
+                        CreateTablesInAccess.GetMDBColumnInfo(Global.ConnectionString);
                     }
                     Visibility = Visibility.Visible;
                     //Height = oldHeight;

@@ -1203,6 +1203,7 @@ namespace NSAP_ODK.Entities.Database
                 //_pk = NSAPEntities.SummaryItemViewModel.GetNextRecordNumber() - 1;
                 //_pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastVesselUnloadPK;
                 _pk = NSAPEntities.SummaryItemViewModel.GetVesselUnloadMaxRecordNumber();
+                //_pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastVesselUnloadPK;
                 VesselUnloadViewModel.CurrentIDNumber = _pk;
             }
             RowIDSet = true;
