@@ -18,6 +18,8 @@ using System.IO;
 using NSAP_ODK.Entities;
 using System.Windows.Threading;
 using NSAP_ODK.Entities.Database;
+using NSAP_ODK.Utilities;
+
 namespace NSAP_ODK.Views
 {
     /// <summary>
@@ -304,7 +306,7 @@ namespace NSAP_ODK.Views
                             {
                                 NSAPEntities.ClearCSVData();
                                 VesselUnloadServerRepository.ResetTotalUploadCounter();
-                                MessageBox.Show("Finished uploading JSON history files to the database", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                                MessageBox.Show("Finished uploading JSON history files to the database", Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
                                 Close();
                             }
                             CreateTablesInAccess.AccessTableEvent -= CreateTablesInAccess_AccessTableEvent;

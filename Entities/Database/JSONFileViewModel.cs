@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
-
+using DocumentFormat.OpenXml.Bibliography;
 
 namespace NSAP_ODK.Entities.Database
 {
@@ -161,7 +161,12 @@ namespace NSAP_ODK.Entities.Database
         }
         public string CreateFileName(JSONFile jsf)
         {
-            return $"{jsf.FormID} {jsf.Earliest.ToString("MMM-dd-yyyy")} - {jsf.Latest.ToString("MMM-dd-yyyy")}.json";
+            string mv = "";
+            if(jsf.IsMultivessel)
+            {
+                mv = "- MV - ";
+            }
+            return $"{jsf.FormID} {mv}{jsf.Earliest.ToString("MMM-dd-yyyy")} - {jsf.Latest.ToString("MMM-dd-yyyy")}.json";
         }
 
         public async Task<bool> Save(JSONFile jsf)

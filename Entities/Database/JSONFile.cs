@@ -26,6 +26,8 @@ namespace NSAP_ODK.Entities.Database
             _vesselLandings.Clear();
             _vesselLandings = null;
         }
+
+        public bool IsMultivessel { get; set; }
         public void Dispose()
         {
             Dispose(true);

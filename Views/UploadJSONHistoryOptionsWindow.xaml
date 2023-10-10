@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NSAP_ODK.Views"
         mc:Ignorable="d"
-        Title="Select option" Height="184.787" Width="359.574" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
+        Title="Select option" Height="245" Width="359.574" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="50"/>
@@ -25,6 +25,11 @@
                              ToolTip="The missing content of the database is updated by the JSON files listed below"
                              />
                 <CheckBox Content="Start at the beginning of the list" x:Name="chkStartAtBeginning" Margin="0 8 0 0" />
+
+                <CheckBox Margin="0 8 0 8" x:Name="chkOnlyFromMultiVesselForm">
+                    <TextBlock Text="Only upload JSON encoded using multi-vessel and gear eForm" TextWrapping="Wrap" />
+                </CheckBox>
+                
             </StackPanel>
             <TextBlock Text="Select Ok to replace missing content of database" x:Name="labelPrompt" TextWrapping="Wrap"/>
         </StackPanel>

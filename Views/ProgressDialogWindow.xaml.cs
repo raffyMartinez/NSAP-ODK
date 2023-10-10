@@ -172,16 +172,24 @@ namespace NSAP_ODK.Views
                     DeleteServerData.DeletingServerDataEvent -= DeleteServerData_DeletingServerDataEvent;
                     break;
                 case "delete all landing data":
+                    DeleteServerData.DeletingServerDataEvent += DeleteServerData_DeletingServerDataEvent;
+                    progressLabel.Visibility = Visibility.Collapsed;
+                    textBlockDescription.Text = "Deleting fish landing data";
                     if (Utilities.Global.Settings.UsemySQL)
                     {
                         DialogResult = NSAPMysql.MySQLConnect.DeleteDataFromTables(useScript: true);
                     }
-                    else if (NSAPEntities.ClearNSAPDatabaseTables())
+                    else
                     {
-                        NSAPEntities.LandingSiteSamplingViewModel.Clear();
-                        NSAPEntities.SummaryItemViewModel.Clear();
-                        DialogResult = true;
+                        DialogResult = await DeleteServerData.ClearNSAPDatabaseTablesAsync();
                     }
+                    //else if (NSAPEntities.ClearNSAPDatabaseTables())
+                    //{
+                    //    NSAPEntities.LandingSiteSamplingViewModel.Clear();
+                    //    NSAPEntities.SummaryItemViewModel.Clear();
+                    //    DialogResult = true;
+                    //}
+                    DeleteServerData.DeletingServerDataEvent -= DeleteServerData_DeletingServerDataEvent;
                     break;
                 case "delete single vessel data":
                 case "delete multivessel gear data":
@@ -356,7 +364,7 @@ namespace NSAP_ODK.Views
                         (
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
-                              progressLabel.Content = $"Deleted data in {e.TableName}: {e.CountProcessed} of {progressBar.Value}";
+                              progressLabel.Content = $"Deleted data in {e.TableName}: {e.CountProcessed} of {progressBar.Maximum}";
                               //do what you need to do on UI Thread
                               return null;
                           }

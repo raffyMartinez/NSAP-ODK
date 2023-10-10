@@ -455,6 +455,7 @@ namespace NSAP_ODK.Views
             jsonFile.VersionString = JSONFileViewModel.GetVersionString(JSON);
             jsonFile.MD5 = MD5.CreateMD5(JSON);
             jsonFile.RowID = NSAPEntities.JSONFileViewModel.NextRecordNumber;
+            jsonFile.IsMultivessel = IsMultiVessel;
             if (IsMultiVessel)
             {
                 jsonFile.Earliest = MultiVesselGear_UnloadServerRepository.DownloadedLandingsEarliestLandingDate();
@@ -641,6 +642,8 @@ namespace NSAP_ODK.Views
 
         }
         public bool StartAtBeginningOfJSONDownloadList { get; set; }
+
+        public bool OnlyUploadJSONHistoryFromMultiVesselForm { get; set; }
         public UpdateJSONHistoryMode UpdateJSONHistoryMode { get; set; }
         private HashSet<string> _rootChildrenHeadersHashSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private void AddMetadataToTreeView(DownloadedJsonMetadata djmd, TreeViewItem root)
@@ -732,15 +735,25 @@ namespace NSAP_ODK.Views
             }
         }
 
+
         private async Task ProcessHistoryJsonNode(TreeViewItem historyJSONNode, int loopCount = 0)
         {
+            bool proceed = true;
             var jm = (FileInfoJSONMetadata)historyJSONNode.Tag;
-            _jsonFileUseCreationDateForHistory = jm.JSONFileInfo.CreationTime;
-            historyJSONNode.IsSelected = true;
-            await Upload(verbose: !VesselUnloadServerRepository.DelayedSave, loopCount: loopCount, jsonFileName: jm.JSONFileInfo.Name);
-            NSAPEntities.KoboServerViewModel.ResetJSONFields();
-            jm.Koboserver.LastUploadedJSON = jm.JSONFileInfo.Name;
-            NSAPEntities.KoboServerViewModel.ServerWithUploadedJSON = jm.Koboserver;
+            if(OnlyUploadJSONHistoryFromMultiVesselForm && !jm.Koboserver.IsFishLandingMultiVesselSurveyForm)
+            {
+                proceed = false;
+            }
+
+            if (proceed)
+            {
+                _jsonFileUseCreationDateForHistory = jm.JSONFileInfo.CreationTime;
+                historyJSONNode.IsSelected = true;
+                await Upload(verbose: !VesselUnloadServerRepository.DelayedSave, loopCount: loopCount, jsonFileName: jm.JSONFileInfo.Name);
+                NSAPEntities.KoboServerViewModel.ResetJSONFields();
+                jm.Koboserver.LastUploadedJSON = jm.JSONFileInfo.Name;
+                NSAPEntities.KoboServerViewModel.ServerWithUploadedJSON = jm.Koboserver;
+            }
         }
 
 
@@ -812,6 +825,11 @@ namespace NSAP_ODK.Views
                 }
 
             }
+
+            MessageBox.Show($"Finished processing {loopCount} history items", 
+                Global.MessageBoxCaption, 
+                MessageBoxButton.OK, 
+                MessageBoxImage.Information);
         }
 
         private async Task<bool> ProcessResolvedLandings(List<VesselLanding> resolvedLandings)
@@ -1537,7 +1555,8 @@ namespace NSAP_ODK.Views
                     {
 
                         //the actual call to save the data contained in csv files is called in the call below
-                        await SaveUploadedJsonInLoop(verbose: true, allowDownloadAgain: true, isHistoryJson: menuName == "menuUpload");
+                        //await SaveUploadedJsonInLoop(verbose: true, allowDownloadAgain: true, isHistoryJson: menuName == "menuUpload");
+                        await SaveUploadedJsonInLoop(verbose: true, allowDownloadAgain: true, isHistoryJson: false);
                     }
 
 

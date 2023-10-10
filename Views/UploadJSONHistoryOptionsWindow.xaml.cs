@@ -40,12 +40,13 @@ namespace NSAP_ODK.Views
             InitializeComponent();
             Loaded += UploadJSONHistoryOptionsWindow_Loaded;
         }
-
+        public bool UploadOnlyFromMultiVesselEForm { get; set; }
         public JSONFilesToUploadType JSONFilesToUploadType { get; set; }
 
         private void UploadJSONHistoryOptionsWindow_Loaded(object sender, RoutedEventArgs e)
         {
             panelControls.Visibility = Visibility.Visible;
+            chkOnlyFromMultiVesselForm.Visibility = Visibility.Collapsed;   
 
             labelTitle.Content = "Select what to do with JSON files";
             switch (JSONFilesToUploadType)
@@ -64,6 +65,7 @@ namespace NSAP_ODK.Views
                 case JSONFilesToUploadType.UploadTypeJSONHistoryFiles:
                     labelTitle.Content = "Select what to do with JSON history files";
                     chkStartAtBeginning.Visibility = Visibility.Visible;
+                    chkOnlyFromMultiVesselForm.Visibility = Visibility.Visible;
                     labelPrompt.Visibility = Visibility.Collapsed;
                     break;
 
@@ -93,6 +95,7 @@ namespace NSAP_ODK.Views
             {
                 case "buttonOk":
                     bool proceed = true;
+                    ((ODKResultsWindow)Owner).OnlyUploadJSONHistoryFromMultiVesselForm = (bool)chkOnlyFromMultiVesselForm.IsChecked;
                     if ((bool)rbReplace.IsChecked)
                     {
                         ((ODKResultsWindow)Owner).UpdateJSONHistoryMode = UpdateJSONHistoryMode.UpdateReplaceExistingData;

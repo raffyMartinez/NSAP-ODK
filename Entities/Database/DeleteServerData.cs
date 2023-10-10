@@ -25,7 +25,79 @@ namespace NSAP_ODK.Entities.Database
 
 
 
+        public static Task<bool> ClearNSAPDatabaseTablesAsync()
+        {
+            return Task.Run(() => ClearNSAPDatabaseTables());
+        }
 
+        /// <summary>
+        /// CLears database mdb catch and effort entities table
+        /// </summary>
+        /// <param name="otherConnectionString"></param>
+        /// <returns></returns>
+        private static bool ClearNSAPDatabaseTables(string otherConnectionString = "")
+        {
+            int processedCount = 1;
+            bool success = false;
+            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "start deleting", CountToProcess = 17 });
+            
+            UnmatchedFieldsFromJSONFileRepository.ClearTable(otherConnectionString);
+            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "unmatched fields from json" });
+            
+            JSONFileRepository.ClearTable(otherConnectionString);
+            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "json file repository" });
+            
+            CatchMaturityRepository.ClearTable(otherConnectionString);
+            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "maturity" });
+            
+            CatchLengthRepository.ClearTable(otherConnectionString);
+            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "length" });
+            
+            CatchLenWeightRepository.ClearTable(otherConnectionString);
+            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "length-weight" });
+            
+            CatchLenFreqRepository.ClearTable(otherConnectionString);
+            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "length freq" });
+            
+            VesselCatchRepository.ClearTable(otherConnectionString);
+            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "catch" });
+            
+            FishingGroundGridRepository.ClearTable(otherConnectionString);
+            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "fishing ground grid" });
+            
+            GearSoakRepository.ClearTable(otherConnectionString);
+            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "gear soak" });
+            
+            VesselEffortRepository.ClearTable(otherConnectionString);
+            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "effort" });
+            
+            VesselUnload_Gear_Spec_Repository.ClearTable(otherConnectionString);
+            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "gear gear spec" });
+            
+            VesselUnload_FishingGearRepository.ClearTable(otherConnectionString);
+            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "unload fishihg gear" });
+            
+            VesselUnloadRepository.ClearTable(otherConnectionString);
+            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "vessel unload" });
+            
+            TotalWtSpRepository.ClearTable(otherConnectionString);
+            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "total wt" });
+            
+            GearUnloadRepository.ClearTable(otherConnectionString);
+            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "gear unload" });
+            
+            LandingSiteSamplingSubmissionRepository.ClearTable(otherConnectionString);
+            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "lss submission" });
+            
+            if (LandingSiteSamplingRepository.ClearTable(otherConnectionString))
+            {
+                success = true;
+                DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "deleted from table", CountProcessed = processedCount++, TableName = "sampling day" });
+            }
+
+            DeletingServerDataEvent?.Invoke(null, new DeleteFromServerEventArg { Intent = "finished deleting" });
+            return success;
+        }
         public static Task<bool> DeleteServerDataByServerIDAsync()
         {
             return Task.Run(() => DeleteServerDataByServerID());
