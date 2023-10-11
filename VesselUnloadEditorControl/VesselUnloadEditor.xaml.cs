@@ -19,6 +19,7 @@ using System.ComponentModel;
 using Xceed.Wpf.Toolkit.PropertyGrid;
 using System.Collections.ObjectModel;
 using NSAP_ODK.Views;
+using System.Diagnostics;
 
 namespace NSAP_ODK.VesselUnloadEditorControl
 {
@@ -30,7 +31,8 @@ namespace NSAP_ODK.VesselUnloadEditorControl
     {
         //public event EventHandler<UnloadEditorEventArgs> TreeViewItemSelected;
         public event EventHandler<UnloadEditorEventArgs> ButtonClicked;
-
+       
+        
         private CatchLenFreq _clf;
         private CatchLenFreqEdited _clf_edited;
         private CatchLengthWeight _clw;
@@ -70,7 +72,35 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                 InitializeComponent();
             }
             labelEffort.Content = "";
+            effortDataGrid.MouseRightButtonDown += EffortDataGrid_MouseRightButtonDown;
 
+        }
+
+        private void EffortDataGrid_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            ContextMenu cm = new ContextMenu();
+            MenuItem m = null;
+
+            string catchName = ((VesselCatch)effortDataGrid.SelectedItem).CatchName;
+            CatchNameURLGenerator.CatchName = catchName;
+
+            foreach (var url in CatchNameURLGenerator.URLS)
+            {
+
+                m = new MenuItem { Header = $"Read about {catchName} in {url.Key}", Tag=url.Value};
+                m.Click += OnMenuClicked;
+                cm.Items.Add(m);
+            }
+
+            if (cm.Items.Count > 0)
+            {
+                cm.IsOpen = true;
+            }
+        }
+
+        private void OnMenuClicked(object sender, RoutedEventArgs e)
+        {
+            Process.Start( ((MenuItem)sender).Tag.ToString());
         }
 
         public VesselCatch VesselCatch { get; set; }

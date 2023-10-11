@@ -28,7 +28,7 @@
         <DataGrid x:Name="effortDataGrid" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" IsReadOnly="True" Margin="10"
                   AutoGenerateColumns="False" ItemsSource="{Binding}" SelectionChanged="OnDataGridSelectionChanged" MouseDoubleClick="OnGridDoubleClick"/>
         
-        <DataGrid x:Name="catchDataGrid" Grid.Row="2" Grid.Column="1" Visibility="Collapsed" IsReadOnly="True" Margin="10"
+        <DataGrid x:Name="catchDataGrid" Grid.Row="2" Grid.Column="1" Visibility="Collapsed" IsReadOnly="True" Margin="10" 
                   AutoGenerateColumns="False" ItemsSource="{Binding}" SelectionChanged="OnDataGridSelectionChanged" MouseDoubleClick="OnGridDoubleClick"/>
         
         <WrapPanel Grid.Row="3" Grid.ColumnSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center">

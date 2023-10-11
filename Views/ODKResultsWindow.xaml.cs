@@ -461,7 +461,7 @@ namespace NSAP_ODK.Views
                 jsonFile.Earliest = MultiVesselGear_UnloadServerRepository.DownloadedLandingsEarliestLandingDate();
                 jsonFile.Latest = MultiVesselGear_UnloadServerRepository.DownloadedLandingsLatestLandingDate();
                 jsonFile.Count = MultiVesselGear_UnloadServerRepository.DownloadedLandingsCount();
-                
+
             }
             else
             {
@@ -740,7 +740,7 @@ namespace NSAP_ODK.Views
         {
             bool proceed = true;
             var jm = (FileInfoJSONMetadata)historyJSONNode.Tag;
-            if(OnlyUploadJSONHistoryFromMultiVesselForm && !jm.Koboserver.IsFishLandingMultiVesselSurveyForm)
+            if (OnlyUploadJSONHistoryFromMultiVesselForm && !jm.Koboserver.IsFishLandingMultiVesselSurveyForm)
             {
                 proceed = false;
             }
@@ -826,9 +826,9 @@ namespace NSAP_ODK.Views
 
             }
 
-            MessageBox.Show($"Finished processing {loopCount} history items", 
-                Global.MessageBoxCaption, 
-                MessageBoxButton.OK, 
+            MessageBox.Show($"Finished processing {loopCount} history items",
+                Global.MessageBoxCaption,
+                MessageBoxButton.OK,
                 MessageBoxImage.Information);
         }
 
@@ -880,7 +880,7 @@ namespace NSAP_ODK.Views
                     }
                     else
                     {
-                        if (!firstLoopDone  )
+                        if (!firstLoopDone)
                         {
                             if (NSAPEntities.SummaryItemViewModel.Count == 0)
                             {
@@ -890,7 +890,7 @@ namespace NSAP_ODK.Views
                             {
                                 MultiVesselGear_UnloadServerRepository.ResetGroupIDs();// VesselUnloadServerRepository.DelayedSave);
                             }
-                            
+
                             firstLoopDone = true;
                         }
                         FileInfoJSONMetadata jm = (FileInfoJSONMetadata)tvi.Tag;
@@ -968,7 +968,7 @@ namespace NSAP_ODK.Views
         public SelectImportActionOption ImportActionOption { get; set; }
 
 
-        private async void  OnMenuClick(object sender, RoutedEventArgs e)
+        private async void OnMenuClick(object sender, RoutedEventArgs e)
         {
             UploadJSONHistoryOptionsWindow ujhw;
             int counter = 0;
@@ -1271,7 +1271,7 @@ namespace NSAP_ODK.Views
                         if (proceed)
                         {
                             await ProcessJSONSNodes();
-                            await SaveUploadedJsonInLoop(closeWindow: true, verbose: true, isHistoryJson: false);
+                            await SaveUploadedJsonInLoop(closeWindow: true, verbose: true, isHistoryJson: false, allowDownloadAgain: true);
                         }
 
                     }

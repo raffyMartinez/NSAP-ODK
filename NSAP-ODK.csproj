@@ -179,6 +179,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Entities\BuildOrphanedEntityEventArg.cs" />
+    <Compile Include="Entities\CatchNameURLGenerator.cs" />
     <Compile Include="Entities\Database\AccessColumn.cs" />
     <Compile Include="Entities\Database\AnalyzeJsonForMismatch.cs" />
     <Compile Include="Entities\Database\BoatLandingsFromServerRepository.cs" />
