@@ -1264,23 +1264,30 @@ namespace NSAP_ODK.Entities.Database
             return results;
         }
 
-        public List<ServerUploadsByMonth> ListServerUploadsByMonths()
+        public Task<List<ServerUploadsByMonth>> ListServerUploadsByMonthsAsync(string serverID)
         {
+            return Task.Run(() => ListServerUploadsByMonths(serverID));
+        }
+        public List<ServerUploadsByMonth> ListServerUploadsByMonths(string serverID)
+        {
+
+            BuildingSummaryTable?.Invoke(null, new BuildSummaryReportEventArg { BuildSummaryReportStatus = BuildSummaryReportStatus.StatusBuildStart, IsIndeterminate = true });
+
             var reg_fg_ls = SummaryItemCollection
-                .Where(t => t.DateSubmitted != null)
+                .Where(t => t.DateSubmitted != null && t.XFormIdentifier == serverID)
+                .OrderBy(t => t.DateSubmitted)
             .GroupBy(t => new
             {
-                Koboserver = NSAPEntities.KoboServerViewModel.GetKoboServer(t.XFormIdentifier),
                 MonthOfSubmission = new DateTime(((DateTime)t.DateSubmitted).Year, ((DateTime)t.DateSubmitted).Month, 1)
             })
             .Select(submission => new
             {
-                KoboServer = submission.Key.Koboserver,
                 MonthOfSubmission = submission.Key.MonthOfSubmission,
                 Count = submission.Count()
             }).ToList();
 
             List<ServerUploadsByMonth> list = new List<ServerUploadsByMonth>();
+            Koboserver ks = NSAPEntities.KoboServerViewModel.GetKoboServer(serverID);
             foreach (var item in reg_fg_ls)
             {
                 list.Add(
@@ -1288,11 +1295,12 @@ namespace NSAP_ODK.Entities.Database
                     {
                         CountUploads = item.Count,
                         MonthOfSubmission = item.MonthOfSubmission,
-                        Koboserver = item.KoboServer,
-                        CountEnumerators = NumberOfEnumeratorsByMonthForKoboServer(item.KoboServer, item.MonthOfSubmission)
+                        Koboserver = ks,
+                        CountEnumerators = NumberOfEnumeratorsByMonthForKoboServer(ks, item.MonthOfSubmission),
                     }
                 );
             }
+            BuildingSummaryTable?.Invoke(null, new BuildSummaryReportEventArg { BuildSummaryReportStatus = BuildSummaryReportStatus.StatusBuildEnd, TotalRowCount = list.Count });
             return list;
         }
         public List<GearUnload> GetGearUnloadsFromTree(TreeViewModelControl.AllSamplingEntitiesEventHandler treeData)
