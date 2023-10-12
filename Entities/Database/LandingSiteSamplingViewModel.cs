@@ -11,6 +11,7 @@ namespace NSAP_ODK.Entities.Database
 {
     public class LandingSiteSamplingViewModel
     {
+        public event EventHandler<ProcessingItemsEventArg> ProcessingItemsEvent;
         public event EventHandler<DeleteLandingSiteSamplingFromOrphanEventArg> DeleteOrphanedLandingSiteFromOrphanedItem;
         public event EventHandler<DeleteVesselUnloadFromOrphanEventArg> DeleteVesselUnloadFromOrphanedItem;
 
@@ -42,14 +43,19 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-        public List<Day_GearLanded> GetGearLandingsForDay(LandingSite ls, DateTime monthSampled)
+        public Task<List<Day_GearLanded>> GetGearLandingsForDayTask(LandingSite ls, DateTime monthSampled)
         {
+            return Task.Run(() => GetGearLandingsForDay(ls, monthSampled));
+        }
+        private List<Day_GearLanded> GetGearLandingsForDay(LandingSite ls, DateTime monthSampled)
+        {
+            ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "start build calendar" });
             List<Day_GearLanded> a_list = new List<Day_GearLanded>();
             foreach (LandingSiteSampling lss in LandingSiteSamplingCollection
                 .OrderBy(t => t.SamplingDate)
                 .Where(t => t.LandingSiteID == ls.LandingSiteID && t.SamplingDate.Date >= monthSampled && t.SamplingDate.Date < monthSampled.AddMonths(1)))
             {
-                if (lss.GearsInLandingSite.Count==0)
+                if (lss.GearsInLandingSite.Count == 0)
                 {
                     a_list.Add(new Day_GearLanded { LandingSiteSampling = lss, GearInLandingSite = null });
                 }
@@ -61,6 +67,7 @@ namespace NSAP_ODK.Entities.Database
                     }
                 }
             }
+            ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "end build calendar" });
             return a_list;
         }
         public List<GearInLandingSite> GetGearsInLandingSiteSampling(LandingSiteSampling lss)

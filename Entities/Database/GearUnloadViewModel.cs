@@ -11,6 +11,7 @@ namespace NSAP_ODK.Entities.Database
     public class GearUnloadViewModel
     {
         private static int _deleted_vu_count = 0;
+        public event EventHandler<ProcessingItemsEventArg> ProcessingItemsEvent;
         public static event EventHandler<DeleteVesselUnloadFromOrphanEventArg> DeleteVesselUnloadFromOrphanedItem;
         public bool EditSuccess;
         public ObservableCollection<GearUnload> GearUnloadCollection { get; set; }
@@ -23,7 +24,7 @@ namespace NSAP_ODK.Entities.Database
             GearUnloadCollection = new ObservableCollection<GearUnload>(GearUnloads.GearUnloads);
             GearUnloadCollection.CollectionChanged += GearUnloadCollection_CollectionChanged;
         }
-       
+
         public static int CurrentIDNumber { get; set; }
         public static async Task<bool> DeleteVesselUnloads(List<OrphanedFishingGear> ofg)
         {
@@ -291,13 +292,13 @@ namespace NSAP_ODK.Entities.Database
             return true;
         }
 
-        public static List<GearUnload> GetGearUnloadsForCalendar(LandingSite ls, DateTime month_year)
+        public static async Task<List<GearUnload>> GetGearUnloadsForCalendar(LandingSite ls, DateTime month_year)
         {
-            return GearUnloadRepository.GearUnloadsForCalendar(ls, month_year);
+            return await GearUnloadRepository.GearUnloadsForCalendarTask(ls, month_year);
         }
-        public static List<GearUnload>GetTotalNumberLandingsPerDayCalendar(LandingSite ls, DateTime month_year)
+        public static async Task<List<GearUnload>> GetTotalNumberLandingsPerDayCalendar(LandingSite ls, DateTime month_year)
         {
-            return GearUnloadRepository.NumberOfDailyLandingsForCalendar(ls, month_year);
+            return await GearUnloadRepository.NumberOfDailyLandingsForCalendarTask(ls, month_year);
         }
         public static string TempCSV
         {

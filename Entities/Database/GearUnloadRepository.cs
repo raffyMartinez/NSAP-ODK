@@ -13,6 +13,7 @@ namespace NSAP_ODK.Entities.Database
 {
     class GearUnloadRepository
     {
+        public static event EventHandler<ProcessingItemsEventArg> ProcessingItemsEvent;
         public List<GearUnload> GearUnloads { get; set; }
 
         public GearUnloadRepository(LandingSiteSampling ls)
@@ -215,8 +216,13 @@ namespace NSAP_ODK.Entities.Database
             return count;
         }
 
-        public static List<GearUnload> NumberOfDailyLandingsForCalendar(LandingSite ls, DateTime month_year)
+        public static Task<List<GearUnload>> NumberOfDailyLandingsForCalendarTask(LandingSite ls, DateTime month_year)
         {
+            return Task.Run(() => NumberOfDailyLandingsForCalendar(ls, month_year));
+        }
+        private static List<GearUnload> NumberOfDailyLandingsForCalendar(LandingSite ls, DateTime month_year)
+        {
+            ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "start build calendar" });
             List<GearUnload> thisList = new List<GearUnload>();
             int? boats = null;
             if (Global.Settings.UsemySQL)
@@ -258,7 +264,7 @@ namespace NSAP_ODK.Entities.Database
                             while (dr.Read())
                             {
                                 boats = null;
-                                if(dr["number_landings"]!=DBNull.Value)
+                                if (dr["number_landings"] != DBNull.Value)
                                 {
                                     boats = (int)dr["number_landings"];
                                 }
@@ -277,7 +283,7 @@ namespace NSAP_ODK.Entities.Database
                                 //{
                                 //    gu.Gear = NSAPEntities.GearViewModel.GetGear(gu.GearID);
                                 //}
-                                if(!(bool)dr["has_fishing_operation"])
+                                if (!(bool)dr["has_fishing_operation"])
                                 {
                                     gu.Boats = 0;
                                 }
@@ -291,10 +297,18 @@ namespace NSAP_ODK.Entities.Database
                     }
                 }
             }
+            ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "end build calendar" });
             return thisList;
         }
+
+        public static Task<List<GearUnload>> GearUnloadsForCalendarTask(LandingSite ls, DateTime month_year)
+        {
+            return Task.Run(() => GearUnloadsForCalendar(ls, month_year));
+        }
+
         public static List<GearUnload> GearUnloadsForCalendar(LandingSite ls, DateTime month_year)
         {
+            ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "start build calendar" });
             List<GearUnload> thisList = new List<GearUnload>();
             if (Global.Settings.UsemySQL)
             {
@@ -349,6 +363,7 @@ namespace NSAP_ODK.Entities.Database
                 }
 
             }
+            ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "end build calendar" });
             return thisList;
         }
         private List<GearUnload> getGearUnloads(LandingSiteSampling ls = null)

@@ -450,8 +450,14 @@ namespace NSAP_ODK.Entities.Database
 
         public int VesselUnloadHit { get; private set; }
         public int VesselUnloadMiss { get; private set; }
-        public List<GearUnload> GearUnloadsByMonth(DateTime monthOfSampling, bool bySector = false)
+
+        public Task<List<GearUnload>> GearUnloadsByMonthTask(DateTime monthOfSampling, bool bySector = false)
         {
+            return Task.Run(() => GearUnloadsByMonth(monthOfSampling, bySector));
+        }
+        private List<GearUnload> GearUnloadsByMonth(DateTime monthOfSampling, bool bySector = false)
+        {
+            ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "start build calendar" });
             VesselUnloadHit = 0;
             VesselUnloadMiss = 0;
             List<GearUnload> gear_unloads = new List<GearUnload>();
@@ -499,6 +505,7 @@ namespace NSAP_ODK.Entities.Database
             {
                 gear_unloads = GearUnloadsByMonth(monthOfSampling);
             }
+            ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "end build calendar" });
             return gear_unloads;
         }
         public List<GearUnload> GearUnloadsByMonth(DateTime monthOfSampling)

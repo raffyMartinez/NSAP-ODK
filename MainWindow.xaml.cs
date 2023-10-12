@@ -138,6 +138,10 @@ namespace NSAP_ODK
                 NSAPEntities.SummaryItemViewModel.BuildingOrphanedEntity -= SummaryItemViewModel_BuildingOrphanedEntity;
                 DownloadFromServerWindow.RefreshDatabaseSummaryTable -= DownloadFromServerWindow_RefreshDatabaseSummaryTable;
                 NSAPEntities.FishingVesselViewModel.ProcessingItemsEvent -= OnProcessingItemsEvent;
+                NSAPEntities.SummaryItemViewModel.ProcessingItemsEvent -= OnProcessingItemsEvent;
+                GearUnloadRepository.ProcessingItemsEvent -= OnProcessingItemsEvent;
+                NSAPEntities.LandingSiteSamplingViewModel.ProcessingItemsEvent -= OnProcessingItemsEvent;
+
             }
             _httpClient.Dispose();
         }
@@ -481,6 +485,9 @@ namespace NSAP_ODK
                             NSAPEntities.SummaryItemViewModel.BuildingOrphanedEntity += SummaryItemViewModel_BuildingOrphanedEntity;
                             DownloadFromServerWindow.RefreshDatabaseSummaryTable += DownloadFromServerWindow_RefreshDatabaseSummaryTable;
                             NSAPEntities.FishingVesselViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
+                            NSAPEntities.SummaryItemViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
+                            GearUnloadRepository.ProcessingItemsEvent += OnProcessingItemsEvent;
+                            NSAPEntities.LandingSiteSamplingViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;   
                         }
                         CreateTablesInAccess.GetMDBColumnInfo(Global.ConnectionString);
                         _httpClient.Timeout = new TimeSpan(0, 10, 0);
@@ -527,6 +534,48 @@ namespace NSAP_ODK
         {
             switch (e.Intent)
             {
+                case "start build calendar":
+                    mainStatusBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              mainStatusBar.IsIndeterminate = true;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+                    mainStatusLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusLabel.Content = "Building calendar. Please wait...";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                    case "end build calendar":
+                    mainStatusLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusLabel.Content = "Finished building calendar";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+
+                    _timer.Dispatcher.BeginInvoke
+                        (
+                        DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                        {
+                            _timer.Interval = TimeSpan.FromSeconds(3);
+                            _timer.Start();
+                            return null;
+                        }
+                        ), null);
+                    break;
                 case "imported_entity":
                     if (e.CountProcessed % 100 == 0)
                     {
@@ -1906,6 +1955,8 @@ namespace NSAP_ODK
 
         private void SetupCalendar(CalendarViewType calendarView)
         {
+            
+            ShowStatusRow();
             if (_allSamplingEntitiesEventHandler == null)
             {
                 return;
@@ -1950,7 +2001,7 @@ namespace NSAP_ODK
                 //NSAPEntities.NSAPRegion = _allSamplingEntitiesEventHandler.NSAPRegion;
                 //MakeCalendar(_allSamplingEntitiesEventHandler);
             }
-
+            
 
         }
         public void ShowDBSummary()
@@ -3558,29 +3609,29 @@ namespace NSAP_ODK
             _vesselUnloadEditWindow = null;
         }
 
-        private void MakeCalendar(TreeViewModelControl.AllSamplingEntitiesEventHandler e)
+        private async void MakeCalendar(TreeViewModelControl.AllSamplingEntitiesEventHandler e)
         {
             List<GearUnload> listGearUnload = new List<GearUnload>();
             List<Day_GearLanded> listDay_GearLanded = new List<Day_GearLanded>();
             switch (e.CalendarView)
             {
                 case CalendarViewType.calendarViewTypeSampledLandings:
-                    listGearUnload = NSAPEntities.SummaryItemViewModel.GearUnloadsByMonth((DateTime)e.MonthSampled, bySector: true);
+                    listGearUnload = await NSAPEntities.SummaryItemViewModel.GearUnloadsByMonthTask((DateTime)e.MonthSampled, bySector: true);
                     if (NSAPEntities.SummaryItemViewModel.VesselUnloadHit == 0)
                     {
-                        listGearUnload = GearUnloadViewModel.GetTotalNumberLandingsPerDayCalendar(e.LandingSite, (DateTime)e.MonthSampled);
+                        listGearUnload = await GearUnloadViewModel.GetTotalNumberLandingsPerDayCalendar(e.LandingSite, (DateTime)e.MonthSampled);
                         e.CalendarView = CalendarViewType.calendarViewTypeCountAllLandings;
                     }
                     break;
                 case CalendarViewType.calendarViewTypeCountAllLandingsByGear:
                 case CalendarViewType.calendarViewTypeWeightAllLandingsByGear:
-                    listGearUnload = GearUnloadViewModel.GetGearUnloadsForCalendar(e.LandingSite, (DateTime)e.MonthSampled);
+                    listGearUnload =  await GearUnloadViewModel.GetGearUnloadsForCalendar(e.LandingSite, (DateTime)e.MonthSampled);
                     break;
                 case CalendarViewType.calendarViewTypeCountAllLandings:
-                    listGearUnload = GearUnloadViewModel.GetTotalNumberLandingsPerDayCalendar(e.LandingSite, (DateTime)e.MonthSampled);
+                    listGearUnload = await GearUnloadViewModel.GetTotalNumberLandingsPerDayCalendar(e.LandingSite, (DateTime)e.MonthSampled);
                     break;
                 case CalendarViewType.calendarViewTypeGearDailyLandings:
-                    listDay_GearLanded = NSAPEntities.LandingSiteSamplingViewModel.GetGearLandingsForDay(e.LandingSite, (DateTime)e.MonthSampled);
+                    listDay_GearLanded = await NSAPEntities.LandingSiteSamplingViewModel.GetGearLandingsForDayTask(e.LandingSite, (DateTime)e.MonthSampled);
                     break;
 
             }
