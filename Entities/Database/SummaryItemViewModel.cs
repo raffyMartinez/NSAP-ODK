@@ -2751,6 +2751,7 @@ namespace NSAP_ODK.Entities.Database
                 RegionID = ls.NSAPRegionID,
                 FishingGroundID = ls.FishingGroundID,
                 DateAdded = ls.DateAdded,
+                DateSubmitted = ls.DateSubmitted,
                 LandingSiteHasOperation = ls.HasFishingOperation,
                 SamplingFromCatchCompositionAllowed = ls.SamplingFromCatchCompositionIsAllowed,
                 LandingSiteSamplingNotes = ls.Remarks,
@@ -2895,7 +2896,8 @@ namespace NSAP_ODK.Entities.Database
                 EnumeratorText = vu.EnumeratorText,
                 DateAdded = (DateTime)vu.DateAddedToDatabase,
                 FormVersion = vu.FormVersion,
-                IsMultiVessel = vu.Parent.Parent.IsMultiVessel
+                IsMultiVessel = vu.Parent.Parent.IsMultiVessel,
+
 
             };
             if (vu.Parent.Parent.LandingSiteID == null && string.IsNullOrEmpty(vu.Parent.Parent.LandingSiteText))
@@ -2910,6 +2912,8 @@ namespace NSAP_ODK.Entities.Database
             if (vu.Parent.Parent.IsMultiVessel)
             {
                 si.SamplingDayDate = vu.Parent.Parent.SamplingDate;
+                si.XFormIdentifier = vu.Parent.Parent.XFormIdentifier;
+                si.DateSubmitted = vu.Parent.Parent.DateSubmitted;
             }
             else
             {
