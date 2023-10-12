@@ -260,6 +260,8 @@ namespace NSAP_ODK
 
 
                     //dataGridEFormVersionStats.DataContext = NSAPEntities.SummaryItemViewModel.EnumeratorsAndLatestFormVersion();
+                    dataGridEFormVersionStats.ItemsSource = null;
+                    dataGridEFormVersionStats.Items.Clear();
                     dataGridEFormVersionStats.ItemsSource = NSAPEntities.SummaryItemViewModel.EnumeratorsAndLatestFormVersion();
                     break;
                 case "e-Form versions":
@@ -283,6 +285,8 @@ namespace NSAP_ODK
 
                     NSAPEntities.ODKEformVersionViewModel.Refresh();
                     //dataGridEFormVersionStats.DataContext = NSAPEntities.ODKEformVersionViewModel.ODKEformVersionCollection.ToList();
+                    dataGridEFormVersionStats.ItemsSource = null;
+                    dataGridEFormVersionStats.Items.Clear();
                     dataGridEFormVersionStats.ItemsSource = NSAPEntities.ODKEformVersionViewModel.ODKEformVersionCollection.ToList();
                     break;
                 case "Enumerators":
@@ -369,10 +373,16 @@ namespace NSAP_ODK
                     dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "Last uploaded JSON file", Binding = new Binding("LastUploadedJSON") });
                     dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "Last created JSON file", Binding = new Binding("LastCreatedJSON") });
 
+                    
+                    
+                    dataGridEFormVersionStats.ItemsSource = null;
+                    dataGridEFormVersionStats.Items.Clear();
                     if (NSAPEntities.KoboServerViewModel.Count() > 0)
                     {
                         NSAPEntities.KoboServerViewModel.RefreshSavedCount();
                         //dataGridEFormVersionStats.DataContext = NSAPEntities.KoboServerViewModel.KoboserverCollection.ToList();
+                        
+
                         dataGridEFormVersionStats.ItemsSource = NSAPEntities.KoboServerViewModel.KoboserverCollection.ToList();
                     }
                     panelSummaryTableHint.Visibility = Visibility.Visible;
@@ -408,10 +418,7 @@ namespace NSAP_ODK
             dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "Number of submissions", Binding = new Binding("CountUploads"), CellStyle = AlignRightStyle });
             dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "Number of unique enumerators", Binding = new Binding("CountEnumerators"), CellStyle = AlignRightStyle });
 
-            dataGridEFormVersionStats.ItemsSource = await NSAPEntities.SummaryItemViewModel.ListServerUploadsByMonthsAsync(ks.ServerID);
-            //var l = await NSAPEntities.SummaryItemViewModel.ListServerUploadsByMonthsAsync(ks.ServerID);
-            //dataGridEFormVersionStats.ItemsSource = l.Where(t => t.Koboserver?.ServerID == ks.ServerID).OrderBy(t => t.MonthOfSubmission);
-            //dataGridEFormVersionStats.DataContext = await NSAPEntities.SummaryItemViewModel.ListServerUploadsByMonthsAsync().Where(t => t.Koboserver?.ServerID == ks.ServerID).OrderBy(t => t.MonthOfSubmission);
+            dataGridEFormVersionStats.ItemsSource = await NSAPEntities.SummaryItemViewModel.ListServerUploadsByMonthsAsync(ks);
         }
 
         private void SetUpCalendarMenu()

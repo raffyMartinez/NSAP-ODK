@@ -1264,17 +1264,17 @@ namespace NSAP_ODK.Entities.Database
             return results;
         }
 
-        public Task<List<ServerUploadsByMonth>> ListServerUploadsByMonthsAsync(string serverID)
+        public Task<List<ServerUploadsByMonth>> ListServerUploadsByMonthsAsync(Koboserver ks)
         {
-            return Task.Run(() => ListServerUploadsByMonths(serverID));
+            return Task.Run(() => ListServerUploadsByMonths(ks));
         }
-        public List<ServerUploadsByMonth> ListServerUploadsByMonths(string serverID)
+        public List<ServerUploadsByMonth> ListServerUploadsByMonths(Koboserver ks)
         {
 
             BuildingSummaryTable?.Invoke(null, new BuildSummaryReportEventArg { BuildSummaryReportStatus = BuildSummaryReportStatus.StatusBuildStart, IsIndeterminate = true });
 
             var reg_fg_ls = SummaryItemCollection
-                .Where(t => t.DateSubmitted != null && t.XFormIdentifier == serverID)
+                .Where(t => t.DateSubmitted != null && t.XFormIdentifier == ks.ServerID)
                 .OrderBy(t => t.DateSubmitted)
             .GroupBy(t => new
             {
@@ -1287,7 +1287,6 @@ namespace NSAP_ODK.Entities.Database
             }).ToList();
 
             List<ServerUploadsByMonth> list = new List<ServerUploadsByMonth>();
-            Koboserver ks = NSAPEntities.KoboServerViewModel.GetKoboServer(serverID);
             foreach (var item in reg_fg_ls)
             {
                 list.Add(
