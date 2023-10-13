@@ -134,10 +134,24 @@ namespace NSAP_ODK.Entities.Database
                 CrossTabDailyGearLanding ctdgl = null;
                 if (lss.GearsInLandingSite.Count == 0)
                 {
-                    ctdgl = new CrossTabDailyGearLanding(lss);
-                    ctdgl.Sequence = counter_1++;
-
-                    _crosstab_DailyGearLandings.Add(ctdgl);
+                    //ctdgl = new CrossTabDailyGearLanding(lss);
+                    //ctdgl.Sequence = counter_1++;
+                    //_crosstab_DailyGearLandings.Add(ctdgl);
+                    if (lss.GearUnloadViewModel.Count > 0)
+                    {
+                        foreach (GearUnload gu in lss.GearUnloadViewModel.GearUnloadCollection)
+                        {
+                            ctdgl = new CrossTabDailyGearLanding(gu);
+                            ctdgl.Sequence = counter_1++;
+                            _crosstab_DailyGearLandings.Add(ctdgl);
+                        }
+                    }
+                    else
+                    {
+                        ctdgl = new CrossTabDailyGearLanding(lss);
+                        ctdgl.Sequence = counter_1++;
+                        _crosstab_DailyGearLandings.Add(ctdgl);
+                    }
                 }
                 else
                 {
@@ -640,6 +654,11 @@ namespace NSAP_ODK.Entities.Database
                     row["Number of landings of gear"] = item.GearInLandingSite.CountGearLandings;
                     row["Total weight of catch of gear"] = item.GearInLandingSite.WeightGearLandings;
 
+                }
+                else if(item.GearUnload!=null)
+                {
+                    row["Gear"] = item.GearUnload.GearUsedName;
+                    row["Sector"] = item.GearUnload.Sector;
                 }
                 else
                 {

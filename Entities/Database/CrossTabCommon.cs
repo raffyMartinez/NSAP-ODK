@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NSAP_ODK.Views;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,6 +11,21 @@ namespace NSAP_ODK.Entities.Database
     {
         private LandingSiteSampling _landingSiteSampling;
         private GearInLandingSite _gearInLandingSite;
+        private GearUnload _gearUnload;
+
+        public CrossTabDailyGearLanding(GearUnload gu)
+        {
+            GearUnload = gu;
+        }
+
+        public GearUnload GearUnload
+        {
+            get { return _gearUnload; }
+            set {
+                _gearUnload = value;
+                LandingSiteSampling = _gearUnload.Parent;
+            }
+        }
         public CrossTabDailyGearLanding(LandingSiteSampling lss)
         {
             LandingSiteSampling = lss;
@@ -53,8 +69,9 @@ namespace NSAP_ODK.Entities.Database
         private GearUnload _gearUnload;
         private VesselUnload_FishingGear _vesselUnload_FishingGear;
 
-        public DateTime? DateTimeGearSet { 
-            get 
+        public DateTime? DateTimeGearSet
+        {
+            get
             {
                 if (_vesselUnload.GearSoakViewModel != null && _vesselUnload.GearSoakViewModel.Count > 0)
                 {
@@ -64,9 +81,9 @@ namespace NSAP_ODK.Entities.Database
                 {
                     return null;
                 }
-            } 
+            }
         }
-        public DateTime? DateTimeGearHaul 
+        public DateTime? DateTimeGearHaul
         {
             get
             {

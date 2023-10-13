@@ -3432,7 +3432,14 @@ namespace NSAP_ODK
                                         {
 
                                             lss = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(fma: _allSamplingEntitiesEventHandler.FMA, fg: _allSamplingEntitiesEventHandler.FishingGround, ls: _allSamplingEntitiesEventHandler.LandingSite, samplingDate: ((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).AddDays(v - 1)).FirstOrDefault();
-                                            msg = lss.Remarks;
+                                            if (lss?.GearUnloadViewModel.Count > 0 || lss?.GearsInLandingSite.Count > 0)
+                                            {
+                                                   msg = "There are fish landings on the selected date";
+                                            }
+                                            else
+                                            {
+                                                msg = $"There are no fish landings on the selected date\r\nReason: {lss.Remarks}";
+                                            }
 
                                         }
                                         MessageBox.Show($"{landingsite_date}\r\n\r\n{msg}", Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
