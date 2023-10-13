@@ -377,15 +377,15 @@ namespace NSAP_ODK
                     dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "Last uploaded JSON file", Binding = new Binding("LastUploadedJSON") });
                     dataGridEFormVersionStats.Columns.Add(new DataGridTextColumn { Header = "Last created JSON file", Binding = new Binding("LastCreatedJSON") });
 
-                    
-                    
+
+
                     dataGridEFormVersionStats.ItemsSource = null;
                     dataGridEFormVersionStats.Items.Clear();
                     if (NSAPEntities.KoboServerViewModel.Count() > 0)
                     {
                         NSAPEntities.KoboServerViewModel.RefreshSavedCount();
                         //dataGridEFormVersionStats.DataContext = NSAPEntities.KoboServerViewModel.KoboserverCollection.ToList();
-                        
+
 
                         dataGridEFormVersionStats.ItemsSource = NSAPEntities.KoboServerViewModel.KoboserverCollection.ToList();
                     }
@@ -407,7 +407,7 @@ namespace NSAP_ODK
             dataGridEFormVersionStats.ItemsSource = null;
             dataGridEFormVersionStats.Items.Clear();
 
-            
+
             DataGridTextColumn col = new DataGridTextColumn()
             {
                 Binding = new Binding("MonthOfSubmission"),
@@ -487,7 +487,7 @@ namespace NSAP_ODK
                             NSAPEntities.FishingVesselViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
                             NSAPEntities.SummaryItemViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
                             GearUnloadRepository.ProcessingItemsEvent += OnProcessingItemsEvent;
-                            NSAPEntities.LandingSiteSamplingViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;   
+                            NSAPEntities.LandingSiteSamplingViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
                         }
                         CreateTablesInAccess.GetMDBColumnInfo(Global.ConnectionString);
                         _httpClient.Timeout = new TimeSpan(0, 10, 0);
@@ -555,7 +555,7 @@ namespace NSAP_ODK
                           }
                          ), null);
                     break;
-                    case "end build calendar":
+                case "end build calendar":
                     mainStatusLabel.Dispatcher.BeginInvoke
                         (
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
@@ -1955,7 +1955,7 @@ namespace NSAP_ODK
 
         private void SetupCalendar(CalendarViewType calendarView)
         {
-            
+
             ShowStatusRow();
             if (_allSamplingEntitiesEventHandler == null)
             {
@@ -2001,7 +2001,7 @@ namespace NSAP_ODK
                 //NSAPEntities.NSAPRegion = _allSamplingEntitiesEventHandler.NSAPRegion;
                 //MakeCalendar(_allSamplingEntitiesEventHandler);
             }
-            
+
 
         }
         public void ShowDBSummary()
@@ -3373,11 +3373,14 @@ namespace NSAP_ODK
                 #endregion
                 case "GridNSAPData":
                     #region GridNSAPData
+                    LandingSiteSampling lss = null;
                     //calendar view
                     if (_currentDisplayMode == DataDisplayMode.ODKData)
                     {
                         switch (_calendarOption)
                         {
+                            case CalendarViewType.calendarViewTypeCountAllLandingsByGear:
+                            case CalendarViewType.calendarViewTypeWeightAllLandingsByGear:
                             case CalendarViewType.calendarViewTypeSampledLandings:
                                 if (_gearUnloads != null && _gearUnloads.Count > 0 && _gearUnloadWindow == null)
                                 {
@@ -3395,8 +3398,16 @@ namespace NSAP_ODK
                                     }
                                 }
                                 break;
-                            case CalendarViewType.calendarViewTypeCountAllLandingsByGear:
-                                break;
+                            //case CalendarViewType.calendarViewTypeCountAllLandingsByGear:
+                            //case CalendarViewType.calendarViewTypeWeightAllLandingsByGear:
+                            //    var cellinfo = GridNSAPData.SelectedCells[0];
+                            //    if (int.TryParse(cellinfo.Column.Header.ToString(), out int v))
+                            //    {
+                            //        lss = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(fma: _allSamplingEntitiesEventHandler.FMA, fg: _allSamplingEntitiesEventHandler.FishingGround, ls: _allSamplingEntitiesEventHandler.LandingSite, samplingDate: ((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).AddDays(v - 1)).FirstOrDefault();
+    
+
+                            //    }
+                            //    break;
                             case CalendarViewType.calendarViewTypeCountAllLandings:
                                 if (GridNSAPData.SelectedCells.Count > 0)
                                 {
@@ -3407,7 +3418,7 @@ namespace NSAP_ODK
                                         string msg = "No data for this date";
                                         if (_gearUnloads.Count > 0)
                                         {
-                                            var lss = _gearUnloads[0].Parent;
+                                            lss = _gearUnloads[0].Parent;
                                             if (lss.HasFishingOperation)
                                             {
                                                 msg = "There are fish landings on the selected date";
@@ -3416,6 +3427,13 @@ namespace NSAP_ODK
                                             {
                                                 msg = $"There are no fish landings on the selected date\r\nReason: {lss.Remarks}";
                                             }
+                                        }
+                                        else
+                                        {
+
+                                            lss = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(fma: _allSamplingEntitiesEventHandler.FMA, fg: _allSamplingEntitiesEventHandler.FishingGround, ls: _allSamplingEntitiesEventHandler.LandingSite, samplingDate: ((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).AddDays(v - 1)).FirstOrDefault();
+                                            msg = lss.Remarks;
+
                                         }
                                         MessageBox.Show($"{landingsite_date}\r\n\r\n{msg}", Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
                                     }
@@ -3625,7 +3643,7 @@ namespace NSAP_ODK
                     break;
                 case CalendarViewType.calendarViewTypeCountAllLandingsByGear:
                 case CalendarViewType.calendarViewTypeWeightAllLandingsByGear:
-                    listGearUnload =  await GearUnloadViewModel.GetGearUnloadsForCalendar(e.LandingSite, (DateTime)e.MonthSampled);
+                    listGearUnload = await GearUnloadViewModel.GetGearUnloadsForCalendar(e.LandingSite, (DateTime)e.MonthSampled);
                     break;
                 case CalendarViewType.calendarViewTypeCountAllLandings:
                     listGearUnload = await GearUnloadViewModel.GetTotalNumberLandingsPerDayCalendar(e.LandingSite, (DateTime)e.MonthSampled);
@@ -4623,7 +4641,7 @@ namespace NSAP_ODK
                         case "Koboserver":
                             rowSummaryDataGrid.Height = new GridLength(0);
                             rowOverallSummary.Height = new GridLength(1, GridUnitType.Star);
-                           await ShowServerMonthlySummary((Koboserver)tvItem.Tag);
+                            await ShowServerMonthlySummary((Koboserver)tvItem.Tag);
                             break;
                         case "NSAPRegion":
                             switch (((TreeViewItem)tvItem.Parent).Header)

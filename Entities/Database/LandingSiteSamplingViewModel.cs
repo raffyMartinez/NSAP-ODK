@@ -414,6 +414,16 @@ namespace NSAP_ODK.Entities.Database
                     t.SamplingDate < monthSampled.AddMonths(1).Date)
                 .ToList();
         }
+
+        public List<LandingSiteSampling> GetLandingSiteSampling(FMA fma, FishingGround fg, LandingSite ls, DateTime samplingDate)
+        {
+            return LandingSiteSamplingCollection
+                .Where(t => t.FMAID == fma.FMAID &&
+                    t.FishingGroundID == fg.Code &&
+                    t.LandingSiteID == ls.LandingSiteID &&
+                    t.SamplingDate == samplingDate)
+                .ToList();
+        }
         public LandingSiteSampling GetLandingSiteSampling(string samplingUUID)
         {
             return LandingSiteSamplingCollection.FirstOrDefault(t => t.RowID == samplingUUID);
