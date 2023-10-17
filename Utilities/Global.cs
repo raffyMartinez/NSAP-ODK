@@ -10,6 +10,7 @@ using System.Net;
 using NSAP_ODK.Entities;
 using NSAP_ODK.Entities.Database;
 using Newtonsoft.Json;
+using System.Windows;
 
 namespace NSAP_ODK.Utilities
 {
@@ -127,7 +128,7 @@ namespace NSAP_ODK.Utilities
                 Logger.Log("Settings file not read");
             }
 
-            if(!Directory.Exists(_KoboFormsFolder))
+            if (!Directory.Exists(_KoboFormsFolder))
             {
                 Directory.CreateDirectory(_KoboFormsFolder);
             }
@@ -255,7 +256,7 @@ namespace NSAP_ODK.Utilities
 
             return results;
         }
-
+        public static string[] CommandArgs { get; set; }
         public static void LoadEntities()
         {
             bool tablesUpdated = false;
@@ -333,7 +334,7 @@ namespace NSAP_ODK.Utilities
 
 
                 var cols = CreateTablesInAccess.GetColumnNames("notFishSpecies");
-                bool proceed = cols.Contains("Name") || NotFishSpeciesRepository.UpdateTableDefinition() ;
+                bool proceed = cols.Contains("Name") || NotFishSpeciesRepository.UpdateTableDefinition();
                 if (proceed)
                 {
                     EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "Not fish species" });
@@ -342,7 +343,7 @@ namespace NSAP_ODK.Utilities
                 }
 
                 //if (LandingSiteSamplingRepository.UpdateColumns())
-                if(tablesUpdated)
+                if (tablesUpdated)
                 {
 
                     EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "Landing site sampling" });
@@ -379,16 +380,167 @@ namespace NSAP_ODK.Utilities
             }
         }
 
+        public static string Filter2DateString()
+        {
+            if (Filter2 != null)
+            {
+                DateTime date = (DateTime)Filter2;
+                int m = 0;
+                int d = 0;
+                if (date.Month == 0)
+                {
+                    m = 1;
+                }
+                else
+                {
+                    m = date.Month;
+                }
+                if (date.Day == 0)
+                {
+                    d = 1;
+                }
+                else
+                {
+                    d = date.Day;
+                }
+                return new DateTime(((DateTime)Filter2).Year, m, d).ToString("MM/dd/yyyy");
+            }
+            else
+            {
+                return string.Empty;
+            }
+        }
+        public static string Filter1DateString()
+        {
+            if (Filter1 != null)
+            {
+                DateTime date = (DateTime)Filter1;
+                int m = 0;
+                int d = 0;
+                if (date.Month == 0)
+                {
+                    m = 1;
+                }
+                else
+                {
+                    m = date.Month;
+                }
+                if (date.Day == 0)
+                {
+                    d = 1;
+                }
+                else
+                {
+                    d = date.Day;
+                }
+                return new DateTime(((DateTime)Filter1).Year, m, d).ToString("MM/dd/yyyy");
+            }
+            else
+            {
+                return string.Empty;
+            }
+        }
+        public static DateTime? Filter1 { get; set; }
+        public static DateTime? Filter2 { get; set; }
         public static bool StringIsOnlyASCIILettersAndDigits(string s)
         {
             return s.All(c => (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9'));
         }
         public static bool MySQLLogInCancelled { get; set; }
+
+        public static string FilterError { get; set; }
         public static void DoAppProceed()
         {
             AppProceed = Settings != null && File.Exists(Settings.MDBPath);
             if (AppProceed)
             {
+                if (CommandArgs.Count() > 0 && CommandArgs[0] == "filtered")
+                {
+                    if (CommandArgs.Count() > 1)
+                    {
+                        for (int x = 1; x < CommandArgs.Count(); x++)
+                        {
+                            if (DateTime.TryParse(CommandArgs[x], out DateTime d))
+                            {
+                                if (x == 1)
+                                {
+                                    Filter1 = d;
+                                    Settings.DbFilter = d.ToString("MMM-dd-yyyy");
+                                }
+                                else
+                                {
+                                    Filter2 = d;
+                                    Settings.DbFilter += $" - {d.ToString("MMM-dd-yyyy")}";
+                                }
+                            }
+                            else if (int.TryParse(CommandArgs[x], out int i))
+                            {
+                                if (i >= 2000)
+                                {
+                                    if (x == 1)
+                                    {
+                                        Filter1 = new DateTime(i, 1, 1);
+                                        Settings.DbFilter = ((DateTime)Filter1).ToString("MMM-dd-yyyy");
+                                    }
+                                    else
+                                    {
+                                        Filter2 = new DateTime(i + 1, 1, 1);
+                                        Settings.DbFilter += $" - {((DateTime)Filter2).ToString("MMM-dd-yyyy")}";
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else if (CommandArgs.Count() == 1)
+                    {
+                        if (Settings.DbFilter == null)
+                        {
+                            Filter1 = new DateTime(2023, 1, 1);
+                            Settings.DbFilter = ((DateTime)Filter1).ToString("MMM-dd-yyyy");
+                        }
+                        else
+                        {
+                            string[] arr = Settings.DbFilter.Replace(" - "," ").Split(' ');
+                            for (int x = 0; x < arr.Count(); x++)
+                            {
+                                if (DateTime.TryParse(arr[x], out DateTime d))
+                                {
+                                    if (x == 0)
+                                    {
+                                        Filter1 = d;
+                                    }
+                                    else
+                                    {
+                                        Filter2 = d;
+                                    }
+                                }
+                                else if (int.TryParse(arr[x], out int i))
+                                {
+                                    if (i >= 2000)
+                                    {
+                                        if (x == 1)
+                                        {
+                                            Filter1 = new DateTime(i, 1, 1);
+                                        }
+                                        else
+                                        {
+                                            Filter2 = new DateTime(i + 1, 1, 1);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (Filter1 != null && Filter2 != null && Filter1 > Filter2)
+                {
+                    AppProceed = false;
+                    FilterError = "First date in filter must be before second date";
+                    return;
+                }
+
+
                 if (Settings.UsemySQL)
                 {
                     RequestLogIn(null, EventArgs.Empty);
@@ -399,7 +551,7 @@ namespace NSAP_ODK.Utilities
                     MDBPath = Settings.MDBPath;
                     ConnectionString = "Provider=Microsoft.JET.OLEDB.4.0;data source=" + MDBPath;
                     ConnectionStringGrid25 = "Provider=Microsoft.JET.OLEDB.4.0;data source=" + Grid25MDBPath;
-                    AppProceed = Entities.Database.CSVFIleManager.ReadCSVXML();
+                    AppProceed = CSVFIleManager.ReadCSVXML();
 
                     if (Settings.JSONFolder != null && Settings.JSONFolder.Length > 0 && !Directory.Exists(Settings.JSONFolder))
                     {

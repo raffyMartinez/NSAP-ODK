@@ -24,10 +24,8 @@
         </StackPanel>
         <Label Grid.Row="1" Content="Loading data..." HorizontalContentAlignment="Center" x:Name="LabelLoading"/>
         <ProgressBar Grid.Row="2" Margin="75 12" x:Name="ProgressBarRead"/>
-        <StackPanel Grid.Row="3" x:Name="panelTableUpdateProgress">
-            <Label Content="Updating tables will only happen once. Please wait..." HorizontalAlignment="Center"/>
-            <ProgressBar x:Name="progressBarUpdateTableRow" Height="15" Margin="75 10 75 0"/>
-            <Label x:Name="labelUpdateTable" Content="labelUpdateTable" HorizontalAlignment="Center"/>
-        </StackPanel>
+
+        <Label Content="Updating tables will only happen once. Please wait..." HorizontalAlignment="Center" x:Name="labelSubLabel" Grid.Row="3"/>
+
     </Grid>
 </Window>

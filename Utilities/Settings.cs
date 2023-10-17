@@ -20,6 +20,7 @@ namespace NSAP_ODK.Utilities
         public string MDBPath { get; set; }
         public string JSONFolder { get; set; }
 
+        public string DbFilter { get; set; }
         public string FisheriesLandingSurveyNumericID { get; set; }
         public string TBL_TWSPKoboserverServerNumericID { get; set; }
         public string NSAPFishCatchMonitoringKoboserverServerNumericID { get; set; }

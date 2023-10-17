@@ -48,6 +48,12 @@
                 <TextBox x:Name="textAcceptableDiff" Width="60" Margin="10 0" HorizontalContentAlignment="Right"/>
             </WrapPanel>
 
+            <WrapPanel Margin="10 2">
+                <Label Content="Database filter" Width="205" HorizontalContentAlignment="Right"/>
+                <TextBox x:Name="textDBFilter" Width="400" Margin="10 0" HorizontalContentAlignment="Right"/>
+                 <Button x:Name="buttonDBFilter" Content="Filter" Click="OnButtonClick" Width="50" Height="25"/>
+            </WrapPanel>
+
             <StackPanel>
                 <Label Content="NSAP-ODK Databse using MySQL" HorizontalAlignment="Center" Margin="0 10 0 0" FontWeight="Bold"/>
                 <WrapPanel Margin="10 2">

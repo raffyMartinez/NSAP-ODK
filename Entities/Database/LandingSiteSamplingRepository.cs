@@ -427,7 +427,6 @@ namespace NSAP_ODK.Entities.Database
             }
             else
             {
-                var dt = new DataTable();
                 using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
                     using (var cmd = conection.CreateCommand())
@@ -442,7 +441,19 @@ namespace NSAP_ODK.Entities.Database
                                                     ON dbo_LC_FG_sample_day.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id";
 
 
-
+                            if (Global.Filter1 != null)
+                            {
+                                cmd.Parameters.AddWithValue("@d1", Global.Filter1DateString());
+                                if (Global.Filter2 != null)
+                                {
+                                    cmd.Parameters.AddWithValue("@d2", Global.Filter2DateString());
+                                    cmd.CommandText += $" WHERE sDate >= @d1 AND sDate < @d2";
+                                }
+                                else
+                                {
+                                    cmd.CommandText += $" WHERE sDate >= @d1";
+                                }
+                            }
 
                             thisList.Clear();
                             OleDbDataReader dr = cmd.ExecuteReader();

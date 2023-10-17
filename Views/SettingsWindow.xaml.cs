@@ -40,28 +40,29 @@ namespace NSAP_ODK.Views
 
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
-            if (Utilities.Global.Settings != null)
+            if (Global.Settings != null)
             {
-                textBackenDB.Text = Utilities.Global.Settings.MDBPath;
-                textJsonFolder.Text = Utilities.Global.Settings.JSONFolder;
-                textmySQLBackupFolder.Text = Utilities.Global.Settings.MySQLBackupFolder;
-                chkUsemySQL.IsChecked = Utilities.Global.Settings.UsemySQL;
+                textBackenDB.Text = Global.Settings.MDBPath;
+                textJsonFolder.Text = Global.Settings.JSONFolder;
+                textmySQLBackupFolder.Text = Global.Settings.MySQLBackupFolder;
+                chkUsemySQL.IsChecked = Global.Settings.UsemySQL;
                 buttonLocateMySQlBackupFolder.IsEnabled = (bool)chkUsemySQL.IsChecked;
                 chkUsemySQL.Click += ChkUsemySQL_Click;
+
 
                 textJsonFolder.MouseDoubleClick += OnTextBoxDoubleClick;
                 textBackenDB.MouseDoubleClick += OnTextBoxDoubleClick;
 
-                if (Utilities.Global.Settings.CutOFFUndersizedCW == null)
+                if (Global.Settings.CutOFFUndersizedCW == null)
                 {
                     textCutoffWidth.Text = Utilities.Settings.DefaultCutoffUndesizedCW.ToString();
                 }
                 else
                 {
-                    textCutoffWidth.Text = ((int)Utilities.Global.Settings.CutOFFUndersizedCW).ToString();
+                    textCutoffWidth.Text = ((int)Global.Settings.CutOFFUndersizedCW).ToString();
                 }
 
-                if (Utilities.Global.Settings.DownloadSizeForBatchMode == null)
+                if (Global.Settings.DownloadSizeForBatchMode == null)
                 {
                     textDownloadSizeForBatchMode.Text = Utilities.Settings.DefaultDownloadSizeForBatchMode.ToString();
                 }
@@ -70,13 +71,22 @@ namespace NSAP_ODK.Views
                     textDownloadSizeForBatchMode.Text = ((int)Utilities.Global.Settings.DownloadSizeForBatchMode).ToString();
                 }
 
-                if (Utilities.Global.Settings.DownloadSizeForBatchModeMultiVessel == null)
+                if (Global.Settings.DownloadSizeForBatchModeMultiVessel == null)
                 {
                     textDownloadSizeForBatchModeMultivessel.Text = Utilities.Settings.DefaultDownloadSizeForBatchModeMultiVessel.ToString();
                 }
                 else
                 {
                     textDownloadSizeForBatchModeMultivessel.Text = ((int)Utilities.Global.Settings.DownloadSizeForBatchModeMultiVessel).ToString();
+                }
+
+                if (Global.Settings.DbFilter == null)
+                {
+                    textDBFilter.Text = "";
+                }
+                else
+                {
+                    textDBFilter.Text = Global.Settings.DbFilter.ToString();
                 }
 
                 textAcceptableDiff.Text = ((int)Utilities.Global.Settings.AcceptableWeightsDifferencePercent).ToString();
@@ -121,6 +131,7 @@ namespace NSAP_ODK.Views
             string msg2 = "Name of folder for saving backup JSON files cannot be empyy";
             string msg3 = "Name of folder of NSAP-ODK Databse for MySQL cannot be empyy";
             string msg4 = "Values must be a positive, whole number greater than zero";
+            string msg5 = "Filter must be a date";
             string msg = "";
 
             if (textBackenDB.Text.Length > 0)
@@ -142,6 +153,14 @@ namespace NSAP_ODK.Views
                 msg3 = "";
             }
 
+            if (textDBFilter.Text.Length > 0)
+            {
+                if (DateTime.TryParse(textDBFilter.Text, out DateTime v))
+                {
+                    msg5 = "";
+                }
+            }
+
             if (textCutoffWidth.Text.Length > 0 && textDownloadSizeForBatchMode.Text.Length > 0 && textAcceptableDiff.Text.Length > 0)
             {
                 if (int.TryParse(textAcceptableDiff.Text, out int v))
@@ -159,7 +178,7 @@ namespace NSAP_ODK.Views
 
 
 
-            if (msg1.Length > 0 && msg2.Length > 0 && msg3.Length > 0 && msg4.Length > 0)
+            if (msg1.Length > 0 && msg2.Length > 0 && msg3.Length > 0 && msg4.Length > 0 )
             {
                 msg = "Expected value cannot be empty and must be a whole number";
                 string cutoff = textCutoffWidth.Text;
@@ -182,7 +201,7 @@ namespace NSAP_ODK.Views
                     }
                 }
             }
-            if (msg.Length > 0 || msg1.Length > 0 || msg2.Length > 0 || msg3.Length > 0 || msg4.Length > 0)
+            if (msg.Length > 0 || msg1.Length > 0 || msg2.Length > 0 || msg3.Length > 0 || msg4.Length > 0 || msg5.Length > 0)
             {
 
                 if (msg1.Length > 0)
@@ -226,6 +245,20 @@ namespace NSAP_ODK.Views
                     }
 
                 }
+
+                if (msg5.Length > 0)
+                {
+                    if (allMessages.Length > 0)
+                    {
+                        allMessages += msg5 + "\r\n";
+                    }
+                    else
+                    {
+                        allMessages = msg5;
+                    }
+
+                }
+
                 if (msg.Length > 0)
                 {
                     if (allMessages.Length > 0)

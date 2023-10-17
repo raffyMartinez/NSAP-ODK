@@ -651,6 +651,9 @@
     <Compile Include="Views\SettingsWindow.xaml.cs">
       <DependentUpon>SettingsWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\SetupDBFilterWindow.xaml.cs">
+      <DependentUpon>SetupDBFilterWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\SpeciesWithZeroWeightListingWindow.xaml.cs">
       <DependentUpon>SpeciesWithZeroWeightListingWindow.xaml</DependentUpon>
     </Compile>
@@ -855,6 +858,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\SettingsWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\SetupDBFilterWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

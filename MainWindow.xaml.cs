@@ -85,6 +85,7 @@ namespace NSAP_ODK
             Closing += OnWindowClosing;
         }
 
+        public string CommandArgs { get; set; }
         public DBView DBView { get; set; }
         public static HttpClient HttpClient
         {
@@ -153,6 +154,7 @@ namespace NSAP_ODK
         public bool ShowSplash()
         {
             SplashWindow sw = new SplashWindow();
+            sw.CommandArgs = Global.CommandArgs;
             sw.Owner = this;
             if ((bool)sw.ShowDialog())
             {
@@ -443,6 +445,7 @@ namespace NSAP_ODK
 
         private async void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
+
             Global.RequestLogIn += OnMysQLRequestLogin;
 
             Global.DoAppProceed();
@@ -491,6 +494,10 @@ namespace NSAP_ODK
                         }
                         CreateTablesInAccess.GetMDBColumnInfo(Global.ConnectionString);
                         _httpClient.Timeout = new TimeSpan(0, 10, 0);
+                        if (Global.CommandArgs.Count() >= 1 && Global.CommandArgs[0] == "filtered")
+                        {
+                            Title += " (Filtered)";
+                        }
                     }
                     else
                     {
@@ -520,11 +527,16 @@ namespace NSAP_ODK
                     Title += " - MySQL";
                 }
             }
-
             else if (Global.Settings == null)
             {
                 ResetDisplay();
                 ShowDatabaseNotFoundView();
+            }
+
+            if (!string.IsNullOrEmpty(Global.FilterError))
+            {
+                ShowDatabaseNotFoundView(isFilterError:true);
+                MessageBox.Show(Global.FilterError, Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
 
@@ -1224,13 +1236,21 @@ namespace NSAP_ODK
         }
 
 
-        private void ShowDatabaseNotFoundView()
+        private void ShowDatabaseNotFoundView(bool isFilterError=false)
         {
             rowTopLabel.Height = new GridLength(300);
-            labelTitle.Content = "Backend database file not found.\r\n\r\nMake sure that the correct database is found in the application folder\r\n" +
-                                  "or in the folder used for saving NSAP data.\r\n" +
-                                  "The application folder is the folder where you installed this software\r\n\r\n" +
-                                  "Click on the Settings button in the toolbar to setup the database";
+            if (isFilterError)
+            {
+                labelTitle.Content = "Cannot understand database filter\r\n\r\nIf there are two dates in the filter, the first date\r\n"+
+                                      "must be before the second date";
+            }
+            else
+            {
+                labelTitle.Content = "Backend database file not found.\r\n\r\nMake sure that the correct database is found in the application folder\r\n" +
+                                      "or in the folder used for saving NSAP data.\r\n" +
+                                      "The application folder is the folder where you installed this software\r\n\r\n" +
+                                      "Click on the Settings button in the toolbar to setup the database";
+            }
             //if (CSVFIleManager.XMLError.Length > 0 && Global.MDBPath.Length > 0)
             //{
             //    labelTitle.Content = $"{CSVFIleManager.XMLError }";
@@ -3404,7 +3424,7 @@ namespace NSAP_ODK
                             //    if (int.TryParse(cellinfo.Column.Header.ToString(), out int v))
                             //    {
                             //        lss = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(fma: _allSamplingEntitiesEventHandler.FMA, fg: _allSamplingEntitiesEventHandler.FishingGround, ls: _allSamplingEntitiesEventHandler.LandingSite, samplingDate: ((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).AddDays(v - 1)).FirstOrDefault();
-    
+
 
                             //    }
                             //    break;
@@ -3434,7 +3454,7 @@ namespace NSAP_ODK
                                             lss = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(fma: _allSamplingEntitiesEventHandler.FMA, fg: _allSamplingEntitiesEventHandler.FishingGround, ls: _allSamplingEntitiesEventHandler.LandingSite, samplingDate: ((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).AddDays(v - 1)).FirstOrDefault();
                                             if (lss?.GearUnloadViewModel.Count > 0 || lss?.GearsInLandingSite.Count > 0)
                                             {
-                                                   msg = "There are fish landings on the selected date";
+                                                msg = "There are fish landings on the selected date";
                                             }
                                             else
                                             {

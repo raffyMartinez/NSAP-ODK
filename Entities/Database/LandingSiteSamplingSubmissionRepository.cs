@@ -136,6 +136,34 @@ namespace NSAP_ODK.Entities.Database
                     using (var cmd = con.CreateCommand())
                     {
                         cmd.CommandText = "Select * from dbo_lss_submissionIDs";
+                        //if (Global.Filter1 == null)
+                        //{
+                        //    cmd.CommandText = "Select * from dbo_lss_submissionIDs";
+                        //}
+                        //else
+                        //{
+                        //    if (Global.Filter1 != null)
+                        //    {
+                        //        cmd.Parameters.AddWithValue("@d1", Global.Filter1DateString());
+                        //        if (Global.Filter2 != null)
+                        //        {
+                        //            cmd.Parameters.AddWithValue("@d2", Global.Filter2DateString());
+                        //            cmd.CommandText = $@"SELECT dbo_lss_submissionIDs.*
+                        //                                FROM dbo_LC_FG_sample_day INNER JOIN 
+                        //                                    dbo_lss_submissionIDs ON 
+                        //                                    dbo_LC_FG_sample_day.unload_day_id = dbo_lss_submissionIDs.landing_site_sampling_id
+                        //                                WHERE [sDate]>=@d1 AND [sDate]<@d2";
+                        //        }
+                        //        else
+                        //        {
+                        //            cmd.CommandText = $@"SELECT dbo_lss_submissionIDs.*
+                        //                                FROM dbo_LC_FG_sample_day INNER JOIN 
+                        //                                    dbo_lss_submissionIDs ON 
+                        //                                    dbo_LC_FG_sample_day.unload_day_id = dbo_lss_submissionIDs.landing_site_sampling_id
+                        //                                WHERE [sDate]>=@d1";
+                        //        }
+                        //    }
+                        //}
                         con.Open();
                         var dr = cmd.ExecuteReader();
                         while (dr.Read())

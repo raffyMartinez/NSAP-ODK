@@ -29,13 +29,13 @@ namespace NSAP_ODK.Views
         {
             InitializeComponent();
         }
+
+        public string[] CommandArgs { get; set; }
         private async Task LoadEntitiesAsync()
         {
             Utilities.Global.EntityLoading += Global_EntityLoading;
             Utilities.Global.EntityLoaded += Global_EntityLoaded;
-            VesselUnloadRepository.TableRowsUpdatingEvent += VesselUnloadRepository_TableRowsUpdatingEvent;
             await Task.Run(() => LoadEntities());
-            VesselUnloadRepository.TableRowsUpdatingEvent -= VesselUnloadRepository_TableRowsUpdatingEvent;
             Utilities.Global.EntityLoaded -= Global_EntityLoaded;
             Utilities.Global.EntityLoading -= Global_EntityLoading;
             LabelLoading.Content = "Finished reading database";
@@ -44,69 +44,6 @@ namespace NSAP_ODK.Views
             //MessageBox.Show("Finished loading data");
         }
 
-        private void VesselUnloadRepository_TableRowsUpdatingEvent(object sender, UpdateTableRowsEventArg e)
-        {
-            switch (e.Intent)
-            {
-                case "start":
-                    panelTableUpdateProgress.Dispatcher.BeginInvoke
-                        (
-                        DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
-                        {
-                            panelTableUpdateProgress.Visibility = Visibility.Visible;
-                            return null;
-                        }), null);
-
-                    progressBarUpdateTableRow.Dispatcher.BeginInvoke
-                    (
-                        DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
-                        {
-                            progressBarUpdateTableRow.Maximum = e.TotalRowsToUpdate;
-                            progressBarUpdateTableRow.Value = 0;
-                            //do what you need to do on UI Thread
-                            return null;
-                        }), null);
-                    break;
-                case "row updated":
-                    progressBarUpdateTableRow.Dispatcher.BeginInvoke
-                    (
-                        DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
-                        {
-                            progressBarUpdateTableRow.Value = e.RowsUpdatedCount;
-                            //do what you need to do on UI Thread
-                            return null;
-                        }), null);
-
-                    labelUpdateTable.Dispatcher.BeginInvoke
-                        (
-                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
-                          {
-                              labelUpdateTable.Content = $"Updating {e.TableName} row {e.RowsUpdatedCount} of {progressBarUpdateTableRow.Maximum}";
-                              //do what you need to do on UI Thread
-                              return null;
-                          }), null);
-                    break;
-                case "row updating done":
-                    progressBarUpdateTableRow.Dispatcher.BeginInvoke
-                    (
-                        DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
-                        {
-                            progressBarUpdateTableRow.Value = 0;
-                            //do what you need to do on UI Thread
-                            return null;
-                        }), null);
-
-                    labelUpdateTable.Dispatcher.BeginInvoke
-                        (
-                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
-                          {
-                              labelUpdateTable.Content = $"Finished updating {e.TableName}";
-                              //do what you need to do on UI Thread
-                              return null;
-                          }), null);
-                    break;
-            }
-        }
 
         private void Global_EntityLoading(object sender, EntityLoadedEventArg e)
         {
@@ -129,9 +66,14 @@ namespace NSAP_ODK.Views
         }
         private async void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
-            panelTableUpdateProgress.Visibility = Visibility.Collapsed;
+            labelSubLabel.Visibility = Visibility.Collapsed;
             labelVersion.Content = $"Version: {Assembly.GetExecutingAssembly().GetName().Version.ToString()}";
             //ProgressBarRead.IsIndeterminate = true;
+            if (CommandArgs!=null &&  (bool)CommandArgs.Contains("filtered"))
+            {
+                labelSubLabel.Visibility = Visibility.Visible;
+                labelSubLabel.Content = "Database will load with filtered data";
+            }
             await LoadEntitiesAsync();
             //ProgressBarRead.IsIndeterminate = false; // Maybe hide it, too
 
@@ -140,7 +82,6 @@ namespace NSAP_ODK.Views
         }
         private void LoadEntities()
         {
-
             Utilities.Global.LoadEntities();
 
             // this will be run only once after updating the regions-enumerators table  
