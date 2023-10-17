@@ -49,11 +49,11 @@ namespace NSAP_ODK.Views
         public MainWindow MainWindowParent { get; set; }
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
-            buttonEdit.Visibility = Visibility.Collapsed;
-            if (Debugger.IsAttached)
-            {
+            //buttonEdit.Visibility = Visibility.Collapsed;
+            //if (Debugger.IsAttached)
+            //{
                 buttonEdit.Visibility = Visibility.Visible;
-            }
+            //}
         }
 
         private void OnUnloadEditorButtonClicked(object sender, VesselUnloadEditorControl.UnloadEditorEventArgs e)

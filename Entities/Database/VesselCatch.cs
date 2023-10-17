@@ -411,7 +411,8 @@ namespace NSAP_ODK.Entities.Database
             {
                 if (_parent == null)
                 {
-                    _parent = NSAPEntities.VesselUnloadViewModel.getVesselUnload(VesselUnloadID);
+                    //_parent = NSAPEntities.VesselUnloadViewModel.getVesselUnload(VesselUnloadID);
+                    _parent = ParentFishingGear.Parent;
                 }
                 return _parent;
             }

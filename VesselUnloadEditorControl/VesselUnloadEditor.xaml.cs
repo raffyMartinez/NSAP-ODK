@@ -790,98 +790,100 @@ namespace NSAP_ODK.VesselUnloadEditorControl
             _clw = null;
             _cm = null;
             labelCatch.Content = "No selected catch";
-
-            switch (((DataGrid)sender).Name)
+            if (((DataGrid)sender).SelectedItem != null)
             {
-                case "effortDataGrid":
-                    switch (UnloadView)
-                    {
-                        case "treeItemFishingGears":
-                            _vufg = (VesselUnload_FishingGear)((DataGrid)sender).SelectedItem;
-                            if (_editMode)
-                            {
-                                _vufg_edited = new VesselUnload_FishingGear_Edited(_vufg);
-                            }
-                            break;
-                        case "treeItemSoakTime":
-                            _gs = (GearSoak)((DataGrid)sender).SelectedItem;
-                            if (_editMode)
-                            {
-                                _gs_edited = new GearSoakEdited(_gs);
-                            }
-                            break;
-                        case "treeItemFishingGround":
-                            _fgg = (FishingGroundGrid)((DataGrid)sender).SelectedItem;
-                            if (_editMode)
-                            {
-                                _fgg_edited = new FishingGroundGridEdited(_fgg);
-                            }
-                            break;
-                        case "treeItemEffortDefinition":
-                            _vu_gs = (VesselUnload_Gear_Spec)((DataGrid)sender).SelectedItem;
-                            if(_editMode)
-                            {
-                                _vu_gs_edited = new VesselUnload_Gear_Spec_Edited(_vu_gs);
-                            }
-                            break;
-                        case "treeItemCatchComposition":
-                            VesselCatch = (VesselCatch)((DataGrid)sender).SelectedItem;
-                            SetupDataGridsForDisplay(forCatchGrid: true);
-                            labelCatch.Content = $"{GetContextLabel()} {VesselCatch?.CatchName}";
+                switch (((DataGrid)sender).Name)
+                {
+                    case "effortDataGrid":
+                        switch (UnloadView)
+                        {
+                            case "treeItemFishingGears":
+                                _vufg = (VesselUnload_FishingGear)((DataGrid)sender).SelectedItem;
+                                if (_editMode)
+                                {
+                                    _vufg_edited = new VesselUnload_FishingGear_Edited(_vufg);
+                                }
+                                break;
+                            case "treeItemSoakTime":
+                                _gs = (GearSoak)((DataGrid)sender).SelectedItem;
+                                if (_editMode)
+                                {
+                                    _gs_edited = new GearSoakEdited(_gs);
+                                }
+                                break;
+                            case "treeItemFishingGround":
+                                _fgg = (FishingGroundGrid)((DataGrid)sender).SelectedItem;
+                                if (_editMode)
+                                {
+                                    _fgg_edited = new FishingGroundGridEdited(_fgg);
+                                }
+                                break;
+                            case "treeItemEffortDefinition":
+                                _vu_gs = (VesselUnload_Gear_Spec)((DataGrid)sender).SelectedItem;
+                                if (_editMode)
+                                {
+                                    _vu_gs_edited = new VesselUnload_Gear_Spec_Edited(_vu_gs);
+                                }
+                                break;
+                            case "treeItemCatchComposition":
+                                VesselCatch = (VesselCatch)((DataGrid)sender).SelectedItem;
+                                SetupDataGridsForDisplay(forCatchGrid: true);
+                                labelCatch.Content = $"{GetContextLabel()} {VesselCatch?.CatchName}";
 
-                            if (_editMode && VesselCatch != null)
-                            {
-                                _vesselCatchEdited = new VesselCatchEdited(VesselCatch);
-                            }
-                            break;
-                    }
+                                if (_editMode && VesselCatch != null)
+                                {
+                                    _vesselCatchEdited = new VesselCatchEdited(VesselCatch);
+                                }
+                                break;
+                        }
 
-                    break;
-                case "catchDataGrid":
-                    switch (UnloadView)
-                    {
-                        case "treeItemLenFreq":
-                            _clf = (CatchLenFreq)((DataGrid)sender).SelectedItem;
-                            if (_editMode)
-                            {
-                                _clf_edited = new CatchLenFreqEdited(_clf);
-                            }
-                            break;
-                        case "treeItemLenWeight":
-                            _clw = (CatchLengthWeight)((DataGrid)sender).SelectedItem;
-                            if (_editMode)
-                            {
-                                _clw_edited = new CatchLengthWeightEdited(_clw);
-                            }
-                            break;
-                        case "treeItemLenList":
-                            _cl = (CatchLength)((DataGrid)sender).SelectedItem;
-                            if (_editMode)
-                            {
-                                _cl_edited = new CatchLengthEdited(_cl);
-                            }
-                            break;
-                        case "treeItemMaturity":
-                            _cm = (CatchMaturity)((DataGrid)sender).SelectedItem;
-                            if (_editMode)
-                            {
-                                _cm_edited = new CatchMaturityEdited(_cm);
-                            }
-                            break;
-                    }
-                    break;
-            }
+                        break;
+                    case "catchDataGrid":
+                        switch (UnloadView)
+                        {
+                            case "treeItemLenFreq":
+                                _clf = (CatchLenFreq)((DataGrid)sender).SelectedItem;
+                                if (_editMode)
+                                {
+                                    _clf_edited = new CatchLenFreqEdited(_clf);
+                                }
+                                break;
+                            case "treeItemLenWeight":
+                                _clw = (CatchLengthWeight)((DataGrid)sender).SelectedItem;
+                                if (_editMode)
+                                {
+                                    _clw_edited = new CatchLengthWeightEdited(_clw);
+                                }
+                                break;
+                            case "treeItemLenList":
+                                _cl = (CatchLength)((DataGrid)sender).SelectedItem;
+                                if (_editMode)
+                                {
+                                    _cl_edited = new CatchLengthEdited(_cl);
+                                }
+                                break;
+                            case "treeItemMaturity":
+                                _cm = (CatchMaturity)((DataGrid)sender).SelectedItem;
+                                if (_editMode)
+                                {
+                                    _cm_edited = new CatchMaturityEdited(_cm);
+                                }
+                                break;
+                        }
+                        break;
+                }
 
-            if (effortDataGrid.DataContext != null || catchDataGrid.DataContext != null)
-            {
-                buttonDelete.IsEnabled = true;
-                buttonEdit.IsEnabled = true;
+                if (effortDataGrid.DataContext != null || catchDataGrid.DataContext != null)
+                {
+                    buttonDelete.IsEnabled = true;
+                    buttonEdit.IsEnabled = true;
+                }
             }
         }
 
         private void OnGridDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (_editMode)
+            if (_editMode && ((DataGrid)sender).SelectedItem!=null)
             {
                 VesselUnloadEditorWindow vuew = new VesselUnloadEditorWindow();
 
