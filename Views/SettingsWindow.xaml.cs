@@ -25,7 +25,9 @@ namespace NSAP_ODK.Views
     /// </summary>
     public partial class SettingsWindow : Window
     {
+        private string _filterValidationMessage;
         private bool _chkMySQlClicked;
+        private string _oldFilter;
         public SettingsWindow()
         {
             InitializeComponent();
@@ -88,6 +90,7 @@ namespace NSAP_ODK.Views
                 {
                     textDBFilter.Text = Global.Settings.DbFilter.ToString();
                 }
+                _oldFilter = textDBFilter.Text;
 
                 textAcceptableDiff.Text = ((int)Utilities.Global.Settings.AcceptableWeightsDifferencePercent).ToString();
             }
@@ -124,6 +127,92 @@ namespace NSAP_ODK.Views
             buttonLocateMySQlBackupFolder.IsEnabled = (bool)chkUsemySQL.IsChecked;
         }
 
+
+        private bool ValidateDateFilter(string dateFilter)
+        {
+            _filterValidationMessage = "";
+            DateTime? d1 = null;
+            DateTime? d2 = null;
+            int? loopCount = null;
+
+            string[] arr = dateFilter.Split(' ');
+            if (arr.Length == 1)
+            {
+                if (int.TryParse(arr[0], out int i))
+                {
+                    d1 = new DateTime(i, 1, 1);
+                }
+                else
+                {
+                    _filterValidationMessage = "Item must be a valid date";
+                }
+            }
+            else if (arr.Length > 1 && arr.Length <= 3)
+            {
+                loopCount = 0;
+                for (int x = 0; x < arr.Length; x++)
+                {
+                    if (DateTime.TryParse(arr[x], out DateTime d))
+                    {
+                        if (x == 0)
+                        {
+                            d1 = d;
+                        }
+                        else
+                        {
+                            d2 = d;
+                        }
+                    }
+                    else if (int.TryParse(arr[x], out int i))
+                    {
+                        if (i >= 2000)
+                        {
+                            if (x == 0)
+                            {
+                                d1 = new DateTime(i, 1, 1);
+                            }
+                            else
+                            {
+                                d2 = new DateTime(i, 1, 1);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (x == 0)
+                        {
+                            _filterValidationMessage = "First item should be a date";
+                            break;
+                        }
+
+
+
+                    }
+                    loopCount++;
+                }
+
+                if (loopCount != null && loopCount > 1 && d2 == null)
+                {
+                    _filterValidationMessage = "Second item must be a valid date";
+                }
+                else if (d1 == null && d2 == null)
+                {
+                    _filterValidationMessage = "Items should contain at least one date";
+                }
+                else if (d1 != null && d2 != null && d1 > d2)
+                {
+                    _filterValidationMessage = "First date must be before second date";
+                }
+
+
+            }
+            else
+            {
+                _filterValidationMessage = "Could not understand filter";
+            }
+
+            return _filterValidationMessage.Length == 0;
+        }
         private bool ValidateForm()
         {
             string allMessages = "";
@@ -131,7 +220,7 @@ namespace NSAP_ODK.Views
             string msg2 = "Name of folder for saving backup JSON files cannot be empyy";
             string msg3 = "Name of folder of NSAP-ODK Databse for MySQL cannot be empyy";
             string msg4 = "Values must be a positive, whole number greater than zero";
-            string msg5 = "Filter must be a date";
+            string msg5 = "Filter/s must be valid date/s";
             string msg = "";
 
             if (textBackenDB.Text.Length > 0)
@@ -155,9 +244,13 @@ namespace NSAP_ODK.Views
 
             if (textDBFilter.Text.Length > 0)
             {
-                if (DateTime.TryParse(textDBFilter.Text, out DateTime v))
+                if (ValidateDateFilter(textDBFilter.Text))
                 {
                     msg5 = "";
+                }
+                else
+                {
+                    msg5 = $"{msg5}\r\n\r\n{_filterValidationMessage}";
                 }
             }
 
@@ -178,7 +271,7 @@ namespace NSAP_ODK.Views
 
 
 
-            if (msg1.Length > 0 && msg2.Length > 0 && msg3.Length > 0 && msg4.Length > 0 )
+            if (msg1.Length > 0 && msg2.Length > 0 && msg3.Length > 0 && msg4.Length > 0)
             {
                 msg = "Expected value cannot be empty and must be a whole number";
                 string cutoff = textCutoffWidth.Text;
@@ -340,6 +433,7 @@ namespace NSAP_ODK.Views
                         Utilities.Global.Settings.UsemySQL = (bool)chkUsemySQL.IsChecked;
                         Utilities.Global.Settings.MySQLBackupFolder = textmySQLBackupFolder.Text;
                         Utilities.Global.Settings.AcceptableWeightsDifferencePercent = int.Parse(textAcceptableDiff.Text);
+                        Utilities.Global.Settings.DbFilter = textDBFilter.Text;
                         if (int.TryParse(textDownloadSizeForBatchMode.Text, out int v))
                         {
                             Utilities.Global.Settings.DownloadSizeForBatchMode = v;
@@ -352,10 +446,23 @@ namespace NSAP_ODK.Views
                         }
                         Utilities.Global.SaveGlobalSettings();
 
+                        if(_oldFilter!=textDBFilter.Text)
+                        {
+                            MessageBox.Show("The application need to restart to apply the database filter",
+                                            Global.MessageBoxCaption,
+                                            MessageBoxButton.OK,
+                                            MessageBoxImage.Information);
+
+                            ((MainWindow)Owner).CloseAppilication();
+                        }
 
                         if (_chkMySQlClicked)
                         {
-                            MessageBox.Show("The application need to restart to switch to another database backend", "NSAP-ODK Database", MessageBoxButton.OK, MessageBoxImage.Information);
+                            MessageBox.Show("The application need to restart to switch to another database backend", 
+                                Global.MessageBoxCaption, 
+                                MessageBoxButton.OK, 
+                                MessageBoxImage.Information);
+
                             ((MainWindow)Owner).CloseAppilication();
                         }
                         if (Owner != null && Owner.GetType().Name.Contains("MainWindow"))

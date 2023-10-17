@@ -51,7 +51,7 @@
             <WrapPanel Margin="10 2">
                 <Label Content="Database filter" Width="205" HorizontalContentAlignment="Right"/>
                 <TextBox x:Name="textDBFilter" Width="400" Margin="10 0" HorizontalContentAlignment="Right"/>
-                 <Button x:Name="buttonDBFilter" Content="Filter" Click="OnButtonClick" Width="50" Height="25"/>
+
             </WrapPanel>
 
             <StackPanel>

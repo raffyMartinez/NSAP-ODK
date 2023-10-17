@@ -489,6 +489,12 @@ namespace NSAP_ODK.Utilities
                                     }
                                 }
                             }
+                            else
+                            {
+                                AppProceed = false;
+                                FilterError = "Arguments after filtered must be valid dates";
+                                return;
+                            }
                         }
                     }
                     else if (CommandArgs.Count() == 1)
@@ -518,7 +524,7 @@ namespace NSAP_ODK.Utilities
                                 {
                                     if (i >= 2000)
                                     {
-                                        if (x == 1)
+                                        if (x == 0)
                                         {
                                             Filter1 = new DateTime(i, 1, 1);
                                         }
@@ -527,6 +533,12 @@ namespace NSAP_ODK.Utilities
                                             Filter2 = new DateTime(i + 1, 1, 1);
                                         }
                                     }
+                                }
+                                else
+                                {
+                                    AppProceed = false;
+                                    FilterError = "Arguments after filtered must be valid dates";
+                                    return;
                                 }
                             }
                         }
