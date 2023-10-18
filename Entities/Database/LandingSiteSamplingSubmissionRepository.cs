@@ -121,7 +121,42 @@ namespace NSAP_ODK.Entities.Database
         }
 
 
+        public static DateTime? LatestAdditionDate(string formID)
+        {
+            DateTime? add_date = null;
+            if (Global.Settings.UsemySQL)
+            {
 
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@id", formID);
+                        cmd.CommandText = "Select Max(date_added) from dbo_lss_submissionIDs where xFormIdentifier = @id";
+                        try
+                        {
+                            con.Open();
+                            add_date = (DateTime)cmd.ExecuteScalar();
+                        }
+                        catch (Exception ex)
+                        {
+                            if (ex.Message == "Specified cast is not valid.")
+                            {
+
+                            }
+                            else
+                            {
+                                Logger.Log(ex);
+                            }
+                        }
+                    }
+                }
+            }
+            return add_date;
+        }
         private List<LandingSiteSamplingSubmission> getSubmissions()
         {
             List<LandingSiteSamplingSubmission> this_list = new List<LandingSiteSamplingSubmission>();

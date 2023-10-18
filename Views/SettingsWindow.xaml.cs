@@ -142,6 +142,10 @@ namespace NSAP_ODK.Views
                 {
                     d1 = new DateTime(i, 1, 1);
                 }
+                else if (DateTime.TryParse(arr[0], out DateTime d))
+                {
+                    d1 = d;
+                }
                 else
                 {
                     _filterValidationMessage = "Item must be a valid date";

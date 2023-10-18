@@ -922,7 +922,9 @@ namespace NSAP_ODK.Entities.Database
         public List<GearUnload> GetGearUnloadsEx(DateTime date_download)
         {
             List<GearUnload> gus = new List<GearUnload>();
-            var list_lss = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection.Where(t => ((DateTime)t.DateAdded).Date == date_download.Date).ToList();
+            var list_lss = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection
+                .Where(t => t.DateAdded!=null && ((DateTime)t.DateAdded).Date == date_download.Date)
+                .ToList();
             int loopCount = 0;
             foreach (LandingSiteSampling lss in list_lss)
             {

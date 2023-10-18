@@ -1053,11 +1053,11 @@ namespace NSAP_ODK
 
 
                         tvItem.Items.Add(new TreeViewItem { Header = "All fishing effort", Tag = "effort" });
-                        tvItem.Items.Add(new TreeViewItem { Header = "Weights", Tag = "weights" });
+                        //tvItem.Items.Add(new TreeViewItem { Header = "Weights", Tag = "weights" });
                         tvItem.Items.Add(new TreeViewItem { Header = "Tracked fishing effort", Tag = "tracked" });
                         tvItem.Items.Add(new TreeViewItem { Header = "Gear unload", Tag = "gearUnload" });
                         tvItem.Items.Add(new TreeViewItem { Header = "Gear unload (Multiple vessel)", Tag = "gearUnload_mv" });
-                        tvItem.Items.Add(new TreeViewItem { Header = "Unload summary", Tag = "unloadSummary" });
+                        //tvItem.Items.Add(new TreeViewItem { Header = "Unload summary", Tag = "unloadSummary" });
 
                         TreeViewItem tv = new TreeViewItem { Header = "JSON analysis", Tag = "jsonAnalysis" };
                         tv.Expanded += onJsonDummyNode_Expanded;

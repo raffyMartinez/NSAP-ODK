@@ -1672,9 +1672,12 @@ namespace NSAP_ODK.Views
 
 
 
-            if (_formSummary.LastSubmittedDateInDatabase.Length > 0 && DateTime.TryParse(_formSummary.LastSubmittedDateInDatabase, out DateTime v))
+            //if (_formSummary.LastSubmittedDateInDatabase.Length > 0 && DateTime.TryParse(_formSummary.LastSubmittedDateInDatabase, out DateTime v))
+            DateTime? latest_add_date = LandingSiteSamplingSubmissionRepository.LatestAdditionDate(_formSummary.XLSForm_IDString);
+            if(latest_add_date != null )
             {
-                _lastSubmittedDate = v;
+                //_lastSubmittedDate = v;
+                _lastSubmittedDate = latest_add_date;
                 rbNotDownloaded.IsChecked = true;
             }
             else
