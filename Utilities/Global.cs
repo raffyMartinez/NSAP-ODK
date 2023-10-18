@@ -440,6 +440,7 @@ namespace NSAP_ODK.Utilities
                 return string.Empty;
             }
         }
+        public static string FilterServerID { get; set; } = string.Empty;
         public static DateTime? Filter1 { get; set; }
         public static DateTime? Filter2 { get; set; }
         public static bool StringIsOnlyASCIILettersAndDigits(string s)
@@ -454,104 +455,128 @@ namespace NSAP_ODK.Utilities
             AppProceed = Settings != null && File.Exists(Settings.MDBPath);
             if (AppProceed)
             {
-                if (CommandArgs!=null && CommandArgs.Count() > 0 && CommandArgs[0] == "filtered")
+                if (CommandArgs != null && CommandArgs.Count() > 0)// && CommandArgs[0] == "filtered")
                 {
-                    if (CommandArgs.Count() > 1)
+                    switch (CommandArgs[0])
                     {
-                        for (int x = 1; x < CommandArgs.Count(); x++)
-                        {
-                            if (DateTime.TryParse(CommandArgs[x], out DateTime d))
+                        case "filtered":
+
+                            if (CommandArgs.Count() > 1)
                             {
-                                if (x == 1)
+                                for (int x = 1; x < CommandArgs.Count(); x++)
                                 {
-                                    Filter1 = d;
-                                    Settings.DbFilter = d.ToString("MMM-dd-yyyy");
-                                }
-                                else
-                                {
-                                    Filter2 = d;
-                                    Settings.DbFilter += $" - {d.ToString("MMM-dd-yyyy")}";
-                                }
-                            }
-                            else if (int.TryParse(CommandArgs[x], out int i))
-                            {
-                                if (i >= 2000)
-                                {
-                                    if (x == 1)
+                                    if (DateTime.TryParse(CommandArgs[x], out DateTime d))
                                     {
-                                        Filter1 = new DateTime(i, 1, 1);
-                                        Settings.DbFilter = ((DateTime)Filter1).ToString("MMM-dd-yyyy");
+                                        if (x == 1)
+                                        {
+                                            Filter1 = d;
+                                            Settings.DbFilter = d.ToString("MMM-dd-yyyy");
+                                        }
+                                        else
+                                        {
+                                            Filter2 = d;
+                                            Settings.DbFilter += $" - {d.ToString("MMM-dd-yyyy")}";
+                                        }
+                                    }
+                                    else if (int.TryParse(CommandArgs[x], out int i))
+                                    {
+                                        if (i >= 2000)
+                                        {
+                                            if (x == 1)
+                                            {
+                                                Filter1 = new DateTime(i, 1, 1);
+                                                Settings.DbFilter = ((DateTime)Filter1).ToString("MMM-dd-yyyy");
+                                            }
+                                            else
+                                            {
+                                                Filter2 = new DateTime(i + 1, 1, 1);
+                                                Settings.DbFilter += $" - {((DateTime)Filter2).ToString("MMM-dd-yyyy")}";
+                                            }
+                                        }
                                     }
                                     else
                                     {
-                                        Filter2 = new DateTime(i + 1, 1, 1);
-                                        Settings.DbFilter += $" - {((DateTime)Filter2).ToString("MMM-dd-yyyy")}";
+                                        AppProceed = false;
+                                        FilterError = "Arguments after filtered must be valid dates";
+                                        return;
                                     }
+                                }
+                            }
+                            else if (CommandArgs.Count() == 1)
+                            {
+                                if (Settings.DbFilter == null)
+                                {
+                                    Filter1 = new DateTime(2023, 1, 1);
+                                    Settings.DbFilter = ((DateTime)Filter1).ToString("MMM-dd-yyyy");
+                                }
+                                else
+                                {
+                                    string[] arr = Settings.DbFilter.Replace(" - ", " ").Split(' ');
+                                    for (int x = 0; x < arr.Count(); x++)
+                                    {
+                                        if (DateTime.TryParse(arr[x], out DateTime d))
+                                        {
+                                            if (x == 0)
+                                            {
+                                                Filter1 = d;
+                                            }
+                                            else
+                                            {
+                                                Filter2 = d;
+                                            }
+                                        }
+                                        else if (int.TryParse(arr[x], out int i))
+                                        {
+                                            if (i >= 2000)
+                                            {
+                                                if (x == 0)
+                                                {
+                                                    Filter1 = new DateTime(i, 1, 1);
+                                                }
+                                                else
+                                                {
+                                                    Filter2 = new DateTime(i + 1, 1, 1);
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            AppProceed = false;
+                                            FilterError = "Arguments after filtered must be valid dates";
+                                            return;
+                                        }
+                                    }
+                                }
+                            }
+
+
+                            if (Filter1 != null && Filter2 != null && Filter1 > Filter2)
+                            {
+                                AppProceed = false;
+                                FilterError = "First date in filter must be before second date";
+                                return;
+                            }
+                            break;
+                        case "server_id":
+                            if (CommandArgs.Count() == 2)
+                            {
+                                FilterServerID = CommandArgs[1];
+                            }
+                            else if (CommandArgs.Count() == 1)
+                            {
+                                if (!string.IsNullOrEmpty(Settings.ServerFilter))
+                                {
+                                    FilterServerID = Settings.ServerFilter;
                                 }
                             }
                             else
                             {
                                 AppProceed = false;
-                                FilterError = "Arguments after filtered must be valid dates";
-                                return;
+                                FilterError = "Cannot understand filter for server ID";
                             }
-                        }
-                    }
-                    else if (CommandArgs.Count() == 1)
-                    {
-                        if (Settings.DbFilter == null)
-                        {
-                            Filter1 = new DateTime(2023, 1, 1);
-                            Settings.DbFilter = ((DateTime)Filter1).ToString("MMM-dd-yyyy");
-                        }
-                        else
-                        {
-                            string[] arr = Settings.DbFilter.Replace(" - "," ").Split(' ');
-                            for (int x = 0; x < arr.Count(); x++)
-                            {
-                                if (DateTime.TryParse(arr[x], out DateTime d))
-                                {
-                                    if (x == 0)
-                                    {
-                                        Filter1 = d;
-                                    }
-                                    else
-                                    {
-                                        Filter2 = d;
-                                    }
-                                }
-                                else if (int.TryParse(arr[x], out int i))
-                                {
-                                    if (i >= 2000)
-                                    {
-                                        if (x == 0)
-                                        {
-                                            Filter1 = new DateTime(i, 1, 1);
-                                        }
-                                        else
-                                        {
-                                            Filter2 = new DateTime(i + 1, 1, 1);
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    AppProceed = false;
-                                    FilterError = "Arguments after filtered must be valid dates";
-                                    return;
-                                }
-                            }
-                        }
+                            break;
                     }
                 }
-
-                if (Filter1 != null && Filter2 != null && Filter1 > Filter2)
-                {
-                    AppProceed = false;
-                    FilterError = "First date in filter must be before second date";
-                    return;
-                }
-
 
                 if (Settings.UsemySQL)
                 {

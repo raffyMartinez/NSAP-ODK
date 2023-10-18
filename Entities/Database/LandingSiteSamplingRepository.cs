@@ -417,6 +417,46 @@ namespace NSAP_ODK.Entities.Database
             }
             return thisList;
         }
+
+        private bool UpdateXFormIDInTable(string xFormID)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@id", xFormID);
+                        cmd.CommandText = @"UPDATE ((dbo_gear_unload INNER JOIN 
+                                                        dbo_LC_FG_sample_day_1 ON 
+                                                        dbo_gear_unload.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id) INNER JOIN 
+                                                        dbo_vessel_unload ON 
+                                                        dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) INNER JOIN 
+                                                        dbo_vessel_unload_1 ON 
+                                                        dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id 
+                                                        SET dbo_LC_FG_sample_day_1.XFormIdentifier = @id
+                                                    WHERE dbo_vessel_unload_1.XFormIdentifier = @id";
+                        try
+                        {
+                            con.Open();
+                            cmd.ExecuteNonQuery();
+                            success = true;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+
+            return success;
+        }
         private List<LandingSiteSampling> getLandingSiteSamplings()
         {
 
@@ -434,7 +474,7 @@ namespace NSAP_ODK.Entities.Database
                         int loopCount = 0;
                         try
                         {
-                            conection.Open();
+
                             cmd.CommandText = @"SELECT dbo_LC_FG_sample_day.*, dbo_LC_FG_sample_day_1.*
                                                     FROM dbo_LC_FG_sample_day 
                                                     LEFT JOIN dbo_LC_FG_sample_day_1 
@@ -454,8 +494,17 @@ namespace NSAP_ODK.Entities.Database
                                     cmd.CommandText += $" WHERE sDate >= @d1";
                                 }
                             }
+                            else if (Global.FilterServerID != null)
+                            {
+                                if (UpdateXFormIDInTable(Global.FilterServerID))
+                                {
+                                    cmd.Parameters.AddWithValue("@srv", Global.FilterServerID);
+                                    cmd.CommandText += $" WHERE XFormIdentifier = @srv";
+                                }
+                            }
 
                             thisList.Clear();
+                            conection.Open();
                             OleDbDataReader dr = cmd.ExecuteReader();
 
                             while (dr.Read())

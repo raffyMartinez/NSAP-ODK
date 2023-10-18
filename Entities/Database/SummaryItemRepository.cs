@@ -836,6 +836,11 @@ namespace NSAP_ODK.Entities.Database
                                     cmd.CommandText += " WHERE sd.sdate>=@d1";
                                 }
                             }
+                            else if(Global.FilterServerID!=null)
+                            {
+                                cmd.Parameters.AddWithValue("@srv", Global.FilterServerID);
+                                cmd.CommandText += " WHERE sd1.XFormIdentifier = @srv";
+                            }
 
                             cmd.CommandText += " ORDER BY vu1.SamplingDate";
 

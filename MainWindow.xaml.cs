@@ -2590,7 +2590,11 @@ namespace NSAP_ODK
             ProgressDialogWindow pdw = null;
             switch (itemName)
             {
-
+                case "menuSelectServerForFilter":
+                    var server = (Koboserver)dataGridEFormVersionStats.SelectedItem;
+                    Global.Settings.ServerFilter = server.ServerID;
+                    Global.SaveGlobalSettings();
+                    break;
                 case "menuDeleteLandingData":
                     DeleteOptionWindow dow = new DeleteOptionWindow();
                     if ((bool)dow.ShowDialog())
