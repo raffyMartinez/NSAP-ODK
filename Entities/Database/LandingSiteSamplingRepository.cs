@@ -494,7 +494,7 @@ namespace NSAP_ODK.Entities.Database
                                     cmd.CommandText += $" WHERE sDate >= @d1";
                                 }
                             }
-                            else if (Global.FilterServerID != null)
+                            else if (!string.IsNullOrEmpty(Global.FilterServerID))
                             {
                                 if (UpdateXFormIDInTable(Global.FilterServerID))
                                 {

@@ -243,6 +243,15 @@ namespace NSAP_ODK.Entities.Database
                                 }
                             }
                         }
+                        else if(!string.IsNullOrEmpty(Global.FilterServerID))
+                        {
+                            cmd.Parameters.AddWithValue("@srv", Global.FilterServerID);
+                            cmd.CommandText = @"SELECT Count(*) AS n
+                                                FROM dbo_gear_unload INNER JOIN 
+                                                    dbo_LC_FG_sample_day_1 ON 
+                                                    dbo_gear_unload.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id
+                                                WHERE dbo_LC_FG_sample_day_1.XFormIdentifier = @srv";
+                        }
                         try
                         {
                             conn.Open();

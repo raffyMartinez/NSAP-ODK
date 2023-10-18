@@ -818,15 +818,15 @@ namespace NSAP_ODK.Entities.Database
                                                 RIGHT JOIN dbo_vessel_unload_1 AS vu1 ON en.EnumeratorID = vu1.EnumeratorID) ON vu.v_unload_id = vu1.v_unload_id) ON fv.VesselID = vu.boat_id) 
                                                 LEFT JOIN dbo_vessel_unload_stats AS vu_st ON vu.v_unload_id = vu_st.v_unload_id) ON gr.GearCode = gu.gr_id) ON ls.LandingSiteID = sd.land_ctr_id) ON nr.Code = sd.region_id) 
                                                 LEFT JOIN dbo_vessel_unload_weight_validation AS vu_wv ON vu.v_unload_id = vu_wv.v_unload_id";
-                                                                                               
-                                                //ORDER BY vu1.SamplingDate";
+
+                            //ORDER BY vu1.SamplingDate";
                             //WHERE vu.v_unload_id Is Not Null  removed befoe ORDER BY clause
 
 
-                            if(Global.Filter1!=null)
+                            if (Global.Filter1 != null)
                             {
                                 cmd.Parameters.AddWithValue("@d1", Global.Filter1DateString());
-                                if(Global.Filter2!=null)
+                                if (Global.Filter2 != null)
                                 {
                                     cmd.Parameters.AddWithValue("@d2", Global.Filter2DateString());
                                     cmd.CommandText += " WHERE sd.sdate>=@d1 AND sd.sdate <@d2";
@@ -836,7 +836,7 @@ namespace NSAP_ODK.Entities.Database
                                     cmd.CommandText += " WHERE sd.sdate>=@d1";
                                 }
                             }
-                            else if(Global.FilterServerID!=null)
+                            else if (!string.IsNullOrEmpty(Global.FilterServerID))
                             {
                                 cmd.Parameters.AddWithValue("@srv", Global.FilterServerID);
                                 cmd.CommandText += " WHERE sd1.XFormIdentifier = @srv";
