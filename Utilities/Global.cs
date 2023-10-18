@@ -454,7 +454,7 @@ namespace NSAP_ODK.Utilities
             AppProceed = Settings != null && File.Exists(Settings.MDBPath);
             if (AppProceed)
             {
-                if (CommandArgs.Count() > 0 && CommandArgs[0] == "filtered")
+                if (CommandArgs!=null && CommandArgs.Count() > 0 && CommandArgs[0] == "filtered")
                 {
                     if (CommandArgs.Count() > 1)
                     {

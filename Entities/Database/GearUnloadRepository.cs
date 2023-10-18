@@ -200,6 +200,49 @@ namespace NSAP_ODK.Entities.Database
                         {
                             cmd.CommandText = "Select count(*) from dbo_gear_unload where boats Is Not null And catch Is Not Null";
                         }
+                        if(Global.Filter1!=null)
+                        {
+                            cmd.Parameters.AddWithValue("@d1",Global.Filter1DateString());
+                            if(countCompleted)
+                            {
+                                cmd.CommandText = @"SELECT count(*) as n
+                                                    FROM dbo_LC_FG_sample_day INNER JOIN 
+                                                        dbo_gear_unload ON dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id
+                                                    WHERE boats Is Not null AND catch Is Not Null AND dbo_LC_FG_sample_day.sdate >= @d1";
+                            }
+                            else
+                            {
+                                cmd.CommandText = @"SELECT count(*) as n
+                                                    FROM dbo_LC_FG_sample_day INNER JOIN 
+                                                        dbo_gear_unload ON dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id
+                                                    WHERE dbo_LC_FG_sample_day.sdate >= @d1";
+                            }
+                            if(Global.Filter2!=null)
+                            {
+                                cmd.Parameters.AddWithValue("@d2", Global.Filter2DateString());
+                                if(countCompleted)
+                                {
+                                    cmd.CommandText = @"SELECT count(*) as n
+                                                    FROM dbo_LC_FG_sample_day INNER JOIN 
+                                                        dbo_gear_unload ON dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id
+                                                    WHERE 
+                                                        boats Is Not null AND catch Is Not Null AND 
+                                                        dbo_LC_FG_sample_day.sdate >= @d1 AND dbo_LC_FG_sample_day.sdate < @d2";
+                                }
+                                else
+                                {
+                                    cmd.CommandText = @"SELECT count(*) as n
+                                                    FROM dbo_LC_FG_sample_day INNER JOIN 
+                                                        dbo_gear_unload ON dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id
+                                                    WHERE dbo_LC_FG_sample_day.sdate >= @d1 AND dbo_LC_FG_sample_day.sdate < @d2";
+
+                                    //cmd.CommandText = $@"SELECT count(*) as n
+                                    //                FROM dbo_LC_FG_sample_day INNER JOIN 
+                                    //                    dbo_gear_unload ON dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id
+                                    //                WHERE dbo_LC_FG_sample_day.sdate >= #{Global.Filter1DateString()}# AND dbo_LC_FG_sample_day.sdate < #{Global.Filter2DateString()}#";
+                                }
+                            }
+                        }
                         try
                         {
                             conn.Open();

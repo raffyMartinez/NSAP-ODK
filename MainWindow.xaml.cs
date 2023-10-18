@@ -494,7 +494,7 @@ namespace NSAP_ODK
                         }
                         CreateTablesInAccess.GetMDBColumnInfo(Global.ConnectionString);
                         _httpClient.Timeout = new TimeSpan(0, 10, 0);
-                        if (Global.CommandArgs.Count() >= 1 && Global.CommandArgs[0] == "filtered")
+                        if (Global.CommandArgs!=null && Global.CommandArgs.Count() >= 1 && Global.CommandArgs[0] == "filtered")
                         {
                             Title += " (Filtered)";
                         }
