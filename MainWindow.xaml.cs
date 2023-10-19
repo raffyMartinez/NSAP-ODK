@@ -2599,6 +2599,7 @@ namespace NSAP_ODK
                     var server = (Koboserver)dataGridEFormVersionStats.SelectedItem;
                     Global.Settings.ServerFilter = server.ServerID;
                     Global.SaveGlobalSettings();
+                    MessageBox.Show("Restart NSAP-ODK Database so that the filter will take effect", Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
                     break;
                 case "menuDeleteLandingData":
                     DeleteOptionWindow dow = new DeleteOptionWindow();

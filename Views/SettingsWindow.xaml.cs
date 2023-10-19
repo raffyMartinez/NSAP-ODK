@@ -110,6 +110,19 @@ namespace NSAP_ODK.Views
                 textDownloadSizeForBatchMode.Text = "2000";
                 textCutoffWidth.Text = "11";
                 textAcceptableDiff.Text = "10";
+                if(Global.CommandArgs!=null)
+                {
+                    switch(Global.CommandArgs[0])
+                    {
+                        case "filtered":
+                            Global.Filter1=new DateTime(2023, 1, 1);
+                            textDBFilter.Text = ((DateTime)Global.Filter1).ToString("MMM-dd-yyyy");
+
+                            break;
+                        default:
+                            break;
+                    }
+                }
             }
 
         }
