@@ -19,10 +19,16 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                return NSAPEntities.SummaryItemViewModel.SummaryItemCollection
-                    .OrderByDescending(t => t.DateAdded)
-                    .GroupBy(t => ((DateTime)t.DateAdded).Date)
-                    .ToDictionary(t => t.Key, t => t.ToList());
+                var d= NSAPEntities.SummaryItemViewModel.SummaryItemCollection
+                        .OrderByDescending(t => t.DateAdded)
+                        .GroupBy(t => ((DateTime)t.DateAdded).Date)
+                        .ToDictionary(t => t.Key, t => t.ToList());
+                return d;   
+
+                //return NSAPEntities.SummaryItemViewModel.SummaryItemCollection
+                //    .OrderByDescending(t => t.DateAdded)
+                //    .GroupBy(t => ((DateTime)t.DateAdded).Date)
+                //    .ToDictionary(t => t.Key, t => t.ToList());
 
                 //return NSAPEntities.VesselUnloadViewModel.VesselUnloadCollection
                 //    .OrderByDescending(t=>t.DateAddedToDatabase)

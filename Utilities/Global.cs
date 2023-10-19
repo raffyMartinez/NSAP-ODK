@@ -504,7 +504,8 @@ namespace NSAP_ODK.Utilities
                             }
                             else if (CommandArgs.Count() == 1)
                             {
-                                if (Settings.DbFilter == null)
+                                //if (Settings.DbFilter == null)
+                                if (string.IsNullOrEmpty( Settings.DbFilter))
                                 {
                                     Filter1 = new DateTime(2023, 1, 1);
                                     Settings.DbFilter = ((DateTime)Filter1).ToString("MMM-dd-yyyy");

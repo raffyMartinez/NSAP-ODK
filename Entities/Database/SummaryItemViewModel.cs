@@ -923,7 +923,7 @@ namespace NSAP_ODK.Entities.Database
         {
             List<GearUnload> gus = new List<GearUnload>();
             var list_lss = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection
-                .Where(t => t.DateAdded!=null && ((DateTime)t.DateAdded).Date == date_download.Date)
+                .Where(t => t.DateAdded != null && ((DateTime)t.DateAdded).Date == date_download.Date)
                 .ToList();
             int loopCount = 0;
             foreach (LandingSiteSampling lss in list_lss)
@@ -3097,6 +3097,14 @@ namespace NSAP_ODK.Entities.Database
                         _editSuccess = SummaryItems.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
+            }
+        }
+
+        public int CountTrackedLandings
+        {
+            get
+            {
+                return SummaryItemCollection.Where(t => t.VesselUnloadID != null && t.IsTracked).Count();
             }
         }
         public int CountLandings

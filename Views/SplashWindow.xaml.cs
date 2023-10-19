@@ -69,10 +69,13 @@ namespace NSAP_ODK.Views
             labelSubLabel.Visibility = Visibility.Collapsed;
             labelVersion.Content = $"Version: {Assembly.GetExecutingAssembly().GetName().Version.ToString()}";
             //ProgressBarRead.IsIndeterminate = true;
-            if (CommandArgs != null && (bool)CommandArgs.Contains("filtered") || (bool)CommandArgs.Contains("server_id"))
+            if (CommandArgs != null)
             {
-                labelSubLabel.Visibility = Visibility.Visible;
-                labelSubLabel.Content = "Database will load with filtered data";
+                if ((bool)CommandArgs.Contains("filtered") || (bool)CommandArgs.Contains("server_id"))
+                {
+                    labelSubLabel.Visibility = Visibility.Visible;
+                    labelSubLabel.Content = "Database will load with filtered data";
+                }
             }
             await LoadEntitiesAsync();
             //ProgressBarRead.IsIndeterminate = false; // Maybe hide it, too

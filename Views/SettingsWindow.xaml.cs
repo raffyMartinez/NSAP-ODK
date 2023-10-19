@@ -27,7 +27,7 @@ namespace NSAP_ODK.Views
     {
         private string _filterValidationMessage;
         private bool _chkMySQlClicked;
-        private string _oldFilter;
+        private string _oldDateFilter;
         public SettingsWindow()
         {
             InitializeComponent();
@@ -90,7 +90,17 @@ namespace NSAP_ODK.Views
                 {
                     textDBFilter.Text = Global.Settings.DbFilter.ToString();
                 }
-                _oldFilter = textDBFilter.Text;
+
+                if(string.IsNullOrEmpty(Global.Settings.ServerFilter))
+                {
+                    textServerFilter.Text = "";
+                }
+                else
+                {
+                    textServerFilter.Text = Global.Settings.ServerFilter;
+                }
+
+                _oldDateFilter = textDBFilter.Text;
 
                 textAcceptableDiff.Text = ((int)Utilities.Global.Settings.AcceptableWeightsDifferencePercent).ToString();
             }
@@ -256,6 +266,14 @@ namespace NSAP_ODK.Views
                 {
                     msg5 = $"{msg5}\r\n\r\n{_filterValidationMessage}";
                 }
+            }
+            else
+            {
+                if(Global.Filter1!=null)
+                {
+                    textDBFilter.Text = "2023";
+                }
+                msg5 = "";
             }
 
             if (textCutoffWidth.Text.Length > 0 && textDownloadSizeForBatchMode.Text.Length > 0 && textAcceptableDiff.Text.Length > 0)
@@ -450,7 +468,7 @@ namespace NSAP_ODK.Views
                         }
                         Utilities.Global.SaveGlobalSettings();
 
-                        if(_oldFilter!=textDBFilter.Text)
+                        if(Global.Filter1!=null && !string.IsNullOrEmpty(_oldDateFilter) && _oldDateFilter!=textDBFilter.Text)
                         {
                             MessageBox.Show("The application need to restart to apply the database filter",
                                             Global.MessageBoxCaption,

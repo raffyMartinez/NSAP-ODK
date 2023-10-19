@@ -774,6 +774,7 @@ namespace NSAP_ODK.Entities.Database
                                                 vu1.RowID,
                                                 sd1.RowID AS sd_rowid,
                                                 sd1.is_multivessel,
+                                                sd1.DateAdded AS lss_date_added,
                                                 sd1.XFormIdentifier AS lss_xformid,
                                                 sd1.datetime_submitted as lss_date_submitted,
                                                 sd1.can_sample_from_catch_composition,
@@ -854,6 +855,7 @@ namespace NSAP_ODK.Entities.Database
                                 {
                                     //int? gr_unload_id = null;
                                     //int? vs_unload_id = null;
+                                    bool addtoList = true;
                                     int? ls_id = null;
                                     int? en_id = null;
                                     int? gu_boats = null;
@@ -1082,7 +1084,24 @@ namespace NSAP_ODK.Entities.Database
                                         si.SamplingDate = (DateTime)dr["sampling_date"];
                                     }
 
-                                    si.DateAdded = dr["date_added"] == DBNull.Value ? DateTime.Now : (DateTime)dr["date_added"];
+                                    //si.DateAdded = dr["date_added"] == DBNull.Value ? DateTime.Now : (DateTime)dr["date_added"];
+                                    //si.DateAdded = dr["date_added"] == DBNull.Value ? (DateTime)dr["lss_date_added"] : (DateTime)dr["date_added"];
+                                    if (dr["date_added"]==DBNull.Value)
+                                    {
+                                        if (dr["lss_date_added"] == DBNull.Value)
+                                        {
+                                            addtoList = false;
+                                        }
+                                        else
+                                        {
+                                            si.DateAdded = (DateTime)dr["lss_date_added"];
+                                        }
+                                    }
+                                    else
+                                    {
+                                        si.DateAdded = (DateTime)dr["date_added"];
+                                    }
+
                                     si.IsSuccess = (bool)dr["is_success"];
                                     si.IsTracked = (bool)dr["is_tracked"];
                                     si.SectorCode = dr["sector_code"].ToString();
@@ -1127,8 +1146,11 @@ namespace NSAP_ODK.Entities.Database
                                         si.CountFishingGearTypesUsed = 1;
                                     }
 
-                                    items.Add(si);
-                                    count++;
+                                    if (addtoList)
+                                    {
+                                        items.Add(si);
+                                        count++;
+                                    }
                                     //if (count == 21537)
                                     //{
 

@@ -218,7 +218,8 @@ namespace NSAP_ODK
 
 
 
-                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of complete gear unload", Name = "CountCompleteGearUnload", Description = "Number of gear unload", DisplayOrder = 14, Category = "Submitted fish landing data" });
+                    //propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of complete gear unload", Name = "CountCompleteGearUnload", Description = "Number of gear unload", DisplayOrder = 14, Category = "Submitted fish landing data" });
+
                     propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of landings", Name = "VesselUnloadCount", Description = "Number of vessel unload", DisplayOrder = 15, Category = "Submitted fish landing data" });
                     propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of tracked operations", Name = "TrackedOperationsCount", Description = "Number of tracked fishing operations", DisplayOrder = 16, Category = "Submitted fish landing data" });
                     propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Date of first sampled landing", Name = "FirstSampledLandingDate", Description = "Date of first sampled operation", DisplayOrder = 17, Category = "Submitted fish landing data" });
@@ -494,9 +495,13 @@ namespace NSAP_ODK
                         }
                         CreateTablesInAccess.GetMDBColumnInfo(Global.ConnectionString);
                         _httpClient.Timeout = new TimeSpan(0, 10, 0);
-                        if (Global.CommandArgs!=null && Global.CommandArgs.Count() >= 1 && Global.CommandArgs[0] == "filtered" || Global.CommandArgs[0] == "server_id") 
+                        
+                        if (Global.CommandArgs != null)
                         {
-                            Title += " (Filtered)";
+                            if (Global.CommandArgs.Count() >= 1 && Global.CommandArgs[0] == "filtered" || Global.CommandArgs[0] == "server_id")
+                            {
+                                Title += " (Filtered)";
+                            }
                         }
                     }
                     else
@@ -535,7 +540,7 @@ namespace NSAP_ODK
 
             if (!string.IsNullOrEmpty(Global.FilterError))
             {
-                ShowDatabaseNotFoundView(isFilterError:true);
+                ShowDatabaseNotFoundView(isFilterError: true);
                 MessageBox.Show(Global.FilterError, Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
@@ -1236,12 +1241,12 @@ namespace NSAP_ODK
         }
 
 
-        private void ShowDatabaseNotFoundView(bool isFilterError=false)
+        private void ShowDatabaseNotFoundView(bool isFilterError = false)
         {
             rowTopLabel.Height = new GridLength(300);
             if (isFilterError)
             {
-                labelTitle.Content = "Cannot understand database filter\r\n\r\nIf there are two dates in the filter, the first date\r\n"+
+                labelTitle.Content = "Cannot understand database filter\r\n\r\nIf there are two dates in the filter, the first date\r\n" +
                                       "must be before the second date";
             }
             else
