@@ -214,7 +214,15 @@ namespace NSAP_ODK
                     propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of GPS", Name = "GPSCount", Description = "Number of GPS", DisplayOrder = 10, Category = "Lookup choices" });
                     propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of enumerators", Name = "EnumeratorCount", Description = "Number of NSAP enumerators", DisplayOrder = 11, Category = "Lookup choices" });
                     propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of fishing vessels", Name = "FishingVesselCount", Description = "Number of fishing vessels", DisplayOrder = 12, Category = "Lookup choices" });
-                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of gear unload", Name = "GearUnloadCount", Description = "Number of gear unload", DisplayOrder = 13, Category = "Submitted fish landing data" });
+
+
+                    if (!string.IsNullOrEmpty(NSAPEntities.DBSummary.FilterType))
+                    {
+                        propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Filter type", Name = "FilterType", Description = "Type of filter", DisplayOrder = 13, Category = "Filters" });
+                        propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Filter", Name = "Filter", Description = "Filter", DisplayOrder = 14, Category = "Filters" });
+                        propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of unfiltered landings", Name = "CountAllLandings", Description = "Number of landings when not filtered", DisplayOrder = 15, Category = "Filters" });
+                    }
+                    propertyGridSummary.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of gear unload", Name = "GearUnloadCount", Description = "Number of gear unload", DisplayOrder = 15, Category = "Submitted fish landing data" });
 
 
 
@@ -495,7 +503,7 @@ namespace NSAP_ODK
                         }
                         CreateTablesInAccess.GetMDBColumnInfo(Global.ConnectionString);
                         _httpClient.Timeout = new TimeSpan(0, 10, 0);
-                        
+
                         if (Global.CommandArgs != null)
                         {
                             if (Global.CommandArgs.Count() >= 1 && Global.CommandArgs[0] == "filtered" || Global.CommandArgs[0] == "server_id")
@@ -3462,13 +3470,16 @@ namespace NSAP_ODK
                                         {
 
                                             lss = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(fma: _allSamplingEntitiesEventHandler.FMA, fg: _allSamplingEntitiesEventHandler.FishingGround, ls: _allSamplingEntitiesEventHandler.LandingSite, samplingDate: ((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).AddDays(v - 1)).FirstOrDefault();
-                                            if (lss?.GearUnloadViewModel.Count > 0 || lss?.GearsInLandingSite.Count > 0)
+                                            if (lss != null)
                                             {
-                                                msg = "There are fish landings on the selected date";
-                                            }
-                                            else
-                                            {
-                                                msg = $"There are no fish landings on the selected date\r\nReason: {lss.Remarks}";
+                                                if (lss?.GearUnloadViewModel.Count > 0 || lss?.GearsInLandingSite.Count > 0)
+                                                {
+                                                    msg = "There are fish landings on the selected date";
+                                                }
+                                                else
+                                                {
+                                                    msg = $"There are no fish landings on the selected date\r\nReason: {lss.Remarks}";
+                                                }
                                             }
 
                                         }

@@ -30,8 +30,9 @@ namespace NSAP_ODK.Entities.Database
 
     [CategoryOrder("Database", 1)]
     [CategoryOrder("Lookup choices", 2)]
-    [CategoryOrder("Submitted fish landing data", 3)]
-    [CategoryOrder("Saved JSON files", 4)]
+    [CategoryOrder("Filters", 3)]
+    [CategoryOrder("Submitted fish landing data", 4)]
+    [CategoryOrder("Saved JSON files", 5)]
     public class DBSummary
     {
         public void Refresh()
@@ -53,6 +54,31 @@ namespace NSAP_ODK.Entities.Database
             GPSCount = NSAPEntities.GPSViewModel.Count;
             //TrackedOperationsCount = VesselUnloadViewModel.CountVesselUnload(isTracked: true);
             TrackedOperationsCount = NSAPEntities.SummaryItemViewModel.CountTrackedLandings;
+            
+            if (Global.CommandArgs?.Count() > 0)
+            {
+                switch (Global.CommandArgs[0])
+                {
+                    case "filtered":
+                        FilterType = "Filter by date";
+                        if(!string.IsNullOrEmpty( Global.Settings.DbFilter))
+                        {
+                            Filter = Global.Settings.DbFilter;
+                        }
+                       else
+                        {
+                            Filter = Global.Filter1DateString();
+                        }
+                        break;
+                    case "server_id":
+                        FilterType = "Filter by server";
+                        Filter = Global.FilterServerID;
+                        break;
+                }
+
+                CountAllLandings = VesselUnloadRepository.GetTotalSavedLandingsCount();
+            }
+            
             if (VesselUnloadCount > 0)
             {
                 //VesselUnloadSummary vs = VesselUnloadViewModel.GetSummary();
@@ -92,6 +118,9 @@ namespace NSAP_ODK.Entities.Database
         {
 
         }
+
+        [ReadOnly(true)]
+        public int CountAllLandings { get; set; }
         public int CountLandingsWithOrphanedSpeciesNames { get; set; }
         public int CountLandingsWithOrphanedEnumerators { get; set; }
         public int CountLandingsWithOrphanedFishingGears { get; set; }
@@ -168,8 +197,15 @@ namespace NSAP_ODK.Entities.Database
         public int EnumeratorCount { get; set; }
 
         [ReadOnly(true)]
+        public string FilterType { get; set; }
+
+        [ReadOnly(true)]
+        public string Filter { get; set; }
+
+        [ReadOnly(true)]
         public int FishingVesselCount { get; set; }
 
+        [ReadOnly(true)]
         public string LatestEformVersion { get; set; }
 
         [ReadOnly(true)]

@@ -353,7 +353,7 @@ namespace NSAP_ODK.Views
                     //{
                     using (var s = await _httpClient.GetStreamAsync(media.data_file))
                     {
-                        var fileName = $@"{_downloadedMediaSaveFolder }\{media.data_value}";
+                        var fileName = $@"{_downloadedMediaSaveFolder}\{media.data_value}";
                         using (var fs = new FileStream(fileName, FileMode.OpenOrCreate))
                         {
                             await s.CopyToAsync(fs);
@@ -519,7 +519,7 @@ namespace NSAP_ODK.Views
                         }
                     }
                     int sizeToDownload = _formSummary.NumberOfSubmissions - _formSummary.NumberSavedToDatabase;
-                    
+
 
 
                     if (!_hasDownloadOptions)
@@ -694,7 +694,7 @@ namespace NSAP_ODK.Views
                                                     break;
                                                 case "all_not_downloaded":
                                                     //string lastSubmissionDate = (((DateTime)_lastSubmittedDate)).Date.ToString("yyyy-MM-ddTHH:mm:ss");
-                                                    string lastSubmissionDate = (((DateTime)_lastSubmittedDate).Add(new TimeSpan(1,0,0))).ToString("yyyy-MM-ddTHH:mm:ss");
+                                                    string lastSubmissionDate = (((DateTime)_lastSubmittedDate).Add(new TimeSpan(1, 0, 0))).ToString("yyyy-MM-ddTHH:mm:ss");
                                                     //lastSubmissionDate = (((DateTime)_lastSubmittedDate)).Add(new TimeSpan(6,0,0)).ToString("yyyy-MM-ddTHH:mm:ss");
                                                     api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gte\":\"{lastSubmissionDate}\"}}}}";
                                                     break;
@@ -772,7 +772,7 @@ namespace NSAP_ODK.Views
                                                 {
                                                     ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData });
 
-                                                    
+
                                                     var response = await _httpClient.SendAsync(request);
                                                     var bytes = await response.Content.ReadAsByteArrayAsync();
                                                     Encoding encoding = Encoding.GetEncoding("utf-8");
@@ -811,6 +811,9 @@ namespace NSAP_ODK.Views
                                                                 json = the_response.ToString();
                                                                 //VesselUnloadServerRepository.JSON = the_response;
                                                             }
+                                                            //if (json != "[]")
+                                                            //{
+
                                                             ((ODKResultsWindow)Owner).JSON = json;
                                                             if (_formSummary.IsMultiVessel)
                                                             {
@@ -834,6 +837,11 @@ namespace NSAP_ODK.Views
                                                                 VesselUnloadServerRepository.CreateLandingsFromJSON();
                                                                 VesselUnloadServerRepository.FillDuplicatedLists();
                                                             }
+                                                            //}
+                                                            //else
+                                                            //{
+                                                            //    MessageBox.Show("Download result is empty", Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                                                            //}
 
                                                             break;
                                                         case ODKServerDownload.ServerDownloadLandings:
@@ -1220,7 +1228,7 @@ namespace NSAP_ODK.Views
                     _downloadBatchCancel = true;
                 }
                 catch (Exception ex)
-                
+
                 {
                     Logger.Log(ex);
                     ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.StoppedDueToError });
@@ -1674,7 +1682,7 @@ namespace NSAP_ODK.Views
 
             //if (_formSummary.LastSubmittedDateInDatabase.Length > 0 && DateTime.TryParse(_formSummary.LastSubmittedDateInDatabase, out DateTime v))
             DateTime? latest_add_date = LandingSiteSamplingSubmissionRepository.LatestAdditionDate(_formSummary.XLSForm_IDString);
-            if(latest_add_date != null )
+            if (latest_add_date != null)
             {
                 //_lastSubmittedDate = v;
                 _lastSubmittedDate = latest_add_date;

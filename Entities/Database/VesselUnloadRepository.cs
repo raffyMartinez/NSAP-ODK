@@ -144,6 +144,35 @@ namespace NSAP_ODK.Entities.Database
             return success;
         }
 
+        public static int GetTotalSavedLandingsCount()
+        {
+            int totalCount = 0;
+            if(Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = "Select Count(*) from dbo_vessel_unload";
+                        con.Open();
+                        try
+                        {
+                            totalCount = (int)cmd.ExecuteScalar();
+                        }
+                        catch(Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return totalCount;
+        }
+
         private static bool CreateNewRefNoFieldAndCopy()
         {
             bool success = false;

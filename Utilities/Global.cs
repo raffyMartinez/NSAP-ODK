@@ -166,8 +166,8 @@ namespace NSAP_ODK.Utilities
         public static void CreateConnectionString()
         {
             MDBPath = Settings.MDBPath;
-            ConnectionString = "Provider=Microsoft.JET.OLEDB.4.0;data source=" + MDBPath;
-            //ConnectionString = "Provider=Microsoft.ACE.OLEDB.12.0;data source=" + MDBPath;
+            //ConnectionString = "Provider=Microsoft.JET.OLEDB.4.0;data source=" + MDBPath;
+            ConnectionString = "Provider=Microsoft.ACE.OLEDB.12.0;data source=" + MDBPath;
         }
 
 
