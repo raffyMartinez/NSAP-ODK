@@ -542,7 +542,11 @@ namespace NSAP_ODK.Entities.Database
         public LandingSiteSampling GetLandingSiteSampling(int pk)
         {
             //var lss = LandingSiteSamplingCollection.ToList().FirstOrDefault(n => n.PK == pk);
-            return LandingSiteSamplingCollection.ToList().FirstOrDefault(n => n.PK == pk);
+            try
+            {
+                return LandingSiteSamplingCollection.ToList().FirstOrDefault(n => n.PK == pk);
+            }
+            catch { return null; }
         }
 
 

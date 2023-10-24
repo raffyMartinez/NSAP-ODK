@@ -93,6 +93,8 @@ namespace NSAP_ODK.Entities.Database
                             }
                             _parent.StatusJSONAnalyze("found", loop);
                             jf.Dispose();
+                            //GC.Collect();
+                            //GC.WaitForPendingFinalizers();
                         }
                         //}
 

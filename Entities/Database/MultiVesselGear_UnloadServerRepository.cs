@@ -1,4 +1,6 @@
 ﻿using Newtonsoft.Json;
+using NPOI.SS.Formula.Functions;
+using NSAP_ODK.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -178,9 +180,9 @@ namespace NSAP_ODK.Entities.Database
             {
                 try
                 {
+                    bool lss_is_hidden = false;
                     lss_loop_count++;
                     Console.WriteLine($"lss_loop_count is {lss_loop_count}");
-                    //LandingSiteSampling lss = NSAPEntities.SummaryItemViewModel.GetLandingSiteSampling(root.SubmissionUUID);
                     LandingSiteSampling lss = NSAPEntities.LandingSiteSamplingSubmissionViewModel.GetLandingSiteSampling(root.SubmissionUUID);
                     if (lss == null)
                     {
@@ -193,35 +195,40 @@ namespace NSAP_ODK.Entities.Database
                         if (root.FishingGround == null)
                         {
                             fg = NSAPEntities.FishingGroundViewModel.GetFishingGroundFromName(root.Fishing_ground_name);
-
                         }
 
-                        if (root.LandingSiteID != null && root.LandingSite != null)
+                        if (root.LandingSiteID != null && root.FishingGround != null)
                         {
-                            if (root.FishingGround != null)
+                            try
                             {
-                                lss = NSAPEntities.SummaryItemViewModel.GetLandingSiteSampling(ls_id: (int)root.LandingSite.LandingSiteID, fg_id: root.FishingGround.Code, sdate: root.SamplingDate.Date);
-                            }
-                            else
-                            {
-                                lss = NSAPEntities.SummaryItemViewModel.GetLandingSiteSampling(ls_id: (int)root.LandingSite.LandingSiteID, fg_id: fg.Code, sdate: root.SamplingDate.Date);
-                            }
 
+                                var sds = NSAPEntities.SamplingDaySubmissionViewModel.GetSamplingDaySubmission(
+                                    (int)root.LandingSite.LandingSiteID,
+                                    root.FishingGround.Code,
+                                    root.SamplingDate.Date);
+
+                                if (sds != null)
+                                {
+                                    var lss_fromm_summary = NSAPEntities.SummaryItemViewModel.GetLandingSiteSampling(sds.SamplingDayID);
+                                    if (lss_fromm_summary == null)
+                                    {
+                                        lss_is_hidden = true;
+                                        proceed = false;
+                                    }
+                                    else
+                                    {
+                                        lss = lss_fromm_summary;
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Log(ex);
+                            }
                         }
-                        else if (fls != null)
-                        {
-                            if (root.FishingGround != null)
-                            {
-                                lss = NSAPEntities.SummaryItemViewModel.GetLandingSiteSampling(ls_id: fls.LandingSiteID, fg_id: root.FishingGround.Code, sdate: root.SamplingDate.Date);
-                            }
-                            else
-                            {
-                                lss = NSAPEntities.SummaryItemViewModel.GetLandingSiteSampling(ls_id: fls.LandingSiteID, fg_id: fg.Code, sdate: root.SamplingDate.Date);
-                            }
-                        }
 
 
-                        if (lss == null)
+                        if (lss == null && !lss_is_hidden)
                         {
 
                             //if we are here then it means that the current landing site sampling is not yet saved
@@ -289,16 +296,20 @@ namespace NSAP_ODK.Entities.Database
                             {
                                 LandingSiteSamplingUniqueCount++;
                                 LandingSiteSamplingViewModel.CurrentIDNumber = lss.PK;
-                                proceed = true;
+                                //proceed = true;
+                                proceed = NSAPEntities.SamplingDaySubmissionViewModel.Add(lss);
                             }
                         }
                         else
                         {
-                            Utilities.Logger.LogUploadJSONToLocalDB($"Duplicated LSS: {lss.ToString()}\tPosition: {lss_loop_count}\tJSON:{jsonFileName}\tSubmission UUID:{root.SubmissionUUID}");
-                            proceed = true;
+                            if (!lss_is_hidden)
+                            {
+                                Utilities.Logger.LogUploadJSONToLocalDB($"Duplicated LSS: {lss.ToString()}\tPosition: {lss_loop_count}\tJSON:{jsonFileName}\tSubmission UUID:{root.SubmissionUUID}");
+                                proceed = true;
+                            }
                         }
 
-                        LandingSiteSamplingSubmission lsss=null;
+                        LandingSiteSamplingSubmission lsss = null;
                         if (proceed)
                         {
                             lsss = new LandingSiteSamplingSubmission
@@ -391,7 +402,7 @@ namespace NSAP_ODK.Entities.Database
 
                                             if (root.SampledFishLandings != null && root.SampledFishLandings.Count > 0)
                                             {
-                                                
+
                                                 foreach (MultiVesselGear_SampledLanding sl in root.SampledFishLandings.Where(t => t.Main_gear_used == gu.Sequence).ToList())
                                                 {
                                                     //SummaryItem si_vu = NSAPEntities.SummaryItemViewModel.GetVesselUnload(lss.PK, sl.Reference_number);
@@ -851,7 +862,7 @@ namespace NSAP_ODK.Entities.Database
             //How are PKs assigned to each landings contained in each incoming batch of JSON?
             //call VesselLanding.SetRowIDs()
 
-            MultiVesselGear_SampledLanding.SetRowIDs();
+            //MultiVesselGear_SampledLanding.SetRowIDs();
             try
             {
                 MultiVesselLandings = JsonConvert.DeserializeObject<List<MultiVesselGear_Root>>(JSON);
@@ -1086,6 +1097,8 @@ namespace NSAP_ODK.Entities.Database
         private SummaryItem _savedVesselUnloadObject;
         private string _gearsUsedInSampledLanding;
 
+
+
         [JsonProperty("repeat_landings/group_sampled_landing/repeat_catch_wt_gear")]
         public List<MultiVesselGear_GearAndWeight> LandingGearsWithWeight { get; set; }
         private SummaryItem SavedVesselUnloadObject
@@ -1193,19 +1206,22 @@ namespace NSAP_ODK.Entities.Database
 
         public static void SetRowIDs()
         {
-            if (NSAPEntities.SummaryItemViewModel.Count == 0)
-            {
-                _pk = 0;
-            }
-            else
-            {
-                //NSAPEntities.SummaryItemViewModel.RefreshLastPrimaryLeys(MultiVesselGear_UnloadServerRepository.DelayedSave);
-                //_pk = NSAPEntities.SummaryItemViewModel.GetNextRecordNumber() - 1;
-                //_pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastVesselUnloadPK;
-                _pk = NSAPEntities.SummaryItemViewModel.GetVesselUnloadMaxRecordNumber();
-                //_pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastVesselUnloadPK;
-                VesselUnloadViewModel.CurrentIDNumber = _pk;
-            }
+            //if (NSAPEntities.SummaryItemViewModel.Count == 0)
+            //{
+            //    _pk = 0;
+            //}
+            //else
+            //{
+            //    if (!RowIDSet)
+            //    {
+            _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastVesselUnloadPK;
+            //    }
+            //    else
+            //    {
+            //        _pk = NSAPEntities.SummaryItemViewModel.GetVesselUnloadMaxRecordNumber();
+            //    }
+            VesselUnloadViewModel.CurrentIDNumber = _pk;
+            //}
             RowIDSet = true;
         }
         public MultiVesselGear_Root Parent
@@ -2721,18 +2737,18 @@ namespace NSAP_ODK.Entities.Database
         }
         public static void SetRowIDs()
         {
-            if (NSAPEntities.SummaryItemViewModel.Count == 0)
-            {
-                _pk = 0;
-            }
-            else
-            {
-                //NSAPEntities.SummaryItemViewModel.RefreshLastPrimaryLeys(MultiVesselGear_UnloadServerRepository.DelayedSave);
-                //_pk = NSAPEntities.SummaryItemViewModel.GetNextRecordNumber() - 1;
-                _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastLandingSiteSamplingPK;
-                LandingSiteSamplingViewModel.CurrentIDNumber = _pk;
+            //if (NSAPEntities.SummaryItemViewModel.Count == 0)
+            //{
+            //    _pk = 0;
+            //}
+            //else
+            //{
+            //NSAPEntities.SummaryItemViewModel.RefreshLastPrimaryLeys(MultiVesselGear_UnloadServerRepository.DelayedSave);
+            //_pk = NSAPEntities.SummaryItemViewModel.GetNextRecordNumber() - 1;
+            _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastLandingSiteSamplingPK;
+            LandingSiteSamplingViewModel.CurrentIDNumber = _pk;
 
-            }
+            //}
             RowIDSet = true;
         }
         private SummaryItem _savedVesselUnloadObject;

@@ -66,6 +66,8 @@ namespace NSAP_ODK.Entities.Database
             }
         }
         public string VersionString { get; set; }
+
+        public int? CountVesselLandings { get; set; }
         public List<VesselLanding> VesselLandings
         {
             get
@@ -80,6 +82,7 @@ namespace NSAP_ODK.Entities.Database
                 }
                 return _vesselLandings;
             }
+            set { _vesselLandings = value; }
         }
 
 

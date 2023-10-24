@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 
 namespace NSAP_ODK.Entities.Database
 {
-    public class VesselUnloadViewModel
+    public class VesselUnloadViewModel : IDisposable
     {
         public event EventHandler DatabaseUpdatedEvent;
         public bool EditSucceeded;
@@ -37,7 +37,20 @@ namespace NSAP_ODK.Entities.Database
 
         }
 
-
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // free managed resources
+                VesselUnloadCollection.Clear();
+            }
+            // free native resources if there are any.
+        }
         public static void SetUpFishingGearSubModel(VesselUnload vu)
         {
             VesselUnload_FishingGear vufg;
@@ -334,7 +347,7 @@ namespace NSAP_ODK.Entities.Database
                         myDict.Add("count_effort", vufg.CountEffortIndicators.ToString());
                         myDict.Add("count_grid", vu.CountGrids.ToString());
                         myDict.Add("count_soak", vu.CountGearSoak.ToString());
-                        myDict.Add("count_catch_composition",  ((int)vufg.CountItemsInCatchComposition).ToString());
+                        myDict.Add("count_catch_composition", ((int)vufg.CountItemsInCatchComposition).ToString());
                         myDict.Add("count_lengths", vufg.CountLengthRows.ToString());
                         myDict.Add("count_lenfreq", vufg.CountLenFreqRows.ToString());
                         myDict.Add("count_lenwt", vufg.CountLenWtRows.ToString());

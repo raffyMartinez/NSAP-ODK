@@ -111,6 +111,7 @@ namespace NSAP_ODK.Utilities
             ConnectionStringGrid25 = "Provider=Microsoft.JET.OLEDB.4.0;data source=" + Grid25MDBPath;
             return ConnectionStringGrid25;
         }
+
         static Global()
         {
 
@@ -166,6 +167,7 @@ namespace NSAP_ODK.Utilities
         {
             MDBPath = Settings.MDBPath;
             ConnectionString = "Provider=Microsoft.JET.OLEDB.4.0;data source=" + MDBPath;
+            //ConnectionString = "Provider=Microsoft.ACE.OLEDB.12.0;data source=" + MDBPath;
         }
 
 
@@ -263,7 +265,7 @@ namespace NSAP_ODK.Utilities
             LandingSiteSamplingRepository.UpdateColumns();
             tablesUpdated = true;
 
-            EntityLoaded?.Invoke(null, new EntityLoadedEventArg { IsStarting = true, EntityCount = 18 });
+            EntityLoaded?.Invoke(null, new EntityLoadedEventArg { IsStarting = true, EntityCount = 19 });
 
             EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "GPS" });
             NSAPEntities.GPSViewModel = new GPSViewModel();
@@ -362,6 +364,10 @@ namespace NSAP_ODK.Utilities
                     NSAPEntities.KoboServerViewModel = new KoboServerViewModel();
                     EntityLoaded?.Invoke(null, new EntityLoadedEventArg { Count = NSAPEntities.KoboServerViewModel.Count() });
 
+
+                    EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "Sampling day submission" });
+                    NSAPEntities.SamplingDaySubmissionViewModel = new SamplingDaySubmissionViewModel();
+                    EntityLoaded?.Invoke(null, new EntityLoadedEventArg { Count = NSAPEntities.SamplingDaySubmissionViewModel.Count() });
                     //EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "TotalWeightSp" });
                     //NSAPEntities.TotalWtSpViewModel = new TotalWtSpViewModel();
                     //EntityLoaded?.Invoke(null, new EntityLoadedEventArg { Count = NSAPEntities.TotalWtSpViewModel.Count() });

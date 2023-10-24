@@ -19,6 +19,11 @@ namespace NSAP_ODK.Entities.Database
         public ObservableCollection<JSONFile> JSONFileCollection { get; set; }
         private JSONFileRepository JSONFiles { get; set; }
 
+        public bool Exists(string fileName)
+        {
+            string fName = Path.GetFileName(fileName);
+            return JSONFileCollection.FirstOrDefault(t => t.FileName == fName) != null;
+        }
         public async Task<bool> AnalyzeBatchJSONFilesAsync(List<FileInfo> batchJSONFiles, Koboserver ks)
         {
             int loop = 0;
@@ -162,24 +167,30 @@ namespace NSAP_ODK.Entities.Database
         public string CreateFileName(JSONFile jsf)
         {
             string mv = "";
-            if(jsf.IsMultivessel)
+            if (jsf.IsMultivessel)
             {
                 mv = "- MV - ";
             }
             return $"{jsf.FormID} {mv}{jsf.Earliest.ToString("MMM-dd-yyyy")} - {jsf.Latest.ToString("MMM-dd-yyyy")}.json";
         }
 
-        public async Task<bool> Save(JSONFile jsf)
+        public async Task<bool> Save(JSONFile jsf, bool fromServer = false)
         {
             try
             {
-                if (!File.Exists(jsf.FullFileName))
+                if (fromServer)
+                {
+                    File.AppendAllText(jsf.FullFileName, jsf.JSONText);
+                }
+                else if (!File.Exists(jsf.FullFileName))
                 {
                     using (var sw = new StreamWriter(jsf.FullFileName))
                     {
+
                         await sw.WriteAsync(jsf.JSONText);
                     }
                 }
+
                 return AddRecordToRepo(jsf);
             }
             catch (Exception ex)
@@ -236,7 +247,7 @@ namespace NSAP_ODK.Entities.Database
             int start = 0;
             string searchstring = json;
             int newlineindex = json.IndexOf(Environment.NewLine);
-            if ( newlineindex>0 && newlineindex  < json.Length)
+            if (newlineindex > 0 && newlineindex < json.Length)
             {
                 search = "\"intronote\": \"Version ";
                 var lines = json.Split('\n');

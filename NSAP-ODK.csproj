@@ -33,6 +33,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>icons fish-02.ico</ApplicationIcon>
@@ -221,6 +222,7 @@
     <Compile Include="Entities\Database\LastPrimaryKeys.cs" />
     <Compile Include="Entities\Database\OrphanedSpeciesNameRaw.cs" />
     <Compile Include="Entities\Database\SamplingCalendaryMismatchFixer.cs" />
+    <Compile Include="Entities\Database\SamplingDaySubmissionViewModel.cs" />
     <Compile Include="Entities\Database\ServerUploadsByMonth.cs" />
     <Compile Include="Entities\Database\SetFishingGroundOfUnloadEventArg.cs" />
     <Compile Include="Entities\Database\SQLDumpParsed.cs" />
@@ -404,6 +406,8 @@
     <Compile Include="Entities\Media_csv\VesselSelectRepository.cs" />
     <Compile Include="Entities\Media_csv\VesselSelectViewModel.cs" />
     <Compile Include="Entities\MySQLConnectEventArgs.cs" />
+    <Compile Include="Entities\SamplingDaySubmission.cs" />
+    <Compile Include="Entities\SamplingDaySubmissionRepository.cs" />
     <Compile Include="Entities\SummaryAtLevel.cs" />
     <Compile Include="Entities\MajorGridFMA.cs" />
     <Compile Include="Entities\MajorGridFMARepository.cs" />

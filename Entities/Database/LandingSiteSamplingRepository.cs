@@ -457,6 +457,45 @@ namespace NSAP_ODK.Entities.Database
 
             return success;
         }
+
+        public static int? GetLandingSiteSamplingID(FishingGround fg, LandingSite ls, DateTime sampling_date)
+        {
+            int? lss_id = null;
+            if(Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@ls", ls.LandingSiteID);
+                        cmd.Parameters.AddWithValue("@fg", fg.Code);
+                        cmd.Parameters.AddWithValue("@sd", sampling_date);
+
+                        cmd.CommandText = @"SELECT unload_day_id
+                                            FROM dbo_LC_FG_sample_day
+                                            WHERE land_ctr_id = @ls AND
+                                                    ground_id = @fg AND 
+                                                    sdate = @sd";
+
+                        try
+                        {
+                            con.Open();
+                            lss_id = (int)cmd.ExecuteScalar();
+
+                        }
+                        catch(Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return lss_id;
+        }
         private List<LandingSiteSampling> getLandingSiteSamplings()
         {
 

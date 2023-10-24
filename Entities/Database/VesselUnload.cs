@@ -633,7 +633,7 @@ namespace NSAP_ODK.Entities.Database
     }
 
     //[JsonObject(MemberSerialization.OptIn)]
-    public class VesselUnload
+    public class VesselUnload:IDisposable
     {
         private LandedCatchValidationResult _landedCatchValidationResult;
         private GPS _gps;
@@ -642,6 +642,26 @@ namespace NSAP_ODK.Entities.Database
         private NSAPEnumerator _nsapEnumerator;
         private double _runningSum = 0;
         private bool _speciesWeightIsZero;
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // free managed resources
+                VesselCatchViewModel = null;
+                NSAPEnumerator = null;
+                FishingVessel = null;
+                _parent = null;
+                VesselUnloadWeights = null;
+                VesselUnload_FishingGearsViewModel = null;
+
+            }
+            // free native resources if there are any.
+        }
 
         public string LandingSiteSamplingSubmissionID { get; set; }
         public bool IncludeEffortIndicators { get; set; }

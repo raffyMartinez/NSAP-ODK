@@ -46,6 +46,19 @@ namespace NSAP_ODK.Entities.Database
                 //return NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(item.SamplingDayID);
             }
         }
+
+        public LandingSiteSampling GetLandingSiteSampling(int landingID)
+        {
+            var item = SummaryItemCollection.FirstOrDefault(t => t.SamplingDayID == landingID);
+            if (item == null)
+            {
+                return null;
+            }
+            else
+            {
+                return NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(item.SamplingDayID);
+            }
+        }
         public LandingSiteSampling GetLandingSiteSampling(string landingUUID)
         {
             var item = SummaryItemCollection.FirstOrDefault(t => t.SamplingDayUUID == landingUUID);

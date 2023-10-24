@@ -200,10 +200,10 @@ namespace NSAP_ODK.Entities.Database
                         {
                             cmd.CommandText = "Select count(*) from dbo_gear_unload where boats Is Not null And catch Is Not Null";
                         }
-                        if(Global.Filter1!=null)
+                        if (Global.Filter1 != null)
                         {
-                            cmd.Parameters.AddWithValue("@d1",Global.Filter1DateString());
-                            if(countCompleted)
+                            cmd.Parameters.AddWithValue("@d1", Global.Filter1DateString());
+                            if (countCompleted)
                             {
                                 cmd.CommandText = @"SELECT count(*) as n
                                                     FROM dbo_LC_FG_sample_day INNER JOIN 
@@ -217,10 +217,10 @@ namespace NSAP_ODK.Entities.Database
                                                         dbo_gear_unload ON dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id
                                                     WHERE dbo_LC_FG_sample_day.sdate >= @d1";
                             }
-                            if(Global.Filter2!=null)
+                            if (Global.Filter2 != null)
                             {
                                 cmd.Parameters.AddWithValue("@d2", Global.Filter2DateString());
-                                if(countCompleted)
+                                if (countCompleted)
                                 {
                                     cmd.CommandText = @"SELECT count(*) as n
                                                     FROM dbo_LC_FG_sample_day INNER JOIN 
@@ -243,7 +243,7 @@ namespace NSAP_ODK.Entities.Database
                                 }
                             }
                         }
-                        else if(!string.IsNullOrEmpty(Global.FilterServerID))
+                        else if (!string.IsNullOrEmpty(Global.FilterServerID))
                         {
                             cmd.Parameters.AddWithValue("@srv", Global.FilterServerID);
                             if (countCompleted)
@@ -949,7 +949,7 @@ namespace NSAP_ODK.Entities.Database
                     try
                     {
                         update.ExecuteNonQuery();
-                        success = true;
+                        success = DeleteTempGearUnload();
                     }
                     catch (OleDbException)
                     {
@@ -964,6 +964,36 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
+
+        private static bool DeleteTempGearUnload()
+        {
+            bool success = false;
+            if(Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = "Delete * from temp_GearUnload";
+                        try
+                        {
+                            con.Open();
+                            success = cmd.ExecuteNonQuery() >= 0;
+                        }
+                        catch(Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
+
 
         private bool DeleteMySQL(int id)
         {

@@ -20,9 +20,6 @@ namespace NSAP_ODK.Entities.Database
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-
-        public int? MissingCatchInfoCount { get; set; }
-        public static int CurrentIDNumber { get; set; }
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
@@ -35,6 +32,10 @@ namespace NSAP_ODK.Entities.Database
             }
             // free native resources if there are any.
         }
+
+        public int? MissingCatchInfoCount { get; set; }
+        public static int CurrentIDNumber { get; set; }
+
         public List<VesselCatchEdited> GetVesselCatchEditedList(VesselUnload unload)
         {
             List<VesselCatchEdited> vces = new List<VesselCatchEdited>();

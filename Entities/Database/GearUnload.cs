@@ -38,7 +38,7 @@ namespace NSAP_ODK.Entities.Database
         public double? Catch { get; private set; }
 
     }
-    public class GearUnload
+    public class GearUnload:IDisposable
     {
         private Gear _gear;
         private LandingSiteSampling _parent;
@@ -54,7 +54,25 @@ namespace NSAP_ODK.Entities.Database
         public int? SpeciesWithTWSpCount { get; set; }
         public VesselUnloadViewModel VesselUnloadViewModel { get; set; }
 
-
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // free managed resources
+                AttachedVesselUnloads.Clear();
+                ListVesselUnload.Clear();
+                ListVesselUnload = null;
+                AttachedVesselUnloads = null;
+                VesselUnloadViewModel = null;
+                Parent = null;
+            }
+            // free native resources if there are any.
+        }
         public int NumberOfSampledLandingsEx { get; set; }
         public string SectorCode { get; set; }
 

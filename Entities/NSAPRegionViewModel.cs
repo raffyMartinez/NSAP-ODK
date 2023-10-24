@@ -591,8 +591,12 @@ namespace NSAP_ODK.Entities
         }
         public NSAPRegion GetNSAPRegionFromSingleVesselLanding(VesselLanding vesselLanding)
         {
-            CurrentEntity = vesselLanding.NSAPRegion;
-            return CurrentEntity;   
+            try
+            {
+                CurrentEntity = vesselLanding.NSAPRegion;
+                return CurrentEntity;
+            }
+            catch { return null; }
         }
         public NSAPRegion GetNSAPRegionFromMultiVesselLanding(MultiVesselGear_Root landing)
         {
