@@ -58,7 +58,7 @@ namespace NSAP_ODK.Entities
                 var dt = new DataTable();
                 using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
-                    //Logger.Log($"engine repositiry connection string is: {Global.ConnectionString}");
+                    
                     try
                     {
                         conection.Open();

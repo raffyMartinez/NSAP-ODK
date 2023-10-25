@@ -64,6 +64,13 @@ namespace NSAP_ODK.Views
         private DownloadedJsonMetadata _downloadedJsonMetadata;
         private FileInfoJSONMetadata _selectedJSONMetaData;
         private string _json;
+        private bool _jsonFromServer = false;
+        public void JSONFromServer(string json, bool isMultivessel)
+        {
+            JSON = json;
+            _jsonFromServer = true;
+            IsMultiVessel = isMultivessel;
+        }
         public string JSON
         {
             get { return _json; }
@@ -469,7 +476,7 @@ namespace NSAP_ODK.Views
                 jsonFile.Earliest = MultiVesselGear_UnloadServerRepository.DownloadedLandingsEarliestLandingDate();
                 jsonFile.Latest = MultiVesselGear_UnloadServerRepository.DownloadedLandingsLatestLandingDate();
                 //jsonFile.Count = MultiVesselGear_UnloadServerRepository.DownloadedLandingsCount();
-                if(countVesselLandings==null)
+                if (countVesselLandings == null)
                 {
                     countVesselLandings = MultiVesselGear_UnloadServerRepository.SampledVesselLandings.Count;
                 }
@@ -1721,7 +1728,6 @@ namespace NSAP_ODK.Views
 
                     if (await Upload(jsonFullFileName: fileName))
                     {
-
                         //the actual call to save the data contained in csv files is called in the call below
                         //await SaveUploadedJsonInLoop(verbose: true, allowDownloadAgain: true, isHistoryJson: menuName == "menuUpload");
                         await SaveUploadedJsonInLoop(verbose: true, allowDownloadAgain: true, isHistoryJson: false);
@@ -1730,6 +1736,7 @@ namespace NSAP_ODK.Views
 
                         }
                         JSON = string.Empty;
+                        _jsonFromServer = false;
                     }
 
 
@@ -1938,7 +1945,7 @@ namespace NSAP_ODK.Views
             _ufg_count = 0;
             _uploadToDBSuccess = false;
             bool success = false;
-            bool fromServer = false;
+            //bool fromServer = false;
             labelProgress.Content = "";
 
             if (ODKServerDownload == ODKServerDownload.ServerDownloadVesselUnload)
@@ -1996,7 +2003,7 @@ namespace NSAP_ODK.Views
                             {
                                 if (!NSAPEntities.JSONFileViewModel.Exists(jsonFullFileName))
                                 {
-                                    if(IsMultiVessel)
+                                    if (IsMultiVessel)
                                     {
                                         countVesselLandings = MultiVesselGear_UnloadServerRepository.SampledVesselLandings.Count;
                                     }
@@ -2005,11 +2012,11 @@ namespace NSAP_ODK.Views
                             }
                             else
                             {
-                                if (string.IsNullOrEmpty(jsonFullFileName))
-                                {
-                                    fromServer = true;
-                                }
-                                _jsonFile = await CreateJsonFile(fileName: jsonFullFileName, fromHistoryFiles: fromHistoryFiles, countVesselLandings: countVesselLandings, delaySave: true, fromServer: fromServer);
+                                //if (string.IsNullOrEmpty(jsonFullFileName))
+                                //{
+                                //    fromServer = true;
+                                //}
+                                _jsonFile = await CreateJsonFile(fileName: jsonFullFileName, fromHistoryFiles: fromHistoryFiles, countVesselLandings: countVesselLandings, delaySave: true, fromServer: _jsonFromServer);
                             }
 
                             if (_jsonFile?.FileName.Length > 0)
@@ -2046,7 +2053,7 @@ namespace NSAP_ODK.Views
 
                                         if (savedCount > 0)
                                         {
-                                            await NSAPEntities.JSONFileViewModel.Save(_jsonFile, fromServer);
+                                            await NSAPEntities.JSONFileViewModel.Save(_jsonFile, _jsonFromServer);
                                         }
 
 

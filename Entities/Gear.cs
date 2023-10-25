@@ -16,6 +16,8 @@ namespace NSAP_ODK.Entities
 
         public List<FishingGround> FishingGrounds = new List<FishingGround>();
         public Gear Gear { get; private set; }
+
+        public List<FishSpecies> CatchCompositionFish { get; set; }
     }
 
 

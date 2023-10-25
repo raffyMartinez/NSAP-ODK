@@ -108,8 +108,8 @@ namespace NSAP_ODK.Utilities
 
         public static string CreateConnectionStringForGrid25()
         {
-            //ConnectionStringGrid25 = "Provider=Microsoft.JET.OLEDB.4.0;data source=" + Grid25MDBPath;
-            ConnectionString = "Provider=Microsoft.ACE.OLEDB.12.0;data source=" + Grid25MDBPath;
+            ConnectionStringGrid25 = "Provider=Microsoft.JET.OLEDB.4.0;data source=" + Grid25MDBPath;
+            //ConnectionString = "Provider=Microsoft.ACE.OLEDB.12.0;data source=" + Grid25MDBPath;
             return ConnectionStringGrid25;
         }
 
@@ -167,8 +167,8 @@ namespace NSAP_ODK.Utilities
         public static void CreateConnectionString()
         {
             MDBPath = Settings.MDBPath;
-            //ConnectionString = "Provider=Microsoft.JET.OLEDB.4.0;data source=" + MDBPath;
-            ConnectionString = "Provider=Microsoft.ACE.OLEDB.12.0;data source=" + MDBPath;
+            ConnectionString = "Provider=Microsoft.JET.OLEDB.4.0;data source=" + MDBPath;
+            //ConnectionString = "Provider=Microsoft.ACE.OLEDB.12.0;data source=" + MDBPath;
         }
 
 
@@ -594,10 +594,10 @@ namespace NSAP_ODK.Utilities
                 else
                 {
                     MDBPath = Settings.MDBPath;
-                    //ConnectionString = "Provider=Microsoft.JET.OLEDB.4.0;data source=" + MDBPath;
-                    //ConnectionStringGrid25 = "Provider=Microsoft.JET.OLEDB.4.0;data source=" + Grid25MDBPath;
-                    ConnectionString = "Provider=Microsoft.ACE.OLEDB.12.0;data source=" + MDBPath;
-                    ConnectionStringGrid25 = "Provider=Microsoft.ACE.OLEDB.12.0;data source=" + Grid25MDBPath;
+                    ConnectionString = "Provider=Microsoft.JET.OLEDB.4.0;data source=" + MDBPath;
+                    ConnectionStringGrid25 = "Provider=Microsoft.JET.OLEDB.4.0;data source=" + Grid25MDBPath;
+                    //ConnectionString = "Provider=Microsoft.ACE.OLEDB.12.0;data source=" + MDBPath;
+                    //ConnectionStringGrid25 = "Provider=Microsoft.ACE.OLEDB.12.0;data source=" + Grid25MDBPath;
                     AppProceed = CSVFIleManager.ReadCSVXML();
 
                     if (Settings.JSONFolder != null && Settings.JSONFolder.Length > 0 && !Directory.Exists(Settings.JSONFolder))

@@ -2603,12 +2603,16 @@ namespace NSAP_ODK
             ProgressDialogWindow pdw = null;
             switch (itemName)
             {
+                //Tree context menu ->Databases->Select server for server
+                //database summary view tree view
                 case "menuSelectServerForFilter":
                     var server = (Koboserver)dataGridEFormVersionStats.SelectedItem;
                     Global.Settings.ServerFilter = server.ServerID;
                     Global.SaveGlobalSettings();
                     MessageBox.Show("Restart NSAP-ODK Database so that the filter will take effect", Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
                     break;
+
+                //NSAP data->Delete fish landing data
                 case "menuDeleteLandingData":
                     DeleteOptionWindow dow = new DeleteOptionWindow();
                     if ((bool)dow.ShowDialog())
@@ -2637,12 +2641,19 @@ namespace NSAP_ODK
                     break;
                 case "menuCalendarRefresh":
                     break;
+
+                //NSAP data -> Identify catch composition with zero weight
                 case "menuIdentifyZeroWtCatchComp":
                     ShowIdentifyCatchCompWithZeroWt();
                     break;
+
+                //NSAP data->Identify sampling calendar mismatch
                 case "menuCalendarDayMismatch":
                     ShowFixMismatchCalendarWindow();
                     break;
+
+                //Datagrid context menu->Regions->Fishing grounds->Move to fishing ground
+                //data grid of landing sites beloning to a region
                 case "menuMoveToFishingGround":
 
                     var nrf = (NSAPRegionFMAFishingGround)((TreeViewItem)treeViewSummary.SelectedItem).Tag;
@@ -2681,6 +2692,8 @@ namespace NSAP_ODK
                         _wvtw.Show();
                     }
                     break;
+
+                //NSAP data ->Update weight validation summary
                 case "menuUpdateWeightValidation":
                     UpdateWeightValidationTableWindow uwvw = UpdateWeightValidationTableWindow.GetInstance();
                     uwvw.Owner = this;
@@ -2693,12 +2706,16 @@ namespace NSAP_ODK
                         uwvw.Show();
                     }
                     break;
+
+                //NSAP data ->Download CSV from server
                 case "menuDownloadCSV":
                     if (DownloadCSVFromServer())
                     {
 
                     }
                     break;
+                //Tree context menu ->Databases->Remove landing data downloaded from server
+                //database summary view tree view
                 case "menuDeleteLandingDataFromServer":
                     //MessageBoxResult rs = MessageBoxResult.No;
                     //if (_selectedKoboserver.SavedInDBCount > 0)
@@ -2722,6 +2739,9 @@ namespace NSAP_ODK
                     }
                     //}
                     break;
+
+                //Tree context menu ->Databases->Remove server
+                //database summary view tree view
                 case "menuRemoveKoboserver":
 
                     if (NSAPEntities.KoboServerViewModel.DeleteRecordFromRepo(_selectedKoboserver.ServerNumericID))
@@ -2730,6 +2750,8 @@ namespace NSAP_ODK
                     }
                     break;
 
+                //Tree context menu ->Databases->Remove all servers of owner
+                //database summary view tree view
                 case "menuRemoveAllKoboserversOfOwner":
                     if (NSAPEntities.KoboServerViewModel.RemoveAllKoboserversOfOwner(_selectedKoboserver))
                     {
@@ -2737,10 +2759,13 @@ namespace NSAP_ODK
                     }
                     break;
 
+                //File->Settings
                 case "menuFileSettings1":
                 case "menuFileSettings":
                     ShowSettingsWindow();
                     break;
+
+                //NSAP data->Enumerator's first sampling
                 case "menuEnumeratorFirstSampling":
 
                     pdw = new ProgressDialogWindow("get enumerators first sampling");
@@ -2760,10 +2785,13 @@ namespace NSAP_ODK
                     }
 
                     break;
+                //NSAP data->Export->Extract fishing vessels by region
                 case "menuExtractVesselNames":
                     ExtractVesselFromRegionWindow erw = new ExtractVesselFromRegionWindow();
                     erw.ShowDialog();
                     break;
+
+
                 case "menuCopyTextPropertyGrid":
                     StringBuilder sb = new StringBuilder();
                     foreach (PropertyItem prp in _propertyGrid.Properties)
@@ -2779,6 +2807,9 @@ namespace NSAP_ODK
                     rlsw.ShowDialog();
 
                     break;
+
+                //Grid context menu->Weights and weight validation
+
                 case "menuWeights":
                     switch (_calendarTreeSelectedEntity)
                     {
@@ -2805,6 +2836,8 @@ namespace NSAP_ODK
                             break;
                     }
                     break;
+                //Datagrid context menu->Copy text
+                //copy the contents of data grid to the clipboard
                 case "menuCopyText":
                     if (_dataGrid != null)
                     {
@@ -2906,12 +2939,17 @@ namespace NSAP_ODK
                 case "menuExportExcelMaturity":
                     ExportNSAPWithMaturityToExcel();
                     break;
+
+                //Help->About this software
                 case "menuAbout":
                     AboutWindow aw = new AboutWindow();
                     aw.ShowDialog();
                     break;
+
                 case "menuUploadMedia":
                     break;
+
+                //File->Save->Gears
                 case "menuSaveGear":
                     SaveFileDialog sfd = new SaveFileDialog
                     {
@@ -2930,6 +2968,8 @@ namespace NSAP_ODK
                 case "menuTrackedLandingSummay":
 
                     break;
+
+                //File->Open database
                 case "menuLocateDatabase":
 
                     if (LocateBackendDB(out string backendPath))
@@ -2938,6 +2978,7 @@ namespace NSAP_ODK
                         menuDatabaseSummary.IsChecked = true;
                     }
                     break;
+                //NSAP data -> Import GPX
                 case "menuImportGPX":
                     OpenFileDialog opf = new OpenFileDialog();
                     opf.Title = "Open GPX file";
@@ -2951,6 +2992,8 @@ namespace NSAP_ODK
 
                     }
                     break;
+
+                //NSAP data->Download history
                 case "menuDownloadHistory":
                     menuCalendar.Visibility = Visibility.Collapsed;
                     _currentDisplayMode = DataDisplayMode.DownloadHistory;
@@ -2958,24 +3001,36 @@ namespace NSAP_ODK
                     SetDataDisplayMode();
 
                     break;
+
+                //NSAP data->Export->Export tracked landing summaries to Excel
                 case "menuExportExcelTracked":
                     //ExportNSAPToExcel(tracked: true);
                     TrackedSummariesForExportWindow tws = new TrackedSummariesForExportWindow();
                     tws.ShowDialog();
                     break;
+
+                //NSAP data->Export->Export to Excel
                 case "menuExportExcel":
                     ExportNSAPToExcel();
                     break;
+
+                //NSAP data->Sampling calendar
                 case "menuNSAPCalendar":
                     ShowNSAPCalendar();
                     break;
+
+                //NSAP Data->Manage
                 case "menuImport":
                     ShowImportWindow();
                     break;
+
+                //Generate csv->OPtions for generating CSV
                 case "menuOptionGenerateCSV":
                     CSVOptionsWindow optionsWindow = new CSVOptionsWindow();
                     optionsWindow.ShowDialog();
                     break;
+
+                //File->Exit
                 case "menuExit":
                 case "menuExit2":
                     Close();
@@ -2985,9 +3040,12 @@ namespace NSAP_ODK
                     qaw.ShowDialog();
                     break;
 
+                //Generate CSV->Select regions
                 case "menuSelectRegions":
                     SelectRegions(resetList: true);
                     break;
+
+                //GEnerate CSV->Generate
                 case "menuGenerateAll":
                     await GenerateAllCSV();
 

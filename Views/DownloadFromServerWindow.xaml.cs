@@ -799,7 +799,6 @@ namespace NSAP_ODK.Views
                                                                 if (versionDate >= new DateTime(2021, 10, 1))
                                                                 {
                                                                     json = VesselLandingFixDownload.JsonNewToOldVersion(the_response.ToString());
-                                                                    //VesselUnloadServerRepository.JSON = VesselLandingFixDownload.JsonNewToOldVersion(the_response);
                                                                 }
                                                                 else
                                                                 {
@@ -809,12 +808,11 @@ namespace NSAP_ODK.Views
                                                             else
                                                             {
                                                                 json = the_response.ToString();
-                                                                //VesselUnloadServerRepository.JSON = the_response;
                                                             }
-                                                            //if (json != "[]")
-                                                            //{
 
-                                                            ((ODKResultsWindow)Owner).JSON = json;
+                                                            //((ODKResultsWindow)Owner).JSON = json;
+                                                            ((ODKResultsWindow)Owner).JSONFromServer(json, isMultivessel: _formSummary.IsMultiVessel);
+
                                                             if (_formSummary.IsMultiVessel)
                                                             {
                                                                 MultiVesselGear_UnloadServerRepository.JSON = json;
@@ -822,7 +820,10 @@ namespace NSAP_ODK.Views
                                                                 {
                                                                     MultiVesselGear_UnloadServerRepository.CreateLandingCountsFromJSON();
                                                                     _totalCountSampledLandings = MultiVesselGear_UnloadServerRepository.ListOfLandingsCount.Sum(t => t.CountSampledLandings);
-                                                                    MessageBox.Show($"There are {_totalCountSampledLandings} sampled fish landings available for download from the server", Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
+                                                                    MessageBox.Show($"There are {_totalCountSampledLandings} sampled fish landings available for download from the server",
+                                                                        Global.MessageBoxCaption,
+                                                                        MessageBoxButton.OK,
+                                                                        MessageBoxImage.Information);
                                                                     return;
                                                                 }
                                                                 else
@@ -837,11 +838,6 @@ namespace NSAP_ODK.Views
                                                                 VesselUnloadServerRepository.CreateLandingsFromJSON();
                                                                 VesselUnloadServerRepository.FillDuplicatedLists();
                                                             }
-                                                            //}
-                                                            //else
-                                                            //{
-                                                            //    MessageBox.Show("Download result is empty", Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Exclamation);
-                                                            //}
 
                                                             break;
                                                         case ODKServerDownload.ServerDownloadLandings:

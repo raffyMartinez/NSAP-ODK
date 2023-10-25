@@ -368,135 +368,62 @@ namespace NSAP_ODK.Entities
         public static async Task<bool> GetVersionFromXLSForm(KoboForm kf, string user_name = "", string password = "", HttpClient httpClient = null)
         {
             bool success = true;
-
-            switch (kf.title)
+            try
             {
-                case "NSAP Fish Catch Monitoring e-Form":
-                    Global.Settings.NSAPFishCatchMonitoringKoboserverServerNumericID = kf.formid.ToString();
-                    break;
-                case "Fisheries landing survey":
-                    Global.Settings.FisheriesLandingSurveyNumericID = kf.formid.ToString();
-                    break;
-                case "NSAP Fishing boats landed and TWSP":
-                    Global.Settings.TBL_TWSPKoboserverServerNumericID = kf.formid.ToString();
-                    break;
-                default:
-                    if (kf.title.Contains("NSAP Fish Catch Monitoring e-Form"))
-                    {
+                switch (kf.title)
+                {
+                    case "NSAP Fish Catch Monitoring e-Form":
                         Global.Settings.NSAPFishCatchMonitoringKoboserverServerNumericID = kf.formid.ToString();
-                    }
-                    break;
-            }
-
-            if (httpClient == null)
-            {
-                using (StreamReader sr = File.OpenText($"{Global._KoboFormsFolder}\\{kf.formid}_formdefinition.json"))
-                {
-                    var filestructure = sr.ReadToEnd();
-                    var search_string = "\"name\":\"intronote\"";
-                    var idx = filestructure.IndexOf(search_string);
-                    kf.eForm_version = filestructure.Substring(idx, 200).Replace("\"", "").Split(new char[] { ',', ':' }).FirstOrDefault(t => t.Contains("Version")).Replace("Version ", "");
-
-                    search_string = "\"version\":";
-                    idx = filestructure.IndexOf(search_string);
-                    XLSFormVersion = filestructure.Substring(idx + search_string.Length, 20).Replace("\"", "").Split(',')[0];
-                    sr.Close();
+                        break;
+                    case "Fisheries landing survey":
+                        Global.Settings.FisheriesLandingSurveyNumericID = kf.formid.ToString();
+                        break;
+                    case "NSAP Fishing boats landed and TWSP":
+                        Global.Settings.TBL_TWSPKoboserverServerNumericID = kf.formid.ToString();
+                        break;
+                    default:
+                        if (kf.title.Contains("NSAP Fish Catch Monitoring e-Form"))
+                        {
+                            Global.Settings.NSAPFishCatchMonitoringKoboserverServerNumericID = kf.formid.ToString();
+                        }
+                        break;
                 }
 
-                using (StreamReader sr = File.OpenText($"{Global._KoboFormsFolder}\\{kf.formid}_form_media.json"))
+                if (httpClient == null)
                 {
-                    var file_media = sr.ReadToEnd();
-                    kf.koboform_files = GetFilesFromKoboform(file_media);
-                    sr.Close();
-                }
-            }
-            else
-            {
-                HttpResponseMessage response;
-                byte[] bytes;
-                Encoding encoding;
-                string the_response = "";
-                string base64authorization = "";
-                HttpRequestMessage request;
-                var api_call = $"https://kf.kobotoolbox.org/api/v2/assets/{kf.id_string}/?format=json";
-
-                using (request = new HttpRequestMessage(new HttpMethod("GET"), api_call))
-                {
-                    base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{user_name}:{password}"));
-                    if (request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}"))
+                    using (StreamReader sr = File.OpenText($"{Global._KoboFormsFolder}\\{kf.formid}_formdefinition.json"))
                     {
-                        try
-                        {
-                            response = await httpClient.SendAsync(request);
-                            bytes = await response.Content.ReadAsByteArrayAsync();
-                            encoding = Encoding.GetEncoding("utf-8");
+                        var filestructure = sr.ReadToEnd();
+                        var search_string = "\"name\":\"intronote\"";
+                        var idx = filestructure.IndexOf(search_string);
+                        kf.eForm_version = filestructure.Substring(idx, 200).Replace("\"", "").Split(new char[] { ',', ':' }).FirstOrDefault(t => t.Contains("Version")).Replace("Version ", "");
 
-                            // the response now contains the actual structure of the eform
-                            the_response = encoding.GetString(bytes, 0, bytes.Length);
-                            if (the_response.Contains("Invalid username/password"))
-                            {
+                        search_string = "\"version\":";
+                        idx = filestructure.IndexOf(search_string);
+                        XLSFormVersion = filestructure.Substring(idx + search_string.Length, 20).Replace("\"", "").Split(',')[0];
+                        sr.Close();
+                    }
 
-                            }
-                            else
-                            {
-                                using (StreamWriter sw = File.CreateText($"{Global._KoboFormsFolder}\\{kf.formid}_formdefinition.json"))
-                                {
-                                    sw.Write(the_response);
-                                    sw.Close();
-                                }
-
-                                var search_string = "\"name\":\"intronote\"";
-                                var idx = the_response.IndexOf(search_string);
-                                kf.eForm_version = the_response.Substring(idx, 200).Replace("\"", "").Split(new char[] { ',', ':' }).FirstOrDefault(t => t.Contains("Version")).Replace("Version ", "");
-
-                                search_string = "\"version\":";
-                                idx = the_response.IndexOf(search_string);
-                                XLSFormVersion = the_response.Substring(idx + search_string.Length, 20).Replace("\"", "").Split(',')[0];
-                                kf.xlsform_version = XLSFormVersion;
-                            }
-
-
-                        }
-                        catch (HttpRequestException)
-                        {
-                            success = false;
-                        }
-                        catch (Exception ex)
-                        {
-                            if (ex.Message.Contains("Cannot deserialize the current JSON array"))
-                            {
-                                string to_find = @"""name"":""intronote"",""type"":""note"",""$kuid"":""";
-                                var index = the_response.IndexOf(to_find) + to_find.Length;
-                                string version_text = "";
-                                for (int x = index; x < index + 40; x++)
-                                {
-                                    version_text += the_response[x];
-                                }
-                                version_text = version_text.Replace("\\", string.Empty).Replace("\"", string.Empty);
-                                var arr1 = version_text.Split(new char[] { ' ', ':', ',' });
-                                switch (kf.title)
-                                {
-                                    case "NSAP Fish Catch Monitoring e-Form":
-                                    case "Fisheries landing survey":
-                                    case "NSAP Fishing boats landed and TWSP":
-                                        kf.eForm_version = arr1[3];
-                                        break;
-                                }
-                            }
-                            else
-                            {
-                                Logger.Log(ex);
-                            }
-                        }
+                    using (StreamReader sr = File.OpenText($"{Global._KoboFormsFolder}\\{kf.formid}_form_media.json"))
+                    {
+                        var file_media = sr.ReadToEnd();
+                        kf.koboform_files = GetFilesFromKoboform(file_media);
+                        sr.Close();
                     }
                 }
-
-                if (kf.koboform_files == null)
+                else
                 {
-                    api_call = $"https://kf.kobotoolbox.org/api/v2/assets/{kf.id_string}/files/?format=json";
+                    HttpResponseMessage response;
+                    byte[] bytes;
+                    Encoding encoding;
+                    string the_response = "";
+                    string base64authorization = "";
+                    HttpRequestMessage request;
+                    var api_call = $"https://kf.kobotoolbox.org/api/v2/assets/{kf.id_string}/?format=json";
+
                     using (request = new HttpRequestMessage(new HttpMethod("GET"), api_call))
                     {
-                        //base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{user_name}:{password}"));
+                        base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{user_name}:{password}"));
                         if (request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}"))
                         {
                             try
@@ -504,25 +431,105 @@ namespace NSAP_ODK.Entities
                                 response = await httpClient.SendAsync(request);
                                 bytes = await response.Content.ReadAsByteArrayAsync();
                                 encoding = Encoding.GetEncoding("utf-8");
+
+                                // the response now contains the actual structure of the eform
                                 the_response = encoding.GetString(bytes, 0, bytes.Length);
-                                using (StreamWriter sw = File.CreateText($"{Global._KoboFormsFolder}\\{kf.formid}_form_media.json"))
+                                if (the_response.Contains("Invalid username/password"))
                                 {
-                                    sw.Write(the_response);
-                                    sw.Close();
+
                                 }
-                                //we will get the properties of all files or media attachments of each eform
-                                kf.koboform_files = GetFilesFromKoboform(the_response);
+                                else
+                                {
+                                    using (StreamWriter sw = File.CreateText($"{Global._KoboFormsFolder}\\{kf.formid}_formdefinition.json"))
+                                    {
+                                        sw.Write(the_response);
+                                        sw.Close();
+                                    }
+
+                                    var search_string = "\"name\":\"intronote\"";
+                                    var idx = the_response.IndexOf(search_string);
+                                    kf.eForm_version = the_response.Substring(idx, 200).Replace("\"", "").Split(new char[] { ',', ':' }).FirstOrDefault(t => t.Contains("Version")).Replace("Version ", "");
+
+                                    search_string = "\"version\":";
+                                    idx = the_response.IndexOf(search_string);
+                                    XLSFormVersion = the_response.Substring(idx + search_string.Length, 20).Replace("\"", "").Split(',')[0];
+                                    kf.xlsform_version = XLSFormVersion;
+                                }
 
 
                             }
+                            catch (HttpRequestException)
+                            {
+                                success = false;
+                            }
                             catch (Exception ex)
                             {
-                                Logger.Log(ex);
-                                success = false;
+                                if (ex.Message.Contains("Cannot deserialize the current JSON array"))
+                                {
+                                    string to_find = @"""name"":""intronote"",""type"":""note"",""$kuid"":""";
+                                    var index = the_response.IndexOf(to_find) + to_find.Length;
+                                    string version_text = "";
+                                    for (int x = index; x < index + 40; x++)
+                                    {
+                                        version_text += the_response[x];
+                                    }
+                                    version_text = version_text.Replace("\\", string.Empty).Replace("\"", string.Empty);
+                                    var arr1 = version_text.Split(new char[] { ' ', ':', ',' });
+                                    switch (kf.title)
+                                    {
+                                        case "NSAP Fish Catch Monitoring e-Form":
+                                        case "Fisheries landing survey":
+                                        case "NSAP Fishing boats landed and TWSP":
+                                            kf.eForm_version = arr1[3];
+                                            break;
+                                    }
+                                }
+                                else
+                                {
+                                    Logger.Log(ex);
+                                }
+                            }
+                        }
+                    }
+
+                    if (kf.koboform_files == null)
+                    {
+                        api_call = $"https://kf.kobotoolbox.org/api/v2/assets/{kf.id_string}/files/?format=json";
+                        using (request = new HttpRequestMessage(new HttpMethod("GET"), api_call))
+                        {
+                            //base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{user_name}:{password}"));
+                            if (request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}"))
+                            {
+                                try
+                                {
+                                    response = await httpClient.SendAsync(request);
+                                    bytes = await response.Content.ReadAsByteArrayAsync();
+                                    encoding = Encoding.GetEncoding("utf-8");
+                                    the_response = encoding.GetString(bytes, 0, bytes.Length);
+                                    using (StreamWriter sw = File.CreateText($"{Global._KoboFormsFolder}\\{kf.formid}_form_media.json"))
+                                    {
+                                        sw.Write(the_response);
+                                        sw.Close();
+                                    }
+                                    //we will get the properties of all files or media attachments of each eform
+                                    kf.koboform_files = GetFilesFromKoboform(the_response);
+
+
+                                }
+                                catch (Exception ex)
+                                {
+                                    Logger.Log(ex);
+                                    success = false;
+                                }
                             }
                         }
                     }
                 }
+            }
+            catch(Exception ex)
+            {
+                Logger.Log(ex);
+                success = false;
             }
             //}
             return success;
