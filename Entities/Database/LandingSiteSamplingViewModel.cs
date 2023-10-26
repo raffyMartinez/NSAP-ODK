@@ -22,6 +22,7 @@ namespace NSAP_ODK.Entities.Database
         private static StringBuilder _csv = new StringBuilder();
         private static StringBuilder _csv_1 = new StringBuilder();
         private int _deleted_vu_count = 0;
+        private bool _addToCollectionOnly = false;
         public bool EditSuccess { get; set; }
         public ObservableCollection<LandingSiteSampling> LandingSiteSamplingCollection { get; set; }
         private LandingSiteSamplingRepository LandingSiteSamplings { get; set; }
@@ -453,6 +454,16 @@ namespace NSAP_ODK.Entities.Database
             LandingSiteSamplingCollection.CollectionChanged += LandingSiteSamplingCollection_CollectionChanged;
         }
 
+        public LandingSiteSampling CreateInstance(int lss_id)
+        {
+            
+            var lss = LandingSiteSamplings.Create(lss_id);
+            _addToCollectionOnly = true;
+            LandingSiteSamplingCollection.Add(lss);
+            _addToCollectionOnly = false;
+            return lss;
+        }
+
         public LandingSiteSamplingFlattened GetFlattenedItem(int id)
         {
             return new LandingSiteSamplingFlattened(LandingSiteSamplingCollection.Where(t => t.PK == id).FirstOrDefault());
@@ -544,7 +555,13 @@ namespace NSAP_ODK.Entities.Database
             //var lss = LandingSiteSamplingCollection.ToList().FirstOrDefault(n => n.PK == pk);
             try
             {
-                return LandingSiteSamplingCollection.ToList().FirstOrDefault(n => n.PK == pk);
+                
+                var lss= LandingSiteSamplingCollection.ToList().FirstOrDefault(n => n.PK == pk);
+                if(lss==null)
+                {
+
+                }
+                return lss;
             }
             catch { return null; }
         }
@@ -720,15 +737,19 @@ namespace NSAP_ODK.Entities.Database
             {
                 case NotifyCollectionChangedAction.Add:
 
-                    LandingSiteSampling newItem = LandingSiteSamplingCollection[e.NewStartingIndex];
-                    if (!newItem.DelayedSave)
+                    if (!_addToCollectionOnly)
                     {
-                        EditSuccess = LandingSiteSamplings.Add(newItem);
-                    }
-                    else
-                    {
-                        EditSuccess = SetCSV(newItem);
-                        //AccessHelper.GetColumnNamesCSV("dbo_LC_FG_sample_day_1");
+                        LandingSiteSampling newItem = LandingSiteSamplingCollection[e.NewStartingIndex];
+
+                        if (!newItem.DelayedSave)
+                        {
+                            EditSuccess = LandingSiteSamplings.Add(newItem);
+                        }
+                        else
+                        {
+                            EditSuccess = SetCSV(newItem);
+                            //AccessHelper.GetColumnNamesCSV("dbo_LC_FG_sample_day_1");
+                        }
                     }
                     //int newIndex = e.NewStartingIndex;
                     //EditSuccess = LandingSiteSamplings.Add(LandingSiteSamplingCollection[newIndex]);

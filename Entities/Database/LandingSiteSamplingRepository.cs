@@ -296,7 +296,12 @@ namespace NSAP_ODK.Entities.Database
 
             // return proceed;
         }
+        public LandingSiteSampling Create(int lss_id)
+        {
+            var lss= getLandingSiteSamplings(lss_id).First();
 
+            return lss;
+        }
 
         public List<LandingSiteSampling> LandingSiteSamplings { get; set; }
 
@@ -496,7 +501,7 @@ namespace NSAP_ODK.Entities.Database
             }
             return lss_id;
         }
-        private List<LandingSiteSampling> getLandingSiteSamplings()
+        private List<LandingSiteSampling> getLandingSiteSamplings(int? lss_id=null)
         {
 
             List<LandingSiteSampling> thisList = new List<LandingSiteSampling>();
@@ -520,7 +525,12 @@ namespace NSAP_ODK.Entities.Database
                                                     ON dbo_LC_FG_sample_day.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id";
 
 
-                            if (Global.Filter1 != null)
+                            if (lss_id != null)
+                            {
+                                cmd.Parameters.AddWithValue("@id", (int)lss_id);
+                                cmd.CommandText += $" WHERE dbo_LC_FG_sample_day.unload_day_id = @id";
+                            }
+                            else if (Global.Filter1 != null)
                             {
                                 cmd.Parameters.AddWithValue("@d1", Global.Filter1DateString());
                                 if (Global.Filter2 != null)
@@ -541,6 +551,7 @@ namespace NSAP_ODK.Entities.Database
                                     cmd.CommandText += $" WHERE XFormIdentifier = @srv";
                                 }
                             }
+
 
                             thisList.Clear();
                             conection.Open();
@@ -1393,7 +1404,7 @@ namespace NSAP_ODK.Entities.Database
                                         land_ctr_text = @landing_site_text,
                                         fma = @fma,
                                         has_fishing_operation = @has_operations
-                                    WHERE unload_day_id = @pk";
+                                    WHERE  = @pk";
                         try
                         {
                             success = update.ExecuteNonQuery() > 0;

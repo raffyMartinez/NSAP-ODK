@@ -366,6 +366,11 @@ namespace NSAP_ODK.Utilities
                     EntityLoaded?.Invoke(null, new EntityLoadedEventArg { Count = NSAPEntities.KoboServerViewModel.Count() });
 
 
+                    //if(CommandArgs!=null)
+                    //{
+
+                    //}
+
                     EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "Sampling day submission" });
                     NSAPEntities.SamplingDaySubmissionViewModel = new SamplingDaySubmissionViewModel();
                     EntityLoaded?.Invoke(null, new EntityLoadedEventArg { Count = NSAPEntities.SamplingDaySubmissionViewModel.Count() });

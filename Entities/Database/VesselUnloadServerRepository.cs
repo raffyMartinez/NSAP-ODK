@@ -2863,10 +2863,11 @@ namespace NSAP_ODK.Entities.Database
                             }
                             if (sds != null)
                             {
-                                if (sds.LandingSiteSampling != null)
+                                if (sds.LandingSiteSampling == null)
                                 {
-                                    landingSiteSampling = sds.LandingSiteSampling;
+                                    sds.LandingSiteSampling = NSAPEntities.LandingSiteSamplingViewModel.CreateInstance(sds.SamplingDayID);
                                 }
+                                landingSiteSampling = sds.LandingSiteSampling;
                             }
                             else if (!string.IsNullOrEmpty(landing.LandingSiteText) && landing.FishingGround != null)
                             {
@@ -3522,7 +3523,7 @@ namespace NSAP_ODK.Entities.Database
             {
                 //if (landing.GearUnload != null)
                 //{
-                    landing.GearUnload?.Dispose();
+                landing.GearUnload?.Dispose();
                 //}
                 landing.Dispose();
             }
