@@ -826,6 +826,8 @@ namespace NSAP_ODK.Views
             bool lastJSONUploadFound = false;
             string lastUploadedJSON = NSAPEntities.KoboServerViewModel.GetLastUploadedJSON();
             NSAPEntities.ClearCSVData();
+
+            bool proceed = true;
             foreach (TreeViewItem jsonNode in root.Items)
             {
                 if (!VesselUnloadServerRepository.CancelUpload)
@@ -862,11 +864,12 @@ namespace NSAP_ODK.Views
 
                     if (VesselUnloadServerRepository.TotalUploadCount >= Global.Settings.DownloadSizeForBatchMode)
                     {
-                        await SaveUploadedJsonInLoop();
+                        proceed = await SaveUploadedJsonInLoop();
+
                     }
                     else if (MultiVesselGear_UnloadServerRepository.TotalUploadCount > 0)
                     {
-                        await SaveUploadedJsonInLoop();
+                        proceed = await SaveUploadedJsonInLoop();
                     }
                 }
                 else
@@ -876,12 +879,20 @@ namespace NSAP_ODK.Views
                     break;
                 }
                 VesselUnloadServerRepository.VesselLandings?.Clear();
+
+                if (!proceed)
+                {
+                    break;
+                }
             }
 
-            MessageBox.Show($"Finished processing {loopCount} history items",
-                Global.MessageBoxCaption,
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
+            if (proceed)
+            {
+                MessageBox.Show($"Finished processing {loopCount} history items",
+                    Global.MessageBoxCaption,
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
         }
 
         private async Task<bool> ProcessResolvedLandings(List<VesselLanding> resolvedLandings)
@@ -901,7 +912,7 @@ namespace NSAP_ODK.Views
             //
         }
 
-        private async Task ProcessJSONSNodes(bool updateXFormID = false, bool locateUnsavedFromServerDownload = false, bool updateLandingSites = false, bool locateMissingLSInfo = false)
+        private async Task<bool> ProcessJSONSNodes(bool updateXFormID = false, bool locateUnsavedFromServerDownload = false, bool updateLandingSites = false, bool locateMissingLSInfo = false)
         {
 
             int nodeProcessedCount = 0;
@@ -909,6 +920,7 @@ namespace NSAP_ODK.Views
             _jsonDateDownloadnode.IsExpanded = true;
             VesselUnloadServerRepository.CancelUpload = false;
             NSAPEntities.ClearCSVData();
+            bool success = true;
             foreach (TreeViewItem tvi in _jsonDateDownloadnode.Items)
             {
                 tvi.IsSelected = true;
@@ -957,10 +969,10 @@ namespace NSAP_ODK.Views
                         FileInfoJSONMetadata jm = (FileInfoJSONMetadata)tvi.Tag;
                         VesselUnloadServerRepository.DelayedSave = !Global.Settings.UsemySQL;
                         _isJSONData = true;
-                        bool success = await Upload(verbose: !VesselUnloadServerRepository.DelayedSave, fromJSONBatchFiles: true, loopCount: nodeProcessedCount, jsonFullFileName: jm.JSONFileInfo.FullName); ;
+                        success = await Upload(verbose: !VesselUnloadServerRepository.DelayedSave, fromJSONBatchFiles: true, loopCount: nodeProcessedCount, jsonFullFileName: jm.JSONFileInfo.FullName); ;
                         if (success)
                         {
-                            await SaveUploadedJsonInLoop(isHistoryJson: false);
+                            success = await SaveUploadedJsonInLoop(isHistoryJson: false);
                             try
                             {
                                 jm.JSONFile.Dispose();
@@ -969,29 +981,10 @@ namespace NSAP_ODK.Views
                             {
                                 Logger.Log(ex);
                             }
-
-                            //if (_downloadedJsonMetadata?.BatchSize != null)
-                            //{
-                            //    if (IsMultiVessel)
-                            //    {
-                            //        if ((int)_downloadedJsonMetadata.BatchSize <= MultiVesselGear_UnloadServerRepository.TotalUploadCount)
-                            //        {
-                            //            await SaveUploadedJsonInLoop(isHistoryJson: false);
-                            //        }
-                            //    }
-                            //    else
-                            //    {
-                            //        if ((int)_downloadedJsonMetadata.BatchSize <= VesselUnloadServerRepository.TotalUploadCount)
-                            //        {
-                            //            await SaveUploadedJsonInLoop(isHistoryJson: false);
-                            //        }
-                            //    }
-
-                            //}
-                            //else if (VesselUnloadServerRepository.TotalUploadCount >= 5000)
-                            //{
-                            //    await SaveUploadedJsonInLoop(isHistoryJson: false);
-                            //}
+                            if (!success)
+                            {
+                                break;
+                            }
                         }
                         else
                         {
@@ -1007,6 +1000,7 @@ namespace NSAP_ODK.Views
             }
             VesselUnloadServerRepository.UpdateInProgress = false;
             VesselUnloadServerRepository.UploadInProgress = false;
+            return success;
         }
 
         private string GetJSONFolder(bool savedHistory = true)
@@ -1370,8 +1364,10 @@ namespace NSAP_ODK.Views
                         if (proceed)
                         {
                             BatchUpload = true;
-                            await ProcessJSONSNodes();
-                            await SaveUploadedJsonInLoop(closeWindow: true, verbose: true, isHistoryJson: false, allowDownloadAgain: true);
+                            if (await ProcessJSONSNodes())
+                            {
+                                await SaveUploadedJsonInLoop(closeWindow: true, verbose: true, isHistoryJson: false, allowDownloadAgain: true);
+                            }
                         }
 
                     }
@@ -1426,8 +1422,10 @@ namespace NSAP_ODK.Views
                         MultiVesselGear_UnloadServerRepository.ResetTotalUploadCounter();
                         VesselUnloadServerRepository.ResetTotalUploadCounter();
                         BatchUpload = true;
-                        await ProcessJSONSNodes();
-                        await SaveUploadedJsonInLoop(closeWindow: true, verbose: true, isHistoryJson: false, allowDownloadAgain: true);
+                        if (await ProcessJSONSNodes())
+                        {
+                            await SaveUploadedJsonInLoop(closeWindow: true, verbose: true, isHistoryJson: false, allowDownloadAgain: true);
+                        }
                     }
                     break;
                 #endregion
