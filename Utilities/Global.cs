@@ -374,6 +374,7 @@ namespace NSAP_ODK.Utilities
                     EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "Sampling day submission" });
                     NSAPEntities.SamplingDaySubmissionViewModel = new SamplingDaySubmissionViewModel();
                     EntityLoaded?.Invoke(null, new EntityLoadedEventArg { Count = NSAPEntities.SamplingDaySubmissionViewModel.Count() });
+
                     //EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "TotalWeightSp" });
                     //NSAPEntities.TotalWtSpViewModel = new TotalWtSpViewModel();
                     //EntityLoaded?.Invoke(null, new EntityLoadedEventArg { Count = NSAPEntities.TotalWtSpViewModel.Count() });

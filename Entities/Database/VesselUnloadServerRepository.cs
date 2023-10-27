@@ -2857,6 +2857,8 @@ namespace NSAP_ODK.Entities.Database
                             bool proceed = false;
                             SamplingDaySubmission sds = null;
                             LandingSiteSampling landingSiteSampling = null;
+
+
                             if (landing.LandingSite != null && landing.FishingGround != null)
                             {
                                 sds = NSAPEntities.SamplingDaySubmissionViewModel.GetSamplingDaySubmission(landing.LandingSite.LandingSiteID, landing.FishingGround.Code, landing.SamplingDate.Date);

@@ -89,11 +89,20 @@ namespace NSAP_ODK.Entities.Database
             SamplingDaySubmission sds = new SamplingDaySubmission
             {
                 SamplingDate = lss.SamplingDate,
-                LandingSiteID = lss.LandingSite.LandingSiteID,
+                //LandingSiteID = lss?.LandingSite.LandingSiteID,
                 FishingGroundID = lss.FishingGround.Code,
                 SamplingDayID = lss.PK,
                 LandingSiteSampling = lss
             };
+            if(lss.LandingSite!=null)
+            {
+                sds.LandingSiteID = lss.LandingSite.LandingSiteID;
+            }
+            else
+            {
+                sds.LandingSiteText=lss.LandingSiteText;
+            }
+
             SamplingDaySubmissionCollection.Add(sds);
             return _editSuccess;
         }

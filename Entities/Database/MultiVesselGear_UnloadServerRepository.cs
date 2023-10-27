@@ -160,7 +160,7 @@ namespace NSAP_ODK.Entities.Database
         public static HashSet<UnmatchedEnumeratorJSONFile> UnmatchedEnumeratorIDs { get; set; } = new HashSet<UnmatchedEnumeratorJSONFile>();
         public static bool UploadToDatabase(List<VesselLanding> resolvedLandings = null, string jsonFileName = "")
         {
-            Utilities.Logger.LogUploadJSONToLocalDB($"start uploading JSON to local db with {MultiVesselLandings.Count} landing days count");
+            //Utilities.Logger.LogUploadJSONToLocalDB($"start uploading JSON to local db with {MultiVesselLandings.Count} landing days count");
             DelayedSave = true;
             bool proceed = false;
             int savedCount = 0;
@@ -203,22 +203,29 @@ namespace NSAP_ODK.Entities.Database
                             {
 
                                 var sds = NSAPEntities.SamplingDaySubmissionViewModel.GetSamplingDaySubmission(
-                                    (int)root.LandingSite.LandingSiteID,
+                                    root.LandingSite.LandingSiteID,
                                     root.FishingGround.Code,
                                     root.SamplingDate.Date);
 
                                 if (sds != null)
                                 {
+                                    if (sds.LandingSiteSampling == null)
+                                    {
+                                        sds.LandingSiteSampling = NSAPEntities.LandingSiteSamplingViewModel.CreateInstance(sds.SamplingDayID);
+                                    }
+                                    lss = sds.LandingSiteSampling;
+
+
                                     var lss_fromm_summary = NSAPEntities.SummaryItemViewModel.GetLandingSiteSampling(sds.SamplingDayID);
                                     if (lss_fromm_summary == null)
                                     {
                                         lss_is_hidden = true;
                                         proceed = false;
                                     }
-                                    else
-                                    {
-                                        lss = lss_fromm_summary;
-                                    }
+                                    //else
+                                    //{
+                                    //    lss = lss_fromm_summary;
+                                    //}
                                 }
                             }
                             catch (Exception ex)
@@ -310,7 +317,7 @@ namespace NSAP_ODK.Entities.Database
                         }
 
                         LandingSiteSamplingSubmission lsss = null;
-                        if (proceed)
+                        if (proceed && !lss_is_hidden)
                         {
                             lsss = new LandingSiteSamplingSubmission
                             {
