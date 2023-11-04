@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
 using DocumentFormat.OpenXml.Bibliography;
+using NSAP_ODK.Utilities;
 
 namespace NSAP_ODK.Entities.Database
 {
@@ -247,40 +248,47 @@ namespace NSAP_ODK.Entities.Database
             int start = 0;
             string searchstring = json;
             int newlineindex = json.IndexOf(Environment.NewLine);
-            if (newlineindex > 0 && newlineindex < json.Length)
+            try
             {
-                search = "\"intronote\": \"Version ";
-                var lines = json.Split('\n');
-                foreach (var item in lines)
+                if (newlineindex > 0 && newlineindex < json.Length)
                 {
-                    if (item.Contains(search))
+                    search = "\"intronote\": \"Version ";
+                    var lines = json.Split('\n');
+                    foreach (var item in lines)
                     {
-                        start = item.IndexOf(search) + search.Length;
-                        searchstring = item;
-                        break;
+                        if (item.Contains(search))
+                        {
+                            start = item.IndexOf(search) + search.Length;
+                            searchstring = item;
+                            break;
+                        }
                     }
                 }
-            }
-
-            else
-            {
-
-                start = json.IndexOf(search) + search.Length;
-            }
-            bool isnumeric = true;
-            int x = 0;
-            do
-            {
-                char c = searchstring[start + x];
-                isnumeric = c >= '0' && c <= '9' || c == '.';
-                if (isnumeric)
+                else
                 {
-                    r += c;
-                    x++;
 
+                    start = json.IndexOf(search) + search.Length;
                 }
 
-            } while (isnumeric);
+                bool isnumeric = true;
+                int x = 0;
+                do
+                {
+                    char c = searchstring[start + x];
+                    isnumeric = c >= '0' && c <= '9' || c == '.';
+                    if (isnumeric)
+                    {
+                        r += c;
+                        x++;
+
+                    }
+
+                } while (isnumeric);
+            }
+            catch(Exception ex)
+            {
+                Logger.Log(ex);
+            }
 
             return r;
         }

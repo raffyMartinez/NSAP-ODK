@@ -504,6 +504,7 @@ namespace NSAP_ODK.Views
                 case "ButtonDownload":
                     #region ButtonDownload
                     bool proceed = true;
+                    bool is_optimized_multivessel_submission = false;// json.Contains("G_lss/sampling_date");
 
                     int defaultDLSize = Utilities.Settings.DefaultDownloadSizeForBatchMode;
                     if (Global.Settings.DownloadSizeForBatchMode != null)
@@ -694,7 +695,8 @@ namespace NSAP_ODK.Views
                                                     break;
                                                 case "all_not_downloaded":
                                                     //string lastSubmissionDate = (((DateTime)_lastSubmittedDate)).Date.ToString("yyyy-MM-ddTHH:mm:ss");
-                                                    string lastSubmissionDate = (((DateTime)_lastSubmittedDate).Add(new TimeSpan(1, 0, 0))).ToString("yyyy-MM-ddTHH:mm:ss");
+                                                    //string lastSubmissionDate = (((DateTime)_lastSubmittedDate).Add(new TimeSpan(0, 0, 1))).ToString("yyyy-MM-ddTHH:mm:ss");
+                                                    string lastSubmissionDate = (((DateTime)_lastSubmittedDate).Subtract(new TimeSpan(12, 0, 0))).ToString("yyyy-MM-ddTHH:mm:ss");
                                                     //lastSubmissionDate = (((DateTime)_lastSubmittedDate)).Add(new TimeSpan(6,0,0)).ToString("yyyy-MM-ddTHH:mm:ss");
                                                     api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_submission_time\":{{\"$gte\":\"{lastSubmissionDate}\"}}}}";
                                                     break;
@@ -810,25 +812,49 @@ namespace NSAP_ODK.Views
                                                                 json = the_response.ToString();
                                                             }
 
-                                                            //((ODKResultsWindow)Owner).JSON = json;
-                                                            ((ODKResultsWindow)Owner).JSONFromServer(json, isMultivessel: _formSummary.IsMultiVessel);
+                                                            is_optimized_multivessel_submission = json.Contains("G_lss/sampling_date");
+
+                                                            ((ODKResultsWindow)Owner).JSONFromServer(json,
+                                                                isMultivessel: _formSummary.IsMultiVessel,
+                                                                is_optimized: is_optimized_multivessel_submission);
 
                                                             if (_formSummary.IsMultiVessel)
                                                             {
-                                                                MultiVesselGear_UnloadServerRepository.JSON = json;
-                                                                if (_jsonOption == "predownload_sampling_count")
+                                                                if (is_optimized_multivessel_submission)
                                                                 {
-                                                                    MultiVesselGear_UnloadServerRepository.CreateLandingCountsFromJSON();
-                                                                    _totalCountSampledLandings = MultiVesselGear_UnloadServerRepository.ListOfLandingsCount.Sum(t => t.CountSampledLandings);
-                                                                    MessageBox.Show($"There are {_totalCountSampledLandings} sampled fish landings available for download from the server",
-                                                                        Global.MessageBoxCaption,
-                                                                        MessageBoxButton.OK,
-                                                                        MessageBoxImage.Information);
-                                                                    return;
+                                                                    MultiVessel_Optimized_UnloadServerRepository.JSON = json;
+                                                                    if (_jsonOption == "predownload_sampling_count")
+                                                                    {
+                                                                        MultiVessel_Optimized_UnloadServerRepository.CreateLandingCountsFromJSON();
+                                                                        _totalCountSampledLandings = MultiVessel_Optimized_UnloadServerRepository.ListOfLandingsCount.Sum(t => t.CountSampledLandings);
+                                                                        MessageBox.Show($"There are {_totalCountSampledLandings} sampled fish landings available for download from the server",
+                                                                            Global.MessageBoxCaption,
+                                                                            MessageBoxButton.OK,
+                                                                            MessageBoxImage.Information);
+                                                                        return;
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        MultiVessel_Optimized_UnloadServerRepository.CreateLandingsFromJSON();
+                                                                    }
                                                                 }
                                                                 else
                                                                 {
-                                                                    MultiVesselGear_UnloadServerRepository.CreateLandingsFromJSON();
+                                                                    MultiVesselGear_UnloadServerRepository.JSON = json;
+                                                                    if (_jsonOption == "predownload_sampling_count")
+                                                                    {
+                                                                        MultiVesselGear_UnloadServerRepository.CreateLandingCountsFromJSON();
+                                                                        _totalCountSampledLandings = MultiVesselGear_UnloadServerRepository.ListOfLandingsCount.Sum(t => t.CountSampledLandings);
+                                                                        MessageBox.Show($"There are {_totalCountSampledLandings} sampled fish landings available for download from the server",
+                                                                            Global.MessageBoxCaption,
+                                                                            MessageBoxButton.OK,
+                                                                            MessageBoxImage.Information);
+                                                                        return;
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        MultiVesselGear_UnloadServerRepository.CreateLandingsFromJSON();
+                                                                    }
                                                                 }
                                                             }
                                                             else
@@ -858,7 +884,14 @@ namespace NSAP_ODK.Views
                                                         case ODKServerDownload.ServerDownloadVesselUnload:
                                                             if (_formSummary.IsMultiVessel)
                                                             {
-                                                                _parentWindow.MultiVesselMainSheets = MultiVesselGear_UnloadServerRepository.SampledVesselLandings;
+                                                                if (is_optimized_multivessel_submission)
+                                                                {
+                                                                    _parentWindow.MultiVesselOptimizedMainSheets = MultiVessel_Optimized_UnloadServerRepository.SampledVesselLandings;
+                                                                }
+                                                                else
+                                                                {
+                                                                    _parentWindow.MultiVesselMainSheets = MultiVesselGear_UnloadServerRepository.SampledVesselLandings;
+                                                                }
                                                             }
                                                             else
                                                             {

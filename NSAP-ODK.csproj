@@ -210,6 +210,7 @@
     <Compile Include="Entities\Database\LandingSite_FishingVessel.cs" />
     <Compile Include="Entities\Database\LandingSite_FishingVesselViewModel.cs" />
     <Compile Include="Entities\Database\LandingSite_FishingVessel_Repository.cs" />
+    <Compile Include="Entities\Database\MultiVessel_Optimized_UnloadServerRepository.cs" />
     <Compile Include="Entities\Database\ObjectDataHolder_KeyValuePair.cs" />
     <Compile Include="Entities\Database\ProcessingItemsEventArg.cs" />
     <Compile Include="Entities\Database\GearAtLandingSiteDaysPerMonth.cs" />

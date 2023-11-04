@@ -598,6 +598,12 @@ namespace NSAP_ODK.Entities
             }
             catch { return null; }
         }
+
+        public NSAPRegion GetNSAPRegionFromMultiVesselLanding(MultiVessel_Optimized_Root landing)
+        {
+            CurrentEntity = landing.NSAPRegion;
+            return CurrentEntity;
+        }
         public NSAPRegion GetNSAPRegionFromMultiVesselLanding(MultiVesselGear_Root landing)
         {
             CurrentEntity = landing.NSAPRegion;

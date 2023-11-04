@@ -178,7 +178,17 @@ namespace NSAP_ODK.Entities.Database
 
         public int Count
         {
-            get { return GearSoakCollection.Count; }
+            get
+            {
+                if (GearSoakCollection == null)
+                {
+                    return 0;
+                }
+                else
+                {
+                    return GearSoakCollection.Count;
+                }
+            }
         }
 
         public bool AddRecordToRepo(GearSoak item)

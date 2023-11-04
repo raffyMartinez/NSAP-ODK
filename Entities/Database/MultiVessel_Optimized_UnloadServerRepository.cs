@@ -10,57 +10,8 @@ using System.Threading.Tasks;
 
 namespace NSAP_ODK.Entities.Database
 {
-    public class CountLandings
+    public static class MultiVessel_Optimized_UnloadServerRepository
     {
-        [JsonProperty("_id")]
-        public int LandingsId { get; set; }
-        [JsonProperty("today")]
-        public string Today { get; set; }
-
-        public DateTime UploadDate { get { return DateTime.Parse(Today); } }
-
-        [JsonProperty("landing_site_sampling_group/count_sampled_landings")]
-        public int CountSampledLandings { get; set; }
-    }
-
-    public class MultiVesselGear_GearAndWeight
-    {
-        //[JsonProperty("repeat_landings/group_sampled_landing/repeat_catch_wt_gear/selected_gear_wt")]
-        //public string repeat_landingsgroup_sampled_landingrepeat_catch_wt_gearselected_gear_wt { get; set; }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/repeat_catch_wt_gear/selected_gear_wt_name")]
-        public string GearName { get; set; }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/repeat_catch_wt_gear/group_gear_used/weight_catch_gear")]
-        public double WeightOfCatch { get; set; }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/repeat_catch_wt_gear/group_gear_used/sample_wt_gr")]
-        public double? WeightOfSample { get; set; }
-    }
-    public static class MultiVesselGear_UnloadServerRepository
-    {
-        //public static void ResetLists(bool includeJSON = false)
-        //{
-        //    _listGridBingoCoordinates = null;
-        //    _listGearEfforts = null;
-        //    _listGearSoakTimes = null;
-        //    _listCatchComps = null;
-        //    _listLenFreqs = null;
-        //    _listGMS = null;
-        //    _listLenWts = null;
-        //    _listLengths = null;
-
-        //    DuplicatedLenFreq = new List<CatchCompGroupCatchCompositionRepeatLengthFreqRepeat>();
-        //    DuplicatedCatchComposition = new List<CatchCompGroupCatchCompositionRepeat>();
-        //    DuplicatedEffortSpec = new List<EffortSpecSingleGear>();
-
-        //    if (includeJSON)
-        //    {
-        //        JSON = "";
-        //        VesselLandings = null;
-        //    }
-
-        //}
 
         public static event EventHandler<UploadToDbEventArg> UploadSubmissionToDB;
         private static HashSet<string> _undetectedGears = new HashSet<string>();
@@ -69,12 +20,12 @@ namespace NSAP_ODK.Entities.Database
             return Task.Run(() => UploadToDatabase(jsonFileName: jsonFileName));
         }
 
-        public static List<MultiVesselGear_SampledLanding> SampledVesselLandings
+        public static List<MultiVessel_Optimized_SampledLanding> SampledVesselLandings
         {
             get
             {
-                List<MultiVesselGear_SampledLanding> sampledLandings = new List<MultiVesselGear_SampledLanding>();
-                foreach (MultiVesselGear_Root root in MultiVesselLandings)
+                List<MultiVessel_Optimized_SampledLanding> sampledLandings = new List<MultiVessel_Optimized_SampledLanding>();
+                foreach (MultiVessel_Optimized_Root root in MultiVesselLandings)
                 {
                     if (root.SampledFishLandingsEx != null)
                     {
@@ -114,28 +65,18 @@ namespace NSAP_ODK.Entities.Database
         public static void ResetGroupIDs(bool delayedSave = false)
         {
             NSAPEntities.SummaryItemViewModel.RefreshLastPrimaryLeys(delayedSave);
-            //SoakTimeGroupSoaktimeTrackingGroupSoakTimeRepeat.SetRowIDs();
-            //GridCoordGroupBingoRepeat.SetRowIDs();
-            //EffortSpecSingleGear.SetRowIDs();
-            //MultiGearEffortSpec.SetRowIDs();
-            //VesselSamplingRepeatGear.SetRowIDs();
-            //CatchCompGroupCatchCompositionRepeat.SetRowIDs();
-            //CatchCompGroupCatchCompositionRepeatLenWtRepeat.SetRowIDs();
-            //CatchCompGroupCatchCompositionRepeatLengthListRepeat.SetRowIDs();
-            //CatchCompGroupCatchCompositionRepeatLengthFreqRepeat.SetRowIDs();
-            //CatchCompGroupCatchCompositionRepeatGmsRepeatGroup.SetRowIDs();
-            MultiVesselGear_Root.SetRowIDs();
-            MultiVesselGear_Gear.SetRowIDs();
-            MultiVesselGear_SampledLanding.SetRowIDs();
-            MultiVesselGear_LandingGear.SetRowIDs();
-            MultiVesselGear_GearEffortDetail.SetRowIDs();
-            MultiVesselGear_FishingGrid.SetRowIDs();
-            MultiVesselGear_SoakTime.SetRowIDs();
-            MultiVesselGear_CatchCompositionItem.SetRowIDs();
-            MultiVesselGear_CatchGMS.SetRowIDs();
-            MultiVesselGear_CatchLenFreq.SetRowIDs();
-            MultiVesselGear_CatchLength.SetRowIDs();
-            MultiVesselGear_CatchLenWt.SetRowIDs();
+            MultiVessel_Optimized_Root.SetRowIDs();
+            MultiVessel_Optimized_Gear.SetRowIDs();
+            MultiVessel_Optimized_SampledLanding.SetRowIDs();
+            MultiVessel_Optimized_LandingGear.SetRowIDs();
+            MultiVessel_Optimized_GearEffortDetail.SetRowIDs();
+            MultiVessel_Optimized_FishingGrid.SetRowIDs();
+            MultiVessel_Optimized_SoakTime.SetRowIDs();
+            MultiVessel_Optimized_CatchCompositionItem.SetRowIDs();
+            MultiVessel_Optimized_CatchGMS.SetRowIDs();
+            MultiVessel_Optimized_CatchLenFreq.SetRowIDs();
+            MultiVessel_Optimized_CatchLenght.SetRowIDs();
+            MultiVessel_Optimized_CatchLenWt.SetRowIDs();
         }
 
         public static int LandingSiteSamplingProcessedCount { get; set; }
@@ -176,7 +117,7 @@ namespace NSAP_ODK.Entities.Database
                 LandingSiteSamplingViewModel.CurrentIDNumber = maxID;
             }
 
-            foreach (MultiVesselGear_Root root in MultiVesselLandings)
+            foreach (MultiVessel_Optimized_Root root in MultiVesselLandings)
             {
                 try
                 {
@@ -355,7 +296,7 @@ namespace NSAP_ODK.Entities.Database
                             if (proceed && root.AreThereLandings)
                             {
                                 GearUnload gu;
-                                foreach (MultiVesselGear_Gear gear in root.GearsInLandingSite)
+                                foreach (MultiVessel_Optimized_Gear gear in root.GearsInLandingSite)
                                 {
                                     gu = lss.GearUnloadViewModel.GetGearUnloadEx(gear.GearName);
                                     if (gu == null)
@@ -410,7 +351,7 @@ namespace NSAP_ODK.Entities.Database
                                             if (root.SampledFishLandings != null && root.SampledFishLandings.Count > 0)
                                             {
 
-                                                foreach (MultiVesselGear_SampledLanding sl in root.SampledFishLandings.Where(t => t.Main_gear_used == gu.Sequence).ToList())
+                                                foreach (MultiVessel_Optimized_SampledLanding sl in root.SampledFishLandings.Where(t => t.Main_gear_used == gu.Sequence).ToList())
                                                 {
                                                     //SummaryItem si_vu = NSAPEntities.SummaryItemViewModel.GetVesselUnload(lss.PK, sl.Reference_number);
                                                     //if (si_vu == null)
@@ -447,7 +388,8 @@ namespace NSAP_ODK.Entities.Database
                                                         DateAddedToDatabase = DateTime.Now,
                                                         FormVersion = sl.Parent.FormVersion == -1 ? "" : sl.Parent.FormVersion.ToString(),
                                                         XFormIdentifier = sl.Parent._xform_id_string,
-                                                        NumberOfSpeciesInCatchComposition = sl.NumberSpeciesInCatchComposition,
+                                                        //NumberOfSpeciesInCatchComposition = sl.NumberSpeciesInCatchComposition,
+                                                        NumberOfSpeciesInCatchComposition = null,
                                                         IncludeEffortIndicators = sl.IncludeEffort,
                                                         LandingSiteSamplingSubmissionID = lsss.SubmissionID
                                                     };
@@ -463,7 +405,7 @@ namespace NSAP_ODK.Entities.Database
                                                             {
                                                                 vu.FishingGroundGridViewModel = new FishingGroundGridViewModel(isNew: true);
                                                             }
-                                                            foreach (MultiVesselGear_FishingGrid mvg_fg in sl.FishingGrids)
+                                                            foreach (MultiVessel_Optimized_FishingGrid mvg_fg in sl.FishingGrids)
                                                             {
                                                                 if (!string.IsNullOrEmpty(sl.UTMZone) && !string.IsNullOrEmpty(mvg_fg.GridNameComplete))
                                                                 {
@@ -492,7 +434,7 @@ namespace NSAP_ODK.Entities.Database
                                                             {
                                                                 vu.GearSoakViewModel = new GearSoakViewModel(isNew: true);
                                                             }
-                                                            foreach (MultiVesselGear_SoakTime mvg_st in sl.GearSoakTimes)
+                                                            foreach (MultiVessel_Optimized_SoakTime mvg_st in sl.GearSoakTimes)
                                                             {
                                                                 GearSoak gs = new GearSoak
                                                                 {
@@ -519,7 +461,7 @@ namespace NSAP_ODK.Entities.Database
                                                         }
                                                         List<string> gearList = sl.GearsUsedInSampledLanding.Split(' ').ToList();
                                                         int countSavedInLoop = 0;
-                                                        foreach (MultiVesselGear_LandingGear mvg_lg in sl.SampledLandingGears)
+                                                        foreach (MultiVessel_Optimized_LandingGear mvg_lg in sl.SampledLandingGears)
                                                         {
                                                             VesselUnload_FishingGear vufg = new VesselUnload_FishingGear
                                                             {
@@ -541,10 +483,10 @@ namespace NSAP_ODK.Entities.Database
                                                                 {
                                                                     if (sl.IncludeEffort)
                                                                     {
-                                                                        MultiVesselGear_GearEffort mvg_ge = sl.GearEfforts.FirstOrDefault(t => t.SelectedGearName == vufg.GearUsedName);
+                                                                        MultiVessel_Optimized_GearEffort mvg_ge = sl.GearEfforts.FirstOrDefault(t => t.SelectedGearName == vufg.GearUsedName);
                                                                         if (mvg_ge != null && mvg_ge.GearEffortDetails != null)
                                                                         {
-                                                                            foreach (MultiVesselGear_GearEffortDetail mvg_ged in mvg_ge.GearEffortDetails)
+                                                                            foreach (MultiVessel_Optimized_GearEffortDetail mvg_ged in mvg_ge.GearEffortDetails)
                                                                             {
                                                                                 VesselUnload_Gear_Spec vugs = new VesselUnload_Gear_Spec
                                                                                 {
@@ -604,14 +546,16 @@ namespace NSAP_ODK.Entities.Database
                                                                         vufg.WeightOfSample = item.WeightOfSample;
                                                                         vu.VesselUnload_FishingGearsViewModel.UpdateRecordInRepo(vufg, update_wt_ct: true);
 
-                                                                        foreach (MultiVesselGear_CatchCompositionItem mvg_cci in item.CatchCompositionItems)
+                                                                        foreach (MultiVessel_Optimized_CatchCompositionItem mvg_cci in item.CatchCompositionItems)
                                                                         {
                                                                             VesselCatch vc = new VesselCatch
                                                                             {
                                                                                 PK = VesselCatchViewModel.CurrentIDNumber + 1,
                                                                                 ParentFishingGear = vufg,
-                                                                                GearCode = mvg_cci.CodeOfGearUsedForCatching == "_OT" ? "" : mvg_cci.CodeOfGearUsedForCatching,
-                                                                                GearText = mvg_cci.GearUsedForCatching == null ? mvg_cci.NameOfGearUsedForCatching : "",
+                                                                                //GearCode = mvg_cci.CodeOfGearUsedForCatching == "_OT" ? "" : mvg_cci.CodeOfGearUsedForCatching,
+                                                                                //GearText = mvg_cci.GearUsedForCatching == null ? mvg_cci.NameOfGearUsedForCatching : "",
+                                                                                GearCode = "",
+                                                                                GearText = "",
                                                                                 DelayedSave = DelayedSave,
 
                                                                                 SpeciesID = mvg_cci.SpeciesID,
@@ -641,7 +585,7 @@ namespace NSAP_ODK.Entities.Database
                                                                                         {
                                                                                             vc.CatchMaturityViewModel = new CatchMaturityViewModel(isNew: true);
                                                                                         }
-                                                                                        foreach (MultiVesselGear_CatchGMS mvg_cgms in mvg_cci.CatchGMSes)
+                                                                                        foreach (MultiVessel_Optimized_CatchGMS mvg_cgms in mvg_cci.CatchGMSes)
                                                                                         {
                                                                                             CatchMaturity cm = new CatchMaturity
                                                                                             {
@@ -670,7 +614,7 @@ namespace NSAP_ODK.Entities.Database
                                                                                         {
                                                                                             vc.CatchLenFreqViewModel = new CatchLenFreqViewModel(isNew: true);
                                                                                         }
-                                                                                        foreach (MultiVesselGear_CatchLenFreq mvg_clf in mvg_cci.CatchLenFreqs)
+                                                                                        foreach (MultiVessel_Optimized_CatchLenFreq mvg_clf in mvg_cci.CatchLenFreqs)
                                                                                         {
                                                                                             CatchLenFreq lf = new CatchLenFreq
                                                                                             {
@@ -678,7 +622,8 @@ namespace NSAP_ODK.Entities.Database
                                                                                                 PK = CatchLenFreqViewModel.CurrentIDNumber + 1,
                                                                                                 LengthClass = mvg_clf.LengthClass,
                                                                                                 Frequency = mvg_clf.Frequency,
-                                                                                                DelayedSave = DelayedSave
+                                                                                                DelayedSave = DelayedSave,
+                                                                                                Sex = mvg_clf.Sex
                                                                                             };
                                                                                             if (vc.CatchLenFreqViewModel.AddRecordToRepo(lf))
                                                                                             {
@@ -695,14 +640,15 @@ namespace NSAP_ODK.Entities.Database
                                                                                         {
                                                                                             vc.CatchLengthViewModel = new CatchLengthViewModel(isNew: true);
                                                                                         }
-                                                                                        foreach (MultiVesselGear_CatchLength mv_cl in mvg_cci.CatchLengths)
+                                                                                        foreach (MultiVessel_Optimized_CatchLenght mv_cl in mvg_cci.CatchLengths)
                                                                                         {
                                                                                             CatchLength len = new CatchLength
                                                                                             {
                                                                                                 Parent = vc,
                                                                                                 PK = CatchLengthViewModel.CurrentIDNumber + 1,
                                                                                                 Length = mv_cl.Length,
-                                                                                                DelayedSave = DelayedSave
+                                                                                                DelayedSave = DelayedSave,
+                                                                                                Sex = mv_cl.Sex
                                                                                             };
 
                                                                                             if (vc.CatchLengthViewModel.AddRecordToRepo(len))
@@ -720,7 +666,7 @@ namespace NSAP_ODK.Entities.Database
                                                                                         {
                                                                                             vc.CatchLengthWeightViewModel = new CatchLengthWeightViewModel(isNew: true);
                                                                                         }
-                                                                                        foreach (MultiVesselGear_CatchLenWt mvg_clw in mvg_cci.CatchLengthWeights)
+                                                                                        foreach (MultiVessel_Optimized_CatchLenWt mvg_clw in mvg_cci.CatchLengthWeights)
                                                                                         {
                                                                                             CatchLengthWeight lw = new CatchLengthWeight
                                                                                             {
@@ -728,7 +674,8 @@ namespace NSAP_ODK.Entities.Database
                                                                                                 PK = CatchLengthWeightViewModel.CurrentIDNumber + 1,
                                                                                                 Length = mvg_clw.Length,
                                                                                                 Weight = mvg_clw.Weight,
-                                                                                                DelayedSave = DelayedSave
+                                                                                                DelayedSave = DelayedSave,
+                                                                                                Sex = mvg_clw.Sex
                                                                                             };
 
                                                                                             if (vc.CatchLengthWeightViewModel.AddRecordToRepo(lw))
@@ -851,13 +798,13 @@ namespace NSAP_ODK.Entities.Database
         public static bool CancelUpload { get; set; }
         public static bool DelayedSave { get; set; }
         public static string JSON { get; set; }
-        public static List<MultiVesselGear_Root> MultiVesselLandings { get; internal set; }
-        public static List<CountLandings> ListOfLandingsCount { get; internal set; }
+        public static List<MultiVessel_Optimized_Root> MultiVesselLandings { get; internal set; }
+        public static List<CountLandings_Optimized> ListOfLandingsCount { get; internal set; }
         public static void CreateLandingCountsFromJSON()
         {
             try
             {
-                ListOfLandingsCount = JsonConvert.DeserializeObject<List<CountLandings>>(JSON);
+                ListOfLandingsCount = JsonConvert.DeserializeObject<List<CountLandings_Optimized>>(JSON);
             }
             catch (Exception ex)
             {
@@ -872,7 +819,7 @@ namespace NSAP_ODK.Entities.Database
             //MultiVesselGear_SampledLanding.SetRowIDs();
             try
             {
-                MultiVesselLandings = JsonConvert.DeserializeObject<List<MultiVesselGear_Root>>(JSON);
+                MultiVesselLandings = JsonConvert.DeserializeObject<List<MultiVessel_Optimized_Root>>(JSON);
             }
             catch (Exception ex)
             {
@@ -881,9 +828,9 @@ namespace NSAP_ODK.Entities.Database
         }
     }
 
-    public class MultiVesselGear_LandingGear
+    public class MultiVessel_Optimized_LandingGear
     {
-        private MultiVesselGear_SampledLanding _parent;
+        private MultiVessel_Optimized_SampledLanding _parent;
         private static int _pk;
         private int _rowID;
 
@@ -905,7 +852,7 @@ namespace NSAP_ODK.Entities.Database
 
             RowIDSet = true;
         }
-        public MultiVesselGear_SampledLanding Parent
+        public MultiVessel_Optimized_SampledLanding Parent
         {
             get { return _parent; }
             set { _parent = value; }
@@ -967,9 +914,21 @@ namespace NSAP_ODK.Entities.Database
             }
         }
     }
-    public class MultiVesselGear_Gear
+    public class CountLandings_Optimized
     {
-        private MultiVesselGear_Root _parent;
+        [JsonProperty("_id")]
+        public int LandingsId { get; set; }
+        [JsonProperty("today")]
+        public string Today { get; set; }
+
+        public DateTime UploadDate { get { return DateTime.Parse(Today); } }
+
+        [JsonProperty("G_lss/count_sampled_landings")]
+        public int CountSampledLandings { get; set; }
+    }
+    public class MultiVessel_Optimized_Gear
+    {
+        private MultiVessel_Optimized_Root _parent;
         private static int _pk;
         private int _rowID;
         //private MultiVesselGear_SampledLanding _parent;
@@ -982,18 +941,8 @@ namespace NSAP_ODK.Entities.Database
         public static void SetRowIDs()
         {
 
-            //if (NSAPEntities.FishingGroundGridViewModel.FishingGroundGridCollection.Count == 0)
-            //{
-            //    _pk = 0;
-            //}
-            //else
-            //{
-            //    _pk = NSAPEntities.FishingGroundGridViewModel.NextRecordNumber - 1;
-            //}
-
             _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastGearUnloadPK;
             GearUnloadViewModel.CurrentIDNumber = _pk;
-            //}
             RowIDSet = true;
         }
 
@@ -1017,20 +966,24 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-        public MultiVesselGear_Root Parent
+        public MultiVessel_Optimized_Root Parent
         {
             get { return _parent; }
             set { _parent = value; }
         }
-        [JsonProperty("repeat_gears/count_loop")]
+
+        [JsonProperty("R_g/count_loop")]
         public int GearLoopCounter { get; set; }
 
-        //[JsonProperty("repeat_gears/group_gear/position_indicator")]
-        //public string repeat_gearsgroup_gearposition_indicator { get; set; }
+        [JsonProperty("R_g/G_g/position_indicator")]
+        public string position_indicator { get; set; }
 
-        [JsonProperty("repeat_gears/group_gear/select_gear")]
+        [JsonProperty("R_g/G_g/select_gear")]
+
         public string Will_select_gear { get; set; }
 
+        [JsonProperty("R_g/G_g/gear_remarks")]
+        public string GearRemarks { get; set; }
         public bool WillSelectGear
         {
             get
@@ -1039,75 +992,94 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-        [JsonProperty("repeat_gears/group_gear/gear_used")]
+        [JsonProperty("R_g/G_g/gear_used")]
         public string GearSelected { get; set; }
 
-        [JsonProperty("repeat_gears/group_gear/gear_used_text")]
+        [JsonProperty("R_g/G_g/gear_used_text")]
         public string GearUsedText { get; set; }
 
-        [JsonProperty("repeat_gears/group_gear/know_landing_count_gear")]
+        [JsonProperty("R_g/G_g/know_landing_count_gear")]
         public string CountOfLandingsOfGearKnown { get; set; }
 
         public bool IsCountOfLandingsOfGearKnown { get { return CountOfLandingsOfGearKnown == "yes"; } }
 
-        [JsonProperty("repeat_gears/group_gear/count_landings_of_gear")]
-        public int? NumberOfLandingsOfGear { get; set; }
 
-        [JsonProperty("repeat_gears/group_gear/count_landings_of_gear_c")]
-        public int NumberOfLandingsCommercial { get; set; }
+        [JsonProperty("R_g/G_g/know_count_flag")]
+        public string know_count_flag { get; set; }
 
-        [JsonProperty("repeat_gears/group_gear/count_landings_of_gear_m")]
+        [JsonProperty("R_g/G_g/count_landings_of_gear_m")]
         public int NumberOfLandingsMunicipal { get; set; }
 
-        [JsonProperty("repeat_gears/group_gear/catch_of_gear_c")]
-        public double? WeightOfCatchCommercial { get; set; }
-        [JsonProperty("repeat_gears/group_gear/catch_of_gear_m")]
+        [JsonProperty("R_g/G_g/count_landings_of_gear_c")]
+        public int NumberOfLandingsCommercial { get; set; }
+
+        [JsonProperty("R_g/G_g/count_landings_of_gear")]
+        public int? NumberOfLandingsOfGear { get; set; }
+
+        [JsonProperty("R_g/G_g/gear_total_count_landings")]
+        public string gear_total_count_landings { get; set; }
+
+        [JsonProperty("R_g/G_g/catch_of_gear_m")]
         public double? WeightOfCatchMunicipal { get; set; }
 
-        [JsonProperty("repeat_gears/group_gear/catch_of_gear")]
-        public double? WeightOfCatchOfGear { get; set; }
+        [JsonProperty("R_g/G_g/total_catch_of_gear")]
+        public string total_catch_of_gear { get; set; }
 
-
-
-        [JsonProperty("repeat_gears/group_gear/repeat_gear_code")]
+        [JsonProperty("R_g/G_g/repeat_gear_code")]
         public string GearCode { get; set; }
 
-        [JsonProperty("repeat_gears/group_gear/repeat_gear_name")]
+        [JsonProperty("R_g/G_g/repeat_gear_name")]
         public string GearName { get; set; }
 
-        [JsonProperty("repeat_gears/group_gear/gear_remarks")]
-        public string GearRemarks { get; set; }
+        [JsonProperty("R_g/G_g/choices_so_far")]
+        public string choices_so_far { get; set; }
 
-        //[JsonProperty("repeat_gears/group_gear/repeat_position")]
-        //public string repeat_gearsgroup_gearrepeat_position { get; set; }
+        [JsonProperty("R_g/G_g/group_title")]
+        public string group_title { get; set; }
 
-        //[JsonProperty("repeat_gears/group_gear/choices_so_far")]
-        //public string repeat_gearsgroup_gearchoices_so_far { get; set; }
+        [JsonProperty("R_g/G_g/catch_of_gear_c")]
+        public double? WeightOfCatchCommercial { get; set; }
+
+        [JsonProperty("R_g/G_g/catch_of_gear")]
+        public double? WeightOfCatchOfGear { get; set; }
+
+        //[JsonProperty("R_g/G_g/gear_remarks")]
+        //public string gear_remarks { get; set; }
     }
 
-    public class MultiVesselGear_SampledLanding
+    public class MultiVessel_Optimized_SampledLanding
     {
         private bool? _isSaved;
         private static int _pk;
         private int _rowid;
-        private MultiVesselGear_Root _parent;
-        private List<MultiVesselGear_GearEffort> _gearEfforts;
-        private List<MultiVesselGear_LandingGear> _landingGears;
-        private List<MultiVesselGear_CatchCompositionItem> _catchCompositionItems;
-        private List<MultiVesselGear_GearCatchComposition> _gearCatchCompositionItems;
-        private List<MultiVesselGear_GearAndWeight> _landingGearsWithWeight;
+        private MultiVessel_Optimized_Root _parent;
+        private List<MultiVessel_Optimized_GearEffort> _gearEfforts;
+        private List<MultiVessel_Optimized_LandingGear> _landingGears;
+        private List<MultiVessel_Optimized_CatchCompositionItem> _catchCompositionItems;
+        private List<MultiVessel_Optimized_GearCatchComposition> _gearCatchCompositionItems;
+        private List<MultiVessel_Optimized_GearAndWeight> _landingGearsWithWeight;
 
-        private List<MultiVesselGear_FishingGrid> _fishingGrids;
+        private List<MultiVessel_Optimized_FishingGrid> _fishingGrids;
 
-        private List<MultiVesselGear_SoakTime> _gearSoakTimes;
+        private List<MultiVessel_Optimized_SoakTime> _gearSoakTimes;
         private readonly object collectionLock = new object();
         private SummaryItem _savedVesselUnloadObject;
         private string _gearsUsedInSampledLanding;
 
-
-
-        [JsonProperty("repeat_landings/group_sampled_landing/repeat_catch_wt_gear")]
-        public List<MultiVesselGear_GearAndWeight> LandingGearsWithWeight { get; set; }
+        public int NumberOfGearsUsedInSampledLanding
+        {
+            get
+            {
+                if (GearsUsedInSampledLanding == null)
+                {
+                    return 0;
+                }
+                else
+                {
+                    return GearsUsedInSampledLanding.Split(' ').Length;
+                }
+            }
+        }
         private SummaryItem SavedVesselUnloadObject
         {
             get
@@ -1184,8 +1156,6 @@ namespace NSAP_ODK.Entities.Database
                         {
                             _rowid = (int)SavedVesselUnloadObject.VesselUnloadID;
                             _savedVesselUnloadObject = SavedVesselUnloadObject;
-                            //_savedVesselUnloadObject = SavedVesselUnloadObject;
-                            //_rowid = _savedVesselUnloadObject.VesselUnloadID;
                         }
                     }
                     else
@@ -1213,157 +1183,62 @@ namespace NSAP_ODK.Entities.Database
 
         public static void SetRowIDs()
         {
-            //if (NSAPEntities.SummaryItemViewModel.Count == 0)
-            //{
-            //    _pk = 0;
-            //}
-            //else
-            //{
-            //    if (!RowIDSet)
-            //    {
             _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastVesselUnloadPK;
-            //    }
-            //    else
-            //    {
-            //        _pk = NSAPEntities.SummaryItemViewModel.GetVesselUnloadMaxRecordNumber();
-            //    }
             VesselUnloadViewModel.CurrentIDNumber = _pk;
-            //}
             RowIDSet = true;
         }
-        public MultiVesselGear_Root Parent
+        public MultiVessel_Optimized_Root Parent
         {
             get { return _parent; }
             set { _parent = value; }
         }
-        [JsonProperty("repeat_landings/group_sampled_landing/efforts_group/repeat_gear_effort")]
-        public List<MultiVesselGear_GearEffort> GearEfforts
-        {
-            get { return _gearEfforts; }
-            set
-            {
-                _gearEfforts = value;
-                foreach (var item in _gearEfforts)
-                {
-                    item.Parent = this;
-                }
-            }
-        }
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group")]
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition")]
-        public List<MultiVesselGear_GearCatchComposition> GearCatchCompositionItems
-        {
-            get { return _gearCatchCompositionItems; }
-            set
-            {
-                _gearCatchCompositionItems = value;
-                foreach (var item in _gearCatchCompositionItems)
-                {
-                    item.Parent = this;
-                }
-            }
-        }
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat")]
-        //public List<MultiVesselGear_CatchCompositionItem> CatchCompositionItems
-        //{
-        //    get { return _catchCompositionItems; }
-        //    set
-        //    {
-        //        _catchCompositionItems = value;
-        //        foreach (var item in _catchCompositionItems)
-        //        {
-        //            item.Parent = this;
-        //        }
-        //    }
-        //}
 
-        [JsonProperty("repeat_landings/group_sampled_landing/grid_coord_group/bingo_repeat")]
-        public List<MultiVesselGear_FishingGrid> FishingGrids
-        {
-            get { return _fishingGrids; }
-            set
-            {
-                _fishingGrids = value;
-                foreach (var item in _fishingGrids)
-                {
-                    item.Parent = this;
-                }
-            }
-        }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/soak_time_group/soaktime_tracking_group/soak_time_repeat")]
-        [JsonProperty("repeat_landings/group_sampled_landing/soak_time_group/soak_time_repeat")]
-        public List<MultiVesselGear_SoakTime> GearSoakTimes
-        {
-            get { return _gearSoakTimes; }
-            set
-            {
-                _gearSoakTimes = value;
-                foreach (var item in _gearSoakTimes)
-                {
-                    item.Parent = this;
-                }
-            }
-        }
-
-        [JsonProperty("repeat_landings/landing_count_loop")]
+        [JsonProperty("R_l/landing_count_loop")]
         public int LandingSequence { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/group_landing/landing_position_indicator")]
-        //public string repeat_landingsgroup_sampled_landinggroup_landinglanding_position_indicator { get; set; }
+        [JsonProperty("R_l/G_sl/landing_position_indicator")]
+        public string landing_position_indicator { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/group_landing/sampling_time")]
+        [JsonProperty("R_l/G_sl/G_l/sampling_time")]
         public DateTime TimeOfSampling { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/group_landing/is_boat_used")]
+        [JsonProperty("R_l/G_sl/G_l/is_boat_used")]
         public string BoatIsUsedInLanding { get; set; }
         public bool IsBoatUsedInLanding { get { return BoatIsUsedInLanding == "yes"; } set { BoatIsUsedInLanding = ""; } }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/group_landing/select_vessel")]
-        public string VesselNameSelectedFromList { get; set; }
-
-        public bool IsVesselNameSelectedFromList { get { return VesselNameSelectedFromList == "yes"; } set { VesselNameSelectedFromList = ""; } }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/group_landing/fish_sector")]
-        public string SectorOfLanding { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/group_landing/vessel_csv_source")]
-        //public string repeat_landingsgroup_sampled_landinggroup_landingvessel_csv_source { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/group_landing/search_mode")]
-        //public string repeat_landingsgroup_sampled_landinggroup_landingsearch_mode { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/group_landing/search_column")]
-        //public string repeat_landingsgroup_sampled_landinggroup_landingsearch_column { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/group_landing/search_value")]
-        //public string repeat_landingsgroup_sampled_landinggroup_landingsearch_value { get; set; }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/group_landing/boat_used")]
+        [JsonProperty("R_l/G_sl/G_l/boat_used")]
         public int? BoatUsedID { get; set; }
 
-        public FishingVessel FishingVessel
-        {
-            get
-            {
-                if (BoatUsedID == null)
-                {
-                    return null;
-                }
-                else
-                {
-                    return NSAPEntities.FishingVesselViewModel.GetFishingVessel((int)BoatUsedID);
-                }
-            }
-        }
+        //[JsonProperty("R_l/G_sl/G_l/select_vessel")]
+        //public string select_vessel { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/group_landing/boat_used_text")]
+        [JsonProperty("R_l/G_sl/G_l/fish_sector")]
+        public string SectorOfLanding { get; set; }
+
+        //[JsonProperty("R_l/G_sl/G_l/sector_name")]
+        //public string sector_name { get; set; }
+
+        //[JsonProperty("R_l/G_sl/G_l/vessel_csv_source")]
+        //public string vessel_csv_source { get; set; }
+
+        //[JsonProperty("R_l/G_sl/G_l/search_mode")]
+        //public string search_mode { get; set; }
+
+        //[JsonProperty("R_l/G_sl/G_l/search_column")]
+        //public string search_column { get; set; }
+
+        //[JsonProperty("R_l/G_sl/G_l/search_value")]
+        //public string search_value { get; set; }
+
+        [JsonProperty("R_l/G_sl/G_l/boat_used_text")]
         public string BoatUsedText { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/group_landing/number_of_fishers")]
+        [JsonProperty("R_l/G_sl/G_l/number_of_fishers")]
         public int? NumberOfFishers { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/group_landing/landing_gears_used")]
+        [JsonProperty("R_l/G_sl/G_l/landing_gears_used")]
+        //public string landing_gears_used { get; set; }
+
         public string GearsUsedInSampledLanding
         {
             get { return _gearsUsedInSampledLanding; }
@@ -1372,7 +1247,8 @@ namespace NSAP_ODK.Entities.Database
                 _gearsUsedInSampledLanding = value;
             }
         }
-        public List<MultiVesselGear_LandingGear> SampledLandingGears
+
+        public List<MultiVessel_Optimized_LandingGear> SampledLandingGears
         {
             get
             {
@@ -1380,13 +1256,13 @@ namespace NSAP_ODK.Entities.Database
                 {
                     if (_landingGears == null)
                     {
-                        _landingGears = new List<MultiVesselGear_LandingGear>();
+                        _landingGears = new List<MultiVessel_Optimized_LandingGear>();
                         var gears = _gearsUsedInSampledLanding.Split(' ');
                         foreach (string g in gears)
                         {
 
                             var gg = _parent.GearsInLandingSite.FirstOrDefault(t => t.GearLoopCounter == int.Parse(g));
-                            MultiVesselGear_LandingGear lg = new MultiVesselGear_LandingGear
+                            MultiVessel_Optimized_LandingGear lg = new MultiVessel_Optimized_LandingGear
                             {
                                 GearCode = gg.GearCode,
                                 GearText = gg.GearUsedText,
@@ -1405,255 +1281,213 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-        public string NamesOfGearsUsed
-        {
-            get
-            {
-                if (SampledLandingGears != null)
-                {
-                    var gears = "";
-                    foreach (MultiVesselGear_LandingGear lg in SampledLandingGears)
-                    {
-                        gears += $"{lg.GearName}, ";
-                    }
-                    return gears.Trim(',', ' ');
-                }
-                else
-                {
-                    return string.Empty;
-                }
-            }
-        }
-        public int NumberOfGearsUsedInSampledLanding
-        {
-            get
-            {
-                if (GearsUsedInSampledLanding == null)
-                {
-                    return 0;
-                }
-                else
-                {
-                    return GearsUsedInSampledLanding.Split(' ').Length;
-                }
-            }
-        }
+        //[JsonProperty("R_l/G_sl/G_l/count_gears_used")]
+        //public string count_gears_used { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/group_landing/main_gear_used")]
+        [JsonProperty("R_l/G_sl/G_l/main_gear_used")]
         public int Main_gear_used { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/gear_name")]
+        //[JsonProperty("R_l/G_sl/G_l/count_landing_of_gear")]
+        //public string count_landing_of_gear { get; set; }
+
+        [JsonProperty("R_l/G_sl/gear_name")]
         public string Main_gear_name { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/gear_code")]
+        [JsonProperty("R_l/G_sl/gear_code")]
         public string Main_gear_code { get; set; }
 
-        public Gear MainGear
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(Main_gear_code) || Main_gear_code == "_OT")
-                {
-                    return null;
-                }
-                else
-                {
-                    return NSAPEntities.GearViewModel.GetGear(Main_gear_code);
-                }
-            }
-        }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/boat_name")]
+        [JsonProperty("R_l/G_sl/boat_name")]
         public string Boat_name { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/vessel_catch/trip_isSuccess")]
-        public string Trip_isSuccess { get; set; }
+        //[JsonProperty("R_l/G_sl/decimal_sampling_date")]
+        //public string decimal_sampling_date { get; set; }
 
+        //[JsonProperty("R_l/G_sl/sampling_date_time_string")]
+        //public string sampling_date_time_string { get; set; }
+
+        [JsonProperty("R_l/G_sl/G_vc/trip_isSuccess")]
+        public string Trip_isSuccess { get; set; }
         public bool TripIsSuccess { get { return Trip_isSuccess == "yes"; } set { Trip_isSuccess = ""; } }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/vessel_catch/trip_isCompleted")]
-        public string Trip_isCompleted { get; set; }
-
-        public bool TripIsCompleted { get { return Trip_isCompleted == "yes"; } set { Trip_isCompleted = ""; } }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/vessel_catch/remarks_not_completed")]
-        //public string Remarks_not_completed { get; set; }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/vessel_catch/remarks")]
-        public string Remarks { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/vessel_catch/remarks_normal_operation")]
-        //public string Remarks_normal_operation { get; set; }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/vessel_catch/catch_total")]
+        [JsonProperty("R_l/G_sl/G_vc/catch_total")]
         public double? CatchTotal { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/vessel_catch/is_catch_sampled")]
-        public string Is_Catch_Sampled { get; set; }
-
-        public bool IsCatchSampled { get { return Is_Catch_Sampled == "yes"; } }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/vessel_catch/catch_sampled")]
+        [JsonProperty("R_l/G_sl/G_vc/catch_sampled")]
         public double? CatchSampled { get; set; }
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/select_length_group/catch_composition_items_count")]
-        public int? NumberSpeciesInCatchComposition { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/vessel_catch/is_region_total_enumeration")]
-        public string Is_region_total_enumeration { get; set; }
+        //[JsonProperty("R_l/G_sl/G_vc/running_sum_total_rounded")]
+        //public string running_sum_total_rounded { get; set; }
 
-        public bool IsRegionTotalEnumeration { get { return Is_region_total_enumeration == "yes"; } }
+        //[JsonProperty("R_l/G_sl/G_vc/running_sum_rounded")]
+        //public string running_sum_rounded { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/vessel_catch/is_catch_sold")]
+        [JsonProperty("R_l/G_sl/G_vc/is_catch_sold")]
         public string Is_catch_sold { get; set; }
 
         public bool IsCatchSold { get { return Is_catch_sold == "yes"; } }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/vessel_catch/sample_wt_text")]
-        //public string repeat_landingsgroup_sampled_landingvessel_catchsample_wt_text { get; set; }
+        //[JsonProperty("R_l/G_sl/G_vc/know_catch_wt_per_gear")]
+        //public string know_catch_wt_per_gear { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/grid_coord_group/group_coord_out/include_bingo")]
+        //[JsonProperty("R_l/G_sl/G_vc/sample_wt_text")]
+        //public string sample_wt_text { get; set; }
+
+        //[JsonProperty("R_l/G_sl/R_cwg_count")]
+        //public string R_cwg_count { get; set; }
+
+        [JsonProperty("R_l/G_sl/R_cwg")]
+        public List<MultiVessel_Optimized_GearAndWeight> LandingGearsWithWeight { get; set; }
+
+        //[JsonProperty("R_l/G_sl/sum_weight_catch")]
+        //public string sum_weight_catch { get; set; }
+
+        //[JsonProperty("R_l/G_sl/sum_weight_sample")]
+        //public string sum_weight_sample { get; set; }
+
+        [JsonProperty("R_l/G_sl/G_cg/C_co/include_bingo")]
         public string Include_bingo { get; set; }
 
         public bool IncludeBingo { get { return Include_bingo == "yes"; } }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/grid_coord_group/majorgrid_csv")]
-        //public string repeat_landingsgroup_sampled_landinggrid_coord_groupmajorgrid_csv { get; set; }
+        [JsonProperty("R_l/G_sl/G_cg/C_co/utmZone")]
+        public string UTMZone { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/grid_coord_group/inlandgrid_csv")]
-        //public string repeat_landingsgroup_sampled_landinggrid_coord_groupinlandgrid_csv { get; set; }
+        //[JsonProperty("R_l/G_sl/G_cg/majorgrid_csv")]
+        //public string majorgrid_csv { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/soak_time_group/include_soak_time")]
+        //[JsonProperty("R_l/G_sl/G_cg/inlandgrid_csv")]
+        //public string inlandgrid_csv { get; set; }
+
+        [JsonProperty("R_l/G_sl/G_cg/R_b")]
+        public List<MultiVessel_Optimized_FishingGrid> FishingGrids { get; set; }
+
+        //[JsonProperty("R_l/G_sl/G_cg/count_grids")]
+        //public string count_grids { get; set; }
+
+        [JsonProperty("R_l/G_sl/G_st/include_soak_time")]
         public string Include_soak_time { get; set; }
 
         public bool IncludeSoakTime { get { return Include_soak_time == "yes"; } }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/efforts_group/include_effort")]
+        [JsonProperty("R_l/G_sl/G_st/R_st")]
+        public List<MultiVessel_Optimized_SoakTime> GearSoakTimes { get; set; }
+
+        [JsonProperty("R_l/G_sl/G_e/include_effort")]
         public string Include_effort { get; set; }
         public bool IncludeEffort { get { return Include_effort == "yes"; } }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/efforts_group/outside_effort_repeat")]
-        //public string repeat_landingsgroup_sampled_landingefforts_groupoutside_effort_repeat { get; set; }
+        //[JsonProperty("R_l/G_sl/G_e/outside_effort_repeat")]
+        //public string outside_effort_repeat { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/efforts_group/repeat_gear_effort_count")]
-        //public string repeat_landingsgroup_sampled_landingefforts_grouprepeat_gear_effort_count { get; set; }
+        //[JsonProperty("R_l/G_sl/G_e/R_ge_count")]
+        //public string R_ge_count { get; set; }
 
+        [JsonProperty("R_l/G_sl/G_e/R_ge")]
+        public List<MultiVessel_Optimized_GearEffort> GearEfforts { get; set; }
 
+        //[JsonProperty("R_l/G_sl/G_cc/G_cc_sl/include_catchcomp_g")]
+        //public string include_catchcomp_g { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/select_length_group/include_catchcomp_g")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupselect_length_groupinclude_catchcomp_g { get; set; }
+        //[JsonProperty("R_l/G_sl/G_cc/G_cc_sl/length_type_g")]
+        //public string length_type_g { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/select_length_group/length_type_g")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupselect_length_grouplength_type_g { get; set; }
+        //[JsonProperty("R_l/G_sl/G_cc/G_cc_sl/has_gms_g")]
+        //public string has_gms_g { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/select_length_group/has_gms_g")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupselect_length_grouphas_gms_g { get; set; }
+        //[JsonProperty("R_l/G_sl/G_cc/count_catch_comp")]
+        //public string count_catch_comp { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/count_catch_comp")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcount_catch_comp { get; set; }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/include_catchcomp")]
+        [JsonProperty("R_l/G_sl/G_cc/include_catchcomp")]
         public string Include_catchcomp { get; set; }
+
+        [JsonProperty("R_l/G_sl/G_cc/raising_factor")]
+        public double? RaisingFactor { get; set; }
 
         public bool IncludeCatchComp { get { return Include_catchcomp == "yes"; } set { Include_catchcomp = ""; } }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/length_type")]
+        [JsonProperty("R_l/G_sl/G_cc/length_type")]
         public string Length_type { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/has_gms")]
+        [JsonProperty("R_l/G_sl/G_cc/has_gms")]
         public string Has_gms { get; set; }
 
         public bool HasGMS { get { return Has_gms == "yes"; } }
 
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc_count")]
+        //public string R_gcc_count { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/count_species_comp")]
-        public int? Count_species_comp { get; set; }
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc")]
+        public List<MultiVessel_Optimized_GearCatchComposition> GearCatchCompositionItems { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/sum_total")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupsum_total { get; set; }
+        //[JsonProperty("R_l/G_sl/G_ft/sum_species_wt_note")]
+        //public string sum_species_wt_note { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/raising_factor")]
-        public double? RaisingFactor { get; set; }
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/raising_factor_text")]
+        //[JsonProperty("R_l/G_sl/G_ft/total_weight_gears")]
+        //public string total_weight_gears { get; set; }
 
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupraising_factor_text { get; set; }
+        //[JsonProperty("R_l/G_sl/G_ft/catch_composition_weight_text")]
+        //public string catch_composition_weight_text { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/sum_sample")]
-        public double? Sum_sample { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/sum_species_weight")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupsum_species_weight { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/sum_species_weight_coalesce")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupsum_species_weight_coalesce { get; set; }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/group_final_tally/ref_no")] //version 7.12
-        public string Reference_number_12 { get; set; }
+        [JsonProperty("R_l/G_sl/G_ft/ref_no")]
+        public string Reference_number { get; set; }
 
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/group_final_tally/ref_no")] //version 7.11
-        public string Reference_number_11 { get; set; }
-
-        public string Reference_number
-        {
-            get
-            {
-                if (Reference_number_11 == null)
-                {
-                    return Reference_number_12;
-                }
-                else
-                {
-                    return Reference_number_11;
-                }
-            }
-        }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/vessel_catch/boxes_total")]
+        [JsonProperty("R_l/G_sl/G_vc/boxes_total")]
         public int? Boxes_total { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/vessel_catch/boxes_sampled")]
+        [JsonProperty("R_l/G_sl/G_vc/boxes_sampled")]
         public int? Boxes_sampled { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/grid_coord_group/group_coord_out/utmZone")]
-        public string UTMZone { get; set; }
+        //[JsonProperty("R_l/G_sl/G_vc/remarks_normal_operation")]
+        //public string remarks_normal_operation { get; set; }
 
+        [JsonProperty("R_l/G_sl/G_vc/remarks")]
+        public string Remarks { get; set; }
+
+        [JsonProperty("R_l/G_sl/G_vc/trip_isCompleted")]
+        public string Trip_isCompleted { get; set; }
+
+        public bool TripIsCompleted { get { return Trip_isCompleted == "yes"; } set { Trip_isCompleted = ""; } }
+
+        //[JsonProperty("R_l/G_sl/G_vc/remarks_not_completed")]
+        //public string remarks_not_completed { get; set; }
     }
-    public class MultiVesselGear_GearCatchComposition
+
+    public class MultiVessel_Optimized_GearCatchComposition
     {
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/selected_gear_catch_comp")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_grouprepeat_gear_catch_composition/inside_repeat_gear_groupselected_gear_catch_comp { get; set; }
-        private MultiVesselGear_SampledLanding _parent;
-        private List<MultiVesselGear_CatchCompositionItem> _catchCompositionItems;
-        public MultiVesselGear_SampledLanding Parent
+        private MultiVessel_Optimized_SampledLanding _parent;
+        private List<MultiVessel_Optimized_CatchCompositionItem> _catchCompositionItems;
+        public MultiVessel_Optimized_SampledLanding Parent
         {
             get { return _parent; }
             set { _parent = value; }
         }
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/selected_gear_catch_comp")]
+        //public string selected_gear_catch_comp { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/selected_gear_catch_comp_name")]
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/selected_gear_catch_comp_name")]
         public string GearName { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/gear_code_catch_comp")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_grouprepeat_gear_catch_composition/inside_repeat_gear_groupgear_code_catch_comp { get; set; }
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/gear_code_catch_comp")]
+        //public string gear_code_catch_comp { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/selected_gear__catch_comp_code")]
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/selected_gear__catch_comp_code")]
         public string GearCode { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/sample_wt_of_gear")]
-        public double? WeightOfSample { get; set; }
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/weight_catch_of_gear")]
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/weight_catch_of_gear")]
         public double? WeightOfCatch { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_items_count")]
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/sample_wt_of_gear")]
+        public double? WeightOfSample { get; set; }
 
-
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/catch_composition_items_count")]
         public int? NumberOfSpeciesInCatchComposition { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat_count")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_grouprepeat_gear_catch_composition/inside_repeat_gear_groupcatch_composition_repeat_count { get; set; }
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc_count")]
+        //public string R_cc_count { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat")]
-        public List<MultiVesselGear_CatchCompositionItem> CatchCompositionItems
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc")]
+        public List<MultiVessel_Optimized_CatchCompositionItem> CatchCompositionItems
         {
             get { return _catchCompositionItems; }
             set
@@ -1665,127 +1499,35 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
         }
+        //public List<MultiVessel_Optimized_CatchCompositionItem> CatchCompositionItems { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/count_species_comp")]
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/count_species_comp")]
         public int? CountOfSpeciesComposition { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/sum_total")]
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/sum_total")]
         public double? SumTotalWeight { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/raising_factor_text")]
+
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/raising_factor_text")]
         public string RaisingFactorText { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/sum_sample")]
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/sum_sample")]
         public double? SumSampleWeight { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/sum_species_weight")]
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/sum_species_weight")]
         public double? SumSpeciesWeight { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/sum_species_weight_coalesce")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_grouprepeat_gear_catch_composition/inside_repeat_gear_groupsum_species_weight_coalesce { get; set; }
-    }
-    public class MultiVesselGear_CatchLenFreq
-    {
-        private bool? _isSaved;
-        private static int _pk;
-        private int _rowID;
-        private MultiVesselGear_CatchCompositionItem _parent;
-        public static bool RowIDSet { get; private set; }
-
-        public static void ResetIDState()
-        {
-            RowIDSet = false;
-        }
-        public static void SetRowIDs()
-        {
-            _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastLenFreqPK;
-            CatchLenFreqViewModel.CurrentIDNumber = _pk;
-            RowIDSet = true;
-        }
-
-        public MultiVesselGear_CatchCompositionItem Parent
-        {
-            get { return _parent; }
-            set { _parent = value; }
-        }
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/length_freq_repeat/group_LF/length_class")]
-        public double LengthClass { get; set; }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/length_freq_repeat/group_LF/freq")]
-        public int Frequency { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/length_freq_repeat/group_LF/lf_grp_title")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_grouplength_freq_repeatgroup_LFlf_grp_title { get; set; }
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/sum_species_weight_coalesce")]
+        //public string sum_species_weight_coalesce { get; set; }
     }
 
-    public class MultiVesselGear_CatchLenWt
+    public class MultiVessel_Optimized_CatchCompositionItem
     {
-        private MultiVesselGear_CatchCompositionItem _parent;
-        private static int _pk;
-        private int _rowID;
-
-        public static bool RowIDSet { get; private set; }
-
-        public static void ResetIDState()
-        {
-            RowIDSet = false;
-        }
-
-
-        public static void SetRowIDs()
-        {
-            _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastLenWtPK;
-            CatchLengthWeightViewModel.CurrentIDNumber = _pk;
-            RowIDSet = true;
-        }
-
-        public int? PK
-        {
-            get
-            {
-                if (Parent.Parent.Parent.SavedInLocalDatabase)
-                {
-                    return null;
-                }
-                else
-                {
-                    if (_rowID == 0)
-                    {
-                        _rowID = ++_pk;
-                    }
-                    return _rowID;
-                }
-            }
-        }
-        public MultiVesselGear_CatchCompositionItem Parent
-        {
-            get { return _parent; }
-            set { _parent = value; }
-        }
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/len_wt_repeat/len_wt_group/len_lenwt")]
-        public double Length { get; set; }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/len_wt_repeat/len_wt_group/wt_lenwt")]
-        public double Weight { get; set; }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/len_wt_repeat/len_wt_group/sex_lw")]
-        public string Sex { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/len_wt_repeat/len_wt_group/lw_grp_title")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_grouplen_wt_repeatlen_wt_grouplw_grp_title { get; set; }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/len_wt_repeat/len_wt_group/wt_lenwt_kg")]
-        public double Weight_kg { get; set; }
-    }
-
-    public class MultiVesselGear_CatchCompositionItem
-    {
-        //private MultiVesselGear_SampledLanding _parent;
-        private MultiVesselGear_GearCatchComposition _parent;
-        private List<MultiVesselGear_CatchGMS> _catchGMSes;
-        private List<MultiVesselGear_CatchLength> _catchLengths;
-        private List<MultiVesselGear_CatchLenWt> _catchLengthWeights;
-        private List<MultiVesselGear_CatchLenFreq> _catchLenFreqs;
+        private MultiVessel_Optimized_GearCatchComposition _parent;
+        private List<MultiVessel_Optimized_CatchGMS> _catchGMSes;
+        private List<MultiVessel_Optimized_CatchLenght> _catchLengths;
+        private List<MultiVessel_Optimized_CatchLenWt> _catchLengthWeights;
+        private List<MultiVessel_Optimized_CatchLenFreq> _catchLenFreqs;
         private static int _pk;
         private int _rowID;
         public static bool RowIDSet { get; private set; }
@@ -1834,147 +1576,81 @@ namespace NSAP_ODK.Entities.Database
                     (_catchLenFreqs != null && _catchLenFreqs.Count > 0);
             }
         }
-        public MultiVesselGear_GearCatchComposition Parent
+        public MultiVessel_Optimized_GearCatchComposition Parent
         {
             get { return _parent; }
             set { _parent = value; }
         }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/gms_repeat_group")]
-        public List<MultiVesselGear_CatchGMS> CatchGMSes
-        {
-            get { return _catchGMSes; }
-            set
-            {
-                _catchGMSes = value;
-                foreach (var item in _catchGMSes)
-                {
-                    item.Parent = this;
-                }
-            }
-        }
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/length_list_repeat")]
-        public List<MultiVesselGear_CatchLength> CatchLengths
-        {
-            get { return _catchLengths; }
-            set
-            {
-                _catchLengths = value;
-                foreach (var item in _catchLengths)
-                {
-                    item.Parent = this;
-                }
-            }
-        }
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/show_taxa_image")]
+        //public string show_taxa_image { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/len_wt_repeat")]
-        public List<MultiVesselGear_CatchLenWt> CatchLengthWeights
-        {
-            get { return _catchLengthWeights; }
-            set
-            {
-                _catchLengthWeights = value;
-                foreach (var item in _catchLengthWeights)
-                {
-                    item.Parent = this;
-                }
-            }
-        }
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/taxa_no_im")]
+        //public string taxa_no_im { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/length_freq_repeat")]
-        public List<MultiVesselGear_CatchLenFreq> CatchLenFreqs
-        {
-            get { return _catchLenFreqs; }
-            set
-            {
-                _catchLenFreqs = value;
-                foreach (var item in _catchLenFreqs)
-                {
-                    item.Parent = this;
-                }
-            }
-        }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/show_taxa_image")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_groupshow_taxa_image { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/taxa_no_im")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_grouptaxa_no_im { get; set; }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/taxa")]
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/taxa")]
         public string SelectedTaxa { get; set; }
-
         public Taxa Taxa { get { return NSAPEntities.TaxaViewModel.GetTaxa(SelectedTaxa); } }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/select_spName")]
-
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/select_spName")]
         public string SelectSpeciesNameFromList { get; set; }
 
         public bool IsSelectSpeciesNameFromList { get { return SelectSpeciesNameFromList == "yes"; } }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/species_csv_source")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_groupspecies_csv_source { get; set; }
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/species_csv_source")]
+        //public string species_csv_source { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/search_species")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_groupsearch_species { get; set; }
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/search_species")]
+        //public string search_species { get; set; }
 
-
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/spName_other")]
-        public string SpeciesNameOther { get; set; }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/species")]
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/species")]
         public int? SelectedFishSpeciesID { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/species_notfish")]
-        public int? SelectedNonFishSpeciesID { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/gear_species")]
-        //public int gear_species { get; set; }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/gear_species_name")]
-        public string NameOfGearUsedForCatching { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/gear_species_code")]
-        //public string gear_species_code { get; set; }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/gear_species_code_final")]
-        public string CodeOfGearUsedForCatching { get; set; }
-
-        public Gear GearUsedForCatching
-        {
-            get
-            {
-                if (CodeOfGearUsedForCatching == "_OT")
-                {
-                    return null;
-                }
-                else
-                {
-                    return NSAPEntities.GearViewModel.GetGear(CodeOfGearUsedForCatching);
-                }
-            }
-        }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/sp_id")]
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/sp_id")]
         public int? SpeciesID { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/len_max_1")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_grouplen_max_1 { get; set; }
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/len_max_1")]
+        //public string len_max_1 { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/len_max")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_grouplen_max { get; set; }
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/len_max")]
+        //public string len_max { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/species_name_selected")]
-        //this will 
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/species_name_selected")]
         public string SpeciesNameSelected { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/size_type_name")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_groupsize_type_name { get; set; }
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/size_type_name")]
+        //public string size_type_name { get; set; }
 
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/species_wt_1")]
+        public double? WeightOfSpecies { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/from_total_catch")]
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/species_wt")]
+        public double? Species_wt { get; set; }
+
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/species_wt_rounded")]
+        //public string species_wt_rounded { get; set; }
+
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/measure_len_and_gms")]
+        public string Measure_len_and_gms { get; set; }
+
+        public bool MeasureLengthAndGMS { get { return Measure_len_and_gms == "yes"; } }
+
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/what_is_measured")]
+        //public string what_is_measured { get; set; }
+
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/from_total_catch_code")]
+        //public string from_total_catch_code { get; set; }
+
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/len_max_hint")]
+        //public string len_max_hint { get; set; }
+
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/wt_unit_name")]
+        //public string wt_unit_name { get; set; }
+
+        
+
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/from_total_catch")]
         public string From_total_catch { get; set; }
-
         public bool FromTotalCatch
         {
             get
@@ -1991,116 +1667,145 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/species_sample_wt_sampled")]
-        public double? WeightOfSpeciesSampled { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/species_wt_1")]
-        public double? WeightOfSpecies { get; set; }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/species_wt")]
-        public double? Species_wt { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/species_wt_rounded")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_groupspecies_wt_rounded { get; set; }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/measure_len_and_gms")]
-        public string Measure_len_and_gms { get; set; }
-
-        public bool MeasureLengthAndGMS { get { return Measure_len_and_gms == "yes"; } }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/has_measurement")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_grouphas_measurement { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/what_is_measured")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_groupwhat_is_measured { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/species_sample_wt_sampled")]
-        //public double? WeightOfSampleOfSpeciesFromSample { get; set; }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/species_sample_wt_total")]
-        public double? WeightOfSampleOfSpeciesFromTotal { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/max_len_hint")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_groupmax_len_hint { get; set; }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/enforce_maxlen")]
-        public string Enforce_maxlen { get; set; }
-
-        public bool EnforceMaxLen { get { return Enforce_maxlen == "yes"; } }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/species_sample_wt")]
-        public double? Species_sample_wt { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/species_sample_wt_from_sample")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_groupspecies_sample_wt_from_sample { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/from_total_catch_code")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_groupfrom_total_catch_code { get; set; }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/include_sex_for_length")]
-        public string Include_sex_when_measuring_length { get; set; }
-
-
-
-        public bool IncludeSexWhenMeasuringLength { get { return Include_sex_when_measuring_length == "yes"; } }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/len_max_hint")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_grouplen_max_hint { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/wt_unit_name")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_groupwt_unit_name { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/max_size_hint")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_groupmax_size_hint { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/species_wt_check")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_groupspecies_wt_check { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/overwt_prompt")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupspecies_data_groupoverwt_prompt { get; set; }
-
-
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_notfish")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupsum_wt_from_lenwt { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/sum_wt_from_lenwt_coalesce")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupsum_wt_from_lenwt_coalesce { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/sum_wt_from_gms")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupsum_wt_from_gms { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/sum_wt_from_gms_coalesce")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupsum_wt_from_gms_coalesce { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/repeat_title")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_grouprepeat_title { get; set; }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/is_species_sold")]
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/is_species_sold")]
         public string Is_species_sold { get; set; }
 
         public bool IsSpeciesSold { get { return Is_species_sold == "yes"; } }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/price_of_species")]
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/price_of_species")]
         public double? Price_of_species { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/pricing_unit")]
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/pricing_unit")]
         public string Pricing_unit { get; set; }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/other_pricing_unit")]
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/other_pricing_unit")]
         public string OtherPricingUnit { get; set; }
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/type_of_measure")]
+
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/max_size_hint")]
+        //public string max_size_hint { get; set; }
+
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/species_wt_check")]
+        //public string species_wt_check { get; set; }
+
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/overwt_prompt")]
+        //public string overwt_prompt { get; set; }
+
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/sample_wt_gear_text")]
+        //public string sample_wt_gear_text { get; set; }
+
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/sum_wt_from_lenwt")]
+        //public string sum_wt_from_lenwt { get; set; }
+
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/sum_wt_from_lenwt_coalesce")]
+        //public string sum_wt_from_lenwt_coalesce { get; set; }
+
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/sum_wt_from_gms")]
+        //public string sum_wt_from_gms { get; set; }
+
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/sum_wt_from_gms_coalesce")]
+        //public string sum_wt_from_gms_coalesce { get; set; }
+
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/repeat_title")]
+        //public string repeat_title { get; set; }
+
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/species_notfish")]
+        public int? SelectedNonFishSpeciesID { get; set; }
+
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/has_measurement")]
+        //public string has_measurement { get; set; }
+
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/species_sample_wt_total")]
+        public double? WeightOfSampleOfSpeciesFromTotal { get; set; }
+
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/max_len_hint")]
+        //public string max_len_hint { get; set; }
+
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/enforce_maxlen")]
+        //public string enforce_maxlen { get; set; }
+
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/species_sample_wt")]
+        public double? Species_sample_wt { get; set; }
+
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/species_sample_wt_from_sample")]
+        //public string species_sample_wt_from_sample { get; set; }
+
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/include_sex_for_length")]
+        public string Include_sex_when_measuring_length { get; set; }
+
+        public bool IncludeSexWhenMeasuringLength { get { return Include_sex_when_measuring_length == "yes"; } }
+
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/R_ll")]
+        public List<MultiVessel_Optimized_CatchLenght> CatchLengths
+        {
+            get { return _catchLengths; }
+            set
+            {
+                _catchLengths = value;
+                foreach (var item in _catchLengths)
+                {
+                    item.Parent = this;
+                }
+            }
+        }
+
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/spName_other")]
+        public string SpeciesNameOther { get; set; }
+
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/type_of_measure")]
         public string Type_of_measure { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/species_data_group/individual_wt_unit")]
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/unknown_len_note")]
+        //public string unknown_len_note { get; set; }
+
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/individual_wt_unit")]
         public string Individual_wt_unit { get; set; }
 
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/R_lw")]
+        public List<MultiVessel_Optimized_CatchLenWt> CatchLengthWeights
+        {
+            get { return _catchLengthWeights; }
+            set
+            {
+                _catchLengthWeights = value;
+                foreach (var item in _catchLengthWeights)
+                {
+                    item.Parent = this;
+                }
+            }
+        }
 
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/R_gms")]
+        public List<MultiVessel_Optimized_CatchGMS> CatchGMSes
+        {
+            get { return _catchGMSes; }
+            set
+            {
+                _catchGMSes = value;
+                foreach (var item in _catchGMSes)
+                {
+                    item.Parent = this;
+                }
+            }
+        }
+
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/R_lf")]
+        public List<MultiVessel_Optimized_CatchLenFreq> CatchLenFreqs
+        {
+            get { return _catchLenFreqs; }
+            set
+            {
+                _catchLenFreqs = value;
+                foreach (var item in _catchLenFreqs)
+                {
+                    item.Parent = this;
+                }
+            }
+        }
     }
 
-    public class MultiVesselGear_CatchGMS
+    public class MultiVessel_Optimized_CatchGMS
     {
-        private MultiVesselGear_CatchCompositionItem _parent;
+        private MultiVessel_Optimized_CatchCompositionItem _parent;
         private static int _pk;
         private int _rowID;
 
@@ -2137,42 +1842,78 @@ namespace NSAP_ODK.Entities.Database
 
             }
         }
-        public MultiVesselGear_CatchCompositionItem Parent
+        public MultiVessel_Optimized_CatchCompositionItem Parent
         {
             get { return _parent; }
             set { _parent = value; }
         }
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/individual_length")]
+
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/R_gms/G_gms/individual_length")]
         public double? Individual_length { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/individual_weight")]
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/R_gms/G_gms/individual_weight")]
         public double? Individual_weight { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/stomach_content_wt")]
-        public double? Stomach_content_weight { get; set; }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/sex")]
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/R_gms/G_gms/sex")]
         public string Sex { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/gms_repeat")]
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/R_gms/G_gms/gms_repeat")]
         public string GMS { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/gonad_wt")]
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/R_gms/G_gms/gonad_wt")]
         public double? GonadWt { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/gut_content_category")]
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/R_gms/G_gms/stomach_content_wt")]
+        public double? Stomach_content_weight { get; set; }
+
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/R_gms/G_gms/gut_content_category")]
         public string GutContentCategory { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/combined_gms_fields")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_groupgms_repeat_groupgms_groupcombined_gms_fields { get; set; }
+        //[JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/R_gms/G_gms/combined_gms_fields")]
+        //public string combined_gms_fields { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/gms_repeat_group/gms_group/individual_weight_kg")]
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/R_gms/G_gms/individual_weight_kg")]
         public double? Individual_weight_kg { get; set; }
     }
 
-    public class MultiVesselGear_CatchLength
+    public class MultiVessel_Optimized_CatchLenFreq
     {
-        private MultiVesselGear_CatchCompositionItem _parent;
+        private bool? _isSaved;
+        private static int _pk;
+        private int _rowID;
+        private MultiVessel_Optimized_CatchCompositionItem _parent;
+        public static bool RowIDSet { get; private set; }
+
+        public static void ResetIDState()
+        {
+            RowIDSet = false;
+        }
+        public static void SetRowIDs()
+        {
+            _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastLenFreqPK;
+            CatchLenFreqViewModel.CurrentIDNumber = _pk;
+            RowIDSet = true;
+        }
+
+        public MultiVessel_Optimized_CatchCompositionItem Parent
+        {
+            get { return _parent; }
+            set { _parent = value; }
+        }
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/R_lf/G_lf/length_class")]
+        public double LengthClass { get; set; }
+
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/R_lf/G_lf/freq")]
+        public int Frequency { get; set; }
+
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/R_lf/G_lf/sex_lf")]
+        public string Sex { get; set; }
+
+    }
+
+    public class MultiVessel_Optimized_CatchLenght
+    {
+        private MultiVessel_Optimized_CatchCompositionItem _parent;
         private static int _pk;
         private int _rowID;
         public static bool RowIDSet { get; private set; }
@@ -2212,92 +1953,38 @@ namespace NSAP_ODK.Entities.Database
 
             }
         }
-        public MultiVesselGear_CatchCompositionItem Parent
+        public MultiVessel_Optimized_CatchCompositionItem Parent
         {
             get { return _parent; }
             set { _parent = value; }
         }
-        [JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/length_list_repeat/length_list_group/length")]
+
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/R_ll/G_ll/length")]
         public double Length { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/catch_comp_group/repeat_gear_catch_composition/inside_repeat_gear_group/catch_composition_repeat/speciesname_group/length_list_repeat/length_list_group/ll_grp_title")]
-        //public string repeat_landingsgroup_sampled_landingcatch_comp_groupcatch_composition_repeatspeciesname_grouplength_list_repeatlength_list_groupll_grp_title { get; set; }
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/R_ll/G_ll/sex_l")]
+        public string Sex { get; set; }
+
     }
 
-    public class MultiVesselGear_GearEffort
+    public class MultiVessel_Optimized_CatchLenWt
     {
-        private MultiVesselGear_SampledLanding _parent;
-        public MultiVesselGear_SampledLanding Parent
-        {
-            get { return _parent; }
-            set { _parent = value; }
-        }
-        //[JsonProperty("repeat_landings/group_sampled_landing/efforts_group/repeat_gear_effort/selected_gear_effort")]
-        //public string repeat_landingsgroup_sampled_landingefforts_grouprepeat_gear_effortselected_gear_effort { get; set; }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/efforts_group/repeat_gear_effort/selected_gear_name")]
-        public string SelectedGearName { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/efforts_group/repeat_gear_effort/gear_code1")]
-        //public string repeat_landingsgroup_sampled_landingefforts_grouprepeat_gear_effortgear_code1 { get; set; }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/efforts_group/repeat_gear_effort/selected_gear_code")]
-        public string SelectedGearCode { get; set; }
-
-        public Gear Gear
-        {
-            get
-            {
-                if (SelectedGearCode == "_OT")
-                {
-                    return null;
-                }
-                else
-                {
-                    return NSAPEntities.GearViewModel.GetGear(SelectedGearCode);
-                }
-            }
-        }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/efforts_group/repeat_gear_effort/choices_effort")]
-        //public string repeat_landingsgroup_sampled_landingefforts_grouprepeat_gear_effortchoices_effort { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/efforts_group/repeat_gear_effort/effort_group_inside/outside_gear_effort_repeat")]
-        //public string repeat_landingsgroup_sampled_landingefforts_grouprepeat_gear_efforteffort_group_insideoutside_gear_effort_repeat { get; set; }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/efforts_group/repeat_gear_effort/effort_group_inside/effort_repeat")]
-        public List<MultiVesselGear_GearEffortDetail> GearEffortDetails { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/efforts_group/repeat_gear_effort/effort_group_inside/count_effort_specs")]
-        //public string repeat_landingsgroup_sampled_landingefforts_grouprepeat_gear_efforteffort_group_insidecount_effort_specs { get; set; }
-    }
-
-    public class MultiVesselGear_GearEffortDetail
-    {
-        private MultiVesselGear_GearEffort _parent;
+        private MultiVessel_Optimized_CatchCompositionItem _parent;
         private static int _pk;
         private int _rowID;
-        //private MultiGearEffortSpecContainer _parent;
+
         public static bool RowIDSet { get; private set; }
 
         public static void ResetIDState()
         {
             RowIDSet = false;
         }
+
+
         public static void SetRowIDs()
         {
-
-            //if (NSAPEntities.FishingGroundGridViewModel.FishingGroundGridCollection.Count == 0)
-            //{
-            //    _pk = 0;
-            //}
-            //else
-            //{
-            //    _pk = NSAPEntities.FishingGroundGridViewModel.NextRecordNumber - 1;
-            //}
-            _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastVesselUnloadGearSpecPK;
-            VesselUnload_Gear_Spec_ViewModel.CurrentIDNumber = _pk;
-            //VesselEffortViewModel.CurrentIDNumber = _pk;
+            _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastLenWtPK;
+            CatchLengthWeightViewModel.CurrentIDNumber = _pk;
             RowIDSet = true;
         }
 
@@ -2305,7 +1992,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if (Parent.Parent.SavedInLocalDatabase)
+                if (Parent.Parent.Parent.SavedInLocalDatabase)
                 {
                     return null;
                 }
@@ -2317,42 +2004,32 @@ namespace NSAP_ODK.Entities.Database
                     }
                     return _rowID;
                 }
-
             }
         }
-        public MultiVesselGear_GearEffort Parent
+        public MultiVessel_Optimized_CatchCompositionItem Parent
         {
             get { return _parent; }
             set { _parent = value; }
         }
-        [JsonProperty("repeat_landings/group_sampled_landing/efforts_group/repeat_gear_effort/effort_group_inside/effort_repeat/group_effort/effort_type")]
-        public string EffortTypePadded { get; set; }
-        public int EffortType { get { return int.Parse(EffortTypePadded); } }
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/R_lw/G_lw/len_lenwt")]
+        public double Length { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/efforts_group/repeat_gear_effort/effort_group_inside/effort_repeat/group_effort/response_type")]
-        public string ResponseType { get; set; }
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/R_lw/G_lw/wt_lenwt")]
+        public double Weight { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/efforts_group/repeat_gear_effort/effort_group_inside/effort_repeat/group_effort/effort_spec_name")]
-        public string EffortSpecName { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/efforts_group/repeat_gear_effort/effort_group_inside/effort_repeat/group_effort/effort_intensity")]
-        public double? EffortIntensity { get; set; }
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/R_lw/G_lw/wt_lenwt_kg")]
+        public double Weight_kg { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/efforts_group/repeat_gear_effort/effort_group_inside/effort_repeat/group_effort/selected_effort_measure")]
-        public string SelectedEffortMeasure { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/efforts_group/repeat_gear_effort/effort_group_inside/effort_repeat/group_effort/choices_gear_effort")]
-        //public string repeat_landingsgroup_sampled_landingefforts_grouprepeat_gear_efforteffort_group_insideeffort_repeatgroup_effortchoices_gear_effort { get; set; }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/efforts_group/repeat_gear_effort/effort_group_inside/effort_repeat/group_effort/effort_desc")]
-        public string EffortText { get; set; }
+        [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/R_lw/G_lw/sex_lw")]
+        public string Sex { get; set; }
     }
 
-    public class MultiVesselGear_FishingGrid
+    public class MultiVessel_Optimized_FishingGrid
     {
         private static int _pk;
         private int _rowID;
-        private MultiVesselGear_SampledLanding _parent;
+        private MultiVessel_Optimized_SampledLanding _parent;
         public static bool RowIDSet { get; private set; }
 
         public static void ResetIDState()
@@ -2395,33 +2072,134 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-        public MultiVesselGear_SampledLanding Parent
+        public MultiVessel_Optimized_SampledLanding Parent
         {
             get { return _parent; }
             set { _parent = value; }
         }
-        [JsonProperty("repeat_landings/group_sampled_landing/grid_coord_group/bingo_repeat/bingo_group/major_grid")]
+        [JsonProperty("R_l/G_sl/G_cg/R_b/G_b/major_grid")]
         public string MajorGrid { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/grid_coord_group/bingo_repeat/bingo_group/col_name")]
+        [JsonProperty("R_l/G_sl/G_cg/R_b/G_b/col_name")]
         public string ColumnName { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/grid_coord_group/bingo_repeat/bingo_group/row_name")]
+        [JsonProperty("R_l/G_sl/G_cg/R_b/G_b/row_name")]
         public string RowName { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/grid_coord_group/bingo_repeat/bingo_group/bingo_complete")]
+        [JsonProperty("R_l/G_sl/G_cg/R_b/G_b/bingo_complete")]
         public string GridNameComplete { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/grid_coord_group/bingo_repeat/bingo_group/is_inland")]
-        public string IsInland { get; set; }
+        [JsonProperty("R_l/G_sl/G_cg/R_b/G_b/is_inland")]
+        public string IsInland { get; set; } 
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/grid_coord_group/bingo_repeat/bingo_group/group_label")]
-        //public string repeat_landingsgroup_sampled_landinggrid_coord_groupbingo_repeatbingo_groupgroup_label { get; set; }
+        //[JsonProperty("R_l/G_sl/G_cg/R_b/G_b/group_label")]
+        //public string group_label { get; set; }
     }
 
-    public class MultiVesselGear_SoakTime
+    public class MultiVessel_Optimized_GearEffort
     {
-        private MultiVesselGear_SampledLanding _parent;
+        private MultiVessel_Optimized_SampledLanding _parent;
+        public MultiVessel_Optimized_SampledLanding Parent
+        {
+            get { return _parent; }
+            set { _parent = value; }
+        }
+
+        public Gear Gear
+        {
+            get
+            {
+                if (SelectedGearCode == "_OT")
+                {
+                    return null;
+                }
+                else
+                {
+                    return NSAPEntities.GearViewModel.GetGear(SelectedGearCode);
+                }
+            }
+        }
+        [JsonProperty("R_l/G_sl/G_e/R_ge/selected_gear_name")]
+        public string SelectedGearName { get; set; }
+
+
+        [JsonProperty("R_l/G_sl/G_e/R_ge/selected_gear_code")]
+        public string SelectedGearCode { get; set; }
+
+        [JsonProperty("R_l/G_sl/G_e/R_ge/G_ei/R_e")]
+        public List<MultiVessel_Optimized_GearEffortDetail> GearEffortDetails { get; set; }
+    }
+
+    public class MultiVessel_Optimized_GearEffortDetail
+    {
+        private MultiVessel_Optimized_GearEffort _parent;
+        private static int _pk;
+        private int _rowID;
+        public static bool RowIDSet { get; private set; }
+
+        public static void ResetIDState()
+        {
+            RowIDSet = false;
+        }
+        public static void SetRowIDs()
+        {
+            _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastVesselUnloadGearSpecPK;
+            VesselUnload_Gear_Spec_ViewModel.CurrentIDNumber = _pk;
+            RowIDSet = true;
+        }
+
+        public int? PK
+        {
+            get
+            {
+                if (Parent.Parent.SavedInLocalDatabase)
+                {
+                    return null;
+                }
+                else
+                {
+                    if (_rowID == 0)
+                    {
+                        _rowID = ++_pk;
+                    }
+                    return _rowID;
+                }
+
+            }
+        }
+        public MultiVessel_Optimized_GearEffort Parent
+        {
+            get { return _parent; }
+            set { _parent = value; }
+        }
+
+        [JsonProperty("R_l/G_sl/G_e/R_ge/G_ei/R_e/G_e_e/effort_type")]
+        public string EffortTypePadded { get; set; }
+
+        public int EffortType { get { return int.Parse(EffortTypePadded); } }
+
+        [JsonProperty("R_l/G_sl/G_e/R_ge/G_ei/R_e/G_e_e/response_type")]
+        public string ResponseType { get; set; }
+
+        [JsonProperty("R_l/G_sl/G_e/R_ge/G_ei/R_e/G_e_e/effort_spec_name")]
+        public string EffortSpecName { get; set; }
+
+        [JsonProperty("R_l/G_sl/G_e/R_ge/G_ei/R_e/G_e_e/effort_intensity")]
+        public double? EffortIntensity { get; set; }
+
+        [JsonProperty("R_l/G_sl/G_e/R_ge/G_ei/R_e/G_e_e/selected_effort_measure")]
+        public string SelectedEffortMeasure { get; set; }
+
+        //[JsonProperty("R_l/G_sl/G_e/R_ge/G_ei/R_e/G_e_e/choices_gear_effort")]
+        //public string choices_gear_effort { get; set; }
+
+        [JsonProperty("R_l/G_sl/G_e/R_ge/G_ei/R_e/G_e_e/effort_desc")]
+        public string EffortText { get; set; }
+    }
+
+    public class MultiVessel_Optimized_SoakTime
+    {
+        private MultiVessel_Optimized_SampledLanding _parent;
         private static int _pk;
         private int _rowID;
 
@@ -2457,242 +2235,48 @@ namespace NSAP_ODK.Entities.Database
 
             }
         }
-        public MultiVesselGear_SampledLanding Parent
+        public MultiVessel_Optimized_SampledLanding Parent
         {
             get { return _parent; }
             set { _parent = value; }
         }
-        //[JsonProperty("repeat_landings/group_sampled_landing/soak_time_group/soaktime_tracking_group/soak_time_repeat/calculate_set_hint")]
-        //public string repeat_landingsgroup_sampled_landingsoak_time_groupsoaktime_tracking_groupsoak_time_repeatcalculate_set_hint { get; set; }
 
-        [JsonProperty("repeat_landings/group_sampled_landing/soak_time_group/soak_time_repeat/soaktime_tracking_group/set_time")]
+
+        [JsonProperty("R_l/G_sl/G_st/R_st/G_stg/set_time")]
         public DateTime? TimeOfSet { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/soak_time_group/soaktime_tracking_group/soak_time_repeat/decimal_set_time")]
-        //public string repeat_landingsgroup_sampled_landingsoak_time_groupsoaktime_tracking_groupsoak_time_repeatdecimal_set_time { get; set; }
 
-        //[JsonProperty("repeat_landings/group_sampled_landing/soak_time_group/soaktime_tracking_group/soak_time_repeat/time_set_string")]
-        //public string repeat_landingsgroup_sampled_landingsoak_time_groupsoaktime_tracking_groupsoak_time_repeattime_set_string { get; set; }
-
-        //[JsonProperty("repeat_landings/group_sampled_landing/soak_time_group/soaktime_tracking_group/soak_time_repeat/calculate_haul_hint")]
-        //public string repeat_landingsgroup_sampled_landingsoak_time_groupsoaktime_tracking_groupsoak_time_repeatcalculate_haul_hint { get; set; }
-
-        [JsonProperty("repeat_landings/group_sampled_landing/soak_time_group/soak_time_repeat/soaktime_tracking_group/haul_time")]
+        [JsonProperty("R_l/G_sl/G_st/R_st/G_stg/haul_time")]
         public DateTime? TimeOfHaul { get; set; }
-
-
 
     }
 
-
-    public class MultiVesselGear_Root
+    public class MultiVessel_Optimized_GearAndWeight
     {
-        private List<MultiVesselGear_Gear> _gearsInLandingSite;
-        private List<MultiVesselGear_SampledLanding> _sampledFishLandings;
+        //[JsonProperty("R_l/G_sl/R_cwg/selected_gear_wt")]
+        //public string selected_gear_wt { get; set; }
+
+        [JsonProperty("R_l/G_sl/R_cwg/selected_gear_wt_name")]
+        public string GearName { get; set; }
+
+
+        [JsonProperty("R_l/G_sl/R_cwg/G_gu/weight_catch_gear")]
+        public double WeightOfCatch { get; set; }
+
+        [JsonProperty("R_l/G_sl/R_cwg/G_gu/sample_wt_gr")]
+        public double? WeightOfSample { get; set; }
+    }
+
+    public class MultiVessel_Optimized_Root
+    {
+        private List<MultiVessel_Optimized_Gear> _gearsInLandingSite;
+        private List<MultiVessel_Optimized_SampledLanding> _sampledFishLandings;
         private static int _pk;
         private int _rowid;
         private bool? _isSaved;
-        public override string ToString()
-        {
-            return $"{SamplingDate.ToString("yyyy-MMM-dd")} - {LandingSiteName} - {Fishing_ground_name}";
-        }
-        [JsonProperty("repeat_gears")]
-        public List<MultiVesselGear_Gear> GearsInLandingSite
-        {
-            get { return _gearsInLandingSite; }
-            set
-            {
-                _gearsInLandingSite = value;
-                foreach (var item in _gearsInLandingSite)
-                {
-                    item.Parent = this;
-                }
-            }
-        }
+        private SummaryItem _savedVesselUnloadObject;
+        private readonly object collectionLock = new object();
 
-        public List<MultiVesselGear_SampledLanding> SampledFishLandingsEx
-        {
-            get
-            {
-                var list = SampledFishLandings;
-                if (list == null)
-                {
-                    list = new List<MultiVesselGear_SampledLanding>();
-                }
-                if (GearsInLandingSite != null)
-                {
-                    foreach (var item in GearsInLandingSite.Where(t => t.Parent.IsSamplingDay == false).ToList())
-                    {
-                        MultiVesselGear_SampledLanding sl = new MultiVesselGear_SampledLanding
-                        {
-                            Parent = this,
-                            Main_gear_code = item.GearCode,
-                            Main_gear_name = item.GearName,
-                            Remarks = ReasonNoLanding
-                        };
-                        list.Add(sl);
-                    }
-                }
-
-                if (list.Count == 0)
-                {
-                    MultiVesselGear_SampledLanding sl = new MultiVesselGear_SampledLanding
-                    {
-                        Parent = this,
-                        Remarks = ReasonNoLanding
-                    };
-                    list.Add(sl);
-                }
-                return list.OrderByDescending(t => t.SamplingDate).ToList();
-            }
-        }
-        [JsonProperty("repeat_landings")]
-        public List<MultiVesselGear_SampledLanding> SampledFishLandings
-        {
-            get { return _sampledFishLandings; }
-            set
-            {
-                _sampledFishLandings = value;
-                foreach (var item in _sampledFishLandings)
-                {
-                    item.Parent = this;
-                }
-            }
-        }
-        public int _id { get; set; }
-
-        //[JsonProperty("formhub/uuid")]
-        //public string formhubuuid { get; set; }
-        public DateTime start { get; set; }
-        public string today { get; set; }
-        public string device_id { get; set; }
-        public string user_name { get; set; }
-        public string intronote { get; set; }
-
-        public double FormVersion
-        {
-            get
-            {
-                string form_version = intronote.Replace("Version ", "");
-                if (double.TryParse(form_version, out double v))
-                {
-                    return double.Parse(form_version);
-                }
-                else
-                {
-                    var s = form_version.Split('.');
-                    if (s.Length > 0)
-                    {
-                        string ss = "";
-                        int count = 0;
-                        foreach (var i in s)
-                        {
-                            if (int.TryParse(i, out int ii))
-                            {
-                                if (count == 0)
-                                {
-                                    ss = $"{ii.ToString()}.";
-                                }
-                                else
-                                {
-                                    ss += ii.ToString();
-                                }
-                            }
-                            count++;
-                        }
-                        if (ss.Length > 0)
-                        {
-                            return double.Parse(ss);
-                        }
-                        else
-                        {
-                            return -1;
-                        }
-                    }
-                    else
-                    {
-                        return -1;
-                    }
-                }
-            }
-        }
-
-        [JsonProperty("landing_site_sampling_group/sampling_date")]
-        public DateTime SamplingDate { get; set; }
-
-        [JsonProperty("landing_site_sampling_group/nsap_region")]
-        public string NSAP_Region { get; set; }
-
-        public NSAPRegion NSAPRegion { get { return NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(NSAP_Region); } }
-
-        [JsonProperty("landing_site_sampling_group/select_enumerator")]
-        public string SelectEnumerator { get; set; }
-
-        [JsonProperty("landing_site_sampling_group/sampling_from_catch_allowed")]
-        public string SamplingFromCatchAllowed { get; set; }
-
-        public bool SamplingFromCatchCompositionAllowed { get { return SamplingFromCatchAllowed == "yes"; } }
-
-        public bool IsSelectEnumerator { get { return SelectEnumerator == "yes"; } }
-
-        [JsonProperty("landing_site_sampling_group/region_enumerator")]
-        public int? RegionEnumeratorID { get; set; }
-
-        [JsonProperty("landing_site_sampling_group/region_enumerator_text")]
-        public string RegionEnumeratorText { get; set; }
-        [JsonProperty("landing_site_sampling_group/reason_no_landings")]
-        public string ReasonNoLanding { get; set; }
-        public NSAPEnumerator NSAPEnumerator
-        {
-            get
-            {
-                if (RegionEnumeratorID == null)
-                {
-                    return null;
-                }
-                else
-                {
-                    return NSAPEntities.NSAPEnumeratorViewModel.GetNSAPEnumerator((int)RegionEnumeratorID);
-                }
-            }
-        }
-
-        public string EnumeratorName
-        {
-            get
-            {
-                if (RegionEnumeratorID == null)
-                {
-                    return RegionEnumeratorText;
-                }
-                else
-                {
-                    return NSAPEnumerator.Name;
-                }
-            }
-        }
-
-        [JsonProperty("landing_site_sampling_group/fma_in_region")]
-        public int FMAinRegionID { get; set; }
-        public FMA FMA
-        {
-            get { return NSAPEntities.FMAViewModel.GetFMA(fma_number); }
-        }
-
-        public NSAPRegionFMA NSAPRegionFMA
-        {
-            get
-            {
-                return NSAPRegion.FMAs.Where(t => t.RowID == FMAinRegionID).FirstOrDefault();
-            }
-        }
-        public FishingGround FishingGround
-        {
-            get
-            {
-                return RegionFishingGround?.FishingGround;
-            }
-        }
         public static bool RowIDSet { get; private set; }
         public bool SavedInLocalDatabase
         {
@@ -2748,22 +2332,11 @@ namespace NSAP_ODK.Entities.Database
         }
         public static void SetRowIDs()
         {
-            //if (NSAPEntities.SummaryItemViewModel.Count == 0)
-            //{
-            //    _pk = 0;
-            //}
-            //else
-            //{
-            //NSAPEntities.SummaryItemViewModel.RefreshLastPrimaryLeys(MultiVesselGear_UnloadServerRepository.DelayedSave);
-            //_pk = NSAPEntities.SummaryItemViewModel.GetNextRecordNumber() - 1;
             _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastLandingSiteSamplingPK;
             LandingSiteSamplingViewModel.CurrentIDNumber = _pk;
-
-            //}
             RowIDSet = true;
         }
-        private SummaryItem _savedVesselUnloadObject;
-        private readonly object collectionLock = new object();
+
         private SummaryItem SavedVesselUnloadObject
         {
             get
@@ -2800,6 +2373,171 @@ namespace NSAP_ODK.Entities.Database
             }
 
         }
+        public List<MultiVessel_Optimized_SampledLanding> SampledFishLandingsEx
+        {
+            get
+            {
+                var list = SampledFishLandings;
+                if (list == null)
+                {
+                    list = new List<MultiVessel_Optimized_SampledLanding>();
+                }
+                if (GearsInLandingSite != null)
+                {
+                    foreach (var item in GearsInLandingSite.Where(t => t.Parent.IsSamplingDay == false).ToList())
+                    {
+                        MultiVessel_Optimized_SampledLanding sl = new MultiVessel_Optimized_SampledLanding
+                        {
+                            Parent = this,
+                            Main_gear_code = item.GearCode,
+                            Main_gear_name = item.GearName,
+                            Remarks = ReasonNoLanding
+                        };
+                        list.Add(sl);
+                    }
+                }
+
+                if (list.Count == 0)
+                {
+                    MultiVessel_Optimized_SampledLanding sl = new MultiVessel_Optimized_SampledLanding
+                    {
+                        Parent = this,
+                        Remarks = ReasonNoLanding
+                    };
+                    list.Add(sl);
+                }
+                return list.OrderByDescending(t => t.SamplingDate).ToList();
+            }
+        }
+        public int _id { get; set; }
+
+        //[JsonProperty("formhub/uuid")]
+        //public string formhubuuid { get; set; }
+        public DateTime start { get; set; }
+        public string today { get; set; }
+        public string device_id { get; set; }
+        public string user_name { get; set; }
+        public string intronote { get; set; }
+
+        [JsonProperty("G_lss/sampling_date")]
+        public DateTime SamplingDate { get; set; }
+
+        [JsonProperty("G_lss/nsap_region")]
+        public string NSAP_Region { get; set; }
+
+        public NSAPRegion NSAPRegion { get { return NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(NSAP_Region); } }
+
+        [JsonProperty("G_lss/select_enumerator")]
+        public string select_enumerator { get; set; }
+
+        [JsonProperty("G_lss/region_enumerator")]
+        public int? RegionEnumeratorID { get; set; }
+
+        [JsonProperty("G_lss/region_enumerator_text")]
+        public string RegionEnumeratorText { get; set; }
+
+        
+        public NSAPEnumerator NSAPEnumerator
+        {
+            get
+            {
+                if (RegionEnumeratorID == null)
+                {
+                    return null;
+                }
+                else
+                {
+                    return NSAPEntities.NSAPEnumeratorViewModel.GetNSAPEnumerator((int)RegionEnumeratorID);
+                }
+            }
+        }
+        public string EnumeratorName
+        {
+            get
+            {
+                if (RegionEnumeratorID == null)
+                {
+                    return RegionEnumeratorText;
+                }
+                else
+                {
+                    return NSAPEnumerator.Name;
+                }
+            }
+        }
+
+        [JsonProperty("G_lss/fma_in_region")]
+        public int FMAinRegionID { get; set; }
+
+        public double FormVersion
+        {
+            get
+            {
+                string form_version = intronote.Replace("Version ", "");
+                if (double.TryParse(form_version, out double v))
+                {
+                    return double.Parse(form_version);
+                }
+                else
+                {
+                    var s = form_version.Split('.');
+                    if (s.Length > 0)
+                    {
+                        string ss = "";
+                        int count = 0;
+                        foreach (var i in s)
+                        {
+                            if (int.TryParse(i, out int ii))
+                            {
+                                if (count == 0)
+                                {
+                                    ss = $"{ii.ToString()}.";
+                                }
+                                else
+                                {
+                                    ss += ii.ToString();
+                                }
+                            }
+                            count++;
+                        }
+                        if (ss.Length > 0)
+                        {
+                            return double.Parse(ss);
+                        }
+                        else
+                        {
+                            return -1;
+                        }
+                    }
+                    else
+                    {
+                        return -1;
+                    }
+                }
+            }
+        }
+
+        [JsonProperty("G_lss/reason_no_landings")]
+        public string ReasonNoLanding { get; set; }
+
+        public NSAPRegionFMA NSAPRegionFMA
+        {
+            get
+            {
+                return NSAPRegion.FMAs.Where(t => t.RowID == FMAinRegionID).FirstOrDefault();
+            }
+        }
+
+        [JsonProperty("G_lss/fishing_ground")]
+        public int RegionFishingGroundID { get; set; }
+
+        public FishingGround FishingGround
+        {
+            get
+            {
+                return RegionFishingGround?.FishingGround;
+            }
+        }
         public NSAPRegionFMAFishingGround RegionFishingGround
         {
             get
@@ -2807,13 +2545,10 @@ namespace NSAP_ODK.Entities.Database
                 return NSAPRegionFMA.FishingGrounds.FirstOrDefault(t => t.RowID == RegionFishingGroundID);
             }
         }
-        [JsonProperty("landing_site_sampling_group/fishing_ground")]
-        public int RegionFishingGroundID { get; set; }
+        [JsonProperty("G_lss/select_landingsite")]
+        public string select_landingsite { get; set; }
 
-        [JsonProperty("landing_site_sampling_group/select_landingsite")]
-        public string SelectLandingSite { get; set; }
-        public bool IsSelectLandingSite { get { return SelectLandingSite == "yes"; } }
-        [JsonProperty("landing_site_sampling_group/landing_site")]
+        [JsonProperty("G_lss/landing_site")]
         public int? LandingSiteID { get; set; }
 
 
@@ -2840,7 +2575,7 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-        [JsonProperty("landing_site_sampling_group/is_sampling_day")]
+        [JsonProperty("G_lss/is_sampling_day")]
         public string Is_sampling_day { get; set; }
 
         public bool IsSamplingDay
@@ -2849,50 +2584,84 @@ namespace NSAP_ODK.Entities.Database
             set { Is_sampling_day = "yes"; }
         }
 
-        [JsonProperty("landing_site_sampling_group/are_there_landings")]
+        [JsonProperty("G_lss/sampling_from_catch_allowed")]
+        public string SamplingFromCatchAllowed { get; set; }
+
+        public bool SamplingFromCatchCompositionAllowed { get { return SamplingFromCatchAllowed == "yes"; } }
+
+        [JsonProperty("G_lss/are_there_landings")]
         public string Are_there_landings { get; set; }
 
         public bool AreThereLandings { get { return Are_there_landings == "yes"; } }
 
-        [JsonProperty("landing_site_sampling_group/count_sampled_landings")]
+        [JsonProperty("G_lss/count_sampled_landings")]
         public int? CountSampledLandings { get; set; }
-
-        [JsonProperty("landing_site_sampling_group/fishing_gear_type_count")]
+        [JsonProperty("G_lss/fishing_gear_type_count")]
         public int? FishingGearTypeCount { get; set; }
 
-        [JsonProperty("landing_site_sampling_group/know_total_landing_count")]
-        public string Know_total_landing_count { get; set; }
+        [JsonProperty("G_lss/know_total_landing_count")]
+        public string know_total_landing_count { get; set; }
 
-        public bool KnowTotalLandingCount { get { return Know_total_landing_count == "yes"; } }
+        [JsonProperty("G_lss/fish_landing_count_constraint")]
+        public string fish_landing_count_constraint { get; set; }
 
-        [JsonProperty("landing_site_sampling_group/count_total_landing")]
+        [JsonProperty("G_lss/count_total_landing")]
         public int? CountTotalLanding { get; set; }
-        public int fma_number { get; set; }
+        public string is_sampling_day_text { get; set; }
+        public string are_there_landings_text { get; set; }
+        public string fma_number { get; set; }
         [JsonProperty("fishing_ground_name")]
         public string Fishing_ground_name { get; set; }
-
-        [JsonProperty("landing_site_sampling_group/landing_site_text")]
-        public string LandingSiteText { get; set; }
         [JsonProperty("landing_site_name")]
         public string Landing_site_name { get; set; }
+
         public string LandingSiteName { get { return Landing_site_name.Replace("»", ","); } }
-        //public string sampling_date_string { get; set; }
-        //public string decimal_sampling_date { get; set; }
-        //public string outside_gear_repeat { get; set; }
-        public int? Repeat_gears_count { get; set; }
 
-        public string Gear_used1 { get; set; }
-        public string Gear_used2 { get; set; }
-        public string Gear_used3 { get; set; }
-        public string Gear_used4 { get; set; }
-        public string Gear_used5 { get; set; }
-        public string Gear_used6 { get; set; }
-        public string Gear_used7 { get; set; }
-        public string Gear_used8 { get; set; }
-        public string Gear_used9 { get; set; }
-        public string Gear_used10 { get; set; }
-        //public string repeat_landings_count { get; set; }
+        [JsonProperty("G_lss/landing_site_text")]
+        public string LandingSiteText { get; set; }
+        public string sampling_date_string { get; set; }
+        public string count_total_landing_text { get; set; }
+        public string count_sampled_landings_text { get; set; }
+        public string count_number_gears_text { get; set; }
+        public string outside_gear_repeat { get; set; }
+        public string R_g_count { get; set; }
 
+        [JsonProperty("R_g")]
+        public List<MultiVessel_Optimized_Gear> GearsInLandingSite
+        {
+            get { return _gearsInLandingSite; }
+            set
+            {
+                _gearsInLandingSite = value;
+                foreach (var item in _gearsInLandingSite)
+                {
+                    item.Parent = this;
+                }
+            }
+        }
+        public string total_catch_weight_all_landings { get; set; }
+        public string total_catch_weight_all_landings_text { get; set; }
+        public string is_weight_catch_all_gears_known { get; set; }
+        public string gear_used1 { get; set; }
+        public string gear_used2 { get; set; }
+        public string gear_used3 { get; set; }
+        public string R_l_count { get; set; }
+        [JsonProperty("R_l")]
+        public List<MultiVessel_Optimized_SampledLanding> SampledFishLandings
+        {
+            get { return _sampledFishLandings; }
+            set
+            {
+                _sampledFishLandings = value;
+                foreach (var item in _sampledFishLandings)
+                {
+                    item.Parent = this;
+                }
+            }
+        }
+        public string sum_catch_wt_sampled_landings { get; set; }
+        public string sum_catch_wt_sampled_landings_text { get; set; }
+        public string gear_catch_weight_complete { get; set; }
         public string __version__ { get; set; }
 
         [JsonProperty("meta/instanceID")]
@@ -2901,11 +2670,9 @@ namespace NSAP_ODK.Entities.Database
         [JsonProperty("meta/instanceName")]
         public string metainstanceName { get; set; }
         public string _xform_id_string { get; set; }
-
+        //public string _uuid { get; set; }
         [JsonProperty("_uuid")]
         public string SubmissionUUID { get; set; }
-        [JsonProperty("formhub/uuid")]
-        public string UUID { get; set; }
         public List<object> _attachments { get; set; }
         public string _status { get; set; }
         public List<object> _geolocation { get; set; }
@@ -2913,10 +2680,16 @@ namespace NSAP_ODK.Entities.Database
         public DateTime SubmissionTime { get; set; }
         public List<object> _tags { get; set; }
         public List<object> _notes { get; set; }
-
+        public ValidationStatus _validation_status { get; set; }
         public object _submitted_by { get; set; }
 
+        [JsonProperty("formhub/uuid")]
+        public string UUID { get; set; }
     }
+
+    //public class ValidationStatus
+    //{
+    //}
 
 
 
