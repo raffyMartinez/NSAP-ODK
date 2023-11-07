@@ -50,6 +50,8 @@ namespace NSAP_ODK.Entities.Database
             }
             set { _gearsInLandingSite = value; }
         }
+
+        public int? Submission_id { get; set; }
         public bool HasFishingOperation { get; set; }
         public bool IsMultiVessel { get; set; }
         public bool DelayedSave { get; set; }

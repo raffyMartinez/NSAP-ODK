@@ -70,6 +70,7 @@ namespace NSAP_ODK.Entities.Database
                     switch (colName)
                     {
                         case "number_species_catch_composition":
+                        case "submission_id":
                             sql = $@"ALTER TABLE dbo_vessel_unload_1 ADD COLUMN {colName}  int";
                             break;
                         case "sampling_sequence":
@@ -147,7 +148,7 @@ namespace NSAP_ODK.Entities.Database
         public static int GetTotalSavedLandingsCount()
         {
             int totalCount = 0;
-            if(Global.Settings.UsemySQL)
+            if (Global.Settings.UsemySQL)
             {
 
             }
@@ -163,7 +164,7 @@ namespace NSAP_ODK.Entities.Database
                         {
                             totalCount = (int)cmd.ExecuteScalar();
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             Logger.Log(ex);
                         }
@@ -1806,6 +1807,13 @@ namespace NSAP_ODK.Entities.Database
 
                             while (dr.Read())
                             {
+
+                                int? submission_id = null;
+                                if (dr["submission_id"]!=DBNull.Value)
+                                {
+                                    submission_id = (int)dr["submission_id"];
+                                }
+
                                 VesselUnload item = new VesselUnload();
                                 item.Parent = gu;
                                 item.PK = (int)dr["t1.v_unload_id"];
@@ -1823,6 +1831,7 @@ namespace NSAP_ODK.Entities.Database
                                 item.RaisingFactor = dr["t4.raising_factor"] == DBNull.Value ? null : (double?)dr["t4.raising_factor"];
                                 item.NSAPEnumeratorID = string.IsNullOrEmpty(dr["EnumeratorID"].ToString()) ? null : (int?)dr["EnumeratorID"];
                                 item.EnumeratorText = dr["EnumeratorText"].ToString();
+                                item.SubmissionID = submission_id;
 
                                 item.OperationIsSuccessful = (bool)dr["Success"];
                                 item.OperationIsTracked = (bool)dr["Tracked"];
@@ -2356,8 +2365,9 @@ namespace NSAP_ODK.Entities.Database
                                                 RowID, XFormIdentifier, XFormDate, SamplingDate,
                                                 user_name,device_id,datetime_submitted,form_version,
                                                 GPS,Notes,EnumeratorID,EnumeratorText,DateAdded,sector_code,FromExcelDownload,HasCatchComposition,
-                                                NumberOfFishers,ref_no,is_catch_sold,is_multigear,count_gear_types,number_species_catch_composition,include_effort,lss_submisionID)
-                                    Values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                                                NumberOfFishers,ref_no,is_catch_sold,is_multigear,count_gear_types,number_species_catch_composition,
+                                                include_effort,submission_id,lss_submisionID)
+                                    Values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
                                 using (OleDbCommand update1 = new OleDbCommand(sql, conn))
                                 {
@@ -2479,6 +2489,14 @@ namespace NSAP_ODK.Entities.Database
                                         update.Parameters.Add("@count_species_catch_comp", OleDbType.Integer).Value = item.NumberOfSpeciesInCatchComposition;
                                     }
                                     update1.Parameters.Add("@include_effort", OleDbType.Boolean).Value = item.IncludeEffortIndicators;
+                                    if(item.SubmissionID==null)
+                                    {
+                                        update1.Parameters.Add("@_id", OleDbType.Integer).Value = DBNull.Value;
+                                    }
+                                    else
+                                    {
+                                        update1.Parameters.Add("@_id", OleDbType.Integer).Value = item.SubmissionID;
+                                    }
                                     update1.Parameters.Add("@lss_id", OleDbType.VarWChar).Value = item.LandingSiteSamplingSubmissionID;
                                     try
                                     {
@@ -3223,6 +3241,14 @@ namespace NSAP_ODK.Entities.Database
                                 }
                                 cmd_1.Parameters.Add("@include_effort", OleDbType.Boolean).Value = item.IncludeEffortIndicators;
                                 cmd_1.Parameters.Add("@lsss_id", OleDbType.VarWChar).Value = item.LandingSiteSamplingSubmissionID;
+                                if (item.SubmissionID == null)
+                                {
+                                    cmd_1.Parameters.Add("@_id", OleDbType.Integer).Value = DBNull.Value; ;
+                                }
+                                else
+                                {
+                                    cmd_1.Parameters.Add("@_id", OleDbType.Integer).Value = item.SubmissionID;
+                                }
 
                                 cmd_1.Parameters.Add("@Vessel_unload_id", OleDbType.Integer).Value = item.PK;
 

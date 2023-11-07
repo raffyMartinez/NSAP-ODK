@@ -206,7 +206,8 @@ namespace NSAP_ODK.Entities.Database
                                 JSONFileName = jsonFileName,
                                 Remarks = root.ReasonNoLanding,
                                 DateSubmitted = root.SubmissionTime,
-                                SamplingFromCatchCompositionIsAllowed = root.SamplingFromCatchCompositionAllowed
+                                SamplingFromCatchCompositionIsAllowed = root.SamplingFromCatchCompositionAllowed,
+                                Submission_id = root._id
                             };
 
                             if (root.RegionFishingGround != null)
@@ -391,7 +392,9 @@ namespace NSAP_ODK.Entities.Database
                                                         //NumberOfSpeciesInCatchComposition = sl.NumberSpeciesInCatchComposition,
                                                         NumberOfSpeciesInCatchComposition = null,
                                                         IncludeEffortIndicators = sl.IncludeEffort,
-                                                        LandingSiteSamplingSubmissionID = lsss.SubmissionID
+                                                        LandingSiteSamplingSubmissionID = lsss.SubmissionID,
+                                                        
+                                                        
                                                     };
                                                     if (gu.VesselUnloadViewModel.AddRecordToRepo(vu))
                                                     {

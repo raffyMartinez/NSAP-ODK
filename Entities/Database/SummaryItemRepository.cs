@@ -699,29 +699,6 @@ namespace NSAP_ODK.Entities.Database
                                 cmd.ExecuteNonQuery();
                                 proceed = true;
 
-                                //union
-
-                                //SELECT unload_day_id, unload_gr_id, 'm' AS sector_name, gear_count_municipal, gear_catch_municipal, gr_id, gr_text, remarks
-                                //    FROM dbo_gear_unload
-                                //    WHERE gear_count_municipal > 0
-
-                                //    union
-
-                                //    SELECT unload_day_id, unload_gr_id, sector, boats, catch, gr_id, gr_text,remarks
-                                //    FROM dbo_gear_unload
-                                //    WHERE sector = 'c'
-
-
-                                //    union
-
-                                //    SELECT unload_day_id, unload_gr_id, sector, boats, catch, gr_id, gr_text,remarks
-                                //    FROM dbo_gear_unload
-                                //    WHERE sector = 'm'
-
-                                //    INTO temp_GearUnload";
-
-                                //cmd.ExecuteNonQuery();
-                                //proceed = true;
                             }
                             catch (Exception ex)
                             {

@@ -24,6 +24,34 @@ namespace NSAP_ODK.Entities.Database
 
         public event EventHandler<BuildSummaryReportEventArg> BuildingSummaryTable;
         public event EventHandler<BuildOrphanedEntityEventArg> BuildingOrphanedEntity;
+
+        public List<DateTime> GetMonthsLandingData(string formID, out string message)
+        {
+            List<DateTime> sampledMonths = new List<DateTime>();
+            message = "";
+            var kf = NSAPEntities.KoboServerViewModel.GetKoboServer(formID);
+            if (kf.IsFishLandingMultiVesselSurveyForm)
+            {
+                message = "";
+                var items = SummaryItemCollection.Where(t => t.XFormIdentifier == formID && t.SamplingDate != null).GroupBy(t => t.SamplingMonthYear());
+                if(items.Count()>0)
+                {
+                    foreach(var item in items)
+                    {
+                        sampledMonths.Add(item.Key);
+                    }
+                }
+                else
+                {
+                    message = "No records";
+                }
+            }
+            else
+            {
+                message = "Not supported";
+            }
+            return sampledMonths;
+        }
         public LandingSiteSampling GetLandingSiteSampling(int ls_id, string fg_id, DateTime sdate)
         {
             SummaryItem item = null; ;

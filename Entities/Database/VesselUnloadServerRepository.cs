@@ -3079,7 +3079,8 @@ namespace NSAP_ODK.Entities.Database
                                     //JSONFileName = jsonFileName,
                                     JSONFileName = Path.GetFileName(jsonFullFileName),
                                     IsMultiGear = landing.IsMultiGear,
-                                    IncludeEffortIndicators = landing.IncludeEffort
+                                    IncludeEffortIndicators = landing.IncludeEffort,
+                                    SubmissionID=landing._id
                                 };
 
                                 if (vu.IsMultiGear)

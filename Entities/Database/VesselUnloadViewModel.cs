@@ -1023,6 +1023,12 @@ namespace NSAP_ODK.Entities.Database
                 no_species_catch_composition = ((int)vu.NumberOfSpeciesInCatchComposition).ToString();
             }
 
+            string submission_id = string.Empty;
+            if (vu.SubmissionID != null)
+            {
+                submission_id = ((int)vu.SubmissionID).ToString();
+            }
+
             if (Utilities.Global.Settings.UsemySQL)
             {
                 if (vu.VesselID == null)
@@ -1178,6 +1184,7 @@ namespace NSAP_ODK.Entities.Database
             myDict.Add("number_species_catch_composition", no_species_catch_composition);
             myDict.Add("include_effort_indicators", vu.IncludeEffortIndicators.ToString());
             myDict.Add("lss_submisionID", vu.LandingSiteSamplingSubmissionID);
+            myDict.Add("submission_id", submission_id);
 
             _csv_1.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload_1"));
 

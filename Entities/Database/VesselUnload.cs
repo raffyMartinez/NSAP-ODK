@@ -83,6 +83,7 @@ namespace NSAP_ODK.Entities.Database
                 ArrivalAtLandingSite = vesselUnload.ArrivalAtLandingSite;
                 GPSCode = vesselUnload.GPSCode;
                 Notes = vesselUnload.Notes;
+                SubmissionID = vesselUnload.SubmissionID;
 
                 Submitted = vesselUnload.DateTimeSubmitted.ToString("MMM-dd-yyyy HH:mm");
                 FormVersion = vesselUnload.FormVersion;
@@ -129,6 +130,9 @@ namespace NSAP_ODK.Entities.Database
         public FishingGround FishingGround { get; set; }
         public bool IsCatchSold { get; set; }
         public int? NumberOfFishers { get; set; }
+
+        [ReadOnly(true)]
+        public int? SubmissionID { get; set; }
 
         [ReadOnly(true)]
         public string FishingGroundName { get; set; }
@@ -412,6 +416,7 @@ namespace NSAP_ODK.Entities.Database
             NumberOfFishers = vesselUnload.NumberOfFishers;
             CountGearTypesUsed = vesselUnload.CountGearTypesUsed;
             ODKRowID = vesselUnload.ODKRowID;
+            SubmissionID = vesselUnload.SubmissionID;
         }
         public bool IncludeEffortIndicators { get; private set; }
         public int? CountGearTypesUsed { get; private set; }
@@ -421,6 +426,8 @@ namespace NSAP_ODK.Entities.Database
         public string FishingGround { get; private set; }
         public string LandingSite { get; private set; }
         public string FishingGear { get; private set; }
+
+        public int? SubmissionID { get; private set; }
 
         public string RefNo { get; private set; }
         public int Identifier { get; private set; }
@@ -642,6 +649,8 @@ namespace NSAP_ODK.Entities.Database
         private NSAPEnumerator _nsapEnumerator;
         private double _runningSum = 0;
         private bool _speciesWeightIsZero;
+
+        public int? SubmissionID { get; set; }
         public void Dispose()
         {
             Dispose(true);

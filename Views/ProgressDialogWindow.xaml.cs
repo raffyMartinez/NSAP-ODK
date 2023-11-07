@@ -49,6 +49,12 @@ namespace NSAP_ODK.Views
             _timer.Tick += OnTimerTick;
             switch (TaskToDo)
             {
+                case "upload unmatched landings JSON":
+                    labelBigTitle.Content = "Update missing submissions using JSON";
+                    break;
+                case "update submission pairing":
+                    labelBigTitle.Content = "Update submission identifiers in database";
+                    break;
                 case "delete landing data from selected server":
                     labelBigTitle.Content = "Delete fish landing data downloaded from seleceted server";
                     break;
@@ -115,11 +121,15 @@ namespace NSAP_ODK.Views
         {
             _instance = null;
         }
+
+        public Koboserver Koboserver { get; set; }
         public List<string> VesselNamesFromDB { get; private set; }
         public List<NSAPRegionEnumerator> FirstSamplingsOfEnumerators { get; private set; }
         public List<NSAPRegionFishingVessel> NSAPRegionFishingVessels { get; set; }
-        public Koboserver Koboserver { get; set; }
+        public FormSummary FormSummary { get; set; }
         public List<System.IO.FileInfo> BatchJSONFiles { get; set; }
+
+        public string JSON { get; set; }
         public NSAPRegion Region { get; set; }
         public LandingSite LandingSite { get; set; }
         public string ListToImportFromTextBox { get; set; }
@@ -162,6 +172,44 @@ namespace NSAP_ODK.Views
 
             switch (TaskToDo)
             {
+                case "upload unmatched landings JSON":
+                    var resultsWindow = (ODKResultsWindow)((DownloadFromServerWindow)Owner).Owner;
+                    foreach (var json in SubmissionIdentifierPairing.UnmatchedLandingsJSON)
+                    {
+                        bool isMultiVessel = json.Contains("repeat_landings");
+                        bool isOptimizedMultiVessel = json.Contains("G_lss/sampling_date");
+
+                        resultsWindow.JSONFromServer(json, isMultiVessel,isOptimizedMultiVessel);
+
+                        if(isMultiVessel)
+                        {
+                            MultiVesselGear_UnloadServerRepository.JSON = json;
+                            MultiVesselGear_UnloadServerRepository.CreateLandingsFromSingleJson();
+                            resultsWindow.MultiVesselMainSheets = MultiVesselGear_UnloadServerRepository.SampledVesselLandings;
+                        }
+                        else if(isOptimizedMultiVessel)
+                        {
+                            MultiVessel_Optimized_UnloadServerRepository.JSON = json;
+                            MultiVessel_Optimized_UnloadServerRepository.CreateLandingsFromJSON();
+                            resultsWindow.MultiVesselOptimizedMainSheets = MultiVessel_Optimized_UnloadServerRepository.SampledVesselLandings;
+                        }
+                        else
+                        {
+                            VesselUnloadServerRepository.JSON = json;
+                            VesselUnloadServerRepository.CreateLandingsFromJSON();
+                            resultsWindow.MainSheets = VesselUnloadServerRepository.VesselLandings;
+                        }
+                        await resultsWindow.UploadToDatabase();
+                    }
+                    break;
+                case "update submission pairing":
+                    SubmissionIdentifierPairing.UploadSubmissionToDB += SubmissionIdentifierPairing_UploadSubmissionToDB;
+                    SubmissionIdentifierPairing.KoboForm = FormSummary.KoboForm;
+                    textBlockDescription.Text = "Updating missing submission IDs";
+                    //progressLabel.Visibility = Visibility.Collapsed;
+                    DialogResult = await SubmissionIdentifierPairing.UpDateDatabaseTaskAsync();
+                    SubmissionIdentifierPairing.UploadSubmissionToDB -= SubmissionIdentifierPairing_UploadSubmissionToDB;
+                    break;
                 case "delete landing data from selected server":
                     DeleteServerData.DeletingServerDataEvent += DeleteServerData_DeletingServerDataEvent;
                     progressLabel.Visibility = Visibility.Collapsed;
@@ -330,9 +378,81 @@ namespace NSAP_ODK.Views
 
         }
 
+
+
+        private void SubmissionIdentifierPairing_UploadSubmissionToDB(object sender, UploadToDbEventArg e)
+        {
+            switch (e.Intent)
+            {
+                case UploadToDBIntent.UpdateTableFields:
+                    progressBar.Dispatcher.BeginInvoke
+                    (
+                      DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                      {
+                          progressBar.Maximum = e.ItemsForUpdatingCount;
+                          progressBar.IsIndeterminate = false;
+                          progressBar.Value = 0;
+                          //do what you need to do on UI Thread
+                          return null;
+                      }), null);
+
+                    progressLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              progressLabel.Content = $"Updating database table. Please wait...";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+
+
+                case UploadToDBIntent.UpdatedTableField:
+                    progressBar.Dispatcher.BeginInvoke
+                    (
+                      DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                      {
+                          progressBar.Value = e.ItemsUpdatedCount;
+                          return null;
+                      }), null);
+
+                    progressLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              progressLabel.Content = $"Updated database item {e.ItemsUpdatedCount} of {progressBar.Maximum}";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+
+                case UploadToDBIntent.UpdatedTableDone:
+                    progressBar.Dispatcher.BeginInvoke
+                    (
+                      DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                      {
+                          progressBar.Value = 0;
+                          return null;
+                      }), null);
+
+                    progressLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              progressLabel.Content = $"Finished updating {e.ItemsUpdatedCount} items in database";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+            }
+        }
+
         private void DeleteServerData_DeletingServerDataEvent(object sender, DeleteFromServerEventArg e)
         {
-            switch(e.Intent)
+            switch (e.Intent)
             {
                 case "start deleting":
                     progressBar.Dispatcher.BeginInvoke
@@ -355,7 +475,7 @@ namespace NSAP_ODK.Views
                       DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                       {
 
-                           progressBar.Value = e.CountProcessed;
+                          progressBar.Value = e.CountProcessed;
                           //do what you need to do on UI Thread
                           return null;
                       }), null);

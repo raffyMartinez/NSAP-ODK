@@ -9,6 +9,7 @@ using NSAP_ODK.Entities;
 using NSAP_ODK.Utilities;
 using MySql.Data.MySqlClient;
 using NSAP_ODK.NSAPMysql;
+using System.ComponentModel;
 
 namespace NSAP_ODK.Entities.Database
 {
@@ -48,7 +49,10 @@ namespace NSAP_ODK.Entities.Database
                                     {
                                         if (cols.Contains("can_sample_from_catch_composition") || UpdateTableDefinition("can_sample_from_catch_composition"))
                                         {
-                                            proceed = true;
+                                            if (cols.Contains("submission_id") || UpdateTableDefinition("submission_id"))
+                                            {
+                                                proceed = true;
+                                            }
                                         }
                                     }
                                 }
@@ -127,7 +131,11 @@ namespace NSAP_ODK.Entities.Database
                                                 if (cols.Contains("include_effort_indicators") || VesselUnloadRepository.UpdateTableDefinitionEx("include_effort_indicators"))
                                                 {
 
-                                                    proceed = cols.Contains("lss_submisionID") || VesselUnloadRepository.UpdateTableDefinitionEx("lss_submisionID");
+                                                    if (cols.Contains("lss_submisionID") || VesselUnloadRepository.UpdateTableDefinitionEx("lss_submisionID"))
+                                                    {
+                                                        proceed = cols.Contains("submission_id") || VesselUnloadRepository.UpdateTableDefinitionEx("submission_id");
+
+                                                    }
                                                 }
                                             }
                                         }
@@ -298,7 +306,7 @@ namespace NSAP_ODK.Entities.Database
         }
         public LandingSiteSampling Create(int lss_id)
         {
-            var lss= getLandingSiteSamplings(lss_id).First();
+            var lss = getLandingSiteSamplings(lss_id).First();
 
             return lss;
         }
@@ -466,7 +474,7 @@ namespace NSAP_ODK.Entities.Database
         public static int? GetLandingSiteSamplingID(FishingGround fg, LandingSite ls, DateTime sampling_date)
         {
             int? lss_id = null;
-            if(Global.Settings.UsemySQL)
+            if (Global.Settings.UsemySQL)
             {
 
             }
@@ -492,7 +500,7 @@ namespace NSAP_ODK.Entities.Database
                             lss_id = (int)cmd.ExecuteScalar();
 
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             Logger.Log(ex);
                         }
@@ -501,7 +509,7 @@ namespace NSAP_ODK.Entities.Database
             }
             return lss_id;
         }
-        private List<LandingSiteSampling> getLandingSiteSamplings(int? lss_id=null)
+        private List<LandingSiteSampling> getLandingSiteSamplings(int? lss_id = null)
         {
 
             List<LandingSiteSampling> thisList = new List<LandingSiteSampling>();
@@ -589,6 +597,13 @@ namespace NSAP_ODK.Entities.Database
                                 item.EnumeratorID = dr["EnumeratorID"] == DBNull.Value ? null : (int?)int.Parse(dr["EnumeratorID"].ToString());
                                 item.EnumeratorText = dr["EnumeratorText"].ToString();
                                 item.GearUnloadViewModel = new GearUnloadViewModel(item);
+
+
+                                int? submission_id = null;
+                                if (dr["submission_id"] != DBNull.Value)
+                                {
+                                    submission_id = (int)dr["submission_id"];
+                                }
 
                                 if (item.IsMultiVessel)
                                 {
@@ -753,6 +768,7 @@ namespace NSAP_ODK.Entities.Database
                         sql = $@"ALTER TABLE dbo_LC_FG_sample_day_1 ADD COLUMN {colName} VARCHAR";
                         break;
                     case "number_gear_types_in_landingsite":
+                    case "submission_id":
                         sql = $@"ALTER TABLE dbo_LC_FG_sample_day_1 ADD COLUMN {colName} INTEGER DEFAULT NULL";
                         break;
                     case "number_landings_sampled":
@@ -1052,8 +1068,9 @@ namespace NSAP_ODK.Entities.Database
                                         RowID,
                                         EnumeratorID,
                                         EnumeratorText,
-                                        can_sample_from_catch_composition
-                                    ) Values (?,?,?,?,?,?,?,?,?,?,?,?)";
+                                        can_sample_from_catch_composition,
+                                        submission_id
+                                    ) Values (?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
 
                                 using (OleDbCommand update1 = new OleDbCommand(sql, conn))
@@ -1148,6 +1165,15 @@ namespace NSAP_ODK.Entities.Database
                                     }
                                     update1.Parameters.Add("@can_sample", OleDbType.Boolean).Value = item.SamplingFromCatchCompositionIsAllowed;
 
+                                    if (item.Submission_id == null)
+                                    {
+                                        update1.Parameters.Add("@_id", OleDbType.Integer).Value = DBNull.Value;
+                                    }
+                                    else
+                                    {
+                                        update1.Parameters.Add("@_id", OleDbType.Integer).Value = item.Submission_id;
+                                    }
+
                                     try
                                     {
                                         success = update1.ExecuteNonQuery() > 0;
@@ -1189,6 +1215,43 @@ namespace NSAP_ODK.Entities.Database
             return success;
         }
 
+        public static bool UpdateSubmissionID(string formID, string submissionUID, int id)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        //var guid = new Guid(submissionUID);
+                        //cmd.Parameters.Add("@form_id", OleDbType.VarChar).Value = formID;
+                        //cmd.Parameters.Add("@submission_uid", OleDbType.VarChar).Value = submissionUID;
+                        //cmd.Parameters.Add("@id", OleDbType.Integer).Value= id;
+
+                        cmd.CommandText = $@"UPDATE dbo_LC_FG_sample_day_1
+                                            SET submission_id = {id}
+                                            WHERE XFormIdentifier = '{formID}' AND RowID = '{submissionUID}'";
+
+                        try
+                        {
+                            con.Open();
+                            int r = (int)cmd.ExecuteNonQuery();
+                            success = r>0;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
         public static bool DeleteSamplingWithOrphanedLandingSite()
         {
             bool success = false;
@@ -1463,6 +1526,16 @@ namespace NSAP_ODK.Entities.Database
                                     update1.Parameters.Add("@enum_text", OleDbType.VarChar).Value = item.EnumeratorText;
                                 }
                                 update1.Parameters.Add("@can_sample", OleDbType.Boolean).Value = item.SamplingFromCatchCompositionIsAllowed;
+
+                                if (item.Submission_id == null)
+                                {
+                                    update1.Parameters.Add("@_id", OleDbType.Integer).Value = DBNull.Value;
+                                }
+                                else
+                                {
+                                    update1.Parameters.Add("@_id", OleDbType.Integer).Value = item.Submission_id;
+                                }
+
                                 update1.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
 
                                 update1.CommandText = @"Update dbo_LC_FG_sample_day_1 set
@@ -1477,6 +1550,7 @@ namespace NSAP_ODK.Entities.Database
                                                     EnumeratorID = @enum_id,
                                                     EnumeratorText = @enum_text,
                                                     can_sample_from_catch_composition = @can_sample,
+                                                    submission_id=@id
                                                  WHERE unload_day_id = @pk";
 
                                 success = false;

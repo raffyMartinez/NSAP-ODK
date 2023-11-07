@@ -456,7 +456,7 @@ namespace NSAP_ODK.Entities.Database
 
         public LandingSiteSampling CreateInstance(int lss_id)
         {
-            
+
             var lss = LandingSiteSamplings.Create(lss_id);
             _addToCollectionOnly = true;
             LandingSiteSamplingCollection.Add(lss);
@@ -555,9 +555,9 @@ namespace NSAP_ODK.Entities.Database
             //var lss = LandingSiteSamplingCollection.ToList().FirstOrDefault(n => n.PK == pk);
             try
             {
-                
-                var lss= LandingSiteSamplingCollection.ToList().FirstOrDefault(n => n.PK == pk);
-                if(lss==null)
+
+                var lss = LandingSiteSamplingCollection.ToList().FirstOrDefault(n => n.PK == pk);
+                if (lss == null)
                 {
 
                 }
@@ -626,12 +626,15 @@ namespace NSAP_ODK.Entities.Database
             string number_landings = "";
             string number_landings_sampled = "";
             string number_gear_types = "";
+            string submission_id = "";
             if (Utilities.Global.Settings.UsemySQL)
             {
                 number_landings = @"\N";
                 number_landings_sampled = @"\N";
                 number_gear_types = @"\N";
+                submission_id = @"\N";
             }
+
             if (item.IsMultiVessel)
             {
                 if (item.NumberOfLandings != null)
@@ -645,6 +648,10 @@ namespace NSAP_ODK.Entities.Database
                 if (item.NumberOfGearTypesInLandingSite != null)
                 {
                     number_gear_types = ((int)item.NumberOfGearTypesInLandingSite).ToString();
+                }
+                if (item.Submission_id != null)
+                {
+                    submission_id = ((int)item.Submission_id).ToString();
                 }
             }
 
@@ -692,6 +699,7 @@ namespace NSAP_ODK.Entities.Database
             myDict.Add("number_gear_types_in_landingsite", number_gear_types);
             myDict.Add("json_filename", item.JSONFileName);
             myDict.Add("can_sample_from_catch_composition", item.SamplingFromCatchCompositionIsAllowed.ToString());
+            myDict.Add("submission_id", submission_id);
 
 
             _csv_1.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_LC_FG_sample_day_1"));

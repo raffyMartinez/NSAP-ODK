@@ -19,6 +19,7 @@
             <MenuItem Header="File" x:Name="menuFileHeader" >
                 <MenuItem Header="Download from server" x:Name="menuDownloadFromServer" Click="OnMenuClick"/>
                 <MenuItem Header="Download from server as a different user" x:Name="menuDownloadFromServerOtherUser" Click="OnMenuClick" Visibility="Collapsed"/>
+                <MenuItem Header="Delete landing data from server" x:Name="menuDeleteFromServer" Click="OnMenuClick" />
                 <MenuItem Header="_Upload media" x:Name="menuUploadMedia" Click="OnMenuClick" />
                 <MenuItem Header="Import SQL Dump" x:Name="menuImportSQLDump" Click="OnMenuClick" Visibility="Collapsed"/>
                 <MenuItem Header="Import ODK excel" x:Name="menuImport" Click="OnMenuClick"/>

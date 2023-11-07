@@ -83,7 +83,7 @@
                         <RowDefinition Height="40"/>
                     </Grid.RowDefinitions>
 
-
+                    <!--Container panel holding download controls-->    
                     <StackPanel x:Name="stackPanelDownload" Visibility="Visible">
                         <WrapPanel>
                             <Label Content="Download option" Margin="10,5"/>
@@ -126,6 +126,8 @@
                                     <TextBox Height="20" Width="250" IsEnabled="False" Text="a34e8295-c674-4632-b1ac-0c5cad8e8b5c" x:Name="txtFormUUID"/>
 
                                 </WrapPanel>
+                                
+                                <RadioButton Content="Download all submission IDs and update database" Margin="10 5" Checked="OnButtonChecked" Tag="download_all_submission_ids"/>
 
 
 
@@ -166,7 +168,19 @@
                         <Button Content="Upload media" Width="100" Height="25" x:Name="ButtonUploadMedia" Click="OnButtonClick" Visibility="Collapsed"/>
                     </WrapPanel>
                 </Grid>
-
+                
+                <!--Container grid for deleting data from the server-->
+                <Grid Grid.Column="1" Margin="5" x:Name="gridDeletedFromServer" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition/>
+                        <RowDefinition Height="40"/>
+                    </Grid.RowDefinitions>
+                    <Label x:Name="labelDeleteFromServer" Content="This is to delete from server"/>
+                    <DataGrid Grid.Row="1" x:Name="dataGridSubmissionsForDeletion"/>
+                    <Button Grid.Row="2" Width="50" Height="25" Content="Delete" x:Name="buttonDeleteFromServer" Click="OnButtonClick"/>
+                </Grid>
+        
             </Grid>
         </Border>
 
