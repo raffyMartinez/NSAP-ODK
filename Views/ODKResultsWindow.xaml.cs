@@ -69,14 +69,16 @@ namespace NSAP_ODK.Views
         private FileInfoJSONMetadata _selectedJSONMetaData;
         private string _json;
         private bool _jsonFromServer = false;
+        private bool _updateMissingSubmission = false;
 
         public bool IsOptimizedMultiVessel { get; set; }
-        public void JSONFromServer(string json, bool isMultivessel, bool is_optimized = false)
+        public void JSONFromServer(string json, bool isMultivessel, bool is_optimized = false, bool updateMissingSubmission=false)
         {
             JSON = json;
             _jsonFromServer = true;
             IsMultiVessel = isMultivessel;
             IsOptimizedMultiVessel = is_optimized;
+            _updateMissingSubmission = updateMissingSubmission;
         }
 
         public string JSON
@@ -433,6 +435,8 @@ namespace NSAP_ODK.Views
                 SetMenus();
             }
         }
+
+        
         public List<MultiVesselGear_SampledLanding> MultiVesselMainSheets
         {
             get { return _multiVesselMainSheets; }
@@ -1973,6 +1977,11 @@ namespace NSAP_ODK.Views
                 //success if true if we have made this far wityout exceptions called earlier
                 success = true;
 
+                if(_updateMissingSubmission)
+                {
+                    verbose = false;
+                }
+
                 if (verbose)
                 {
                     string msg = "Finished uploading downloaded JSON files to the database";
@@ -2112,6 +2121,41 @@ namespace NSAP_ODK.Views
                 }
             }
         }
+
+        public async Task Upload_unmatched_landings_JSON(string formID)
+        {
+            //var resultsWindow = (ODKResultsWindow)((DownloadFromServerWindow)Owner).Owner;
+            FormID = formID;
+            //resultsWindow.BatchUpload = true;
+            foreach (var json in SubmissionIdentifierPairing.UnmatchedLandingsJSON)
+            {
+                bool isMultiVessel = json.Contains("repeat_landings") || json.Contains("landing_site_sampling_group/are_there_landings");
+                bool isOptimizedMultiVessel = json.Contains("G_lss/sampling_date");
+
+                JSONFromServer(json, isMultiVessel, isOptimizedMultiVessel, updateMissingSubmission: true);
+
+                if (isMultiVessel)
+                {
+                    MultiVesselGear_UnloadServerRepository.JSON = json;
+                    MultiVesselGear_UnloadServerRepository.CreateLandingsFromSingleJson();
+                    MultiVesselMainSheets = MultiVesselGear_UnloadServerRepository.SampledVesselLandings;
+                }
+                else if (isOptimizedMultiVessel)
+                {
+                    MultiVessel_Optimized_UnloadServerRepository.JSON = json;
+                    MultiVessel_Optimized_UnloadServerRepository.CreateLandingsFromSingleJson();
+                    MultiVesselOptimizedMainSheets = MultiVessel_Optimized_UnloadServerRepository.SampledVesselLandings;
+                }
+                else
+                {
+                    VesselUnloadServerRepository.JSON = json;
+                    VesselUnloadServerRepository.CreateLandingsFromJSON();
+                    MainSheets = VesselUnloadServerRepository.VesselLandings;
+                }
+                await UploadToDatabase();
+            }
+
+        }
         private async Task<bool> Upload(bool verbose = true, bool fromJSONBatchFiles = false, int loopCount = 0, string jsonFullFileName = "", bool fromHistoryFiles = false)
         {
             int? countVesselLandings = null;
@@ -2141,7 +2185,7 @@ namespace NSAP_ODK.Views
                 {
                     if (_isJSONData)
                     {
-                        if (_targetGrid.Items.Count > 0 || BatchUpload)
+                        if (_targetGrid.Items.Count > 0 || BatchUpload || _updateMissingSubmission)
                         {
                             _jsonFile = null;
                             if (fromJSONBatchFiles)

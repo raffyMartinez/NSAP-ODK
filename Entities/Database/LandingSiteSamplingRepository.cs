@@ -51,7 +51,10 @@ namespace NSAP_ODK.Entities.Database
                                         {
                                             if (cols.Contains("submission_id") || UpdateTableDefinition("submission_id"))
                                             {
-                                                proceed = true;
+                                                if (cols.Contains("date_deleted_from_server") || UpdateTableDefinition("date_deleted_from_server"))
+                                                {
+                                                    proceed = true;
+                                                }
                                             }
                                         }
                                     }
@@ -285,11 +288,17 @@ namespace NSAP_ODK.Entities.Database
                             {
                                 if (cols.Contains("unload_gear") || await VesselUnloadRepository.AddFieldToStatsTableAsync("unload_gear"))
                                 {
-                                    if (cols.Contains("row_id") || await VesselUnloadRepository.AddFieldToStatsTableAsync("row_id"))
-                                    {
-
-                                    }
+                                    proceed = cols.Contains("row_id") || await VesselUnloadRepository.AddFieldToStatsTableAsync("row_id");
                                 }
+                            }
+                        }
+
+                        if (proceed)
+                        {
+                            cols = CreateTablesInAccess.GetColumnNames("nsapRegion");
+                            if (cols.Contains("IsTotalEnumerationOnly") || await NSAPRegionRepository.AddFieldToTableAsync("IsTotalEnumerationOnly"))
+                            {
+
                             }
                         }
 
@@ -598,12 +607,17 @@ namespace NSAP_ODK.Entities.Database
                                 item.EnumeratorText = dr["EnumeratorText"].ToString();
                                 item.GearUnloadViewModel = new GearUnloadViewModel(item);
 
+                                if (dr["date_deleted_from_server"] != DBNull.Value)
+                                {
+                                    item.DateDeletedFromServer = (DateTime)dr["date_deleted_from_server"];
+                                }
 
                                 int? submission_id = null;
                                 if (dr["submission_id"] != DBNull.Value)
                                 {
                                     submission_id = (int)dr["submission_id"];
                                 }
+                                item.Submission_id = submission_id;
 
                                 if (item.IsMultiVessel)
                                 {
@@ -763,6 +777,9 @@ namespace NSAP_ODK.Entities.Database
                 var sql = "";
                 switch (colName)
                 {
+                    case "date_deleted_from_server":
+                        sql = $@"ALTER TABLE dbo_LC_FG_sample_day_1 ADD COLUMN {colName} DATETIME";
+                        break;
                     case "json_filename":
                     case "notes":
                         sql = $@"ALTER TABLE dbo_LC_FG_sample_day_1 ADD COLUMN {colName} VARCHAR";
@@ -1241,7 +1258,7 @@ namespace NSAP_ODK.Entities.Database
                         {
                             con.Open();
                             int r = (int)cmd.ExecuteNonQuery();
-                            success = r>0;
+                            success = r > 0;
                         }
                         catch (Exception ex)
                         {
@@ -1467,7 +1484,7 @@ namespace NSAP_ODK.Entities.Database
                                         land_ctr_text = @landing_site_text,
                                         fma = @fma,
                                         has_fishing_operation = @has_operations
-                                    WHERE  = @pk";
+                                    WHERE unload_day_id = @pk";
                         try
                         {
                             success = update.ExecuteNonQuery() > 0;
@@ -1527,6 +1544,15 @@ namespace NSAP_ODK.Entities.Database
                                 }
                                 update1.Parameters.Add("@can_sample", OleDbType.Boolean).Value = item.SamplingFromCatchCompositionIsAllowed;
 
+                                if (item.DateDeletedFromServer == null)
+                                {
+                                    update1.Parameters.Add("@date_delete_server", OleDbType.Date).Value = DBNull.Value;
+                                }
+                                else
+                                {
+                                    update1.Parameters.Add("@date_delete_server", OleDbType.Date).Value = (DateTime)item.DateDeletedFromServer;
+                                }
+
                                 if (item.Submission_id == null)
                                 {
                                     update1.Parameters.Add("@_id", OleDbType.Integer).Value = DBNull.Value;
@@ -1550,6 +1576,7 @@ namespace NSAP_ODK.Entities.Database
                                                     EnumeratorID = @enum_id,
                                                     EnumeratorText = @enum_text,
                                                     can_sample_from_catch_composition = @can_sample,
+                                                    date_deleted_from_server = @date_delete_server,
                                                     submission_id=@id
                                                  WHERE unload_day_id = @pk";
 

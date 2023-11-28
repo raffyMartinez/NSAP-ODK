@@ -18,7 +18,7 @@ namespace NSAP_ODK.Entities
         }
 
 
-
+        public bool IsTotalEnumerationOnly { get; set; }
         public List<NSAPRegionFMA> FMAs { get; set; }
 
         public List<NSAPRegionGear> Gears { get; set; }

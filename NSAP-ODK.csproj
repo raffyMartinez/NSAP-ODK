@@ -561,8 +561,14 @@
     <Compile Include="Views\EnumeratorsAndLandingSitesWindow.xaml.cs">
       <DependentUpon>EnumeratorsAndLandingSitesWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\LandingSiteSamplingWindow.xaml.cs">
+      <DependentUpon>LandingSiteSamplingWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\ListFoldersWindow.xaml.cs">
       <DependentUpon>ListFoldersWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\LSSMessageBox.xaml.cs">
+      <DependentUpon>LSSMessageBox.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\ProgressDialogWindow.xaml.cs">
       <DependentUpon>ProgressDialogWindow.xaml</DependentUpon>
@@ -739,7 +745,15 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\LandingSiteSamplingWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\ListFoldersWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\LSSMessageBox.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

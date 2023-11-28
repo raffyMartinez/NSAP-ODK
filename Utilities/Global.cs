@@ -572,22 +572,22 @@ namespace NSAP_ODK.Utilities
                             }
                             break;
                         case "server_id":
-                            if (CommandArgs.Count() == 2)
-                            {
-                                FilterServerID = CommandArgs[1];
-                            }
-                            else if (CommandArgs.Count() == 1)
-                            {
-                                if (!string.IsNullOrEmpty(Settings.ServerFilter))
-                                {
-                                    FilterServerID = Settings.ServerFilter;
-                                }
-                            }
-                            else
-                            {
-                                AppProceed = false;
-                                FilterError = "Cannot understand filter for server ID";
-                            }
+                            //if (CommandArgs.Count() == 2)
+                            //{
+                            //    FilterServerID = CommandArgs[1];
+                            //}
+                            //else if (CommandArgs.Count() == 1)
+                            //{
+                            //    if (!string.IsNullOrEmpty(Settings.ServerFilter))
+                            //    {
+                            //        FilterServerID = Settings.ServerFilter;
+                            //    }
+                            //}
+                            //else
+                            //{
+                            //    AppProceed = false;
+                            //    FilterError = "Cannot understand filter for server ID";
+                            //}
                             break;
                     }
                 }

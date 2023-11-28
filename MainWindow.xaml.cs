@@ -506,7 +506,7 @@ namespace NSAP_ODK
 
                         if (Global.CommandArgs != null)
                         {
-                            if (Global.CommandArgs.Count() >= 1 && Global.CommandArgs[0] == "filtered" || Global.CommandArgs[0] == "server_id")
+                            if (Global.CommandArgs.Count() >= 1 && Global.CommandArgs[0] == "filtered")// || Global.CommandArgs[0] == "server_id")
                             {
                                 Title += " (Filtered)";
                             }
@@ -1394,6 +1394,7 @@ namespace NSAP_ODK
                     dataGridEntities.Columns.Add(new DataGridTextColumn { Header = "Code", Binding = new Binding("Code") });
                     dataGridEntities.Columns.Add(new DataGridTextColumn { Header = "Region name", Binding = new Binding("Name") });
                     dataGridEntities.Columns.Add(new DataGridTextColumn { Header = "Short name", Binding = new Binding("ShortName") });
+                    dataGridEntities.Columns.Add(new DataGridCheckBoxColumn { Header = "Total enumeration only", Binding = new Binding("IsTotalEnumerationOnly") });
 
                     break;
 
@@ -2607,7 +2608,7 @@ namespace NSAP_ODK
                 //database summary view tree view
                 case "menuSelectServerForFilter":
                     var server = (Koboserver)dataGridEFormVersionStats.SelectedItem;
-                    Global.Settings.ServerFilter = server.ServerID;
+                    //Global.Settings.ServerFilter = server.ServerID;
                     Global.SaveGlobalSettings();
                     MessageBox.Show("Restart NSAP-ODK Database so that the filter will take effect", Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
                     break;
@@ -3510,38 +3511,45 @@ namespace NSAP_ODK
                                     var cellinfo = GridNSAPData.SelectedCells[0];
                                     if (int.TryParse(cellinfo.Column.Header.ToString(), out int v))
                                     {
-                                        string landingsite_date = $"{_allSamplingEntitiesEventHandler.LandingSite.LandingSiteName}, {((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).ToString("yyyy-MMM")}-{v}";
-                                        string msg = "No data for this date";
+                                        //string landingsite_date = $"{_allSamplingEntitiesEventHandler.LandingSite.LandingSiteName}, {((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).ToString("yyyy-MMM")}-{v}";
+                                        //string msg = "No data for this date";
                                         if (_gearUnloads.Count > 0)
                                         {
                                             lss = _gearUnloads[0].Parent;
-                                            if (lss.HasFishingOperation)
-                                            {
-                                                msg = "There are fish landings on the selected date";
-                                            }
-                                            else if (!lss.HasFishingOperation)
-                                            {
-                                                msg = $"There are no fish landings on the selected date\r\nReason: {lss.Remarks}";
-                                            }
+                                            //if (lss.HasFishingOperation)
+                                            //{
+                                            //    msg = "There are fish landings on the selected date";
+                                            //}
+                                            //else if (!lss.HasFishingOperation)
+                                            //{
+                                            //    msg = $"There are no fish landings on the selected date\r\nReason: {lss.Remarks}";
+                                            //}
                                         }
                                         else
                                         {
 
                                             lss = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(fma: _allSamplingEntitiesEventHandler.FMA, fg: _allSamplingEntitiesEventHandler.FishingGround, ls: _allSamplingEntitiesEventHandler.LandingSite, samplingDate: ((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).AddDays(v - 1)).FirstOrDefault();
-                                            if (lss != null)
-                                            {
-                                                if (lss?.GearUnloadViewModel.Count > 0 || lss?.GearsInLandingSite.Count > 0)
-                                                {
-                                                    msg = "There are fish landings on the selected date";
-                                                }
-                                                else
-                                                {
-                                                    msg = $"There are no fish landings on the selected date\r\nReason: {lss.Remarks}";
-                                                }
-                                            }
+                                            //if (lss != null)
+                                            //{
+                                            //    if (lss?.GearUnloadViewModel.Count > 0 || lss?.GearsInLandingSite.Count > 0)
+                                            //    {
+                                            //        msg = "There are fish landings on the selected date";
+                                            //    }
+                                            //    else
+                                            //    {
+                                            //        msg = $"There are no fish landings on the selected date\r\nReason: {lss.Remarks}";
+                                            //    }
+                                            //}
 
                                         }
-                                        MessageBox.Show($"{landingsite_date}\r\n\r\n{msg}", Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
+                                        //MessageBox.Show($"{landingsite_date}\r\n\r\n{msg}", Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
+                                        if (lss != null)// && LSSMessageBox.ShowAsDialog(landingsite_date, msg))
+                                        
+                                        {
+                                            LandingSiteSamplingWindow lssw = new LandingSiteSamplingWindow(lss);
+                                            lssw.Owner = this;
+                                            lssw.Show();
+                                        }
                                     }
                                 }
                                 break;

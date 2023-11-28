@@ -55,7 +55,7 @@
                 <!--tree view showing e-forms-->
                 <TreeView x:Name="treeForms" SelectedItemChanged="OnTreeItemChanged" Margin="5"/>
 
-                <!--property grid showing summaru of selected e-form-->
+                <!--property grid showing summary of selected e-form-->
                 <xctk:PropertyGrid  x:Name="propertyGrid" Grid.Column="1" Margin="5" ShowSearchBox="False" 
                                     ShowSortOptions="False" ShowTitle="False" ShowSummary="False" Visibility="Collapsed"/>
 
@@ -83,7 +83,7 @@
                         <RowDefinition Height="40"/>
                     </Grid.RowDefinitions>
 
-                    <!--Container panel holding download controls-->    
+                    <!--Container panel holding download controls-->
                     <StackPanel x:Name="stackPanelDownload" Visibility="Visible">
                         <WrapPanel>
                             <Label Content="Download option" Margin="10,5"/>
@@ -92,7 +92,7 @@
                                 <ComboBoxItem Content="Database query" Tag="json"/>
                             </ComboBox>
                         </WrapPanel>
-                        <ScrollViewer>
+                        <ScrollViewer x:Name="scrollViewer">
                             <StackPanel x:Name="stackPanelJSON" CanVerticallyScroll="True" Height="340">
 
                                 <RadioButton Content="Download all submissions" Margin="10 5" Checked="OnButtonChecked" Tag="all" x:Name="rbAll"/>
@@ -120,18 +120,12 @@
                                 </WrapPanel>
                                 <RadioButton Content="Update data of database column" Margin="10 5" Checked="OnButtonChecked" Tag="download_all_for_review"/>
 
-                                <WrapPanel Margin="10 0"  x:Name="panelDLSpecificFormUsingUUID">
-                                    <RadioButton Tag="download_specific_form" VerticalAlignment="Center" Checked="OnButtonChecked" x:Name="rbDownloadSpecificForm" MouseDown="OnRadioButtonMouseDown" IsThreeState="True"/>
-                                    <Label Content="Download form with UUID "/>
-                                    <TextBox Height="20" Width="250" IsEnabled="False" Text="a34e8295-c674-4632-b1ac-0c5cad8e8b5c" x:Name="txtFormUUID"/>
-
-                                </WrapPanel>
-                                
-                                <RadioButton Content="Download all submission IDs and update database" Margin="10 5" Checked="OnButtonChecked" Tag="download_all_submission_ids"/>
 
 
+                                <!--<RadioButton Content="Download all submission IDs and update database" Margin="10 5" Checked="OnButtonChecked" Tag="download_all_submission_ids"/>-->
 
-                                <WrapPanel x:Name="panelDownloadAgain" Visibility="Visible">
+
+                                <WrapPanel x:Name="panelDownloadAgain" Visibility="Collapsed">
                                     <StackPanel>
                                         <Button Content="Specify column to update" Height="28" Padding="5" Margin="5" Width="150" HorizontalAlignment="Left" x:Name="buttonSpecifyColumn" Click="OnButtonClick"/>
                                         <WrapPanel>
@@ -140,6 +134,19 @@
                                         </WrapPanel>
                                     </StackPanel>
                                 </WrapPanel>
+
+                                <WrapPanel Margin="10 0"  x:Name="panelDLSpecificFormUsingUUID">
+                                    <RadioButton Tag="download_specific_form" VerticalAlignment="Center" Checked="OnButtonChecked" x:Name="rbDownloadSpecificForm" MouseDown="OnRadioButtonMouseDown" IsThreeState="True"/>
+                                    <Label Content="Download form with UUID "/>
+                                    <TextBox Height="20" Width="250" IsEnabled="False" Text="a34e8295-c674-4632-b1ac-0c5cad8e8b5c" x:Name="txtFormUUID"/>
+
+                                </WrapPanel>
+
+                                <WrapPanel Visibility="Visible" Margin="10 0" x:Name="panelGetSubmissions">
+                                    <RadioButton Content="Download all submission IDs and update database" x:Name="rbGetAllSubmissions" Checked="OnButtonChecked" Tag="download_all_submission_ids" Margin="0 5"/>
+                                    <Button Content="Use file" Width="50"  Height="25" x:Name="buttonUseSubmissionIDFile" Click="OnButtonClick" Visibility="Collapsed" Margin="10 0"/>
+                                </WrapPanel>
+
                                 <CheckBox Content="Filter by user name" x:Name="CheckFilterUser" Margin="10 10" Checked="OnCheckStateChange" Unchecked="OnCheckStateChange"/>
                                 <WrapPanel x:Name="panelFilterByUser" Visibility="Collapsed">
                                     <Label Content="User name:" Margin="30 5 5 5"/>
@@ -168,19 +175,23 @@
                         <Button Content="Upload media" Width="100" Height="25" x:Name="ButtonUploadMedia" Click="OnButtonClick" Visibility="Collapsed"/>
                     </WrapPanel>
                 </Grid>
-                
+
                 <!--Container grid for deleting data from the server-->
-                <Grid Grid.Column="1" Margin="5" x:Name="gridDeletedFromServer" Visibility="Collapsed">
+                <Grid Grid.Column="1" Margin="5" x:Name="gridDeletedFromServer" Visibility="Collapsed" >
                     <Grid.RowDefinitions>
                         <RowDefinition Height="40"/>
                         <RowDefinition/>
-                        <RowDefinition Height="40"/>
+                        <RowDefinition Height="60"/>
                     </Grid.RowDefinitions>
-                    <Label x:Name="labelDeleteFromServer" Content="This is to delete from server"/>
-                    <DataGrid Grid.Row="1" x:Name="dataGridSubmissionsForDeletion"/>
-                    <Button Grid.Row="2" Width="50" Height="25" Content="Delete" x:Name="buttonDeleteFromServer" Click="OnButtonClick"/>
+                    <!--<Label x:Name="labelDeleteFromServer" Content="This is to delete from server"/>-->
+                    <TextBlock x:Name="labelDeleteFromServer" TextWrapping="Wrap"/>
+                    <DataGrid Grid.Row="1" x:Name="dataGridSubmissionsForDeletion" ItemsSource="{Binding}"/>
+                    <StackPanel VerticalAlignment="Center" Grid.Row="2" HorizontalAlignment="Center" x:Name="panelButtonDelete">
+                        <Button  Width="50" Height="25" Content="Delete" x:Name="buttonDeleteFromServer" Click="OnButtonClick"/>
+                        <Label Content="WARNING: Data deleted from the server cannot be recovered" Foreground="#FFE81414"/>
+                    </StackPanel>
                 </Grid>
-        
+
             </Grid>
         </Border>
 

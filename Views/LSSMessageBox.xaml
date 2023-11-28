@@ -1,0 +1,22 @@
+﻿<Window x:Class="NSAP_ODK.Views.LSSMessageBox"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NSAP_ODK.Views"
+        mc:Ignorable="d"
+        Title="LSSMessageBox" Height="210" Width="377" ResizeMode="NoResize">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <Label Content="Landing site sampling" x:Name="labelTitle" HorizontalAlignment="Center"/>
+        <TextBlock Text="This is the landing site sampling description" TextWrapping="Wrap" x:Name="textDescription" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="20"/>
+        <WrapPanel HorizontalAlignment="Right" Grid.Row="2" VerticalAlignment="Center" Margin="20">
+            <Button Content="View sampling detail" Margin="10 0 0 0" Padding="7 3" Height="30" x:Name="buttonView" Click="onButtonClick"/>
+            <Button Content="Close" Margin="10 0 0 0" Padding="7 3" x:Name="buttonClose" Click="onButtonClick"/>
+        </WrapPanel>
+    </Grid>
+</Window>

@@ -44,6 +44,40 @@ namespace NSAP_ODK.Entities
             }
             return thisList;
         }
+
+        public static Task<bool> AddFieldToTableAsync(string fieldName)
+        {
+            return Task.Run(() => AddFieldToTable(fieldName));
+        }
+        public static bool AddFieldToTable(string fieldName)
+        {
+            bool success = false;
+            string sql = "";
+            switch (fieldName)
+            {
+                case "IsTotalEnumerationOnly":
+                    sql = $"ALTER TABLE nsapRegion ADD COLUMN {fieldName} BIT";
+                    break;
+            }
+            using (var con = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    con.Open();
+                    cmd.CommandText = sql;
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        success = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
         private List<NSAPRegion> getNSAPRegions()
         {
             List<NSAPRegion> thisList = new List<NSAPRegion>();
@@ -73,6 +107,7 @@ namespace NSAP_ODK.Entities
                                 nsr.Name = dr["RegionName"].ToString();
                                 nsr.ShortName = dr["ShortName"].ToString();
                                 nsr.Sequence = Convert.ToInt32(dr["Sequence"]);
+                                nsr.IsTotalEnumerationOnly = (bool)dr["IsTotalEnumerationOnly"];
                                 thisList.Add(nsr);
                             }
                         }
@@ -138,12 +173,13 @@ namespace NSAP_ODK.Entities
                 using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
                     conn.Open();
-                    var sql = @"Insert into nsapRegion (RegionName, ShortName,Sequence,Code) Values (?,?,?,?)";
+                    var sql = @"Insert into nsapRegion (RegionName, ShortName,Sequence,IsTotalEnumerationOnly,Code) Values (?,?,?,?,?)";
                     using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
                         update.Parameters.Add("@name", OleDbType.VarChar).Value = nsr.Name;
                         update.Parameters.Add("@short_name", OleDbType.VarChar).Value = nsr.ShortName;
                         update.Parameters.Add("@seq", OleDbType.VarChar).Value = nsr.Sequence;
+                        update.Parameters.Add("@tc_only", OleDbType.Boolean).Value = nsr.IsTotalEnumerationOnly;
                         update.Parameters.Add("@code", OleDbType.VarChar).Value = nsr.Code;
                         try
                         {
@@ -210,13 +246,15 @@ namespace NSAP_ODK.Entities
                         update.Parameters.Add("@name", OleDbType.VarChar).Value = nsr.Name;
                         update.Parameters.Add("@short_name", OleDbType.VarChar).Value = nsr.ShortName;
                         update.Parameters.Add("@seq", OleDbType.VarChar).Value = nsr.Sequence;
+                        update.Parameters.Add("@tc_only", OleDbType.Boolean).Value = nsr.IsTotalEnumerationOnly;
                         update.Parameters.Add("@code", OleDbType.VarChar).Value = nsr.Code;
 
 
                         update.CommandText = @"Update nsapRegion set 
                                               RegionName = @name, 
                                               ShortName=@short_name, 
-                                              Sequence=@seq
+                                              Sequence=@seq,
+                                              IsTotalEnumerationOnly=@tc_only  
                                             WHERE Code=@code";
 
                         try

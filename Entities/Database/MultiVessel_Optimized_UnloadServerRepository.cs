@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NPOI.SS.Formula.Functions;
 using NSAP_ODK.Utilities;
 using System;
@@ -813,6 +814,24 @@ namespace NSAP_ODK.Entities.Database
             {
                 Utilities.Logger.Log(ex);
             }
+        }
+
+        public static void CreateLandingsFromSingleJson()
+        {
+            try
+            {
+                MultiVesselLandings = new List<MultiVessel_Optimized_Root>();
+                var j = JObject.Parse(JSON);
+
+                MultiVesselLandings = JsonConvert.DeserializeObject<List<MultiVessel_Optimized_Root>>(j["results"].ToString());
+                //MultiVesselGear_Root root = JsonConvert.DeserializeObject<MultiVesselGear_Root>(j["results"].ToString());
+                //MultiVesselLandings.Add(root);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
+
         }
         public static void CreateLandingsFromJSON()
         {

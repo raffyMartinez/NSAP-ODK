@@ -66,6 +66,7 @@ namespace NSAP_ODK.Entities
             if (CSVType == CSVType.ExtSelectFromFile)
             {
                 result += await GenerateItemsetsCSVEX();
+                FilesCount++;
             }
             else
             {
@@ -88,11 +89,14 @@ namespace NSAP_ODK.Entities
 
             _fileName = $"{_folderSaveLocation}\\sp.csv";
             result += await GenerateMultiSpeciesCSV();
-
+            FilesCount++;
 
             _fileName = $"{_folderSaveLocation}\\size_measure.csv";
             result += await GenerateSizeTypesCSV();
             FilesCount++;
+
+            _fileName = $"{_folderSaveLocation}\\nsap_region_select.csv";
+            result += await GenerateNSAPRegionsCSV();
 
             Dictionary<FisheriesSector, string> filePaths = new Dictionary<FisheriesSector, string>();
             filePaths.Add(FisheriesSector.Municipal, $"{_folderSaveLocation}\\vessel_name_municipal.csv");
@@ -283,7 +287,7 @@ namespace NSAP_ODK.Entities
                                             ls.LandingSite.LandingSite_FishingVesselViewModel = new Database.LandingSite_FishingVesselViewModel(ls.LandingSite);
                                         }
                                         foreach (var fv in ls.LandingSite.LandingSite_FishingVesselViewModel.LandingSite_FishingVessel_Collection
-                                            .Where(t => t.FishingVessel.FisheriesSector == FisheriesSector.Municipal && t.DateRemoved==null)
+                                            .Where(t => t.FishingVessel.FisheriesSector == FisheriesSector.Municipal && t.DateRemoved == null)
                                             .OrderBy(t => t.FishingVessel.Name))
                                         {
                                             sb.AppendLine($"{fv.FishingVessel.FisheriesSector.ToString().Substring(0, 1)},{fv.FishingVessel.ID.ToString().PadLeft(_id_width, '0')},\"{fv.FishingVessel.NameToUse(addPrefix: false)}\",{ls.RowID}");
@@ -312,7 +316,7 @@ namespace NSAP_ODK.Entities
                                             ls.LandingSite.LandingSite_FishingVesselViewModel = new Database.LandingSite_FishingVesselViewModel(ls.LandingSite);
                                         }
                                         foreach (var fv in ls.LandingSite.LandingSite_FishingVesselViewModel.LandingSite_FishingVessel_Collection
-                                            .Where(t => t.FishingVessel.FisheriesSector == FisheriesSector.Commercial && t.DateRemoved==null)
+                                            .Where(t => t.FishingVessel.FisheriesSector == FisheriesSector.Commercial && t.DateRemoved == null)
                                             .OrderBy(t => t.FishingVessel.Name))
                                         {
                                             sb.AppendLine($"{fv.FishingVessel.FisheriesSector.ToString().Substring(0, 1)},{fv.FishingVessel.ID.ToString().PadLeft(_id_width, '0')},\"{fv.FishingVessel.NameToUse(addPrefix: false)}\",{ls.RowID}");
@@ -511,6 +515,28 @@ namespace NSAP_ODK.Entities
                 //    rvm.RefreshNSAPRegionEntities(r);
                 //}
             }
+        }
+
+        public static async Task<int> GenerateNSAPRegionsCSV()
+        {
+            int counter = 0;
+            StringBuilder sb = new StringBuilder("list_name,name,label,IsTotalEnumeration\r\n");
+            foreach (var nr in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection)
+            {
+                counter++;
+                string is_total_enum = "no";
+                if (nr.IsTotalEnumerationOnly)
+                {
+                    is_total_enum = "yes";
+                }
+                sb.AppendLine($"nsap_region,{nr.Code},\"{nr.Name}\",{is_total_enum}");
+
+            }
+            if (counter > 0)
+            {
+                await LogAsync(sb.ToString(), _fileName);
+            }
+            return counter;
         }
         public static async Task<int> GenerateGearsCSV()
         {

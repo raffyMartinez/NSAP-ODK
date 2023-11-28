@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -14,6 +15,7 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using NSAP_ODK.Entities;
 using NSAP_ODK.Entities.Database;
+using NSAP_ODK.Utilities;
 using Ookii.Dialogs.Wpf;
 
 namespace NSAP_ODK.Views
@@ -30,12 +32,42 @@ namespace NSAP_ODK.Views
         private bool _processStarted = false;
         private bool _timerEnable = true;
         private bool _isMultiVesselDelete;
+        private ODKResultsWindow _resultsWindow;
+        private string closing_message;
 
         private List<DeleteRegionEntityFail> _deleteRegionEntityFails;
 
         public bool ServerIsMultiVessel { get; set; }
         public string ServerID { get; set; }
+        public string ServerUserName { get; set; }
+        public string ServerPassword { get; set; }
+        public string KoboFormID { get; set; }
 
+        public string KoboFormNumericID { get; set; }
+        public HttpClient HttpClient { get; set; }
+
+
+        private async Task<string> JSONStringFromAPICall(string api_call)
+        {
+            StringBuilder the_response = new StringBuilder();
+            using (var request = new HttpRequestMessage(new HttpMethod("GET"), api_call))
+            {
+                var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{ServerUserName}:{ServerPassword}"));
+                request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
+                try
+                {
+                    var response = await HttpClient.SendAsync(request);
+                    var bytes = await response.Content.ReadAsByteArrayAsync();
+                    Encoding encoding = Encoding.GetEncoding("utf-8");
+                    the_response = new StringBuilder(encoding.GetString(bytes, 0, bytes.Length));
+                }
+                catch (Exception ex)
+                {
+
+                }
+            }
+            return the_response.ToString();
+        }
         public ProgressDialogWindow(string taskToDo)
         {
             InitializeComponent();
@@ -164,6 +196,45 @@ namespace NSAP_ODK.Views
             return "";
         }
 
+        /// <summary>
+        /// Uploads landing data saved in JSON files. 
+        /// These landings are the ones that are not saved in the local database and cannot be downloaded using the option "Get all not downloaded"
+        /// </summary>
+        /// <returns></returns>
+        private async Task Upload_unmatched_landings_JSON()
+        {
+            //var resultsWindow = (ODKResultsWindow)((DownloadFromServerWindow)Owner).Owner;
+            _resultsWindow.FormID = KoboFormNumericID;
+            //resultsWindow.BatchUpload = true;
+            foreach (var json in SubmissionIdentifierPairing.UnmatchedLandingsJSON)
+            {
+                bool isMultiVessel = json.Contains("repeat_landings") || json.Contains("landing_site_sampling_group/are_there_landings");
+                bool isOptimizedMultiVessel = json.Contains("G_lss/sampling_date");
+
+                _resultsWindow.JSONFromServer(json, isMultiVessel, isOptimizedMultiVessel, updateMissingSubmission: true);
+
+                if (isMultiVessel)
+                {
+                    MultiVesselGear_UnloadServerRepository.JSON = json;
+                    MultiVesselGear_UnloadServerRepository.CreateLandingsFromSingleJson();
+                    _resultsWindow.MultiVesselMainSheets = MultiVesselGear_UnloadServerRepository.SampledVesselLandings;
+                }
+                else if (isOptimizedMultiVessel)
+                {
+                    MultiVessel_Optimized_UnloadServerRepository.JSON = json;
+                    MultiVessel_Optimized_UnloadServerRepository.CreateLandingsFromSingleJson();
+                    _resultsWindow.MultiVesselOptimizedMainSheets = MultiVessel_Optimized_UnloadServerRepository.SampledVesselLandings;
+                }
+                else
+                {
+                    VesselUnloadServerRepository.JSON = json;
+                    VesselUnloadServerRepository.CreateLandingsFromJSON();
+                    _resultsWindow.MainSheets = VesselUnloadServerRepository.VesselLandings;
+                }
+                await _resultsWindow.UploadToDatabase();
+            }
+
+        }
         public async Task DoTask()
         {
             string labelSuccessFindingMismatch = "Mismatched items were found";
@@ -173,41 +244,63 @@ namespace NSAP_ODK.Views
             switch (TaskToDo)
             {
                 case "upload unmatched landings JSON":
-                    var resultsWindow = (ODKResultsWindow)((DownloadFromServerWindow)Owner).Owner;
-                    foreach (var json in SubmissionIdentifierPairing.UnmatchedLandingsJSON)
+                    //await  _resultsWindow.Upload_unmatched_landings_JSON(KoboFormNumericID);
+                    break;
+                case "update submission pairing":
+                    _resultsWindow = (ODKResultsWindow)((DownloadFromServerWindow)Owner).Owner;
+                    bool success = false;
+                    SubmissionIdentifierPairing.UploadSubmissionToDB += SubmissionIdentifierPairing_UploadSubmissionToDB;
+                    SubmissionIdentifierPairing.KoboForm = FormSummary.KoboForm;
+                    SubmissionIdentifierPairing.ServerPassword = ServerPassword;
+                    SubmissionIdentifierPairing.ServerUserName = ServerUserName;
+                    SubmissionIdentifierPairing.HttpClient = HttpClient;
+
+                    textBlockDescription.Text = "Updating missing submission IDs";
+
+
+                    if (await SubmissionIdentifierPairing.UpDateDatabaseTaskAsync())
                     {
-                        bool isMultiVessel = json.Contains("repeat_landings");
-                        bool isOptimizedMultiVessel = json.Contains("G_lss/sampling_date");
+                        textBlockDescription.Text = "Downloading unmatched JSON";
 
-                        resultsWindow.JSONFromServer(json, isMultiVessel,isOptimizedMultiVessel);
 
-                        if(isMultiVessel)
+                        if (SubmissionIdentifierPairing.UnmatchedLandingsJSON.Count > 0)
                         {
-                            MultiVesselGear_UnloadServerRepository.JSON = json;
-                            MultiVesselGear_UnloadServerRepository.CreateLandingsFromSingleJson();
-                            resultsWindow.MultiVesselMainSheets = MultiVesselGear_UnloadServerRepository.SampledVesselLandings;
+                            Visibility = Visibility.Collapsed;
+                            _resultsWindow.Focus();
+                            await _resultsWindow.Upload_unmatched_landings_JSON(KoboFormNumericID);
                         }
-                        else if(isOptimizedMultiVessel)
+                        else if (SubmissionIdentifierPairing.UnmatchedPairs.Count > 0)
                         {
-                            MultiVessel_Optimized_UnloadServerRepository.JSON = json;
-                            MultiVessel_Optimized_UnloadServerRepository.CreateLandingsFromJSON();
-                            resultsWindow.MultiVesselOptimizedMainSheets = MultiVessel_Optimized_UnloadServerRepository.SampledVesselLandings;
+                            closing_message = "Server refused to download JSON data\r\n\r\nTry another time";
                         }
                         else
                         {
-                            VesselUnloadServerRepository.JSON = json;
-                            VesselUnloadServerRepository.CreateLandingsFromJSON();
-                            resultsWindow.MainSheets = VesselUnloadServerRepository.VesselLandings;
+                            closing_message = "Data is updated\r\n\r\nJSON was not downloaded";
                         }
-                        await resultsWindow.UploadToDatabase();
+
+                        success = true;
                     }
-                    break;
-                case "update submission pairing":
-                    SubmissionIdentifierPairing.UploadSubmissionToDB += SubmissionIdentifierPairing_UploadSubmissionToDB;
-                    SubmissionIdentifierPairing.KoboForm = FormSummary.KoboForm;
-                    textBlockDescription.Text = "Updating missing submission IDs";
-                    //progressLabel.Visibility = Visibility.Collapsed;
-                    DialogResult = await SubmissionIdentifierPairing.UpDateDatabaseTaskAsync();
+                    if (!string.IsNullOrEmpty(closing_message))
+                    {
+                        Visibility = Visibility.Visible;
+                        panelButtons.Visibility = Visibility.Collapsed;
+                        textBlockDescription.Text = closing_message;
+                        buttonCancel.Content = "Close";
+
+                    }
+                    else
+                    {
+                        try
+                        {
+                            DialogResult = success;
+                        }
+                        catch (Exception ex)
+                        {
+                            //Logger.Log(ex);
+                        }
+                        _resultsWindow.Close();
+
+                    }
                     SubmissionIdentifierPairing.UploadSubmissionToDB -= SubmissionIdentifierPairing_UploadSubmissionToDB;
                     break;
                 case "delete landing data from selected server":
@@ -384,6 +477,73 @@ namespace NSAP_ODK.Views
         {
             switch (e.Intent)
             {
+                case UploadToDBIntent.UpdateUnmatchedJSON:
+                    progressBar.Dispatcher.BeginInvoke
+                    (
+                      DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                      {
+                          progressBar.Maximum = e.ItemsForUpdatingCount;
+                          progressBar.IsIndeterminate = false;
+                          progressBar.Value = 0;
+                          //do what you need to do on UI Thread
+                          return null;
+                      }), null);
+                    break;
+
+                case UploadToDBIntent.UpdateUnmatchedJSONDownloadingFromServer:
+                    progressLabel.Dispatcher.BeginInvoke
+                    (
+                      DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                      {
+                          progressLabel.Content = $"Downloading JSON from server...";
+                          //do what you need to do on UI Thread
+                          return null;
+                      }
+                     ), null);
+                    break;
+
+                case UploadToDBIntent.UpdatedUnmatchedJSON:
+                    progressBar.Dispatcher.BeginInvoke
+                    (
+                      DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                      {
+                          progressBar.Value = e.ItemsUpdatedCount;
+                          return null;
+                      }), null);
+
+                    progressLabel.Dispatcher.BeginInvoke
+                    (
+                      DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                      {
+                          progressLabel.Content = $"Added unmatched JSON {e.ItemsUpdatedCount} of {progressBar.Maximum}";
+                          //do what you need to do on UI Thread
+                          return null;
+                      }
+                     ), null);
+
+                    break;
+                case UploadToDBIntent.UpdatedUnmatchedJSONDone:
+                    progressBar.Dispatcher.BeginInvoke
+                    (
+                      DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                      {
+                          progressBar.Value = 0;
+                          return null;
+                      }), null);
+
+                    progressLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              progressLabel.Content = $"Finished adding {e.ItemsUpdatedCount} unmatched JSON";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+
+                    break;
+
+
                 case UploadToDBIntent.UpdateTableFields:
                     progressBar.Dispatcher.BeginInvoke
                     (
@@ -823,10 +983,13 @@ namespace NSAP_ODK.Views
                     //panelButtons.Visibility = Visibility.Collapsed;
                     panelStatus.Visibility = Visibility.Collapsed;
                     break;
+
                 case "No":
                     Close();
                     break;
+
                 case "Cancel":
+                case "Close":
                     if (!_processStarted)
                     {
                         Close();
@@ -839,6 +1002,7 @@ namespace NSAP_ODK.Views
                                 Close();
                                 break;
                             case "analyze json history files":
+                                Close();
                                 break;
                             case "fix mismatch in calendar days":
                                 if (SamplingCalendaryMismatchFixer.Cancel)
@@ -864,23 +1028,16 @@ namespace NSAP_ODK.Views
                                     panelStatus.Visibility = Visibility.Collapsed;
                                 }
                                 break;
+                            case "update submission pairing":
+                                Close();
+                                break;
+                            default:
+                                Close();
+                                break;
 
                         }
                     }
                     break;
-                    //else if (SamplingCalendaryMismatchFixer.Cancel)
-                    //{
-                    //    Close();
-                    //}
-                    //else
-                    //{
-                    //    //Cancel = true;
-                    //    SamplingCalendaryMismatchFixer.Cancel = true;
-                    //    panelButtons.Visibility = Visibility.Collapsed;
-                    //    panelStatus.Visibility = Visibility.Collapsed;
-                    //    //Close();
-                    //}
-                    //break;
             }
         }
 

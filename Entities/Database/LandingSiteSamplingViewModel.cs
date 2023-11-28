@@ -27,6 +27,31 @@ namespace NSAP_ODK.Entities.Database
         public ObservableCollection<LandingSiteSampling> LandingSiteSamplingCollection { get; set; }
         private LandingSiteSamplingRepository LandingSiteSamplings { get; set; }
 
+        public bool SetSamplingExistsServer(List<SubmissionIDPair> submissionPairs, out int pairedCount)
+        {
+            pairedCount = 0;
+            if (submissionPairs.Count > 0)
+            {
+                foreach (var pair in submissionPairs)
+                {
+                    var item = LandingSiteSamplingCollection.FirstOrDefault(t => t.Submission_id == pair._id);
+                    //var item = LandingSiteSamplingCollection.FirstOrDefault(t => t.RowID == pair._uuid);
+                    //LandingSiteSamplingCollection.FirstOrDefault(t => t.Submission_id == pair._id).FoundInServer = true;
+                    try
+                    {
+                        item.FoundInServer = true;
+                        pairedCount++;
+                    }
+                    catch
+                    {
+                        //ignore
+                    }
+
+                    
+                }
+            }
+            return pairedCount > 0;
+        }
         public int CountLandingSiteSamplingsInOrphanedLandingSiteForDelete
         {
             get { return _countLandingSiteSamplingsInOrphanedLandingSiteForDelete; }
@@ -404,7 +429,18 @@ namespace NSAP_ODK.Entities.Database
             return list;
 
         }
-
+        public List<LandingSiteSampling> GetLandingSiteSamplings(DateTime monthSampled, string form_uid)
+        {
+            List<LandingSiteSampling> list = null;
+            list = LandingSiteSamplingCollection.
+                Where(
+                    t => t.XFormIdentifier == form_uid &&
+                    t.SamplingDate >= monthSampled &&
+                    t.SamplingDate < monthSampled.AddMonths(1))
+                .OrderBy(t => t.SamplingDate)
+                .ToList();
+            return list;
+        }
         public List<LandingSiteSampling> GetLandingSiteSamplings(FMA fma, FishingGround fg, LandingSite ls, DateTime monthSampled)
         {
             return LandingSiteSamplingCollection
@@ -756,12 +792,8 @@ namespace NSAP_ODK.Entities.Database
                         else
                         {
                             EditSuccess = SetCSV(newItem);
-                            //AccessHelper.GetColumnNamesCSV("dbo_LC_FG_sample_day_1");
                         }
                     }
-                    //int newIndex = e.NewStartingIndex;
-                    //EditSuccess = LandingSiteSamplings.Add(LandingSiteSamplingCollection[newIndex]);
-
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
@@ -811,6 +843,10 @@ namespace NSAP_ODK.Entities.Database
                     break;
                 }
                 index++;
+            }
+            if(EditSuccess)
+            {
+                item.FoundInServer = false;
             }
             return EditSuccess;
         }

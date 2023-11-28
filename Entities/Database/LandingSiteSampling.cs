@@ -17,7 +17,17 @@ namespace NSAP_ODK.Entities.Database
             LandingSite = lss.LandingSiteName;
             Remarks = lss.Remarks;
             SamplingDate = lss.SamplingDate;
+            Enumerator = lss.EnumeratorName;
+            IsSamplingDay = lss.IsSamplingDay;
+            NumberOfLandingsSampled = lss.NumberOfLandingsSampled;
+            NumberOfGearTypesInLandingSite = lss.NumberOfGearTypesInLandingSite;
+            HasFishingOperation = lss.HasFishingOperation;
+            NumberOfLandings = lss.NumberOfLandings;
+            GearUnloads = lss.GearUnloadViewModel.GearUnloadCollection.ToList();
+            SamplingDate_MDY = SamplingDate.ToString("MMM-dd-yyyy");
         }
+
+        public string SamplingDate_MDY { get; private set; }
         public int ID { get; private set; }
         public string NSAPRegion { get; private set; }
         public string FMA { get; private set; }
@@ -30,6 +40,17 @@ namespace NSAP_ODK.Entities.Database
             get; private set;
 
         }
+
+        public bool IsSamplingDay { get; private set; }
+        public int? NumberOfLandingsSampled { get; private set; }
+        public int? NumberOfGearTypesInLandingSite { get; private set; }
+        public string Enumerator { get; private set; }
+
+        public bool HasFishingOperation { get; private set; }
+
+        public int? NumberOfLandings { get; private set; }
+
+        public List<GearUnload> GearUnloads { get; private set; }
     }
     public class LandingSiteSampling
     {
@@ -39,7 +60,8 @@ namespace NSAP_ODK.Entities.Database
         private FishingGround _fishingGround;
         private List<GearInLandingSite> _gearsInLandingSite;
 
-        public List<GearInLandingSite> GearsInLandingSite {
+        public List<GearInLandingSite> GearsInLandingSite
+        {
             get
             {
                 if (_gearsInLandingSite == null)
@@ -58,11 +80,15 @@ namespace NSAP_ODK.Entities.Database
         public int PK { get; set; }
         public string NSAPRegionID { get; set; }
         public DateTime SamplingDate { get; set; }
+
+
         public int? LandingSiteID { get; set; }
         public string FishingGroundID { get; set; }
         public string Remarks { get; set; }
 
         public bool SamplingFromCatchCompositionIsAllowed { get; set; }
+
+        public DateTime? DateDeletedFromServer { get; set; }
 
         public string JSONFileName { get; set; }
         public bool IsSamplingDay { get; set; }
@@ -94,6 +120,8 @@ namespace NSAP_ODK.Entities.Database
         public GearUnloadViewModel GearUnloadViewModel { get; set; }
         public string LandingSiteText { get; set; }
         public int FMAID { get; set; }
+
+        public bool FoundInServer { get; set; }
 
         //public string Notes { get; set; }
         public FishingGround FishingGround
@@ -191,5 +219,5 @@ namespace NSAP_ODK.Entities.Database
             }
         }
     }
-
 }
+

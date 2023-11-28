@@ -1,0 +1,32 @@
+﻿<Window x:Class="NSAP_ODK.Views.LandingSiteSamplingWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NSAP_ODK.Views"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        mc:Ignorable="d"
+        Closing="ClosingTrigger"
+        Title="LandingSiteSamplingWindow" Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
+            <RowDefinition/>
+            <RowDefinition Height="50"/>
+        </Grid.RowDefinitions>
+        <Label Content="Landing site sampling"/>
+        <TabControl Grid.Row="1">
+            <TabItem Header="Sampling day" x:Name="tabProperties">
+                <xctk:PropertyGrid x:Name="propertyGrid"/>
+            </TabItem>
+            <TabItem Header="Gears" x:Name="tabGears">
+                <DataGrid x:Name="gridGears" ItemsSource="{Binding}"/>
+            </TabItem>
+            <TabItem Header="Landings" x:Name="tabLandings">
+                <DataGrid x:Name="gridLandings" ItemsSource="{Binding}"/>
+            </TabItem>            
+        </TabControl>
+        <Button Content="Ok" Grid.Row="2" Width="50" Height="30" HorizontalAlignment="Right" Margin="0 0 10 0" Click="OnButtonClick" x:Name="buttonOk"/>
+
+    </Grid>
+</Window>

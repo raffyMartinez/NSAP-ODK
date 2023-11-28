@@ -26,6 +26,7 @@ namespace NSAP_ODK.Entities
             Gears = NSAPRegion.Gears.Count;
             Vessels = NSAPRegion.FishingVessels.Count;
             Enumerators = NSAPRegion.NSAPEnumerators.Count;
+            IsTotalEnumerationOnly = NSAPRegion.IsTotalEnumerationOnly;
             ID = NSAPRegion.Code;
         }
 
@@ -33,6 +34,8 @@ namespace NSAP_ODK.Entities
         {
             IsNew = true;
         }
+
+        public bool IsTotalEnumerationOnly { get; set; }
 
         public bool IsNew { get; private set; }
 

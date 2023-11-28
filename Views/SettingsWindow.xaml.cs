@@ -91,14 +91,14 @@ namespace NSAP_ODK.Views
                     textDBFilter.Text = Global.Settings.DbFilter.ToString();
                 }
 
-                if(string.IsNullOrEmpty(Global.Settings.ServerFilter))
-                {
-                    textServerFilter.Text = "";
-                }
-                else
-                {
-                    textServerFilter.Text = Global.Settings.ServerFilter;
-                }
+                //if(string.IsNullOrEmpty(Global.Settings.ServerFilter))
+                //{
+                //    textServerFilter.Text = "";
+                //}
+                //else
+                //{
+                //    textServerFilter.Text = Global.Settings.ServerFilter;
+                //}
 
                 _oldDateFilter = textDBFilter.Text;
 

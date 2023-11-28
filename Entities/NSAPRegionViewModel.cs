@@ -493,6 +493,18 @@ namespace NSAP_ODK.Entities
 
             return success;
         }
+
+        public bool UpdateNSAPRegionWithEntitiesRepository(NSAPRegion nr)
+        {
+            bool success = false;
+            NSAPRegionsWithEntitiesRepositories[nr.Code].NSAPRegion.Name = nr.Name;
+            NSAPRegionsWithEntitiesRepositories[nr.Code].NSAPRegion.ShortName = nr.ShortName;
+            NSAPRegionsWithEntitiesRepositories[nr.Code].NSAPRegion.Code = nr.Code;
+            NSAPRegionsWithEntitiesRepositories[nr.Code].NSAPRegion.IsTotalEnumerationOnly = nr.IsTotalEnumerationOnly;
+            NSAPRegionsWithEntitiesRepositories[nr.Code].NSAPRegion.Sequence = nr.Sequence;
+            success = true;
+            return success;
+        }
         public int SetNSAPRegionsWithEntitiesRepositories()
         {
             NSAPRegionsWithEntitiesRepositories = new Dictionary<string, NSAPRegionWithEntitiesRepository>();
@@ -737,6 +749,10 @@ namespace NSAP_ODK.Entities
                     break;
                 }
                 index++;
+            }
+            if(_editSuccess)
+            {
+                _editSuccess = UpdateNSAPRegionWithEntitiesRepository(nsr);
             }
             return _editSuccess;
         }

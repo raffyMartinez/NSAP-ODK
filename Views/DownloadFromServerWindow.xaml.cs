@@ -26,8 +26,16 @@ using System.Net.Http.Headers;
 using System.Windows.Threading;
 using System.Xml.Serialization;
 
+
+
 namespace NSAP_ODK.Views
 {
+    public enum DeleteFromServerWarning
+    {
+        DeleteFromServerWarningNone,
+        DeleteFromServerWarningWarning,
+        DeleteFromServerWarningSevere
+    }
     public enum ServerIntent
     {
         IntentDownloadData,
@@ -74,10 +82,13 @@ namespace NSAP_ODK.Views
         private bool _replaceCSVFilesSuccess;
         private bool _hasDownloadOptions = false;
         private HttpClient _httpClient;
+        private DateTime? _startOfMonth = null;
         private static string _userNameStatic;
         private static string _passwordStatic;
         private static string _tokenStatic;
         private bool _proceedToDownload = false;
+        private string _submissionJSON = "";
+        private List<LandingSiteSampling> _landingSiteSamplings = new List<LandingSiteSampling>();
         public DownloadFromServerWindow(ODKResultsWindow parentWindow)
         {
             InitializeComponent();
@@ -340,6 +351,9 @@ namespace NSAP_ODK.Views
         public string DownloadAsJSONNotes { get; set; }
         public bool SaveDownloadAsJSON { get; set; }
         public bool DownloadOptionDownloadAll { get; set; }
+
+        public bool FormIsOptimizedMultiVessel { get; set; }
+
         public bool FormIsMultiVessel { get; set; }
         public bool FormIsMultiGear { get; set; }
         public int? NumberToDownloadPerBatch
@@ -399,13 +413,124 @@ namespace NSAP_ODK.Views
             ProgressBar.Value = e.ProgressPercentage;
         }
 
+        private void ProcessSubmissionIDs(string json)
+        {
+            Visibility = Visibility.Collapsed;
+            SubmissionIdentifierPairing.JSON = json;
+            SubmissionIdentifierPairing.CreateSubmissionsPairsFromJSON();
+            SubmissionIdentifierPairing.IsMultivessel = _formSummary.IsMultiVessel;
+
+            ProgressDialogWindow pdw = new ProgressDialogWindow("update submission pairing");
+            pdw.Owner = this;
+            pdw.KoboFormID = _form_uid;
+            pdw.KoboFormNumericID = _formID;
+            pdw.ServerUserName = _userNameStatic;
+            pdw.ServerPassword = _passwordStatic;
+            pdw.HttpClient = _httpClient;
+            pdw.FormSummary = _formSummary;
+
+            pdw.ShowDialog();
+
+        }
         private async void OnButtonClick(object sender, RoutedEventArgs e)
         {
             _downloadType = "";
             string api_call = "";
             switch (((Button)sender).Name)
             {
+                case "buttonUseSubmissionIDFile":
+                    OpenFileDialog ofd = new OpenFileDialog();
+                    ofd.Title = "Open JSON file of submission IDs";
+                    ofd.DefaultExt = "*.json";
+                    ofd.Filter = "JSON file (*.json)|*.json|All files (*.*)|*.*";
+                    var r = ofd.ShowDialog();
+                    if ((bool)r && File.Exists(ofd.FileName))
+                    {
+                        _submissionJSON = File.ReadAllText(ofd.FileName);
+                    }
+
+                    break;
                 case "buttonDeleteFromServer":
+
+                    int forDeletionCount = _landingSiteSamplings.Count(t => t.FoundInServer);
+
+                    int loop_count = 0;
+                    if (forDeletionCount > 0)
+                    {
+                        TimeSpan ts = DateTime.Now - (DateTime)_startOfMonth;
+                        DeleteFromServerWarning warning_type;
+                        string warning_message = "";
+                        if (ts.TotalDays > 60)
+                        {
+                            warning_type = DeleteFromServerWarning.DeleteFromServerWarningNone;
+                        }
+                        else if (ts.TotalDays <= 30)
+                        {
+                            warning_type = DeleteFromServerWarning.DeleteFromServerWarningSevere;
+                            warning_message = "Data from server is less than a month old";
+                        }
+                        else //if (ts.TotalDays <= 60)
+                        {
+                            warning_type = DeleteFromServerWarning.DeleteFromServerWarningWarning;
+                            warning_message = "Data from server is less than 2 months old";
+                        }
+
+
+                        if (warning_type == DeleteFromServerWarning.DeleteFromServerWarningNone || warning_type == DeleteFromServerWarning.DeleteFromServerWarningWarning)
+                        {
+                            bool go_on = true;
+
+                            if (warning_type == DeleteFromServerWarning.DeleteFromServerWarningWarning &&
+                                MessageBox.Show($"{warning_message}\r\n\r\nDo you want to continue?",
+                                Global.MessageBoxCaption,
+                                MessageBoxButton.YesNo,
+                                MessageBoxImage.Question) == MessageBoxResult.No)
+                            {
+                                go_on = false;
+                            }
+                            if (go_on)
+                            {
+                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.PrepareItemDeleteFromServer, Loops = forDeletionCount });
+                                foreach (var item in _landingSiteSamplings.Where(t => t.FoundInServer))
+                                {
+
+                                    var lss_id = item.Submission_id;
+                                    api_call = $"https://kf.kobotoolbox.org/api/v2/assets/{_formSummary.KPI_id_uid}/data/{lss_id}/";
+
+                                    using (var request = new HttpRequestMessage(new HttpMethod("DELETE"), api_call))
+                                    {
+                                        var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_userNameStatic}:{_passwordStatic}"));
+                                        request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
+
+                                        var response = await _httpClient.SendAsync(request);
+                                        if (response.StatusCode.ToString() == "OK")
+                                        {
+                                            item.DateDeletedFromServer = DateTime.Now;
+                                            if (NSAPEntities.LandingSiteSamplingViewModel.UpdateRecordInRepo(item))
+                                            {
+                                                loop_count++;
+                                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ItemDeletedFromServer, Loop = loop_count });
+                                            }
+                                        }
+                                    }
+                                }
+
+                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ItemDeletedFromServerDone });
+                                dataGridSubmissionsForDeletion.Items.Refresh();
+                            }
+                        }
+                        else if (warning_type == DeleteFromServerWarning.DeleteFromServerWarningSevere)
+                        {
+                            MessageBox.Show($"{warning_message}\r\n\r\nCannot delete",
+                                Global.MessageBoxCaption,
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Information);
+                        }
+                    }
+
+
+
+
                     break;
                 case "buttonDownloadMedia":
                     #region buttonDownloadMedia
@@ -437,7 +562,7 @@ namespace NSAP_ODK.Views
                 #endregion
                 case "buttonUpload":
                     #region buttonUpload
-                    OpenFileDialog ofd = new OpenFileDialog();
+                    ofd = new OpenFileDialog();
                     ofd.Title = "Select CSV file for uploading";
                     ofd.Filter = "CSV file (*.csv)|*.csv";
                     ofd.DefaultExt = ".csv";
@@ -786,206 +911,178 @@ namespace NSAP_ODK.Views
                                                 }
                                             }
 
-                                            using (var request = new HttpRequestMessage(new HttpMethod("GET"), api_call))
+                                            if (_jsonOption == "download_all_submission_ids" && !string.IsNullOrEmpty(_submissionJSON))
                                             {
-                                                ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ContactingServer });
-                                                var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_userNameStatic}:{_passwordStatic}"));
-                                                request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
-                                                try
+                                                ProcessSubmissionIDs(_submissionJSON);
+                                            }
+                                            else
+                                            {
+                                                using (var request = new HttpRequestMessage(new HttpMethod("GET"), api_call))
                                                 {
-                                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData });
-
-
-                                                    var response = await _httpClient.SendAsync(request);
-                                                    var bytes = await response.Content.ReadAsByteArrayAsync();
-                                                    Encoding encoding = Encoding.GetEncoding("utf-8");
-                                                    StringBuilder the_response = new StringBuilder(encoding.GetString(bytes, 0, bytes.Length));
-                                                    ((ODKResultsWindow)Owner).FormID = _formID;
-                                                    ((ODKResultsWindow)Owner).Description = _description;
-                                                    ((ODKResultsWindow)Owner).Count = _count;
-                                                    ((ODKResultsWindow)Owner).Koboform = _formSummary.KoboForm;
-
-
-                                                    DateTime? versionDate = null;
-                                                    if (_jsonOption == "download_all_submission_ids")
+                                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ContactingServer });
+                                                    var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_userNameStatic}:{_passwordStatic}"));
+                                                    request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
+                                                    try
                                                     {
-                                                        SubmissionIdentifierPairing.JSON = the_response.ToString();
-                                                        SubmissionIdentifierPairing.CreateSubmissionsPairsFromJSON();
-                                                        SubmissionIdentifierPairing.IsMultivessel = _formSummary.IsMultiVessel;
+                                                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData });
 
 
+                                                        var response = await _httpClient.SendAsync(request);
+                                                        var bytes = await response.Content.ReadAsByteArrayAsync();
+                                                        Encoding encoding = Encoding.GetEncoding("utf-8");
+                                                        StringBuilder the_response = new StringBuilder(encoding.GetString(bytes, 0, bytes.Length));
+                                                        ((ODKResultsWindow)Owner).FormID = _formID;
+                                                        ((ODKResultsWindow)Owner).Description = _description;
+                                                        ((ODKResultsWindow)Owner).Count = _count;
+                                                        ((ODKResultsWindow)Owner).Koboform = _formSummary.KoboForm;
 
 
-                                                        ProgressDialogWindow pdw = new ProgressDialogWindow("update submission pairing");
-                                                        pdw.FormSummary = _formSummary;
-                                                        var result = pdw.ShowDialog();
-
-                                                        if ((bool)result)
+                                                        DateTime? versionDate = null;
+                                                        if (_jsonOption == "download_all_submission_ids")
                                                         {
-                                                            if (SubmissionIdentifierPairing.UnmatchedPairs.Count > 0)
-                                                            {
-                                                                foreach (var item in SubmissionIdentifierPairing.UnmatchedPairs)
-                                                                {
-                                                                    api_call = $"https://kf.kobotoolbox.org/api/v2/assets/{_form_uid}/data/?format=json&query={{\"_id\":\"{item._id}\"}}";
-                                                                    var s = await JSONStringFromAPICall(api_call);
-                                                                    SubmissionIdentifierPairing.AddUnmatchedJSON(s);
-                                                                }
-                                                            }
+                                                            ProcessSubmissionIDs(the_response.ToString());
                                                         }
-
-                                                        if (SubmissionIdentifierPairing.UnmatchedLandingsJSON.Count > 0)
+                                                        else
                                                         {
-                                                            pdw = new ProgressDialogWindow("upload unmatched landings JSON");
-                                                            pdw.Owner = this;
-                                                            result = pdw.ShowDialog();
-                                                            if ((bool)result)
+                                                            switch (_parentWindow.ODKServerDownload)
                                                             {
-
-                                                            }
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        switch (_parentWindow.ODKServerDownload)
-                                                        {
-                                                            case ODKServerDownload.ServerDownloadVesselUnload:
-                                                                string json;
-                                                                if (_formSummary.IsMultiVessel)
-                                                                {
-                                                                    json = the_response.ToString();
-                                                                }
-                                                                else if (DateTime.TryParse(_xlsFormVersion, out DateTime versionDate1))
-                                                                {
-                                                                    versionDate = versionDate1;
-                                                                    if (versionDate >= new DateTime(2021, 10, 1))
+                                                                case ODKServerDownload.ServerDownloadVesselUnload:
+                                                                    string json;
+                                                                    if (_formSummary.IsMultiVessel)
                                                                     {
-                                                                        json = VesselLandingFixDownload.JsonNewToOldVersion(the_response.ToString());
+                                                                        json = the_response.ToString();
                                                                     }
-                                                                    else
+                                                                    else if (DateTime.TryParse(_xlsFormVersion, out DateTime versionDate1))
                                                                     {
-                                                                        throw new Exception("catch and effort version is not handled");
-                                                                    }
-                                                                }
-                                                                else
-                                                                {
-                                                                    json = the_response.ToString();
-                                                                }
-
-                                                                is_optimized_multivessel_submission = json.Contains("G_lss/sampling_date");
-
-                                                                ((ODKResultsWindow)Owner).JSONFromServer(json,
-                                                                    isMultivessel: _formSummary.IsMultiVessel,
-                                                                    is_optimized: is_optimized_multivessel_submission);
-
-                                                                if (_formSummary.IsMultiVessel)
-                                                                {
-                                                                    if (is_optimized_multivessel_submission)
-                                                                    {
-                                                                        MultiVessel_Optimized_UnloadServerRepository.JSON = json;
-                                                                        if (_jsonOption == "predownload_sampling_count")
+                                                                        versionDate = versionDate1;
+                                                                        if (versionDate >= new DateTime(2021, 10, 1))
                                                                         {
-                                                                            MultiVessel_Optimized_UnloadServerRepository.CreateLandingCountsFromJSON();
-                                                                            _totalCountSampledLandings = MultiVessel_Optimized_UnloadServerRepository.ListOfLandingsCount.Sum(t => t.CountSampledLandings);
-                                                                            MessageBox.Show($"There are {_totalCountSampledLandings} sampled fish landings available for download from the server",
-                                                                                Global.MessageBoxCaption,
-                                                                                MessageBoxButton.OK,
-                                                                                MessageBoxImage.Information);
-                                                                            return;
+                                                                            json = VesselLandingFixDownload.JsonNewToOldVersion(the_response.ToString());
                                                                         }
                                                                         else
                                                                         {
-                                                                            MultiVessel_Optimized_UnloadServerRepository.CreateLandingsFromJSON();
+                                                                            throw new Exception("catch and effort version is not handled");
                                                                         }
                                                                     }
                                                                     else
                                                                     {
-                                                                        MultiVesselGear_UnloadServerRepository.JSON = json;
-                                                                        if (_jsonOption == "predownload_sampling_count")
+                                                                        json = the_response.ToString();
+                                                                    }
+
+                                                                    is_optimized_multivessel_submission = json.Contains("G_lss/sampling_date");
+
+                                                                    ((ODKResultsWindow)Owner).JSONFromServer(json,
+                                                                        isMultivessel: _formSummary.IsMultiVessel,
+                                                                        is_optimized: is_optimized_multivessel_submission);
+
+                                                                    if (_formSummary.IsMultiVessel)
+                                                                    {
+                                                                        if (is_optimized_multivessel_submission)
                                                                         {
-                                                                            MultiVesselGear_UnloadServerRepository.CreateLandingCountsFromJSON();
-                                                                            _totalCountSampledLandings = MultiVesselGear_UnloadServerRepository.ListOfLandingsCount.Sum(t => t.CountSampledLandings);
-                                                                            MessageBox.Show($"There are {_totalCountSampledLandings} sampled fish landings available for download from the server",
-                                                                                Global.MessageBoxCaption,
-                                                                                MessageBoxButton.OK,
-                                                                                MessageBoxImage.Information);
-                                                                            return;
+                                                                            MultiVessel_Optimized_UnloadServerRepository.JSON = json;
+                                                                            if (_jsonOption == "predownload_sampling_count")
+                                                                            {
+                                                                                MultiVessel_Optimized_UnloadServerRepository.CreateLandingCountsFromJSON();
+                                                                                _totalCountSampledLandings = MultiVessel_Optimized_UnloadServerRepository.ListOfLandingsCount.Sum(t => t.CountSampledLandings);
+                                                                                MessageBox.Show($"There are {_totalCountSampledLandings} sampled fish landings available for download from the server",
+                                                                                    Global.MessageBoxCaption,
+                                                                                    MessageBoxButton.OK,
+                                                                                    MessageBoxImage.Information);
+                                                                                return;
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                MultiVessel_Optimized_UnloadServerRepository.CreateLandingsFromJSON();
+                                                                            }
                                                                         }
                                                                         else
                                                                         {
-                                                                            MultiVesselGear_UnloadServerRepository.CreateLandingsFromJSON();
+                                                                            MultiVesselGear_UnloadServerRepository.JSON = json;
+                                                                            if (_jsonOption == "predownload_sampling_count")
+                                                                            {
+                                                                                MultiVesselGear_UnloadServerRepository.CreateLandingCountsFromJSON();
+                                                                                _totalCountSampledLandings = MultiVesselGear_UnloadServerRepository.ListOfLandingsCount.Sum(t => t.CountSampledLandings);
+                                                                                MessageBox.Show($"There are {_totalCountSampledLandings} sampled fish landings available for download from the server",
+                                                                                    Global.MessageBoxCaption,
+                                                                                    MessageBoxButton.OK,
+                                                                                    MessageBoxImage.Information);
+                                                                                return;
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                MultiVesselGear_UnloadServerRepository.CreateLandingsFromJSON();
+                                                                            }
                                                                         }
-                                                                    }
-                                                                }
-                                                                else
-                                                                {
-                                                                    VesselUnloadServerRepository.JSON = json;
-                                                                    VesselUnloadServerRepository.ResetLists();
-                                                                    VesselUnloadServerRepository.CreateLandingsFromJSON();
-                                                                    VesselUnloadServerRepository.FillDuplicatedLists();
-                                                                }
-
-                                                                break;
-                                                            case ODKServerDownload.ServerDownloadLandings:
-                                                                ((ODKResultsWindow)Owner).JSON = the_response.ToString();
-                                                                BoatLandingsFromServerRepository.JSON = the_response.ToString();
-                                                                BoatLandingsFromServerRepository.CreateBoatLandingsFromJson();
-                                                                //LandingSiteBoatLandingsFromServerRepository.JSON = the_response.ToString();
-                                                                //LandingSiteBoatLandingsFromServerRepository.CreateLandingSiteBoatLandingsFromJson();
-                                                                break;
-                                                        }
-
-
-                                                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.GotJSONString, JSONString = the_response.ToString() });
-                                                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ConvertDataToEntities });
-
-                                                        switch (_parentWindow.ODKServerDownload)
-                                                        {
-                                                            case ODKServerDownload.ServerDownloadVesselUnload:
-                                                                if (_formSummary.IsMultiVessel)
-                                                                {
-                                                                    if (is_optimized_multivessel_submission)
-                                                                    {
-                                                                        _parentWindow.MultiVesselOptimizedMainSheets = MultiVessel_Optimized_UnloadServerRepository.SampledVesselLandings;
                                                                     }
                                                                     else
                                                                     {
-                                                                        _parentWindow.MultiVesselMainSheets = MultiVesselGear_UnloadServerRepository.SampledVesselLandings;
+                                                                        VesselUnloadServerRepository.JSON = json;
+                                                                        VesselUnloadServerRepository.ResetLists();
+                                                                        VesselUnloadServerRepository.CreateLandingsFromJSON();
+                                                                        VesselUnloadServerRepository.FillDuplicatedLists();
                                                                     }
-                                                                }
-                                                                else
-                                                                {
-                                                                    _parentWindow.MainSheets = VesselUnloadServerRepository.VesselLandings;
-                                                                }
-                                                                break;
-                                                            case ODKServerDownload.ServerDownloadLandings:
-                                                                _parentWindow.MainSheetsLanding = BoatLandingsFromServerRepository.BoatLandings;
-                                                                break;
+
+                                                                    break;
+                                                                case ODKServerDownload.ServerDownloadLandings:
+                                                                    ((ODKResultsWindow)Owner).JSON = the_response.ToString();
+                                                                    BoatLandingsFromServerRepository.JSON = the_response.ToString();
+                                                                    BoatLandingsFromServerRepository.CreateBoatLandingsFromJson();
+                                                                    //LandingSiteBoatLandingsFromServerRepository.JSON = the_response.ToString();
+                                                                    //LandingSiteBoatLandingsFromServerRepository.CreateLandingSiteBoatLandingsFromJson();
+                                                                    break;
+                                                            }
+
+
+                                                            ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.GotJSONString, JSONString = the_response.ToString() });
+                                                            ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.ConvertDataToEntities });
+
+                                                            switch (_parentWindow.ODKServerDownload)
+                                                            {
+                                                                case ODKServerDownload.ServerDownloadVesselUnload:
+                                                                    if (_formSummary.IsMultiVessel)
+                                                                    {
+                                                                        if (is_optimized_multivessel_submission)
+                                                                        {
+                                                                            _parentWindow.MultiVesselOptimizedMainSheets = MultiVessel_Optimized_UnloadServerRepository.SampledVesselLandings;
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            _parentWindow.MultiVesselMainSheets = MultiVesselGear_UnloadServerRepository.SampledVesselLandings;
+                                                                        }
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        _parentWindow.MainSheets = VesselUnloadServerRepository.VesselLandings;
+                                                                    }
+                                                                    break;
+                                                                case ODKServerDownload.ServerDownloadLandings:
+                                                                    _parentWindow.MainSheetsLanding = BoatLandingsFromServerRepository.BoatLandings;
+                                                                    break;
+                                                            }
+                                                            ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
                                                         }
-                                                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownload });
+                                                        the_response.Clear();
+                                                        the_response = null;
+
+                                                        Close();
+
                                                     }
-                                                    the_response.Clear();
-                                                    the_response = null;
+                                                    catch (HttpRequestException http_ex)
+                                                    {
+                                                        Logger.Log(http_ex);
+                                                        MessageBox.Show("Request time out\r\nYou may try again", Utilities.Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
+                                                    }
+                                                    catch (TaskCanceledException t_ex)
+                                                    {
 
-                                                    Close();
-
-                                                }
-                                                catch (HttpRequestException http_ex)
-                                                {
-                                                    Logger.Log(http_ex);
-                                                    MessageBox.Show("Request time out\r\nYou may try again", Utilities.Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
-                                                }
-                                                catch (TaskCanceledException t_ex)
-                                                {
-
-                                                }
-                                                catch (Exception ex)
-                                                {
-                                                    Logger.Log(ex);
-                                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.StoppedDueToError });
+                                                    }
+                                                    catch (Exception ex)
+                                                    {
+                                                        Logger.Log(ex);
+                                                        ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.StoppedDueToError });
+                                                    }
                                                 }
                                             }
-
-                                            //}
                                         }
                                     }
                                     else
@@ -1516,7 +1613,7 @@ namespace NSAP_ODK.Views
             var call = "";
             int rowStart = 0;
             double limit = 30000; //30,000 is download limit 
-            NSAPEntities.VesselUnloadViewModel.DatabaseUpdatedEvent += VesselUnloadViewModel_ColumnUpdatedEvent;
+            //NSAPEntities.VesselUnloadViewModel.DatabaseUpdatedEvent += VesselUnloadViewModel_ColumnUpdatedEvent;
             if (int.TryParse(textRowStart.Text, out int v))
             {
                 rowStart = v;
@@ -1673,6 +1770,25 @@ namespace NSAP_ODK.Views
         {
             switch (e.Intent)
             {
+                case DownloadFromServerIntent.ItemDeletedFromServerDone:
+                    ProgressBar.Value = 0;
+                    break;
+                case DownloadFromServerIntent.ItemDeletedFromServer:
+                    ProgressBar.Value = (int)e.Loop;
+                    labelProgress.Content = $"Deleted {(int)e.Loop} of {ProgressBar.Maximum}";
+                    break;
+                case DownloadFromServerIntent.PrepareItemDeleteFromServer:
+                    ProgressBar.Maximum = (int)e.Loops;
+                    break;
+                case DownloadFromServerIntent.DownloadingSubmissionPairs:
+                    ProgressBar.IsIndeterminate = true;
+                    labelProgress.Content = "Downloading data";
+                    break;
+                case DownloadFromServerIntent.FinishedDownloadSubmissionPairs:
+                    ProgressBar.IsIndeterminate = false;
+                    ProgressBar.Value = 0;
+                    labelProgress.Content = "";
+                    break;
                 case DownloadFromServerIntent.ContactingServer:
                     ProgressBar.Value += 1;
                     labelProgress.Content = "Contacting server";
@@ -1835,6 +1951,8 @@ namespace NSAP_ODK.Views
         }
         private async void OnTreeItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
+            FormIsOptimizedMultiVessel = false;
+            FormIsMultiVessel = false;
             _totalCountSampledLandings = null;
             propertyGrid.Visibility = Visibility.Collapsed;
             gridFormUsers.Visibility = Visibility.Collapsed;
@@ -1850,21 +1968,40 @@ namespace NSAP_ODK.Views
                     case "month_sampled":
                     case "Not supported":
                     case "No records":
+                        _formID = ((TreeViewItem)treeViewItem.Parent).Header.ToString();
                         dataGridSubmissionsForDeletion.Visibility = Visibility.Collapsed;
-                        buttonDeleteFromServer.Visibility = Visibility.Collapsed;
+                        panelButtonDelete.Visibility = Visibility.Collapsed;
+                        //buttonDeleteFromServer.Visibility = Visibility.Collapsed;
                         string delete_category = treeViewItem.Tag.ToString();
                         gridDeletedFromServer.Visibility = Visibility.Visible;
                         if (delete_category == "month_sampled")
                         {
+                            buttonDeleteFromServer.IsEnabled = false;
+                            dataGridSubmissionsForDeletion.ItemsSource = null;
+                            dataGridSubmissionsForDeletion.Items.Clear();
                             dataGridSubmissionsForDeletion.Visibility = Visibility.Visible;
-                            buttonDeleteFromServer.Visibility = Visibility.Visible;
-                            labelDeleteFromServer.Content = $"Content for deletion for the month of {treeViewItem.Header.ToString()}";
+                            panelButtonDelete.Visibility = Visibility.Visible;
+                            //buttonDeleteFromServer.Visibility = Visibility.Visible;
+                            labelDeleteFromServer.Text = $"Content for deletion for the month of {treeViewItem.Header.ToString()}";
 
-                            DateTime start = DateTime.Parse(treeViewItem.Header.ToString());
-                            string start_date = start.ToString("yyyy-MM-dd");
-                            string end_date = start.AddMonths(1).Subtract(new TimeSpan(24, 0, 0)).ToString("yyyy-MM-dd");
+                            _startOfMonth = DateTime.Parse(treeViewItem.Header.ToString());
+                            string start_date = ((DateTime)_startOfMonth).ToString("yyyy-MM-dd");
+                            string end_date = ((DateTime)_startOfMonth).AddMonths(1).Subtract(new TimeSpan(24, 0, 0)).ToString("yyyy-MM-dd");
 
-                            string api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?fields=[\"_id\",\"_uuid\"]&format=json&query={{\"_submission_time\":{{\"$gte\":\"{start_date}\",\"$lte\":\"{end_date}\"}}}}";
+                            _formSummary = new FormSummary(_koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)));
+                            _form_uid = _formSummary.KPI_id_uid;
+                            FormIsMultiVessel = _formSummary.Title.Contains("Multi-Vessel");
+                            FormIsOptimizedMultiVessel = FormIsMultiVessel && _formSummary.Title.Contains("Optimized");
+
+                            string api_call = "";
+                            if (FormIsOptimizedMultiVessel)
+                            {
+                                api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?fields=[\"_id\",\"_uuid\"]&format=json&query={{\"G_lss/sampling_date\":{{\"$gte\":\"{start_date}\",\"$lte\":\"{end_date}\"}}}}";
+                            }
+                            else
+                            {
+                                api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?fields=[\"_id\",\"_uuid\"]&format=json&query={{\"landing_site_sampling_group/sampling_date\":{{\"$gte\":\"{start_date}\",\"$lte\":\"{end_date}\"}}}}";
+                            }
 
                             using (var request = new HttpRequestMessage(new HttpMethod("GET"), api_call))
                             {
@@ -1873,18 +2010,26 @@ namespace NSAP_ODK.Views
                                 request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
                                 try
                                 {
-                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingData });
+                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.DownloadingSubmissionPairs });
 
 
                                     var response = await _httpClient.SendAsync(request);
                                     var bytes = await response.Content.ReadAsByteArrayAsync();
                                     Encoding encoding = Encoding.GetEncoding("utf-8");
                                     StringBuilder the_response = new StringBuilder(encoding.GetString(bytes, 0, bytes.Length));
+                                    SubmissionIdentifierPairing.JSON = the_response.ToString();
+                                    SubmissionIdentifierPairing.CreateSubmissionsPairsFromJSON();
 
+                                    NSAPEntities.LandingSiteSamplingViewModel.SetSamplingExistsServer(SubmissionIdentifierPairing.SubmissionIDPairs, out int pairedCount);
+                                    _landingSiteSamplings = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSamplings((DateTime)_startOfMonth, _form_uid).OrderBy(t => t.SamplingDate).ToList();
+                                    //dataGridSubmissionsForDeletion.ItemsSource = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSamplings(start, _form_uid).OrderBy(t => t.SamplingDate);
+                                    dataGridSubmissionsForDeletion.ItemsSource = _landingSiteSamplings;
+                                    ShowStatus(new DownloadFromServerEventArg { Intent = DownloadFromServerIntent.FinishedDownloadSubmissionPairs });
+                                    buttonDeleteFromServer.IsEnabled = true;
                                 }
                                 catch (Exception ex)
                                 {
-
+                                    Logger.Log(ex);
                                 }
                             }
                         }
@@ -1892,17 +2037,17 @@ namespace NSAP_ODK.Views
                         {
                             if (delete_category == "Not supported")
                             {
-                                labelDeleteFromServer.Content = "No content is visible because delete operation is not supported for servers that are not multiple vessel and gear.";
+                                labelDeleteFromServer.Text = "No content is visible because delete operation is not supported for servers that are not multiple vessel and gear.";
                             }
                             else
                             {
                                 if (!string.IsNullOrEmpty(Global.Settings.DbFilter))
                                 {
-                                    labelDeleteFromServer.Content = "No content is visible because the local database is either filtered or does not have landing data from server";
+                                    labelDeleteFromServer.Text = "No content is visible because the local database is either filtered or does not have landing data from server";
                                 }
                                 else
                                 {
-                                    labelDeleteFromServer.Content = "No content is visible because local database does not have landing data from server";
+                                    labelDeleteFromServer.Text = "No content is visible because local database does not have landing data from server";
                                 }
                             }
                         }
@@ -1912,7 +2057,8 @@ namespace NSAP_ODK.Views
 
                         _formSummary = new FormSummary(_koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)));
                         _form_uid = _formSummary.KPI_id_uid;
-                        FormIsMultiVessel = _formSummary.Description.Contains("Multi-Vessel");
+                        FormIsMultiVessel = _formSummary.Title.Contains("Multi-Vessel");
+                        FormIsOptimizedMultiVessel = FormIsMultiVessel && _formSummary.Title.Contains("Optimized");
                         _versionID = _formSummary.KoboForm.Version_ID;
                         // _numberOfSubmissions = _formSummary.NumberOfSubmissions;
                         //_xlsFormVersion = _formSummary.XLSForm_Version;
@@ -1955,7 +2101,8 @@ namespace NSAP_ODK.Views
                         _formID = ((TreeViewItem)treeViewItem.Parent).Header.ToString();
                         _formSummary = new FormSummary(_koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)));
                         _form_uid = _formSummary.KPI_id_uid;
-                        FormIsMultiVessel = _formSummary.Description.Contains("Multi-Vessel");
+                        FormIsMultiVessel = _formSummary.Title.Contains("Multi-Vessel");
+                        FormIsOptimizedMultiVessel = FormIsMultiVessel && _formSummary.Title.Contains("Optimized");
                         _versionID = _formSummary.KoboForm.Version_ID;
                         dataGrid.DataContext = _koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)).metadata_active;
                         dataGrid.AutoGenerateColumns = false;
@@ -1995,7 +2142,8 @@ namespace NSAP_ODK.Views
                         _formSummary = new FormSummary(koboform);
                         _form_uid = _formSummary.KPI_id_uid;
                         _description = _formSummary.Description;
-                        FormIsMultiVessel = _description.Contains("Multi-Vessel");
+                        FormIsMultiVessel = _formSummary.Title.Contains("Multi-Vessel");
+                        FormIsOptimizedMultiVessel = FormIsMultiVessel && _formSummary.Title.Contains("Optimized");
                         _count = _formSummary.NumberOfSubmissions;
                         SetODKServerDownloadType(_formSummary);
                         SetDownloadOptionsVisibility();
@@ -2016,6 +2164,23 @@ namespace NSAP_ODK.Views
                 }
             }
 
+        }
+
+        private Style AlignRightStyle
+        {
+            get
+            {
+                Style alignRightCellStype = new Style(typeof(DataGridCell));
+
+                // Create a Setter object to set (get it? Setter) horizontal alignment.
+                Setter setAlign = new
+                    Setter(HorizontalAlignmentProperty,
+                    HorizontalAlignment.Right);
+
+                // Bind the Setter object above to the Style object
+                alignRightCellStype.Setters.Add(setAlign);
+                return alignRightCellStype;
+            }
         }
         private void SetODKServerDownloadType(FormSummary fs)
         {
@@ -2044,13 +2209,17 @@ namespace NSAP_ODK.Views
 
         private void OnFormClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            //_httpClient.Dispose();
             Global.SaveGlobalSettings();
             this.SavePlacement();
         }
 
         private async void OnFormLoaded(object sender, RoutedEventArgs e)
         {
+            //buttonUseSubmissionIDFile.Visibility = Visibility.Collapsed;
+            //if(Debugger.IsAttached)
+            //{
+            //    buttonUseSubmissionIDFile.Visibility = Visibility.Visible;
+            //}
             _httpClient = MainWindow.HttpClient;
             //_httpClient.Timeout = new TimeSpan(0, 10, 0);
             Title = "Download from server";
@@ -2066,6 +2235,35 @@ namespace NSAP_ODK.Views
                     Title = "Delete fish landing data from the server";
                     labelTitle.Content = "Delete fish landing data from server";
                     stackPanelDownload.Visibility = Visibility.Collapsed;
+                    dataGridSubmissionsForDeletion.AutoGenerateColumns = false;
+                    dataGridSubmissionsForDeletion.CanUserAddRows = false;
+                    dataGridSubmissionsForDeletion.IsReadOnly = true;
+                    dataGridSubmissionsForDeletion.Columns.Add(new DataGridTextColumn { Header = "Submission ID", Binding = new Binding("Submission_id") });
+
+                    DataGridTextColumn col = new DataGridTextColumn()
+                    {
+                        Binding = new Binding("SamplingDate"),
+                        Header = "Sampling date",
+                        CellStyle = AlignRightStyle
+                    };
+                    col.Binding.StringFormat = "MMM-dd-yyyy";
+                    dataGridSubmissionsForDeletion.Columns.Add(col);
+
+                    dataGridSubmissionsForDeletion.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("FMA.Name") });
+                    dataGridSubmissionsForDeletion.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("FishingGround.Name") });
+                    dataGridSubmissionsForDeletion.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSiteName") });
+                    dataGridSubmissionsForDeletion.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("EnumeratorName") });
+                    dataGridSubmissionsForDeletion.Columns.Add(new DataGridCheckBoxColumn { Header = "Sampling day", Binding = new Binding("IsSamplingDay") });
+                    dataGridSubmissionsForDeletion.Columns.Add(new DataGridTextColumn { Header = "# of sampled landings", Binding = new Binding("NumberOfLandingsSampled") });
+                    dataGridSubmissionsForDeletion.Columns.Add(new DataGridCheckBoxColumn { Header = "Found in server", Binding = new Binding("FoundInServer") });
+                    col = new DataGridTextColumn()
+                    {
+                        Binding = new Binding("DateDeletedFromServer"),
+                        Header = "Date deleted",
+                        CellStyle = AlignRightStyle
+                    };
+                    col.Binding.StringFormat = "MMM-dd-yyyy HH:mm";
+                    dataGridSubmissionsForDeletion.Columns.Add(col);
                     break;
                 case ServerIntent.IntentUploadMedia:
                     stackPanelDownload.Visibility = Visibility.Collapsed;
@@ -2119,13 +2317,11 @@ namespace NSAP_ODK.Views
         private void OnTimerTick(object sender, EventArgs e)
         {
             _timer.Stop();
-            ProgressBar.Value = 0;
-            labelProgress.Content = "";
         }
 
         private void OnComboSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-
+            panelGetSubmissions.Visibility = Visibility.Visible;
             stackPanelJSON.Visibility = Visibility.Collapsed;
             _downloadOption = ((ComboBoxItem)e.AddedItems[0]).Tag.ToString();
             if (_downloadOption == "json")
@@ -2141,6 +2337,9 @@ namespace NSAP_ODK.Views
                     {
                         panelDLSpecificFormUsingUUID.Visibility = Visibility.Collapsed;
                     }
+
+                    buttonUseSubmissionIDFile.Visibility = Visibility.Visible;
+                    buttonUseSubmissionIDFile.IsEnabled = false;
                     //panelDLSpecificFormUsingUUID.Visibility = Visibility.Visible;
                 }
             }
@@ -2148,22 +2347,32 @@ namespace NSAP_ODK.Views
 
         private void OnButtonChecked(object sender, RoutedEventArgs e)
         {
-
+            buttonUseSubmissionIDFile.IsEnabled = false; ;
+            //UncheckAllRadioButtons();
             switch (((RadioButton)sender).Name)
             {
+                case "rbGetAllSubmissions":
+                    UncheckAllRadioButtons();
+                    buttonUseSubmissionIDFile.IsEnabled = true;
+                    rbDownloadSpecificForm.IsChecked = false;
+                    rbDownloadByPastWeeks.IsChecked = false;
+                    break;
                 case "rbDownloadSpecificForm":
                     UncheckAllRadioButtons();
                     rbDownloadByPastWeeks.IsChecked = false;
+                    rbGetAllSubmissions.IsChecked = false;
                     txtFormUUID.IsEnabled = true;
                     break;
                 case "rbDownloadByPastWeeks":
                     UncheckAllRadioButtons();
                     rbDownloadSpecificForm.IsChecked = false;
+                    rbGetAllSubmissions.IsChecked = false;
                     txtDaysToDownload.IsEnabled = true;
                     break;
                 default:
                     rbDownloadSpecificForm.IsChecked = false;
                     rbDownloadByPastWeeks.IsChecked = false;
+                    rbGetAllSubmissions.IsChecked = false;
                     txtDaysToDownload.IsEnabled = false;
                     txtFormUUID.IsEnabled = false;
                     break;

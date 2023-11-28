@@ -11,14 +11,19 @@ namespace NSAP_ODK.Entities.Database
         ContactingServer,
         SetNumberOfLoops,
         DownloadingData,
+        DownloadingSubmissionPairs,
         GotXLSFormVersion,
         GotJSONString,
         ConvertDataToExcel,
         ConvertDataToEntities,
         FinishedDownload,
         FinishedDownloadAndSavedJSONFile,
+        FinishedDownloadSubmissionPairs,
         StoppedDueToError,
-        SavingToJSONTextFile
+        SavingToJSONTextFile,
+        PrepareItemDeleteFromServer,
+        ItemDeletedFromServer,
+        ItemDeletedFromServerDone,
 
     }
     public class DownloadFromServerEventArg:EventArgs

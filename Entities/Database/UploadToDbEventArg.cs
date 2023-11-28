@@ -26,7 +26,11 @@ namespace NSAP_ODK.Entities.Database
         LandingSiteSamplingProcessed,
         UpdateTableFields,
         UpdatedTableField,
-        UpdatedTableDone
+        UpdatedTableDone,
+        UpdateUnmatchedJSONDownloadingFromServer,
+        UpdateUnmatchedJSON,
+        UpdatedUnmatchedJSON,
+        UpdatedUnmatchedJSONDone
 
 
 

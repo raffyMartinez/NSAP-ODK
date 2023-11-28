@@ -1245,7 +1245,8 @@ namespace NSAP_ODK.Views
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Gears", DisplayName = "Number of Gears", DisplayOrder = 4, Description = "Number of gear types used in the region" });
                     //PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Vessels", DisplayName = "Number of Vessels", DisplayOrder = 5, Description = "Number of vessels listed in the region" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Enumerators", DisplayName = "Number of Enumerators", DisplayOrder = 6, Description = "Number of enumerators listed in the region" });
-                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "ID", DisplayName = "Database identifier", DisplayOrder = 7, Description = "Identifier of the landing site in database" });
+                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "IsTotalEnumerationOnly", DisplayName = "Total enumeration only", DisplayOrder = 8, Description = "Catch composition is from total enumeration and not from samples" });
+                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "ID", DisplayName = "Database identifier", DisplayOrder = 9, Description = "Identifier of the landing site in database" });
                     PropertyGrid.SelectedObject = nsapRegionEdit;
                     break;
                 #endregion
@@ -2440,9 +2441,17 @@ namespace NSAP_ODK.Views
                         case NSAPEntity.NSAPRegion:
                             #region nsapregion
                             var r = (NSAPRegionEdit)PropertyGrid.SelectedObject;
-                            NSAPRegion nr = new NSAPRegion { Code = r.NSAPRegion.Code, Name = r.Name, ShortName = r.ShortName, Sequence = r.NSAPRegion.Sequence };
+                            NSAPRegion nr = new NSAPRegion { 
+                                Code = r.NSAPRegion.Code, 
+                                Name = r.Name, 
+                                ShortName = r.ShortName, 
+                                IsTotalEnumerationOnly = r.IsTotalEnumerationOnly, 
+                                Sequence = r.NSAPRegion.Sequence };
                             //nr.NSAPEnumerators=r.NSAPRegion.NSAPEnumerators
-                            success = NSAPEntities.NSAPRegionViewModel.UpdateRecordInRepo(nr);
+                            if( NSAPEntities.NSAPRegionViewModel.UpdateRecordInRepo(nr))
+                            {
+                                success = true;
+                            }
                             break;
                         #endregion
                         case NSAPEntity.NSAPRegionFMA:

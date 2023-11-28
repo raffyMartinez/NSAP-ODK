@@ -2189,6 +2189,7 @@ namespace NSAP_ODK.Entities.Database
         }
         public static DateTime DownloadedLandingsEarliestLandingDate()
         {
+            
             return VesselLandings.OrderBy(t => t.SamplingDate).FirstOrDefault().SamplingDate;
         }
         public static List<string> GetLandingIdentifiers()

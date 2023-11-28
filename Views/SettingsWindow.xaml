@@ -52,10 +52,10 @@
                 <Label Content="Database date filter" Width="205" HorizontalContentAlignment="Right"/>
                 <TextBox x:Name="textDBFilter" Width="400" Margin="10 0" HorizontalContentAlignment="Right"/>
             </WrapPanel>
-            <WrapPanel Margin="10 2">
+            <!--<WrapPanel Margin="10 2">
                 <Label Content="Database server ID filter" Width="205" HorizontalContentAlignment="Right"/>
                 <TextBox x:Name="textServerFilter" Width="400" Margin="10 0" HorizontalContentAlignment="Right" IsEnabled="False"/>
-            </WrapPanel>            
+            </WrapPanel>-->            
 
             <StackPanel>
                 <Label Content="NSAP-ODK Databse using MySQL" HorizontalAlignment="Center" Margin="0 10 0 0" FontWeight="Bold"/>
