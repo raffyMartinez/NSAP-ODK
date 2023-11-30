@@ -47,7 +47,7 @@ namespace NSAP_ODK.Entities.Database
                         //ignore
                     }
 
-                    
+
                 }
             }
             return pairedCount > 0;
@@ -384,11 +384,18 @@ namespace NSAP_ODK.Entities.Database
             get
             {
                 var list = LandingSiteSamplingCollection.Where(t => t.XFormIdentifier != null && t.XFormIdentifier.Length > 0);
-                if (list.Count() > 0)
+                try
                 {
-                    return list.Max(t => t.DateSubmitted).Value;
+                    if (list.Count() > 0)
+                    {
+                        return list.Max(t => t.DateSubmitted).Value;
+                    }
+                    else
+                    {
+                        return null;
+                    }
                 }
-                else
+                catch
                 {
                     return null;
                 }
@@ -844,7 +851,7 @@ namespace NSAP_ODK.Entities.Database
                 }
                 index++;
             }
-            if(EditSuccess)
+            if (EditSuccess)
             {
                 item.FoundInServer = false;
             }

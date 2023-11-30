@@ -121,7 +121,8 @@ namespace NSAP_ODK.Entities.Database
         }
 
 
-        public static DateTime? LatestAdditionDate(string formID)
+        //public static DateTime? LatestAdditionDate(string formID)
+        public static DateTime? LatestAdditionDate(FormSummary fs)
         {
             DateTime? add_date = null;
             if (Global.Settings.UsemySQL)
@@ -132,10 +133,19 @@ namespace NSAP_ODK.Entities.Database
             {
                 using (var con = new OleDbConnection(Global.ConnectionString))
                 {
+                    string formID = fs.XLSForm_IDString;
                     using (var cmd = con.CreateCommand())
                     {
+
                         cmd.Parameters.AddWithValue("@id", formID);
-                        cmd.CommandText = "Select Max(date_added) from dbo_lss_submissionIDs where xFormIdentifier = @id";
+                        if (fs.IsMultiVessel)
+                        {
+                            cmd.CommandText = "Select Max(date_added) from dbo_lss_submissionIDs where xFormIdentifier = @id";
+                        }
+                        else
+                        {
+                            cmd.CommandText = "Select Max(DateAdded) from dbo_vessel_unload_1 where xFormIdentifier = @id";
+                        }
                         try
                         {
                             con.Open();
@@ -152,6 +162,7 @@ namespace NSAP_ODK.Entities.Database
                                 Logger.Log(ex);
                             }
                         }
+
                     }
                 }
             }

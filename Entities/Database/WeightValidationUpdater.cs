@@ -200,7 +200,8 @@ namespace NSAP_ODK.Entities.Database
                 }
                 else
                 {
-                    diff = ((double)cwv.DifferenceCatchWtandSumCatchCompWeight).ToString("N2");
+                    //diff = ((double)cwv.DifferenceCatchWtandSumCatchCompWeight).ToString("N2");
+                    diff = ((double)cwv.DifferenceCatchWtandSumCatchCompWeight).ToString();
                 }
             }
             if (cwv.VesselUnload.Parent.Parent.IsMultiVessel)
@@ -229,7 +230,13 @@ namespace NSAP_ODK.Entities.Database
             myDict.Add("row_id", (VesselUnloadViewModel.CurrentWeightValidationIDNumber + 1).ToString());
             VesselUnloadViewModel.CurrentWeightValidationIDNumber++;
 
-            return CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload_weight_validation");
+            var rv = CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload_weight_validation");
+            if(rv.Split(',').Length>10)
+            {
+
+            }
+            //return CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload_weight_validation");
+            return rv;
         }
 
 
@@ -544,11 +551,12 @@ namespace NSAP_ODK.Entities.Database
             {
                 if (item.DifferenceCatchWtandSumCatchCompWeight == 0 || item.DifferenceCatchWtandSumCatchCompWeight < 0.01)
                 {
-                    diff = "0";
+                    diff = "0.0";
                 }
                 else
                 {
-                    diff = ((double)item.DifferenceCatchWtandSumCatchCompWeight).ToString("N2");
+                    //diff = ((double)item.DifferenceCatchWtandSumCatchCompWeight).ToString("N2");
+                diff = ((double)item.DifferenceCatchWtandSumCatchCompWeight).ToString();
                 }
             }
             myDict.Add("v_unload_id", item.VesselUnloadID.ToString());
@@ -567,7 +575,15 @@ namespace NSAP_ODK.Entities.Database
             }
             myDict.Add("row_id", (VesselUnloadViewModel.CurrentWeightValidationIDNumber + 1).ToString());
             VesselUnloadViewModel.CurrentWeightValidationIDNumber++;
-            return CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload_weight_validation");
+            var rv = CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload_weight_validation");
+            var arr = rv.Split(',');
+            if (rv.Split(',').Length > 10)
+            {
+
+            }
+            //return CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload_weight_validation");
+            return rv;
+            //return CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload_weight_validation");
 
         }
         private static string MakeUnloadCSVLineEx(SummaryItem item)
@@ -581,7 +597,8 @@ namespace NSAP_ODK.Entities.Database
                 }
                 else
                 {
-                    diff = ((double)item.DifferenceCatchWtandSumCatchCompWeight).ToString("N2");
+                    //diff = ((double)item.DifferenceCatchWtandSumCatchCompWeight).ToString("N2");
+                    diff = ((double)item.DifferenceCatchWtandSumCatchCompWeight).ToString();
                 }
             }
             string rv = item.VesselUnloadID.ToString();

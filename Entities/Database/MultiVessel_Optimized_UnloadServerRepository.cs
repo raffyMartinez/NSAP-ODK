@@ -202,14 +202,23 @@ namespace NSAP_ODK.Entities.Database
                                 DateAdded = DateTime.Now,
                                 FromExcelDownload = false,
                                 FormVersion = root.FormVersion.ToString(),
-                                EnumeratorID = root.RegionEnumeratorID,
-                                EnumeratorText = root.RegionEnumeratorText,
+                                //EnumeratorID = root.NSAPEnumerator.ID,
+                                //EnumeratorText = root.RegionEnumeratorText,
                                 JSONFileName = jsonFileName,
                                 Remarks = root.ReasonNoLanding,
                                 DateSubmitted = root.SubmissionTime,
                                 SamplingFromCatchCompositionIsAllowed = root.SamplingFromCatchCompositionAllowed,
                                 Submission_id = root._id
                             };
+
+                            if(root.RegionEnumeratorID!=null)
+                            {
+                                lss.EnumeratorID = root.NSAPEnumerator.ID;
+                            }
+                            else
+                            {
+                                lss.EnumeratorText = root.RegionEnumeratorText;
+                            }
 
                             if (root.RegionFishingGround != null)
                             {
@@ -2469,7 +2478,8 @@ namespace NSAP_ODK.Entities.Database
                 }
                 else
                 {
-                    return NSAPEntities.NSAPEnumeratorViewModel.GetNSAPEnumerator((int)RegionEnumeratorID);
+                    //return NSAPEntities.NSAPEnumeratorViewModel.GetNSAPEnumerator((int)RegionEnumeratorID);
+                    return NSAPRegion.NSAPEnumerators.FirstOrDefault(t => t.RowID == (int)RegionEnumeratorID).Enumerator;
                 }
             }
         }

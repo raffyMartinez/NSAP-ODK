@@ -396,12 +396,20 @@ namespace NSAP_ODK.Entities
                         var filestructure = sr.ReadToEnd();
                         var search_string = "\"name\":\"intronote\"";
                         var idx = filestructure.IndexOf(search_string);
-                        kf.eForm_version = filestructure.Substring(idx, 200).Replace("\"", "").Split(new char[] { ',', ':' }).FirstOrDefault(t => t.Contains("Version")).Replace("Version ", "");
+                        try
+                        {
+                            kf.eForm_version = filestructure.Substring(idx, 200).Replace("\"", "").Split(new char[] { ',', ':' }).FirstOrDefault(t => t.Contains("Version")).Replace("Version ", "");
 
-                        search_string = "\"version\":";
-                        idx = filestructure.IndexOf(search_string);
-                        XLSFormVersion = filestructure.Substring(idx + search_string.Length, 20).Replace("\"", "").Split(',')[0];
-                        sr.Close();
+                            search_string = "\"version\":";
+                            idx = filestructure.IndexOf(search_string);
+                            XLSFormVersion = filestructure.Substring(idx + search_string.Length, 20).Replace("\"", "").Split(',')[0];
+                            kf.xlsform_version = XLSFormVersion;
+                            sr.Close();
+                        }
+                        catch(Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
                     }
 
                     using (StreamReader sr = File.OpenText($"{Global._KoboFormsFolder}\\{kf.formid}_form_media.json"))
