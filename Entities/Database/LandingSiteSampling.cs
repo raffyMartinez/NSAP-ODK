@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DocumentFormat.OpenXml.Bibliography;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,6 +7,76 @@ using System.Threading.Tasks;
 
 namespace NSAP_ODK.Entities.Database
 {
+    public class LandingSiteSamplingSummarized
+    {
+        public LandingSiteSamplingSummarized(LandingSiteSampling lss, bool fromSummaryItem = false)
+        {
+            if (lss.LandingSiteID != null)
+            {
+                LandingSite = lss.LandingSite.ToString();
+            }
+            else
+            {
+                LandingSite = lss.LandingSiteText;
+            }
+            LandingSiteSampling = lss;
+
+            if (fromSummaryItem)
+            {
+
+                foreach (SummaryItem si in NSAPEntities.SummaryItemViewModel.SummaryItemCollection.Where(t => t.SamplingDayID == lss.PK))
+                {
+
+                    if (si.IsSamplingDay)
+                    {
+                        NumberOfVesselUnloads++;
+                        if (si.HasCatchComposition)
+                        {
+                            NumberOfVesselUnloadsWithCatchComposition++;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                foreach (GearUnload gu in lss.GearUnloadViewModel.GearUnloadCollection)
+                {
+                    if (gu.VesselUnloadViewModel == null)
+                    {
+                        gu.VesselUnloadViewModel = new VesselUnloadViewModel(gu, updatesubViewModels: true);
+                    }
+                    foreach (VesselUnload vu in gu.VesselUnloadViewModel.VesselUnloadCollection)
+                    {
+                        NumberOfVesselUnloads++;
+                        foreach (VesselUnload_FishingGear vufg in vu.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection)
+                        {
+                            if (vufg.CountItemsInCatchComposition > 0)
+                            {
+                                NumberOfVesselUnloadsWithCatchComposition++;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            IsSamplingDay = lss.IsSamplingDay;
+            SamplingDate = lss.SamplingDate;
+            MonthOfSampling = new DateTime(lss.SamplingDate.Year, lss.SamplingDate.Month, 1);
+            ForDeletion = false;
+        }
+
+        public DateTime MonthOfSampling { get;  set; }
+
+        public LandingSiteSampling LandingSiteSampling { get; set; }
+
+        public string LandingSite { get;  set; }
+        public int NumberOfVesselUnloads { get; set; }
+        public int NumberOfVesselUnloadsWithCatchComposition { get; set; }
+        public bool IsSamplingDay { get; set; }
+        public bool ForDeletion { get; set; }
+
+        public DateTime SamplingDate { get; private set; }
+    }
     public class LandingSiteSamplingFlattened
     {
         public LandingSiteSamplingFlattened(LandingSiteSampling lss)

@@ -2604,6 +2604,11 @@ namespace NSAP_ODK
             ProgressDialogWindow pdw = null;
             switch (itemName)
             {
+                case "menuListSamplingAndCatchComposition":
+                    List<LandingSiteSamplingSummarized> list = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSamplingSummaries(ls: _treeItemData.LandingSite, _monthYear);
+                    LandingSiteSamplingSummariesWindow lssw = new LandingSiteSamplingSummariesWindow(list);
+                    lssw.ShowDialog();
+                    break;
                 //Tree context menu ->Databases->Select server for server
                 //database summary view tree view
                 case "menuSelectServerForFilter":
@@ -3544,7 +3549,7 @@ namespace NSAP_ODK
                                         }
                                         //MessageBox.Show($"{landingsite_date}\r\n\r\n{msg}", Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
                                         if (lss != null)// && LSSMessageBox.ShowAsDialog(landingsite_date, msg))
-                                        
+
                                         {
                                             LandingSiteSamplingWindow lssw = new LandingSiteSamplingWindow(lss);
                                             lssw.Owner = this;
@@ -3941,106 +3946,111 @@ namespace NSAP_ODK
                         _gridRow = GridNSAPData.Items.IndexOf(cell.Item);
                         _gridCol = cell.Column.DisplayIndex;
                         var item = GridNSAPData.Items[_gridRow] as DataRowView;
-                        _gearName = (string)item.Row.ItemArray[0];
-                        _gearCode = (string)item.Row.ItemArray[1];
-                        _monthYear = DateTime.Parse(item.Row.ItemArray[3].ToString());
-
-                        if (_gridCol == 0)
+                        if (item != null)
                         {
-                            ContextMenu contextMenu = new ContextMenu();
-                            contextMenu.Items.Add(new MenuItem { Header = "Cross tab report", Name = "menuGearCrossTabReport", Tag = "samplingCalendar" });
-                            ((MenuItem)contextMenu.Items[0]).Click += OnDataGridContextMenu;
-                            GridNSAPData.ContextMenu = contextMenu;
 
-                            if (CrossTabReportWindow.Instance != null)
+
+                            _gearName = (string)item.Row.ItemArray[0];
+                            _gearCode = (string)item.Row.ItemArray[1];
+                            _monthYear = DateTime.Parse(item.Row.ItemArray[3].ToString());
+
+                            if (_gridCol == 0)
                             {
-                                _allSamplingEntitiesEventHandler.GearUsed = _gearName;
-                                _allSamplingEntitiesEventHandler.ContextMenuTopic = "contextMenuCrosstabGear";
-                                await CrossTabManager.GearByMonthYearAsync(_allSamplingEntitiesEventHandler);
-                                ShowCrossTabWIndow();
+                                ContextMenu contextMenu = new ContextMenu();
+                                contextMenu.Items.Add(new MenuItem { Header = "Cross tab report", Name = "menuGearCrossTabReport", Tag = "samplingCalendar" });
+                                ((MenuItem)contextMenu.Items[0]).Click += OnDataGridContextMenu;
+                                GridNSAPData.ContextMenu = contextMenu;
+
+                                if (CrossTabReportWindow.Instance != null)
+                                {
+                                    _allSamplingEntitiesEventHandler.GearUsed = _gearName;
+                                    _allSamplingEntitiesEventHandler.ContextMenuTopic = "contextMenuCrosstabGear";
+                                    await CrossTabManager.GearByMonthYearAsync(_allSamplingEntitiesEventHandler);
+                                    ShowCrossTabWIndow();
+                                }
                             }
-                        }
-                        else
-                        {
-                            GridNSAPData.ContextMenu = null;
-                        }
-
-
-                        if (NSAPEntities.SummaryItemViewModel.SummaryResults.Count > 0)
-                        {
-
-                        }
-                        _fish_sector = (string)item.Row.ItemArray[2];
-
-                        if (!string.IsNullOrEmpty(_fish_sector))
-                        {
-                            switch (_fish_sector)
+                            else
                             {
-                                case "Commercial":
-                                    _sector_code = "c";
-                                    break;
-                                case "Municipal":
-                                    _sector_code = "m";
-                                    break;
-                            }
-                        }
-                        _gearUnloads = new List<GearUnload>();
-
-                        if (_gridCol == 0)
-                        {
-
-                        }
-                        else if (_gridCol >= 4)
-                        {
-
-
-                            GearUnload gear_unload_from_day = _fishingCalendarViewModel.FishingCalendarList.FirstOrDefault(t => t.GearName == _gearName && t.Sector == _fish_sector).GearUnloads[_gridCol - 4];
-
-                            //sectorCode = gear_unload_from_day.SectorCode;
-
-                            if (gear_unload_from_day != null)
-                            {
-
-
-                                //GearUnload unload_to_display = new GearUnload
-                                //{
-
-                                //    GearID = gear_unload_from_day.GearID,
-                                //    GearUsedText = gear_unload_from_day.GearUsedText,
-                                //    PK = gear_unload_from_day.PK,
-                                //    Remarks = gear_unload_from_day.Remarks,
-                                //    LandingSiteSamplingID = gear_unload_from_day.LandingSiteSamplingID,
-                                //    SectorCode = gear_unload_from_day.SectorCode,
-                                //    VesselUnloadViewModel = new VesselUnloadViewModel(isNew: true),
-                                //    ListVesselUnload = gear_unload_from_day.ListVesselUnload.Where(t => t.SectorCode == sector_code).ToList(),
-                                //    Parent = gear_unload_from_day.Parent
-                                //};
-
-                                //_gearUnloads.Add(unload_to_display);
-
-                                var lss = gear_unload_from_day.Parent;
-                                lss.GearUnloadViewModel = new GearUnloadViewModel(lss);
-                                List<GearUnload> list_gu = lss.GearUnloadViewModel.GearUnloadCollection
-                                    .Where(t => t.GearID == gear_unload_from_day.GearID).ToList();
-
-                                //foreach(GearUnload gu in list_gu)
-                                //{
-                                //    if(gu.SectorCode=="")
-                                //    {
-                                //        if (gu.ListVesselUnload[0].SectorCode == gear_unload_from_day.SectorCode)
-                                //        {
-                                //            gu.SectorCode = gu.ListVesselUnload[0].SectorCode;
-                                //        }
-                                //        else
-                                //        {
-                                //            list_gu.Remove(gu);
-                                //        }
-                                //    }
-                                //}
-                                _gearUnloads = list_gu;
+                                GridNSAPData.ContextMenu = null;
                             }
 
 
+                            if (NSAPEntities.SummaryItemViewModel.SummaryResults.Count > 0)
+                            {
+
+                            }
+                            _fish_sector = (string)item.Row.ItemArray[2];
+
+                            if (!string.IsNullOrEmpty(_fish_sector))
+                            {
+                                switch (_fish_sector)
+                                {
+                                    case "Commercial":
+                                        _sector_code = "c";
+                                        break;
+                                    case "Municipal":
+                                        _sector_code = "m";
+                                        break;
+                                }
+                            }
+                            _gearUnloads = new List<GearUnload>();
+
+                            if (_gridCol == 0)
+                            {
+
+                            }
+                            else if (_gridCol >= 4)
+                            {
+
+
+                                GearUnload gear_unload_from_day = _fishingCalendarViewModel.FishingCalendarList.FirstOrDefault(t => t.GearName == _gearName && t.Sector == _fish_sector).GearUnloads[_gridCol - 4];
+
+                                //sectorCode = gear_unload_from_day.SectorCode;
+
+                                if (gear_unload_from_day != null)
+                                {
+
+
+                                    //GearUnload unload_to_display = new GearUnload
+                                    //{
+
+                                    //    GearID = gear_unload_from_day.GearID,
+                                    //    GearUsedText = gear_unload_from_day.GearUsedText,
+                                    //    PK = gear_unload_from_day.PK,
+                                    //    Remarks = gear_unload_from_day.Remarks,
+                                    //    LandingSiteSamplingID = gear_unload_from_day.LandingSiteSamplingID,
+                                    //    SectorCode = gear_unload_from_day.SectorCode,
+                                    //    VesselUnloadViewModel = new VesselUnloadViewModel(isNew: true),
+                                    //    ListVesselUnload = gear_unload_from_day.ListVesselUnload.Where(t => t.SectorCode == sector_code).ToList(),
+                                    //    Parent = gear_unload_from_day.Parent
+                                    //};
+
+                                    //_gearUnloads.Add(unload_to_display);
+
+                                    var lss = gear_unload_from_day.Parent;
+                                    lss.GearUnloadViewModel = new GearUnloadViewModel(lss);
+                                    List<GearUnload> list_gu = lss.GearUnloadViewModel.GearUnloadCollection
+                                        .Where(t => t.GearID == gear_unload_from_day.GearID).ToList();
+
+                                    //foreach(GearUnload gu in list_gu)
+                                    //{
+                                    //    if(gu.SectorCode=="")
+                                    //    {
+                                    //        if (gu.ListVesselUnload[0].SectorCode == gear_unload_from_day.SectorCode)
+                                    //        {
+                                    //            gu.SectorCode = gu.ListVesselUnload[0].SectorCode;
+                                    //        }
+                                    //        else
+                                    //        {
+                                    //            list_gu.Remove(gu);
+                                    //        }
+                                    //    }
+                                    //}
+                                    _gearUnloads = list_gu;
+                                }
+
+
+                            }
                         }
                         //_gearUnloads.Add(gear_unload_from_day);
 
@@ -4986,6 +4996,29 @@ namespace NSAP_ODK
                             else
                             {
                                 m.Header += $" for landings sampled on {_monthYear.ToString("MMMM, yyyy")}";
+                            }
+
+
+                            if (_calendarTreeSelectedEntity == "tv_LandingSiteViewModel")
+                            {
+                                m = new MenuItem { Header = "List samplings and catch composition count", Name = "menuListSamplingAndCatchComposition" };
+                                m.Click += OnMenuClicked;
+                                cm.Items.Add(m);
+
+                                //if (_calendarTreeSelectedEntity == "tv_MonthViewModel")
+                                //{
+                                //    m.IsEnabled = false;
+                                //    if (_gridCol == 0)
+                                //    {
+                                //        m.IsEnabled = true;
+                                //        m.Header += $" for {_gearName} ({_fish_sector})";
+                                //    }
+
+                                //}
+                                //else
+                                //{
+                                m.Header += $" for landings sampled on {_monthYear.ToString("MMMM, yyyy")}";
+                                //}
                             }
                             break;
                         default:

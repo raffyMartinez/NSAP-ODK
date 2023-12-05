@@ -561,6 +561,9 @@
     <Compile Include="Views\EnumeratorsAndLandingSitesWindow.xaml.cs">
       <DependentUpon>EnumeratorsAndLandingSitesWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\LandingSiteSamplingSummariesWindow.xaml.cs">
+      <DependentUpon>LandingSiteSamplingSummariesWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\LandingSiteSamplingWindow.xaml.cs">
       <DependentUpon>LandingSiteSamplingWindow.xaml</DependentUpon>
     </Compile>
@@ -742,6 +745,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\EnumeratorsAndLandingSitesWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\LandingSiteSamplingSummariesWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

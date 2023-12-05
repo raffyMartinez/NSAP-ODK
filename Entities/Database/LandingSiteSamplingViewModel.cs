@@ -26,7 +26,23 @@ namespace NSAP_ODK.Entities.Database
         public bool EditSuccess { get; set; }
         public ObservableCollection<LandingSiteSampling> LandingSiteSamplingCollection { get; set; }
         private LandingSiteSamplingRepository LandingSiteSamplings { get; set; }
+        public List<LandingSiteSamplingSummarized> GetLandingSiteSamplingSummaries(LandingSite ls, DateTime monthSampling)
+        {
 
+            List<LandingSiteSampling> l_lss = LandingSiteSamplingCollection
+                .Where(t => t.LandingSiteID == ls.LandingSiteID &&
+                                t.SamplingDate >= monthSampling &&
+                                t.SamplingDate < monthSampling.AddMonths(1))
+                .ToList();
+
+
+            List<LandingSiteSamplingSummarized> lss_summaries = new List<LandingSiteSamplingSummarized>();
+            foreach (LandingSiteSampling lss in l_lss)
+            {
+                lss_summaries.Add(new LandingSiteSamplingSummarized(lss,fromSummaryItem:true));
+            }
+            return lss_summaries.OrderBy(t=>t.SamplingDate).ToList();
+        }
         public bool SetSamplingExistsServer(List<SubmissionIDPair> submissionPairs, out int pairedCount)
         {
             pairedCount = 0;

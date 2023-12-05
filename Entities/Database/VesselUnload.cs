@@ -675,6 +675,8 @@ namespace NSAP_ODK.Entities.Database
         public string LandingSiteSamplingSubmissionID { get; set; }
         public bool IncludeEffortIndicators { get; set; }
         public int? NumberOfSpeciesInCatchComposition { get; set; }
+
+
         public int? SequenceOfSampling { get; set; }
         public int? CountGearTypesUsed { get; set; }
         public LandedCatchValidationResult LandedCatchValidationResult

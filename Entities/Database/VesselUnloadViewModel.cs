@@ -746,6 +746,10 @@ namespace NSAP_ODK.Entities.Database
                     {
                         vu.GearSoakViewModel = new GearSoakViewModel(vu);
                     }
+                    if(vu.VesselUnload_FishingGearsViewModel==null)
+                    {
+                        vu.VesselUnload_FishingGearsViewModel = new VesselUnload_FishingGearViewModel(vu);
+                    }
                 }
             }
             VesselUnloadCollection.CollectionChanged += VesselUnloadCollection_CollectionChanged;
