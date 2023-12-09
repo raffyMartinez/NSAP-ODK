@@ -1,0 +1,30 @@
+﻿<Window x:Class="NSAP_ODK.Views.ServerLoginWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NSAP_ODK.Views"
+        mc:Ignorable="d"
+        Title="Log-in to server" Height="161" Width="404" WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="80"/>
+            <ColumnDefinition Width="250"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Label Content="Log-in to server" Grid.ColumnSpan="3" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="13"/>
+        <Label Content="User name" Grid.Row="1" VerticalAlignment="Center"/>
+        <Label Content="Password" Grid.Row="2" VerticalAlignment="Center"/>
+        <TextBox x:Name="textUserName" Grid.Row="1" Grid.Column="1" Margin="5"/>
+        <PasswordBox x:Name="textPassword" Grid.Row="2" Grid.Column="1" Margin="5"/>
+        <Button x:Name="buttonLogin" Content="Log-in" Click="OnButtonClick" Grid.Row="1" Grid.Column="2" Margin="5 5 10 5"/>
+        <Button x:Name="buttonCancel" Content="Cancel" Click="OnButtonClick" Grid.Row="2" Grid.Column="2" Margin="5 5 10 5"/>
+        <Label x:Name="labelLogInStatus" Content="Log in was successful" Grid.Row="3" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
+    </Grid>
+</Window>

@@ -8,16 +8,29 @@
         Title="LandingSiteSamplingSummariesWindow" Height="450" Width="800">
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="20"/>
             <RowDefinition Height="40"/>
             <RowDefinition/>
             <RowDefinition Height="60"/>
         </Grid.RowDefinitions>
-        <Label x:Name="labelTitle" HorizontalAlignment="Center" FontWeight="Bold" Content="This is the title" VerticalAlignment="Center"/>
-        <DataGrid x:Name="dataGrid" Grid.Row="1" LoadingRow="OnGridLoadingRow" ItemsSource="{Binding}"/>
-        <WrapPanel Grid.Row="2" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10">
-            <Button Content="Cancel"  Width="50" Height="25" Click="OnButtonClick" x:Name="buttonCancel"/>
-            <Button Content="Delete selected" Width="90" Height="25" Click="OnButtonClick" x:Name="buttonDelete" Margin="10 0"/>
-            <Button Content="Ok" Width="50" Height="25" Click="OnButtonClick" x:Name="buttonOk"/>
+        <Menu VerticalAlignment="Center">
+            <MenuItem Header="File">
+                <MenuItem Header="Logout from server" x:Name="menuLogout" Click="OnMenuClicked" IsEnabled="False"/>
+                <MenuItem Header="Close" x:Name="menuClose" Click="OnMenuClicked"/>
+            </MenuItem>
+            <MenuItem Header="Edit">
+                <MenuItem Header="Check all" x:Name="menuCheckAll" Click="OnMenuClicked"/>
+                <MenuItem Header="Check selected" x:Name="menuCheckSelected" Click="OnMenuClicked"/>
+                <MenuItem Header="Uncheck all" x:Name="menuUncheckAll" Click="OnMenuClicked"/>
+            </MenuItem>
+        </Menu>
+        <Label x:Name="labelTitle" HorizontalAlignment="Center" FontWeight="Bold" Content="This is the title" VerticalAlignment="Center" Grid.Row="1"/>
+        <DataGrid x:Name="dataGrid" Grid.Row="2" LoadingRow="OnGridLoadingRow" ItemsSource="{Binding}"/>
+        <WrapPanel Grid.Row="3" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10">
+            <Button Content="Cancel"  Width="50" Height="25" Click="OnButtonClick" x:Name="buttonCancel" Margin="5 0"/>
+            <Button Content="Log-in to server" Width="100" Height="25" Click="OnButtonClick" x:Name="buttonLogin" Margin="5 0"/>
+            <Button Content="Delete checked" Width="100" Height="25" Click="OnButtonClick" x:Name="buttonDelete" Margin="5 0"/>
+            <Button Content="Ok" Width="50" Height="25" Click="OnButtonClick" x:Name="buttonOk" Margin="5 0 0 0"/>
         </WrapPanel>
     </Grid>
 </Window>

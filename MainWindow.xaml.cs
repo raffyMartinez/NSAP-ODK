@@ -53,7 +53,7 @@ namespace NSAP_ODK
         private string _gearCode;
         private string _gearName;
         private string _fish_sector;
-        private DateTime _monthYear;
+        private DateTime? _monthYear;
         private TreeViewModelControl.AllSamplingEntitiesEventHandler _treeItemData;
         private string _calendarTreeSelectedEntity;
         private GearUnload _gearUnload;
@@ -1423,6 +1423,7 @@ namespace NSAP_ODK
 
         private void OnDataGridSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            _monthYear = null;
             switch (((DataGrid)sender).Name)
             {
                 case "GridNSAPData":
@@ -2605,9 +2606,13 @@ namespace NSAP_ODK
             switch (itemName)
             {
                 case "menuListSamplingAndCatchComposition":
-                    List<LandingSiteSamplingSummarized> list = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSamplingSummaries(ls: _treeItemData.LandingSite, _monthYear);
-                    LandingSiteSamplingSummariesWindow lssw = new LandingSiteSamplingSummariesWindow(list);
-                    lssw.ShowDialog();
+                    if (_monthYear != null)
+                    {
+                        List<LandingSiteSamplingSummarized> list = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSamplingSummaries(ls: _treeItemData.LandingSite, (DateTime)_monthYear);
+                        LandingSiteSamplingSummariesWindow lssw = new LandingSiteSamplingSummariesWindow(list);
+                        lssw.Owner = this;
+                        lssw.ShowDialog();
+                    }
                     break;
                 //Tree context menu ->Databases->Select server for server
                 //database summary view tree view
@@ -3811,6 +3816,7 @@ namespace NSAP_ODK
         }
         private void OnTreeViewItemSelected(object sender, TreeViewModelControl.AllSamplingEntitiesEventHandler e)
         {
+            _monthYear = null;
             _cancelBuildCalendar = false;
             menuCalendar.Visibility = Visibility.Collapsed;
             buttonFix.Visibility = Visibility.Collapsed;
@@ -3934,7 +3940,11 @@ namespace NSAP_ODK
         }
         private async void OnSelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {
-
+            //_monthYear = null;
+            if(_monthYear==null)
+            {
+                _monthYear = _treeItemData.MonthSampled;
+            }
             var type = GridNSAPData.DataContext.GetType().ToString();
             switch (_currentDisplayMode)
             {
@@ -4964,88 +4974,92 @@ namespace NSAP_ODK
 
         private void OnMenuRightClick(object sender, MouseButtonEventArgs e)
         {
-
-            _dataGrid = (DataGrid)sender;
-            ContextMenu cm = new ContextMenu();
-            MenuItem m = null;
-            m = new MenuItem { Header = "Copy text", Name = "menuCopyText" };
-            m.Click += OnMenuClicked;
-            cm.Items.Add(m);
-
-            switch (_dataGrid.Name)
+            if (_monthYear != null)
             {
-                case "GridNSAPData":
-                    switch (_calendarTreeSelectedEntity)
-                    {
-                        case "tv_LandingSiteViewModel":
-                        case "tv_MonthViewModel":
-                            m = new MenuItem { Header = "Weights and weight validation", Name = "menuWeights" };
-                            m.Click += OnMenuClicked;
-                            cm.Items.Add(m);
-
-                            if (_calendarTreeSelectedEntity == "tv_MonthViewModel")
-                            {
-                                m.IsEnabled = false;
-                                if (_gridCol == 0)
-                                {
-                                    m.IsEnabled = true;
-                                    m.Header += $" for {_gearName} ({_fish_sector})";
-                                }
-
-                            }
-                            else
-                            {
-                                m.Header += $" for landings sampled on {_monthYear.ToString("MMMM, yyyy")}";
-                            }
 
 
-                            if (_calendarTreeSelectedEntity == "tv_LandingSiteViewModel")
-                            {
-                                m = new MenuItem { Header = "List samplings and catch composition count", Name = "menuListSamplingAndCatchComposition" };
+                _dataGrid = (DataGrid)sender;
+                ContextMenu cm = new ContextMenu();
+                MenuItem m = null;
+                m = new MenuItem { Header = "Copy text", Name = "menuCopyText" };
+                m.Click += OnMenuClicked;
+                cm.Items.Add(m);
+
+                switch (_dataGrid.Name)
+                {
+                    case "GridNSAPData":
+                        switch (_calendarTreeSelectedEntity)
+                        {
+                            case "tv_LandingSiteViewModel":
+                            case "tv_MonthViewModel":
+                                m = new MenuItem { Header = "Weights and weight validation", Name = "menuWeights" };
                                 m.Click += OnMenuClicked;
                                 cm.Items.Add(m);
 
-                                //if (_calendarTreeSelectedEntity == "tv_MonthViewModel")
-                                //{
-                                //    m.IsEnabled = false;
-                                //    if (_gridCol == 0)
-                                //    {
-                                //        m.IsEnabled = true;
-                                //        m.Header += $" for {_gearName} ({_fish_sector})";
-                                //    }
+                                if (_calendarTreeSelectedEntity == "tv_MonthViewModel")
+                                {
+                                    m.IsEnabled = false;
+                                    if (_gridCol == 0)
+                                    {
+                                        m.IsEnabled = true;
+                                        m.Header += $" for {_gearName} ({_fish_sector})";
+                                    }
 
-                                //}
-                                //else
-                                //{
-                                m.Header += $" for landings sampled on {_monthYear.ToString("MMMM, yyyy")}";
-                                //}
-                            }
-                            break;
-                        default:
-                            //ignore for now
-                            break;
-                    }
-                    break;
-            }
+                                }
+                                else
+                                {
+                                    m.Header += $" for landings sampled on {((DateTime)_monthYear).ToString("MMMM, yyyy")}";
+                                }
 
 
-            if (_nsapEntity == NSAPEntity.NSAPRegion)
-            {
-                m = new MenuItem { Header = "Landing sites", Name = "menuRegionLandingSites" };
-                m.Click += OnMenuClicked;
-                cm.Items.Add(m);
-            }
-            else if (DBView == DBView.dbviewSummary && _nsapEntity == NSAPEntity.DBSummary)
-            {
-                if (_summaryLevelType == SummaryLevelType.FishingGround)
+                                if (_calendarTreeSelectedEntity == "tv_LandingSiteViewModel")
+                                {
+                                    m = new MenuItem { Header = "List samplings and catch composition count", Name = "menuListSamplingAndCatchComposition" };
+                                    m.Click += OnMenuClicked;
+                                    cm.Items.Add(m);
+
+                                    //if (_calendarTreeSelectedEntity == "tv_MonthViewModel")
+                                    //{
+                                    //    m.IsEnabled = false;
+                                    //    if (_gridCol == 0)
+                                    //    {
+                                    //        m.IsEnabled = true;
+                                    //        m.Header += $" for {_gearName} ({_fish_sector})";
+                                    //    }
+
+                                    //}
+                                    //else
+                                    //{
+                                    m.Header += $" for landings sampled on {((DateTime)_monthYear).ToString("MMMM, yyyy")}";
+                                    //}
+                                }
+                                break;
+                            default:
+                                //ignore for now
+                                break;
+                        }
+                        break;
+                }
+
+
+                if (_nsapEntity == NSAPEntity.NSAPRegion)
                 {
-                    m = new MenuItem { Header = "Move to another fishing ground", Name = "menuMoveToFishingGround" };
+                    m = new MenuItem { Header = "Landing sites", Name = "menuRegionLandingSites" };
                     m.Click += OnMenuClicked;
                     cm.Items.Add(m);
                 }
-            }
+                else if (DBView == DBView.dbviewSummary && _nsapEntity == NSAPEntity.DBSummary)
+                {
+                    if (_summaryLevelType == SummaryLevelType.FishingGround)
+                    {
+                        m = new MenuItem { Header = "Move to another fishing ground", Name = "menuMoveToFishingGround" };
+                        m.Click += OnMenuClicked;
+                        cm.Items.Add(m);
+                    }
+                }
 
-            cm.IsOpen = true;
+                cm.IsOpen = true;
+            }
         }
 
         private PropertyGrid _propertyGrid;

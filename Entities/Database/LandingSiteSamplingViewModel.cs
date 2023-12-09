@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Data;
+using System.Runtime.InteropServices.WindowsRuntime;
 
 namespace NSAP_ODK.Entities.Database
 {
@@ -67,6 +68,11 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
             return pairedCount > 0;
+        }
+
+        public bool DeleteLandingSiteSamplingFromServer(string lss_rowid)
+        {
+            return false;
         }
         public int CountLandingSiteSamplingsInOrphanedLandingSiteForDelete
         {

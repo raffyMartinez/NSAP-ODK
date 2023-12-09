@@ -34,7 +34,7 @@ namespace NSAP_ODK.Views
         private bool _isMultiVesselDelete;
         private ODKResultsWindow _resultsWindow;
         private string closing_message;
-
+        private ServerLogInInformation _serverLogInInformation;
         private List<DeleteRegionEntityFail> _deleteRegionEntityFails;
 
         public bool ServerIsMultiVessel { get; set; }
@@ -68,6 +68,10 @@ namespace NSAP_ODK.Views
             }
             return the_response.ToString();
         }
+
+        public List<LandingSiteSamplingSummarized> SamplingDaysForDeletion { get; set; }
+
+
         public ProgressDialogWindow(string taskToDo)
         {
             InitializeComponent();
@@ -81,6 +85,14 @@ namespace NSAP_ODK.Views
             _timer.Tick += OnTimerTick;
             switch (TaskToDo)
             {
+                case "delete sampling days":
+                    labelBigTitle.Content = "Delete landing site sampling";
+                    _serverLogInInformation = ServerLoginWindow.GetLogInInformation();
+                    if (_serverLogInInformation.CanLogIn)
+                    {
+                        labelBigTitle.Content += " (server data included)";
+                    }
+                    break;
                 case "upload unmatched landings JSON":
                     labelBigTitle.Content = "Update missing submissions using JSON";
                     break;
@@ -243,6 +255,9 @@ namespace NSAP_ODK.Views
 
             switch (TaskToDo)
             {
+                case "delete sampling days":
+
+                    break;
                 case "upload unmatched landings JSON":
                     //await  _resultsWindow.Upload_unmatched_landings_JSON(KoboFormNumericID);
                     break;

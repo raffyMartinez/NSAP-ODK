@@ -410,6 +410,7 @@
     <Compile Include="Entities\MySQLConnectEventArgs.cs" />
     <Compile Include="Entities\SamplingDaySubmission.cs" />
     <Compile Include="Entities\SamplingDaySubmissionRepository.cs" />
+    <Compile Include="Entities\ServerLogInInformation.cs" />
     <Compile Include="Entities\SummaryAtLevel.cs" />
     <Compile Include="Entities\MajorGridFMA.cs" />
     <Compile Include="Entities\MajorGridFMARepository.cs" />
@@ -663,6 +664,9 @@
     <Compile Include="Views\SelectRegionWindow.xaml.cs">
       <DependentUpon>SelectRegionWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\ServerLoginWindow.xaml.cs">
+      <DependentUpon>ServerLoginWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\SettingsWindow.xaml.cs">
       <DependentUpon>SettingsWindow.xaml</DependentUpon>
     </Compile>
@@ -881,6 +885,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\SelectRegionWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ServerLoginWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
