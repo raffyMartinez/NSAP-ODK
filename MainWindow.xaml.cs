@@ -3941,7 +3941,7 @@ namespace NSAP_ODK
         private async void OnSelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {
             //_monthYear = null;
-            if(_monthYear==null)
+            if (_monthYear == null)
             {
                 _monthYear = _treeItemData.MonthSampled;
             }
@@ -4974,24 +4974,25 @@ namespace NSAP_ODK
 
         private void OnMenuRightClick(object sender, MouseButtonEventArgs e)
         {
-            if (_monthYear != null)
+
+
+
+            _dataGrid = (DataGrid)sender;
+            ContextMenu cm = new ContextMenu();
+            MenuItem m = null;
+            m = new MenuItem { Header = "Copy text", Name = "menuCopyText" };
+            m.Click += OnMenuClicked;
+            cm.Items.Add(m);
+
+            switch (_dataGrid.Name)
             {
-
-
-                _dataGrid = (DataGrid)sender;
-                ContextMenu cm = new ContextMenu();
-                MenuItem m = null;
-                m = new MenuItem { Header = "Copy text", Name = "menuCopyText" };
-                m.Click += OnMenuClicked;
-                cm.Items.Add(m);
-
-                switch (_dataGrid.Name)
-                {
-                    case "GridNSAPData":
-                        switch (_calendarTreeSelectedEntity)
-                        {
-                            case "tv_LandingSiteViewModel":
-                            case "tv_MonthViewModel":
+                case "GridNSAPData":
+                    switch (_calendarTreeSelectedEntity)
+                    {
+                        case "tv_LandingSiteViewModel":
+                        case "tv_MonthViewModel":
+                            if (_monthYear != null)
+                            {
                                 m = new MenuItem { Header = "Weights and weight validation", Name = "menuWeights" };
                                 m.Click += OnMenuClicked;
                                 cm.Items.Add(m);
@@ -5033,33 +5034,34 @@ namespace NSAP_ODK
                                     m.Header += $" for landings sampled on {((DateTime)_monthYear).ToString("MMMM, yyyy")}";
                                     //}
                                 }
-                                break;
-                            default:
-                                //ignore for now
-                                break;
-                        }
-                        break;
-                }
+                            }
+                            break;
+                        default:
+                            //ignore for now
+                            break;
+                    }
+                    break;
+            }
 
 
-                if (_nsapEntity == NSAPEntity.NSAPRegion)
+            if (_nsapEntity == NSAPEntity.NSAPRegion)
+            {
+                m = new MenuItem { Header = "Landing sites", Name = "menuRegionLandingSites" };
+                m.Click += OnMenuClicked;
+                cm.Items.Add(m);
+            }
+            else if (DBView == DBView.dbviewSummary && _nsapEntity == NSAPEntity.DBSummary)
+            {
+                if (_summaryLevelType == SummaryLevelType.FishingGround)
                 {
-                    m = new MenuItem { Header = "Landing sites", Name = "menuRegionLandingSites" };
+                    m = new MenuItem { Header = "Move to another fishing ground", Name = "menuMoveToFishingGround" };
                     m.Click += OnMenuClicked;
                     cm.Items.Add(m);
                 }
-                else if (DBView == DBView.dbviewSummary && _nsapEntity == NSAPEntity.DBSummary)
-                {
-                    if (_summaryLevelType == SummaryLevelType.FishingGround)
-                    {
-                        m = new MenuItem { Header = "Move to another fishing ground", Name = "menuMoveToFishingGround" };
-                        m.Click += OnMenuClicked;
-                        cm.Items.Add(m);
-                    }
-                }
-
-                cm.IsOpen = true;
             }
+
+            cm.IsOpen = true;
+
         }
 
         private PropertyGrid _propertyGrid;
