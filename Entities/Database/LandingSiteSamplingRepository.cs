@@ -635,7 +635,14 @@ namespace NSAP_ODK.Entities.Database
                                     }
                                 }
                                 item.GearsInLandingSite = null;//GetGearsInLandingSite(item);
-                                item.SamplingFromCatchCompositionIsAllowed = (bool)dr["can_sample_from_catch_composition"];
+                                if (dr["can_sample_from_catch_composition"] == DBNull.Value)
+                                {
+                                    item.SamplingFromCatchCompositionIsAllowed = false;
+                                }
+                                else
+                                {
+                                    item.SamplingFromCatchCompositionIsAllowed = (bool)dr["can_sample_from_catch_composition"];
+                                }
                                 thisList.Add(item);
                                 loopCount++;
                             }
