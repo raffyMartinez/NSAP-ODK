@@ -193,120 +193,128 @@ namespace NSAP_ODK.Entities.Database
             string commercial_catch_wt = "";
             string gr_id = "";
             string gr_text = item.GearUsedText;
-            if (!string.IsNullOrEmpty(item.GearID))
+            try
             {
-                gr_id = "\"{item.GearID}\"";
-                gr_text = "";
-            }
-            if (item.WeightOfCommercialLandings != null)
-            {
-                commercial_catch_wt = ((double)item.WeightOfCommercialLandings).ToString();
-            }
-            if (item.WeightOfMunicipalLandings != null)
-            {
-                municipal_catch_wt = ((double)item.WeightOfMunicipalLandings).ToString();
-            }
-            if (item.Boats != null)
-            {
-                boat_ct = ((int)item.Boats).ToString();
-            }
-
-            if (item.Catch != null)
-            {
-                catch_wt = ((double)item.Catch).ToString();
-            }
-
-            if (Global.Settings.UsemySQL)
-            {
-                if (item.Boats == null)
+                if (!string.IsNullOrEmpty(item.GearID))
                 {
-                    boat_ct = @"\N";
+                    gr_id = "\"{item.GearID}\"";
+                    gr_text = "";
+                }
+                if (item.WeightOfCommercialLandings != null)
+                {
+                    commercial_catch_wt = ((double)item.WeightOfCommercialLandings).ToString();
+                }
+                if (item.WeightOfMunicipalLandings != null)
+                {
+                    municipal_catch_wt = ((double)item.WeightOfMunicipalLandings).ToString();
+                }
+                if (item.Boats != null)
+                {
+                    boat_ct = ((int)item.Boats).ToString();
                 }
 
-                if (item.Catch == null)
+                if (item.Catch != null)
                 {
-                    catch_wt = @"\N";
-                }
-            }
-
-            string gear_sequence = "";
-            if (Global.Settings.UsemySQL)
-            {
-                gear_sequence = @"\N";
-            }
-
-            if (item.Parent.IsMultiVessel)
-            {
-                gear_sequence = ((int)item.Sequence).ToString();
-            }
-
-            myDict.Add("unload_gr_id", item.PK.ToString());
-            myDict.Add("unload_day_id", item.Parent.PK.ToString());
-            myDict.Add("gr_id", item.GearID);
-            myDict.Add("boats", boat_ct);
-            myDict.Add("catch", catch_wt);
-            myDict.Add("gr_text", gr_text);
-            myDict.Add("remarks", item.Remarks);
-            myDict.Add("sp_twsp_count", item.SpeciesWithTWSpCount.ToString());
-            myDict.Add("sector", item.SectorCode);
-            myDict.Add("gear_sequence", gear_sequence);
-            myDict.Add("gear_count_municipal", item.NumberOfMunicipalLandings.ToString());
-            myDict.Add("gear_count_commercial", item.NumberOfCommercialLandings.ToString());
-            myDict.Add("gear_catch_municipal", municipal_catch_wt);
-            myDict.Add("gear_catch_commercial", commercial_catch_wt);
-
-            _csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_gear_unload"));
-
-
-            myDict.Clear();
-            if (item.Parent.IsMultiVessel)
-            {
-                if (item.NumberOfMunicipalLandings > 0)
-                {
-                    myDict.Add("unload_gr_id", item.PK.ToString());
-                    myDict.Add("unload_day_id", item.Parent.PK.ToString());
-                    myDict.Add("sector", "m");
-                    myDict.Add("boats", item.NumberOfMunicipalLandings.ToString());
-                    myDict.Add("catch", municipal_catch_wt);
-                    myDict.Add("gr_id", item.GearID);
-                    myDict.Add("gr_text", gr_text);
-                    myDict.Add("remarks", item.Remarks);
-
-                    _temp_csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "temp_GearUnload"));
+                    catch_wt = ((double)item.Catch).ToString();
                 }
 
-                myDict.Clear();
-                if (item.NumberOfCommercialLandings > 0)
+                if (Global.Settings.UsemySQL)
                 {
-                    myDict.Add("unload_gr_id", item.PK.ToString());
-                    myDict.Add("unload_day_id", item.Parent.PK.ToString());
-                    myDict.Add("sector", "c");
-                    myDict.Add("boats", item.NumberOfCommercialLandings.ToString());
-                    myDict.Add("catch", commercial_catch_wt);
-                    myDict.Add("gr_id", item.GearID);
-                    myDict.Add("gr_text", gr_text);
-                    myDict.Add("remarks", item.Remarks);
+                    if (item.Boats == null)
+                    {
+                        boat_ct = @"\N";
+                    }
 
-                    _temp_csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "temp_GearUnload"));
+                    if (item.Catch == null)
+                    {
+                        catch_wt = @"\N";
+                    }
                 }
-            }
-            else
-            {
+
+                string gear_sequence = "";
+                if (Global.Settings.UsemySQL)
+                {
+                    gear_sequence = @"\N";
+                }
+
+                if (item.Parent.IsMultiVessel && item.Sequence!=null)
+                {
+                    gear_sequence = ((int)item.Sequence).ToString();
+                }
 
                 myDict.Add("unload_gr_id", item.PK.ToString());
                 myDict.Add("unload_day_id", item.Parent.PK.ToString());
-                myDict.Add("sector", item.SectorCode == "m" ? "m" : item.SectorCode == "c" ? "c" : "");
-                myDict.Add("boats", (item.Boats ?? 0).ToString());
-                myDict.Add("catch", (item.Catch ?? 0).ToString());
                 myDict.Add("gr_id", item.GearID);
+                myDict.Add("boats", boat_ct);
+                myDict.Add("catch", catch_wt);
                 myDict.Add("gr_text", gr_text);
                 myDict.Add("remarks", item.Remarks);
+                myDict.Add("sp_twsp_count", item.SpeciesWithTWSpCount.ToString());
+                myDict.Add("sector", item.SectorCode);
+                myDict.Add("gear_sequence", gear_sequence);
+                myDict.Add("gear_count_municipal", item.NumberOfMunicipalLandings.ToString());
+                myDict.Add("gear_count_commercial", item.NumberOfCommercialLandings.ToString());
+                myDict.Add("gear_catch_municipal", municipal_catch_wt);
+                myDict.Add("gear_catch_commercial", commercial_catch_wt);
 
-                _temp_csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "temp_GearUnload"));
+                _csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_gear_unload"));
+
+
+                myDict.Clear();
+                if (item.Parent.IsMultiVessel)
+                {
+                    if (item.NumberOfMunicipalLandings > 0)
+                    {
+                        myDict.Add("unload_gr_id", item.PK.ToString());
+                        myDict.Add("unload_day_id", item.Parent.PK.ToString());
+                        myDict.Add("sector", "m");
+                        myDict.Add("boats", item.NumberOfMunicipalLandings.ToString());
+                        myDict.Add("catch", municipal_catch_wt);
+                        myDict.Add("gr_id", item.GearID);
+                        myDict.Add("gr_text", gr_text);
+                        myDict.Add("remarks", item.Remarks);
+
+                        _temp_csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "temp_GearUnload"));
+                    }
+
+                    myDict.Clear();
+                    if (item.NumberOfCommercialLandings > 0)
+                    {
+                        myDict.Add("unload_gr_id", item.PK.ToString());
+                        myDict.Add("unload_day_id", item.Parent.PK.ToString());
+                        myDict.Add("sector", "c");
+                        myDict.Add("boats", item.NumberOfCommercialLandings.ToString());
+                        myDict.Add("catch", commercial_catch_wt);
+                        myDict.Add("gr_id", item.GearID);
+                        myDict.Add("gr_text", gr_text);
+                        myDict.Add("remarks", item.Remarks);
+
+                        _temp_csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "temp_GearUnload"));
+                    }
+                }
+                else
+                {
+
+                    myDict.Add("unload_gr_id", item.PK.ToString());
+                    myDict.Add("unload_day_id", item.Parent.PK.ToString());
+                    myDict.Add("sector", item.SectorCode == "m" ? "m" : item.SectorCode == "c" ? "c" : "");
+                    myDict.Add("boats", (item.Boats ?? 0).ToString());
+                    myDict.Add("catch", (item.Catch ?? 0).ToString());
+                    myDict.Add("gr_id", item.GearID);
+                    myDict.Add("gr_text", gr_text);
+                    myDict.Add("remarks", item.Remarks);
+
+                    _temp_csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "temp_GearUnload"));
+
+                }
+                //_csv.AppendLine($"{item.PK},{item.Parent.PK},{gr_id},{boat_ct},{catch_wt},\"{gr_text}\",\"{item.Remarks}\",{item.SpeciesWithTWSpCount},\"{item.SectorCode}\"");
+
 
             }
-            //_csv.AppendLine($"{item.PK},{item.Parent.PK},{gr_id},{boat_ct},{catch_wt},\"{gr_text}\",\"{item.Remarks}\",{item.SpeciesWithTWSpCount},\"{item.SectorCode}\"");
-
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
             return true;
         }
 

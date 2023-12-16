@@ -1065,7 +1065,7 @@ namespace NSAP_ODK.Views
                                 success = await SaveUploadedJsonInLoop(isHistoryJson: false);
                                 try
                                 {
-                                    jm.JSONFile.Dispose();
+                                    jm.JSONFile?.Dispose();
                                 }
                                 catch (Exception ex)
                                 {

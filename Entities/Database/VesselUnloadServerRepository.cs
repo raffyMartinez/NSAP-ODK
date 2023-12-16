@@ -11,6 +11,7 @@ using DocumentFormat.OpenXml.EMMA;
 using DocumentFormat.OpenXml.InkML;
 using Newtonsoft.Json;
 using NPOI.OpenXmlFormats.Wordprocessing;
+using NSAP_ODK.Utilities;
 
 namespace NSAP_ODK.Entities.Database
 {
@@ -2988,10 +2989,17 @@ namespace NSAP_ODK.Entities.Database
                                         Remarks = "",
                                         DelayedSave = DelayedSave
                                     };
-                                    if (landingSiteSampling.GearUnloadViewModel.AddRecordToRepo(gear_unload))
+                                    try
                                     {
-                                        proceed = true;
-                                        GearUnloadViewModel.CurrentIDNumber = gear_unload.PK;
+                                        if (landingSiteSampling.GearUnloadViewModel.AddRecordToRepo(gear_unload))
+                                        {
+                                            proceed = true;
+                                            GearUnloadViewModel.CurrentIDNumber = gear_unload.PK;
+                                        }
+                                    }
+                                    catch(Exception ex)
+                                    {
+                                        Logger.Log(ex);
                                     }
 
                                 }

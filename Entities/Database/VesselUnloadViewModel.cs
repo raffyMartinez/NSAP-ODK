@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using Newtonsoft.Json;
+using NSAP_ODK.Utilities;
 
 namespace NSAP_ODK.Entities.Database
 {
@@ -304,56 +305,23 @@ namespace NSAP_ODK.Entities.Database
         {
             bool success = false;
             Dictionary<string, string> myDict = null;
-            if (!vu.Parent.Parent.IsMultiVessel)
+            try
             {
-                myDict = new Dictionary<string, string>();
-                if (vu.DelayedSave)
-                {
-                    myDict.Add("v_unload_id", vu.PK.ToString());
-                    myDict.Add("count_effort", vu.CountEffortIndicators.ToString());
-                    myDict.Add("count_grid", vu.CountGrids.ToString());
-                    myDict.Add("count_soak", vu.CountGearSoak.ToString());
-                    myDict.Add("count_catch_composition", vu.CountCatchCompositionItems.ToString());
-                    myDict.Add("count_lengths", vu.CountLengthRows.ToString());
-                    myDict.Add("count_lenfreq", vu.CountLenFreqRows.ToString());
-                    myDict.Add("count_lenwt", vu.CountLenWtRows.ToString());
-                    myDict.Add("count_maturity", vu.CountMaturityRows.ToString());
-                    myDict.Add("unload_gear", " ");
-                    if (CurrentUnloadStatIDNumber == null)
-                    {
-                        CurrentUnloadStatIDNumber = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastUnloadStatPK;
-                    }
-                    myDict.Add("row_id", (CurrentUnloadStatIDNumber + 1).ToString());
-                    CurrentUnloadStatIDNumber++;
-
-                    _unloadStats_csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload_stats"));
-
-                    //_unloadStats_csv.AppendLine($"{vu.PK},{vu.CountEffortIndicators},{vu.CountGrids},{vu.CountGearSoak},{vu.CountCatchCompositionItems},{vu.CountLengthRows},{vu.CountLenFreqRows},{vu.CountLenWtRows},{vu.CountMaturityRows}");
-                    success = true;
-                }
-                else
-                {
-                    success = VesselUnloads.AddUnloadStats(vu);
-                }
-            }
-            else
-            {
-                foreach (VesselUnload_FishingGear vufg in vu.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection)
+                if (!vu.Parent.Parent.IsMultiVessel)
                 {
                     myDict = new Dictionary<string, string>();
                     if (vu.DelayedSave)
                     {
-                        myDict.Add("v_unload_id", " ");
-                        myDict.Add("count_effort", vufg.CountEffortIndicators.ToString());
+                        myDict.Add("v_unload_id", vu.PK.ToString());
+                        myDict.Add("count_effort", vu.CountEffortIndicators.ToString());
                         myDict.Add("count_grid", vu.CountGrids.ToString());
                         myDict.Add("count_soak", vu.CountGearSoak.ToString());
-                        myDict.Add("count_catch_composition", ((int)vufg.CountItemsInCatchComposition).ToString());
-                        myDict.Add("count_lengths", vufg.CountLengthRows.ToString());
-                        myDict.Add("count_lenfreq", vufg.CountLenFreqRows.ToString());
-                        myDict.Add("count_lenwt", vufg.CountLenWtRows.ToString());
-                        myDict.Add("count_maturity", vufg.CountMaturityRows.ToString());
-                        myDict.Add("unload_gear", vufg.RowID.ToString());
-
+                        myDict.Add("count_catch_composition", vu.CountCatchCompositionItems.ToString());
+                        myDict.Add("count_lengths", vu.CountLengthRows.ToString());
+                        myDict.Add("count_lenfreq", vu.CountLenFreqRows.ToString());
+                        myDict.Add("count_lenwt", vu.CountLenWtRows.ToString());
+                        myDict.Add("count_maturity", vu.CountMaturityRows.ToString());
+                        myDict.Add("unload_gear", " ");
                         if (CurrentUnloadStatIDNumber == null)
                         {
                             CurrentUnloadStatIDNumber = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastUnloadStatPK;
@@ -363,13 +331,62 @@ namespace NSAP_ODK.Entities.Database
 
                         _unloadStats_csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload_stats"));
 
+                        //_unloadStats_csv.AppendLine($"{vu.PK},{vu.CountEffortIndicators},{vu.CountGrids},{vu.CountGearSoak},{vu.CountCatchCompositionItems},{vu.CountLengthRows},{vu.CountLenFreqRows},{vu.CountLenWtRows},{vu.CountMaturityRows}");
                         success = true;
                     }
                     else
                     {
-
+                        success = VesselUnloads.AddUnloadStats(vu);
                     }
                 }
+                else
+                {
+                    if (vu.VesselUnload_FishingGearsViewModel==null)
+                    {
+                        success = true;
+                    }
+                    else
+                    {
+                        foreach (VesselUnload_FishingGear vufg in vu.VesselUnload_FishingGearsViewModel?.VesselUnload_FishingGearsCollection)
+                        {
+                            myDict = new Dictionary<string, string>();
+                            if (vu.DelayedSave)
+                            {
+                                myDict.Add("v_unload_id", " ");
+                                myDict.Add("count_effort", vufg.CountEffortIndicators.ToString());
+                                myDict.Add("count_grid", vu.CountGrids.ToString());
+                                myDict.Add("count_soak", vu.CountGearSoak.ToString());
+                                myDict.Add("count_catch_composition", ((int)vufg.CountItemsInCatchComposition).ToString());
+                                myDict.Add("count_lengths", vufg.CountLengthRows.ToString());
+                                myDict.Add("count_lenfreq", vufg.CountLenFreqRows.ToString());
+                                myDict.Add("count_lenwt", vufg.CountLenWtRows.ToString());
+                                myDict.Add("count_maturity", vufg.CountMaturityRows.ToString());
+                                myDict.Add("unload_gear", vufg.RowID.ToString());
+
+                                if (CurrentUnloadStatIDNumber == null)
+                                {
+                                    CurrentUnloadStatIDNumber = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastUnloadStatPK;
+                                }
+                                myDict.Add("row_id", (CurrentUnloadStatIDNumber + 1).ToString());
+                                CurrentUnloadStatIDNumber++;
+
+                                _unloadStats_csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload_stats"));
+
+                                success = true;
+                            }
+                            else
+                            {
+
+                            }
+                        }
+                    }
+
+
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
             }
 
             return success;
@@ -746,7 +763,7 @@ namespace NSAP_ODK.Entities.Database
                     {
                         vu.GearSoakViewModel = new GearSoakViewModel(vu);
                     }
-                    if(vu.VesselUnload_FishingGearsViewModel==null)
+                    if (vu.VesselUnload_FishingGearsViewModel == null)
                     {
                         vu.VesselUnload_FishingGearsViewModel = new VesselUnload_FishingGearViewModel(vu);
                     }
@@ -942,259 +959,267 @@ namespace NSAP_ODK.Entities.Database
         private static bool SetCSV(VesselUnload vu)
         {
             Dictionary<string, string> myDict = new Dictionary<string, string>();
-            string date_submitted = vu.DateTimeSubmitted.ToString();
-            if (vu.Parent.Parent.IsMultiVessel)
+            try
             {
-                date_submitted = ((DateTime)vu.Parent.Parent.DateSubmitted).ToString();
-            }
-            string date_added = vu.DateAddedToDatabase.ToString();
-            string date_sampled = vu.SamplingDate.ToString();
-            string boat_id = string.Empty;
-            if (vu.VesselID != null)
-            {
-                boat_id = ((int)vu.VesselID).ToString();
-            }
-
-            string catch_wt = string.Empty;
-            if (vu.WeightOfCatch != null)
-            {
-                catch_wt = ((double)vu.WeightOfCatch).ToString();
-            }
-
-            string sample_wt = string.Empty;
-            if (vu.WeightOfCatchSample != null)
-            {
-                sample_wt = ((double)vu.WeightOfCatchSample).ToString();
-            }
-
-            string boxes_total = string.Empty;
-            if (vu.Boxes != null)
-            {
-                boxes_total = ((int)vu.Boxes).ToString();
-            }
-
-            string boxes_sampled = string.Empty;
-            if (vu.BoxesSampled != null)
-            {
-                boxes_sampled = ((int)vu.BoxesSampled).ToString();
-            }
-
-            string raising_factor = string.Empty;
-            if (vu.RaisingFactor != null)
-            {
-                raising_factor = ((double)vu.RaisingFactor).ToString();
-            }
-
-            string departure = string.Empty;
-            if (vu.DepartureFromLandingSite != null)
-            {
-                departure = ((DateTime)vu.DepartureFromLandingSite).ToString();
-            }
-
-            string arrival = string.Empty;
-            if (vu.ArrivalAtLandingSite != null)
-            {
-                arrival = ((DateTime)vu.ArrivalAtLandingSite).ToString();
-            }
-
-            string xFormDate = string.Empty;
-            if (vu.XFormDate != null)
-            {
-                xFormDate = ((DateTime)vu.XFormDate).ToString();
-            }
-
-            string enum_id = string.Empty;
-            if (vu.NSAPEnumeratorID != null)
-            {
-                enum_id = ((int)vu.NSAPEnumeratorID).ToString();
-            }
-
-            string enum_text = string.Empty;
-            if (vu.NSAPEnumeratorID == null)
-            {
-                enum_text = vu.EnumeratorText;
-            }
-
-            string no_fishers = string.Empty;
-            if (vu.NumberOfFishers != null)
-            {
-                no_fishers = ((int)vu.NumberOfFishers).ToString();
-            }
-
-            string no_species_catch_composition = string.Empty;
-            if (vu.NumberOfSpeciesInCatchComposition != null)
-            {
-                no_species_catch_composition = ((int)vu.NumberOfSpeciesInCatchComposition).ToString();
-            }
-
-            string submission_id = string.Empty;
-            if (vu.SubmissionID != null)
-            {
-                submission_id = ((int)vu.SubmissionID).ToString();
-            }
-
-            if (Utilities.Global.Settings.UsemySQL)
-            {
-                if (vu.VesselID == null)
+                string date_submitted = vu.DateTimeSubmitted.ToString();
+                if (vu.Parent.Parent.IsMultiVessel)
                 {
-                    boat_id = @"\N";
+                    date_submitted = ((DateTime)vu.Parent.Parent.DateSubmitted).ToString();
+                }
+                string date_added = vu.DateAddedToDatabase.ToString();
+                string date_sampled = vu.SamplingDate.ToString();
+                string boat_id = string.Empty;
+                if (vu.VesselID != null)
+                {
+                    boat_id = ((int)vu.VesselID).ToString();
                 }
 
-                if (vu.WeightOfCatch == null)
+                string catch_wt = string.Empty;
+                if (vu.WeightOfCatch != null)
                 {
-                    catch_wt = @"\N";
+                    catch_wt = ((double)vu.WeightOfCatch).ToString();
                 }
 
-                if (vu.WeightOfCatchSample == null)
+                string sample_wt = string.Empty;
+                if (vu.WeightOfCatchSample != null)
                 {
-                    sample_wt = @"\N";
+                    sample_wt = ((double)vu.WeightOfCatchSample).ToString();
                 }
 
-                if (vu.Boxes == null)
+                string boxes_total = string.Empty;
+                if (vu.Boxes != null)
                 {
-                    boxes_total = @"\N";
+                    boxes_total = ((int)vu.Boxes).ToString();
                 }
 
-                if (vu.BoxesSampled == null)
+                string boxes_sampled = string.Empty;
+                if (vu.BoxesSampled != null)
                 {
-                    boxes_sampled = @"\N";
+                    boxes_sampled = ((int)vu.BoxesSampled).ToString();
                 }
 
-
-                if (vu.RaisingFactor == null)
+                string raising_factor = string.Empty;
+                if (vu.RaisingFactor != null)
                 {
-                    raising_factor = @"\N";
+                    raising_factor = ((double)vu.RaisingFactor).ToString();
                 }
 
-
-
-                if (vu.DepartureFromLandingSite == null)
+                string departure = string.Empty;
+                if (vu.DepartureFromLandingSite != null)
                 {
-                    departure = @"\N";
-                }
-                else
-                {
-                    departure = ((DateTime)vu.DepartureFromLandingSite).ToString("yyyy-MM-dd HH:mm:ss");
+                    departure = ((DateTime)vu.DepartureFromLandingSite).ToString();
                 }
 
-
-                if (vu.ArrivalAtLandingSite == null)
+                string arrival = string.Empty;
+                if (vu.ArrivalAtLandingSite != null)
                 {
-                    arrival = @"\N";
-                }
-                else
-                {
-                    arrival = ((DateTime)vu.ArrivalAtLandingSite).ToString("yyyy-MM-dd HH:mm:ss");
+                    arrival = ((DateTime)vu.ArrivalAtLandingSite).ToString();
                 }
 
-
-
-                if (vu.XFormDate == null)
+                string xFormDate = string.Empty;
+                if (vu.XFormDate != null)
                 {
-                    xFormDate = @"\N";
-                }
-                else
-                {
-                    xFormDate = ((DateTime)vu.XFormDate).ToString("yyyy-MM-dd HH:mm:ss");
+                    xFormDate = ((DateTime)vu.XFormDate).ToString();
                 }
 
+                string enum_id = string.Empty;
+                if (vu.NSAPEnumeratorID != null)
+                {
+                    enum_id = ((int)vu.NSAPEnumeratorID).ToString();
+                }
+
+                string enum_text = string.Empty;
                 if (vu.NSAPEnumeratorID == null)
                 {
-                    enum_id = @"\N";
+                    enum_text = vu.EnumeratorText;
                 }
 
-                if (vu.NumberOfFishers == null)
+                string no_fishers = string.Empty;
+                if (vu.NumberOfFishers != null)
                 {
-                    no_fishers = @"\N";
+                    no_fishers = ((int)vu.NumberOfFishers).ToString();
                 }
 
-                date_submitted = vu.DateTimeSubmitted.ToString("yyyy-MM-dd HH:mm:ss");
-                date_sampled = vu.SamplingDate.ToString("yyyy-MM-dd HH:mm:ss");
-                if (vu.DateAddedToDatabase == null)
+                string no_species_catch_composition = string.Empty;
+                if (vu.NumberOfSpeciesInCatchComposition != null)
                 {
-                    date_added = @"\N";
+                    no_species_catch_composition = ((int)vu.NumberOfSpeciesInCatchComposition).ToString();
                 }
-                else
+
+                string submission_id = string.Empty;
+                if (vu.SubmissionID != null)
                 {
-                    date_added = ((DateTime)vu.DateAddedToDatabase).ToString("yyyy-MM-dd HH:mm:ss");
+                    submission_id = ((int)vu.SubmissionID).ToString();
                 }
+
+                if (Utilities.Global.Settings.UsemySQL)
+                {
+                    if (vu.VesselID == null)
+                    {
+                        boat_id = @"\N";
+                    }
+
+                    if (vu.WeightOfCatch == null)
+                    {
+                        catch_wt = @"\N";
+                    }
+
+                    if (vu.WeightOfCatchSample == null)
+                    {
+                        sample_wt = @"\N";
+                    }
+
+                    if (vu.Boxes == null)
+                    {
+                        boxes_total = @"\N";
+                    }
+
+                    if (vu.BoxesSampled == null)
+                    {
+                        boxes_sampled = @"\N";
+                    }
+
+
+                    if (vu.RaisingFactor == null)
+                    {
+                        raising_factor = @"\N";
+                    }
+
+
+
+                    if (vu.DepartureFromLandingSite == null)
+                    {
+                        departure = @"\N";
+                    }
+                    else
+                    {
+                        departure = ((DateTime)vu.DepartureFromLandingSite).ToString("yyyy-MM-dd HH:mm:ss");
+                    }
+
+
+                    if (vu.ArrivalAtLandingSite == null)
+                    {
+                        arrival = @"\N";
+                    }
+                    else
+                    {
+                        arrival = ((DateTime)vu.ArrivalAtLandingSite).ToString("yyyy-MM-dd HH:mm:ss");
+                    }
+
+
+
+                    if (vu.XFormDate == null)
+                    {
+                        xFormDate = @"\N";
+                    }
+                    else
+                    {
+                        xFormDate = ((DateTime)vu.XFormDate).ToString("yyyy-MM-dd HH:mm:ss");
+                    }
+
+                    if (vu.NSAPEnumeratorID == null)
+                    {
+                        enum_id = @"\N";
+                    }
+
+                    if (vu.NumberOfFishers == null)
+                    {
+                        no_fishers = @"\N";
+                    }
+
+                    date_submitted = vu.DateTimeSubmitted.ToString("yyyy-MM-dd HH:mm:ss");
+                    date_sampled = vu.SamplingDate.ToString("yyyy-MM-dd HH:mm:ss");
+                    if (vu.DateAddedToDatabase == null)
+                    {
+                        date_added = @"\N";
+                    }
+                    else
+                    {
+                        date_added = ((DateTime)vu.DateAddedToDatabase).ToString("yyyy-MM-dd HH:mm:ss");
+                    }
+                }
+
+                myDict.Add("unload_gr_id", vu.Parent.PK.ToString());
+                myDict.Add("v_unload_id", vu.PK.ToString());
+                myDict.Add("boat_id", boat_id);
+                myDict.Add("catch_total", catch_wt);
+                myDict.Add("catch_samp", sample_wt);
+                myDict.Add("boxes_total", boxes_total);
+                myDict.Add("boxes_samp", boxes_sampled);
+                myDict.Add("boat_text", vu.VesselText);
+                myDict.Add("is_boat_used", vu.IsBoatUsed.ToString());
+                myDict.Add("raising_factor", raising_factor);
+
+
+                //_csv.AppendLine($"{vu.Parent.PK},{vu.PK},{boat_id},{catch_wt},{sample_wt},{boxes_total},{boxes_sampled},\"{vu.VesselText}\",{Convert.ToInt32(vu.IsBoatUsed)},{raising_factor}");
+                _csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload"));
+
+
+                myDict.Clear();
+
+                string sequence = "";
+                if (Utilities.Global.Settings.UsemySQL)
+                {
+                    sequence = @"\N";
+                }
+                if (vu.Parent.Parent.IsMultiVessel && vu.SequenceOfSampling != null)
+                {
+                    sequence = ((int)vu.SequenceOfSampling).ToString();
+                }
+
+                string refNo = vu.RefNo;
+                string notes = vu.Notes;
+                if (VesselUnloadRepository.RefNoFieldSize < 150)
+                {
+                    notes = $"RefNo:{refNo}\r\nNotes:{vu.Notes}";
+                    refNo = "";
+                }
+
+                myDict.Add("v_unload_id", vu.PK.ToString());
+                myDict.Add("Success", vu.OperationIsSuccessful.ToString());
+                myDict.Add("Tracked", vu.OperationIsTracked.ToString());
+                myDict.Add("DepartureLandingSite", departure);
+                myDict.Add("ArrivalLandingSite", arrival);
+                myDict.Add("sector_code", vu.SectorCode);
+                myDict.Add("RowID", vu.ODKRowID);
+                myDict.Add("XFormIdentifier", vu.XFormIdentifier);
+                myDict.Add("XFormDate", xFormDate);
+                myDict.Add("user_name", vu.UserName);
+                myDict.Add("device_id", vu.DeviceID);
+                myDict.Add("datetime_submitted", date_submitted);
+                myDict.Add("form_version", vu.FormVersion);
+                myDict.Add("GPS", vu.GPSCode);
+                myDict.Add("SamplingDate", date_sampled);
+                myDict.Add("Notes", notes);
+                myDict.Add("EnumeratorID", enum_id);
+                myDict.Add("EnumeratorText", enum_text);
+                myDict.Add("DateAdded", date_added);
+                myDict.Add("FromExcelDownload", vu.FromExcelDownload.ToString());
+                myDict.Add("HasCatchComposition", vu.HasCatchComposition.ToString());
+                myDict.Add("trip_is_completed", vu.FishingTripIsCompleted.ToString());
+                myDict.Add("NumberOfFishers", no_fishers);
+                myDict.Add("json_filename", vu.JSONFileName);
+                myDict.Add("ref_no", refNo);
+                myDict.Add("is_catch_sold", vu.IsCatchSold.ToString());
+                myDict.Add("is_multigear", vu.IsMultiGear.ToString());
+                myDict.Add("count_gear_types", vu.CountGearTypesUsed.ToString());
+                myDict.Add("sampling_sequence", sequence);
+                myDict.Add("number_species_catch_composition", no_species_catch_composition);
+                myDict.Add("include_effort_indicators", vu.IncludeEffortIndicators.ToString());
+                myDict.Add("lss_submisionID", vu.LandingSiteSamplingSubmissionID);
+                myDict.Add("submission_id", submission_id);
+
+                _csv_1.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload_1"));
+
+
+
+                return true;
             }
-
-            myDict.Add("unload_gr_id", vu.Parent.PK.ToString());
-            myDict.Add("v_unload_id", vu.PK.ToString());
-            myDict.Add("boat_id", boat_id);
-            myDict.Add("catch_total", catch_wt);
-            myDict.Add("catch_samp", sample_wt);
-            myDict.Add("boxes_total", boxes_total);
-            myDict.Add("boxes_samp", boxes_sampled);
-            myDict.Add("boat_text", vu.VesselText);
-            myDict.Add("is_boat_used", vu.IsBoatUsed.ToString());
-            myDict.Add("raising_factor", raising_factor);
-
-
-            //_csv.AppendLine($"{vu.Parent.PK},{vu.PK},{boat_id},{catch_wt},{sample_wt},{boxes_total},{boxes_sampled},\"{vu.VesselText}\",{Convert.ToInt32(vu.IsBoatUsed)},{raising_factor}");
-            _csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload"));
-
-
-            myDict.Clear();
-
-            string sequence = "";
-            if (Utilities.Global.Settings.UsemySQL)
+            catch (Exception ex)
             {
-                sequence = @"\N";
+                Logger.Log(ex);
+                return false;
             }
-            if (vu.Parent.Parent.IsMultiVessel)
-            {
-                sequence = ((int)vu.SequenceOfSampling).ToString();
-            }
-
-            string refNo = vu.RefNo;
-            string notes = vu.Notes;
-            if (VesselUnloadRepository.RefNoFieldSize < 150)
-            {
-                notes = $"RefNo:{refNo}\r\nNotes:{vu.Notes}";
-                refNo = "";
-            }
-
-            myDict.Add("v_unload_id", vu.PK.ToString());
-            myDict.Add("Success", vu.OperationIsSuccessful.ToString());
-            myDict.Add("Tracked", vu.OperationIsTracked.ToString());
-            myDict.Add("DepartureLandingSite", departure);
-            myDict.Add("ArrivalLandingSite", arrival);
-            myDict.Add("sector_code", vu.SectorCode);
-            myDict.Add("RowID", vu.ODKRowID);
-            myDict.Add("XFormIdentifier", vu.XFormIdentifier);
-            myDict.Add("XFormDate", xFormDate);
-            myDict.Add("user_name", vu.UserName);
-            myDict.Add("device_id", vu.DeviceID);
-            myDict.Add("datetime_submitted", date_submitted);
-            myDict.Add("form_version", vu.FormVersion);
-            myDict.Add("GPS", vu.GPSCode);
-            myDict.Add("SamplingDate", date_sampled);
-            myDict.Add("Notes", notes);
-            myDict.Add("EnumeratorID", enum_id);
-            myDict.Add("EnumeratorText", enum_text);
-            myDict.Add("DateAdded", date_added);
-            myDict.Add("FromExcelDownload", vu.FromExcelDownload.ToString());
-            myDict.Add("HasCatchComposition", vu.HasCatchComposition.ToString());
-            myDict.Add("trip_is_completed", vu.FishingTripIsCompleted.ToString());
-            myDict.Add("NumberOfFishers", no_fishers);
-            myDict.Add("json_filename", vu.JSONFileName);
-            myDict.Add("ref_no", refNo);
-            myDict.Add("is_catch_sold", vu.IsCatchSold.ToString());
-            myDict.Add("is_multigear", vu.IsMultiGear.ToString());
-            myDict.Add("count_gear_types", vu.CountGearTypesUsed.ToString());
-            myDict.Add("sampling_sequence", sequence);
-            myDict.Add("number_species_catch_composition", no_species_catch_composition);
-            myDict.Add("include_effort_indicators", vu.IncludeEffortIndicators.ToString());
-            myDict.Add("lss_submisionID", vu.LandingSiteSamplingSubmissionID);
-            myDict.Add("submission_id", submission_id);
-
-            _csv_1.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload_1"));
-
-
-
-            return true;
         }
         public static string WeightValidationCSV
         {

@@ -576,75 +576,78 @@ namespace NSAP_ODK.Entities.Database
 
                             while (dr.Read())
                             {
-                                LandingSiteSampling item = new LandingSiteSampling();
-                                item.PK = (int)dr["dbo_LC_FG_sample_day.unload_day_id"];
-                                item.NSAPRegionID = dr["region_id"].ToString();
-                                item.SamplingDate = (DateTime)dr["sdate"];
-                                item.LandingSiteID = dr["land_ctr_id"] == DBNull.Value ? null : (int?)dr["land_ctr_id"];
-                                item.FishingGroundID = dr["ground_id"].ToString();
-                                item.Remarks = dr["remarks"].ToString();
-                                item.IsSamplingDay = (bool)dr["sampleday"];
-                                item.LandingSiteText = dr["land_ctr_text"].ToString();
-                                item.HasFishingOperation = (bool)dr["has_fishing_operation"];
-                                if (dr["is_multivessel"] == DBNull.Value)
+                                if (dr["fma"] != DBNull.Value)
                                 {
-                                    item.IsMultiVessel = false;
-                                }
-                                else
-                                {
-                                    item.IsMultiVessel = (bool)dr["is_multivessel"];
-                                }
-                                item.FMAID = (int)dr["fma"];
-                                item.DateSubmitted = dr["datetime_submitted"] == DBNull.Value ? null : (DateTime?)dr["datetime_submitted"];
-                                item.UserName = dr["user_name"].ToString();
-                                item.DeviceID = dr["device_id"].ToString();
-                                item.XFormIdentifier = dr["XFormIdentifier"].ToString();
-                                item.DateAdded = dr["DateAdded"] == DBNull.Value ? null : (DateTime?)dr["DateAdded"];
-                                item.FromExcelDownload = dr["FromExcelDownload"] == DBNull.Value ? false : (bool)dr["FromExcelDownload"];
-                                item.FormVersion = dr["form_version"].ToString();
-                                item.RowID = dr["RowID"].ToString();
-                                item.EnumeratorID = dr["EnumeratorID"] == DBNull.Value ? null : (int?)int.Parse(dr["EnumeratorID"].ToString());
-                                item.EnumeratorText = dr["EnumeratorText"].ToString();
-                                item.GearUnloadViewModel = new GearUnloadViewModel(item);
-
-                                if (dr["date_deleted_from_server"] != DBNull.Value)
-                                {
-                                    item.DateDeletedFromServer = (DateTime)dr["date_deleted_from_server"];
-                                }
-
-                                int? submission_id = null;
-                                if (dr["submission_id"] != DBNull.Value)
-                                {
-                                    submission_id = (int)dr["submission_id"];
-                                }
-                                item.Submission_id = submission_id;
-
-                                if (item.IsMultiVessel)
-                                {
-                                    if (dr["number_gear_types_in_landingsite"] != DBNull.Value)
+                                    LandingSiteSampling item = new LandingSiteSampling();
+                                    item.PK = (int)dr["dbo_LC_FG_sample_day.unload_day_id"];
+                                    item.NSAPRegionID = dr["region_id"].ToString();
+                                    item.SamplingDate = (DateTime)dr["sdate"];
+                                    item.LandingSiteID = dr["land_ctr_id"] == DBNull.Value ? null : (int?)dr["land_ctr_id"];
+                                    item.FishingGroundID = dr["ground_id"].ToString();
+                                    item.Remarks = dr["remarks"].ToString();
+                                    item.IsSamplingDay = (bool)dr["sampleday"];
+                                    item.LandingSiteText = dr["land_ctr_text"].ToString();
+                                    item.HasFishingOperation = (bool)dr["has_fishing_operation"];
+                                    if (dr["is_multivessel"] == DBNull.Value)
                                     {
-                                        item.NumberOfGearTypesInLandingSite = (int)dr["number_gear_types_in_landingsite"];
+                                        item.IsMultiVessel = false;
                                     }
-                                    if (dr["number_landings_sampled"] != DBNull.Value)
+                                    else
                                     {
-                                        item.NumberOfLandingsSampled = (int)dr["number_landings_sampled"];
+                                        item.IsMultiVessel = (bool)dr["is_multivessel"];
                                     }
-                                    if (dr["number_landings"] != DBNull.Value)
+                                    item.FMAID = (int)dr["fma"];
+                                    item.DateSubmitted = dr["datetime_submitted"] == DBNull.Value ? null : (DateTime?)dr["datetime_submitted"];
+                                    item.UserName = dr["user_name"].ToString();
+                                    item.DeviceID = dr["device_id"].ToString();
+                                    item.XFormIdentifier = dr["XFormIdentifier"].ToString();
+                                    item.DateAdded = dr["DateAdded"] == DBNull.Value ? null : (DateTime?)dr["DateAdded"];
+                                    item.FromExcelDownload = dr["FromExcelDownload"] == DBNull.Value ? false : (bool)dr["FromExcelDownload"];
+                                    item.FormVersion = dr["form_version"].ToString();
+                                    item.RowID = dr["RowID"].ToString();
+                                    item.EnumeratorID = dr["EnumeratorID"] == DBNull.Value ? null : (int?)int.Parse(dr["EnumeratorID"].ToString());
+                                    item.EnumeratorText = dr["EnumeratorText"].ToString();
+                                    item.GearUnloadViewModel = new GearUnloadViewModel(item);
+
+                                    if (dr["date_deleted_from_server"] != DBNull.Value)
                                     {
-                                        item.NumberOfLandings = (int)dr["number_landings"];
+                                        item.DateDeletedFromServer = (DateTime)dr["date_deleted_from_server"];
                                     }
+
+                                    int? submission_id = null;
+                                    if (dr["submission_id"] != DBNull.Value)
+                                    {
+                                        submission_id = (int)dr["submission_id"];
+                                    }
+                                    item.Submission_id = submission_id;
+
+                                    if (item.IsMultiVessel)
+                                    {
+                                        if (dr["number_gear_types_in_landingsite"] != DBNull.Value)
+                                        {
+                                            item.NumberOfGearTypesInLandingSite = (int)dr["number_gear_types_in_landingsite"];
+                                        }
+                                        if (dr["number_landings_sampled"] != DBNull.Value)
+                                        {
+                                            item.NumberOfLandingsSampled = (int)dr["number_landings_sampled"];
+                                        }
+                                        if (dr["number_landings"] != DBNull.Value)
+                                        {
+                                            item.NumberOfLandings = (int)dr["number_landings"];
+                                        }
+                                    }
+                                    item.GearsInLandingSite = null;//GetGearsInLandingSite(item);
+                                    if (dr["can_sample_from_catch_composition"] == DBNull.Value)
+                                    {
+                                        item.SamplingFromCatchCompositionIsAllowed = false;
+                                    }
+                                    else
+                                    {
+                                        item.SamplingFromCatchCompositionIsAllowed = (bool)dr["can_sample_from_catch_composition"];
+                                    }
+                                    thisList.Add(item);
+                                    loopCount++;
                                 }
-                                item.GearsInLandingSite = null;//GetGearsInLandingSite(item);
-                                if (dr["can_sample_from_catch_composition"] == DBNull.Value)
-                                {
-                                    item.SamplingFromCatchCompositionIsAllowed = false;
-                                }
-                                else
-                                {
-                                    item.SamplingFromCatchCompositionIsAllowed = (bool)dr["can_sample_from_catch_composition"];
-                                }
-                                thisList.Add(item);
-                                loopCount++;
                             }
 
                         }

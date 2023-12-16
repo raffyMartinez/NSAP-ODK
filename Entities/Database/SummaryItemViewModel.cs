@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using NSAP_ODK.Utilities;
 
 namespace NSAP_ODK.Entities.Database
 {
@@ -2898,101 +2899,108 @@ namespace NSAP_ODK.Entities.Database
         }
         public bool AddRecordToRepo(VesselUnload vu)
         {
-            SummaryItem si = new SummaryItem
+            try
             {
-                ID = SummaryItemCollection.Count + 1,
+                SummaryItem si = new SummaryItem
+                {
+                    ID = SummaryItemCollection.Count + 1,
 
-                SamplingDayID = vu.Parent.Parent.PK,
-                SamplingDayUUID = vu.Parent.Parent.RowID,
-                SamplingDayDate = vu.Parent.Parent.SamplingDate,
-                LandingSiteID = vu.Parent.Parent.LandingSiteID,
-                LandingSiteText = vu.Parent.Parent.LandingSiteText,
-                FMAId = vu.Parent.Parent.FMAID,
-                RegionSequence = vu.Parent.Parent.NSAPRegion.Sequence,
-                RegionID = vu.Parent.Parent.NSAPRegionID,
-                FishingGroundID = vu.Parent.Parent.FishingGroundID,
-                LandingSiteSamplingSubmissionId = vu.LandingSiteSamplingSubmissionID,
+                    SamplingDayID = vu.Parent.Parent.PK,
+                    SamplingDayUUID = vu.Parent.Parent.RowID,
+                    SamplingDayDate = vu.Parent.Parent.SamplingDate,
+                    LandingSiteID = vu.Parent.Parent.LandingSiteID,
+                    LandingSiteText = vu.Parent.Parent.LandingSiteText,
+                    FMAId = vu.Parent.Parent.FMAID,
+                    RegionSequence = vu.Parent.Parent.NSAPRegion.Sequence,
+                    RegionID = vu.Parent.Parent.NSAPRegionID,
+                    FishingGroundID = vu.Parent.Parent.FishingGroundID,
+                    LandingSiteSamplingSubmissionId = vu.LandingSiteSamplingSubmissionID,
 
-                GearUnloadID = vu.Parent.PK,
-                GearUnloadBoats = vu.Parent.Boats,
-                GearUnloadCatch = vu.Parent.Catch,
-                GearCode = vu.Parent.GearID,
-                GearText = vu.Parent.GearUsedText,
-                RefNo = vu.RefNo,
-                GearUnloadNumberCommercialLandings = vu.Parent.NumberOfCommercialLandings,
-                GearUnloadNumberMunicipalLandings = vu.Parent.NumberOfMunicipalLandings,
-                GearUnloadWeightCommercialLandings = vu.Parent.WeightOfCommercialLandings,
-                GearUnloadWeightMunicipalLandings = vu.Parent.WeightOfMunicipalLandings,
-                //GearName = vu.Parent.Gear.GearName,
+                    GearUnloadID = vu.Parent.PK,
+                    GearUnloadBoats = vu.Parent.Boats,
+                    GearUnloadCatch = vu.Parent.Catch,
+                    GearCode = vu.Parent.GearID,
+                    GearText = vu.Parent.GearUsedText,
+                    RefNo = vu.RefNo,
+                    GearUnloadNumberCommercialLandings = vu.Parent.NumberOfCommercialLandings,
+                    GearUnloadNumberMunicipalLandings = vu.Parent.NumberOfMunicipalLandings,
+                    GearUnloadWeightCommercialLandings = vu.Parent.WeightOfCommercialLandings,
+                    GearUnloadWeightMunicipalLandings = vu.Parent.WeightOfMunicipalLandings,
+                    //GearName = vu.Parent.Gear.GearName,
 
-                VesselUnloadID = vu.PK,
-                NumberOfFishers = vu.NumberOfFishers,
-                VesselName = vu.VesselName,
-                VesselID = vu.VesselID,
-                VesselText = vu.VesselText,
-                HasCatchComposition = vu.HasCatchComposition,
-                SamplingFromCatchCompositionAllowed = vu.Parent.Parent.SamplingFromCatchCompositionIsAllowed,
-                IsTracked = vu.OperationIsTracked,
-                IsTripCompleted = vu.FishingTripIsCompleted,
-                SamplingDate = vu.SamplingDate,
-                IsSuccess = vu.OperationIsSuccessful,
-                SectorCode = vu.SectorCode,
-                FishingGridRows = vu.CountGrids,
-                GearSoakRows = vu.CountGearSoak,
-                VesselEffortRows = vu.CountEffortIndicators,
-                CatchCompositionRows = vu.CountCatchCompositionItems,
-                LenFreqRows = vu.CountLenFreqRows,
-                LengthRows = vu.CountLengthRows,
-                LenWtRows = vu.CountLenWtRows,
-                CatchMaturityRows = vu.CountMaturityRows,
-                LandingSiteHasOperation = vu.Parent.Parent.HasFishingOperation,
-                WeightOfCatch = vu.WeightOfCatch,
-                WeightOfCatchSample = vu.WeightOfCatchSample,
-                IsMultiGear = vu.IsMultiGear,
-                EnumeratorID = vu.NSAPEnumeratorID,
-                EnumeratorText = vu.EnumeratorText,
-                DateAdded = (DateTime)vu.DateAddedToDatabase,
-                FormVersion = vu.FormVersion,
-                IsMultiVessel = vu.Parent.Parent.IsMultiVessel,
+                    VesselUnloadID = vu.PK,
+                    NumberOfFishers = vu.NumberOfFishers,
+                    VesselName = vu.VesselName,
+                    VesselID = vu.VesselID,
+                    VesselText = vu.VesselText,
+                    HasCatchComposition = vu.HasCatchComposition,
+                    SamplingFromCatchCompositionAllowed = vu.Parent.Parent.SamplingFromCatchCompositionIsAllowed,
+                    IsTracked = vu.OperationIsTracked,
+                    IsTripCompleted = vu.FishingTripIsCompleted,
+                    SamplingDate = vu.SamplingDate,
+                    IsSuccess = vu.OperationIsSuccessful,
+                    SectorCode = vu.SectorCode,
+                    FishingGridRows = vu.CountGrids,
+                    GearSoakRows = vu.CountGearSoak,
+                    VesselEffortRows = vu.CountEffortIndicators,
+                    CatchCompositionRows = vu.CountCatchCompositionItems,
+                    LenFreqRows = vu.CountLenFreqRows,
+                    LengthRows = vu.CountLengthRows,
+                    LenWtRows = vu.CountLenWtRows,
+                    CatchMaturityRows = vu.CountMaturityRows,
+                    LandingSiteHasOperation = vu.Parent.Parent.HasFishingOperation,
+                    WeightOfCatch = vu.WeightOfCatch,
+                    WeightOfCatchSample = vu.WeightOfCatchSample,
+                    IsMultiGear = vu.IsMultiGear,
+                    EnumeratorID = vu.NSAPEnumeratorID,
+                    EnumeratorText = vu.EnumeratorText,
+                    DateAdded = (DateTime)vu.DateAddedToDatabase,
+                    FormVersion = vu.FormVersion,
+                    IsMultiVessel = vu.Parent.Parent.IsMultiVessel,
 
 
-            };
-            if (vu.Parent.Parent.LandingSiteID == null && string.IsNullOrEmpty(vu.Parent.Parent.LandingSiteText))
-            {
-                si.LandingSiteText = "";
+                };
+                if (vu.Parent.Parent.LandingSiteID == null && string.IsNullOrEmpty(vu.Parent.Parent.LandingSiteText))
+                {
+                    si.LandingSiteText = "";
+                }
+                else
+                {
+
+                }
+
+                if (vu.Parent.Parent.IsMultiVessel)
+                {
+                    si.SamplingDayDate = vu.Parent.Parent.SamplingDate;
+                    si.XFormIdentifier = vu.Parent.Parent.XFormIdentifier;
+                    si.DateSubmitted = vu.Parent.Parent.DateSubmitted;
+                }
+                else
+                {
+                    si.XFormIdentifier = vu.XFormIdentifier;
+                    si.ODKRowID = vu.ODKRowID;
+                    si.GPSCode = vu.GPSCode;
+
+                    si.DateSubmitted = (DateTime)vu.DateTimeSubmitted;
+                }
+                if (vu.NSAPEnumeratorID != null)
+                {
+                    si.EnumeratorName = vu.EnumeratorName;
+                }
+                if (vu.Parent.Gear != null && !string.IsNullOrEmpty(vu.Parent.GearID) && vu.Parent.GearID != "_OT")
+                {
+                    si.GearName = vu.Parent.Gear.GearName;
+                }
+
+
+
+                SummaryItemCollection.Add(si);
+                CurrentEntity = si;
             }
-            else
+            catch(Exception ex)
             {
-
+                Logger.Log(ex);
             }
-
-            if (vu.Parent.Parent.IsMultiVessel)
-            {
-                si.SamplingDayDate = vu.Parent.Parent.SamplingDate;
-                si.XFormIdentifier = vu.Parent.Parent.XFormIdentifier;
-                si.DateSubmitted = vu.Parent.Parent.DateSubmitted;
-            }
-            else
-            {
-                si.XFormIdentifier = vu.XFormIdentifier;
-                si.ODKRowID = vu.ODKRowID;
-                si.GPSCode = vu.GPSCode;
-
-                si.DateSubmitted = (DateTime)vu.DateTimeSubmitted;
-            }
-            if (vu.NSAPEnumeratorID != null)
-            {
-                si.EnumeratorName = vu.EnumeratorName;
-            }
-            if (vu.Parent.Gear != null && !string.IsNullOrEmpty(vu.Parent.GearID) && vu.Parent.GearID != "_OT")
-            {
-                si.GearName = vu.Parent.Gear.GearName;
-            }
-
-
-
-            SummaryItemCollection.Add(si);
-            CurrentEntity = si;
             return _editSuccess;
         }
         public bool AddRecordToRepo(SummaryItem item)

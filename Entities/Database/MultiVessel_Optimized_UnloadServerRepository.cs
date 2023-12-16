@@ -143,12 +143,22 @@ namespace NSAP_ODK.Entities.Database
                         {
                             try
                             {
+                                SamplingDaySubmission sds;
+                                if (root.LandingSite == null)
+                                {
 
-                                var sds = NSAPEntities.SamplingDaySubmissionViewModel.GetSamplingDaySubmission(
-                                    root.LandingSite.LandingSiteID,
-                                    root.FishingGround.Code,
-                                    root.SamplingDate.Date);
-
+                                    sds = NSAPEntities.SamplingDaySubmissionViewModel.GetSamplingDaySubmission(
+                                        fls.LandingSiteID,
+                                        root.FishingGround.Code,
+                                        root.SamplingDate.Date);
+                                }
+                                else
+                                {
+                                    sds = NSAPEntities.SamplingDaySubmissionViewModel.GetSamplingDaySubmission(
+                                        root.LandingSite.LandingSiteID,
+                                        root.FishingGround.Code,
+                                        root.SamplingDate.Date);
+                                }
                                 if (sds != null)
                                 {
                                     if (sds.LandingSiteSampling == null)
@@ -169,6 +179,7 @@ namespace NSAP_ODK.Entities.Database
                                     //    lss = lss_fromm_summary;
                                     //}
                                 }
+
                             }
                             catch (Exception ex)
                             {
@@ -211,7 +222,7 @@ namespace NSAP_ODK.Entities.Database
                                 Submission_id = root._id
                             };
 
-                            if(root.RegionEnumeratorID!=null)
+                            if (root.RegionEnumeratorID != null)
                             {
                                 lss.EnumeratorID = root.NSAPEnumerator.ID;
                             }
@@ -403,8 +414,8 @@ namespace NSAP_ODK.Entities.Database
                                                         NumberOfSpeciesInCatchComposition = null,
                                                         IncludeEffortIndicators = sl.IncludeEffort,
                                                         LandingSiteSamplingSubmissionID = lsss.SubmissionID,
-                                                        
-                                                        
+
+
                                                     };
                                                     if (gu.VesselUnloadViewModel.AddRecordToRepo(vu))
                                                     {
@@ -1678,7 +1689,7 @@ namespace NSAP_ODK.Entities.Database
         //[JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/wt_unit_name")]
         //public string wt_unit_name { get; set; }
 
-        
+
 
         [JsonProperty("R_l/G_sl/G_cc/R_gcc/G_irg/R_cc/G_sn/G_sd/from_total_catch")]
         public string From_total_catch { get; set; }
@@ -2121,7 +2132,7 @@ namespace NSAP_ODK.Entities.Database
         public string GridNameComplete { get; set; }
 
         [JsonProperty("R_l/G_sl/G_cg/R_b/G_b/is_inland")]
-        public string IsInland { get; set; } 
+        public string IsInland { get; set; }
 
         //[JsonProperty("R_l/G_sl/G_cg/R_b/G_b/group_label")]
         //public string group_label { get; set; }
@@ -2321,6 +2332,18 @@ namespace NSAP_ODK.Entities.Database
             }
             set { _isSaved = value; }
         }
+
+        public override string ToString()
+        {
+            if (LandingSiteID != null)
+            {
+                return $"{SamplingDate.ToString("MMM-dd-yyyy")}-{LandingSite.LandingSiteID}-{FishingGround.Code}";
+            }
+            else
+            {
+                return $"{SamplingDate.ToString("MMM-dd-yyyy")}-{LandingSiteName}-{FishingGround.Code}";
+            }
+        }
         public int PK
         {
             get
@@ -2467,7 +2490,7 @@ namespace NSAP_ODK.Entities.Database
         [JsonProperty("G_lss/region_enumerator_text")]
         public string RegionEnumeratorText { get; set; }
 
-        
+
         public NSAPEnumerator NSAPEnumerator
         {
             get
