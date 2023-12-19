@@ -132,6 +132,10 @@ namespace NSAP_ODK.Entities.Database
                     _vesselUnload.FishingGroundGridViewModel = new FishingGroundGridViewModel(_vesselUnload);
                 }
                 //var grid = NSAPEntities.VesselUnloadViewModel.FirstGridLocation(_vesselUnload);
+                if(_vesselUnload.FishingGroundGridViewModel.FishingGroundGridCollection==null)
+                {
+                    _vesselUnload.FishingGroundGridViewModel = new FishingGroundGridViewModel(_vesselUnload);
+                }
                 var grid = _vesselUnload.FishingGroundGridViewModel.FishingGroundGridCollection?.FirstOrDefault();
                 if (grid != null)
                 {
