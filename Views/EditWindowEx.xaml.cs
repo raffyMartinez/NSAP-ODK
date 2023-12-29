@@ -13,6 +13,7 @@ using ClosedXML.Excel;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using Ookii.Dialogs.Wpf;
+using NSAP_ODK.Entities.Database;
 //using swf = System.Windows.Forms;
 //using wpftk= Xceed.Wpf.Toolkit;
 //using System.Windows.Forms;
@@ -173,6 +174,11 @@ namespace NSAP_ODK.Views
 
                 (_nsapEntity == NSAPEntity.NSAPRegion
                 && NSAPEntities.EntityToRefresh == NSAPEntity.NSAPRegionFMA)
+                
+
+                ||
+                (_nsapEntity ==NSAPEntity.LandingSite
+                && NSAPEntities.EntityToRefresh==NSAPEntity.LandingSiteFishingGround)
                 )
             {
                 PropertyGrid.Update();
@@ -771,6 +777,7 @@ namespace NSAP_ODK.Views
             switch (_nsapEntity)
             {
 
+
                 case NSAPEntity.NSAPRegionFMAFishingGroundLandingSite:
                     #region NSAP Region FMA FishingGround LandingSite
 
@@ -841,6 +848,36 @@ namespace NSAP_ODK.Views
                     PropertyGrid.SelectedObject = gearEffortSpec;
                     break;
                 #endregion
+                case NSAPEntity.LandingSiteFishingGround:
+                    Title = "Fishing ground of landing site";
+                    LandingSiteFishingGround lsfg = (LandingSiteFishingGround)_nsapObject;
+                    LabelTop.Content = $"New fishing ground for {NSAPEntities.LandingSiteViewModel.CurrentEntity}";
+
+                    if (!_isNew)
+                    {
+                        LabelTop.Content = $"Fishing ground details: {lsfg.LandingSite.LandingSiteName}";
+                        LandingSiteFishingGround landingSiteFishingGround = (LandingSiteFishingGround)_nsapObject;
+                        lsfg = new LandingSiteFishingGround
+                        {
+                            RowID = landingSiteFishingGround.RowID,
+                            LandingSite = landingSiteFishingGround.LandingSite,
+                            FishingGround = landingSiteFishingGround.FishingGround,
+                            DateAdded = landingSiteFishingGround.DateAdded,
+                            DateRemoved = landingSiteFishingGround.DateRemoved
+                        };
+                    }
+                    else
+                    {
+                        lsfg.LandingSite = NSAPEntities.LandingSiteViewModel.CurrentEntity;
+                        lsfg.DateAdded = DateTime.Now;
+                        lsfg.RowID = LandingSiteFishingGroundRepository.MaxRowID() + 1;
+                    }
+
+                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "FishingGroundCode", DisplayName = "Name of fishing ground*", DisplayOrder = 1, Description = "Name of fishing ground included the region\r\nDouble click to directly add a new fishing ground to the FMA" });
+                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DateAdded", DisplayName = "Date added", DisplayOrder = 2, Description = "Date when the fishing ground was included in the region" });
+                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "DateRemoved", DisplayName = "Date removed", DisplayOrder = 3, Description = "Date when the fishing ground was removed from the region" });
+                    PropertyGrid.SelectedObject = lsfg;
+                    break;
                 case NSAPEntity.NSAPRegionFMAFishingGround:
                     #region  NSAP Region FMAF ishingGround
                     Title = "Fishing ground in FMA";
@@ -1292,8 +1329,11 @@ namespace NSAP_ODK.Views
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Latitude", DisplayName = "Latitude", DisplayOrder = 6, Description = "Latitude of landing site's location" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "CountFishingVessels", DisplayName = "# fishing vessels", DisplayOrder = 7, Description = "Number of fishing vessels that land in the landing site" });
                     //PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "CountFishingVessels", DisplayName = "# fishing vessels", DisplayOrder = 7, Description = "Count of fishing vessels that land in the landing site" });
+                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "LandingSiteTypeOfSampling", DisplayName = "Type of sampling", DisplayOrder = 8, Description = "" });
+                    //PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "CountFishingGrounds", DisplayName = "Number of fishing grounds", DisplayOrder = 9, Description = "" });
+
                     if (!_isNew)
-                        PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "ID", DisplayName = "Database identifier", DisplayOrder = 8, Description = "Identifier of the landing site in database" });
+                        PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "ID", DisplayName = "Database identifier", DisplayOrder = 10, Description = "Identifier of the landing site in database" });
 
                     PropertyGrid.SelectedObject = landingSiteEdit;
                     break;
@@ -1324,7 +1364,7 @@ namespace NSAP_ODK.Views
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "AssignedName", DisplayName = "Assigned name", DisplayOrder = 2, Description = "Assigned name of GPS" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Brand", DisplayName = "GPS brand", DisplayOrder = 3, Description = "Brand name of GPS" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Model", DisplayName = "Name of model", DisplayOrder = 4, Description = "Model name of GPS" });
-                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Model", DisplayName = "Name of model", DisplayOrder = 5, Description = "Model name of GPS" });
+                    // PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Model", DisplayName = "Name of model", DisplayOrder = 5, Description = "Model name of GPS" });
 
                     PropertyDefinition prp = new PropertyDefinition { Name = "DeviceType", DisplayName = "Device type", DisplayOrder = 6, Description = "Type of device" };
                     PropertyGrid.PropertyDefinitions.Add(prp);
@@ -1352,7 +1392,8 @@ namespace NSAP_ODK.Views
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "GearName", DisplayName = "Name", DisplayOrder = 2, Description = "Name of gear" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "IsGeneric", DisplayName = "Gear is generic", DisplayOrder = 3, Description = "Whether or not this gear is generic" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "BaseGear", DisplayName = "Name of base gear", DisplayOrder = 4, Description = "Gear from which current gear is derived" });
-                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "GearIsNotUsed", DisplayName = "Gear is not used", DisplayOrder = 4, Description = "Gear is not used and will not be added to the catch and effort eForm" });
+                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "GearIsNotUsed", DisplayName = "Gear is not used", DisplayOrder = 5, Description = "Gear is not used and will not be added to the catch and effort eForm" });
+                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "IsUsedInLargeCommercial", DisplayName = "Gear is used in large commercial vessels", DisplayOrder = 6, Description = "Gear is used in large scale commercial fishing vessels" });
 
                     if (!_isNew)
                     {
@@ -2441,14 +2482,16 @@ namespace NSAP_ODK.Views
                         case NSAPEntity.NSAPRegion:
                             #region nsapregion
                             var r = (NSAPRegionEdit)PropertyGrid.SelectedObject;
-                            NSAPRegion nr = new NSAPRegion { 
-                                Code = r.NSAPRegion.Code, 
-                                Name = r.Name, 
-                                ShortName = r.ShortName, 
-                                IsTotalEnumerationOnly = r.IsTotalEnumerationOnly, 
-                                Sequence = r.NSAPRegion.Sequence };
+                            NSAPRegion nr = new NSAPRegion
+                            {
+                                Code = r.NSAPRegion.Code,
+                                Name = r.Name,
+                                ShortName = r.ShortName,
+                                IsTotalEnumerationOnly = r.IsTotalEnumerationOnly,
+                                Sequence = r.NSAPRegion.Sequence
+                            };
                             //nr.NSAPEnumerators=r.NSAPRegion.NSAPEnumerators
-                            if( NSAPEntities.NSAPRegionViewModel.UpdateRecordInRepo(nr))
+                            if (NSAPEntities.NSAPRegionViewModel.UpdateRecordInRepo(nr))
                             {
                                 success = true;
                             }
@@ -2559,7 +2602,7 @@ namespace NSAP_ODK.Views
                                     {
                                         success = rvm.EditLandingSite(nsapRegionFMAFishingGroundLandingSite);
                                     }
-                                    if (success && Owner!=null && Owner.Owner != null && Owner.Owner.GetType().Name == "SelectionToReplaceOrpanWIndow")
+                                    if (success && Owner != null && Owner.Owner != null && Owner.Owner.GetType().Name == "SelectionToReplaceOrpanWIndow")
                                     {
                                         ((SelectionToReplaceOrpanWIndow)Owner.Owner).NewLandingSiteInSelection(nsapRegionFMAFishingGroundLandingSite.LandingSite);
                                     }
@@ -2783,7 +2826,8 @@ namespace NSAP_ODK.Views
                                 Municipality = prov.Municipalities.GetMunicipality(lsEdit.Municipality),
                                 Latitude = lsEdit.Latitude,
                                 Longitude = lsEdit.Longitude,
-                                Barangay = lsEdit.Barangay
+                                Barangay = lsEdit.Barangay,
+                                LandingSiteTypeOfSampling = lsEdit.LandingSiteTypeOfSampling
                             };
                             landingSite.LandingSiteID = _isNew ? NSAPEntities.LandingSiteViewModel.NextRecordNumber : lsEdit.ID;
                             validationResult = NSAPEntities.LandingSiteViewModel.EntityValidated(landingSite, _isNew);
@@ -2832,6 +2876,25 @@ namespace NSAP_ODK.Views
                             }
                             break;
                         #endregion
+                        case NSAPEntity.LandingSiteFishingGround:
+                            //LandingSiteFishingGround lsfg = (LandingSiteFishingGround)PropertyGrid.SelectedObject;
+                            //LandingSiteFishingGround landingSiteFishingGround = new LandingSiteFishingGround
+                            //{
+                            //    FishingGround = lsfg.FishingGround,
+                            //    DateAdded = lsfg.DateAdded,
+                            //    DateRemoved = lsfg.DateRemoved,
+                            //    LandingSite = lsfg.LandingSite
+                            //};
+                            //lsfg.RowID = _isNew ? LandingSiteFishingGroundRepository.MaxRowID() + 1 : lsfg.RowID;
+                            //if(_isNew)
+                            //{
+                            //    success = NSAPEntities.LandingSiteViewModel.CurrentEntity.LandingSiteFishingGroundViewModel.AddRecordToRepo(lsfg);
+                            //}
+                            //else
+                            //{
+                            //    success = NSAPEntities.LandingSiteViewModel.CurrentEntity.LandingSiteFishingGroundViewModel.UpdateRecordInRepo(lsfg);
+                            //}
+                            break;
                         case NSAPEntity.FishingGear:
                             #region fishing gear
                             var g = ((GearEdit)PropertyGrid.SelectedObject).Save(_isNew);
@@ -2841,7 +2904,8 @@ namespace NSAP_ODK.Views
                                 Code = g.Code,
                                 GearName = g.GearName,
                                 IsGenericGear = g.IsGenericGear,
-                                GearIsNotUsed = g.GearIsNotUsed
+                                GearIsNotUsed = g.GearIsNotUsed,
+                                IsUsedInLargeCommercial = g.IsUsedInLargeCommercial
                             };
                             validationResult = NSAPEntities.GearViewModel.ValidateEntity(gear, _isNew, _oldName, _oldIdentifier);
                             if (validationResult.ErrorMessage.Length > 0)
@@ -2946,13 +3010,26 @@ namespace NSAP_ODK.Views
                     break;
 
                 case "buttonAdd":
+                    bool addToDict = false;
                     switch (_nsapEntity)
                     {
                         case NSAPEntity.NSAPRegionFMAFishingGroundLandingSite:
                         case NSAPEntity.LandingSite:
-                            var iw = new ImportByPlainTextWindow(NSAPEntities.LandingSiteViewModel.CurrentEntity, NSAPEntity.FishingVessel);
-                            iw.Owner = this;
-                            iw.ShowDialog();
+                            switch (_selectedProperty)
+                            {
+                                case "CountFishingGrounds":
+                                    ewx = new EditWindowEx(NSAPEntity.LandingSiteFishingGround, "", new LandingSiteFishingGround());
+                                    this.Visibility = Visibility.Hidden;
+                                    addToDict = true;
+                                    //_editWindowsDict.Add(_nsapEntity, this);
+                                    break;
+                                case "CountFishingVessels":
+                                    var iw = new ImportByPlainTextWindow(NSAPEntities.LandingSiteViewModel.CurrentEntity, NSAPEntity.FishingVessel);
+                                    iw.Owner = this;
+                                    iw.ShowDialog();
+                                    break;
+                            }
+
 
                             break;
                         case NSAPEntity.Province:
@@ -2964,7 +3041,8 @@ namespace NSAP_ODK.Views
                             {
                                 ewx = new EditWindowEx(NSAPEntity.FishingGearEffortSpecification, "", new GearEffortSpecification());
                                 this.Visibility = Visibility.Hidden;
-                                _editWindowsDict.Add(_nsapEntity, this);
+                                addToDict = true;
+                                //_editWindowsDict.Add(_nsapEntity, this);
                             }
                             break;
 
@@ -2975,7 +3053,8 @@ namespace NSAP_ODK.Views
                                 || _selectedProperty == "Enumerators")
                             {
                                 this.Visibility = Visibility.Hidden;
-                                _editWindowsDict.Add(_nsapEntity, this);
+                                addToDict = true;
+                                //_editWindowsDict.Add(_nsapEntity, this);
                             }
                             switch (_selectedProperty)
                             {
@@ -3005,7 +3084,8 @@ namespace NSAP_ODK.Views
                                 var nsapRegionFishingGround = new NSAPRegionFMAFishingGround();
                                 nsapRegionFishingGround.RegionFMA = (NSAPRegionFMA)_nsapObject;
                                 this.Visibility = Visibility.Hidden;
-                                _editWindowsDict.Add(_nsapEntity, this);
+                                addToDict = true;
+                                //_editWindowsDict.Add(_nsapEntity, this);
                                 ewx = new EditWindowEx(NSAPEntity.NSAPRegionFMAFishingGround, "", nsapRegionFishingGround);
                             }
                             break;
@@ -3017,9 +3097,21 @@ namespace NSAP_ODK.Views
                             {
                                 ewx = new EditWindowEx(NSAPEntity.NSAPRegionFMAFishingGroundLandingSite, "", nsapRegionFMAFishingGroundLandingSite);
                                 this.Visibility = Visibility.Hidden;
-                                _editWindowsDict.Add(_nsapEntity, this);
+                                addToDict = true;
+                                //_editWindowsDict.Add(_nsapEntity, this);
                             }
                             break;
+                    }
+                    if(addToDict)
+                    {
+                        try
+                        {
+                            _editWindowsDict.Add(_nsapEntity, this);
+                        }
+                        catch
+                        {
+                            //ignore
+                        }
                     }
 
                     if (ewx != null)
@@ -3041,7 +3133,7 @@ namespace NSAP_ODK.Views
                         }
 
                     }
-                    
+
                     SetUpSubFormSource();
                     break;
 
@@ -3159,6 +3251,10 @@ namespace NSAP_ODK.Views
                         _editWindowsDict[NSAPEntity.NSAPRegionFMAFishingGroundLandingSite].Visibility = Visibility.Visible;
                         _editWindowsDict.Remove(NSAPEntity.NSAPRegionFMAFishingGroundLandingSite);
                         break;
+                    case NSAPEntity.LandingSiteFishingGround:
+                        _editWindowsDict[NSAPEntity.LandingSite].Visibility = Visibility.Visible;
+                        _editWindowsDict.Remove(NSAPEntity.LandingSite);
+                        break;
                     case NSAPEntity.FishingGround:
                         _editWindowsDict[NSAPEntity.NSAPRegionFMAFishingGround].Visibility = Visibility.Visible;
                         _editWindowsDict.Remove(NSAPEntity.NSAPRegionFMAFishingGround);
@@ -3230,6 +3326,11 @@ namespace NSAP_ODK.Views
 
             switch (_selectedProperty)
             {
+                case "CountFishingGrounds":
+                    LabelBottom.Content = $"List of fishing grounds of {NSAPEntities.LandingSiteViewModel.CurrentEntity}";
+                    rowBottomLabel.Height = new GridLength(40);
+                    SetUpSubForm();
+                    break;
                 case "CountFishingVessels":
                     LabelBottom.Content = $"List of fishing vessels landing in {NSAPEntities.LandingSiteViewModel.CurrentEntity}";
                     rowBottomLabel.Height = new GridLength(40);
@@ -3337,6 +3438,10 @@ namespace NSAP_ODK.Views
 
             switch (_selectedProperty)
             {
+                case "CountFishingGrounds":
+                    //var ls_fgm = ((LandingSiteEdit)PropertyGrid.SelectedObject).LandingSite.LandingSiteFishingGroundViewModel;
+                    //sfDataGrid.ItemsSource = ls_fgm.LandingSiteFishingGroundCollection;
+                    break;
                 case "CountFishingVessels":
                     var ls_fvm = ((LandingSiteEdit)PropertyGrid.SelectedObject).LandingSite.LandingSite_FishingVesselViewModel;
                     sfDataGrid.ItemsSource = ls_fvm.LandingSite_FishingVessel_Collection;
@@ -3461,6 +3566,12 @@ namespace NSAP_ODK.Views
             SetUpSubFormSource();
             switch (_selectedProperty)
             {
+                case "CountFishingGrounds":
+                    sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("ID"), Visibility = Visibility.Hidden });
+                    sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Name", Binding = new Binding("FishingGround.Name") });
+                    sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Added", Binding = new Binding("DateAdded") });
+                    sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Removed", Binding = new Binding("DateRemoved") });
+                    break;
                 case "CountFishingVessels":
                 case "NumberOfFishingVessel":
                     sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("ID"), Visibility = Visibility.Hidden });

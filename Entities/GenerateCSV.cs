@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NSAP_ODK.Entities.Database;
 using NSAP_ODK.Utilities;
 
 
@@ -97,6 +98,10 @@ namespace NSAP_ODK.Entities
 
             _fileName = $"{_folderSaveLocation}\\nsap_region_select.csv";
             result += await GenerateNSAPRegionsCSV();
+
+            _fileName = $"{_folderSaveLocation}\\landingsite_fishinggrounds.csv";
+            result += await GenerateLandingSiteFishingGroundsCSV();
+
 
             Dictionary<FisheriesSector, string> filePaths = new Dictionary<FisheriesSector, string>();
             filePaths.Add(FisheriesSector.Municipal, $"{_folderSaveLocation}\\vessel_name_municipal.csv");
@@ -540,6 +545,33 @@ namespace NSAP_ODK.Entities
             return counter;
         }
 
+        public static async Task<int> GenerateLandingSiteFishingGroundsCSV()
+        {
+            int counter = 0;
+            StringBuilder sb = new StringBuilder("list_name,name,label,option\r\n");
+            foreach (var region in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection
+                .Where(t => NSAPEntities.Regions.Contains(t.Code)))
+            {
+                foreach (var fma in region.FMAs)
+                {
+                    foreach (var fg in fma.FishingGrounds)
+                    {
+                        foreach (var ls in fg.LandingSites
+                            .Where(t => t.DateEnd == null && t.LandingSite.LandingSiteTypeOfSampling == LandingSiteTypeOfSampling.SamplingTypeCommercialCarrierBoats)
+                            .OrderBy(t => t.LandingSite.ToString()))
+                        {
+                            sb.AppendLine($"ls_fg,\"{fg.FishingGroundCode}\",\"{fg.FishingGround.Name}\",{ls.LandingSite.LandingSiteID}");
+                            counter++;
+                        }
+                    }
+                }
+            }
+            if (counter > 0)
+            {
+                await LogAsync(sb.ToString(), _fileName);
+            }
+            return counter;
+        }
         public static async Task<int> GenerateSizeTypesCSV()
         {
             int counter = 0;
@@ -617,6 +649,7 @@ namespace NSAP_ODK.Entities
         {
             int counter = 0;
             string header = "list_name,name,label,option\r\n";
+            string header2 = "list_name,name,label,option,sampling_type,option2\r\n";
 
 
 
@@ -637,7 +670,7 @@ namespace NSAP_ODK.Entities
 
 
             //generate fishing ground section
-            sb = new StringBuilder(header);
+            sb = new StringBuilder("list_name,name,label,option,option2\r\n");
             foreach (var region in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection
                 .Where(t => NSAPEntities.Regions.Contains(t.Code)))
             {
@@ -646,7 +679,7 @@ namespace NSAP_ODK.Entities
                     foreach (var fg in fma.FishingGrounds
                         .Where(t => t.DateEnd == null))
                     {
-                        sb.AppendLine($"fg,{fg.RowID},{fg.FishingGround.Name},{fg.RegionFMA.RowID}");
+                        sb.AppendLine($"fg,{fg.RowID},{fg.FishingGround.Name},{fg.RegionFMA.RowID},{fg.FishingGroundCode}");
                         counter++;
                     }
                 }
@@ -655,7 +688,7 @@ namespace NSAP_ODK.Entities
             FilesCount++;
 
             //generate ls (landing site) section
-            sb = new StringBuilder(header);
+            sb = new StringBuilder(header2);
             foreach (var region in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection
                 .Where(t => NSAPEntities.Regions.Contains(t.Code)))
             {
@@ -670,11 +703,11 @@ namespace NSAP_ODK.Entities
 
                             if (CSVType == CSVType.ExtSelectFromFile)
                             {
-                                sb.AppendLine($"landing_site,{ls.RowID},{ls.LandingSite.ToString().Replace(',', GenerateCSV.LocationDelimeter)},{fg.RowID}");
+                                sb.AppendLine($"landing_site,{ls.RowID},{ls.LandingSite.ToString().Replace(',', GenerateCSV.LocationDelimeter)},{fg.RowID},{ls.LandingSite.TypeOfSamplingInLandingSite.ToString()},{ls.LandingSite.LandingSiteID}");
                             }
                             else
                             {
-                                sb.AppendLine($"landing_site,{ls.RowID},\"{ls.LandingSite.ToString()}\",{fg.RowID}");
+                                sb.AppendLine($"landing_site,{ls.RowID},\"{ls.LandingSite.ToString()}\",{fg.RowID},{ls.LandingSite.TypeOfSamplingInLandingSite.ToString()},{ls.LandingSite.LandingSiteID}");
                             }
                             counter++;
                         }
@@ -685,7 +718,8 @@ namespace NSAP_ODK.Entities
             FilesCount++;
 
             //generate gear section
-            sb = new StringBuilder(header);
+            //sb = new StringBuilder(header);
+            sb = new StringBuilder("list_name,name,label,option,option2,is_large_commercial\r\n");
             foreach (var region in NSAPEntities.NSAPRegionViewModel.NSAPRegionCollection
                  .Where(t => NSAPEntities.Regions.Contains(t.Code)))
             {
@@ -694,7 +728,7 @@ namespace NSAP_ODK.Entities
                     .OrderBy(t => t.NSAPRegion.Name)
                     .ThenBy(t => t.Gear.GearName))
                 {
-                    sb.AppendLine($"gear,{gear.RowID.ToString().PadLeft(_id_width, '0')},{gear.Gear.GearName},{region.Code}");
+                    sb.AppendLine($"gear,{gear.RowID.ToString().PadLeft(_id_width, '0')},{gear.Gear.GearName},{region.Code},{gear.GearCode},{gear.Gear.IsUsedInLargeCommercial}");
                     counter++;
                 }
             }
@@ -779,8 +813,11 @@ namespace NSAP_ODK.Entities
         }
         public static async Task<int> GenerateItemsetsCSV()
         {
+            string header = "list_name,name,label,option\r\n";
+            string header2 = "list_name,name,label,option,sampling_type\r\n";
+
             int counter = 0;
-            StringBuilder sb = new StringBuilder("list_name,name,label,option\r\n");
+            StringBuilder sb = new StringBuilder(header);
 
 
             //generate fma section
@@ -822,7 +859,7 @@ namespace NSAP_ODK.Entities
                         foreach (var ls in fg.LandingSites
                             .OrderBy(t => t.LandingSite.ToString()))
                         {
-                            sb.AppendLine($"ls,{ls.RowID},\"{ls.LandingSite.ToString()}\",{fg.RowID}");
+                            sb.AppendLine($"ls,{ls.RowID},\"{ls.LandingSite.ToString()}\",{fg.RowID},{ls.LandingSite.TypeOfSamplingInLandingSite.ToString()}");
                             counter++;
                         }
                     }

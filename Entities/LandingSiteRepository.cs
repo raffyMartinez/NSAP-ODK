@@ -5,6 +5,9 @@ using System.Data;
 using System.Data.OleDb;
 using MySql.Data.MySqlClient;
 using NSAP_ODK.NSAPMysql;
+using System.Threading.Tasks;
+using NSAP_ODK.Entities.Database;
+using System.Linq;
 namespace NSAP_ODK.Entities
 {
     public class LandingSiteRepository
@@ -61,6 +64,67 @@ namespace NSAP_ODK.Entities
             }
             return thisList;
         }
+
+        public static Task<bool> AddFieldToTableAsync(string fieldName)
+        {
+            return Task.Run(() => AddFieldToTable(fieldName));
+        }
+        public static bool AddFieldToTable(string fieldName)
+        {
+            bool success = false;
+            string sql = "";
+            switch (fieldName)
+            {
+                case "TypeOfSampling":
+                    sql = $"ALTER TABLE landingSite ADD COLUMN {fieldName} INTEGER";
+                    break;
+            }
+            using (var con = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    con.Open();
+                    cmd.CommandText = sql;
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        success = true;
+                        if(success && fieldName=="TypeOfSampling")
+                        {
+                            success = UpdateSamplingTypeField();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
+        }
+
+        private static bool UpdateSamplingTypeField()
+        {
+            bool success = false;
+            using (var con = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    cmd.CommandText = "UPDATE landingSite SET TypeOfSampling=0 WHERE TypeOfSampling IS NULL";
+                    con.Open();
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        success = true;
+                    }
+                    catch(Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+                return success;
+        }
         private List<LandingSite> getLandingSites()
         {
             List<LandingSite> listLandingSites = new List<LandingSite>();
@@ -78,7 +142,7 @@ namespace NSAP_ODK.Entities
                         conection.Open();
                         string query = @"SELECT landingSite.LandingSiteID, landingSite.LandingSiteName, 
                                     landingSite.Municipality, Municipalities.ProvNo,
-                                    landingSite.Latitude, landingSite.Longitude, landingSite.Barangay
+                                    landingSite.Latitude, landingSite.Longitude, landingSite.Barangay, landingsite.TypeOfSampling
                                     FROM Municipalities INNER JOIN landingSite ON Municipalities.MunNo = landingSite.Municipality";
 
                         var adapter = new OleDbDataAdapter(query, conection);
@@ -110,7 +174,9 @@ namespace NSAP_ODK.Entities
                                 {
                                     ls.Longitude = Convert.ToDouble(dr["Longitude"]);
                                 }
+                                ls.LandingSiteTypeOfSampling = (LandingSiteTypeOfSampling)(int)dr["TypeOfSampling"];
                                 //ls.LandingSite_FishingVesselViewModel = null;
+                                //ls.LandingSiteFishingGroundViewModel = new LandingSiteFishingGroundViewModel(ls);
                                 listLandingSites.Add(ls);
                             }
                         }
@@ -186,7 +252,7 @@ namespace NSAP_ODK.Entities
                 using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
                     conn.Open();
-                    var sql = "Insert into LandingSite (LandingSiteID, LandingSiteName,Municipality,Longitude,Latitude,Barangay) Values (?,?,?,?,?,?)";
+                    var sql = "Insert into LandingSite (LandingSiteID, LandingSiteName,Municipality,Longitude,Latitude,Barangay,TypeOfSampling) Values (?,?,?,?,?,?,?)";
                     using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
                         update.Parameters.Add("@id", OleDbType.Integer).Value = ls.LandingSiteID;
@@ -210,6 +276,7 @@ namespace NSAP_ODK.Entities
                         {
                             update.Parameters.Add("@brgy", OleDbType.VarChar).Value = ls.Barangay;
                         }
+                        update.Parameters.Add("@sampling_type", OleDbType.Integer).Value = (int)ls.LandingSiteTypeOfSampling;
                         try
                         {
                             success = update.ExecuteNonQuery() > 0;
@@ -227,6 +294,8 @@ namespace NSAP_ODK.Entities
             }
             return success;
         }
+
+       
         private bool UpdateMySQL(LandingSite ls)
         {
             bool success = false;
@@ -317,6 +386,7 @@ namespace NSAP_ODK.Entities
                         {
                             update.Parameters.Add("@brgy", OleDbType.VarChar).Value = ls.Barangay;
                         }
+                        update.Parameters.Add("@sampling_type", OleDbType.Integer).Value = (int)ls.LandingSiteTypeOfSampling;
                         update.Parameters.Add("@id", OleDbType.Integer).Value = ls.LandingSiteID;
 
                         update.CommandText = @"Update LandingSite set
@@ -324,7 +394,8 @@ namespace NSAP_ODK.Entities
                                             Municipality = @muni,
                                             Longitude = @lon,
                                             Latitude = @lat,
-                                            Barangay = @brgy
+                                            Barangay = @brgy,
+                                            TypeOfSampling = @sampling_type
                                             WHERE LandingSiteID=@id";
                         try
                         {

@@ -41,7 +41,8 @@ namespace NSAP_ODK.Entities
         Municipality,
         GPS,
         DBSummary,
-        SpeciesName
+        SpeciesName,
+        LandingSiteFishingGround
     }
 
 

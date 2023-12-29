@@ -4,10 +4,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NSAP_ODK.Entities.Database;
+using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
 namespace NSAP_ODK.Entities
 {
+
     public class LandingSite
     {
+        public string TypeOfSamplingInLandingSite
+        {
+            get { return LandingSiteSampling.LandingSiteSamplingTypeToString(LandingSiteTypeOfSampling); }
+        }
+
+        [ItemsSource(typeof(int))]
+        public LandingSiteTypeOfSampling LandingSiteTypeOfSampling { get; set; }
+
         public List<NSAPRegionFMAFishingGround> FishingGrounds { get; set; } = new List<NSAPRegionFMAFishingGround>();
 
         public string FishingGroundList
@@ -40,12 +50,12 @@ namespace NSAP_ODK.Entities
 
         public bool IsUsed { get; set; }
 
-        public int?CountLandings
+        public int? CountLandings
         {
             get
             {
                 return NSAPEntities.SummaryItemViewModel.SummaryItemCollection
-                    .Where(t=>t.LandingSiteID==LandingSiteID)
+                    .Where(t => t.LandingSiteID == LandingSiteID)
                     .Count(t => t.LandingSiteHasOperation);
             }
         }
@@ -74,6 +84,8 @@ namespace NSAP_ODK.Entities
                 return LandingSiteID == otherLS.LandingSiteID;
             }
         }
+
+        //public LandingSiteFishingGroundViewModel LandingSiteFishingGroundViewModel { get; set; }
         public LandingSite_FishingVesselViewModel LandingSite_FishingVesselViewModel { get; set; }
         public override int GetHashCode()
         {

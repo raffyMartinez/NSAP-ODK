@@ -69,6 +69,7 @@ namespace NSAP_ODK.Entities
                                 g.IsGenericGear = (bool)dr["IsGeneric"];
                                 g.Code = dr["GearCode"].ToString().ToUpper();
                                 g.GearIsNotUsed = (bool)dr["GearIsNotUsed"];
+                                g.IsUsedInLargeCommercial = (bool)dr["IsUsedInLargeCommercial"];
                                 listGears.Add(g);
                             }
                         }
@@ -140,11 +141,13 @@ namespace NSAP_ODK.Entities
             {
                 using (var cmd = con.CreateCommand())
                 {
-                    switch(colName)
+                    switch (colName)
                     {
+                        case "IsUsedInLargeCommercial":
                         case "GearIsNotUsed":
                             sql = $"ALTER TABLE gear ADD COLUMN {colName} YESNO";
                             break;
+
                     }
 
                     cmd.CommandText = sql;
@@ -155,13 +158,13 @@ namespace NSAP_ODK.Entities
                         cmd.ExecuteNonQuery();
                         success = true;
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Logger.Log(ex);
                     }
                 }
             }
-                return success;
+            return success;
         }
         public bool Add(Gear g)
         {
@@ -175,7 +178,7 @@ namespace NSAP_ODK.Entities
                 using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
                     conn.Open();
-                    var sql = "Insert into gear (GearName,GearCode,GenericCode,IsGeneric,GearIsNotUsed) Values (?,?,?,?,?)";
+                    var sql = "Insert into gear (GearName,GearCode,GenericCode,IsGeneric,GearIsNotUsed) Values (?,?,?,?,?,?)";
 
                     using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
@@ -191,6 +194,7 @@ namespace NSAP_ODK.Entities
                         }
                         update.Parameters.Add("@isgeneric", OleDbType.Boolean).Value = g.IsGenericGear;
                         update.Parameters.Add("@is_not_used", OleDbType.Boolean).Value = g.GearIsNotUsed;
+                        update.Parameters.Add("@islargecommercial", OleDbType.Boolean).Value = g.IsUsedInLargeCommercial;
                         try
                         {
                             success = update.ExecuteNonQuery() > 0;
@@ -262,13 +266,15 @@ namespace NSAP_ODK.Entities
                         update.Parameters.Add("@genericcode", OleDbType.VarChar).Value = g.BaseGear.Code.ToUpper();
                         update.Parameters.Add("@isgeneric", OleDbType.Boolean).Value = g.IsGenericGear;
                         update.Parameters.Add("@is_not_used", OleDbType.Boolean).Value = g.GearIsNotUsed;
+                        update.Parameters.Add("@islargecommercial", OleDbType.Boolean).Value = g.IsUsedInLargeCommercial;
                         update.Parameters.Add("@gearcode", OleDbType.VarChar).Value = g.Code.ToUpper();
 
                         update.CommandText = @"UPDATE gear SET
                                            GearName = @gearname,
                                            GenericCode = @genericcode,
                                            IsGeneric = @isgeneric,
-                                           GearIsNotUsed = @is_not_used
+                                           GearIsNotUsed = @is_not_used,
+                                           IsUsedInLargeCommercial = @islargecommercial
                                            WHERE GearCode = @gearcode";
                         try
                         {
@@ -299,7 +305,7 @@ namespace NSAP_ODK.Entities
                 using (var update = conn.CreateCommand())
                 {
                     update.Parameters.Add("@code", MySqlDbType.VarChar).Value = code;
-                    update.CommandText = "Delete  from gears where gear_code=@code";
+                    update.CommandText = "Delete from gears where gear_code=@code";
                     try
                     {
                         conn.Open();

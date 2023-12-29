@@ -1361,6 +1361,7 @@ namespace NSAP_ODK
                     dataGridEntities.Columns.Add(new DataGridCheckBoxColumn { Header = "Is generic gear", Binding = new Binding("IsGenericGear") });
                     dataGridEntities.Columns.Add(new DataGridTextColumn { Header = "Base gear", Binding = new Binding("BaseGear") });
                     dataGridEntities.Columns.Add(new DataGridCheckBoxColumn { Header = "Not used", Binding = new Binding("GearIsNotUsed") });
+                    dataGridEntities.Columns.Add(new DataGridCheckBoxColumn { Header = "Gear is used in large commercial vessels", Binding = new Binding("IsUsedInLargeCommercial") });
                     break;
 
                 case NSAPEntity.FishingGround:
@@ -1387,6 +1388,8 @@ namespace NSAP_ODK
                     dataGridEntities.Columns.Add(new DataGridTextColumn { Header = "Longitude", Binding = new Binding("Longitude") });
                     dataGridEntities.Columns.Add(new DataGridTextColumn { Header = "Latitude", Binding = new Binding("Latitude") });
                     dataGridEntities.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("WhereUsed") });
+                    dataGridEntities.Columns.Add(new DataGridTextColumn { Header = "Type of sampling", Binding = new Binding("TypeOfSamplingInLandingSite") });
+
                     break;
 
                 case NSAPEntity.NSAPRegion:
@@ -3941,7 +3944,7 @@ namespace NSAP_ODK
         private async void OnSelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {
             //_monthYear = null;
-            if (_monthYear == null)
+            if (_monthYear == null && _treeItemData!=null)
             {
                 _monthYear = _treeItemData.MonthSampled;
             }

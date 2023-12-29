@@ -2427,6 +2427,174 @@ namespace NSAP_ODK.Entities.Database
             }
 
         }
+
+        public class CBS_CatcherBoat
+        {
+            [JsonProperty("G_CBO/R_CB/G_ct_b/fishing_operation_date")]
+            public DateTime DateOfOperation { get; set; }
+
+            [JsonProperty("G_CBO/R_CB/G_ct_b/gear_code_catcher")]
+            public string GearCode { get; set; }
+
+            //[JsonProperty("G_CBO/R_CB/G_ct_b/gear_of_catcher")]
+            //public string G_CBOR_CBG_ct_bgear_of_catcher { get; set; }
+
+            [JsonProperty("G_CBO/R_CB/G_ct_b/name_catcher")]
+            public string NameCatcherBoat { get; set; }
+
+            [JsonProperty("G_CBO/R_CB/G_ct_b/weight_catch_catcher")]
+            public double? WeightOfCatch{ get; set; }
+        }
+
+        public class CBS_GonadalMaturity
+        {
+            //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_gms/G_ct_cc_gms/cbs_combined_gms_fields")]
+            //public string G_CBOR_ct_ccG_ct_cc_outR_ct_cc_gmsG_ct_cc_gmscbs_combined_gms_fields { get; set; }
+
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_gms/G_ct_cc_gms/cbs_gms_gonad_wt")]
+            public string GonadWt { get; set; }
+
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_gms/G_ct_cc_gms/cbs_gms_gut_content_category")]
+            public string GutContentCategory { get; set; }
+
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_gms/G_ct_cc_gms/cbs_gms_len")]
+            public string Length { get; set; }
+
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_gms/G_ct_cc_gms/cbs_gms_sex")]
+            public string Sex { get; set; }
+
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_gms/G_ct_cc_gms/cbs_gms_stage")]
+            public string GMS_Stage { get; set; }
+
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_gms/G_ct_cc_gms/cbs_gms_stomach_content_wt")]
+            public string StomachContentWt { get; set; }
+
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_gms/G_ct_cc_gms/cbs_gms_wt")]
+            public string Weight { get; set; }
+
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_gms/G_ct_cc_gms/cbs_gms_wt_kg")]
+            public string Weight_kg { get; set; }
+        }
+
+        public class CBS_Length
+        {
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_l/G_ct_cc_l/cbs_individual_length")]
+            public string Length { get; set; }
+
+            //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_l/G_ct_cc_l/cbs_ll_grp_title")]
+            //public string G_CBOR_ct_ccG_ct_cc_outR_ct_cc_lG_ct_cc_lcbs_ll_grp_title { get; set; }
+        }
+
+        public class CBS_LenFreq
+        {
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_lf/G_ct_cc_lf/cbs_lf_freq")]
+            public string Freq { get; set; }
+
+            //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_lf/G_ct_cc_lf/cbs_lf_grp_title")]
+            //public string G_CBOR_ct_ccG_ct_cc_outR_ct_cc_lfG_ct_cc_lfcbs_lf_grp_title { get; set; }
+
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_lf/G_ct_cc_lf/cbs_lf_len")]
+            public string Length { get; set; }
+        }
+
+        public class CBS_LenWt
+        {
+            //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_lw/G_ct_cc_lw/cbs_lw_grp_title")]
+            //public string G_CBOR_ct_ccG_ct_cc_outR_ct_cc_lwG_ct_cc_lwcbs_lw_grp_title { get; set; }
+
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_lw/G_ct_cc_lw/cbs_lw_len")]
+            public string Length { get; set; }
+
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_lw/G_ct_cc_lw/cbs_lw_wt")]
+            public string Weight { get; set; }
+
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_lw/G_ct_cc_lw/cbs_lw_wt_kg")]
+            public string Weight_kg { get; set; }
+        }
+
+        public class CBS_CatchComposition
+        {
+            //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_cc_grp_title")]
+            //public string G_CBOR_ct_ccG_ct_cc_outG_ct_cccbs_cc_grp_title { get; set; }
+
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_count_individuals_measured")]
+            public string CountIndividualsMeasured { get; set; }
+
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_count_length_class")]
+            public string CountLengthClasses { get; set; }
+
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_determine_gms")]
+            public string DetermineGMS { get; set; }
+
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_individual_wt_unit")]
+            public string WeightUnit { get; set; }
+
+            public bool HasLengthMeasurement { get { return ListOfLengthMeasurements.Contains("length_list"); } }
+            public bool HasLenFreqMeasurement { get { return ListOfLengthMeasurements.Contains("length_freq"); } }
+            public bool HasLenWtMeasurement { get { return ListOfLengthMeasurements.Contains("length_wt"); } }
+
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_len_type")]
+            public string ListOfLengthMeasurements { get; set; }
+
+            //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_search_species")]
+            //public string G_CBOR_ct_ccG_ct_cc_outG_ct_cccbs_search_species { get; set; }
+
+            //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_select_spName")]
+            //public string G_CBOR_ct_ccG_ct_cc_outG_ct_cccbs_select_spName { get; set; }
+
+            //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_show_taxa_image")]
+            //public string G_CBOR_ct_ccG_ct_cc_outG_ct_cccbs_show_taxa_image { get; set; }
+
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_sp_id")]
+            public int? SpeciesID { get; set; }
+
+            //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_species")]
+            //public string G_CBOR_ct_ccG_ct_cc_outG_ct_cccbs_species { get; set; }
+
+            //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_species_csv_source")]
+            //public string G_CBOR_ct_ccG_ct_cc_outG_ct_cccbs_species_csv_source { get; set; }
+
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_species_name_selected")]
+            public string SpeciesName { get; set; }
+
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_species_wt")]
+            public double? SpeciesWeight { get; set; }
+
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_taxa")]
+            public string SelectedTaxa { get; set; }
+
+            public Taxa Taxa { get { return NSAPEntities.TaxaViewModel.GetTaxa(SelectedTaxa); } }
+
+            //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_taxa_no_im")]
+            //public string G_CBOR_ct_ccG_ct_cc_outG_ct_cccbs_taxa_no_im { get; set; }
+
+            //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_wt_unit_name")]
+            //public string G_CBOR_ct_ccG_ct_cc_outG_ct_cccbs_wt_unit_name { get; set; }
+
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_gms")]
+            public List<CBS_GonadalMaturity> GonadalMaturities { get; set; }
+
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_gms_count")]
+            public int? CountMaturityMeasurements { get; set; }
+
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_l")]
+            public List<CBS_Length> Lengths { get; set; }
+
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_l_count")]
+            public int? CountLenghtMeasurements { get; set; }
+
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_lf")]
+            public List<CBS_LenFreq> LenFreqs { get; set; }
+
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_lf_count")]
+            public string CountLenFreqMeasurements { get; set; }
+
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_lw")]
+            public List<CBS_LenWt> LenWts { get; set; }
+
+            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_lw_count")]
+            public string CountLenWtMeasurements { get; set; }
+        }
         public List<MultiVessel_Optimized_SampledLanding> SampledFishLandingsEx
         {
             get
@@ -2463,6 +2631,36 @@ namespace NSAP_ODK.Entities.Database
                 return list.OrderByDescending(t => t.SamplingDate).ToList();
             }
         }
+
+        [JsonProperty("G_CBO/G_cbd/carrier_boat_name")]
+        public string CarrierBoatName { get; set; }
+
+        [JsonProperty("G_CBO/G_cbd/cbs_sampling_time")]
+        public DateTime? SamplingTimeOfCarrierBoat { get; set; }
+
+        [JsonProperty("G_CBO/G_cbd/count_catcher_boats")]
+        public int? CountCatcherBoats { get; set; }
+
+        [JsonProperty("G_CBO/G_cbd/count_species_of_carrier")]
+        public int? CountSpeciesSampledFromCarrierBoat { get; set; }
+
+        [JsonProperty("G_CBO/G_cbd/know_catch_wt_catchers")]
+        public string KnowWeightOfCatchOfCatcherBoats { get; set; }
+
+        [JsonProperty("G_CBO/G_cbd/know_catcher_boats")]
+        public string KnowCatcherBoatDetails { get; set; }
+
+        [JsonProperty("G_CBO/R_CB")]
+        public List<CBS_CatcherBoat> CatcherBoats { get; set; }
+
+        //[JsonProperty("G_CBO/R_CB_count")]
+        //public int? CountCatcherBoats { get; set; }
+
+        [JsonProperty("G_CBO/R_ct_cc")]
+        public List<CBS_CatchComposition> CarrierBoatCatchComposition { get; set; }
+
+        //[JsonProperty("G_CBO/R_ct_cc_count")]
+        //public string G_CBOR_ct_cc_count { get; set; }
         public int _id { get; set; }
 
         //[JsonProperty("formhub/uuid")]

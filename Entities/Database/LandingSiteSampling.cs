@@ -7,6 +7,11 @@ using System.Threading.Tasks;
 
 namespace NSAP_ODK.Entities.Database
 {
+    public enum LandingSiteTypeOfSampling
+    {
+        SamplingTypeRegular,
+        SamplingTypeCommercialCarrierBoats
+    }
     public class LandingSiteSamplingSummarized
     {
         public LandingSiteSamplingSummarized(LandingSiteSampling lss, bool fromSummaryItem = false)
@@ -65,11 +70,11 @@ namespace NSAP_ODK.Entities.Database
             ForDeletion = false;
         }
 
-        public DateTime MonthOfSampling { get;  set; }
+        public DateTime MonthOfSampling { get; set; }
 
         public LandingSiteSampling LandingSiteSampling { get; set; }
 
-        public string LandingSite { get;  set; }
+        public string LandingSite { get; set; }
         public int NumberOfVesselUnloads { get; set; }
         public int NumberOfVesselUnloadsWithCatchComposition { get; set; }
         public bool IsSamplingDay { get; set; }
@@ -131,6 +136,20 @@ namespace NSAP_ODK.Entities.Database
         private FishingGround _fishingGround;
         private List<GearInLandingSite> _gearsInLandingSite;
 
+        public static string LandingSiteSamplingTypeToString(LandingSiteTypeOfSampling typeOfSampling)
+        {
+            string samplingType = "";
+            switch (typeOfSampling)
+            {
+                case LandingSiteTypeOfSampling.SamplingTypeRegular:
+                    samplingType =  "Regular sampling";
+                    break;
+                case LandingSiteTypeOfSampling.SamplingTypeCommercialCarrierBoats:
+                    samplingType = "Carrier boats only";
+                    break;
+            }
+            return samplingType;
+        }
         public List<GearInLandingSite> GearsInLandingSite
         {
             get

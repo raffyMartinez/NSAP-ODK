@@ -30,7 +30,9 @@ namespace NSAP_ODK.Entities.Database
             if (TotalWtSpRepository.CheckForTWSPTable() &&
                 VesselUnloadRepository.CheckForWtValidationTable() &&
                 LandingSiteSamplingSubmissionRepository.CheckForLSS_SubmissionIDTable() &&
-                UnmatchedFieldsFromJSONFileRepository.CheckTableExist())
+                UnmatchedFieldsFromJSONFileRepository.CheckTableExist()) //&&
+                                                                         //LandingSiteFishingGroundRepository.CheckForLandingSiteFishingGroundTable()
+                                                                         //)
             {
                 var cols = CreateTablesInAccess.GetColumnNames("dbo_LC_FG_sample_day");
                 if (cols.Contains("has_fishing_operation") || UpdateTableDefinition("has_fishing_operation") &&
@@ -62,10 +64,14 @@ namespace NSAP_ODK.Entities.Database
                             }
                         }
                     }
+
                     if (proceed)
                     {
                         cols = CreateTablesInAccess.GetColumnNames("gear");
-                        proceed = cols.Contains("GearIsNotUsed") || GearRepository.AddFieldToTable("GearIsNotUsed");
+                        if (cols.Contains("GearIsNotUsed") || GearRepository.AddFieldToTable("GearIsNotUsed"))
+                        {
+                            proceed = cols.Contains("IsUsedInLargeCommercial") || GearRepository.AddFieldToTable("IsUsedInLargeCommercial");
+                        }
                     }
 
                     if (proceed)
@@ -296,10 +302,13 @@ namespace NSAP_ODK.Entities.Database
                         if (proceed)
                         {
                             cols = CreateTablesInAccess.GetColumnNames("nsapRegion");
-                            if (cols.Contains("IsTotalEnumerationOnly") || await NSAPRegionRepository.AddFieldToTableAsync("IsTotalEnumerationOnly"))
-                            {
+                            proceed = cols.Contains("IsTotalEnumerationOnly") || await NSAPRegionRepository.AddFieldToTableAsync("IsTotalEnumerationOnly");
+                        }
 
-                            }
+                        if (proceed)
+                        {
+                            cols = CreateTablesInAccess.GetColumnNames("landingSite");
+                            proceed = cols.Contains("TypeOfSampling") || await LandingSiteRepository.AddFieldToTableAsync("TypeOfSampling");
                         }
 
                     }

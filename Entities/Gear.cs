@@ -30,6 +30,7 @@ namespace NSAP_ODK.Entities
     }
     public class GearEdit
     {
+        public bool IsUsedInLargeCommercial { get; set; }
         public Gear Save(bool isNew)
         {
             IsNew = isNew;
@@ -41,7 +42,7 @@ namespace NSAP_ODK.Entities
             Gear.Code = Code;
             Gear.IsGenericGear = IsGeneric;
             Gear.GearIsNotUsed = GearIsNotUsed;
-
+            Gear.IsUsedInLargeCommercial = IsUsedInLargeCommercial;
 
             if (IsNew)
             {
@@ -135,6 +136,7 @@ namespace NSAP_ODK.Entities
             IsGeneric = gear.IsGenericGear;
             IsNew = false;
             GearIsNotUsed = gear.GearIsNotUsed;
+            IsUsedInLargeCommercial = gear.IsUsedInLargeCommercial;
 
             if(gear.GearEffortSpecificationViewModel==null)
             {
@@ -214,5 +216,7 @@ namespace NSAP_ODK.Entities
                 _code = value;
             }
         }
+
+        public bool IsUsedInLargeCommercial { get; set; }
     }
 }

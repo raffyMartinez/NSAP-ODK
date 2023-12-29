@@ -204,6 +204,9 @@
     <Compile Include="Entities\Database\EntityBulkImportEventArg.cs" />
     <Compile Include="Entities\Database\FileInfoJSONMetadata.cs" />
     <Compile Include="Entities\Database\GearInLandingSite.cs" />
+    <Compile Include="Entities\Database\LandingSiteFishingGround.cs" />
+    <Compile Include="Entities\Database\LandingSiteFishingGroundRepository.cs" />
+    <Compile Include="Entities\Database\LandingSiteFishingGroundViewModel.cs" />
     <Compile Include="Entities\Database\LandingSiteSamplingSubmission.cs" />
     <Compile Include="Entities\Database\LandingSiteSamplingSubmissionRepository.cs" />
     <Compile Include="Entities\Database\LandingSiteSamplingSubmissionViewModel.cs" />
@@ -384,6 +387,7 @@
     <Compile Include="Entities\ItemSources\SexItemsSource.cs" />
     <Compile Include="Entities\ItemSources\SpeciesFromGenusItemsSource.cs" />
     <Compile Include="Entities\ItemSources\TaxaItemSourceNotFish.cs" />
+    <Compile Include="Entities\ItemSources\TypeOfSamplingItemsSource.cs" />
     <Compile Include="Entities\ItemSources\UTMZoneItemsSource.cs" />
     <Compile Include="Entities\KoboForms.cs" />
     <Compile Include="Entities\Koboform_files.cs" />

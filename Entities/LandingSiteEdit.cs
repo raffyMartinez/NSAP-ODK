@@ -1,6 +1,8 @@
 ﻿using System.ComponentModel;
 using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
 using NSAP_ODK.Entities.ItemSources;
+using NSAP_ODK.Entities.Database;
+using System.Security.Cryptography.X509Certificates;
 
 namespace NSAP_ODK.Entities
 {
@@ -22,6 +24,9 @@ namespace NSAP_ODK.Entities
             Longitude = ls.Longitude;
             Barangay = ls.Barangay;
             CountFishingVessels = ls.LandingSite_FishingVesselViewModel.Count;
+            //CountFishingGrounds = ls.LandingSiteFishingGroundViewModel.Count;
+            LandingSiteTypeOfSampling = ls.LandingSiteTypeOfSampling;
+
             //CountFishingVessels = ls.CountFishingVessels;
         }
         public string Barangay { get; set; }
@@ -30,7 +35,11 @@ namespace NSAP_ODK.Entities
             IsNew = true;
         }
 
+        [ItemsSource(typeof(TypeOfSamplingItemsSource))]
+        public LandingSiteTypeOfSampling LandingSiteTypeOfSampling { get; set; }
         public int? CountFishingVessels { get;  }
+
+        //public int? CountFishingGrounds { get; }
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
         [ReadOnly(true)]
