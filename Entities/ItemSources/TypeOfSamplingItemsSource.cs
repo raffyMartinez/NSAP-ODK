@@ -12,11 +12,13 @@ namespace NSAP_ODK.Entities.ItemSources
         public ItemCollection GetValues()
         {
             ItemCollection typesList = new ItemCollection();
-            foreach (var value in Enum.GetValues(typeof(LandingSiteTypeOfSampling)))
-            {
-                //typesList.Add((int)value, LandingSiteSampling.LandingSiteSamplingTypeToString((LandingSiteTypeOfSampling)((int)value)));
-                typesList.Add(value, LandingSiteSampling.LandingSiteSamplingTypeToString((LandingSiteTypeOfSampling)((int)value)));
-            }
+            typesList.Add("rs", LandingSiteSampling.LandingSiteSamplingType("rs")); 
+            typesList.Add("cbl", LandingSiteSampling.LandingSiteSamplingType("cbl")); 
+            //foreach (var value in Enum.GetValues(typeof(LandingSiteTypeOfSampling)))
+            //{
+            //    //typesList.Add((int)value, LandingSiteSampling.LandingSiteSamplingTypeToString((LandingSiteTypeOfSampling)((int)value)));
+            //    typesList.Add(value, LandingSiteSampling.LandingSiteSamplingTypeToString((LandingSiteTypeOfSampling)((int)value)));
+            //}
             return typesList;
 
         }

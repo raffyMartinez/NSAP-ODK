@@ -27,6 +27,7 @@ namespace NSAP_ODK.Entities
             Vessels = NSAPRegion.FishingVessels.Count;
             Enumerators = NSAPRegion.NSAPEnumerators.Count;
             IsTotalEnumerationOnly = NSAPRegion.IsTotalEnumerationOnly;
+            IsRegularSamplingOnly = NSAPRegion.IsRegularSamplingOnly;
             ID = NSAPRegion.Code;
         }
 
@@ -34,6 +35,8 @@ namespace NSAP_ODK.Entities
         {
             IsNew = true;
         }
+
+        public bool IsRegularSamplingOnly { get; set; }
 
         public bool IsTotalEnumerationOnly { get; set; }
 

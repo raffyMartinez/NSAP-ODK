@@ -1,4 +1,5 @@
-﻿using NSAP_ODK.Views;
+﻿using DocumentFormat.OpenXml.Bibliography;
+using NSAP_ODK.Views;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +22,8 @@ namespace NSAP_ODK.Entities.Database
         public GearUnload GearUnload
         {
             get { return _gearUnload; }
-            set {
+            set
+            {
                 _gearUnload = value;
                 LandingSiteSampling = _gearUnload.Parent;
             }
@@ -133,7 +135,7 @@ namespace NSAP_ODK.Entities.Database
                 }
 
                 //var grid = NSAPEntities.VesselUnloadViewModel.FirstGridLocation(_vesselUnload);
-                if(_vesselUnload.FishingGroundGridViewModel.FishingGroundGridCollection==null)
+                if (_vesselUnload.FishingGroundGridViewModel.FishingGroundGridCollection == null)
                 {
                     _vesselUnload.FishingGroundGridViewModel = new FishingGroundGridViewModel(_vesselUnload);
                 }
@@ -275,6 +277,118 @@ namespace NSAP_ODK.Entities.Database
         public bool IsCatchSold { get { return _vesselUnload.IsCatchSold; } }
 
         public bool IsBoatUsed { get { return _vesselUnload.IsBoatUsed; } }
+
+    }
+
+    public class CrossTabCarrierLandingVesselCatchCommon
+    {
+        private CrossTabCarrierLandingCommon _crosstabCarrierLandingCommon;
+        private VesselCatch _vesselCatch;
+
+        public CrossTabCarrierLandingVesselCatchCommon(VesselCatch vc, CrossTabCarrierLandingCommon ctlc)
+        {
+            _crosstabCarrierLandingCommon = ctlc;
+            _vesselCatch = vc;
+        }
+
+        public CrossTabCarrierLandingCommon CrossTabCarrierLandingCommon { get { return _crosstabCarrierLandingCommon; } }
+
+        public string CatchName { get { return _vesselCatch.CatchName; } }
+        public string Taxa { get { return _vesselCatch.Taxa.Name; } }
+
+        public string Family
+        {
+            get
+            {
+                if (_vesselCatch.TaxaCode == "FIS")
+                {
+                    return _vesselCatch.FishSpecies.Family;
+                }
+                else
+                {
+                    return _vesselCatch.Taxa.Name;
+                }
+            }
+        }
+
+        public double? Weight
+        {
+            get { return _vesselCatch.Catch_kg; }
+        }
+
+        public string WeightUnit
+        {
+            get { return _vesselCatch.WeighingUnit; }
+        }
+    }
+    public class CrossTabCarrierLandingCommon
+    {
+        private DateTime _samplingDate;
+        private LandingSiteSampling _landingSiteSampling;
+        private LandingSite _landingSite;
+        private CarrierLanding _carrierLanding;
+        private string _nsapEnumerator;
+
+        public CrossTabCarrierLandingCommon(CarrierLanding cl)
+        {
+            _landingSiteSampling = cl.Parent;
+            _samplingDate = cl.SamplingDate;
+            _carrierLanding = cl;
+            _landingSite = _landingSiteSampling.LandingSite;
+            _nsapEnumerator = _landingSiteSampling.EnumeratorName;
+        }
+
+
+        public List<FishingGround> FishingGrounds
+        {
+            get
+            {
+                if (_carrierLanding.CarrierBoatLanding_FishingGround_ViewModel == null)
+                {
+                    _carrierLanding.CarrierBoatLanding_FishingGround_ViewModel = new CarrierBoatLanding_FishingGround_ViewModel(_carrierLanding);
+                }
+                List<FishingGround> fgs = new List<FishingGround>();
+                foreach (var cbfg in _carrierLanding.CarrierBoatLanding_FishingGround_ViewModel.CarrierBoatLanding_FishingGroundCollection)
+                {
+                    fgs.Add(cbfg.FishingGround);
+                }
+                return fgs;
+            }
+        }
+
+        public string FishingGroundNames
+        {
+            get
+            {
+
+                return _carrierLanding.FishingGroundNames;
+            }
+        }
+        public string CatcherBoatNames
+        {
+            get { return _carrierLanding.CatcherBoatNames; }
+        }
+        public int NumberOfFishingGrounds
+        {
+            get
+            {
+
+                return _carrierLanding.CarrierBoatLanding_FishingGround_ViewModel.Count;
+            }
+        }
+
+        public int? NumberOfCatchers { get { return _carrierLanding.CountCatchers; } }
+        public int NumberOfSpeciesInCatch { get { return _carrierLanding.CountSpeciesComposition; } }
+        public CarrierLanding CarrierLanding { get { return _carrierLanding; } }
+        public LandingSiteSampling LandingSiteSampling { get { return _landingSiteSampling; } }
+        public LandingSite LandingSite { get { return _landingSite; } }
+
+        public DateTime SamplingDate { get { return _samplingDate; } }
+
+        public string NSAPEnumerator { get { return _nsapEnumerator; } }
+
+        public double? WeightOfCatch { get { return _carrierLanding.WeightOfCatch; } }
+
 
     }
     public class CrossTabCommon

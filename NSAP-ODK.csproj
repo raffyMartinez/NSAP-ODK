@@ -186,6 +186,15 @@
     <Compile Include="Entities\Database\BoatLandingsFromServerRepository.cs" />
     <Compile Include="Entities\Database\BuildSummaryReportEventArg.cs" />
     <Compile Include="Entities\Database\CalendarDayLineage.cs" />
+    <Compile Include="Entities\Database\CarrierBoatLanding_FishingGround.cs" />
+    <Compile Include="Entities\Database\CarrierBoatLanding_FishingGroundRepository.cs" />
+    <Compile Include="Entities\Database\CarrierBoatLanding_FishingGround_ViewModel.cs" />
+    <Compile Include="Entities\Database\CarrierLanding.cs" />
+    <Compile Include="Entities\Database\CarrierLandingRepository.cs" />
+    <Compile Include="Entities\Database\CarrierLandingViewModel.cs" />
+    <Compile Include="Entities\Database\CatcherBoatOperation.cs" />
+    <Compile Include="Entities\Database\CatcherBoatOperationRepository.cs" />
+    <Compile Include="Entities\Database\CatcherBoatOperation_ViewModel.cs" />
     <Compile Include="Entities\Database\CatchWeightValidation.cs" />
     <Compile Include="Entities\Database\CatchWithZeroWeight.cs" />
     <Compile Include="Entities\Database\CollectedUnrecognizedFG.cs" />
@@ -525,6 +534,7 @@
     <Compile Include="NSAPMysql\TablesStats.cs" />
     <Compile Include="NSAPMysql\TableStats.cs" />
     <Compile Include="Oware\LatLngUTMConverter.cs" />
+    <Compile Include="Utilities\DateTimePickerEditor1.cs" />
     <Compile Include="Utilities\GridCellHelper.cs" />
     <Compile Include="Utilities\MD5.cs" />
     <Compile Include="Utilities\MDBColumnInfo.cs" />
@@ -558,6 +568,9 @@
     </Compile>
     <Compile Include="Views\backupMySQLWindow.xaml.cs">
       <DependentUpon>backupMySQLWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\CarrierBoatLandingEditor.xaml.cs">
+      <DependentUpon>CarrierBoatLandingEditor.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\DeleteOptionWindow.xaml.cs">
       <DependentUpon>DeleteOptionWindow.xaml</DependentUpon>
@@ -745,6 +758,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\backupMySQLWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\CarrierBoatLandingEditor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -1035,6 +1052,11 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Views\icons fish-01.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\cbl_calendar.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -15,17 +15,21 @@ namespace NSAP_ODK.Entities.Database
         calendarViewTypeCountAllLandingsByGear,
         calendarViewTypeWeightAllLandingsByGear,
         calendarViewTypeCountAllLandings,
-        calendarViewTypeGearDailyLandings
+        calendarViewTypeGearDailyLandings,
+        calendarViewTypeCarrierLandings
     }
     public class FishingCalendarDay
     {
-
+        public List<bool> HasLanding { get; set; }
+        public string CarrierBoatName { get; set; }
         public List<bool> IsProcessed { get; set; }
         public Gear Gear { get; set; }
 
         public string Sector { get; set; } //added oct 21 2022
         public string GearName { get; set; }
         public DateTime MonthYear { get; set; }
+
+        public List<CarrierLanding> CarrierLandings { get; set; }
         public List<GearUnload> GearUnloads { get; set; }
         public List<int?> CountGearTypes { get; set; }
         public List<int?> NumberOfBoatsPerDay { get; set; }
@@ -62,6 +66,34 @@ namespace NSAP_ODK.Entities.Database
         public int CountVesselUnloads { get; set; }
         public DataTable DataTable { get; set; }
 
+        public void BuildCarrierLandingCalendar()
+        {
+            DataTable = new DataTable();
+            DataTable.Columns.Add("CarrierName");
+            for (int n = 1; n <= _numberOfDays; n++)
+            {
+                DataTable.Columns.Add(n.ToString());
+            }
+            foreach (var item in _fishingCalendarList)
+            {
+                var row = DataTable.NewRow();
+                row["CarrierName"] = item.CarrierBoatName;
+                int counter = 1;
+                foreach(var day in item.HasLanding)
+                {
+                    if (day)
+                    {
+                        row[counter.ToString()] = "x";
+                    }
+                    else
+                    {
+                        row[counter.ToString()] = "";
+                    }
+                    counter++;
+                }
+                DataTable.Rows.Add(row);
+            }
+        }
         public void BuildCalendar(CalendarViewType calendarView)
         {
             DataTable = new DataTable();
@@ -156,6 +188,66 @@ namespace NSAP_ODK.Entities.Database
         public List<GearUnload> UnloadList { get; private set; }
         public List<Day_GearLanded> Day_GearLandedList { get; private set; }
 
+        public FishingCalendarViewModel(List<CarrierLanding> landings, DateTime monthYear, LandingSite ls)
+        {
+            var fishingCalendarDays = new ObservableCollection<FishingCalendarDay>();
+            _numberOfDays = DateTime.DaysInMonth(monthYear.Year, monthYear.Month);
+
+
+            FishingCalendarDay fishingCalendarDay = null;
+            List<string> carrierNames = new List<string>();
+            foreach (CarrierLanding cl in landings.OrderBy(t => t.CarrierName).ThenBy(t => t.SamplingDate))
+            {
+                if (!carrierNames.Contains(cl.CarrierName))
+                {
+                    fishingCalendarDay = new FishingCalendarDay
+                    {
+                        CarrierBoatName = cl.CarrierName,
+                        MonthYear = monthYear
+                    };
+                    fishingCalendarDay.HasLanding = new List<bool>();
+                    fishingCalendarDay.IsProcessed = new List<bool>();
+                    fishingCalendarDay.CarrierLandings = new List<CarrierLanding>();
+                    
+                    for (int n = 1; n <= _numberOfDays; n++)
+                    {
+                        if(cl.SamplingDate.Day==n)
+                        {
+                            fishingCalendarDay.HasLanding.Add(true);
+                            fishingCalendarDay.IsProcessed.Add(true);
+                            fishingCalendarDay.CarrierLandings.Add(cl);
+                        }
+                        else
+                        {
+                            fishingCalendarDay.HasLanding.Add(false);
+                            fishingCalendarDay.IsProcessed.Add(false);
+                            fishingCalendarDay.CarrierLandings.Add(null);
+                        }
+                    }
+                    fishingCalendarDays.Add(fishingCalendarDay);
+                    carrierNames.Add(cl.CarrierName);
+                }
+                else
+                {
+                    int day = cl.SamplingDate.Day - 1;
+                    //if (!fishingCalendarDay.IsProcessed[day])
+                    //{
+                    //    //fishingCalendarDay.HasLanding[day] = true;
+                    //}
+                    //else
+                    //{
+
+                    //}
+                    fishingCalendarDay.CarrierLandings[day] = cl;
+                     fishingCalendarDay.HasLanding[day] = true;
+                }
+
+            }
+
+            FishingCalendarList = fishingCalendarDays;
+            //BuildCalendar(CalendarViewType.calendarViewTypeCarrierLandings);
+            BuildCarrierLandingCalendar();
+        }
         public FishingCalendarViewModel(List<Day_GearLanded> day_GearLandedList, DateTime monthYear, TreeViewModelControl.AllSamplingEntitiesEventHandler e)
         {
             _e = e;
@@ -177,6 +269,7 @@ namespace NSAP_ODK.Entities.Database
                 {
                     ListDayIsSamplingDay.Add(null);
                 }
+
             }
 
 

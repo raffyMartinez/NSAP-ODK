@@ -60,6 +60,23 @@ namespace NSAP_ODK.Entities.Database
             }
             catch { return null; }
         }
+
+        public SamplingDaySubmission GetSamplingDaySubmissionEx(int landingSiteID, string typeOfSampling, DateTime samplingDate)
+        {
+            try
+            {
+                SamplingDaySubmission sds = SamplingDaySubmissionCollection.Where(t =>
+                                t.SamplingDate.Date == samplingDate.Date &&
+                                t.TypeOfSampling == typeOfSampling &&
+                                t.LandingSiteID == landingSiteID).FirstOrDefault();
+
+                return sds;
+            }
+            catch
+            {
+                return null;
+            }
+        }
         public SamplingDaySubmission GetSamplingDaySubmission(int landingSiteID, string fishingGroundID, DateTime samplingDate)
         {
             try
@@ -90,10 +107,19 @@ namespace NSAP_ODK.Entities.Database
             {
                 SamplingDate = lss.SamplingDate,
                 //LandingSiteID = lss?.LandingSite.LandingSiteID,
-                FishingGroundID = lss.FishingGround.Code,
+                //FishingGroundID = lss.FishingGround.Code,
                 SamplingDayID = lss.PK,
-                LandingSiteSampling = lss
+                LandingSiteSampling = lss,
+                TypeOfSampling = lss.LandingSiteTypeOfSampling
             };
+            if(lss.FishingGround==null)
+            {
+
+            }
+            else
+            {
+                lss.FishingGroundID = lss.FishingGround.Code;
+            }
             if(lss.LandingSite!=null)
             {
                 sds.LandingSiteID = lss.LandingSite.LandingSiteID;

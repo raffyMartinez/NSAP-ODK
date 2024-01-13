@@ -20,6 +20,10 @@ namespace NSAP_ODK.Entities.Database
 
         private string _newColumnName;
 
+        public VesselCatchRepository(CarrierLanding cl)
+        {
+            VesselCatches = getVesselCatches(cl);
+        }
         public VesselCatchRepository(VesselUnload_FishingGear vufg)
         {
             VesselCatches = getVesselCatches(vufg);
@@ -444,10 +448,51 @@ namespace NSAP_ODK.Entities.Database
             return thisList;
         }
 
-        private List<VesselCatch> getVesselCatches(VesselUnload_FishingGear vufg)
+        private List<VesselCatch> getVesselCatches(CarrierLanding cl)
         {
             List<VesselCatch> thisList = new List<VesselCatch>();
             if(Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@id", cl.RowID);
+                        cmd.CommandText = "Select * from dbo_vessel_catch where carrierlanding_id=@id";
+                        con.Open();
+                        OleDbDataReader dr = cmd.ExecuteReader();
+                        while (dr.Read())
+                        {
+
+                            VesselCatch item = new VesselCatch();
+                            item.ParentCarrierLanding = cl;
+                            item.PK = (int)dr["catch_id"];
+                            item.SpeciesID = string.IsNullOrEmpty(dr["species_id"].ToString()) ? null : (int?)dr["species_id"];
+                            item.Catch_kg = string.IsNullOrEmpty(dr["catch_kg"].ToString()) ? null : (double?)dr["catch_kg"];
+                            item.Sample_kg = string.IsNullOrEmpty(dr["samp_kg"].ToString()) ? null : (double?)dr["samp_kg"];
+                            item.TaxaCode = dr["taxa"].ToString();
+                            item.SpeciesText = dr["species_text"].ToString();
+                            item.CatchLenFreqViewModel = new CatchLenFreqViewModel(item);
+                            item.CatchLengthViewModel = new CatchLengthViewModel(item);
+                            item.CatchLengthWeightViewModel = new CatchLengthWeightViewModel(item);
+                            item.CatchMaturityViewModel = new CatchMaturityViewModel(item);
+                            item.WeighingUnit = dr["weighing_unit"].ToString();
+                            thisList.Add(item);
+
+                        }
+                    }
+                }
+            }
+            return thisList;
+        }
+        private List<VesselCatch> getVesselCatches(VesselUnload_FishingGear vufg)
+        {
+            List<VesselCatch> thisList = new List<VesselCatch>();
+            if (Global.Settings.UsemySQL)
             {
 
             }
@@ -461,33 +506,33 @@ namespace NSAP_ODK.Entities.Database
                         cmd.CommandText = "Select * from dbo_vessel_catch where vessel_unload_gear_id=@id";
                         con.Open();
                         OleDbDataReader dr = cmd.ExecuteReader();
-                        while(dr.Read())
+                        while (dr.Read())
                         {
 
-                                VesselCatch item = new VesselCatch();
-                                item.ParentFishingGear = vufg;
-                                item.PK = (int)dr["catch_id"];
-                                item.VesselUnloadID = vufg.Parent.PK;
-                                item.SpeciesID = string.IsNullOrEmpty(dr["species_id"].ToString()) ? null : (int?)dr["species_id"];
-                                item.Catch_kg = string.IsNullOrEmpty(dr["catch_kg"].ToString()) ? null : (double?)dr["catch_kg"];
-                                item.Sample_kg = string.IsNullOrEmpty(dr["samp_kg"].ToString()) ? null : (double?)dr["samp_kg"];
-                                //item.TWS = string.IsNullOrEmpty(dr["tws"].ToString()) ? null : (double?)dr["tws"];
-                                item.TaxaCode = dr["taxa"].ToString();
-                                item.SpeciesText = dr["species_text"].ToString();
-                                item.CatchLenFreqViewModel = new CatchLenFreqViewModel(item);
-                                item.CatchLengthViewModel = new CatchLengthViewModel(item);
-                                item.CatchLengthWeightViewModel = new CatchLengthWeightViewModel(item);
-                                item.CatchMaturityViewModel = new CatchMaturityViewModel(item);
-                                item.WeighingUnit = dr["weighing_unit"].ToString();
-                                item.FromTotalCatch = (bool)dr["from_total_catch"];
-                                item.IsCatchSold = (bool)dr["is_catch_sold"];
-                                item.PriceOfSpecies = string.IsNullOrEmpty(dr["price_of_species"].ToString()) ? null : (double?)dr["price_of_species"];
-                                item.PriceUnit = dr["price_unit"].ToString();
-                                item.OtherPriceUnit = dr["other_price_unit"].ToString();
-                                item.GearCode = vufg.GearCode;
-                                item.GearText = vufg.GearText;
-                                thisList.Add(item);
-                            
+                            VesselCatch item = new VesselCatch();
+                            item.ParentFishingGear = vufg;
+                            item.PK = (int)dr["catch_id"];
+                            item.VesselUnloadID = vufg.Parent.PK;
+                            item.SpeciesID = string.IsNullOrEmpty(dr["species_id"].ToString()) ? null : (int?)dr["species_id"];
+                            item.Catch_kg = string.IsNullOrEmpty(dr["catch_kg"].ToString()) ? null : (double?)dr["catch_kg"];
+                            item.Sample_kg = string.IsNullOrEmpty(dr["samp_kg"].ToString()) ? null : (double?)dr["samp_kg"];
+                            //item.TWS = string.IsNullOrEmpty(dr["tws"].ToString()) ? null : (double?)dr["tws"];
+                            item.TaxaCode = dr["taxa"].ToString();
+                            item.SpeciesText = dr["species_text"].ToString();
+                            item.CatchLenFreqViewModel = new CatchLenFreqViewModel(item);
+                            item.CatchLengthViewModel = new CatchLengthViewModel(item);
+                            item.CatchLengthWeightViewModel = new CatchLengthWeightViewModel(item);
+                            item.CatchMaturityViewModel = new CatchMaturityViewModel(item);
+                            item.WeighingUnit = dr["weighing_unit"].ToString();
+                            item.FromTotalCatch = (bool)dr["from_total_catch"];
+                            item.IsCatchSold = (bool)dr["is_catch_sold"];
+                            item.PriceOfSpecies = string.IsNullOrEmpty(dr["price_of_species"].ToString()) ? null : (double?)dr["price_of_species"];
+                            item.PriceUnit = dr["price_unit"].ToString();
+                            item.OtherPriceUnit = dr["other_price_unit"].ToString();
+                            item.GearCode = vufg.GearCode;
+                            item.GearText = vufg.GearText;
+                            thisList.Add(item);
+
                         }
                     }
                 }
@@ -1008,6 +1053,7 @@ namespace NSAP_ODK.Entities.Database
             string sql = "";
             switch (fieldName)
             {
+                case "carrierlanding_id":
                 case "vessel_unload_gear_id":
                     sql = $"ALTER TABLE dbo_vessel_catch ADD COLUMN {fieldName} int";
                     break;
@@ -1034,11 +1080,20 @@ namespace NSAP_ODK.Entities.Database
                     {
                         cmd.ExecuteNonQuery();
                         success = true;
-                        if (success && fieldName == "vessel_unload_gear_id")
+                        if (success)
                         {
-                            sql = @"ALTER TABLE dbo_vessel_catch 
+                            if (fieldName == "vessel_unload_gear_id")
+                            {
+                                sql = @"ALTER TABLE dbo_vessel_catch 
                                     ADD CONSTRAINT unload_gear_FK FOREIGN KEY (vessel_unload_gear_id) 
                                     REFERENCES dbo_vesselunload_fishinggear (row_id)";
+                            }
+                            else if (fieldName == "carrierlanding_id")
+                            {
+                                sql = @"ALTER TABLE dbo_vessel_catch 
+                                    ADD CONSTRAINT carrierlanding_FK FOREIGN KEY (carrierlanding_id) 
+                                    REFERENCES dbo_carrier_landing (row_id)";
+                            }
                             using (var cmd_2 = con.CreateCommand())
                             {
                                 cmd_2.CommandText = sql;

@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Data;
 using System.Runtime.InteropServices.WindowsRuntime;
+using DocumentFormat.OpenXml.Bibliography;
 
 namespace NSAP_ODK.Entities.Database
 {
@@ -25,6 +26,92 @@ namespace NSAP_ODK.Entities.Database
         private int _deleted_vu_count = 0;
         private bool _addToCollectionOnly = false;
         public bool EditSuccess { get; set; }
+
+        public DBSummary GetCarrierLandingsOverallSummary()
+        {
+
+            DBSummary dbs = new DBSummary();
+            var list_cbl = LandingSiteSamplingCollection.Where(t => t.LandingSiteTypeOfSampling == "cbl" && t.LandingSite != null).ToList();
+            HashSet<string> carrier_names = new HashSet<string>();
+            HashSet<string> landingsite_names = new HashSet<string>();
+            HashSet<string> month_names = new HashSet<string>();
+            foreach (var lss in list_cbl)
+            {
+                if(!month_names.Contains(lss.SamplingDate.ToString("MMM-yyyy")))
+                {
+                    month_names.Add(lss.SamplingDate.ToString("MMM-yyyy"));
+                }
+                if (!landingsite_names.Contains(lss.LandingSiteName))
+                {
+                    landingsite_names.Add(lss.LandingSiteName);
+                }
+                if (lss.CarrierLandingViewModel == null)
+                {
+                    lss.CarrierLandingViewModel = new CarrierLandingViewModel(lss);
+                }
+                dbs.CountCarrierSamplings += lss.CarrierLandingViewModel.CarrierLandingCollection.Count;
+                foreach (var cl in lss.CarrierLandingViewModel.CarrierLandingCollection)
+                {
+                    if (!carrier_names.Contains(cl.CarrierName))
+                    {
+                        carrier_names.Add(cl.CarrierName);
+                    }
+                }
+            }
+            dbs.CountMonths = month_names.Count();
+            dbs.CountLandingSites = landingsite_names.Count;
+            dbs.CountCarrierBoats = carrier_names.Count();
+            dbs.FirstSampledLandingDate = list_cbl.Min(t => t.SamplingDate);
+            dbs.LastSampledLandingDate = list_cbl.Max(t => t.SamplingDate);
+            dbs.FirstLandingFormattedDate = dbs.FirstSampledLandingDate.ToString("MMM dd, yyyy");
+            dbs.LastLandingFormattedDate = dbs.LastSampledLandingDate.ToString("MMM dd, yyyy");
+
+            return dbs;
+        }
+        public List<SummaryResults> GetCarrierLandingsSummary(LandingSite ls)
+        {
+            List<SummaryResults> results = new List<SummaryResults>();
+            var group_cbl = LandingSiteSamplingCollection
+                .Where(t => t.LandingSiteTypeOfSampling == "cbl" && t.LandingSite != null && t.LandingSiteID == ls.LandingSiteID)
+                .OrderBy(t=>t.SamplingDate)
+                .GroupBy(t => t.MonthSampled);
+            int counter = 0;
+            foreach (var group in group_cbl)
+            {
+                SummaryResults sr = new SummaryResults();
+                DBSummary dbs = new DBSummary
+                {
+                    SampledMonth = group.Key
+                };
+
+
+                HashSet<string> carrier_names = new HashSet<string>();
+                foreach (var lss in group)
+                {
+                    if (lss.CarrierLandingViewModel == null)
+                    {
+                        lss.CarrierLandingViewModel = new CarrierLandingViewModel(lss);
+                    }
+                    dbs.CountCarrierSamplings += lss.CarrierLandingViewModel.CarrierLandingCollection.Count;
+                    foreach (var cl in lss.CarrierLandingViewModel.CarrierLandingCollection)
+                    {
+                        if (!carrier_names.Contains(cl.CarrierName))
+                        {
+                            carrier_names.Add(cl.CarrierName);
+                        }
+                    }
+                }
+                dbs.CountCarrierBoats = carrier_names.Count();
+                dbs.FirstSampledLandingDate = group.Min(t => t.SamplingDate);
+                dbs.LastSampledLandingDate = group.Max(t => t.SamplingDate);
+                dbs.FirstLandingFormattedDate = dbs.FirstSampledLandingDate.ToString("MMM dd, yyyy");
+                dbs.LastLandingFormattedDate = dbs.LastSampledLandingDate.ToString("MMM dd, yyyy");
+                sr.DBSummary = dbs;
+                sr.Sequence = ++counter;
+                results.Add(sr); ;
+            }
+            return results;
+        }
         public ObservableCollection<LandingSiteSampling> LandingSiteSamplingCollection { get; set; }
         private LandingSiteSamplingRepository LandingSiteSamplings { get; set; }
         public List<LandingSiteSamplingSummarized> GetLandingSiteSamplingSummaries(LandingSite ls, DateTime monthSampling)
@@ -40,9 +127,9 @@ namespace NSAP_ODK.Entities.Database
             List<LandingSiteSamplingSummarized> lss_summaries = new List<LandingSiteSamplingSummarized>();
             foreach (LandingSiteSampling lss in l_lss)
             {
-                lss_summaries.Add(new LandingSiteSamplingSummarized(lss,fromSummaryItem:true));
+                lss_summaries.Add(new LandingSiteSamplingSummarized(lss, fromSummaryItem: true));
             }
-            return lss_summaries.OrderBy(t=>t.SamplingDate).ToList();
+            return lss_summaries.OrderBy(t => t.SamplingDate).ToList();
         }
         public bool SetSamplingExistsServer(List<SubmissionIDPair> submissionPairs, out int pairedCount)
         {
@@ -538,6 +625,39 @@ namespace NSAP_ODK.Entities.Database
         {
             LandingSiteSamplingCollection.Clear();
         }
+
+        public List<CarrierLanding> CarrierBoatLandings(LandingSite ls, DateTime month)
+        {
+            DateTime start = new DateTime(month.Year, month.Month, 1);
+            DateTime end = start.AddMonths(1);
+            List<CarrierLanding> this_list = new List<CarrierLanding>();
+            foreach (var item in LandingSiteSamplingCollection
+                .Where(t => t.LandingSiteTypeOfSampling=="cbl" &&
+                       t.LandingSiteID == ls.LandingSiteID &&
+                       t.SamplingDate >= start &&
+                       t.SamplingDate < end)
+                .OrderBy(t=>t.SamplingDate))
+            {
+
+                item.CarrierLandingViewModel = new CarrierLandingViewModel(item);
+                this_list.AddRange(item.CarrierLandingViewModel.CarrierLandingCollection);
+
+            }
+            return this_list;
+        }
+
+        public List<DateTime> MonthsSampledForCBL(LandingSite ls)
+        {
+            List<DateTime> dates = new List<DateTime>();
+            var samplings = LandingSiteSamplingCollection.Where(t => t.LandingSiteID == ls.LandingSiteID && t.LandingSiteTypeOfSampling == "cbl").ToList();
+
+            var g = samplings.GroupBy(t => t.SamplingDate.Month);
+            foreach (var i in g)
+            {
+                dates.Add(i.First().SamplingDate);
+            }
+            return dates;
+        }
         public static void ClearCSV()
         {
 
@@ -739,6 +859,7 @@ namespace NSAP_ODK.Entities.Database
                 myDict.Add("land_ctr_text", ls_text);
                 myDict.Add("fma", item.FMAID.ToString());
                 myDict.Add("has_fishing_operation", item.HasFishingOperation.ToString());
+                myDict.Add("type_of_sampling", item.LandingSiteTypeOfSampling);
 
                 _csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_LC_FG_sample_day"));
 
@@ -765,6 +886,10 @@ namespace NSAP_ODK.Entities.Database
             myDict.Add("json_filename", item.JSONFileName);
             myDict.Add("can_sample_from_catch_composition", item.SamplingFromCatchCompositionIsAllowed.ToString());
             myDict.Add("submission_id", submission_id);
+            myDict.Add("date_deleted_from_server", "");
+            myDict.Add("count_carrier_landings", item.CountCarrierLandings == null ? "" : item.CountCarrierLandings.ToString());
+            myDict.Add("count_carrier_sampling", item.CountCarrierSamplings == null ? "" : item.CountCarrierSamplings.ToString());
+            //myDict.Add("count_carrier_landings", item.LandingSite);
 
 
             _csv_1.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_LC_FG_sample_day_1"));

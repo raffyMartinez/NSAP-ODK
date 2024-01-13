@@ -16,6 +16,10 @@ namespace NSAP_ODK.Entities
 
         //public event EventHandler<EntityChangedEventArgs> EntityChanged;
 
+        public List<LandingSite>GetCarrierLandingLandingSites()
+        {
+            return LandingSiteCollection.Where(t => t.LandingSiteTypeOfSampling == "cbl").ToList();
+        }
 
         private string WhereLandingSiteIsUsed(List<NSAPRegionFMAFishingGroundLandingSite> listUsedLS, LandingSite ls)
         {

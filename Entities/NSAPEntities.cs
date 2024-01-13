@@ -136,6 +136,9 @@ namespace NSAP_ODK.Entities
             GearUnloadViewModel.ClearCSV();
             LandingSiteSamplingSubmissionViewModel.ClearCSV();
             LandingSiteSamplingViewModel.ClearCSV();
+            CarrierBoatLanding_FishingGround_ViewModel.ClearCSV();
+            CarrierLandingViewModel.ClearCSV();
+            CatcherBoatOperation_ViewModel.ClearCSV();
         }
 
         /// <summary>

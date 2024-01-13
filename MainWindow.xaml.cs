@@ -22,6 +22,7 @@ using System.Windows.Threading;
 using System.Text;
 using System.Net.Http;
 using System.Windows.Media;
+//using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace NSAP_ODK
 {
@@ -32,7 +33,8 @@ namespace NSAP_ODK
         Species,
         DownloadHistory,
         Others,
-        DBSummary
+        DBSummary,
+        CBLSampling
     }
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -48,11 +50,13 @@ namespace NSAP_ODK
         private NSAPEntity _nsapEntity;
         private string _csvSaveToFolder = "";
         private FishingCalendarViewModel _fishingCalendarViewModel;
+        private CarrierLanding _carrierLandingFromCalendar;
         private int _gridCol;
         private int _gridRow;
         private string _gearCode;
         private string _gearName;
         private string _fish_sector;
+        private string _carrierBoatName;
         private DateTime? _monthYear;
         private TreeViewModelControl.AllSamplingEntitiesEventHandler _treeItemData;
         private string _calendarTreeSelectedEntity;
@@ -78,6 +82,8 @@ namespace NSAP_ODK
         private DataGrid _dataGrid;
         private static HttpClient _httpClient = new HttpClient();
         private Koboserver _selectedKoboserver;
+        private TreeViewItem _parentCBLNode;
+        private LandingSite _landingSite;
         public MainWindow()
         {
             InitializeComponent();
@@ -163,11 +169,11 @@ namespace NSAP_ODK
             return false;
         }
 
-        private Style AlignRightStyle
+        private System.Windows.Style AlignRightStyle
         {
             get
             {
-                Style alignRightCellStype = new Style(typeof(DataGridCell));
+                System.Windows.Style alignRightCellStype = new System.Windows.Style(typeof(DataGridCell));
 
                 // Create a Setter object to set (get it? Setter) horizontal alignment.
                 Setter setAlign = new
@@ -500,6 +506,7 @@ namespace NSAP_ODK
                             NSAPEntities.SummaryItemViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
                             GearUnloadRepository.ProcessingItemsEvent += OnProcessingItemsEvent;
                             NSAPEntities.LandingSiteSamplingViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
+                            treeViewDownloadHistory.MouseRightButtonUp += OnMenuRightClick;
                         }
                         CreateTablesInAccess.GetMDBColumnInfo(Global.ConnectionString);
                         _httpClient.Timeout = new TimeSpan(0, 10, 0);
@@ -510,6 +517,11 @@ namespace NSAP_ODK
                             {
                                 Title += " (Filtered)";
                             }
+                        }
+
+                        if (Global.HasCarrierBoatLandings)
+                        {
+                            buttonCBL_calendar.Visibility = Visibility.Visible;
                         }
                     }
                     else
@@ -1024,7 +1036,7 @@ namespace NSAP_ODK
         }
         private void ResetDisplay()
         {
-            rowDashboard.Height = new GridLength(0);
+            rowCBL.Height = new GridLength(0);
             rowTopLabel.Height = new GridLength(0);
             rowSpecies.Height = new GridLength(0);
             rowODKData.Height = new GridLength(0);
@@ -1032,7 +1044,6 @@ namespace NSAP_ODK
             rowSummary.Height = new GridLength(0);
             rowStatus.Height = new GridLength(0);
 
-            StackPanelDashboard.Visibility = Visibility.Collapsed;
             PanelButtons.Visibility = Visibility.Collapsed;
             GridNSAPData.Visibility = Visibility.Collapsed;
             PropertyGrid.Visibility = Visibility.Collapsed;
@@ -1050,6 +1061,26 @@ namespace NSAP_ODK
             ResetDisplay();
             switch (_currentDisplayMode)
             {
+                case DataDisplayMode.CBLSampling:
+                    rowCBL.Height = new GridLength(1, GridUnitType.Star);
+                    //treeViewDownloadHistory.Visibility = Visibility.Visible;
+                    treeCBL.Items.Clear();
+                    _parentCBLNode = new TreeViewItem { Header = "Sampling of fish carriers", Tag = "cbl_landings" };
+                    treeCBL.Items.Add(_parentCBLNode);
+                    foreach (var ls in NSAPEntities.LandingSiteViewModel.GetCarrierLandingLandingSites())
+                    {
+                        TreeViewItem lsNode = new TreeViewItem { Header = ls.ToString(), Tag = ls };
+                        _parentCBLNode.Items.Add(lsNode);
+                        TreeViewItem dummyNode = new TreeViewItem { Header = "--dummy" };
+                        lsNode.Items.Add(dummyNode);
+                        lsNode.Expanded += OnTreeviewNodeExpanded;
+                    }
+                    if (_parentCBLNode.Items.Count > 0)
+                    {
+                        _parentCBLNode.IsExpanded = true;
+                    }
+                    _parentCBLNode.IsSelected = true;
+                    break;
                 case DataDisplayMode.DownloadHistory:
                     rowODKData.Height = new GridLength(1, GridUnitType.Star);
                     treeViewDownloadHistory.Visibility = Visibility.Visible;
@@ -1101,6 +1132,7 @@ namespace NSAP_ODK
                 case DataDisplayMode.ODKData:
                     GridNSAPData.SelectionUnit = DataGridSelectionUnit.Cell;
                     GridNSAPData.SetValue(Grid.ColumnSpanProperty, 2);
+                    GridNSAPData.Visibility = Visibility.Visible;
                     rowODKData.Height = new GridLength(1, GridUnitType.Star);
                     samplingTree.Visibility = Visibility.Visible;
                     break;
@@ -1146,6 +1178,26 @@ namespace NSAP_ODK
                     }
                     break;
             }
+        }
+
+        private void OnTreeviewNodeExpanded(object sender, RoutedEventArgs e)
+        {
+            TreeViewItem tvi = (TreeViewItem)sender;
+            LandingSite ls = (LandingSite)tvi.Tag;
+
+            if (((TreeViewItem)tvi.Items[0]).Header.ToString() == "--dummy")
+            {
+                tvi.Items.Clear();
+
+                var months = NSAPEntities.LandingSiteSamplingViewModel.MonthsSampledForCBL(ls);
+
+                foreach (var m in months)
+                {
+                    TreeViewItem monthNode = new TreeViewItem { Header = m.ToString("MMM-yyyy"), Tag = tvi.Tag };
+                    tvi.Items.Add(monthNode);
+                }
+            }
+
         }
 
         private void onJsonDummyNode_Expanded(object sender, RoutedEventArgs e)
@@ -1278,7 +1330,7 @@ namespace NSAP_ODK
             labelTitle.HorizontalContentAlignment = HorizontalAlignment.Center;
             labelTitle.Visibility = Visibility.Visible;
 
-            rowDashboard.Height = new GridLength(0);
+            rowCBL.Height = new GridLength(0);
             rowODKData.Height = new GridLength(0);
             rowSpecies.Height = new GridLength(0);
             rowOthers.Height = new GridLength(0);
@@ -1398,6 +1450,7 @@ namespace NSAP_ODK
                     dataGridEntities.Columns.Add(new DataGridTextColumn { Header = "Region name", Binding = new Binding("Name") });
                     dataGridEntities.Columns.Add(new DataGridTextColumn { Header = "Short name", Binding = new Binding("ShortName") });
                     dataGridEntities.Columns.Add(new DataGridCheckBoxColumn { Header = "Total enumeration only", Binding = new Binding("IsTotalEnumerationOnly") });
+                    dataGridEntities.Columns.Add(new DataGridCheckBoxColumn { Header = "Regular sampling only", Binding = new Binding("IsRegularSamplingOnly") });
 
                     break;
 
@@ -1496,6 +1549,7 @@ namespace NSAP_ODK
         public void RefreshEntityGrid()
         {
             SetDataGridSource();
+
         }
         private void SetDataGridSource()
         {
@@ -1535,6 +1589,15 @@ namespace NSAP_ODK
                 case NSAPEntity.LandingSite:
 
                     dataGridEntities.ItemsSource = NSAPEntities.LandingSiteViewModel.GetAllLandingSitesShowUsed().OrderBy(t => t.Municipality.Province.ProvinceName).ThenBy(t => t.Municipality.MunicipalityName).ThenBy(t => t.LandingSiteName);
+                    if (Global.HasCarrierBoatLandings)
+                    {
+                        buttonCBL_calendar.Visibility = Visibility.Visible;
+                    }
+                    else
+                    {
+                        buttonCBL_calendar.Visibility = Visibility.Collapsed;
+                    }
+
                     break;
 
                 case NSAPEntity.NSAPRegion:
@@ -2264,9 +2327,9 @@ namespace NSAP_ODK
             }
         }
 
-        private void ShowCrossTabWIndow()
+        private void ShowCrossTabWIndow(bool isCarrierBoatLanding=false)
         {
-            CrossTabReportWindow ctw = CrossTabReportWindow.GetInstance();
+            CrossTabReportWindow ctw = CrossTabReportWindow.GetInstance(isCarrierBoatLanding);
             if (ctw.IsVisible)
             {
                 ctw.BringIntoView();
@@ -2276,7 +2339,14 @@ namespace NSAP_ODK
                 ctw.Show();
                 ctw.Owner = this;
             }
+            //if (isCarrierBoatLanding)
+            //{
+
+            //}
+            //else
+            //{
             ctw.ShowEffort();
+            //}
         }
         private async void OnDataGridContextMenu(object sender, RoutedEventArgs e)
         {
@@ -2288,6 +2358,7 @@ namespace NSAP_ODK
                     _allSamplingEntitiesEventHandler.ContextMenuTopic = "contextMenuCrosstabGear";
 
                     ShowStatusRow();
+                    CrossTabManager.IsCarrierLandding = false;
                     await CrossTabManager.GearByMonthYearAsync(_allSamplingEntitiesEventHandler);
                     ShowCrossTabWIndow();
                     break;
@@ -2608,6 +2679,11 @@ namespace NSAP_ODK
             ProgressDialogWindow pdw = null;
             switch (itemName)
             {
+                case "menuCrossTabCBL_Month":
+                    CrossTabManager.IsCarrierLandding = true;
+                    await CrossTabManager.CarrierBoatLandingsByMonthAsync(_landingSite, (DateTime)_monthYear);
+                    ShowCrossTabWIndow(isCarrierBoatLanding: true);
+                    break;
                 case "menuListSamplingAndCatchComposition":
                     if (_monthYear != null)
                     {
@@ -3346,6 +3422,7 @@ namespace NSAP_ODK
         }
         public string ImportIntoMDBFile { get; set; }
         public bool OpenImportedDatabaseInApplication { get; set; }
+
         private void ShowNSAPCalendar()
         {
             menuCalendar.Visibility = Visibility.Collapsed;
@@ -3482,10 +3559,20 @@ namespace NSAP_ODK
                     break;
                 #endregion
                 case "GridNSAPData":
+                case "gridCBL":
                     #region GridNSAPData
                     LandingSiteSampling lss = null;
                     //calendar view
-                    if (_currentDisplayMode == DataDisplayMode.ODKData)
+                    if (_currentDisplayMode == DataDisplayMode.CBLSampling)
+                    {
+                        if (_carrierLandingFromCalendar != null)
+                        {
+                            CarrierBoatLandingEditor cbe = new CarrierBoatLandingEditor(_carrierLandingFromCalendar);
+                            cbe.Owner = this;
+                            cbe.ShowDialog();
+                        }
+                    }
+                    else if (_currentDisplayMode == DataDisplayMode.ODKData)
                     {
                         switch (_calendarOption)
                         {
@@ -3727,6 +3814,8 @@ namespace NSAP_ODK
                 if ((bool)ew.ShowDialog())
                 {
                     SetDataGridSource();
+                    // Global.CheckForCarrierBasedLanding();
+
                 }
 
             }
@@ -3753,6 +3842,8 @@ namespace NSAP_ODK
         {
             _vesselUnloadEditWindow = null;
         }
+
+
 
         private async void MakeCalendar(TreeViewModelControl.AllSamplingEntitiesEventHandler e)
         {
@@ -3943,19 +4034,40 @@ namespace NSAP_ODK
         }
         private async void OnSelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {
+            DataGridCellInfo cell;
             //_monthYear = null;
-            if (_monthYear == null && _treeItemData!=null)
+            if (_monthYear == null && _treeItemData != null)
             {
                 _monthYear = _treeItemData.MonthSampled;
             }
-            var type = GridNSAPData.DataContext.GetType().ToString();
+            var type = GridNSAPData?.DataContext?.GetType().ToString();
             switch (_currentDisplayMode)
             {
+                case DataDisplayMode.CBLSampling:
+                    _carrierLandingFromCalendar = null;
+                    try
+                    {
+                        cell = gridCBL.SelectedCells[0];
+                        _gridRow = gridCBL.Items.IndexOf(cell.Item);
+                        _gridCol = cell.Column.DisplayIndex;
+                        var cbl = gridCBL.Items[_gridRow] as DataRowView;
+                        if (cbl != null)
+                        {
+                            _carrierBoatName = (string)cbl.Row.ItemArray[0];
+                            if (_gridCol > 0)
+                            {
+                                _carrierLandingFromCalendar = _fishingCalendarViewModel.FishingCalendarList.FirstOrDefault(t => t.CarrierBoatName == _carrierBoatName).CarrierLandings[_gridCol - 1];
+                            }
+                            //_monthYear = DateTime.Parse(cbl.Row.ItemArray[3].ToString());
+                        }
+                    }
+                    catch { }
+                    break;
                 case DataDisplayMode.ODKData:
 
                     if (GridNSAPData.SelectedCells.Count == 1 && _acceptDataGridCellClick)
                     {
-                        DataGridCellInfo cell = GridNSAPData.SelectedCells[0];
+                        cell = GridNSAPData.SelectedCells[0];
                         _gridRow = GridNSAPData.Items.IndexOf(cell.Item);
                         _gridCol = cell.Column.DisplayIndex;
                         var item = GridNSAPData.Items[_gridRow] as DataRowView;
@@ -3978,6 +4090,7 @@ namespace NSAP_ODK
                                 {
                                     _allSamplingEntitiesEventHandler.GearUsed = _gearName;
                                     _allSamplingEntitiesEventHandler.ContextMenuTopic = "contextMenuCrosstabGear";
+                                    CrossTabManager.IsCarrierLandding = false;
                                     await CrossTabManager.GearByMonthYearAsync(_allSamplingEntitiesEventHandler);
                                     ShowCrossTabWIndow();
                                 }
@@ -4023,42 +4136,11 @@ namespace NSAP_ODK
                                 if (gear_unload_from_day != null)
                                 {
 
-
-                                    //GearUnload unload_to_display = new GearUnload
-                                    //{
-
-                                    //    GearID = gear_unload_from_day.GearID,
-                                    //    GearUsedText = gear_unload_from_day.GearUsedText,
-                                    //    PK = gear_unload_from_day.PK,
-                                    //    Remarks = gear_unload_from_day.Remarks,
-                                    //    LandingSiteSamplingID = gear_unload_from_day.LandingSiteSamplingID,
-                                    //    SectorCode = gear_unload_from_day.SectorCode,
-                                    //    VesselUnloadViewModel = new VesselUnloadViewModel(isNew: true),
-                                    //    ListVesselUnload = gear_unload_from_day.ListVesselUnload.Where(t => t.SectorCode == sector_code).ToList(),
-                                    //    Parent = gear_unload_from_day.Parent
-                                    //};
-
-                                    //_gearUnloads.Add(unload_to_display);
-
                                     var lss = gear_unload_from_day.Parent;
                                     lss.GearUnloadViewModel = new GearUnloadViewModel(lss);
                                     List<GearUnload> list_gu = lss.GearUnloadViewModel.GearUnloadCollection
                                         .Where(t => t.GearID == gear_unload_from_day.GearID).ToList();
 
-                                    //foreach(GearUnload gu in list_gu)
-                                    //{
-                                    //    if(gu.SectorCode=="")
-                                    //    {
-                                    //        if (gu.ListVesselUnload[0].SectorCode == gear_unload_from_day.SectorCode)
-                                    //        {
-                                    //            gu.SectorCode = gu.ListVesselUnload[0].SectorCode;
-                                    //        }
-                                    //        else
-                                    //        {
-                                    //            list_gu.Remove(gu);
-                                    //        }
-                                    //    }
-                                    //}
                                     _gearUnloads = list_gu;
                                 }
 
@@ -4123,6 +4205,7 @@ namespace NSAP_ODK
                 case "contextMenuCrosstabMonth":
 
                     ShowStatusRow();
+                    CrossTabManager.IsCarrierLandding = false;
                     await CrossTabManager.GearByMonthYearAsync(_allSamplingEntitiesEventHandler);
                     ShowCrossTabWIndow();
                     break;
@@ -4218,6 +4301,8 @@ namespace NSAP_ODK
         private async void OnHistoryTreeItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             ShowStatusRow();
+            GridNSAPData.Visibility = Visibility.Visible;
+            carrierSummaryPropertyGrid.Visibility = Visibility.Collapsed;
             gridCalendarHeader.Visibility = Visibility.Visible;
             GridNSAPData.SelectionUnit = DataGridSelectionUnit.FullRow;
             GridNSAPData.IsReadOnly = true;
@@ -4231,7 +4316,9 @@ namespace NSAP_ODK
             var dt = DateTime.Now;
             if (e.NewValue != null)
             {
-                var tvItem = (TreeViewItem)e.NewValue;
+                TreeViewItem tvItem = null;
+                tvItem = (TreeViewItem)e.NewValue;
+
                 string itemTag = tvItem.Tag.ToString();
                 if (itemTag != "weights")
                 {
@@ -4240,6 +4327,27 @@ namespace NSAP_ODK
 
                 switch (itemTag)
                 {
+                    case "cbl_landings":
+                        MonthLabel.Content = "Summary of samplings of carrier boats";
+                        carrierSummaryPropertyGrid.SelectedObject = NSAPEntities.LandingSiteSamplingViewModel.GetCarrierLandingsOverallSummary();
+                        carrierSummaryPropertyGrid.Visibility = Visibility.Visible;
+                        carrierSummaryPropertyGrid.AutoGenerateProperties = false;
+                        carrierSummaryPropertyGrid.ShowAdvancedOptions = false;
+                        carrierSummaryPropertyGrid.ShowSearchBox = false;
+                        carrierSummaryPropertyGrid.ShowSortOptions = false;
+                        carrierSummaryPropertyGrid.ShowSummary = false;
+                        carrierSummaryPropertyGrid.ShowTitle = false;
+                        carrierSummaryPropertyGrid.IsReadOnly = true;
+
+                        carrierSummaryPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of months", Name = "CountMonths", DisplayOrder = 1 });
+                        carrierSummaryPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of landing sites", Name = "CountLandingSites", DisplayOrder = 2 });
+                        carrierSummaryPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of samplings", Name = "CountCarrierSamplings", DisplayOrder = 3 });
+                        carrierSummaryPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of boats", Name = "CountCarrierBoats", DisplayOrder = 4 });
+                        carrierSummaryPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "First sampling date", Name = "FirstSampledLandingDate", DisplayOrder = 5 });
+                        carrierSummaryPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Latest sampling date", Name = "LastSampledLandingDate", DisplayOrder = 6 });
+                        gridCBL.Visibility = Visibility.Collapsed;
+                        labelCBL.Content = "Summary of sampling of fish carrier landings";
+                        break;
                     case "downloadDate":
                         dt = DateTime.Parse(tvItem.Header.ToString()).Date;
                         GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetDownloadSummaryByDateAsync(dt);
@@ -4452,12 +4560,39 @@ namespace NSAP_ODK
                             }
                             tvItem.Focus();
                         }
+                        else if (tvItem.Tag.GetType().Name == "LandingSite")
+                        {
+                            carrierSummaryPropertyGrid.Visibility = Visibility.Collapsed;
+                            gridCBL.Visibility = Visibility.Visible;
+                            if (((TreeViewItem)tvItem.Parent).Tag.ToString() == "cbl_landings")
+                            {
+                                _landingSite = (LandingSite)tvItem.Tag;
+                                //MessageBox.Show("Summary of carrier is shown here");
+                                SetUpSummaryGrid(summaryType: SummaryLevelType.LandingSiteFishCarrier, gridCBL, ls: _landingSite);
+                                labelCBL.Content = $"Summary of sampling of fish carrier landings at {_landingSite.ToString()}";
+
+                            }
+                            else if (((TreeViewItem)tvItem.Parent).Tag.GetType().Name == "LandingSite")
+                            {
+                                _landingSite = (LandingSite)((TreeViewItem)tvItem.Parent).Tag;
+                                _monthYear= DateTime.Parse(tvItem.Header.ToString());
+                                var landings = NSAPEntities.LandingSiteSamplingViewModel.CarrierBoatLandings(_landingSite, (DateTime)_monthYear);
+                                _fishingCalendarViewModel = new FishingCalendarViewModel(landings, (DateTime)_monthYear, _landingSite);
+
+                                gridCBL.Columns.Clear();
+                                gridCBL.AutoGenerateColumns = true;
+                                gridCBL.SelectionUnit = DataGridSelectionUnit.Cell;
+                                gridCBL.DataContext = _fishingCalendarViewModel.DataTable;
+                                labelCBL.Content = $"Calendar of sampling of fish carrier landings at {_landingSite.ToString()} on {((DateTime)_monthYear).ToString("MMM, yyyy")}";
+                            }
+                        }
                         break;
                 }
 
 
                 MonthSubLabel.Content = $" All items listed were downloaded on {dt.ToString("MMM-dd-yyyy")}";
                 labelRowCount.Content = $"Rows: {GridNSAPData.Items.Count}";
+
             }
         }
 
@@ -4513,7 +4648,8 @@ namespace NSAP_ODK
             TreeViewModelControl.AllSamplingEntitiesEventHandler treeviewData = null,
             string enumeratorName = null,
             NSAPEnumerator en = null,
-            DateTime? monthEnumerated = null)
+            DateTime? monthEnumerated = null,
+            LandingSite ls = null)
         {
             targetGrid.AutoGenerateColumns = false;
             targetGrid.Columns.Clear();
@@ -4671,6 +4807,14 @@ namespace NSAP_ODK
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Last sampling", Binding = new Binding("DBSummary.LastLandingFormattedDate") });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Last upload date", Binding = new Binding("DBSummary.LatestDownloadFormattedDate") });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Latest e-Form version", Binding = new Binding("DBSummary.LatestEformVersion") });
+                    break;
+                case SummaryLevelType.LandingSiteFishCarrier:
+                    targetGrid.DataContext = NSAPEntities.LandingSiteSamplingViewModel.GetCarrierLandingsSummary(ls: ls);
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Month", Binding = new Binding("DBSummary.SampledMonthString") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Number of carriers", Binding = new Binding("DBSummary.CountCarrierBoats") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Number of vessels sampled", Binding = new Binding("DBSummary.CountCarrierSamplings") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Date first sampling", Binding = new Binding("DBSummary.FirstLandingFormattedDate") });
+                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Date last sampling", Binding = new Binding("DBSummary.LastLandingFormattedDate") });
                     break;
             }
 
@@ -4895,6 +5039,12 @@ namespace NSAP_ODK
             menuDatabaseSummary.IsChecked = false;
             switch (((Button)sender).Name)
             {
+                case "buttonCBL_calendar":
+                    DBView = DBView.dbviewCBLCalendar;
+                    //ShowCBLCalendar();
+                    _currentDisplayMode = DataDisplayMode.CBLSampling;
+                    SetDataDisplayMode();
+                    break;
                 case "buttonGeneratecsv":
                     await GenerateAllCSV();
                     break;
@@ -4977,89 +5127,114 @@ namespace NSAP_ODK
 
         private void OnMenuRightClick(object sender, MouseButtonEventArgs e)
         {
-
-
-
-            _dataGrid = (DataGrid)sender;
             ContextMenu cm = new ContextMenu();
             MenuItem m = null;
-            m = new MenuItem { Header = "Copy text", Name = "menuCopyText" };
-            m.Click += OnMenuClicked;
-            cm.Items.Add(m);
 
-            switch (_dataGrid.Name)
+            if (sender.GetType().Name == "TreeView")
             {
-                case "GridNSAPData":
-                    switch (_calendarTreeSelectedEntity)
-                    {
-                        case "tv_LandingSiteViewModel":
-                        case "tv_MonthViewModel":
-                            if (_monthYear != null)
-                            {
-                                m = new MenuItem { Header = "Weights and weight validation", Name = "menuWeights" };
-                                m.Click += OnMenuClicked;
-                                cm.Items.Add(m);
+                TreeView tv = (TreeView)sender;
+                switch (tv.Name)
+                {
 
-                                if (_calendarTreeSelectedEntity == "tv_MonthViewModel")
+                    case "treeCBL":
+                        TreeViewItem tvi = (TreeViewItem)tv.SelectedItem;
+                        DateTime d;
+                        if (DateTime.TryParse(tvi.Header.ToString(), out d) && tvi.Tag.GetType().Name == "LandingSite")
+                        {
+                            m = new MenuItem { Header = $"Crosstab carrier landings for {tvi.Header.ToString()}", Name = "menuCrossTabCBL_Month" };
+                            m.Click += OnMenuClicked;
+                            cm.Items.Add(m);
+                        }
+                        else
+                        {
+                            return;
+                        }
+                        break;
+
+                }
+            }
+            else
+            {
+                _dataGrid = (DataGrid)sender;
+
+                m = new MenuItem { Header = "Copy text", Name = "menuCopyText" };
+                m.Click += OnMenuClicked;
+                cm.Items.Add(m);
+
+                switch (_dataGrid.Name)
+                {
+                    case "GridNSAPData":
+                        switch (_calendarTreeSelectedEntity)
+                        {
+                            case "tv_LandingSiteViewModel":
+                            case "tv_MonthViewModel":
+                                if (_monthYear != null)
                                 {
-                                    m.IsEnabled = false;
-                                    if (_gridCol == 0)
-                                    {
-                                        m.IsEnabled = true;
-                                        m.Header += $" for {_gearName} ({_fish_sector})";
-                                    }
-
-                                }
-                                else
-                                {
-                                    m.Header += $" for landings sampled on {((DateTime)_monthYear).ToString("MMMM, yyyy")}";
-                                }
-
-
-                                if (_calendarTreeSelectedEntity == "tv_LandingSiteViewModel")
-                                {
-                                    m = new MenuItem { Header = "List samplings and catch composition count", Name = "menuListSamplingAndCatchComposition" };
+                                    m = new MenuItem { Header = "Weights and weight validation", Name = "menuWeights" };
                                     m.Click += OnMenuClicked;
                                     cm.Items.Add(m);
 
-                                    //if (_calendarTreeSelectedEntity == "tv_MonthViewModel")
-                                    //{
-                                    //    m.IsEnabled = false;
-                                    //    if (_gridCol == 0)
-                                    //    {
-                                    //        m.IsEnabled = true;
-                                    //        m.Header += $" for {_gearName} ({_fish_sector})";
-                                    //    }
+                                    if (_calendarTreeSelectedEntity == "tv_MonthViewModel")
+                                    {
+                                        m.IsEnabled = false;
+                                        if (_gridCol == 0)
+                                        {
+                                            m.IsEnabled = true;
+                                            m.Header += $" for {_gearName} ({_fish_sector})";
+                                        }
 
-                                    //}
-                                    //else
-                                    //{
-                                    m.Header += $" for landings sampled on {((DateTime)_monthYear).ToString("MMMM, yyyy")}";
-                                    //}
+                                    }
+                                    else
+                                    {
+                                        m.Header += $" for landings sampled on {((DateTime)_monthYear).ToString("MMMM, yyyy")}";
+                                    }
+
+
+                                    if (_calendarTreeSelectedEntity == "tv_LandingSiteViewModel")
+                                    {
+                                        m = new MenuItem { Header = "List samplings and catch composition count", Name = "menuListSamplingAndCatchComposition" };
+                                        m.Click += OnMenuClicked;
+                                        cm.Items.Add(m);
+
+                                        //if (_calendarTreeSelectedEntity == "tv_MonthViewModel")
+                                        //{
+                                        //    m.IsEnabled = false;
+                                        //    if (_gridCol == 0)
+                                        //    {
+                                        //        m.IsEnabled = true;
+                                        //        m.Header += $" for {_gearName} ({_fish_sector})";
+                                        //    }
+
+                                        //}
+                                        //else
+                                        //{
+                                        m.Header += $" for landings sampled on {((DateTime)_monthYear).ToString("MMMM, yyyy")}";
+                                        //}
+                                    }
                                 }
-                            }
-                            break;
-                        default:
-                            //ignore for now
-                            break;
-                    }
-                    break;
-            }
+                                break;
+                            default:
+                                //ignore for now
+                                break;
+                        }
+                        break;
+                }
 
 
-            if (_nsapEntity == NSAPEntity.NSAPRegion)
-            {
-                m = new MenuItem { Header = "Landing sites", Name = "menuRegionLandingSites" };
-                m.Click += OnMenuClicked;
-                cm.Items.Add(m);
-            }
-            else if (DBView == DBView.dbviewSummary && _nsapEntity == NSAPEntity.DBSummary)
-            {
-                if (_summaryLevelType == SummaryLevelType.FishingGround)
+                if (_nsapEntity == NSAPEntity.NSAPRegion)
                 {
-                    m = new MenuItem { Header = "Move to another fishing ground", Name = "menuMoveToFishingGround" };
+                    m = new MenuItem { Header = "Landing sites", Name = "menuRegionLandingSites" };
                     m.Click += OnMenuClicked;
                     cm.Items.Add(m);
+                }
+                else if (DBView == DBView.dbviewSummary && _nsapEntity == NSAPEntity.DBSummary)
+                {
+                    if (_summaryLevelType == SummaryLevelType.FishingGround)
+                    {
+                        m = new MenuItem { Header = "Move to another fishing ground", Name = "menuMoveToFishingGround" };
+                        m.Click += OnMenuClicked;
+                        cm.Items.Add(m);
+                    }
                 }
             }
 

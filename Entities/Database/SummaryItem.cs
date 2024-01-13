@@ -42,7 +42,10 @@ namespace NSAP_ODK.Entities.Database
                 {
                     hash = (hash * 16777619) ^ LandingSiteNameText.GetHashCode();
                 }
-                hash = (hash * 16777619) ^ EnumeratorNameToUse.GetHashCode();
+                if (!string.IsNullOrEmpty(EnumeratorNameToUse))
+                {
+                    hash = (hash * 16777619) ^ EnumeratorNameToUse.GetHashCode();
+                }
                 return hash;
             }
         }

@@ -7,6 +7,7 @@ using System.Data.OleDb;
 using NSAP_ODK.Utilities;
 using MySql.Data.MySqlClient;
 using NSAP_ODK.NSAPMysql;
+using System.Security.Cryptography;
 namespace NSAP_ODK.Entities.Database
 {
     public class SummaryItemRepository
@@ -529,6 +530,34 @@ namespace NSAP_ODK.Entities.Database
                         }
                         catch { }
                     }
+
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = "SELECT max(row_id) from dbo_catcher_boat_operations";
+                        try
+                        {
+                            lpks.LastCarrierSamplingCatcherBoatOperationPK = (int)cmd.ExecuteScalar();
+                        }
+                        catch { }
+                    }
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = "SELECT max(row_id) from dbo_carrier_landing";
+                        try
+                        {
+                            lpks.LastCarrierPK = (int)cmd.ExecuteScalar();
+                        }
+                        catch { }
+                    }
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = "SELECT max(row_id) from dbo_carrier_landing_fishing_ground";
+                        try
+                        {
+                            lpks.LastCarrierSamplingFishingGroundPK = (int)cmd.ExecuteScalar();
+                        }
+                        catch { }
+                    }
                 }
             }
 
@@ -553,6 +582,8 @@ namespace NSAP_ODK.Entities.Database
                 lpks.LastVesselUnloadGearPK = VesselUnload_FishingGearViewModel.CurrentIDNumber;
                 lpks.LastUnloadStatPK = (int)VesselUnloadViewModel.CurrentUnloadStatIDNumber;
                 lpks.LastWeightValidationPK = (int)VesselUnloadViewModel.CurrentWeightValidationIDNumber;
+                lpks.LastCarrierSamplingCatcherBoatOperationPK = CatcherBoatOperation_ViewModel.CurrentIDNumber;
+                lpks.LastCarrierSamplingFishingGroundPK = CarrierBoatLanding_FishingGround_ViewModel.CurrentIDNumber;
 
                 if (lpks.LastVesselUnloadPK == 0 && NSAPEntities.SummaryItemViewModel.Count > 0)
                 {
@@ -795,11 +826,8 @@ namespace NSAP_ODK.Entities.Database
                                                 LEFT JOIN (NSAPEnumerator AS en 
                                                 RIGHT JOIN dbo_vessel_unload_1 AS vu1 ON en.EnumeratorID = vu1.EnumeratorID) ON vu.v_unload_id = vu1.v_unload_id) ON fv.VesselID = vu.boat_id) 
                                                 LEFT JOIN dbo_vessel_unload_stats AS vu_st ON vu.v_unload_id = vu_st.v_unload_id) ON gr.GearCode = gu.gr_id) ON ls.LandingSiteID = sd.land_ctr_id) ON nr.Code = sd.region_id) 
-                                                LEFT JOIN dbo_vessel_unload_weight_validation AS vu_wv ON vu.v_unload_id = vu_wv.v_unload_id";
-
-                            //ORDER BY vu1.SamplingDate";
-                            //WHERE vu.v_unload_id Is Not Null  removed befoe ORDER BY clause
-
+                                                LEFT JOIN dbo_vessel_unload_weight_validation AS vu_wv ON vu.v_unload_id = vu_wv.v_unload_id
+                                            WHERE SD.type_of_sampling = 'rs'";
 
                             if (Global.Filter1 != null)
                             {
@@ -807,17 +835,20 @@ namespace NSAP_ODK.Entities.Database
                                 if (Global.Filter2 != null)
                                 {
                                     cmd.Parameters.AddWithValue("@d2", Global.Filter2DateString());
-                                    cmd.CommandText += " WHERE sd.sdate>=@d1 AND sd.sdate <@d2";
+                                    //cmd.CommandText += " WHERE sd.sdate>=@d1 AND sd.sdate <@d2";
+                                    cmd.CommandText += " AND sd.sdate>=@d1 AND sd.sdate <@d2";
                                 }
                                 else
                                 {
-                                    cmd.CommandText += " WHERE sd.sdate>=@d1";
+                                    //cmd.CommandText += " WHERE sd.sdate>=@d1";
+                                    cmd.CommandText += " AND sd.sdate>=@d1";
                                 }
                             }
                             else if (!string.IsNullOrEmpty(Global.FilterServerID))
                             {
                                 cmd.Parameters.AddWithValue("@srv", Global.FilterServerID);
-                                cmd.CommandText += " WHERE sd1.XFormIdentifier = @srv";
+                                //cmd.CommandText += " WHERE sd1.XFormIdentifier = @srv";
+                                cmd.CommandText += " AND sd1.XFormIdentifier = @srv";
                             }
 
                             cmd.CommandText += " ORDER BY vu1.SamplingDate";

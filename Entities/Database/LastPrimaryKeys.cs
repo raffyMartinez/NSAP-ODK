@@ -24,9 +24,16 @@ namespace NSAP_ODK.Entities.Database
             LastLandingSiteSamplingPK = 0;
             LastGearUnloadPK = 0;
             LastUnloadStatPK = 0;
-            LastWeightValidationPK = 0; 
+            LastWeightValidationPK = 0;
+            LastCarrierPK = 0;
+            LastCarrierSamplingCatcherBoatOperationPK = 0;
+            LastCarrierSamplingFishingGroundPK = 0;
+
         }
 
+        public int LastCarrierPK { get; set; }
+        public int LastCarrierSamplingCatcherBoatOperationPK { get; set; }
+        public int LastCarrierSamplingFishingGroundPK { get; set; }
         public int LastWeightValidationPK { get; set; }
         public int LastGearUnloadPK { get; set; }
         public int LastUnloadStatPK { get; set; }

@@ -128,6 +128,7 @@ namespace NSAP_ODK.Entities.Database
         public bool IsCatchSold { get; set; }
         private VesselUnload _parent;
         private VesselUnload_FishingGear _parentFishingGear;
+        private CarrierLanding _parentCarrierLanding;
         private bool _fromTotalCatch;
 
         public double? PriceOfSpecies { get; set; }
@@ -171,7 +172,11 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if (Parent.IsMultiGear)
+                if (Parent is null)
+                {
+                    return "";
+                }
+                else if (Parent.IsMultiGear)
                 {
                     if (string.IsNullOrEmpty(GearCode))
                     {
@@ -202,10 +207,11 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
         }
-        public bool FromTotalCatch {
-            get 
+        public bool FromTotalCatch
+        {
+            get
             {
-                if (ParentFishingGear==null || ParentFishingGear.WeightOfSample == null)
+                if (ParentFishingGear == null || ParentFishingGear.WeightOfSample == null)
                 {
                     return true;
                 }
@@ -213,8 +219,8 @@ namespace NSAP_ODK.Entities.Database
                 {
                     return _fromTotalCatch;
                 }
-            } 
-            set { _fromTotalCatch = value; } 
+            }
+            set { _fromTotalCatch = value; }
         }
 
 
@@ -391,6 +397,19 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
+        public CarrierLanding ParentCarrierLanding
+        {
+            set { _parentCarrierLanding = value; }
+            get
+            {
+                if (_parentCarrierLanding == null)
+                {
+                    // _parentEx = NSAPEntities
+                    return null;
+                }
+                return _parentCarrierLanding;
+            }
+        }
         public VesselUnload_FishingGear ParentFishingGear
         {
             set { _parentFishingGear = value; }
@@ -409,12 +428,18 @@ namespace NSAP_ODK.Entities.Database
             set { _parent = value; }
             get
             {
-                if (_parent == null)
-                {
-                    //_parent = NSAPEntities.VesselUnloadViewModel.getVesselUnload(VesselUnloadID);
-                    _parent = ParentFishingGear.Parent;
-                }
+                //if (ParentFishingGear == null)
+                //{
+                //    return null;
+                //}
                 return _parent;
+                //else if (_parent == null)
+                //{
+                //    //_parent = NSAPEntities.VesselUnloadViewModel.getVesselUnload(VesselUnloadID);
+                //    //_parent = ParentFishingGear.Parent;
+                //    return _parent;
+                //}
+                //return _parent;
             }
         }
     }

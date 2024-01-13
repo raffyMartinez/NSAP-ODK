@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using DocumentFormat.OpenXml.Presentation;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NPOI.SS.Formula.Functions;
 using NSAP_ODK.Utilities;
@@ -21,6 +22,18 @@ namespace NSAP_ODK.Entities.Database
             return Task.Run(() => UploadToDatabase(jsonFileName: jsonFileName));
         }
 
+        public static List<MultiVessel_Optimized_CBS_FishCarrier> FishCarriers
+        {
+            get
+            {
+                List<MultiVessel_Optimized_CBS_FishCarrier> carriers = new List<MultiVessel_Optimized_CBS_FishCarrier>();
+                foreach (MultiVessel_Optimized_Root root in MultiVesselLandings)
+                {
+
+                }
+                return carriers;
+            }
+        }
         public static List<MultiVessel_Optimized_SampledLanding> SampledVesselLandings
         {
             get
@@ -78,6 +91,18 @@ namespace NSAP_ODK.Entities.Database
             MultiVessel_Optimized_CatchLenFreq.SetRowIDs();
             MultiVessel_Optimized_CatchLenght.SetRowIDs();
             MultiVessel_Optimized_CatchLenWt.SetRowIDs();
+
+            MultiVessel_Optimized_CBS_FishCarrier.SetRowIDs();
+            MultiVessel_Optimized_CBS_CatcherBoat.SetRowIDs();
+            MultiVessel_Optimized_CBS_CatchComposition.SetRowIDs();
+            MultiVessel_Optimized_CBS_CarrierBoatFishingGround.SetRowIDs();
+
+            MultiVessel_Optimized_CBS_GonadalMaturity.SetRowIDs();
+            MultiVessel_Optimized_CBS_Length.SetRowIDs();
+            MultiVessel_Optimized_CBS_LenWt.SetRowIDs();
+            MultiVessel_Optimized_CBS_LenFreq.SetRowIDs();
+
+
         }
 
         public static int LandingSiteSamplingProcessedCount { get; set; }
@@ -152,6 +177,13 @@ namespace NSAP_ODK.Entities.Database
                                         root.FishingGround.Code,
                                         root.SamplingDate.Date);
                                 }
+                                else if (root.FishingGround == null)
+                                {
+                                    sds = NSAPEntities.SamplingDaySubmissionViewModel.GetSamplingDaySubmission(
+                                        root.LandingSite.LandingSiteID,
+                                        root.TypeOfSampling,
+                                        root.SamplingDate.Date);
+                                }
                                 else
                                 {
                                     sds = NSAPEntities.SamplingDaySubmissionViewModel.GetSamplingDaySubmission(
@@ -219,8 +251,15 @@ namespace NSAP_ODK.Entities.Database
                                 Remarks = root.ReasonNoLanding,
                                 DateSubmitted = root.SubmissionTime,
                                 SamplingFromCatchCompositionIsAllowed = root.SamplingFromCatchCompositionAllowed,
-                                Submission_id = root._id
+                                Submission_id = root._id,
+
+                                LandingSiteTypeOfSampling = root.TypeOfSampling,
                             };
+
+                            if (string.IsNullOrEmpty(lss.LandingSiteTypeOfSampling))
+                            {
+                                lss.LandingSiteTypeOfSampling = "rs";
+                            }
 
                             if (root.RegionEnumeratorID != null)
                             {
@@ -229,19 +268,6 @@ namespace NSAP_ODK.Entities.Database
                             else
                             {
                                 lss.EnumeratorText = root.RegionEnumeratorText;
-                            }
-
-                            if (root.RegionFishingGround != null)
-                            {
-                                lss.FishingGroundID = root.RegionFishingGround.FishingGroundCode;
-                            }
-                            else if (fg != null)
-                            {
-                                lss.FishingGroundID = fg.Code;
-                            }
-                            else
-                            {
-                                //what to do if there is a fishing ground that is not recognized
                             }
 
                             if (root.LandingSite == null)
@@ -260,7 +286,26 @@ namespace NSAP_ODK.Entities.Database
                                 lss.LandingSiteID = root.LandingSite.LandingSiteID;
                             }
 
-
+                            if (root.LandingSiteTypeOfSampling == LandingSiteTypeOfSampling.SamplingTypeRegular)
+                            {
+                                if (root.RegionFishingGround != null)
+                                {
+                                    lss.FishingGroundID = root.RegionFishingGround.FishingGroundCode;
+                                }
+                                else if (fg != null)
+                                {
+                                    lss.FishingGroundID = fg.Code;
+                                }
+                                else
+                                {
+                                    //what to do if there is a fishing ground that is not recognized
+                                }
+                            }
+                            else
+                            {
+                                lss.CountCarrierLandings = root.Count_Carrier_Landing;
+                                lss.CountCarrierSamplings = root.Count_Carrier_Sampling;
+                            }
 
                             if (NSAPEntities.LandingSiteSamplingViewModel.AddRecordToRepo(lss))
                             {
@@ -296,423 +341,244 @@ namespace NSAP_ODK.Entities.Database
 
                         if (proceed)
                         {
-                            proceed = false;
-                            if (!lss.HasFishingOperation)
+                            if (root.LandingSiteTypeOfSampling == LandingSiteTypeOfSampling.SamplingTypeRegular)
                             {
-                                lss.HasFishingOperation = root.AreThereLandings;
-                                if (lss.HasFishingOperation && lss.GearUnloadViewModel == null)
+                                proceed = false;
+                                if (!lss.HasFishingOperation)
+                                {
+                                    lss.HasFishingOperation = root.AreThereLandings;
+                                    if (lss.HasFishingOperation && lss.GearUnloadViewModel == null)
+                                    {
+                                        lss.GearUnloadViewModel = new GearUnloadViewModel(lss);
+                                    }
+                                    proceed = lss.HasFishingOperation;
+                                }
+                                else if (lss.GearUnloadViewModel == null)
                                 {
                                     lss.GearUnloadViewModel = new GearUnloadViewModel(lss);
+                                    proceed = true;
                                 }
-                                proceed = lss.HasFishingOperation;
-                            }
-                            else if (lss.GearUnloadViewModel == null)
-                            {
-                                lss.GearUnloadViewModel = new GearUnloadViewModel(lss);
-                                proceed = true;
-                            }
-                            else
-                            {
-                                proceed = true;
-                            }
-                            if (proceed && root.AreThereLandings)
-                            {
-                                GearUnload gu;
-                                foreach (MultiVessel_Optimized_Gear gear in root.GearsInLandingSite)
+                                else
                                 {
-                                    gu = lss.GearUnloadViewModel.GetGearUnloadEx(gear.GearName);
-                                    if (gu == null)
+                                    proceed = true;
+                                }
+                                if (proceed && root.AreThereLandings)
+                                {
+                                    GearUnload gu;
+                                    foreach (MultiVessel_Optimized_Gear gear in root.GearsInLandingSite)
                                     {
-                                        gu = new GearUnload
+                                        gu = lss.GearUnloadViewModel.GetGearUnloadEx(gear.GearName);
+                                        if (gu == null)
                                         {
-                                            PK = GearUnloadViewModel.CurrentIDNumber + 1,
-                                            Parent = lss,
-                                            LandingSiteSamplingID = lss.PK,
-                                            Boats = gear.NumberOfLandingsOfGear,
-                                            Catch = gear.WeightOfCatchOfGear,
-                                            NumberOfCommercialLandings = gear.NumberOfLandingsCommercial,
-                                            NumberOfMunicipalLandings = gear.NumberOfLandingsMunicipal,
-                                            WeightOfMunicipalLandings = gear.WeightOfCatchMunicipal,
-                                            WeightOfCommercialLandings = gear.WeightOfCatchCommercial,
-                                            Remarks = gear.GearRemarks,
-                                            Sequence = gear.GearLoopCounter,
-                                            DelayedSave = DelayedSave,
-                                        };
-                                        var gear2 = NSAPEntities.GearViewModel.GetGear(gear.GearCode);
-                                        if (gear2 != null)
-                                        {
-                                            gu.GearID = gear2.Code;
+                                            gu = new GearUnload
+                                            {
+                                                PK = GearUnloadViewModel.CurrentIDNumber + 1,
+                                                Parent = lss,
+                                                LandingSiteSamplingID = lss.PK,
+                                                Boats = gear.NumberOfLandingsOfGear,
+                                                Catch = gear.WeightOfCatchOfGear,
+                                                NumberOfCommercialLandings = gear.NumberOfLandingsCommercial,
+                                                NumberOfMunicipalLandings = gear.NumberOfLandingsMunicipal,
+                                                WeightOfMunicipalLandings = gear.WeightOfCatchMunicipal,
+                                                WeightOfCommercialLandings = gear.WeightOfCatchCommercial,
+                                                Remarks = gear.GearRemarks,
+                                                Sequence = gear.GearLoopCounter,
+                                                DelayedSave = DelayedSave,
+                                            };
+                                            var gear2 = NSAPEntities.GearViewModel.GetGear(gear.GearCode);
+                                            if (gear2 != null)
+                                            {
+                                                gu.GearID = gear2.Code;
+                                            }
+                                            else
+                                            {
+                                                gu.GearID = null;
+                                                gu.GearUsedText = gear.GearName;
+                                            }
+                                            proceed = false;
+                                            if (lss.GearUnloadViewModel.AddRecordToRepo(gu))
+                                            {
+                                                GearUnloadViewModel.CurrentIDNumber = gu.PK;
+                                                proceed = true;
+                                            }
                                         }
                                         else
                                         {
-                                            gu.GearID = null;
-                                            gu.GearUsedText = gear.GearName;
-                                        }
-                                        proceed = false;
-                                        if (lss.GearUnloadViewModel.AddRecordToRepo(gu))
-                                        {
-                                            GearUnloadViewModel.CurrentIDNumber = gu.PK;
+                                            gu.Boats += gear.NumberOfLandingsOfGear;
+                                            gu.Catch += gear.WeightOfCatchOfGear;
                                             proceed = true;
                                         }
-                                    }
-                                    else
-                                    {
-                                        gu.Boats += gear.NumberOfLandingsOfGear;
-                                        gu.Catch += gear.WeightOfCatchOfGear;
-                                        proceed = true;
-                                    }
-                                    if (proceed)
-                                    {
-                                        if (root.IsSamplingDay)
+                                        if (proceed)
                                         {
-                                            if (gu.VesselUnloadViewModel == null)
+                                            if (root.IsSamplingDay)
                                             {
-                                                gu.VesselUnloadViewModel = new VesselUnloadViewModel(isNew: true);
-                                            }
-
-                                            if (root.SampledFishLandings != null && root.SampledFishLandings.Count > 0)
-                                            {
-
-                                                foreach (MultiVessel_Optimized_SampledLanding sl in root.SampledFishLandings.Where(t => t.Main_gear_used == gu.Sequence).ToList())
+                                                if (gu.VesselUnloadViewModel == null)
                                                 {
-                                                    //SummaryItem si_vu = NSAPEntities.SummaryItemViewModel.GetVesselUnload(lss.PK, sl.Reference_number);
-                                                    //if (si_vu == null)
-                                                    //{
-                                                    VesselUnload vu = new VesselUnload
+                                                    gu.VesselUnloadViewModel = new VesselUnloadViewModel(isNew: true);
+                                                }
+
+                                                if (root.SampledFishLandings != null && root.SampledFishLandings.Count > 0)
+                                                {
+
+                                                    foreach (MultiVessel_Optimized_SampledLanding sl in root.SampledFishLandings.Where(t => t.Main_gear_used == gu.Sequence).ToList())
                                                     {
-                                                        PK = VesselUnloadViewModel.CurrentIDNumber + 1,
-                                                        Parent = gu,
-                                                        GearUnloadID = gu.PK,
-                                                        SectorCode = sl.SectorOfLanding,
-                                                        SamplingDate = root.SamplingDate.Add(sl.TimeOfSampling.TimeOfDay),
-                                                        DelayedSave = DelayedSave,
-                                                        RefNo = sl.Reference_number,
-                                                        OperationIsSuccessful = sl.TripIsSuccess,
-                                                        OperationIsTracked = false,
-                                                        FishingTripIsCompleted = sl.TripIsSuccess ? true : sl.TripIsCompleted,
-                                                        Notes = sl.Remarks,
-                                                        HasCatchComposition = sl.IncludeCatchComp,
-                                                        WeightOfCatch = sl.CatchTotal,
-                                                        WeightOfCatchSample = sl.CatchSampled,
-                                                        Boxes = sl.Boxes_total,
-                                                        BoxesSampled = sl.Boxes_sampled,
-                                                        IsBoatUsed = sl.IsBoatUsedInLanding,
-                                                        VesselID = sl.BoatUsedID,
-                                                        VesselText = sl.BoatUsedText,
-                                                        NumberOfFishers = sl.NumberOfFishers,
-                                                        IsMultiGear = true,
-                                                        IsCatchSold = sl.IsCatchSold,
-                                                        CountGearTypesUsed = sl.NumberOfGearsUsedInSampledLanding,
-                                                        RaisingFactor = sl.RaisingFactor,
-                                                        SequenceOfSampling = sl.LandingSequence,
-                                                        NSAPEnumeratorID = gu.Parent.EnumeratorID,
-                                                        EnumeratorText = gu.Parent.EnumeratorText,
-                                                        DateAddedToDatabase = DateTime.Now,
-                                                        FormVersion = sl.Parent.FormVersion == -1 ? "" : sl.Parent.FormVersion.ToString(),
-                                                        XFormIdentifier = sl.Parent._xform_id_string,
-                                                        //NumberOfSpeciesInCatchComposition = sl.NumberSpeciesInCatchComposition,
-                                                        NumberOfSpeciesInCatchComposition = null,
-                                                        IncludeEffortIndicators = sl.IncludeEffort,
-                                                        LandingSiteSamplingSubmissionID = lsss.SubmissionID,
-
-
-                                                    };
-                                                    if (gu.VesselUnloadViewModel.AddRecordToRepo(vu))
-                                                    {
-                                                        VesselUnloadViewModel.CurrentIDNumber = vu.PK;
-
-
-
-                                                        if (sl.FishingGrids?.Count > 0)
+                                                        //SummaryItem si_vu = NSAPEntities.SummaryItemViewModel.GetVesselUnload(lss.PK, sl.Reference_number);
+                                                        //if (si_vu == null)
+                                                        //{
+                                                        VesselUnload vu = new VesselUnload
                                                         {
-                                                            if (vu.FishingGroundGridViewModel == null)
+                                                            PK = VesselUnloadViewModel.CurrentIDNumber + 1,
+                                                            Parent = gu,
+                                                            GearUnloadID = gu.PK,
+                                                            SectorCode = sl.SectorOfLanding,
+                                                            SamplingDate = root.SamplingDate.Add(sl.TimeOfSampling.TimeOfDay),
+                                                            DelayedSave = DelayedSave,
+                                                            RefNo = sl.Reference_number,
+                                                            OperationIsSuccessful = sl.TripIsSuccess,
+                                                            OperationIsTracked = false,
+                                                            FishingTripIsCompleted = sl.TripIsSuccess ? true : sl.TripIsCompleted,
+                                                            Notes = sl.Remarks,
+                                                            HasCatchComposition = sl.IncludeCatchComp,
+                                                            WeightOfCatch = sl.CatchTotal,
+                                                            WeightOfCatchSample = sl.CatchSampled,
+                                                            Boxes = sl.Boxes_total,
+                                                            BoxesSampled = sl.Boxes_sampled,
+                                                            IsBoatUsed = sl.IsBoatUsedInLanding,
+                                                            VesselID = sl.BoatUsedID,
+                                                            VesselText = sl.BoatUsedText,
+                                                            NumberOfFishers = sl.NumberOfFishers,
+                                                            IsMultiGear = true,
+                                                            IsCatchSold = sl.IsCatchSold,
+                                                            CountGearTypesUsed = sl.NumberOfGearsUsedInSampledLanding,
+                                                            RaisingFactor = sl.RaisingFactor,
+                                                            SequenceOfSampling = sl.LandingSequence,
+                                                            NSAPEnumeratorID = gu.Parent.EnumeratorID,
+                                                            EnumeratorText = gu.Parent.EnumeratorText,
+                                                            DateAddedToDatabase = DateTime.Now,
+                                                            FormVersion = sl.Parent.FormVersion == -1 ? "" : sl.Parent.FormVersion.ToString(),
+                                                            XFormIdentifier = sl.Parent._xform_id_string,
+                                                            //NumberOfSpeciesInCatchComposition = sl.NumberSpeciesInCatchComposition,
+                                                            NumberOfSpeciesInCatchComposition = null,
+                                                            IncludeEffortIndicators = sl.IncludeEffort,
+                                                            LandingSiteSamplingSubmissionID = lsss.SubmissionID,
+
+
+                                                        };
+                                                        if (gu.VesselUnloadViewModel.AddRecordToRepo(vu))
+                                                        {
+                                                            VesselUnloadViewModel.CurrentIDNumber = vu.PK;
+
+
+
+                                                            if (sl.FishingGrids?.Count > 0)
                                                             {
-                                                                vu.FishingGroundGridViewModel = new FishingGroundGridViewModel(isNew: true);
-                                                            }
-                                                            foreach (MultiVessel_Optimized_FishingGrid mvg_fg in sl.FishingGrids)
-                                                            {
-                                                                if (!string.IsNullOrEmpty(sl.UTMZone) && !string.IsNullOrEmpty(mvg_fg.GridNameComplete))
+                                                                if (vu.FishingGroundGridViewModel == null)
                                                                 {
-                                                                    FishingGroundGrid fgg = new FishingGroundGrid
+                                                                    vu.FishingGroundGridViewModel = new FishingGroundGridViewModel(isNew: true);
+                                                                }
+                                                                foreach (MultiVessel_Optimized_FishingGrid mvg_fg in sl.FishingGrids)
+                                                                {
+                                                                    if (!string.IsNullOrEmpty(sl.UTMZone) && !string.IsNullOrEmpty(mvg_fg.GridNameComplete))
                                                                     {
-                                                                        PK = FishingGroundGridViewModel.CurrentIDNumber + 1,
+                                                                        FishingGroundGrid fgg = new FishingGroundGrid
+                                                                        {
+                                                                            PK = FishingGroundGridViewModel.CurrentIDNumber + 1,
+                                                                            Parent = vu,
+                                                                            VesselUnloadID = vu.PK,
+                                                                            UTMZoneText = sl.UTMZone,
+                                                                            Grid = mvg_fg.GridNameComplete,
+                                                                            DelayedSave = DelayedSave
+                                                                        };
+                                                                        if (vu.FishingGroundGridViewModel.AddRecordToRepo(fgg))
+                                                                        {
+                                                                            FishingGroundGridViewModel.CurrentIDNumber = fgg.PK;
+                                                                            vu.CountGrids++;
+                                                                        }
+                                                                    }
+                                                                }
+                                                                vu.FishingGroundGridViewModel.Dispose();
+                                                            }
+
+                                                            if (sl.GearSoakTimes?.Count > 0)
+                                                            {
+                                                                if (vu.GearSoakViewModel == null)
+                                                                {
+                                                                    vu.GearSoakViewModel = new GearSoakViewModel(isNew: true);
+                                                                }
+                                                                foreach (MultiVessel_Optimized_SoakTime mvg_st in sl.GearSoakTimes)
+                                                                {
+                                                                    GearSoak gs = new GearSoak
+                                                                    {
+                                                                        PK = GearSoakViewModel.CurrentIDNumber + 1,
                                                                         Parent = vu,
                                                                         VesselUnloadID = vu.PK,
-                                                                        UTMZoneText = sl.UTMZone,
-                                                                        Grid = mvg_fg.GridNameComplete,
-                                                                        DelayedSave = DelayedSave
+                                                                        DelayedSave = DelayedSave,
+                                                                        TimeAtSet = (DateTime)mvg_st.TimeOfSet,
+                                                                        TimeAtHaul = (DateTime)mvg_st.TimeOfHaul,
                                                                     };
-                                                                    if (vu.FishingGroundGridViewModel.AddRecordToRepo(fgg))
+                                                                    if (vu.GearSoakViewModel.AddRecordToRepo(gs))
                                                                     {
-                                                                        FishingGroundGridViewModel.CurrentIDNumber = fgg.PK;
-                                                                        vu.CountGrids++;
+                                                                        GearSoakViewModel.CurrentIDNumber = gs.PK;
+                                                                        vu.CountGearSoak++;
                                                                     }
                                                                 }
-                                                            }
-                                                            vu.FishingGroundGridViewModel.Dispose();
-                                                        }
 
-                                                        if (sl.GearSoakTimes?.Count > 0)
-                                                        {
-                                                            if (vu.GearSoakViewModel == null)
-                                                            {
-                                                                vu.GearSoakViewModel = new GearSoakViewModel(isNew: true);
+                                                                vu.GearSoakViewModel.Dispose();
                                                             }
-                                                            foreach (MultiVessel_Optimized_SoakTime mvg_st in sl.GearSoakTimes)
+
+                                                            if (vu.VesselUnload_FishingGearsViewModel == null)
                                                             {
-                                                                GearSoak gs = new GearSoak
+                                                                vu.VesselUnload_FishingGearsViewModel = new VesselUnload_FishingGearViewModel(isNew: true);
+                                                            }
+                                                            List<string> gearList = sl.GearsUsedInSampledLanding.Split(' ').ToList();
+                                                            int countSavedInLoop = 0;
+                                                            foreach (MultiVessel_Optimized_LandingGear mvg_lg in sl.SampledLandingGears)
+                                                            {
+                                                                VesselUnload_FishingGear vufg = new VesselUnload_FishingGear
                                                                 {
-                                                                    PK = GearSoakViewModel.CurrentIDNumber + 1,
+                                                                    GearCode = mvg_lg.GearCode == "_OT" ? "" : mvg_lg.GearCode,
+                                                                    GearText = mvg_lg.GearText,
                                                                     Parent = vu,
-                                                                    VesselUnloadID = vu.PK,
-                                                                    DelayedSave = DelayedSave,
-                                                                    TimeAtSet = (DateTime)mvg_st.TimeOfSet,
-                                                                    TimeAtHaul = (DateTime)mvg_st.TimeOfHaul,
+                                                                    RowID = VesselUnload_FishingGearViewModel.CurrentIDNumber + 1,
+                                                                    DelayedSave = true,
                                                                 };
-                                                                if (vu.GearSoakViewModel.AddRecordToRepo(gs))
-                                                                {
-                                                                    GearSoakViewModel.CurrentIDNumber = gs.PK;
-                                                                    vu.CountGearSoak++;
-                                                                }
-                                                            }
 
-                                                            vu.GearSoakViewModel.Dispose();
-                                                        }
-
-                                                        if (vu.VesselUnload_FishingGearsViewModel == null)
-                                                        {
-                                                            vu.VesselUnload_FishingGearsViewModel = new VesselUnload_FishingGearViewModel(isNew: true);
-                                                        }
-                                                        List<string> gearList = sl.GearsUsedInSampledLanding.Split(' ').ToList();
-                                                        int countSavedInLoop = 0;
-                                                        foreach (MultiVessel_Optimized_LandingGear mvg_lg in sl.SampledLandingGears)
-                                                        {
-                                                            VesselUnload_FishingGear vufg = new VesselUnload_FishingGear
-                                                            {
-                                                                GearCode = mvg_lg.GearCode == "_OT" ? "" : mvg_lg.GearCode,
-                                                                GearText = mvg_lg.GearText,
-                                                                Parent = vu,
-                                                                RowID = VesselUnload_FishingGearViewModel.CurrentIDNumber + 1,
-                                                                DelayedSave = true,
-                                                            };
-
-                                                            if (vu.VesselUnload_FishingGearsViewModel.AddRecordToRepo(vufg))
-                                                            {
-                                                                VesselUnload_FishingGearViewModel.CurrentIDNumber = vufg.RowID;
-                                                                if (vufg.VesselUnload_Gear_Specs_ViewModel == null)
+                                                                if (vu.VesselUnload_FishingGearsViewModel.AddRecordToRepo(vufg))
                                                                 {
-                                                                    vufg.VesselUnload_Gear_Specs_ViewModel = new VesselUnload_Gear_Spec_ViewModel();
-                                                                }
-                                                                if (vufg.GearUsedName != null)
-                                                                {
-                                                                    if (sl.IncludeEffort)
+                                                                    VesselUnload_FishingGearViewModel.CurrentIDNumber = vufg.RowID;
+                                                                    if (vufg.VesselUnload_Gear_Specs_ViewModel == null)
                                                                     {
-                                                                        MultiVessel_Optimized_GearEffort mvg_ge = sl.GearEfforts.FirstOrDefault(t => t.SelectedGearName == vufg.GearUsedName);
-                                                                        if (mvg_ge != null && mvg_ge.GearEffortDetails != null)
-                                                                        {
-                                                                            foreach (MultiVessel_Optimized_GearEffortDetail mvg_ged in mvg_ge.GearEffortDetails)
-                                                                            {
-                                                                                VesselUnload_Gear_Spec vugs = new VesselUnload_Gear_Spec
-                                                                                {
-                                                                                    RowID = VesselUnload_Gear_Spec_ViewModel.CurrentIDNumber + 1,
-                                                                                    Parent = vufg,
-                                                                                    EffortSpecID = mvg_ged.EffortType,
-                                                                                    EffortValueNumeric = mvg_ged.EffortIntensity,
-                                                                                    EffortValueText = mvg_ged.EffortText,
-                                                                                    DelayedSave = DelayedSave,
-                                                                                    VesselUnload_FishingGears_ID = vufg.RowID
-                                                                                };
-
-                                                                                if (vufg.VesselUnload_Gear_Specs_ViewModel.AddRecordToRepo(vugs))
-                                                                                {
-                                                                                    VesselUnload_Gear_Spec_ViewModel.CurrentIDNumber = vugs.RowID;
-                                                                                    vufg.CountEffortIndicators++;
-
-                                                                                }
-                                                                            }
-                                                                        }
+                                                                        vufg.VesselUnload_Gear_Specs_ViewModel = new VesselUnload_Gear_Spec_ViewModel();
                                                                     }
-                                                                }
-                                                                else
-                                                                {
-                                                                    if (!_undetectedGears.Contains(vufg.GearCode))
+                                                                    if (vufg.GearUsedName != null)
                                                                     {
-                                                                        _undetectedGears.Add(vufg.GearCode);
-                                                                        Utilities.Logger.LogUploadJSONToLocalDB($"Gear not found in local DB: Gear code is {vufg.GearCode} Name:{vufg.GearUsedName}");
-                                                                    }
-                                                                }
-
-                                                                countSavedInLoop++;
-                                                            }
-                                                            //vufg.VesselUnload_Gear_Specs_ViewModel.Dispose();
-                                                        }
-
-
-
-                                                        proceed = countSavedInLoop == gearList.Count;
-
-                                                        if (sl.IncludeCatchComp)
-                                                        {
-                                                            if (sl.GearCatchCompositionItems != null && sl.GearCatchCompositionItems.Count > 0)
-                                                            {
-                                                                foreach (var item in sl.GearCatchCompositionItems)
-                                                                {
-                                                                    var vufg = vu.ListUnloadFishingGears.FirstOrDefault(t => t.GearUsedName == item.GearName);
-                                                                    if (vufg != null)
-                                                                    {
-                                                                        if (vufg.VesselCatchViewModel == null)
+                                                                        if (sl.IncludeEffort)
                                                                         {
-                                                                            vufg.VesselCatchViewModel = new VesselCatchViewModel(isNew: true);
-                                                                        }
-
-                                                                        vufg.CountItemsInCatchComposition = item.CatchCompositionItems.Count;
-                                                                        vufg.WeightOfCatch = item.WeightOfCatch;
-                                                                        vufg.WeightOfSample = item.WeightOfSample;
-                                                                        vu.VesselUnload_FishingGearsViewModel.UpdateRecordInRepo(vufg, update_wt_ct: true);
-
-                                                                        foreach (MultiVessel_Optimized_CatchCompositionItem mvg_cci in item.CatchCompositionItems)
-                                                                        {
-                                                                            VesselCatch vc = new VesselCatch
+                                                                            MultiVessel_Optimized_GearEffort mvg_ge = sl.GearEfforts.FirstOrDefault(t => t.SelectedGearName == vufg.GearUsedName);
+                                                                            if (mvg_ge != null && mvg_ge.GearEffortDetails != null)
                                                                             {
-                                                                                PK = VesselCatchViewModel.CurrentIDNumber + 1,
-                                                                                ParentFishingGear = vufg,
-                                                                                //GearCode = mvg_cci.CodeOfGearUsedForCatching == "_OT" ? "" : mvg_cci.CodeOfGearUsedForCatching,
-                                                                                //GearText = mvg_cci.GearUsedForCatching == null ? mvg_cci.NameOfGearUsedForCatching : "",
-                                                                                GearCode = "",
-                                                                                GearText = "",
-                                                                                DelayedSave = DelayedSave,
-
-                                                                                SpeciesID = mvg_cci.SpeciesID,
-                                                                                Catch_kg = mvg_cci.Species_wt,
-                                                                                Sample_kg = mvg_cci.Species_sample_wt,
-                                                                                TaxaCode = mvg_cci.SelectedTaxa,
-                                                                                SpeciesText = mvg_cci.SpeciesNameOther,
-                                                                                WeighingUnit = mvg_cci.Individual_wt_unit,
-                                                                                FromTotalCatch = mvg_cci.FromTotalCatch,
-                                                                                IsCatchSold = mvg_cci.IsSpeciesSold,
-                                                                                PriceOfSpecies = mvg_cci.Price_of_species,
-                                                                                PriceUnit = mvg_cci.Pricing_unit,
-                                                                                OtherPriceUnit = mvg_cci.OtherPricingUnit
-                                                                            };
-
-
-
-                                                                            if (vufg.VesselCatchViewModel.AddRecordToRepo(vc))
-                                                                            {
-                                                                                VesselCatchViewModel.CurrentIDNumber = vc.PK;
-                                                                                if (mvg_cci.HasMeasurements)
+                                                                                foreach (MultiVessel_Optimized_GearEffortDetail mvg_ged in mvg_ge.GearEffortDetails)
                                                                                 {
-                                                                                    if (mvg_cci.CatchGMSes != null && mvg_cci.CatchGMSes.Count > 0)
+                                                                                    VesselUnload_Gear_Spec vugs = new VesselUnload_Gear_Spec
                                                                                     {
-                                                                                        vufg.CountMaturityRows += mvg_cci.CatchGMSes.Count;
-                                                                                        if (vc.CatchMaturityViewModel == null)
-                                                                                        {
-                                                                                            vc.CatchMaturityViewModel = new CatchMaturityViewModel(isNew: true);
-                                                                                        }
-                                                                                        foreach (MultiVessel_Optimized_CatchGMS mvg_cgms in mvg_cci.CatchGMSes)
-                                                                                        {
-                                                                                            CatchMaturity cm = new CatchMaturity
-                                                                                            {
-                                                                                                Parent = vc,
-                                                                                                PK = CatchMaturityViewModel.CurrentIDNumber + 1,
-                                                                                                SexCode = mvg_cgms.Sex,
-                                                                                                Length = mvg_cgms.Individual_length,
-                                                                                                Weight = mvg_cgms.Individual_weight_kg,
-                                                                                                MaturityCode = mvg_cgms.GMS,
-                                                                                                GutContentCode = mvg_cgms.GutContentCategory,
-                                                                                                GonadWeight = mvg_cgms.GonadWt,
-                                                                                                WeightGutContent = mvg_cgms.Stomach_content_weight,
-                                                                                                DelayedSave = DelayedSave
-                                                                                            };
-                                                                                            if (vc.CatchMaturityViewModel.AddRecordToRepo(cm))
-                                                                                            {
-                                                                                                CatchMaturityViewModel.CurrentIDNumber = cm.PK;
-                                                                                            }
-                                                                                        }
-                                                                                        vc.CatchMaturityViewModel.Dispose();
-                                                                                    }
-                                                                                    if (mvg_cci.CatchLenFreqs != null && mvg_cci.CatchLenFreqs.Count > 0)
+                                                                                        RowID = VesselUnload_Gear_Spec_ViewModel.CurrentIDNumber + 1,
+                                                                                        Parent = vufg,
+                                                                                        EffortSpecID = mvg_ged.EffortType,
+                                                                                        EffortValueNumeric = mvg_ged.EffortIntensity,
+                                                                                        EffortValueText = mvg_ged.EffortText,
+                                                                                        DelayedSave = DelayedSave,
+                                                                                        VesselUnload_FishingGears_ID = vufg.RowID
+                                                                                    };
+
+                                                                                    if (vufg.VesselUnload_Gear_Specs_ViewModel.AddRecordToRepo(vugs))
                                                                                     {
-                                                                                        vufg.CountLenFreqRows += mvg_cci.CatchLenFreqs.Count;
-                                                                                        if (vc.CatchLenFreqViewModel == null)
-                                                                                        {
-                                                                                            vc.CatchLenFreqViewModel = new CatchLenFreqViewModel(isNew: true);
-                                                                                        }
-                                                                                        foreach (MultiVessel_Optimized_CatchLenFreq mvg_clf in mvg_cci.CatchLenFreqs)
-                                                                                        {
-                                                                                            CatchLenFreq lf = new CatchLenFreq
-                                                                                            {
-                                                                                                Parent = vc,
-                                                                                                PK = CatchLenFreqViewModel.CurrentIDNumber + 1,
-                                                                                                LengthClass = mvg_clf.LengthClass,
-                                                                                                Frequency = mvg_clf.Frequency,
-                                                                                                DelayedSave = DelayedSave,
-                                                                                                Sex = mvg_clf.Sex
-                                                                                            };
-                                                                                            if (vc.CatchLenFreqViewModel.AddRecordToRepo(lf))
-                                                                                            {
-                                                                                                CatchLenFreqViewModel.CurrentIDNumber = lf.PK;
-                                                                                            }
+                                                                                        VesselUnload_Gear_Spec_ViewModel.CurrentIDNumber = vugs.RowID;
+                                                                                        vufg.CountEffortIndicators++;
 
-                                                                                        }
-                                                                                        vc.CatchLenFreqViewModel.Dispose();
-                                                                                    }
-                                                                                    if (mvg_cci.CatchLengths != null && mvg_cci.CatchLengths.Count > 0)
-                                                                                    {
-                                                                                        vufg.CountLengthRows += mvg_cci.CatchLengths.Count;
-                                                                                        if (vc.CatchLengthViewModel == null)
-                                                                                        {
-                                                                                            vc.CatchLengthViewModel = new CatchLengthViewModel(isNew: true);
-                                                                                        }
-                                                                                        foreach (MultiVessel_Optimized_CatchLenght mv_cl in mvg_cci.CatchLengths)
-                                                                                        {
-                                                                                            CatchLength len = new CatchLength
-                                                                                            {
-                                                                                                Parent = vc,
-                                                                                                PK = CatchLengthViewModel.CurrentIDNumber + 1,
-                                                                                                Length = mv_cl.Length,
-                                                                                                DelayedSave = DelayedSave,
-                                                                                                Sex = mv_cl.Sex
-                                                                                            };
-
-                                                                                            if (vc.CatchLengthViewModel.AddRecordToRepo(len))
-                                                                                            {
-                                                                                                CatchLengthViewModel.CurrentIDNumber = len.PK;
-                                                                                            }
-                                                                                        }
-                                                                                        vc.CatchLengthViewModel.Dispose();
-                                                                                    }
-
-                                                                                    if (mvg_cci.CatchLengthWeights != null && mvg_cci.CatchLengthWeights.Count > 0)
-                                                                                    {
-                                                                                        vufg.CountLenWtRows += mvg_cci.CatchLengthWeights.Count;
-                                                                                        if (vc.CatchLengthWeightViewModel == null)
-                                                                                        {
-                                                                                            vc.CatchLengthWeightViewModel = new CatchLengthWeightViewModel(isNew: true);
-                                                                                        }
-                                                                                        foreach (MultiVessel_Optimized_CatchLenWt mvg_clw in mvg_cci.CatchLengthWeights)
-                                                                                        {
-                                                                                            CatchLengthWeight lw = new CatchLengthWeight
-                                                                                            {
-                                                                                                Parent = vc,
-                                                                                                PK = CatchLengthWeightViewModel.CurrentIDNumber + 1,
-                                                                                                Length = mvg_clw.Length,
-                                                                                                Weight = mvg_clw.Weight,
-                                                                                                DelayedSave = DelayedSave,
-                                                                                                Sex = mvg_clw.Sex
-                                                                                            };
-
-                                                                                            if (vc.CatchLengthWeightViewModel.AddRecordToRepo(lw))
-                                                                                            {
-                                                                                                CatchLengthWeightViewModel.CurrentIDNumber = lw.PK;
-                                                                                            }
-                                                                                        }
-                                                                                        vc.CatchLengthWeightViewModel.Dispose();
                                                                                     }
                                                                                 }
                                                                             }
                                                                         }
-                                                                        //vufg.VesselCatchViewModel.Dispose();
                                                                     }
                                                                     else
                                                                     {
@@ -722,84 +588,459 @@ namespace NSAP_ODK.Entities.Database
                                                                             Utilities.Logger.LogUploadJSONToLocalDB($"Gear not found in local DB: Gear code is {vufg.GearCode} Name:{vufg.GearUsedName}");
                                                                         }
                                                                     }
-                                                                }
-                                                            }
-                                                        }
-                                                        else
-                                                        {
-                                                            foreach (VesselUnload_FishingGear vufg in vu.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection.ToList())
-                                                            {
-                                                                if (sl.LandingGearsWithWeight == null)
-                                                                {
 
-                                                                    vufg.WeightOfCatch = sl.CatchTotal == null ? 0 : sl.CatchTotal;
-                                                                    vufg.WeightOfSample = sl.CatchSampled == null ? 0 : sl.CatchSampled;
+                                                                    countSavedInLoop++;
                                                                 }
-                                                                else
-                                                                {
-                                                                    vufg.WeightOfCatch = sl.LandingGearsWithWeight.FirstOrDefault(t => t.GearName == vufg.GearUsedName).WeightOfCatch;
-                                                                    vufg.WeightOfSample = sl.LandingGearsWithWeight.FirstOrDefault(t => t.GearName == vufg.GearUsedName).WeightOfSample;
-                                                                }
-                                                                vufg.CountItemsInCatchComposition = 0;
-                                                                vu.VesselUnload_FishingGearsViewModel.UpdateRecordInRepo(vufg, update_wt_ct: true);
+                                                                //vufg.VesselUnload_Gear_Specs_ViewModel.Dispose();
                                                             }
-                                                        }
 
-                                                        if (gu.VesselUnloadViewModel.UpdateUnloadStats(vu) && NSAPEntities.SummaryItemViewModel.AddRecordToRepo(vu))
-                                                        {
+
+
+                                                            proceed = countSavedInLoop == gearList.Count;
+
                                                             if (sl.IncludeCatchComp)
                                                             {
-                                                                //gu.VesselUnloadViewModel.UpdateWeightValidation(NSAPEntities.SummaryItemViewModel.CurrentEntity, vu);
-                                                                gu.VesselUnloadViewModel.UpdateWeightValidation(vu);
+                                                                if (sl.GearCatchCompositionItems != null && sl.GearCatchCompositionItems.Count > 0)
+                                                                {
+                                                                    foreach (var item in sl.GearCatchCompositionItems)
+                                                                    {
+                                                                        var vufg = vu.ListUnloadFishingGears.FirstOrDefault(t => t.GearUsedName == item.GearName);
+                                                                        if (vufg != null)
+                                                                        {
+                                                                            if (vufg.VesselCatchViewModel == null)
+                                                                            {
+                                                                                vufg.VesselCatchViewModel = new VesselCatchViewModel(isNew: true);
+                                                                            }
 
+                                                                            vufg.CountItemsInCatchComposition = item.CatchCompositionItems.Count;
+                                                                            vufg.WeightOfCatch = item.WeightOfCatch;
+                                                                            vufg.WeightOfSample = item.WeightOfSample;
+                                                                            vu.VesselUnload_FishingGearsViewModel.UpdateRecordInRepo(vufg, update_wt_ct: true);
+
+                                                                            foreach (MultiVessel_Optimized_CatchCompositionItem mvg_cci in item.CatchCompositionItems)
+                                                                            {
+                                                                                VesselCatch vc = new VesselCatch
+                                                                                {
+                                                                                    PK = VesselCatchViewModel.CurrentIDNumber + 1,
+                                                                                    ParentFishingGear = vufg,
+                                                                                    //GearCode = mvg_cci.CodeOfGearUsedForCatching == "_OT" ? "" : mvg_cci.CodeOfGearUsedForCatching,
+                                                                                    //GearText = mvg_cci.GearUsedForCatching == null ? mvg_cci.NameOfGearUsedForCatching : "",
+                                                                                    GearCode = "",
+                                                                                    GearText = "",
+                                                                                    DelayedSave = DelayedSave,
+
+                                                                                    SpeciesID = mvg_cci.SpeciesID,
+                                                                                    Catch_kg = mvg_cci.Species_wt,
+                                                                                    Sample_kg = mvg_cci.Species_sample_wt,
+                                                                                    TaxaCode = mvg_cci.SelectedTaxa,
+                                                                                    SpeciesText = mvg_cci.SpeciesNameOther,
+                                                                                    WeighingUnit = mvg_cci.Individual_wt_unit,
+                                                                                    FromTotalCatch = mvg_cci.FromTotalCatch,
+                                                                                    IsCatchSold = mvg_cci.IsSpeciesSold,
+                                                                                    PriceOfSpecies = mvg_cci.Price_of_species,
+                                                                                    PriceUnit = mvg_cci.Pricing_unit,
+                                                                                    OtherPriceUnit = mvg_cci.OtherPricingUnit
+                                                                                };
+
+
+
+                                                                                if (vufg.VesselCatchViewModel.AddRecordToRepo(vc))
+                                                                                {
+                                                                                    VesselCatchViewModel.CurrentIDNumber = vc.PK;
+                                                                                    if (mvg_cci.HasMeasurements)
+                                                                                    {
+                                                                                        if (mvg_cci.CatchGMSes != null && mvg_cci.CatchGMSes.Count > 0)
+                                                                                        {
+                                                                                            vufg.CountMaturityRows += mvg_cci.CatchGMSes.Count;
+                                                                                            if (vc.CatchMaturityViewModel == null)
+                                                                                            {
+                                                                                                vc.CatchMaturityViewModel = new CatchMaturityViewModel(isNew: true);
+                                                                                            }
+                                                                                            foreach (MultiVessel_Optimized_CatchGMS mvg_cgms in mvg_cci.CatchGMSes)
+                                                                                            {
+                                                                                                CatchMaturity cm = new CatchMaturity
+                                                                                                {
+                                                                                                    Parent = vc,
+                                                                                                    PK = CatchMaturityViewModel.CurrentIDNumber + 1,
+                                                                                                    SexCode = mvg_cgms.Sex,
+                                                                                                    Length = mvg_cgms.Individual_length,
+                                                                                                    Weight = mvg_cgms.Individual_weight_kg,
+                                                                                                    MaturityCode = mvg_cgms.GMS,
+                                                                                                    GutContentCode = mvg_cgms.GutContentCategory,
+                                                                                                    GonadWeight = mvg_cgms.GonadWt,
+                                                                                                    WeightGutContent = mvg_cgms.Stomach_content_weight,
+                                                                                                    DelayedSave = DelayedSave
+                                                                                                };
+                                                                                                if (vc.CatchMaturityViewModel.AddRecordToRepo(cm))
+                                                                                                {
+                                                                                                    CatchMaturityViewModel.CurrentIDNumber = cm.PK;
+                                                                                                }
+                                                                                            }
+                                                                                            vc.CatchMaturityViewModel.Dispose();
+                                                                                        }
+                                                                                        if (mvg_cci.CatchLenFreqs != null && mvg_cci.CatchLenFreqs.Count > 0)
+                                                                                        {
+                                                                                            vufg.CountLenFreqRows += mvg_cci.CatchLenFreqs.Count;
+                                                                                            if (vc.CatchLenFreqViewModel == null)
+                                                                                            {
+                                                                                                vc.CatchLenFreqViewModel = new CatchLenFreqViewModel(isNew: true);
+                                                                                            }
+                                                                                            foreach (MultiVessel_Optimized_CatchLenFreq mvg_clf in mvg_cci.CatchLenFreqs)
+                                                                                            {
+                                                                                                CatchLenFreq lf = new CatchLenFreq
+                                                                                                {
+                                                                                                    Parent = vc,
+                                                                                                    PK = CatchLenFreqViewModel.CurrentIDNumber + 1,
+                                                                                                    LengthClass = mvg_clf.LengthClass,
+                                                                                                    Frequency = mvg_clf.Frequency,
+                                                                                                    DelayedSave = DelayedSave,
+                                                                                                    Sex = mvg_clf.Sex
+                                                                                                };
+                                                                                                if (vc.CatchLenFreqViewModel.AddRecordToRepo(lf))
+                                                                                                {
+                                                                                                    CatchLenFreqViewModel.CurrentIDNumber = lf.PK;
+                                                                                                }
+
+                                                                                            }
+                                                                                            vc.CatchLenFreqViewModel.Dispose();
+                                                                                        }
+                                                                                        if (mvg_cci.CatchLengths != null && mvg_cci.CatchLengths.Count > 0)
+                                                                                        {
+                                                                                            vufg.CountLengthRows += mvg_cci.CatchLengths.Count;
+                                                                                            if (vc.CatchLengthViewModel == null)
+                                                                                            {
+                                                                                                vc.CatchLengthViewModel = new CatchLengthViewModel(isNew: true);
+                                                                                            }
+                                                                                            foreach (MultiVessel_Optimized_CatchLenght mv_cl in mvg_cci.CatchLengths)
+                                                                                            {
+                                                                                                CatchLength len = new CatchLength
+                                                                                                {
+                                                                                                    Parent = vc,
+                                                                                                    PK = CatchLengthViewModel.CurrentIDNumber + 1,
+                                                                                                    Length = mv_cl.Length,
+                                                                                                    DelayedSave = DelayedSave,
+                                                                                                    Sex = mv_cl.Sex
+                                                                                                };
+
+                                                                                                if (vc.CatchLengthViewModel.AddRecordToRepo(len))
+                                                                                                {
+                                                                                                    CatchLengthViewModel.CurrentIDNumber = len.PK;
+                                                                                                }
+                                                                                            }
+                                                                                            vc.CatchLengthViewModel.Dispose();
+                                                                                        }
+
+                                                                                        if (mvg_cci.CatchLengthWeights != null && mvg_cci.CatchLengthWeights.Count > 0)
+                                                                                        {
+                                                                                            vufg.CountLenWtRows += mvg_cci.CatchLengthWeights.Count;
+                                                                                            if (vc.CatchLengthWeightViewModel == null)
+                                                                                            {
+                                                                                                vc.CatchLengthWeightViewModel = new CatchLengthWeightViewModel(isNew: true);
+                                                                                            }
+                                                                                            foreach (MultiVessel_Optimized_CatchLenWt mvg_clw in mvg_cci.CatchLengthWeights)
+                                                                                            {
+                                                                                                CatchLengthWeight lw = new CatchLengthWeight
+                                                                                                {
+                                                                                                    Parent = vc,
+                                                                                                    PK = CatchLengthWeightViewModel.CurrentIDNumber + 1,
+                                                                                                    Length = mvg_clw.Length,
+                                                                                                    Weight = mvg_clw.Weight,
+                                                                                                    DelayedSave = DelayedSave,
+                                                                                                    Sex = mvg_clw.Sex
+                                                                                                };
+
+                                                                                                if (vc.CatchLengthWeightViewModel.AddRecordToRepo(lw))
+                                                                                                {
+                                                                                                    CatchLengthWeightViewModel.CurrentIDNumber = lw.PK;
+                                                                                                }
+                                                                                            }
+                                                                                            vc.CatchLengthWeightViewModel.Dispose();
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                            //vufg.VesselCatchViewModel.Dispose();
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            if (!_undetectedGears.Contains(vufg.GearCode))
+                                                                            {
+                                                                                _undetectedGears.Add(vufg.GearCode);
+                                                                                Utilities.Logger.LogUploadJSONToLocalDB($"Gear not found in local DB: Gear code is {vufg.GearCode} Name:{vufg.GearUsedName}");
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                foreach (VesselUnload_FishingGear vufg in vu.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection.ToList())
+                                                                {
+                                                                    if (sl.LandingGearsWithWeight == null)
+                                                                    {
+
+                                                                        vufg.WeightOfCatch = sl.CatchTotal == null ? 0 : sl.CatchTotal;
+                                                                        vufg.WeightOfSample = sl.CatchSampled == null ? 0 : sl.CatchSampled;
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        vufg.WeightOfCatch = sl.LandingGearsWithWeight.FirstOrDefault(t => t.GearName == vufg.GearUsedName).WeightOfCatch;
+                                                                        vufg.WeightOfSample = sl.LandingGearsWithWeight.FirstOrDefault(t => t.GearName == vufg.GearUsedName).WeightOfSample;
+                                                                    }
+                                                                    vufg.CountItemsInCatchComposition = 0;
+                                                                    vu.VesselUnload_FishingGearsViewModel.UpdateRecordInRepo(vufg, update_wt_ct: true);
+                                                                }
+                                                            }
+
+                                                            if (gu.VesselUnloadViewModel.UpdateUnloadStats(vu) && NSAPEntities.SummaryItemViewModel.AddRecordToRepo(vu))
+                                                            {
+                                                                if (sl.IncludeCatchComp)
+                                                                {
+                                                                    gu.VesselUnloadViewModel.UpdateWeightValidation(vu);
+                                                                }
+                                                                vu.VesselUnload_FishingGearsViewModel.Dispose();
+                                                                savedCount++;
+                                                                sl.SavedInLocalDatabase = true;
+                                                                UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadSavedCount = savedCount, Intent = UploadToDBIntent.VesselUnloadSaved });
+                                                                TotalUploadCount++;
 
                                                             }
-                                                            vu.VesselUnload_FishingGearsViewModel.Dispose();
-                                                            savedCount++;
-                                                            sl.SavedInLocalDatabase = true;
-                                                            UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { VesselUnloadSavedCount = savedCount, Intent = UploadToDBIntent.VesselUnloadSaved });
-                                                            TotalUploadCount++;
+                                                            else
+                                                            {
+
+                                                            }
 
                                                         }
-                                                        else
-                                                        {
-
-                                                        }
-
                                                     }
-                                                    //}
+                                                }
+                                                else
+                                                {
+
                                                 }
                                             }
                                             else
                                             {
+                                                if (NSAPEntities.SummaryItemViewModel.AddRecordToRepo(gu))
+                                                {
+                                                    savedCount++;
+                                                    TotalUploadCount++;
+                                                }
+                                            }
+                                        }
 
-                                            }
-                                        }
-                                        else
-                                        {
-                                            if (NSAPEntities.SummaryItemViewModel.AddRecordToRepo(gu))
-                                            {
-                                                savedCount++;
-                                                TotalUploadCount++;
-                                            }
-                                        }
+
                                     }
 
 
                                 }
-
-
-                            }
-                            else if (!lss.HasFishingOperation)
-                            {
-                                if (NSAPEntities.SummaryItemViewModel.AddRecordToRepo(lss))
+                                else if (!lss.HasFishingOperation)
                                 {
+                                    if (NSAPEntities.SummaryItemViewModel.AddRecordToRepo(lss))
+                                    {
+                                        savedCount++;
+                                        TotalUploadCount++;
+                                    }
+                                }
+                                else if (lss.NumberOfGearTypesInLandingSite != lss.GearUnloadViewModel.Count)
+                                {
+
+                                }
+                            }
+                            else if (root.LandingSiteTypeOfSampling == LandingSiteTypeOfSampling.SamplingTypeCommercialCarrierBoats)
+                            {
+                                proceed = false;
+                                if (root.FishCarriers?.Count > 0)
+                                {
+                                    lss.CarrierLandingViewModel = new CarrierLandingViewModel(lss);
+                                    foreach (var fish_carrier in root.FishCarriers)
+                                    {
+                                        CarrierLanding cl = new CarrierLanding
+                                        {
+                                            Parent = lss,
+                                            CarrierName = fish_carrier.CarrierName,
+                                            SamplingDate = lss.SamplingDate.Add(fish_carrier.SamplingTime.TimeOfDay),
+                                            WeightOfCatch = fish_carrier.WeigthOfCarrierCatch,
+                                            CountCatchers = fish_carrier.CountCatcherBoats,
+                                            CountSpeciesComposition = fish_carrier.CountCarrierSpeciesComposition,
+                                            RowID = CarrierLandingViewModel.CurrentIDNumber + 1,
+                                            RefNo = fish_carrier.RefNo
+                                        };
+
+                                        if (lss.CarrierLandingViewModel.AddRecordToRepo(cl))
+                                        {
+                                            CarrierLandingViewModel.CurrentIDNumber = cl.RowID;
+
+                                            if (fish_carrier?.CountCarrierFishingGrounds > 0)
+                                            {
+                                                cl.CarrierBoatLanding_FishingGround_ViewModel = new CarrierBoatLanding_FishingGround_ViewModel(cl);
+                                                foreach (var cfg in fish_carrier.Carrier_FishingGrounds)
+                                                {
+                                                    CarrierBoatLanding_FishingGround cbl_fg = new CarrierBoatLanding_FishingGround
+                                                    {
+                                                        Parent = cl,
+                                                        FishingGroundCode = cfg.FishingGroundCode,
+                                                        RowID = CarrierBoatLanding_FishingGround_ViewModel.CurrentIDNumber + 1
+                                                    };
+
+                                                    if (cl.CarrierBoatLanding_FishingGround_ViewModel.AddToRepo(cbl_fg))
+                                                    {
+                                                        CarrierBoatLanding_FishingGround_ViewModel.CurrentIDNumber = cbl_fg.RowID;
+                                                    }
+                                                }
+                                                cl.CarrierBoatLanding_FishingGround_ViewModel.Dispose();
+                                            }
+
+                                            if (fish_carrier?.CountCatcherBoats > 0)
+                                            {
+                                                cl.CatcherBoatOperation_ViewModel = new CatcherBoatOperation_ViewModel(cl);
+                                                foreach (var cb in fish_carrier.Carrier_Catcherboats)
+                                                {
+                                                    CatcherBoatOperation cbo = new CatcherBoatOperation
+                                                    {
+                                                        Parent = cl,
+                                                        RowID = CatcherBoatOperation_ViewModel.CurrentIDNumber + 1,
+                                                        CatcherBoatName = cb.NameCatcherBoat,
+                                                        StartOfOperation = cb.DateOfOperation,
+                                                        GearCode = cb.GearCode,
+                                                        WeightOfCatch = cb.WeightOfCatch
+                                                    };
+
+                                                    if (cl.CatcherBoatOperation_ViewModel.AddToRepo(cbo))
+                                                    {
+                                                        CatcherBoatOperation_ViewModel.CurrentIDNumber = cbo.RowID;
+                                                    }
+                                                }
+                                                cl.CatcherBoatOperation_ViewModel.Dispose();
+                                            }
+
+                                            if (fish_carrier?.CountCarrierSpeciesComposition > 0)
+                                            {
+                                                cl.VesselCatchViewModel = new VesselCatchViewModel(cl);
+                                                foreach (var cvc in fish_carrier.CarrierCatchCompositions)
+                                                {
+                                                    VesselCatch vc = new VesselCatch
+                                                    {
+                                                        ParentCarrierLanding = cl,
+                                                        PK = VesselCatchViewModel.CurrentIDNumber + 1,
+                                                        SpeciesID = cvc.SpeciesID,
+                                                        TaxaCode = cvc.Taxa.Code,
+                                                        SpeciesText = cvc.SpeciesNameOther,
+                                                        Catch_kg = cvc.SpeciesWeight,
+                                                        DelayedSave = true,
+                                                        WeighingUnit = cvc.WeightUnit
+                                                    };
+
+                                                    if (cl.VesselCatchViewModel.AddRecordToRepo(vc))
+                                                    {
+
+
+                                                        if (cvc.LenFreqs?.Count > 0)
+                                                        {
+                                                            vc.CatchLenFreqViewModel = new CatchLenFreqViewModel(vc);
+                                                            foreach (var lf in cvc.LenFreqs)
+                                                            {
+                                                                CatchLenFreq clf = new CatchLenFreq
+                                                                {
+                                                                    PK = CatchLenFreqViewModel.CurrentIDNumber + 1,
+                                                                    LengthClass = lf.Length,
+                                                                    Frequency = lf.Freq,
+                                                                    Parent = vc,
+                                                                    DelayedSave = true
+                                                                };
+
+                                                                if (vc.CatchLenFreqViewModel.AddRecordToRepo(clf))
+                                                                {
+                                                                    CatchLenFreqViewModel.CurrentIDNumber = clf.PK;
+
+                                                                }
+                                                            }
+                                                            vc.CatchLenFreqViewModel.Dispose();
+                                                        }
+
+                                                        if (cvc.LenWts?.Count > 0)
+                                                        {
+                                                            vc.CatchLengthWeightViewModel = new CatchLengthWeightViewModel(vc);
+                                                            foreach (var lw in cvc.LenWts)
+                                                            {
+                                                                CatchLengthWeight clw = new CatchLengthWeight
+                                                                {
+                                                                    PK = CatchLengthWeightViewModel.CurrentIDNumber + 1,
+                                                                    Parent = vc,
+                                                                    Length = lw.Length,
+                                                                    Weight = lw.Weight_kg,
+                                                                    DelayedSave = true
+                                                                };
+
+                                                                if (vc.CatchLengthWeightViewModel.AddRecordToRepo(clw))
+                                                                {
+                                                                    CatchLengthWeightViewModel.CurrentIDNumber = clw.PK;
+                                                                }
+                                                            }
+                                                            vc.CatchLengthWeightViewModel.Dispose();
+                                                        }
+
+                                                        if (cvc.Lengths?.Count > 0)
+                                                        {
+                                                            vc.CatchLengthViewModel = new CatchLengthViewModel(vc);
+                                                            foreach (var lt in cvc.Lengths)
+                                                            {
+                                                                CatchLength clt = new CatchLength
+                                                                {
+                                                                    PK = CatchLengthViewModel.CurrentIDNumber + 1,
+                                                                    Length = lt.Length,
+                                                                    Parent = vc,
+                                                                    DelayedSave = true
+                                                                };
+
+                                                                if (vc.CatchLengthViewModel.AddRecordToRepo(clt))
+                                                                {
+                                                                    CatchLengthViewModel.CurrentIDNumber = clt.PK;
+                                                                }
+                                                            }
+                                                            vc.CatchLengthViewModel.Dispose();
+                                                        }
+
+                                                        if (cvc.GonadalMaturities?.Count > 0)
+                                                        {
+                                                            vc.CatchMaturityViewModel = new CatchMaturityViewModel(vc);
+                                                            foreach (var cm in cvc.GonadalMaturities)
+                                                            {
+                                                                CatchMaturity c_mt = new CatchMaturity
+                                                                {
+                                                                    PK = CatchMaturityViewModel.CurrentIDNumber + 1,
+                                                                    Parent = vc,
+                                                                    Length = cm.Length,
+                                                                    Weight = cm.Weight,
+                                                                    SexCode = cm.Sex,
+                                                                    MaturityCode = cm.GMS_Stage,
+                                                                    GonadWeight = cm.GonadWt,
+                                                                    WeightGutContent = cm.StomachContentWt,
+                                                                    GutContentCode = cm.GutContentCategory,
+                                                                    DelayedSave = true
+                                                                };
+
+                                                                if (vc.CatchMaturityViewModel.AddRecordToRepo(c_mt))
+                                                                {
+                                                                    CatchMaturityViewModel.CurrentIDNumber = c_mt.PK;
+                                                                }
+                                                            }
+                                                            vc.CatchMaturityViewModel.Dispose();
+                                                        }
+
+                                                        VesselCatchViewModel.CurrentIDNumber = vc.PK;
+
+                                                    }
+                                                }
+                                                cl.VesselCatchViewModel.Dispose();
+                                                fish_carrier.SavedInLocalDatabase = true;
+                                            }
+                                        }
+
+                                    }
+                                    lss.CarrierLandingViewModel.Dispose();
                                     savedCount++;
                                     TotalUploadCount++;
                                 }
-                            }
-                            else if (lss.NumberOfGearTypesInLandingSite != lss.GearUnloadViewModel.Count)
-                            {
 
                             }
                         }
@@ -869,7 +1110,65 @@ namespace NSAP_ODK.Entities.Database
             }
         }
     }
+    public class MultiVessel_Optimized_CBS_CarrierBoatFishingGround
+    {
+        //private List<FishingGround> _fishingGrounds;
+        private static int _pk;
+        private int _rowID;
 
+        public static bool RowIDSet { get; private set; }
+
+        public static void ResetIDState()
+        {
+            RowIDSet = false;
+        }
+        public FishingGround FishingGround
+        {
+            get { return NSAPEntities.FishingGroundViewModel.GetFishingGround(FishingGroundCode); }
+        }
+        public string FishingGroundCode { get; set; }
+
+        public int? PK
+        {
+            get
+            {
+                if (Parent.Parent.SavedInLocalDatabase)
+                {
+                    return null;
+                }
+                else
+                {
+                    if (_rowID == 0)
+                    {
+                        _rowID = ++_pk;
+                    }
+                    return _rowID;
+                }
+
+            }
+        }
+        public static void SetRowIDs()
+        {
+            _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastCarrierSamplingFishingGroundPK;
+            CarrierBoatLanding_FishingGround_ViewModel.CurrentIDNumber = _pk;
+
+            RowIDSet = true;
+        }
+        //public MultiVessel_Optimized_CBS_CarrierBoatFishingGround(MultiVessel_Optimized_Root parent)
+        //{
+        //    Parent = parent;
+        //    _fishingGrounds = new List<FishingGround>();
+        //    _fishingGrounds.Add(NSAPEntities.FishingGroundViewModel.GetFishingGround(Parent.FishingGroundCode));
+
+        //    string[] fgs = Parent.OtherFishingGrounds.Split(' ');
+        //    foreach (string fg in fgs)
+        //    {
+        //        _fishingGrounds.Add(NSAPEntities.FishingGroundViewModel.GetFishingGround(fg));
+        //    }
+        //}
+        public MultiVessel_Optimized_CBS_FishCarrier Parent { get; set; }
+        //public List<FishingGround> FishingGrounds { get { return _fishingGrounds; } }
+    }
     public class MultiVessel_Optimized_LandingGear
     {
         private MultiVessel_Optimized_SampledLanding _parent;
@@ -2295,6 +2594,7 @@ namespace NSAP_ODK.Entities.Database
 
     public class MultiVessel_Optimized_GearAndWeight
     {
+
         //[JsonProperty("R_l/G_sl/R_cwg/selected_gear_wt")]
         //public string selected_gear_wt { get; set; }
 
@@ -2309,15 +2609,735 @@ namespace NSAP_ODK.Entities.Database
         public double? WeightOfSample { get; set; }
     }
 
+    public class MultiVessel_Optimized_CBS_CatcherBoat
+    {
+        private MultiVessel_Optimized_CBS_FishCarrier _parent;
+        private static int _pk;
+        private int _rowID;
+
+        public static bool RowIDSet { get; private set; }
+
+        public static void ResetIDState()
+        {
+            RowIDSet = false;
+        }
+        public static void SetRowIDs()
+        {
+            _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastCarrierSamplingCatcherBoatOperationPK;
+            CatcherBoatOperation_ViewModel.CurrentIDNumber = _pk;
+            RowIDSet = true;
+        }
+
+        public int? PK
+        {
+            get
+            {
+                if (Parent.Parent.SavedInLocalDatabase)
+                {
+                    return null;
+                }
+                else
+                {
+                    if (_rowID == 0)
+                    {
+                        _rowID = ++_pk;
+                    }
+                    return _rowID;
+                }
+
+            }
+        }
+        public MultiVessel_Optimized_CBS_FishCarrier Parent { get { return _parent; } set { _parent = value; } }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_CB/G_ct_b_out/G_ct_b/fishing_operation_date")]
+        public DateTime DateOfOperation { get; set; }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_CB/G_ct_b_out/G_ct_b/gear_code_catcher")]
+        public string GearCode { get; set; }
+
+        public Gear Gear
+        {
+            get
+            {
+                return NSAPEntities.GearViewModel.GetGear(GearCode);
+            }
+        }
+
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_CB/G_ct_b_out/G_ct_b/name_catcher")]
+        public string NameCatcherBoat { get; set; }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_CB/G_ct_b_out/G_ct_b/weight_catch_catcher")]
+        public double? WeightOfCatch { get; set; }
+    }
+
+    public class MultiVessel_Optimized_CBS_GonadalMaturity
+    {
+        public MultiVessel_Optimized_CBS_CatchComposition Parent { get; set; }
+        private static int _pk;
+        private int _rowID;
+
+        public static bool RowIDSet { get; private set; }
+
+        public static void ResetIDState()
+        {
+            RowIDSet = false;
+        }
+        public static void SetRowIDs()
+        {
+            _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastMaturityPK;
+            CatchMaturityViewModel.CurrentIDNumber = _pk;
+            RowIDSet = true;
+        }
+
+        public int? PK
+        {
+            get
+            {
+                if (Parent.Parent.Parent.SavedInLocalDatabase)
+                {
+                    return null;
+                }
+                else
+                {
+                    if (_rowID == 0)
+                    {
+                        _rowID = ++_pk;
+                    }
+                    return _rowID;
+                }
+
+
+            }
+        }
+
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/R_ct_cc_gms/G_ct_cc_gms/cbs_gms_gonad_wt")]
+        public double? GonadWt { get; set; }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/R_ct_cc_gms/G_ct_cc_gms/cbs_gms_gut_content_category")]
+        public string GutContentCategory { get; set; }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/R_ct_cc_gms/G_ct_cc_gms/cbs_gms_len")]
+        public double? Length { get; set; }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/R_ct_cc_gms/G_ct_cc_gms/cbs_gms_sex")]
+        public string Sex { get; set; }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/R_ct_cc_gms/G_ct_cc_gms/cbs_gms_stage")]
+        public string GMS_Stage { get; set; }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/R_ct_cc_gms/G_ct_cc_gms/cbs_gms_stomach_content_wt")]
+        public double? StomachContentWt { get; set; }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/R_ct_cc_gms/G_ct_cc_gms/cbs_gms_wt")]
+        public double? Weight { get; set; }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/R_ct_cc_gms/G_ct_cc_gms/cbs_gms_wt_kg")]
+        public double? Weight_kg { get; set; }
+    }
+
+    public class MultiVessel_Optimized_CBS_Length
+    {
+        public MultiVessel_Optimized_CBS_CatchComposition Parent { get; set; }
+
+        private static int _pk;
+        private int _rowID;
+
+        public static bool RowIDSet { get; private set; }
+
+        public static void ResetIDState()
+        {
+            RowIDSet = false;
+        }
+        public static void SetRowIDs()
+        {
+            _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastLengthsPK;
+            CatchLengthViewModel.CurrentIDNumber = _pk;
+            RowIDSet = true;
+        }
+
+        public int? PK
+        {
+            get
+            {
+                if (Parent.Parent.Parent.SavedInLocalDatabase)
+                {
+                    return null;
+                }
+                else
+                {
+                    if (_rowID == 0)
+                    {
+                        _rowID = ++_pk;
+                    }
+                    return _rowID;
+                }
+
+
+            }
+        }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/R_ct_cc_l/G_ct_cc_l/cbs_individual_length")]
+        public double Length { get; set; }
+        //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_l/G_ct_cc_l/cbs_ll_grp_title")]
+        //public string G_CBOR_ct_ccG_ct_cc_outR_ct_cc_lG_ct_cc_lcbs_ll_grp_title { get; set; }
+    }
+
+    public class MultiVessel_Optimized_CBS_LenFreq
+    {
+        public MultiVessel_Optimized_CBS_CatchComposition Parent { get; set; }
+
+        private static int _pk;
+        private int _rowID;
+
+        public static bool RowIDSet { get; private set; }
+
+        public static void ResetIDState()
+        {
+            RowIDSet = false;
+        }
+        public static void SetRowIDs()
+        {
+            _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastLenFreqPK;
+            CatchLenFreqViewModel.CurrentIDNumber = _pk;
+            RowIDSet = true;
+        }
+
+        public int? PK
+        {
+            get
+            {
+                if (Parent.Parent.Parent.SavedInLocalDatabase)
+                {
+                    return null;
+                }
+                else
+                {
+                    if (_rowID == 0)
+                    {
+                        _rowID = ++_pk;
+                    }
+                    return _rowID;
+                }
+
+
+            }
+        }
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/R_ct_cc_lf/G_ct_cc_lf/cbs_lf_freq")]
+        public int Freq { get; set; }
+
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/R_ct_cc_lf/G_ct_cc_lf/cbs_lf_len")]
+        public double Length { get; set; }
+    }
+
+    public class MultiVessel_Optimized_CBS_FishCarrier
+    {
+        private List<MultiVessel_Optimized_CBS_CatchComposition> _carrierCatchCompositions;
+        private List<MultiVessel_Optimized_CBS_CatcherBoat> _carrier_catcherboats;
+        private List<MultiVessel_Optimized_CBS_CarrierBoatFishingGround> _carrier_fishinggrounds;
+        private string _fishingGrounds;
+        private MultiVessel_Optimized_Root _parent;
+        private static int _pk;
+        private int _rowID;
+        private bool? _isSaved = null;
+        private readonly object collectionLock = new object();
+        private SummaryItem _savedVesselUnloadObject;
+        //private MultiVesselGear_SampledLanding _parent;
+        public static bool RowIDSet { get; private set; }
+
+        public static void ResetIDState()
+        {
+            RowIDSet = false;
+        }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/G_cbd/carrier_fishing_grounds")]
+        private string FishingGrounds
+        {
+            get { return _fishingGrounds; }
+            set
+            {
+                _carrier_fishinggrounds = new List<MultiVessel_Optimized_CBS_CarrierBoatFishingGround>();
+                _fishingGrounds = value;
+                string[] fgs = _fishingGrounds.Split(' ');
+                foreach (string fg in fgs)
+                {
+                    MultiVessel_Optimized_CBS_CarrierBoatFishingGround c_fg = new MultiVessel_Optimized_CBS_CarrierBoatFishingGround
+                    {
+                        FishingGroundCode = fg,
+                        Parent = this
+                    };
+                    _carrier_fishinggrounds.Add(c_fg);
+                }
+            }
+        }
+        public static void SetRowIDs()
+        {
+
+            _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastCarrierPK;
+            CarrierLandingViewModel.CurrentIDNumber = _pk;
+            RowIDSet = true;
+        }
+
+        private SummaryItem SavedVesselUnloadObject
+        {
+            get
+            {
+                lock (collectionLock)
+                {
+                    try
+                    {
+
+                        //_savedVesselUnloadObject = NSAPEntities.SummaryItemViewModel.SummaryItemCollection.FirstOrDefault(t => t.ODKRowID == _uuid);
+                        _savedVesselUnloadObject = NSAPEntities.SummaryItemViewModel.GetItemEx(Parent.SubmissionUUID);
+                        if (_savedVesselUnloadObject == null)
+                        {
+                            _savedVesselUnloadObject = NSAPEntities.SummaryItemViewModel.GetItem(enumeratorName: Parent.EnumeratorName, refNo: RefNo);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (Debugger.IsAttached)
+                        {
+                            Utilities.Logger.Log("VesselUnloadServerRepository.SavedVesselUnloadObject SummaryItemCollection was modified while in debug mode when getting SavedVesselUnloadObject.");
+                            try
+                            {
+                                _savedVesselUnloadObject = NSAPEntities.SummaryItemViewModel.GetItemEx(Parent.UUID);
+                            }
+                            catch
+                            {
+                                _savedVesselUnloadObject = null;
+                            }
+                        }
+                        else
+                        {
+                            Utilities.Logger.Log("VesselUnloadServerRepository.SavedVesselUnloadObject Error when getting savedVeselUnloadObject when in release mode", ex);
+                            _savedVesselUnloadObject = null;
+                        }
+                    }
+                }
+                return _savedVesselUnloadObject;
+            }
+
+        }
+
+        public int? PK
+        {
+            get
+            {
+                if (Parent.SavedInLocalDatabase)
+                {
+                    return null;
+                }
+                else
+                {
+                    if (_rowID == 0)
+                    {
+                        _rowID = ++_pk;
+                    }
+                    return _rowID;
+                }
+
+            }
+        }
+
+        public bool SavedInLocalDatabase
+        {
+            get
+            {
+                if (_isSaved == null)
+                {
+                    _isSaved = SavedVesselUnloadObject != null;
+                }
+                return (bool)_isSaved;
+            }
+            set { _isSaved = value; }
+        }
+        public int CountCarrierFishingGrounds
+        {
+            get
+            {
+                return _carrier_fishinggrounds.Count;
+            }
+        }
+        public List<MultiVessel_Optimized_CBS_CarrierBoatFishingGround> Carrier_FishingGrounds
+
+        {
+            get { return _carrier_fishinggrounds; }
+        }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_CB")]
+        public List<MultiVessel_Optimized_CBS_CatcherBoat> Carrier_Catcherboats
+        {
+            get
+            {
+                return _carrier_catcherboats;
+            }
+            set
+            {
+                _carrier_catcherboats = value;
+                foreach (var item in _carrier_catcherboats)
+                {
+                    item.Parent = this; ;
+                }
+
+            }
+        }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc")]
+        public List<MultiVessel_Optimized_CBS_CatchComposition> CarrierCatchCompositions
+        {
+            get { return _carrierCatchCompositions; }
+            set
+            {
+                _carrierCatchCompositions = value;
+                foreach (var item in _carrierCatchCompositions)
+                {
+                    item.Parent = this;
+                }
+            }
+        }
+        public MultiVessel_Optimized_Root Parent { get; set; }
+
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/G_cbd/cbs_sampling_time")]
+        public DateTime SamplingTime { get; set; }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/G_cbd/carrier_boat_name")]
+        public string CarrierName { get; set; }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/G_cbd/know_catcher_boats")]
+        public string KnowCatcherBoats { get; set; }
+
+        public bool KnowCatcherBoatsOfCarrier { get { return KnowCatcherBoats == "yes"; } }
+
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/G_cbd/count_catcher_boats")]
+        public int? CountCatcherBoats { get; set; }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/G_cbd/know_catch_wt_catchers")]
+        public string KnowWeightOfCarrierCatch { get; set; }
+
+        public bool KnowWeightOfCatchOfCarrier
+        {
+            get
+            {
+                return KnowWeightOfCarrierCatch == "yes";
+            }
+        }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/G_cbd/wt_catch_of_carrier")]
+        public double? WeigthOfCarrierCatch { get; set; }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/G_cbd/count_species_of_carrier")]
+        public int CountCarrierSpeciesComposition { get; set; }
+
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/G_cbs_summary/cbs_ref_no")]
+        public string RefNo { get; set; }
+    }
+
+    public class MultiVessel_Optimized_CBS_LenWt
+    {
+
+        public MultiVessel_Optimized_CBS_CatchComposition Parent { get; set; }
+        private static int _pk;
+        private int _rowID;
+
+        public static bool RowIDSet { get; private set; }
+
+        public static void ResetIDState()
+        {
+            RowIDSet = false;
+        }
+        public static void SetRowIDs()
+        {
+            _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastLenWtPK;
+            CatchLengthWeightViewModel.CurrentIDNumber = _pk;
+            RowIDSet = true;
+        }
+
+        public int? PK
+        {
+            get
+            {
+                if (Parent.Parent.Parent.SavedInLocalDatabase)
+                {
+                    return null;
+                }
+                else
+                {
+                    if (_rowID == 0)
+                    {
+                        _rowID = ++_pk;
+                    }
+                    return _rowID;
+                }
+
+
+            }
+        }
+
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/R_ct_cc_lw/G_ct_cc_lw/cbs_lw_len")]
+        public double Length { get; set; }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/R_ct_cc_lw/G_ct_cc_lw/cbs_lw_wt")]
+        public double Weight { get; set; }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/R_ct_cc_lw/G_ct_cc_lw/cbs_lw_wt_kg")]
+        public double Weight_kg { get; set; }
+    }
+
+    public class MultiVessel_Optimized_CBS_CatchComposition
+    {
+        private MultiVessel_Optimized_CBS_FishCarrier _parent;
+        private static int _pk;
+        private int _rowID;
+
+        public static bool RowIDSet { get; private set; }
+
+        public static void ResetIDState()
+        {
+            RowIDSet = false;
+        }
+        public static void SetRowIDs()
+        {
+            _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastVesselCatchPK;
+            VesselCatchViewModel.CurrentIDNumber = _pk;
+            RowIDSet = true;
+        }
+
+        public int? PK
+        {
+            get
+            {
+                if (Parent.Parent.SavedInLocalDatabase)
+                {
+                    return null;
+                }
+                else
+                {
+                    if (_rowID == 0)
+                    {
+                        _rowID = ++_pk;
+                    }
+                    return _rowID;
+                }
+
+            }
+        }
+        private List<MultiVessel_Optimized_CBS_GonadalMaturity> _gonadalMaturities { get; set; }
+
+
+        private List<MultiVessel_Optimized_CBS_Length> _lengths { get; set; }
+
+
+        private List<MultiVessel_Optimized_CBS_LenFreq> _lenFreqs { get; set; }
+
+
+        private List<MultiVessel_Optimized_CBS_LenWt> _lenWts { get; set; }
+
+        public MultiVessel_Optimized_CBS_FishCarrier Parent { get { return _parent; } set { _parent = value; } }
+        //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_cc_grp_title")]
+        //public string G_CBOR_ct_ccG_ct_cc_outG_ct_cccbs_cc_grp_title { get; set; }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_count_individuals_measured")]
+        public string CountIndividualsMeasured { get; set; }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_count_length_class")]
+        public string CountLengthClasses { get; set; }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_determine_gms")]
+        public string DetermineGMS { get; set; }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_individual_wt_unit")]
+        public string WeightUnit { get; set; }
+
+        public bool HasGonadalMaturityMeasurement
+        {
+            get
+            {
+                return DetermineGMS == "yes";
+            }
+        }
+        public bool HasLengthMeasurement
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(ListOfLengthMeasurementsTypes))
+                {
+                    return false;
+                }
+                else
+                {
+                    return ListOfLengthMeasurementsTypes.Contains("length_list");
+                }
+
+            }
+        }
+        public bool HasLenFreqMeasurement
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(ListOfLengthMeasurementsTypes))
+                {
+                    return false;
+                }
+                else
+                {
+                    return ListOfLengthMeasurementsTypes.Contains("length_freq");
+                }
+            }
+        }
+        public bool HasLenWtMeasurement
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(ListOfLengthMeasurementsTypes))
+                {
+                    return false;
+                }
+                else
+                {
+                    return ListOfLengthMeasurementsTypes.Contains("length_wt");
+                }
+            }
+        }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_len_type")]
+        public string ListOfLengthMeasurementsTypes { get; set; }
+
+        //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_search_species")]
+        //public string G_CBOR_ct_ccG_ct_cc_outG_ct_cccbs_search_species { get; set; }
+
+        //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_select_spName")]
+        //public string G_CBOR_ct_ccG_ct_cc_outG_ct_cccbs_select_spName { get; set; }
+
+        //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_show_taxa_image")]
+        //public string G_CBOR_ct_ccG_ct_cc_outG_ct_cccbs_show_taxa_image { get; set; }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_sp_id")]
+        public int? SpeciesID { get; set; }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_spName_other")]
+        public string SpeciesNameOther { get; set; }
+
+        //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_species")]
+        //public string G_CBOR_ct_ccG_ct_cc_outG_ct_cccbs_species { get; set; }
+
+        //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_species_csv_source")]
+        //public string G_CBOR_ct_ccG_ct_cc_outG_ct_cccbs_species_csv_source { get; set; }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_species_name_selected")]
+        public string SpeciesName { get; set; }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_species_wt")]
+        public double? SpeciesWeight { get; set; }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_taxa")]
+        public string SelectedTaxa { get; set; }
+
+        public Taxa Taxa { get { return NSAPEntities.TaxaViewModel.GetTaxa(SelectedTaxa); } }
+
+        //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_taxa_no_im")]
+        //public string G_CBOR_ct_ccG_ct_cc_outG_ct_cccbs_taxa_no_im { get; set; }
+
+        //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_wt_unit_name")]
+        //public string G_CBOR_ct_ccG_ct_cc_outG_ct_cccbs_wt_unit_name { get; set; }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/R_ct_cc_gms")]
+        public List<MultiVessel_Optimized_CBS_GonadalMaturity> GonadalMaturities
+        {
+            get { return _gonadalMaturities; }
+            set
+            {
+                _gonadalMaturities = value;
+                foreach (var item in _gonadalMaturities)
+                {
+                    item.Parent = this;
+                }
+            }
+        }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/R_ct_cc_l")]
+        public List<MultiVessel_Optimized_CBS_Length> Lengths
+        {
+            get { return _lengths; }
+            set
+            {
+                _lengths = value;
+                foreach (var item in _lengths)
+                {
+                    item.Parent = this;
+                }
+            }
+        }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/R_ct_cc_lf")]
+        public List<MultiVessel_Optimized_CBS_LenFreq> LenFreqs
+        {
+            get { return _lenFreqs; }
+            set
+            {
+                _lenFreqs = value;
+                foreach (var item in _lenFreqs)
+                {
+                    item.Parent = this;
+                }
+            }
+        }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/R_ct_cc_lw")]
+        public List<MultiVessel_Optimized_CBS_LenWt> LenWts
+        {
+            get { return _lenWts; }
+            set
+            {
+                _lenWts = value;
+                foreach (var item in _lenWts)
+                {
+                    item.Parent = this;
+                }
+            }
+        }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/R_ct_cc_gms_count")]
+        public int? CountMaturityMeasurements { get; set; }
+
+
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/R_ct_cc_l_count")]
+        public int? CountLenghtMeasurements { get; set; }
+
+
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/R_ct_cc_lf_count")]
+        public string CountLenFreqMeasurements { get; set; }
+
+
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_ct_cc/G_ct_cc_out/R_ct_cc_lw_count")]
+        public string CountLenWtMeasurements { get; set; }
+
+
+    }
     public class MultiVessel_Optimized_Root
     {
         private List<MultiVessel_Optimized_Gear> _gearsInLandingSite;
         private List<MultiVessel_Optimized_SampledLanding> _sampledFishLandings;
+        private List<MultiVessel_Optimized_CBS_FishCarrier> _fishCarriers;
+        //private List<MultiVessel_Optimized_CBS_CatchComposition> _carrierBoatCatchCompositions;
+        //private List<MultiVessel_Optimized_CatcherBoat> _catcherBoats;
+        //private MultiVessel_Optimized_CBS_CarrierBoatFishingGround _carrierFishingGround;
         private static int _pk;
         private int _rowid;
         private bool? _isSaved;
         private SummaryItem _savedVesselUnloadObject;
         private readonly object collectionLock = new object();
+        private string _typeOfSampling;
+
 
         public static bool RowIDSet { get; private set; }
         public bool SavedInLocalDatabase
@@ -2372,8 +3392,6 @@ namespace NSAP_ODK.Entities.Database
                         {
                             _rowid = (int)SavedVesselUnloadObject.VesselUnloadID;
                             _savedVesselUnloadObject = SavedVesselUnloadObject;
-                            //_savedVesselUnloadObject = SavedVesselUnloadObject;
-                            //_rowid = _savedVesselUnloadObject.VesselUnloadID;
                         }
                     }
                     else
@@ -2428,173 +3446,6 @@ namespace NSAP_ODK.Entities.Database
 
         }
 
-        public class CBS_CatcherBoat
-        {
-            [JsonProperty("G_CBO/R_CB/G_ct_b/fishing_operation_date")]
-            public DateTime DateOfOperation { get; set; }
-
-            [JsonProperty("G_CBO/R_CB/G_ct_b/gear_code_catcher")]
-            public string GearCode { get; set; }
-
-            //[JsonProperty("G_CBO/R_CB/G_ct_b/gear_of_catcher")]
-            //public string G_CBOR_CBG_ct_bgear_of_catcher { get; set; }
-
-            [JsonProperty("G_CBO/R_CB/G_ct_b/name_catcher")]
-            public string NameCatcherBoat { get; set; }
-
-            [JsonProperty("G_CBO/R_CB/G_ct_b/weight_catch_catcher")]
-            public double? WeightOfCatch{ get; set; }
-        }
-
-        public class CBS_GonadalMaturity
-        {
-            //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_gms/G_ct_cc_gms/cbs_combined_gms_fields")]
-            //public string G_CBOR_ct_ccG_ct_cc_outR_ct_cc_gmsG_ct_cc_gmscbs_combined_gms_fields { get; set; }
-
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_gms/G_ct_cc_gms/cbs_gms_gonad_wt")]
-            public string GonadWt { get; set; }
-
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_gms/G_ct_cc_gms/cbs_gms_gut_content_category")]
-            public string GutContentCategory { get; set; }
-
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_gms/G_ct_cc_gms/cbs_gms_len")]
-            public string Length { get; set; }
-
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_gms/G_ct_cc_gms/cbs_gms_sex")]
-            public string Sex { get; set; }
-
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_gms/G_ct_cc_gms/cbs_gms_stage")]
-            public string GMS_Stage { get; set; }
-
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_gms/G_ct_cc_gms/cbs_gms_stomach_content_wt")]
-            public string StomachContentWt { get; set; }
-
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_gms/G_ct_cc_gms/cbs_gms_wt")]
-            public string Weight { get; set; }
-
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_gms/G_ct_cc_gms/cbs_gms_wt_kg")]
-            public string Weight_kg { get; set; }
-        }
-
-        public class CBS_Length
-        {
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_l/G_ct_cc_l/cbs_individual_length")]
-            public string Length { get; set; }
-
-            //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_l/G_ct_cc_l/cbs_ll_grp_title")]
-            //public string G_CBOR_ct_ccG_ct_cc_outR_ct_cc_lG_ct_cc_lcbs_ll_grp_title { get; set; }
-        }
-
-        public class CBS_LenFreq
-        {
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_lf/G_ct_cc_lf/cbs_lf_freq")]
-            public string Freq { get; set; }
-
-            //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_lf/G_ct_cc_lf/cbs_lf_grp_title")]
-            //public string G_CBOR_ct_ccG_ct_cc_outR_ct_cc_lfG_ct_cc_lfcbs_lf_grp_title { get; set; }
-
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_lf/G_ct_cc_lf/cbs_lf_len")]
-            public string Length { get; set; }
-        }
-
-        public class CBS_LenWt
-        {
-            //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_lw/G_ct_cc_lw/cbs_lw_grp_title")]
-            //public string G_CBOR_ct_ccG_ct_cc_outR_ct_cc_lwG_ct_cc_lwcbs_lw_grp_title { get; set; }
-
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_lw/G_ct_cc_lw/cbs_lw_len")]
-            public string Length { get; set; }
-
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_lw/G_ct_cc_lw/cbs_lw_wt")]
-            public string Weight { get; set; }
-
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_lw/G_ct_cc_lw/cbs_lw_wt_kg")]
-            public string Weight_kg { get; set; }
-        }
-
-        public class CBS_CatchComposition
-        {
-            //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_cc_grp_title")]
-            //public string G_CBOR_ct_ccG_ct_cc_outG_ct_cccbs_cc_grp_title { get; set; }
-
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_count_individuals_measured")]
-            public string CountIndividualsMeasured { get; set; }
-
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_count_length_class")]
-            public string CountLengthClasses { get; set; }
-
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_determine_gms")]
-            public string DetermineGMS { get; set; }
-
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_individual_wt_unit")]
-            public string WeightUnit { get; set; }
-
-            public bool HasLengthMeasurement { get { return ListOfLengthMeasurements.Contains("length_list"); } }
-            public bool HasLenFreqMeasurement { get { return ListOfLengthMeasurements.Contains("length_freq"); } }
-            public bool HasLenWtMeasurement { get { return ListOfLengthMeasurements.Contains("length_wt"); } }
-
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_len_type")]
-            public string ListOfLengthMeasurements { get; set; }
-
-            //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_search_species")]
-            //public string G_CBOR_ct_ccG_ct_cc_outG_ct_cccbs_search_species { get; set; }
-
-            //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_select_spName")]
-            //public string G_CBOR_ct_ccG_ct_cc_outG_ct_cccbs_select_spName { get; set; }
-
-            //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_show_taxa_image")]
-            //public string G_CBOR_ct_ccG_ct_cc_outG_ct_cccbs_show_taxa_image { get; set; }
-
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_sp_id")]
-            public int? SpeciesID { get; set; }
-
-            //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_species")]
-            //public string G_CBOR_ct_ccG_ct_cc_outG_ct_cccbs_species { get; set; }
-
-            //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_species_csv_source")]
-            //public string G_CBOR_ct_ccG_ct_cc_outG_ct_cccbs_species_csv_source { get; set; }
-
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_species_name_selected")]
-            public string SpeciesName { get; set; }
-
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_species_wt")]
-            public double? SpeciesWeight { get; set; }
-
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_taxa")]
-            public string SelectedTaxa { get; set; }
-
-            public Taxa Taxa { get { return NSAPEntities.TaxaViewModel.GetTaxa(SelectedTaxa); } }
-
-            //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_taxa_no_im")]
-            //public string G_CBOR_ct_ccG_ct_cc_outG_ct_cccbs_taxa_no_im { get; set; }
-
-            //[JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/G_ct_cc/cbs_wt_unit_name")]
-            //public string G_CBOR_ct_ccG_ct_cc_outG_ct_cccbs_wt_unit_name { get; set; }
-
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_gms")]
-            public List<CBS_GonadalMaturity> GonadalMaturities { get; set; }
-
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_gms_count")]
-            public int? CountMaturityMeasurements { get; set; }
-
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_l")]
-            public List<CBS_Length> Lengths { get; set; }
-
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_l_count")]
-            public int? CountLenghtMeasurements { get; set; }
-
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_lf")]
-            public List<CBS_LenFreq> LenFreqs { get; set; }
-
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_lf_count")]
-            public string CountLenFreqMeasurements { get; set; }
-
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_lw")]
-            public List<CBS_LenWt> LenWts { get; set; }
-
-            [JsonProperty("G_CBO/R_ct_cc/G_ct_cc_out/R_ct_cc_lw_count")]
-            public string CountLenWtMeasurements { get; set; }
-        }
         public List<MultiVessel_Optimized_SampledLanding> SampledFishLandingsEx
         {
             get
@@ -2632,32 +3483,77 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-        [JsonProperty("G_CBO/G_cbd/carrier_boat_name")]
-        public string CarrierBoatName { get; set; }
+        [JsonProperty("G_lss/count_carrier_sampling")]
+        public int Count_Carrier_Sampling { get; set; }
 
-        [JsonProperty("G_CBO/G_cbd/cbs_sampling_time")]
-        public DateTime? SamplingTimeOfCarrierBoat { get; set; }
+        [JsonProperty("G_lss/count_carrier_landings")]
+        public int? Count_Carrier_Landing { get; set; }
 
-        [JsonProperty("G_CBO/G_cbd/count_catcher_boats")]
-        public int? CountCatcherBoats { get; set; }
 
-        [JsonProperty("G_CBO/G_cbd/count_species_of_carrier")]
-        public int? CountSpeciesSampledFromCarrierBoat { get; set; }
+        [JsonProperty("G_CBO/R_S_CB")]
+        public List<MultiVessel_Optimized_CBS_FishCarrier> FishCarriers
+        {
+            get
+            {
+                return _fishCarriers;
+            }
+            set
+            {
+                _fishCarriers = value;
+                foreach (var item in _fishCarriers)
+                {
+                    item.Parent = this;
+                }
+            }
+        }
+        //[JsonProperty("G_CBO/G_cbd/carrier_boat_name")]
+        //public string CarrierBoatName { get; set; }
 
-        [JsonProperty("G_CBO/G_cbd/know_catch_wt_catchers")]
-        public string KnowWeightOfCatchOfCatcherBoats { get; set; }
+        //[JsonProperty("G_CBO/G_cbd/cbs_sampling_time")]
+        //public DateTime? SamplingTimeOfCarrierBoat { get; set; }
 
-        [JsonProperty("G_CBO/G_cbd/know_catcher_boats")]
-        public string KnowCatcherBoatDetails { get; set; }
-
-        [JsonProperty("G_CBO/R_CB")]
-        public List<CBS_CatcherBoat> CatcherBoats { get; set; }
-
-        //[JsonProperty("G_CBO/R_CB_count")]
+        //[JsonProperty("G_CBO/G_cbd/count_catcher_boats")]
         //public int? CountCatcherBoats { get; set; }
 
-        [JsonProperty("G_CBO/R_ct_cc")]
-        public List<CBS_CatchComposition> CarrierBoatCatchComposition { get; set; }
+        //[JsonProperty("G_CBO/G_cbd/count_species_of_carrier")]
+        //public int? CountSpeciesSampledFromCarrierBoat { get; set; }
+
+        //[JsonProperty("G_CBO/G_cbd/know_catch_wt_catchers")]
+        //public string KnowWeightOfCatchOfCatcherBoats { get; set; }
+
+        //[JsonProperty("G_CBO/G_cbd/know_catcher_boats")]
+        //public string KnowCatcherBoatDetails { get; set; }
+
+        //[JsonProperty("G_CBO/R_CB")]
+        //public List<MultiVessel_Optimized_CatcherBoat> CatcherBoats
+        //{
+        //    get { return _catcherBoats; }
+        //    set
+        //    {
+        //        _catcherBoats = value;
+        //        foreach (var item in _catcherBoats)
+        //        {
+        //            item.Parent = this;
+        //        }
+        //    }
+        //}
+
+        ////[JsonProperty("G_CBO/R_CB_count")]
+        ////public int? CountCatcherBoats { get; set; }
+
+        //[JsonProperty("G_CBO/R_ct_cc")]
+        //public List<MultiVessel_Optimized_CBS_CatchComposition> CarrierBoatCatchComposition
+        //{
+        //    get { return _carrierBoatCatchCompositions; }
+        //    set
+        //    {
+        //        _carrierBoatCatchCompositions = value;
+        //        foreach (var item in _carrierBoatCatchCompositions)
+        //        {
+        //            item.Parent = this;
+        //        }
+        //    }
+        //}
 
         //[JsonProperty("G_CBO/R_ct_cc_count")]
         //public string G_CBOR_ct_cc_count { get; set; }
@@ -2722,6 +3618,90 @@ namespace NSAP_ODK.Entities.Database
         [JsonProperty("G_lss/fma_in_region")]
         public int FMAinRegionID { get; set; }
 
+        [JsonProperty("G_lss/type_of_sampling")]
+        public string TypeOfSampling
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_typeOfSampling))
+                {
+                    return "rs";
+                }
+                else
+                {
+                    return _typeOfSampling;
+                }
+            }
+            set
+            {
+                _typeOfSampling = value;
+                //if (_typeOfSampling == "cbl") //cbl is carrier based landings
+                //{
+                //    _carrierFishingGround = new MultiVessel_Optimized_CBS_CarrierBoatFishingGround();
+                //}
+            }
+        }
+
+        //[JsonProperty("G_lss/other_fishing_grounds")]
+        //public string OtherFishingGrounds { get; set; }
+
+        //public List<FishingGround> FishingGroundsOfCarrierLandings
+        //{
+        //    get
+        //    {
+        //        List<FishingGround> fishing_grounds;
+        //        if (LandingSiteTypeOfSampling == LandingSiteTypeOfSampling.SamplingTypeCommercialCarrierBoats)
+        //        {
+        //            fishing_grounds = new List<FishingGround>();
+
+        //            fishing_grounds.Add(FishingGround);
+
+        //            if (!string.IsNullOrEmpty(OtherFishingGrounds))
+        //            {
+        //                var arr = OtherFishingGrounds.Split(' ');
+        //                foreach (var fg in arr)
+        //                {
+        //                    fishing_grounds.Add(NSAPEntities.FishingGroundViewModel.GetFishingGround(fg));
+        //                }
+        //            }
+        //        }
+        //        else
+        //        {
+        //            fishing_grounds = null;
+        //        }
+        //        return fishing_grounds;
+        //    }
+        //}
+
+        public LandingSiteTypeOfSampling LandingSiteTypeOfSampling
+        {
+            get
+
+            {
+                LandingSiteTypeOfSampling sampling_type = LandingSiteTypeOfSampling.SamplingTypeNotDetermined;
+                if (string.IsNullOrEmpty(TypeOfSampling))
+                {
+                    sampling_type = LandingSiteTypeOfSampling.SamplingTypeRegular;
+
+                }
+                else
+                {
+                    switch (TypeOfSampling)
+                    {
+                        //case "Carrier boats only":
+                        case "cbl":
+                            sampling_type = LandingSiteTypeOfSampling.SamplingTypeCommercialCarrierBoats;
+                            break;
+                        //case "Regular sampling":
+                        case "rs":
+                            sampling_type = LandingSiteTypeOfSampling.SamplingTypeRegular;
+                            break;
+                    }
+                }
+                return sampling_type;
+            }
+        }
+
         public double FormVersion
         {
             get
@@ -2784,6 +3764,8 @@ namespace NSAP_ODK.Entities.Database
         [JsonProperty("G_lss/fishing_ground")]
         public int RegionFishingGroundID { get; set; }
 
+        [JsonProperty("G_lss/fishing_ground_code")]
+        public string FishingGroundCode { get; set; }
         public FishingGround FishingGround
         {
             get
@@ -2900,6 +3882,7 @@ namespace NSAP_ODK.Entities.Database
         public string gear_used3 { get; set; }
         public string R_l_count { get; set; }
         [JsonProperty("R_l")]
+
         public List<MultiVessel_Optimized_SampledLanding> SampledFishLandings
         {
             get { return _sampledFishLandings; }

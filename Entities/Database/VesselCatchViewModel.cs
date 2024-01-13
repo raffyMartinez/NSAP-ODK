@@ -123,6 +123,16 @@ namespace NSAP_ODK.Entities.Database
         //    if (tableColumns.Contains(""))
         //}
 
+
+        public VesselCatchViewModel(CarrierLanding cl)
+        {
+            if (cl != null)
+            {
+                VesselCatches = new VesselCatchRepository(cl);
+                VesselCatchCollection = new ObservableCollection<VesselCatch>(VesselCatches.VesselCatches);
+                VesselCatchCollection.CollectionChanged += VesselCatches_CollectionChanged;
+            }
+        }
         public VesselCatchViewModel(VesselUnload_FishingGear vufg)
         {
             if (vufg != null)
@@ -633,6 +643,7 @@ namespace NSAP_ODK.Entities.Database
             string price_sp = item.PriceOfSpecies == null ? "" : ((double)item.PriceOfSpecies).ToString();
             string parent_id = "";
             string parent_gear_id = "";
+            string parent_carrier_id = "";
             try
             {
                 if (item.Parent != null)
@@ -649,6 +660,17 @@ namespace NSAP_ODK.Entities.Database
                 if (item.ParentFishingGear != null)
                 {
                     parent_gear_id = item.ParentFishingGear.RowID.ToString();
+                }
+            }
+            catch
+            {
+                //ignore
+            }
+            try
+            {
+                if (item.ParentCarrierLanding != null)
+                {
+                    parent_carrier_id = item.ParentCarrierLanding.RowID.ToString();
                 }
             }
             catch
@@ -692,6 +714,7 @@ namespace NSAP_ODK.Entities.Database
                 Dictionary<string, string> myDict = new Dictionary<string, string>();
                 myDict.Add("catch_id", item.PK.ToString());
                 myDict.Add("v_unload_id", parent_id);
+                myDict.Add("carrierlanding_id", parent_carrier_id);
                 myDict.Add("vessel_unload_gear_id", parent_gear_id);
                 myDict.Add("species_id", sp_id);
                 myDict.Add("catch_kg", catch_kg);

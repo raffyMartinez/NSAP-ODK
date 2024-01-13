@@ -30,13 +30,21 @@ namespace NSAP_ODK.Entities.Database
             if (TotalWtSpRepository.CheckForTWSPTable() &&
                 VesselUnloadRepository.CheckForWtValidationTable() &&
                 LandingSiteSamplingSubmissionRepository.CheckForLSS_SubmissionIDTable() &&
-                UnmatchedFieldsFromJSONFileRepository.CheckTableExist()) //&&
-                                                                         //LandingSiteFishingGroundRepository.CheckForLandingSiteFishingGroundTable()
-                                                                         //)
+                UnmatchedFieldsFromJSONFileRepository.CheckTableExist() &&
+                CarrierLandingRepository.CheckTableExist() &&
+                CarrierBoatLanding_FishingGroundRepository.CheckTableExist() &&
+                CatcherBoatOperationRepository.CheckTableExist()
+                ) //&&
+                  //LandingSiteFishingGroundRepository.CheckForLandingSiteFishingGroundTable()
+                  //)
             {
                 var cols = CreateTablesInAccess.GetColumnNames("dbo_LC_FG_sample_day");
-                if (cols.Contains("has_fishing_operation") || UpdateTableDefinition("has_fishing_operation") &&
-                 UpdateHasFishingOperationField())
+                if (cols.Contains("type_of_sampling") || UpdateTableDefinition("type_of_sampling"))
+                {
+                    proceed = cols.Contains("has_fishing_operation") || UpdateTableDefinition("has_fishing_operation") &&
+                     UpdateHasFishingOperationField();
+                }
+                if (proceed)
                 {
                     cols = CreateTablesInAccess.GetColumnNames("dbo_LC_FG_sample_day_1");
                     if (cols.Contains("is_multivessel") || UpdateTableDefinition("is_multivessel"))
@@ -55,7 +63,10 @@ namespace NSAP_ODK.Entities.Database
                                             {
                                                 if (cols.Contains("date_deleted_from_server") || UpdateTableDefinition("date_deleted_from_server"))
                                                 {
-                                                    proceed = true;
+                                                    if (cols.Contains("count_carrier_landings") || UpdateTableDefinition("count_carrier_landings"))
+                                                    {
+                                                        proceed = cols.Contains("count_carrier_sampling") || UpdateTableDefinition("count_carrier_sampling");
+                                                    }
                                                 }
                                             }
                                         }
@@ -109,7 +120,10 @@ namespace NSAP_ODK.Entities.Database
                             if (cols.Contains("from_total_catch") || VesselCatchRepository.UpdateTableDefinition("from_total_catch"))
                                 if (cols.Contains("gear_code") || VesselCatchRepository.UpdateTableDefinition("gear_code"))
                                     if (cols.Contains("gear_text") || VesselCatchRepository.UpdateTableDefinition("gear_text"))
-                                    { proceed = true; }
+                                    {
+                                        //proceed = cols.Contains("landingsitesampling_id") || VesselCatchRepository.UpdateTableDefinition("landingsitesampling_id"));
+                                        proceed = true;
+                                    }
                         }
 
                         if (proceed)
@@ -196,7 +210,10 @@ namespace NSAP_ODK.Entities.Database
                                     {
                                         if (cols.Contains("vessel_unload_gear_id") || VesselCatchRepository.AddFieldToTable("vessel_unload_gear_id"))
                                         {
-                                            proceed = cols.Contains("is_catch_sold") || VesselCatchRepository.AddFieldToTable("is_catch_sold");
+                                            if (cols.Contains("is_catch_sold") || VesselCatchRepository.AddFieldToTable("is_catch_sold"))
+                                            {
+                                                proceed = cols.Contains("carrierlanding_id") || VesselCatchRepository.AddFieldToTable("carrierlanding_id");
+                                            }
                                         }
                                     }
                                 }
@@ -302,7 +319,10 @@ namespace NSAP_ODK.Entities.Database
                         if (proceed)
                         {
                             cols = CreateTablesInAccess.GetColumnNames("nsapRegion");
-                            proceed = cols.Contains("IsTotalEnumerationOnly") || await NSAPRegionRepository.AddFieldToTableAsync("IsTotalEnumerationOnly");
+                            if (cols.Contains("IsTotalEnumerationOnly") || await NSAPRegionRepository.AddFieldToTableAsync("IsTotalEnumerationOnly"))
+                            {
+                                proceed = cols.Contains("IsRegularSamplingOnly") || await NSAPRegionRepository.AddFieldToTableAsync("IsRegularSamplingOnly");
+                            }
                         }
 
                         if (proceed)
@@ -654,6 +674,21 @@ namespace NSAP_ODK.Entities.Database
                                     {
                                         item.SamplingFromCatchCompositionIsAllowed = (bool)dr["can_sample_from_catch_composition"];
                                     }
+
+                                    item.LandingSiteTypeOfSampling = dr["type_of_sampling"].ToString();
+                                    
+                                    if (item.LandingSiteTypeOfSampling == "cbl")
+                                    {
+                                        if (dr["count_carrier_landings"]!=DBNull.Value)
+                                        {
+                                            item.CountCarrierLandings = (int)dr["count_carrier_landings"];
+                                        }
+                                        item.CountCarrierSamplings = (int)dr["count_carrier_sampling"];
+                                        //item.CarrierBoatLanding_FishingGround_ViewModel = new CarrierBoatLanding_FishingGround_ViewModel(item);
+                                        //item.CatcherBoatOperation_ViewModel = new CatcherBoatOperation_ViewModel(item);
+                                    }
+                                    //item.VesselCatchViewModel = new VesselCatchViewModel(item);
+
                                     thisList.Add(item);
                                     loopCount++;
                                 }
@@ -805,13 +840,20 @@ namespace NSAP_ODK.Entities.Database
                         break;
                     case "number_gear_types_in_landingsite":
                     case "submission_id":
-                        sql = $@"ALTER TABLE dbo_LC_FG_sample_day_1 ADD COLUMN {colName} INTEGER DEFAULT NULL";
-                        break;
+                    case "count_carrier_landings":
+                    case "count_carrier_sampling":
                     case "number_landings_sampled":
-                        sql = $@"ALTER TABLE dbo_LC_FG_sample_day_1 ADD COLUMN {colName} INTEGER DEFAULT NULL";
-                        break;
                     case "number_landings":
                         sql = $@"ALTER TABLE dbo_LC_FG_sample_day_1 ADD COLUMN {colName} INTEGER DEFAULT NULL";
+                        break;
+                    //case "number_landings_sampled":
+                    //    sql = $@"ALTER TABLE dbo_LC_FG_sample_day_1 ADD COLUMN {colName} INTEGER DEFAULT NULL";
+                    //    break;
+                    //case "number_landings":
+                    //    sql = $@"ALTER TABLE dbo_LC_FG_sample_day_1 ADD COLUMN {colName} INTEGER DEFAULT NULL";
+                    //    break;
+                    case "type_of_sampling":
+                        sql = $@"ALTER TABLE dbo_LC_FG_sample_day ADD COLUMN {colName} VARCHAR(3)";
                         break;
                     case "has_fishing_operation":
                     case "can_sample_from_catch_composition":
@@ -828,7 +870,18 @@ namespace NSAP_ODK.Entities.Database
                     try
                     {
                         cmd.ExecuteNonQuery();
-                        success = true;
+                        if (colName == "type_of_sampling")
+                        {
+                            sql = "UPDATE dbo_LC_FG_sample_day SET type_of_sampling='rs' WHERE type_of_sampling IS NULL";
+                            cmd.CommandText = sql;
+                            cmd.ExecuteNonQuery();
+                            success = true;
+                        }
+                        else
+                        {
+                            success = true;
+                        }
+
 
                     }
                     catch (OleDbException dbex)

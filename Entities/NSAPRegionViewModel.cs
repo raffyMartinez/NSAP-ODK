@@ -501,6 +501,7 @@ namespace NSAP_ODK.Entities
             NSAPRegionsWithEntitiesRepositories[nr.Code].NSAPRegion.ShortName = nr.ShortName;
             NSAPRegionsWithEntitiesRepositories[nr.Code].NSAPRegion.Code = nr.Code;
             NSAPRegionsWithEntitiesRepositories[nr.Code].NSAPRegion.IsTotalEnumerationOnly = nr.IsTotalEnumerationOnly;
+            NSAPRegionsWithEntitiesRepositories[nr.Code].NSAPRegion.IsRegularSamplingOnly = nr.IsRegularSamplingOnly;
             NSAPRegionsWithEntitiesRepositories[nr.Code].NSAPRegion.Sequence = nr.Sequence;
             success = true;
             return success;

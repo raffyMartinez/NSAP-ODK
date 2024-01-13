@@ -1283,7 +1283,8 @@ namespace NSAP_ODK.Views
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Vessels", DisplayName = "Number of Vessels", DisplayOrder = 5, Description = "Number of vessels listed in the region" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Enumerators", DisplayName = "Number of Enumerators", DisplayOrder = 6, Description = "Number of enumerators listed in the region" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "IsTotalEnumerationOnly", DisplayName = "Total enumeration only", DisplayOrder = 8, Description = "Catch composition is from total enumeration and not from samples" });
-                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "ID", DisplayName = "Database identifier", DisplayOrder = 9, Description = "Identifier of the landing site in database" });
+                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "IsRegularSamplingOnly", DisplayName = "Regular sampling only", DisplayOrder = 9, Description = "All samplings in region are regular samplings" });
+                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "ID", DisplayName = "Database identifier", DisplayOrder = 10, Description = "Identifier of the landing site in database" });
                     PropertyGrid.SelectedObject = nsapRegionEdit;
                     break;
                 #endregion
@@ -2488,12 +2489,14 @@ namespace NSAP_ODK.Views
                                 Name = r.Name,
                                 ShortName = r.ShortName,
                                 IsTotalEnumerationOnly = r.IsTotalEnumerationOnly,
+                                IsRegularSamplingOnly = r.IsRegularSamplingOnly,
                                 Sequence = r.NSAPRegion.Sequence
                             };
                             //nr.NSAPEnumerators=r.NSAPRegion.NSAPEnumerators
                             if (NSAPEntities.NSAPRegionViewModel.UpdateRecordInRepo(nr))
                             {
                                 success = true;
+                                
                             }
                             break;
                         #endregion
@@ -2855,7 +2858,10 @@ namespace NSAP_ODK.Views
                                         //NSAPEntities.
                                     }
                                 }
-                                //success = true;
+                                if(success)
+                                {
+                                    Global.CheckForCarrierBasedLanding();
+                                }
                             }
 
                             break;

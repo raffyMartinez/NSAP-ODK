@@ -24,7 +24,8 @@ namespace NSAP_ODK.Entities.Database
         EnumeratorRegion,
         Enumerators,
         SummaryOfEnumerators,
-        SummaryOfDownloadDate
+        SummaryOfDownloadDate,
+        LandingSiteFishCarrier
 
     }
 
@@ -118,7 +119,10 @@ namespace NSAP_ODK.Entities.Database
         {
 
         }
-
+        public int CountMonths { get; set; }
+        public int CountCarrierSamplings { get; set; }
+        public int CountLandingSites { get; set; }  
+        public int CountCarrierBoats { get; set; }
         [ReadOnly(true)]
         public int CountAllLandings { get; set; }
         public int CountLandingsWithOrphanedSpeciesNames { get; set; }
@@ -242,6 +246,14 @@ namespace NSAP_ODK.Entities.Database
         public string MonthSampled { get; set; }
 
         public DateTime SampledMonth { get; set; }
+        public string SampledMonthString 
+        { 
+            get
+            {
+                return SampledMonth.ToString("MMMM, yyyy");
+            }
+                
+                }
         public string SavedJSONFolder { get; set; }
 
         public int SavedFishingEffortJSONCount { get; set; }

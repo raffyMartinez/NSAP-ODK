@@ -1,0 +1,70 @@
+﻿<Window x:Class="NSAP_ODK.Views.CarrierBoatLandingEditor"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        Closing="ClosingTrigger"
+        xmlns:local="clr-namespace:NSAP_ODK.Views"
+        mc:Ignorable="d"
+        Loaded="OnWindowLoaded"
+        Title="Carrier boat landings" Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition/>
+            <RowDefinition Height="40"/>
+        </Grid.RowDefinitions>
+        <Label x:Name="labelTitle" Content="This is the form title label" HorizontalAlignment="Center" FontSize="14" FontWeight="Bold"/>
+
+        <Grid Grid.Row="1" Margin="10 0 10 0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200"/>
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <TreeView x:Name="treeView"/>
+            <Grid x:Name="gridContainerDataGrid" Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition x:Name="gridRowCarrier"/>
+                    <RowDefinition x:Name="gridRowCatch"/>
+                    <RowDefinition x:Name="gridRowLengths"/>
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Label Content="Carrier boat data" x:Name="labelCarrierProperties"/>
+                    <xctk:PropertyGrid x:Name="propertyGrid" Grid.Row="1"/>
+                </Grid>
+                <Grid Grid.Row="1" Margin="5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Label Content="Data grid label" x:Name="labelGridData"/>
+                    <DataGrid x:Name="dataGrid"  ItemsSource="{Binding}" Grid.Row="1"/>
+                </Grid>
+                <Grid Grid.Row="2" Margin="5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Label Content="Lengths label" x:Name="labelGridLengths"/>
+                    <DataGrid x:Name="dataGridLengths" ItemsSource="{Binding}" Grid.Row="1"/>    
+                </Grid>
+                
+            </Grid>
+
+
+        </Grid>
+
+        <WrapPanel Grid.Row="2" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="20 0 20 0">
+            <Button Content="Cancel" Height="25" Width="50" Margin="10 0 0 0" x:Name="buttonCancel" Click="OnButtonClicked"/>
+            <Button Content="Ok" Height="25" Width="50" Margin="10 0 0 0" x:Name="buttonOK" Click="OnButtonClicked"/>
+            <Button Content="Close" Height="25" Width="50" Margin="10 0 0 0" x:Name="buttonClose" Click="OnButtonClicked"/>
+        </WrapPanel>
+
+
+    </Grid>
+</Window>

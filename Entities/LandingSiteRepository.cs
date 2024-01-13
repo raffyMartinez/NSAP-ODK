@@ -76,7 +76,7 @@ namespace NSAP_ODK.Entities
             switch (fieldName)
             {
                 case "TypeOfSampling":
-                    sql = $"ALTER TABLE landingSite ADD COLUMN {fieldName} INTEGER";
+                    sql = $"ALTER TABLE landingSite ADD COLUMN {fieldName} VARCHAR(3)";
                     break;
             }
             using (var con = new OleDbConnection(Global.ConnectionString))
@@ -110,7 +110,7 @@ namespace NSAP_ODK.Entities
             {
                 using (var cmd = con.CreateCommand())
                 {
-                    cmd.CommandText = "UPDATE landingSite SET TypeOfSampling=0 WHERE TypeOfSampling IS NULL";
+                    cmd.CommandText = "UPDATE landingSite SET TypeOfSampling='rs' WHERE TypeOfSampling IS NULL";
                     con.Open();
                     try
                     {
@@ -174,7 +174,7 @@ namespace NSAP_ODK.Entities
                                 {
                                     ls.Longitude = Convert.ToDouble(dr["Longitude"]);
                                 }
-                                ls.LandingSiteTypeOfSampling = (LandingSiteTypeOfSampling)(int)dr["TypeOfSampling"];
+                                ls.LandingSiteTypeOfSampling = dr["TypeOfSampling"].ToString();
                                 //ls.LandingSite_FishingVesselViewModel = null;
                                 //ls.LandingSiteFishingGroundViewModel = new LandingSiteFishingGroundViewModel(ls);
                                 listLandingSites.Add(ls);
@@ -276,7 +276,7 @@ namespace NSAP_ODK.Entities
                         {
                             update.Parameters.Add("@brgy", OleDbType.VarChar).Value = ls.Barangay;
                         }
-                        update.Parameters.Add("@sampling_type", OleDbType.Integer).Value = (int)ls.LandingSiteTypeOfSampling;
+                        update.Parameters.Add("@sampling_type", OleDbType.VarChar).Value = ls.LandingSiteTypeOfSampling;
                         try
                         {
                             success = update.ExecuteNonQuery() > 0;
@@ -386,7 +386,7 @@ namespace NSAP_ODK.Entities
                         {
                             update.Parameters.Add("@brgy", OleDbType.VarChar).Value = ls.Barangay;
                         }
-                        update.Parameters.Add("@sampling_type", OleDbType.Integer).Value = (int)ls.LandingSiteTypeOfSampling;
+                        update.Parameters.Add("@sampling_type", OleDbType.VarChar).Value = ls.LandingSiteTypeOfSampling;
                         update.Parameters.Add("@id", OleDbType.Integer).Value = ls.LandingSiteID;
 
                         update.CommandText = @"Update LandingSite set

@@ -18,7 +18,8 @@ namespace NSAP_ODK.Utilities
     {
         dbviewSummary,
         dbviewDownloadHistory,
-        dbviewCalendar
+        dbviewCalendar,
+        dbviewCBLCalendar
     }
     public static class Global
     {
@@ -102,6 +103,7 @@ namespace NSAP_ODK.Utilities
         public static string Grid25MDBPath = $"{AppDomain.CurrentDomain.BaseDirectory}/grid25inland.mdb";
         public static bool AppProceed { get; private set; }
 
+        public static bool HasCarrierBoatLandings { get; private set; }
         public static string ConnectionString { get; private set; }
 
         public static string ConnectionStringGrid25 { get; private set; }
@@ -388,9 +390,16 @@ namespace NSAP_ODK.Utilities
                     NSAPEntities.ResetEntititesCurrentIDs();
                     VesselUnloadServerRepository.ResetGroupIDState();
 
+                    CheckForCarrierBasedLanding();
+
                     EntityLoaded?.Invoke(null, new EntityLoadedEventArg { IsEnding = true });
                 }
             }
+        }
+
+        public static void CheckForCarrierBasedLanding()
+        {
+            HasCarrierBoatLandings = NSAPEntities.LandingSiteViewModel.LandingSiteCollection.Count(t => t.LandingSiteTypeOfSampling == "cbl") > 0;
         }
 
         public static string Filter2DateString()
@@ -518,7 +527,7 @@ namespace NSAP_ODK.Utilities
                             else if (CommandArgs.Count() == 1)
                             {
                                 //if (Settings.DbFilter == null)
-                                if (string.IsNullOrEmpty( Settings.DbFilter))
+                                if (string.IsNullOrEmpty(Settings.DbFilter))
                                 {
                                     Filter1 = new DateTime(2023, 1, 1);
                                     Settings.DbFilter = ((DateTime)Filter1).ToString("MMM-dd-yyyy");

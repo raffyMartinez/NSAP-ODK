@@ -10,7 +10,8 @@ namespace NSAP_ODK.Entities.Database
     public enum LandingSiteTypeOfSampling
     {
         SamplingTypeRegular,
-        SamplingTypeCommercialCarrierBoats
+        SamplingTypeCommercialCarrierBoats,
+        SamplingTypeNotDetermined = 999
     }
     public class LandingSiteSamplingSummarized
     {
@@ -135,16 +136,25 @@ namespace NSAP_ODK.Entities.Database
         private FMA _fma;
         private FishingGround _fishingGround;
         private List<GearInLandingSite> _gearsInLandingSite;
+        public CarrierLandingViewModel CarrierLandingViewModel { get; set; }
+        //public VesselCatchViewModel VesselCatchViewModel { get; set; }
+        //public CatcherBoatOperation_ViewModel CatcherBoatOperation_ViewModel { get; set; }
+        //public CarrierBoatLanding_FishingGround_ViewModel CarrierBoatLanding_FishingGround_ViewModel { get; set; }
 
-        public static string LandingSiteSamplingTypeToString(LandingSiteTypeOfSampling typeOfSampling)
+        public string LandingSiteTypeOfSampling { get; set; }
+
+        //public string CarrierBoatName { get; set; }
+        //public int? CountCatcherBoats { get; set; }
+        //public int? CountCarrierCatchSpeciesComposition { get; set; }
+        public static string LandingSiteSamplingType(string typeOfSampling)
         {
             string samplingType = "";
             switch (typeOfSampling)
             {
-                case LandingSiteTypeOfSampling.SamplingTypeRegular:
-                    samplingType =  "Regular sampling";
+                case "rs":
+                    samplingType = "Regular sampling";
                     break;
-                case LandingSiteTypeOfSampling.SamplingTypeCommercialCarrierBoats:
+                case "cbl":
                     samplingType = "Carrier boats only";
                     break;
             }
@@ -238,7 +248,8 @@ namespace NSAP_ODK.Entities.Database
                 return _fma;
             }
         }
-
+        public int? CountCarrierLandings { get; set; }
+        public int? CountCarrierSamplings { get; set; }
         public DateTime MonthSampled
         {
             get

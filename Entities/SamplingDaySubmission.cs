@@ -15,5 +15,7 @@ namespace NSAP_ODK.Entities
         public string FishingGroundID { get; set; }
         public DateTime SamplingDate { get; set; }
         public LandingSiteSampling LandingSiteSampling { get; set; }
+
+        public string TypeOfSampling { get; set; }
     }
 }

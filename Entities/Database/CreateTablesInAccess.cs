@@ -79,7 +79,7 @@ namespace NSAP_ODK.Entities.Database
                         connection.Open();
                         transaction = connection.BeginTransaction(IsolationLevel.ReadCommitted);
                         cmd.Transaction = transaction;
-                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "start importing csv", TotalTableCount = 19 });
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "start importing csv", TotalTableCount = 22 });
                         _importCSVCount = 0;
 
                         currentTableName = "dbo_LC_FG_sample_day";
@@ -173,6 +173,26 @@ namespace NSAP_ODK.Entities.Database
                         cmd.CommandText = $@"INSERT INTO dbo_gear_soak SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
                         cmd.ExecuteNonQuery();
                         AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_gear_soak", CurrentTableCount = ++_importCSVCount });
+
+
+                        currentTableName = "dbo_carrier_landing";
+                        File.WriteAllText(csv_file, CarrierLandingViewModel.CSV);
+                        cmd.CommandText = $@"INSERT INTO dbo_carrier_landing SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
+                        cmd.ExecuteNonQuery();
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_carrier_landing", CurrentTableCount = ++_importCSVCount });
+
+
+                        currentTableName = "dbo_carrier_landing_fishing_ground";
+                        File.WriteAllText(csv_file, CarrierBoatLanding_FishingGround_ViewModel.CSV);
+                        cmd.CommandText = $@"INSERT INTO dbo_carrier_landing_fishing_ground SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
+                        cmd.ExecuteNonQuery();
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_carrier_landing_fishing_ground", CurrentTableCount = ++_importCSVCount });
+
+                        currentTableName = "dbo_catcher_boat_operations";
+                        File.WriteAllText(csv_file, CatcherBoatOperation_ViewModel.CSV);
+                        cmd.CommandText = $@"INSERT INTO dbo_catcher_boat_operations SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
+                        cmd.ExecuteNonQuery();
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_catcher_boat_operations", CurrentTableCount = ++_importCSVCount });
 
                         currentTableName = "dbo_vessel_catch";
                         File.WriteAllText(csv_file, VesselCatchViewModel.CSV);
@@ -462,6 +482,7 @@ namespace NSAP_ODK.Entities.Database
                 catch (Exception ex)
                 {
                     Logger.Log(ex);
+                    return "";
                 }
             }
             return csv.ToString().Trim(',');

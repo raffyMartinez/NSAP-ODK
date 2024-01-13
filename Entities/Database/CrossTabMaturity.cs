@@ -8,6 +8,7 @@ namespace NSAP_ODK.Entities.Database
 {
     public class CrossTabMaturity
     {
+        public CrossTabCarrierLandingVesselCatchCommon CrossTabCarrierLandingVesselCatchCommon { get; set; }
         public CrossTabCommon CrossTabCommon { get; set; }
         public double? Length { get; set; }
         public double? Weight { get; set; }

@@ -12,11 +12,11 @@ namespace NSAP_ODK.Entities
     {
         public string TypeOfSamplingInLandingSite
         {
-            get { return LandingSiteSampling.LandingSiteSamplingTypeToString(LandingSiteTypeOfSampling); }
+            get { return LandingSiteSampling.LandingSiteSamplingType(LandingSiteTypeOfSampling); }
         }
 
-        [ItemsSource(typeof(int))]
-        public LandingSiteTypeOfSampling LandingSiteTypeOfSampling { get; set; }
+        [ItemsSource(typeof(string))]
+        public string LandingSiteTypeOfSampling { get; set; }
 
         public List<NSAPRegionFMAFishingGround> FishingGrounds { get; set; } = new List<NSAPRegionFMAFishingGround>();
 

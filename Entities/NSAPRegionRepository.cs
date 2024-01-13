@@ -55,6 +55,7 @@ namespace NSAP_ODK.Entities
             string sql = "";
             switch (fieldName)
             {
+                case "IsRegularSamplingOnly":
                 case "IsTotalEnumerationOnly":
                     sql = $"ALTER TABLE nsapRegion ADD COLUMN {fieldName} BIT";
                     break;
@@ -69,6 +70,23 @@ namespace NSAP_ODK.Entities
                     {
                         cmd.ExecuteNonQuery();
                         success = true;
+                        if (success)
+                        {
+                            if (fieldName == "IsRegularSamplingOnly")
+                            {
+                                sql = "UPDATE nsapRegion SET IsRegularSamplingOnly = -1";
+                                cmd.CommandText = sql;
+                                try
+                                {
+                                    cmd.ExecuteNonQuery();
+                                    success = true;
+                                }
+                                catch (Exception ex)
+                                {
+                                    Logger.Log(ex);
+                                }
+                            }
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -108,6 +126,7 @@ namespace NSAP_ODK.Entities
                                 nsr.ShortName = dr["ShortName"].ToString();
                                 nsr.Sequence = Convert.ToInt32(dr["Sequence"]);
                                 nsr.IsTotalEnumerationOnly = (bool)dr["IsTotalEnumerationOnly"];
+                                nsr.IsRegularSamplingOnly = (bool)dr["IsRegularSamplingOnly"];
                                 thisList.Add(nsr);
                             }
                         }
@@ -134,7 +153,7 @@ namespace NSAP_ODK.Entities
                     update.Parameters.Add("@short_name", MySqlDbType.VarChar).Value = nsr.ShortName;
                     update.Parameters.Add("@seq", MySqlDbType.VarChar).Value = nsr.Sequence;
                     update.Parameters.Add("@code", MySqlDbType.VarChar).Value = nsr.Code;
-                    update.CommandText= @"Insert into nsap_region (region_name, short_name,sequence,code) Values (@name,@short_name,@seq,@code)";
+                    update.CommandText = @"Insert into nsap_region (region_name, short_name,sequence,code) Values (@name,@short_name,@seq,@code)";
                     try
                     {
                         success = update.ExecuteNonQuery() > 0;
@@ -160,7 +179,7 @@ namespace NSAP_ODK.Entities
             }
             return success;
         }
-        
+
         public bool Add(NSAPRegion nsr)
         {
             bool success = false;
@@ -173,13 +192,14 @@ namespace NSAP_ODK.Entities
                 using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
                     conn.Open();
-                    var sql = @"Insert into nsapRegion (RegionName, ShortName,Sequence,IsTotalEnumerationOnly,Code) Values (?,?,?,?,?)";
+                    var sql = @"Insert into nsapRegion (RegionName, ShortName,Sequence,IsTotalEnumerationOnly,Code) Values (?,?,?,?,?,?)";
                     using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
                         update.Parameters.Add("@name", OleDbType.VarChar).Value = nsr.Name;
                         update.Parameters.Add("@short_name", OleDbType.VarChar).Value = nsr.ShortName;
                         update.Parameters.Add("@seq", OleDbType.VarChar).Value = nsr.Sequence;
                         update.Parameters.Add("@tc_only", OleDbType.Boolean).Value = nsr.IsTotalEnumerationOnly;
+                        update.Parameters.Add("@rs_only", OleDbType.Boolean).Value = nsr.IsRegularSamplingOnly;
                         update.Parameters.Add("@code", OleDbType.VarChar).Value = nsr.Code;
                         try
                         {
@@ -247,6 +267,7 @@ namespace NSAP_ODK.Entities
                         update.Parameters.Add("@short_name", OleDbType.VarChar).Value = nsr.ShortName;
                         update.Parameters.Add("@seq", OleDbType.VarChar).Value = nsr.Sequence;
                         update.Parameters.Add("@tc_only", OleDbType.Boolean).Value = nsr.IsTotalEnumerationOnly;
+                        update.Parameters.Add("@rs_only", OleDbType.Boolean).Value = nsr.IsRegularSamplingOnly;
                         update.Parameters.Add("@code", OleDbType.VarChar).Value = nsr.Code;
 
 
@@ -254,7 +275,8 @@ namespace NSAP_ODK.Entities
                                               RegionName = @name, 
                                               ShortName=@short_name, 
                                               Sequence=@seq,
-                                              IsTotalEnumerationOnly=@tc_only  
+                                              IsTotalEnumerationOnly=@tc_only,
+                                              IsRegularSamplingOnly=@rs_only  
                                             WHERE Code=@code";
 
                         try

@@ -36,7 +36,7 @@ namespace NSAP_ODK.Entities
         }
 
         [ItemsSource(typeof(TypeOfSamplingItemsSource))]
-        public LandingSiteTypeOfSampling LandingSiteTypeOfSampling { get; set; }
+        public string LandingSiteTypeOfSampling { get; set; }
         public int? CountFishingVessels { get;  }
 
         //public int? CountFishingGrounds { get; }

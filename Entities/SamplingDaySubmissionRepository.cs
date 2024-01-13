@@ -45,7 +45,7 @@ namespace NSAP_ODK.Entities
                 {
                     using (var cmd = con.CreateCommand())
                     {
-                        cmd.CommandText = "Select unload_day_id, sdate, land_ctr_id, land_ctr_text, ground_id from dbo_LC_FG_sample_day";
+                        cmd.CommandText = "Select unload_day_id, sdate, land_ctr_id, land_ctr_text, ground_id, type_of_sampling from dbo_LC_FG_sample_day";
                         try
                         {
                             con.Open();
@@ -58,7 +58,8 @@ namespace NSAP_ODK.Entities
                                     SamplingDayID = day_id,
                                     SamplingDate = (DateTime)dr["sdate"],
                                     FishingGroundID = dr["ground_id"].ToString(),
-                                    LandingSiteSampling = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(day_id)
+                                    LandingSiteSampling = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(day_id),
+                                    TypeOfSampling = dr["type_of_sampling"].ToString()
                                 };
                                 if (dr["land_ctr_id"]!=DBNull.Value)
                                 {

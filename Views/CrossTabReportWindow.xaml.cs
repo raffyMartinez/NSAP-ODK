@@ -22,19 +22,49 @@ namespace NSAP_ODK.Views
     {
         private static CrossTabReportWindow _instance;
         private string _filePath;
+        private bool _isCarrierLanding = false;
         public CrossTabReportWindow()
         {
             InitializeComponent();
+            SetEvents();
+        }
+        private void SetEvents()
+        {
             Loaded += OnWindowLoaded;
             Closing += OnWindowClosing;
         }
+        public CrossTabReportWindow(bool isCarrierLandings)
+        {
+            InitializeComponent();
+            _isCarrierLanding = isCarrierLandings;
+            if (_isCarrierLanding)
+            {
+                treeView.Items.Clear();
+                TreeViewItem tvi = new TreeViewItem { Header = "Daily carrier landing" };
+                treeView.Items.Add(tvi);
+
+
+                tvi = new TreeViewItem { Header = "Catch composition" };
+                treeView.Items.Add(tvi);
+
+                tvi = new TreeViewItem { Header = "Length-weight" };
+                treeView.Items.Add(tvi);
+
+                tvi = new TreeViewItem { Header = "Maturity" };
+                treeView.Items.Add(tvi);
+
+                mainLabel.Content = $"Crosstab report for carrier boat landings {CrossTabManager.LandingSite.ToString()}, {CrossTabManager.MonthYear.ToString("MMM, yyyy")}";
+            }
+
+            SetEvents();
+        }
 
         public static CrossTabReportWindow Instance { get { return _instance; } }
-        public static CrossTabReportWindow GetInstance()
+        public static CrossTabReportWindow GetInstance(bool isCarrierLanding = false)
         {
             if (_instance == null)
             {
-                _instance = new CrossTabReportWindow();
+                _instance = new CrossTabReportWindow(isCarrierLanding);
             }
             return _instance;
         }
@@ -104,10 +134,38 @@ namespace NSAP_ODK.Views
 
         private void OnTreeItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            if (e.NewValue != null)
+            string topic = "";
+            TreeViewItem tvItem = (TreeViewItem)e.NewValue;
+            if (_isCarrierLanding)
             {
-                TreeViewItem tvItem = (TreeViewItem)e.NewValue;
-                string topic = tvItem.Tag.ToString();
+                topic = tvItem.Header.ToString();
+                switch (topic)
+                {
+                    case "Daily carrier landing":
+                        dataGrid.DataContext = CrossTabManager.DataTableCarrierDailyLandings;
+                        subLabel.Content = "Carrier landings";
+                        break;
+                    case "Length-weight":
+                        dataGrid.DataContext = CrossTabManager.DataTableCarrierLengthWeigths;
+                        subLabel.Content = "Length weight of catch";
+                        break;
+                    case "Maturity":
+                        dataGrid.DataContext = CrossTabManager.DataTableCarrierMaturities;
+                        subLabel.Content = "Maturity of catch";
+                        break;
+                    case "Catch composition":
+                        dataGrid.DataContext = CrossTabManager.DataTableCarrierCatchComposition;
+                        subLabel.Content = "Catch composition of landed catch";
+                        break;
+                }
+                dataGrid.AutoGenerateColumns = true;
+                _filePath = $"Crosstab of carrier landings - {CrossTabManager.LandingSite.ToString()}, {CrossTabManager.MonthYear.ToString("MMM-yyyy")}";
+
+            }
+            else if (e.NewValue != null)
+            {
+
+                topic = tvItem.Tag.ToString();
                 dataGrid.Columns.Clear();
 
                 dataGrid.AutoGenerateColumns = false;

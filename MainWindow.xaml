@@ -43,7 +43,7 @@
             <RowDefinition Height="20" x:Name="rowMenu" />
             <RowDefinition Height="34" x:Name="rowToolbar" />
             <RowDefinition Height="30" x:Name="rowTopLabel" />
-            <RowDefinition Height="*" x:Name="rowDashboard"/>
+            <RowDefinition Height="*" x:Name="rowCBL"/>
             <RowDefinition Height="*" x:Name="rowODKData"/>
             <RowDefinition Height="*" x:Name="rowSpecies" />
             <RowDefinition Height="*" x:Name="rowOthers" />
@@ -168,6 +168,10 @@
             <ToolBar Height="32" Width="Auto" >
 
 
+                <Button x:Name="buttonCBL_calendar" Click="OnToolbarButtonClick" ToolTip="Carrier boats landing calendar" Visibility="Collapsed" >
+                    <Image Source="pack://siteoforigin:,,,/Resources/cbl_calendar.png" OpacityMask="White" />
+                </Button>
+
                 <Button x:Name="buttonCalendar" Click="OnToolbarButtonClick" ToolTip="Trip calendar" >
                     <Image Source="pack://siteoforigin:,,,/Resources/calendar2.png" OpacityMask="White" />
                 </Button>
@@ -200,10 +204,22 @@
         <!--label for selected entity -->
         <Label Grid.ColumnSpan="2" Content="This is a label" x:Name="labelTitle" Grid.Row="2" Visibility="Collapsed" VerticalAlignment="Bottom" FontWeight="Bold" FontSize="13"/>
 
-        <!--dashboad row, currently empty-->
-        <StackPanel x:Name="StackPanelDashboard" Grid.Row="3" Grid.ColumnSpan="2">
-            <!--TODO: place dashboard items here-->
-        </StackPanel>
+        <!--CBL row-->
+        <Grid Grid.Row="3" Grid.ColumnSpan="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="8*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="40"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Label Content="label for CBL" x:Name="labelCBL" Grid.ColumnSpan="2" HorizontalContentAlignment="Center" VerticalAlignment="Center" FontSize="14" FontWeight="Bold"/>
+            <TreeView x:Name="treeCBL" Grid.Row="1" SelectedItemChanged="OnHistoryTreeItemChanged" MouseRightButtonDown="OnMenuRightClick"/>
+            <xctk:PropertyGrid Margin="5" x:Name="carrierSummaryPropertyGrid" Visibility="Collapsed" Grid.Row="1" Grid.Column="1"/>
+            <DataGrid x:Name="gridCBL" Margin="5" SelectionUnit="FullRow" LoadingRow="Grid_LoadingRow" Visibility="Collapsed" MouseDoubleClick="OnGridDoubleClick"
+                     SelectedCellsChanged="OnSelectedCellsChanged" ItemsSource="{Binding}" Grid.Row="1" Grid.Column="1" CanUserAddRows="False" IsReadOnly="True"/>
+        </Grid>
 
 
         <!--for calendar grid view and tree view-->
@@ -249,9 +265,10 @@
                 <DataGrid Margin="5" x:Name="GridNSAPData"  SelectionUnit="FullRow" LoadingRow="Grid_LoadingRow" Visibility="Collapsed"
                       ItemsSource="{Binding}" MouseDoubleClick="OnGridDoubleClick" IsReadOnly="True" 
                       SelectedCellsChanged="OnSelectedCellsChanged" SelectionMode="Single" CellEditEnding="OnCellEditEnding" SelectionChanged="OnDataGridSelectionChanged"
-                      AutoGeneratingColumn="OnGeneratingColumn" MouseRightButtonUp="OnMenuRightClick">
+                      AutoGeneratingColumn="OnGeneratingColumn" MouseRightButtonUp="OnMenuRightClick"/>
 
-                </DataGrid>
+
+
                 <StackPanel Grid.Column="1" Visibility="Collapsed" x:Name="GearUnload_ButtonsPanel">
                     <Button Content="Save" Height="30" Margin="10 20 10 10" x:Name="ButtonSaveGearUnload" Click="OnButtonClick"/>
                     <Button Content="Undo changes" Height="30" Margin="10 10 10 10" x:Name="ButtonUndoGearUnload" Click="OnButtonClick" />

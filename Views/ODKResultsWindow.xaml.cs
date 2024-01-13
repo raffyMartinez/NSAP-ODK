@@ -2271,6 +2271,7 @@ namespace NSAP_ODK.Views
                                                         //_targetGrid.ItemsSource = MultiVesselGear_UnloadServerRepository.SampledVesselLandings;
                                                         sourceCount = MultiVessel_Optimized_UnloadServerRepository.SampledVesselLandings.Count;
                                                         savedCount = MultiVessel_Optimized_UnloadServerRepository.SampledVesselLandings.Count(t => t.SavedInLocalDatabase == true);
+                                                        savedCount += MultiVessel_Optimized_UnloadServerRepository.FishCarriers.Count(t => t.SavedInLocalDatabase == true);
                                                     }
                                                 }
                                                 else
