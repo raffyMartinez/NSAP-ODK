@@ -21,6 +21,20 @@ namespace NSAP_ODK.Entities.Database
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+        public bool DeleteAllInCollection()
+        {
+            int deleteCount = 0;
+            int? collectionCount = VesselEffortCollection?.Count;
+            foreach (var item in VesselEffortCollection?.ToList())
+            {
+                if (DeleteRecordFromRepo(item.PK))
+                {
+                    deleteCount++;
+                }
+            }
+            Dispose();
+            return deleteCount == (int)collectionCount;
+        }
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
@@ -37,7 +51,7 @@ namespace NSAP_ODK.Entities.Database
         {
             VesselEfforts = new VesselEffortRepository(vu);
             VesselEffortCollection = new ObservableCollection<VesselEffort>(VesselEfforts.VesselEfforts);
-            VesselEffortCollection.CollectionChanged += LandingSiteSamplingCollection_CollectionChanged;
+            VesselEffortCollection.CollectionChanged += Effort_CollectionChanged;
         }
         public VesselEffortViewModel(bool isNew = false)
         {
@@ -50,7 +64,7 @@ namespace NSAP_ODK.Entities.Database
             {
                 VesselEffortCollection = new ObservableCollection<VesselEffort>(VesselEfforts.VesselEfforts);
             }
-            VesselEffortCollection.CollectionChanged += LandingSiteSamplingCollection_CollectionChanged;
+            VesselEffortCollection.CollectionChanged += Effort_CollectionChanged;
         }
         public bool ClearRepository()
         {
@@ -148,7 +162,7 @@ namespace NSAP_ODK.Entities.Database
             _csv.Clear();
         }
 
-        private void LandingSiteSamplingCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        private void Effort_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             EditSucceeded = false;
             switch (e.Action)
@@ -222,14 +236,14 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if (VesselEffortCollection.Count == 0)
-                {
-                    return 1;
-                }
-                else
-                {
-                    return VesselEfforts.MaxRecordNumber() + 1;
-                }
+                //if (VesselEffortCollection.Count == 0)
+                //{
+                //    return 1;
+                //}
+                //else
+                //{
+                return VesselEfforts.MaxRecordNumber() + 1;
+                //}
             }
         }
 

@@ -32,6 +32,20 @@ namespace NSAP_ODK.Entities.Database
             }
             // free native resources if there are any.
         }
+        public bool DeleteAllInCollection()
+        {
+            int deleteCount = 0;
+            int collectionCount = CatchLenFreqCollection.Count;
+            foreach (var item in CatchLenFreqCollection.ToList())
+            {
+                if (DeleteRecordFromRepo(item.PK))
+                {
+                    deleteCount++;
+                }
+            }
+            Dispose();
+            return deleteCount == collectionCount;
+        }
         public CatchLenFreqViewModel(VesselCatch vc)
         {
             CatchLenFreqs = new CatchLenFreqRepository(vc);
@@ -196,14 +210,14 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if (CatchLenFreqCollection.Count == 0)
-                {
-                    return 1;
-                }
-                else
-                {
+                //if (CatchLenFreqCollection.Count == 0)
+                //{
+                //    return 1;
+                //}
+                //else
+                //{
                     return CatchLenFreqs.MaxRecordNumber() + 1;
-                }
+                //}
             }
         }
 

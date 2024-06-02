@@ -15,6 +15,7 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using NSAP_ODK.Entities;
 using NSAP_ODK.Entities.Database;
+using NSAP_ODK.Utilities;
 
 
 namespace NSAP_ODK.Views
@@ -24,6 +25,7 @@ namespace NSAP_ODK.Views
     /// </summary>
     public partial class SplashWindow : Window
     {
+        private DateTime? _commandArgsFilterDate;
         private string _currentEntity;
         public SplashWindow()
         {
@@ -64,6 +66,28 @@ namespace NSAP_ODK.Views
             //if (LabelEntityRead.InvokeRequired)
             //    LabelEntityRead.Invoke(new Action(() => LabelEntityRead.Content = entity);
         }
+
+        private bool CommandArgsIsValidDate()
+        {
+            bool isValid = false;
+            string args = "";
+            for (int x = 0; x < CommandArgs.Count(); x++)
+            {
+                args += $"{CommandArgs[x]} ";
+            }
+            args = args.Trim();
+
+            if (DateTime.TryParse(args, out DateTime dt))
+            {
+                if (dt < DateTime.Now)
+                {
+                    _commandArgsFilterDate = dt;
+                    Global.Filter1 = dt;
+                    isValid = true;
+                }
+            }
+            return isValid;
+        }
         private async void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
             labelSubLabel.Visibility = Visibility.Collapsed;
@@ -71,7 +95,7 @@ namespace NSAP_ODK.Views
             //ProgressBarRead.IsIndeterminate = true;
             if (CommandArgs != null)
             {
-                if ((bool)CommandArgs.Contains("filtered") || (bool)CommandArgs.Contains("server_id"))
+                if ((bool)CommandArgs.Contains("filtered") || (bool)CommandArgs.Contains("server_id") || CommandArgsIsValidDate())
                 {
                     labelSubLabel.Visibility = Visibility.Visible;
                     labelSubLabel.Content = "Database will load with filtered data";

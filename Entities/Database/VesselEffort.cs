@@ -6,9 +6,22 @@ using System.Threading.Tasks;
 using NSAP_ODK.Utilities;
 namespace NSAP_ODK.Entities.Database
 {
+    public class VesselEffortEdited
+    {
+        public VesselEffortEdited(VesselEffort ve)
+        {
+            PK = ve.PK;
+            EffortValueNumeric = ve.EffortValueNumeric;
+            EffortValueText = ve.EffortValueText;
+        }
+        public int PK { get; set; }
+        public double? EffortValueNumeric { get; set; }
+        public string EffortValueText { get; set; }
+    }
     public class VesselEffortFlattened
     {
-        public  VesselEffortFlattened(VesselEffort ve)
+
+        public VesselEffortFlattened(VesselEffort ve)
         {
             ID = ve.PK;
             ParentID = ve.Parent.PK;
@@ -22,7 +35,7 @@ namespace NSAP_ODK.Entities.Database
         public double? EffortValueNumeric { get; set; }
         public string EffortValueText { get; set; }
     }
-   public class VesselEffort
+    public class VesselEffort
     {
         private VesselUnload _parent;
         private EffortSpecification _effortSpecification;
@@ -31,13 +44,13 @@ namespace NSAP_ODK.Entities.Database
         public int PK { get; set; }
         public int VesselUnloadID { get; set; }
         public int EffortSpecID { get; set; }
-       
+
         public EffortSpecification EffortSpecification
         {
             set { _effortSpecification = value; }
             get
             {
-                if(_effortSpecification==null)
+                if (_effortSpecification == null)
                 {
                     _effortSpecification = NSAPEntities.EffortSpecificationViewModel.GetEffortSpecification(EffortSpecID);
                 }
@@ -51,7 +64,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if(EffortValueNumeric==null)
+                if (EffortValueNumeric == null)
                 {
                     return EffortValueText;
                 }
@@ -66,7 +79,7 @@ namespace NSAP_ODK.Entities.Database
             set { _parent = value; }
             get
             {
-                if(_parent==null)
+                if (_parent == null)
                 {
                     _parent = NSAPEntities.VesselUnloadViewModel.getVesselUnload(VesselUnloadID);
                 }

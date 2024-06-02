@@ -50,7 +50,11 @@ namespace NSAP_ODK.Entities.Database
                     const string sql = "SELECT Max(catch_maturity_id) AS max_id FROM dbo_catch_maturity";
                     using (OleDbCommand getMax = new OleDbCommand(sql, conn))
                     {
-                        max_rec_no = (int)getMax.ExecuteScalar();
+                        var r = getMax.ExecuteScalar();
+                        if (r != DBNull.Value)
+                        {
+                            max_rec_no = (int)r;
+                        }
                     }
                 }
             }
@@ -562,7 +566,7 @@ namespace NSAP_ODK.Entities.Database
                     conn.Open();
                     using (OleDbCommand update = conn.CreateCommand())
                     {
-                        update.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
+                        
                         update.Parameters.Add("@parent_id", OleDbType.Integer).Value = item.VesselCatchID;
                         if (item.Length == null)
                         {
@@ -580,7 +584,7 @@ namespace NSAP_ODK.Entities.Database
                         {
                             update.Parameters.Add("@wt", OleDbType.Double).Value = item.Weight;
                         }
-                        if (item.SexCode == null)
+                        if (string.IsNullOrEmpty( item.SexCode))
                         {
                             update.Parameters.Add("@sex_code", OleDbType.VarChar).Value = DBNull.Value;
                         }
@@ -589,7 +593,7 @@ namespace NSAP_ODK.Entities.Database
                             update.Parameters.Add("@sex_code", OleDbType.VarChar).Value = item.SexCode.ToString();
                         }
 
-                        if (item.MaturityCode == null)
+                        if (string.IsNullOrEmpty(item.MaturityCode))
                         {
                             update.Parameters.Add("@maturity_code", OleDbType.VarChar).Value = DBNull.Value;
                         }
@@ -605,7 +609,7 @@ namespace NSAP_ODK.Entities.Database
                         {
                             update.Parameters.Add("@wt_gut_content", OleDbType.Double).Value = item.WeightGutContent;
                         }
-                        if (item.GutContentCode == null)
+                        if (string.IsNullOrEmpty(item.GutContentCode))
                         {
                             update.Parameters.Add("@gut_content_code", OleDbType.VarChar).Value = DBNull.Value;
                         }
@@ -621,7 +625,7 @@ namespace NSAP_ODK.Entities.Database
                         {
                             update.Parameters.Add("@wt_gonad", OleDbType.Double).Value = item.GonadWeight;
                         }
-
+                        update.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
                         update.CommandText = @"Update dbo_catch_maturity set
                                 catch_id=@parent_id,
                                 length = @len,
@@ -630,7 +634,7 @@ namespace NSAP_ODK.Entities.Database
                                 maturity = @maturity_code,
                                 gut_content_wt =  @wt_gut_content,
                                 gut_content_code = @gut_content_code,
-                                gonadWt = @wt_gonad,    
+                                gonadWt = @wt_gonad    
                             WHERE catch_maturity_id = @pk";
 
                         try

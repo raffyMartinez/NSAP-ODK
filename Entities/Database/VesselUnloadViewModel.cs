@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using Newtonsoft.Json;
 using NSAP_ODK.Utilities;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace NSAP_ODK.Entities.Database
 {
@@ -52,6 +53,66 @@ namespace NSAP_ODK.Entities.Database
             }
             // free native resources if there are any.
         }
+        public static bool AddGearSpecForSingleUnload(VesselEffort ve)
+        {
+            bool success = false;
+            foreach (var item in ve.Parent.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection)
+            {
+                if (item.GearCode == ve.Parent.Parent.Gear.Code)
+                {
+                    VesselUnload_Gear_Spec vugs = new VesselUnload_Gear_Spec
+                    {
+                        RowID = ve.PK,
+                        ParentVesselUnloadID = ve.Parent.PK,
+                        EffortValueNumeric = ve.EffortValueNumeric,
+                        EffortValueText = ve.EffortValueText,
+                        EffortSpecID = ve.EffortSpecID,
+                        Parent = null,
+                        Gear = ve.Parent.Parent.Gear
+                    };
+                    //item.VesselUnload_Gear_Specs_ViewModel.VesselUnload_Gear_SpecCollection.Add(vugs);
+                    success = item.VesselUnload_Gear_Specs_ViewModel.AddRecordToRepo(vugs, isTemporary: true);
+                    break;
+                }
+            }
+            return success;
+        }
+
+        public static bool DeleteGearSpecForSingleGearUnload(VesselEffort ve)
+        {
+            bool success = false;
+            foreach (var item in ve.Parent.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection)
+            {
+                foreach (var gs in item.VesselUnload_Gear_Specs_ViewModel.VesselUnload_Gear_SpecCollection)
+                {
+                    if (gs.RowID == ve.PK)// && gs.EffortSpecID == ve.EffortSpecID)
+                    {
+                        success = item.VesselUnload_Gear_Specs_ViewModel.DeleteRecordFromRepo(ve.PK, isTemporary: true);
+                        break;
+                    }
+                }
+            }
+            return success;
+        }
+
+        public static bool UpdateGearSpecsForSingleGearUnload(VesselEffort ve)
+        {
+            bool success = false;
+            foreach (var item in ve.Parent.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection)
+            {
+                foreach (var gs in item.VesselUnload_Gear_Specs_ViewModel.VesselUnload_Gear_SpecCollection)
+                {
+                    if (gs.RowID == ve.PK)// && gs.EffortSpecID == ve.EffortSpecID)
+                    {
+                        gs.EffortValueNumeric = ve.EffortValueNumeric;
+                        gs.EffortValueText = ve.EffortValueText;
+                        success = true;
+                        break;
+                    }
+                }
+            }
+            return success;
+        }
         public static void SetUpFishingGearSubModel(VesselUnload vu)
         {
             VesselUnload_FishingGear vufg;
@@ -69,7 +130,8 @@ namespace NSAP_ODK.Entities.Database
                         GearText = vu.Parent.GearUsedText,
                         Parent = vu,
                         WeightOfCatch = vu.WeightOfCatch,
-                        CountItemsInCatchComposition = vu.CountCatchCompositionItems
+                        CountItemsInCatchComposition = vu.CountCatchCompositionItems,
+
 
                     };
 
@@ -86,7 +148,9 @@ namespace NSAP_ODK.Entities.Database
                                 Parent = vufg,
                                 EffortSpecID = eff.EffortSpecID,
                                 EffortValueNumeric = eff.EffortValueNumeric,
-                                EffortValueText = eff.EffortValueText
+                                EffortValueText = eff.EffortValueText,
+                                RowID = eff.PK,
+                                ParentVesselUnloadID = vu.PK
                             };
                             vufg.VesselUnload_Gear_Specs_ViewModel.AddRecordToRepo(vufg_spec, isTemporary: true);
                         }
@@ -341,7 +405,7 @@ namespace NSAP_ODK.Entities.Database
                 }
                 else
                 {
-                    if (vu.VesselUnload_FishingGearsViewModel==null)
+                    if (vu.VesselUnload_FishingGearsViewModel == null)
                     {
                         success = true;
                     }

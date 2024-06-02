@@ -8,11 +8,11 @@ namespace NSAP_ODK.Entities
 {
     public class MajorGridFMAViewModel
     {
-            
+
         public ObservableCollection<MajorGridFMA> MajorGridFMACollection { get; set; }
         private MajorGridFMARepository MajorGridFMAs { get; set; }
 
-
+        private static List<MajorGridFMA> _majorGridsInFMA;
 
         public MajorGridFMAViewModel()
         {
@@ -23,5 +23,21 @@ namespace NSAP_ODK.Entities
         {
             return MajorGridFMACollection.ToList();
         }
+
+        public static List<MajorGridFMA> MajorGridsInFMA { get { return _majorGridsInFMA; } }
+
+        public List<MajorGridFMA> GetAllMajorGridFMA(FMA fMA)
+        {
+            _majorGridsInFMA = MajorGridFMACollection.Where(t => t.FMA !=null && t.FMA.FMAID==fMA.FMAID).ToList();
+            return _majorGridsInFMA;
+        }
+
+        public List<MajorGridFMA> GetAllMajorGridFMA(FMA fMA, UTMZone utmZone)
+        {
+            _majorGridsInFMA = MajorGridFMACollection.Where(t => t.FMA != null && t.FMA.FMAID == fMA.FMAID && t.UTMZone.ZoneNumber==utmZone.ZoneNumber).ToList();
+            return _majorGridsInFMA;
+        }
+
+
     }
 }

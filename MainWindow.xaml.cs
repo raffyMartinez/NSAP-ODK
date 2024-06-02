@@ -22,6 +22,8 @@ using System.Windows.Threading;
 using System.Text;
 using System.Net.Http;
 using System.Windows.Media;
+using System.Diagnostics;
+using NSAP_ODK.Entities.Database.NSAPReports;
 //using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace NSAP_ODK
@@ -41,6 +43,7 @@ namespace NSAP_ODK
     /// </summary>
     public partial class MainWindow : Window
     {
+        //private CalendarViewType _calendarViewType;
         private string _sector_code = "";
         private bool _cancelBuildCalendar = false;
         private bool _hasNonSamplingDayColumns = false;
@@ -84,6 +87,7 @@ namespace NSAP_ODK
         private Koboserver _selectedKoboserver;
         private TreeViewItem _parentCBLNode;
         private LandingSite _landingSite;
+        DateTime _downloadHistorySelectedItem;
         public MainWindow()
         {
             InitializeComponent();
@@ -151,6 +155,10 @@ namespace NSAP_ODK
 
             }
             _httpClient.Dispose();
+            //if (_vesselUnloadEditWindow?.UnloadEditor != null)
+            //{
+            //    _vesselUnloadEditWindow.UnloadEditor.UnloadChangesSaved += OnUnloadEditor_UnloadChangesSaved;
+            //}
         }
 
         public Task<bool> ShowSplashAsync()
@@ -567,17 +575,29 @@ namespace NSAP_ODK
 
         }
 
+
+
         private void OnProcessingItemsEvent(object sender, ProcessingItemsEventArg e)
         {
             switch (e.Intent)
             {
                 case "start build calendar":
+                    labelRowCount.Dispatcher.BeginInvoke
+                        (
+                        DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                        {
+                            labelRowCount.Visibility = Visibility.Visible;
+                            labelRowCount.Content = "Please wait while building calendar...";
+                            return null;
+                        }), null
+                        );
                     mainStatusBar.Dispatcher.BeginInvoke
                         (
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
 
-                              mainStatusBar.IsIndeterminate = true;
+                              mainStatusBar.IsIndeterminate = false;
+                              mainStatusBar.Value = 0;
                               //do what you need to do on UI Thread
                               return null;
                           }), null);
@@ -592,12 +612,91 @@ namespace NSAP_ODK
                           }
                          ), null);
                     break;
-                case "end build calendar":
+                case "calendar build started":
+                    mainStatusBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              mainStatusBar.Maximum = e.TotalCountToProcess;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
                     mainStatusLabel.Dispatcher.BeginInvoke
                         (
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
                           {
-                              mainStatusLabel.Content = "Finished building calendar";
+                              mainStatusLabel.Content = "Calendar is now building...";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case "calendar item created":
+                    mainStatusBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              mainStatusBar.Value = e.CountProcessed;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+                    mainStatusLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusLabel.Content = $"Created calendar item {e.CountProcessed} of {mainStatusBar.Maximum}";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case "end build calendar":
+                    labelRowCount.Dispatcher.BeginInvoke
+                        (
+                        DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                        {
+                            var totlaLandingsCount = "";
+                            if (_fishingCalendarViewModel != null && _allSamplingEntitiesEventHandler.CalendarView != CalendarViewType.calendarViewTypeGearDailyLandings)
+                            {
+                                int totalLandingsCount = _fishingCalendarViewModel.CountVesselUnloads;
+                                totlaLandingsCount = $", Total landings: {totalLandingsCount}";
+                                int vuCountInGU = 0;
+                                foreach (var gu in _fishingCalendarViewModel.UnloadList)
+                                {
+                                    vuCountInGU += gu.ListVesselUnload.Count;
+                                }
+                                if (vuCountInGU != totalLandingsCount)
+                                {
+                                    totlaLandingsCount += $" ({vuCountInGU})";
+                                    buttonFix.Visibility = Visibility.Visible;
+                                }
+                            }
+                            if (GridNSAPData.Items.Count > 0)
+                            {
+                                string columnStyle = " (Blue columns represent rest day)";
+                                if (!_hasNonSamplingDayColumns)
+                                {
+                                    columnStyle = "";
+                                }
+                                //labelRowCount.Content = $"Rows: {GridNSAPData.Items.Count}{mainStatusBar.Value}{columnStyle}";
+                                labelRowCount.Content = $"Rows: {GridNSAPData.Items.Count} {totlaLandingsCount} {columnStyle}";
+                            }
+                            else
+                            {
+                                labelRowCount.Content = "Older eforms cannot encode data. Use Catch and Effort eForm version 7.14";
+                            }
+                            return null;
+                        }), null
+                        );
+                    mainStatusLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusLabel.Content = $"Finished building calendar";
                               //do what you need to do on UI Thread
                               return null;
                           }
@@ -1082,59 +1181,75 @@ namespace NSAP_ODK
                     _parentCBLNode.IsSelected = true;
                     break;
                 case DataDisplayMode.DownloadHistory:
-                    rowODKData.Height = new GridLength(1, GridUnitType.Star);
-                    treeViewDownloadHistory.Visibility = Visibility.Visible;
-                    RefreshDownloadHistory();
-
-                    treeViewDownloadHistory.Items.Clear();
-                    int n = 0;
-                    TreeViewItem item_0 = null;
-                    foreach (var item in _vesselDownloadHistory.Keys)
+                    if (NSAPEntities.LandingSiteSamplingViewModel.Count > 0)
                     {
-                        TreeViewItem tvItem = new TreeViewItem { Header = item.ToString("MMM-dd-yyyy") };
-                        tvItem.Tag = "downloadDate";
-                        treeViewDownloadHistory.Items.Add(tvItem);
+                        rowODKData.Height = new GridLength(1, GridUnitType.Star);
+                        treeViewDownloadHistory.Visibility = Visibility.Visible;
+                        RefreshDownloadHistory();
 
-
-                        tvItem.Items.Add(new TreeViewItem { Header = "All fishing effort", Tag = "effort" });
-                        //tvItem.Items.Add(new TreeViewItem { Header = "Weights", Tag = "weights" });
-                        tvItem.Items.Add(new TreeViewItem { Header = "Tracked fishing effort", Tag = "tracked" });
-                        tvItem.Items.Add(new TreeViewItem { Header = "Gear unload", Tag = "gearUnload" });
-                        tvItem.Items.Add(new TreeViewItem { Header = "Gear unload (Multiple vessel)", Tag = "gearUnload_mv" });
-                        //tvItem.Items.Add(new TreeViewItem { Header = "Unload summary", Tag = "unloadSummary" });
-
-                        TreeViewItem tv = new TreeViewItem { Header = "JSON analysis", Tag = "jsonAnalysis" };
-                        tv.Expanded += onJsonDummyNode_Expanded;
-                        tv.Items.Add(new TreeViewItem { Header = "json_dummy" });
-
-                        tvItem.Items.Add(tv);
-                        if (n == 0)
+                        treeViewDownloadHistory.Items.Clear();
+                        int n = 0;
+                        TreeViewItem item_0 = null;
+                        foreach (var item in _vesselDownloadHistory.Keys)
                         {
-                            item_0 = tvItem;
+                            TreeViewItem tvItem = new TreeViewItem { Header = item.ToString("MMM-dd-yyyy") };
+                            tvItem.Tag = "downloadDate";
+                            treeViewDownloadHistory.Items.Add(tvItem);
+
+
+                            tvItem.Items.Add(new TreeViewItem { Header = "All fishing effort", Tag = "effort" });
+                            //tvItem.Items.Add(new TreeViewItem { Header = "Weights", Tag = "weights" });
+                            tvItem.Items.Add(new TreeViewItem { Header = "Tracked fishing effort", Tag = "tracked" });
+                            tvItem.Items.Add(new TreeViewItem { Header = "Gear unload", Tag = "gearUnload" });
+                            tvItem.Items.Add(new TreeViewItem { Header = "Gear unload (Multiple vessel)", Tag = "gearUnload_mv" });
+                            //tvItem.Items.Add(new TreeViewItem { Header = "Unload summary", Tag = "unloadSummary" });
+
+                            TreeViewItem tv = new TreeViewItem { Header = "JSON analysis", Tag = "jsonAnalysis" };
+                            tv.Expanded += onJsonDummyNode_Expanded;
+                            tv.Items.Add(new TreeViewItem { Header = "json_dummy" });
+
+                            tvItem.Items.Add(tv);
+                            if (n == 0)
+                            {
+                                item_0 = tvItem;
+                            }
+                            n++;
                         }
-                        n++;
+                        if (treeViewDownloadHistory.Items.Count > 0)
+                        {
+                            item_0.IsSelected = true;
+                            item_0.IsExpanded = true;
+
+                            //((TreeViewItem)treeViewDownloadHistory.Items[0]).IsSelected = true;
+                            //((TreeViewItem)treeViewDownloadHistory.Items[0]).IsExpanded = true;
+                        }
+
+                        GridNSAPData.Visibility = Visibility.Visible;
+                        GridNSAPData.SelectionUnit = DataGridSelectionUnit.FullRow;
                     }
-                    if (treeViewDownloadHistory.Items.Count > 0)
+                    else
                     {
-                        item_0.IsSelected = true;
-                        item_0.IsExpanded = true;
-
-                        //((TreeViewItem)treeViewDownloadHistory.Items[0]).IsSelected = true;
-                        //((TreeViewItem)treeViewDownloadHistory.Items[0]).IsExpanded = true;
+                        labelTitle.Content = "Database content is empty.";
+                        labelTitle.Visibility = Visibility.Visible;
+                        ShowDatabaseNotFoundView(isEmpty: true);
                     }
-
-                    GridNSAPData.Visibility = Visibility.Visible;
-                    GridNSAPData.SelectionUnit = DataGridSelectionUnit.FullRow;
 
                     break;
                 case DataDisplayMode.Dashboard:
                     break;
                 case DataDisplayMode.ODKData:
-                    GridNSAPData.SelectionUnit = DataGridSelectionUnit.Cell;
-                    GridNSAPData.SetValue(Grid.ColumnSpanProperty, 2);
-                    GridNSAPData.Visibility = Visibility.Visible;
-                    rowODKData.Height = new GridLength(1, GridUnitType.Star);
-                    samplingTree.Visibility = Visibility.Visible;
+                    if (NSAPEntities.LandingSiteSamplingViewModel.Count > 0)
+                    {
+                        GridNSAPData.SelectionUnit = DataGridSelectionUnit.Cell;
+                        GridNSAPData.SetValue(Grid.ColumnSpanProperty, 2);
+                        GridNSAPData.Visibility = Visibility.Visible;
+                        rowODKData.Height = new GridLength(1, GridUnitType.Star);
+                        samplingTree.Visibility = Visibility.Visible;
+                    }
+                    else
+                    {
+                        ShowDatabaseNotFoundView(isEmpty: true);
+                    }
                     break;
                 case DataDisplayMode.Species:
                     rowSpecies.Height = new GridLength(1, GridUnitType.Star);
@@ -1275,36 +1390,42 @@ namespace NSAP_ODK
             }
         }
 
-        public void SetMenuAndOtherToolbarButtonsVisibility(Visibility visibility)
+        public void SetMenuAndOtherToolbarButtonsVisibility(Visibility visibility, bool databaseIsEmtpy = false)
         {
-            buttonCalendar.Visibility = visibility;
-            buttonDownloadHistory.Visibility = visibility;
-            buttonSummary.Visibility = visibility;
-            buttonGeneratecsv.Visibility = visibility;
-
-            menuFile.Visibility = visibility;
-            menuEdit.Visibility = visibility;
-            menuNSAPData.Visibility = visibility;
-            menuGenerateCSV.Visibility = visibility;
-
-
-
-            if (visibility == Visibility.Collapsed)
+            if (!databaseIsEmtpy)
             {
-                menuFile2.Visibility = Visibility.Visible;
-            }
-            else if (visibility == Visibility.Visible)
-            {
-                menuFile2.Visibility = Visibility.Collapsed;
-            }
+                buttonCalendar.Visibility = visibility;
+                buttonDownloadHistory.Visibility = visibility;
+                buttonSummary.Visibility = visibility;
+                buttonGeneratecsv.Visibility = visibility;
 
+                menuFile.Visibility = visibility;
+                menuEdit.Visibility = visibility;
+                menuNSAPData.Visibility = visibility;
+                menuGenerateCSV.Visibility = visibility;
+
+
+
+                if (visibility == Visibility.Collapsed)
+                {
+                    menuFile2.Visibility = Visibility.Visible;
+                }
+                else if (visibility == Visibility.Visible)
+                {
+                    menuFile2.Visibility = Visibility.Collapsed;
+                }
+            }
         }
 
 
-        private void ShowDatabaseNotFoundView(bool isFilterError = false)
+        private void ShowDatabaseNotFoundView(bool isFilterError = false, bool isEmpty = false)
         {
             rowTopLabel.Height = new GridLength(300);
-            if (isFilterError)
+            if (isEmpty)
+            {
+                labelTitle.Content = "Database is empty. Connect to Kobotoolbox server and download fish landing data to populate the local database.";
+            }
+            else if (isFilterError)
             {
                 labelTitle.Content = "Cannot understand database filter\r\n\r\nIf there are two dates in the filter, the first date\r\n" +
                                       "must be before the second date";
@@ -1335,11 +1456,12 @@ namespace NSAP_ODK
             rowSpecies.Height = new GridLength(0);
             rowOthers.Height = new GridLength(0);
             rowStatus.Height = new GridLength(0);
+            statusBar.Visibility = Visibility.Collapsed;
 
             dataGridSpecies.Visibility = Visibility.Collapsed;
             PanelButtons.Visibility = Visibility.Collapsed;
 
-            SetMenuAndOtherToolbarButtonsVisibility(Visibility.Collapsed);
+            SetMenuAndOtherToolbarButtonsVisibility(Visibility.Collapsed, databaseIsEmtpy: isEmpty);
         }
 
         private void LoadDataGrid()
@@ -2054,9 +2176,9 @@ namespace NSAP_ODK
             }
         }
 
-        private void SetupCalendar(CalendarViewType calendarView)
+        //public void SetupCalendar(CalendarViewType calendarView)
+        public async Task SetupCalendar()
         {
-
             ShowStatusRow();
             if (_allSamplingEntitiesEventHandler == null)
             {
@@ -2064,13 +2186,15 @@ namespace NSAP_ODK
             }
             else
             {
-                _allSamplingEntitiesEventHandler.CalendarView = calendarView;
+                //_allSamplingEntitiesEventHandler.CalendarView = calendarView;
+                _allSamplingEntitiesEventHandler.CalendarView = _calendarOption;
                 MonthSubLabel.Content = $"{_allSamplingEntitiesEventHandler.LandingSiteText}, {_allSamplingEntitiesEventHandler.FishingGround}, {_allSamplingEntitiesEventHandler.FMA}, {_allSamplingEntitiesEventHandler.NSAPRegion}";
                 GridNSAPData.Visibility = Visibility.Visible;
                 GridNSAPData.SelectionUnit = DataGridSelectionUnit.Cell;
                 PropertyGrid.Visibility = Visibility.Collapsed;
                 NSAPEntities.NSAPRegion = _allSamplingEntitiesEventHandler.NSAPRegion;
-                MakeCalendar(_allSamplingEntitiesEventHandler);
+
+                await MakeCalendar(_allSamplingEntitiesEventHandler);
 
 
                 //_allSamplingEntitiesEventHandler.CalendarView = calendarView;
@@ -2102,7 +2226,6 @@ namespace NSAP_ODK
                 //NSAPEntities.NSAPRegion = _allSamplingEntitiesEventHandler.NSAPRegion;
                 //MakeCalendar(_allSamplingEntitiesEventHandler);
             }
-
 
         }
         public void ShowDBSummary()
@@ -2246,8 +2369,8 @@ namespace NSAP_ODK
                     }
                     if (!_cancelBuildCalendar)
                     {
-                        SetupCalendar(_calendarOption);
-                        SetupCalendarView("");
+                        //SetupCalendar();//(_calendarOption);
+                        //SetupCalendarView("");
                     }
                     else
 
@@ -2295,6 +2418,7 @@ namespace NSAP_ODK
                 //rowOthers.Height = new GridLength(1, GridUnitType.Star);
             }
             SetDataDisplayMode();
+            SetupCalendarView("");
             labelTitle.Visibility = Visibility.Visible;
             labelTitle.Content = textOfTitle;
             buttonDelete.IsEnabled = false;
@@ -2327,7 +2451,7 @@ namespace NSAP_ODK
             }
         }
 
-        private void ShowCrossTabWIndow(bool isCarrierBoatLanding=false)
+        private void ShowCrossTabWIndow(bool isCarrierBoatLanding = false)
         {
             CrossTabReportWindow ctw = CrossTabReportWindow.GetInstance(isCarrierBoatLanding);
             if (ctw.IsVisible)
@@ -3687,6 +3811,7 @@ namespace NSAP_ODK
                             }
 
                             _vesselUnloadEditWindow = VesselUnloadEditWindow.GetInstance(this);
+                            _vesselUnloadEditWindow.UnloadEditor.UnloadChangesSaved += OnUnloadEditor_UnloadChangesSaved;
 
                             if (_vesselUnloadEditWindow.Visibility == Visibility.Visible)
                             {
@@ -3821,6 +3946,13 @@ namespace NSAP_ODK
             }
         }
 
+        private async void OnUnloadEditor_UnloadChangesSaved(object sender, VesselUnloadEditorControl.UnloadEditorEventArgs e)
+        {
+            //throw new NotImplementedException();
+            GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetDownloadDetailsByDateAsync(_downloadHistorySelectedItem);
+            //GridNSAPData.Items.Refresh();
+        }
+
         private void ShowVesselUnloadsInWindow(List<VesselUnload> unloads, string formTitle = null)
         {
             GearUnloadWindow guw = GearUnloadWindow.GetInstance(unloads);
@@ -3845,13 +3977,14 @@ namespace NSAP_ODK
 
 
 
-        private async void MakeCalendar(TreeViewModelControl.AllSamplingEntitiesEventHandler e)
+        private async Task MakeCalendar(TreeViewModelControl.AllSamplingEntitiesEventHandler e)
         {
             List<GearUnload> listGearUnload = new List<GearUnload>();
             List<Day_GearLanded> listDay_GearLanded = new List<Day_GearLanded>();
             switch (e.CalendarView)
             {
                 case CalendarViewType.calendarViewTypeSampledLandings:
+                    //NSAPEntities.SummaryItemViewModel.RefreshMonthCalendarSource();
                     listGearUnload = await NSAPEntities.SummaryItemViewModel.GearUnloadsByMonthTask((DateTime)e.MonthSampled, bySector: true);
                     if (NSAPEntities.SummaryItemViewModel.VesselUnloadHit == 0)
                     {
@@ -3901,14 +4034,13 @@ namespace NSAP_ODK
                     }
                 }
             }
-
         }
 
         public bool CalendarDayIsSamplingDay(TreeViewModelControl.AllSamplingEntitiesEventHandler e)
         {
             return true;
         }
-        private void OnTreeViewItemSelected(object sender, TreeViewModelControl.AllSamplingEntitiesEventHandler e)
+        private async void OnTreeViewItemSelected(object sender, TreeViewModelControl.AllSamplingEntitiesEventHandler e)
         {
             _monthYear = null;
             _cancelBuildCalendar = false;
@@ -3916,10 +4048,11 @@ namespace NSAP_ODK
             buttonFix.Visibility = Visibility.Collapsed;
             _fishingCalendarViewModel = null;
             gridCalendarHeader.Visibility = Visibility.Visible;
+            _calendarTreeSelectedEntity = e.TreeViewEntity;
             NSAPEntities.SummaryItemViewModel.TreeViewData = e;
             string labelContent = "";
             GridNSAPData.SelectionUnit = DataGridSelectionUnit.FullRow;
-            _calendarTreeSelectedEntity = e.TreeViewEntity;
+
             _treeItemData = e;
             var tvi = ((TreeViewModelControl.TreeControl)sender)._selectedItem;
             //switch (e.TreeViewEntity)
@@ -3964,9 +4097,39 @@ namespace NSAP_ODK
                     menuCalendar.Visibility = Visibility.Visible;
 
                     SetUpCalendarMenu();
+                    _calendarOption = e.CalendarView;
+                    await NSAPEntities.FishingCalendarDayExViewModel.GetCalendarDaysForMonth(e);
+                    NSAPEntities.FishingCalendarDayExViewModel.MakeCalendar();
+                    GridNSAPData.Columns.Clear();
+                    GridNSAPData.AutoGenerateColumns = true;
+                    GridNSAPData.DataContext = NSAPEntities.FishingCalendarDayExViewModel.DataTable;
+
+                    foreach (DataGridColumn c in GridNSAPData.Columns)
+                    {
+                        if (int.TryParse(c.Header.ToString(), out int v))
+                        {
+                            if (!NSAPEntities.FishingCalendarDayExViewModel.DayIsSamplingDay(v))
+                            {
+                                _hasNonSamplingDayColumns = true;
+                                c.CellStyle = new Style(typeof(DataGridCell));
+                                c.CellStyle.Setters.Add(new Setter(DataGridCell.BackgroundProperty, new SolidColorBrush(Colors.LightBlue)));
+                            }
+                        }
+                    }
+
+                    break;
+                case "tv_MonthViewModelx":
+                    _allSamplingEntitiesEventHandler = e;
+                    GridNSAPData.SelectionUnit = DataGridSelectionUnit.Cell;
+                    menuCalendar.Visibility = Visibility.Visible;
+
+                    SetUpCalendarMenu();
+                    _calendarOption = e.CalendarView;
                     if (_calendarFirstInvokeDone)
                     {
-                        SetupCalendar(e.CalendarView);
+                        //SetupCalendar(e.CalendarView);d
+
+                        await SetupCalendar();//_calendarViewType);
                     }
 
                     if (!_calendarFirstInvokeDone)
@@ -3996,40 +4159,43 @@ namespace NSAP_ODK
                 dataGridSummary.Visibility = Visibility.Visible;
                 GridNSAPData.Visibility = Visibility.Visible;
                 panelOpening.Visibility = Visibility.Visible;
+                labelRowCount.Visibility = Visibility.Collapsed;
             }
             else
             {
+                labelRowCount.Visibility = Visibility.Visible;
                 MonthSubLabel.Visibility = Visibility.Visible;
                 _acceptDataGridCellClick = true;
-            }
-            var totlaLandingsCount = "";
-            if (_fishingCalendarViewModel != null && _allSamplingEntitiesEventHandler.CalendarView != CalendarViewType.calendarViewTypeGearDailyLandings)
-            {
-                int totalLandingsCount = _fishingCalendarViewModel.CountVesselUnloads;
-                totlaLandingsCount = $", Total landings: {totalLandingsCount}";
-                int vuCountInGU = 0;
-                foreach (var gu in _fishingCalendarViewModel.UnloadList)
-                {
-                    vuCountInGU += gu.ListVesselUnload.Count;
-                }
-                if (vuCountInGU != totalLandingsCount)
-                {
-                    totlaLandingsCount += $" ({vuCountInGU})";
-                    buttonFix.Visibility = Visibility.Visible;
-                }
-            }
-            if (GridNSAPData.Items.Count > 0)
-            {
-                string columnStyle = " (Blue columns represent rest day)";
-                if (!_hasNonSamplingDayColumns)
-                {
-                    columnStyle = "";
-                }
-                labelRowCount.Content = $"Rows: {GridNSAPData.Items.Count}{totlaLandingsCount}{columnStyle}";
-            }
-            else
-            {
-                labelRowCount.Content = "Older eforms cannot encode data. Use Catch and Effort eForm version 7.14";
+
+                //var totlaLandingsCount = "";
+                //if (_fishingCalendarViewModel != null && _allSamplingEntitiesEventHandler.CalendarView != CalendarViewType.calendarViewTypeGearDailyLandings)
+                //{
+                //    int totalLandingsCount = _fishingCalendarViewModel.CountVesselUnloads;
+                //    totlaLandingsCount = $", Total landings: {totalLandingsCount}";
+                //    int vuCountInGU = 0;
+                //    foreach (var gu in _fishingCalendarViewModel.UnloadList)
+                //    {
+                //        vuCountInGU += gu.ListVesselUnload.Count;
+                //    }
+                //    if (vuCountInGU != totalLandingsCount)
+                //    {
+                //        totlaLandingsCount += $" ({vuCountInGU})";
+                //        buttonFix.Visibility = Visibility.Visible;
+                //    }
+                //}
+                //if (GridNSAPData.Items.Count > 0)
+                //{
+                //    string columnStyle = " (Blue columns represent rest day)";
+                //    if (!_hasNonSamplingDayColumns)
+                //    {
+                //        columnStyle = "";
+                //    }
+                //    labelRowCount.Content = $"Rows: {GridNSAPData.Items.Count}{totlaLandingsCount}{columnStyle}";
+                //}
+                //else
+                //{
+                //    labelRowCount.Content = "Older eforms cannot encode data. Use Catch and Effort eForm version 7.14";
+                //}
             }
         }
         private async void OnSelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
@@ -4128,8 +4294,8 @@ namespace NSAP_ODK
                             else if (_gridCol >= 4)
                             {
 
-
-                                GearUnload gear_unload_from_day = _fishingCalendarViewModel.FishingCalendarList.FirstOrDefault(t => t.GearName == _gearName && t.Sector == _fish_sector).GearUnloads[_gridCol - 4];
+                                GearUnload gear_unload_from_day = NSAPEntities.FishingCalendarDayExViewModel.GetGearUnload(_gearName, _fish_sector, _gridCol - 3);
+                                //GearUnload gear_unload_from_day = _fishingCalendarViewModel.FishingCalendarList.FirstOrDefault(t => t.GearName == _gearName && t.Sector == _fish_sector).GearUnloads[_gridCol - 4];
 
                                 //sectorCode = gear_unload_from_day.SectorCode;
 
@@ -4216,6 +4382,22 @@ namespace NSAP_ODK
                     guw.Owner = this;
                     guw.ShowDialog();
                     break;
+                case "contextMenuNSAPForm1":
+                    NSAPForm1 nsapForm1 = new NSAPForm1();
+                    nsapForm1.FMA = _allSamplingEntitiesEventHandler.FMA;
+                    nsapForm1.MonthSampled = (DateTime)_allSamplingEntitiesEventHandler.MonthSampled;
+                    nsapForm1.FishingGround = _allSamplingEntitiesEventHandler.FishingGround;
+                    nsapForm1.LandingSite = _allSamplingEntitiesEventHandler.LandingSite;
+                    nsapForm1.Region = _allSamplingEntitiesEventHandler.NSAPRegion;
+                    nsapForm1.GetData();
+                    break;
+                case "contextMenuNSAPForm2":
+                case "contextMenuNSAPForm2a":
+                case "contextMenuNSAPForm2b":
+                case "contextMenuNSAPForm3":
+                case "contextMenuNSAPForm4":
+                case "contextMenuNSAPForm5":
+                    break;
             }
         }
         public void RefreshDownloadHistory()
@@ -4297,7 +4479,18 @@ namespace NSAP_ODK
             }
         }
 
-
+        public async void RefreshAfterDeleteVesselUnload()
+        {
+            string itemTag = ((TreeViewItem)treeViewDownloadHistory.SelectedItem).Tag.ToString();
+            switch (itemTag)
+            {
+                case "downloadDate":
+                    break;
+                case "effort":
+                    GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetDownloadDetailsByDateAsync(_downloadHistorySelectedItem);
+                    break;
+            }
+        }
         private async void OnHistoryTreeItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             ShowStatusRow();
@@ -4329,7 +4522,8 @@ namespace NSAP_ODK
                 {
                     case "cbl_landings":
                         MonthLabel.Content = "Summary of samplings of carrier boats";
-                        carrierSummaryPropertyGrid.SelectedObject = NSAPEntities.LandingSiteSamplingViewModel.GetCarrierLandingsOverallSummary();
+                        var dbs = NSAPEntities.LandingSiteSamplingViewModel.GetCarrierLandingsOverallSummary();
+                        carrierSummaryPropertyGrid.SelectedObject = dbs;
                         carrierSummaryPropertyGrid.Visibility = Visibility.Visible;
                         carrierSummaryPropertyGrid.AutoGenerateProperties = false;
                         carrierSummaryPropertyGrid.ShowAdvancedOptions = false;
@@ -4343,14 +4537,18 @@ namespace NSAP_ODK
                         carrierSummaryPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of landing sites", Name = "CountLandingSites", DisplayOrder = 2 });
                         carrierSummaryPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of samplings", Name = "CountCarrierSamplings", DisplayOrder = 3 });
                         carrierSummaryPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Number of boats", Name = "CountCarrierBoats", DisplayOrder = 4 });
-                        carrierSummaryPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "First sampling date", Name = "FirstSampledLandingDate", DisplayOrder = 5 });
-                        carrierSummaryPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Latest sampling date", Name = "LastSampledLandingDate", DisplayOrder = 6 });
+                        if (dbs.CountAllLandings > 0)
+                        {
+                            carrierSummaryPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "First sampling date", Name = "FirstSampledLandingDate", DisplayOrder = 5 });
+                            carrierSummaryPropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { DisplayName = "Latest sampling date", Name = "LastSampledLandingDate", DisplayOrder = 6 });
+                        }
                         gridCBL.Visibility = Visibility.Collapsed;
                         labelCBL.Content = "Summary of sampling of fish carrier landings";
                         break;
                     case "downloadDate":
-                        dt = DateTime.Parse(tvItem.Header.ToString()).Date;
-                        GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetDownloadSummaryByDateAsync(dt);
+                        //dt = DateTime.Parse(tvItem.Header.ToString()).Date;
+                        _downloadHistorySelectedItem = DateTime.Parse(tvItem.Header.ToString()).Date;
+                        GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetDownloadSummaryByDateAsync(_downloadHistorySelectedItem);
                         GridNSAPData.Columns.Clear();
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("DBSummary.EnumeratorName") });
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("DBSummary.GearName") });
@@ -4368,14 +4566,15 @@ namespace NSAP_ODK
                     case "effort":
                     case "tracked":
 
-                        dt = DateTime.Parse(((TreeViewItem)tvItem.Parent).Header.ToString()).Date;
+                        //dt = DateTime.Parse(((TreeViewItem)tvItem.Parent).Header.ToString()).Date;
+                        _downloadHistorySelectedItem = DateTime.Parse(((TreeViewItem)tvItem.Parent).Header.ToString()).Date;
                         if (tvItem.Tag.ToString() == "tracked")
                         {
-                            GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetDownloadDetailsByDateAsync(dt, isTracked: true);
+                            GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetDownloadDetailsByDateAsync(_downloadHistorySelectedItem, isTracked: true);
                         }
                         else
                         {
-                            GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetDownloadDetailsByDateAsync(dt);
+                            GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetDownloadDetailsByDateAsync(_downloadHistorySelectedItem);
                         }
                         GridNSAPData.AutoGenerateColumns = false;
                         GridNSAPData.Columns.Clear();
@@ -4457,8 +4656,9 @@ namespace NSAP_ODK
                         }
                         break;
                     case "gearUnload_mv":
-                        dt = DateTime.Parse(((TreeViewItem)tvItem.Parent).Header.ToString()).Date;
-                        GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetGearUnloadsMultiVesselAsync(dt);
+                        //dt = DateTime.Parse(((TreeViewItem)tvItem.Parent).Header.ToString()).Date;
+                        _downloadHistorySelectedItem = DateTime.Parse(((TreeViewItem)tvItem.Parent).Header.ToString()).Date;
+                        GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetGearUnloadsMultiVesselAsync(_downloadHistorySelectedItem);
                         GridNSAPData.Columns.Clear();
                         GridNSAPData.AutoGenerateColumns = false;
 
@@ -4487,8 +4687,9 @@ namespace NSAP_ODK
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Weight of catch of municipal landings", Binding = new Binding("WeightOfMunicipalLandings"), IsReadOnly = true });
                         break;
                     case "gearUnload":
-                        dt = DateTime.Parse(((TreeViewItem)tvItem.Parent).Header.ToString()).Date;
-                        GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetGearUnloadsAsync(dt);
+                        //dt = DateTime.Parse(((TreeViewItem)tvItem.Parent).Header.ToString()).Date;
+                        _downloadHistorySelectedItem = DateTime.Parse(((TreeViewItem)tvItem.Parent).Header.ToString()).Date;
+                        GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetGearUnloadsAsync(_downloadHistorySelectedItem);
                         GridNSAPData.Columns.Clear();
                         GridNSAPData.AutoGenerateColumns = false;
                         GridNSAPData.SelectionUnit = DataGridSelectionUnit.Cell;
@@ -4520,8 +4721,9 @@ namespace NSAP_ODK
 
                         break;
                     case "unloadSummary":
-                        dt = DateTime.Parse(((TreeViewItem)tvItem.Parent).Header.ToString()).Date;
-                        GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetUnloadStatisticsByDateAsync(dt);
+                        //dt = DateTime.Parse(((TreeViewItem)tvItem.Parent).Header.ToString()).Date;
+                        _downloadHistorySelectedItem = DateTime.Parse(((TreeViewItem)tvItem.Parent).Header.ToString()).Date;
+                        GridNSAPData.DataContext = await NSAPEntities.SummaryItemViewModel.GetUnloadStatisticsByDateAsync(_downloadHistorySelectedItem);
                         GridNSAPData.Columns.Clear();
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "ID", Binding = new Binding("VesselUnloadID") });
                         GridNSAPData.Columns.Add(new DataGridTextColumn { Header = "Date sampled", Binding = new Binding("SamplingDateFormatted") });
@@ -4575,7 +4777,7 @@ namespace NSAP_ODK
                             else if (((TreeViewItem)tvItem.Parent).Tag.GetType().Name == "LandingSite")
                             {
                                 _landingSite = (LandingSite)((TreeViewItem)tvItem.Parent).Tag;
-                                _monthYear= DateTime.Parse(tvItem.Header.ToString());
+                                _monthYear = DateTime.Parse(tvItem.Header.ToString());
                                 var landings = NSAPEntities.LandingSiteSamplingViewModel.CarrierBoatLandings(_landingSite, (DateTime)_monthYear);
                                 _fishingCalendarViewModel = new FishingCalendarViewModel(landings, (DateTime)_monthYear, _landingSite);
 

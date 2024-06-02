@@ -50,6 +50,12 @@ namespace NSAP_ODK.Views
                 tvi = new TreeViewItem { Header = "Length-weight" };
                 treeView.Items.Add(tvi);
 
+                tvi = new TreeViewItem { Header = "Length frequency" };
+                treeView.Items.Add(tvi);
+
+                tvi = new TreeViewItem { Header = "Lengths" };
+                treeView.Items.Add(tvi);
+
                 tvi = new TreeViewItem { Header = "Maturity" };
                 treeView.Items.Add(tvi);
 
@@ -157,6 +163,15 @@ namespace NSAP_ODK.Views
                         dataGrid.DataContext = CrossTabManager.DataTableCarrierCatchComposition;
                         subLabel.Content = "Catch composition of landed catch";
                         break;
+                    case "Length frequency":
+                        dataGrid.DataContext = CrossTabManager.DataTableCarrierLengthFreq;
+                        subLabel.Content = "Length frequency catch";
+                        break;
+
+                    case "Lengths":
+                        dataGrid.DataContext = CrossTabManager.DataTableCarrierLengths;
+                        subLabel.Content = "Lengths catch";
+                        break;
                 }
                 dataGrid.AutoGenerateColumns = true;
                 _filePath = $"Crosstab of carrier landings - {CrossTabManager.LandingSite.ToString()}, {CrossTabManager.MonthYear.ToString("MMM-yyyy")}";
@@ -260,17 +275,17 @@ namespace NSAP_ODK.Views
             {
                 if (ExportExcel.ExportDatasetToExcel(CrossTabManager.CrossTabDataSet, file))
                 {
-                    exportResult = "Successfully exported to excel";
+                    exportResult = "Successfully exported to Excel";
                 }
                 else
                 {
                     if (CrossTabManager.ErrorMessage.Length > 0)
                     {
-                        exportResult = $"Was not successfull in exporting to excel\r\n{CrossTabManager.ErrorMessage}";
+                        exportResult = $"Was not successfull in exporting to Excel\r\n{CrossTabManager.ErrorMessage}";
                     }
                     else
                     {
-                        exportResult = $"Was not successfull in exporting to excel\r\n{ExportExcel.ErrorMessage}";
+                        exportResult = $"Was not successfull in exporting to Excel\r\n{ExportExcel.ErrorMessage}";
                     }
                 }
 

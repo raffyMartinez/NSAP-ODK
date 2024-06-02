@@ -368,7 +368,7 @@
         </Grid>
 
         <!--row for status bar-->
-        <StatusBar Grid.Row="8" Grid.ColumnSpan="2" Margin="0" >
+        <StatusBar Grid.Row="8" Grid.ColumnSpan="2" Margin="0" x:Name="statusBar">
             <Label Content="database path" Margin="5 0 0 0" Width="Auto" x:Name="dbPathLabel"/>
             <ProgressBar Width="200" Height="15" x:Name="mainStatusBar" />
             <Label Content="Status bar label" Margin="5 0 0 0" x:Name="mainStatusLabel"/>

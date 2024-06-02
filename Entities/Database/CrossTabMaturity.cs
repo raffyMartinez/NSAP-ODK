@@ -20,5 +20,7 @@ namespace NSAP_ODK.Entities.Database
 
         public double? GonadWeight { get; set; }
 
+        public double? GutContentWeight { get; set; }
+
     }
 }

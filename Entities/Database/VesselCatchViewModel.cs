@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using NPOI.SS.Formula.Functions;
 namespace NSAP_ODK.Entities.Database
 {
     public class VesselCatchViewModel : IDisposable
@@ -20,6 +21,8 @@ namespace NSAP_ODK.Entities.Database
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
+
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
@@ -31,6 +34,18 @@ namespace NSAP_ODK.Entities.Database
 
             }
             // free native resources if there are any.
+        }
+
+        public double WeightOfCatchComposition(int? catch_comp_id = null)
+        {
+            if (catch_comp_id != null)
+            {
+                return (double)VesselCatchCollection.Where(t => t.PK != catch_comp_id).Sum(t => t.Catch_kg);
+            }
+            else
+            {
+                return (double)VesselCatchCollection.Sum(t => t.Catch_kg);
+            }
         }
 
         public int? MissingCatchInfoCount { get; set; }
@@ -141,6 +156,23 @@ namespace NSAP_ODK.Entities.Database
                 VesselCatchCollection = new ObservableCollection<VesselCatch>(VesselCatches.VesselCatches);
                 VesselCatchCollection.CollectionChanged += VesselCatches_CollectionChanged;
             }
+        }
+        public bool DeleteAllInCollection()
+        {
+            int deleteCount = 0;
+            int collectionCount = VesselCatchCollection.Count;
+            foreach (var item in VesselCatchCollection.ToList())
+            {
+                item.CatchLenFreqViewModel.DeleteAllInCollection();
+                item.CatchLengthViewModel.DeleteAllInCollection();
+                item.CatchLengthWeightViewModel.DeleteAllInCollection();
+                item.CatchMaturityViewModel.DeleteAllInCollection();
+                if (DeleteRecordFromRepo(item.PK))
+                {
+                    deleteCount++;
+                }
+            }
+            return deleteCount == collectionCount;
         }
         public VesselCatchViewModel(VesselUnload vu)
         {
@@ -835,14 +867,14 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if (VesselCatchCollection.Count == 0)
-                {
-                    return 1;
-                }
-                else
-                {
-                    return VesselCatches.MaxRecordNumber() + 1;
-                }
+                //if (VesselCatchCollection.Count == 0)
+                //{
+                //    return 1;
+                //}
+                //else
+                //{
+                return VesselCatches.MaxRecordNumber() + 1;
+                //}
             }
         }
 

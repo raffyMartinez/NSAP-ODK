@@ -14,11 +14,11 @@ namespace NSAP_ODK.Entities.Database
     {
         public List<VesselEffort> VesselEfforts { get; set; }
 
-        public static bool UpdateTableDefinition(bool removeMultiFieldIndex=false,string indexName="")
+        public static bool UpdateTableDefinition(bool removeMultiFieldIndex = false, string indexName = "")
         {
             bool success = false;
-            string sql="";
-            if(removeMultiFieldIndex)
+            string sql = "";
+            if (removeMultiFieldIndex)
             {
                 sql = $"DROP INDEX {indexName} on dbo_vessel_effort";
             }
@@ -108,7 +108,7 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
-        public static Task<bool>DeleteMultivesselDataAsync(bool isMultivessel)
+        public static Task<bool> DeleteMultivesselDataAsync(bool isMultivessel)
         {
             return Task.Run(() => DeleteMultivesselData(isMultivessel));
         }
@@ -137,7 +137,7 @@ namespace NSAP_ODK.Entities.Database
                                 con.Open();
                                 success = cmd.ExecuteNonQuery() >= 0;
                             }
-                            catch(Exception ex)
+                            catch (Exception ex)
                             {
                                 Logger.Log(ex);
                             }
@@ -147,17 +147,23 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
-            public VesselEffortRepository(VesselUnload vu)
+
+        public VesselEffortRepository()
+        {
+
+        }
+        public VesselEffortRepository(VesselUnload vu)
         {
             VesselEfforts = getVesselEfforts(vu);
         }
-        public VesselEffortRepository(bool isNew=false)
+        public VesselEffortRepository(bool isNew = false)
         {
             if (!isNew)
             {
                 VesselEfforts = getVesselEfforts();
             }
         }
+
         public int MaxRecordNumber()
         {
             int max_rec_no = 0;
@@ -181,7 +187,11 @@ namespace NSAP_ODK.Entities.Database
                     const string sql = "SELECT Max(effort_row_id) AS max_id FROM dbo_vessel_effort";
                     using (OleDbCommand getMax = new OleDbCommand(sql, conn))
                     {
-                        max_rec_no = (int)getMax.ExecuteScalar();
+                        var r = getMax.ExecuteScalar();
+                        if (r != DBNull.Value)
+                        {
+                            max_rec_no = (int)r;
+                        }
                     }
                 }
             }
@@ -332,7 +342,14 @@ namespace NSAP_ODK.Entities.Database
                         try
                         {
                             update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
-                            update.Parameters.Add("@unload_id", OleDbType.Integer).Value = item.VesselUnloadID;
+                            if (item.Parent != null)
+                            {
+                                   update.Parameters.Add("@unload_id", OleDbType.Integer).Value = item.Parent.PK;
+                            }
+                            else
+                            {
+                                update.Parameters.Add("@unload_id", OleDbType.Integer).Value = item.VesselUnloadID;
+                            }
                             update.Parameters.Add("@effort_id", OleDbType.Integer).Value = item.EffortSpecID;
                             if (item.EffortValueNumeric == null)
                             {
@@ -446,8 +463,7 @@ namespace NSAP_ODK.Entities.Database
 
                     using (OleDbCommand update = conn.CreateCommand())
                     {
-
-                        update.Parameters.Add("@unload_id", OleDbType.Integer).Value = item.VesselUnloadID;
+                        update.Parameters.Add("@unload_id", OleDbType.Integer).Value = item.Parent.PK;
                         update.Parameters.Add("@effort_id", OleDbType.Integer).Value = item.EffortSpecID;
                         if (item.EffortValueNumeric == null)
                         {
@@ -457,14 +473,22 @@ namespace NSAP_ODK.Entities.Database
                         {
                             update.Parameters.Add("@numeric_value", OleDbType.Double).Value = item.EffortValueNumeric;
                         }
-                        update.Parameters.Add("@text_value", OleDbType.VarChar).Value = item.EffortValueText;
+                        if (item.EffortValueText == null)
+                        {
+                               update.Parameters.Add("@text_value", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@text_value", OleDbType.VarChar).Value = item.EffortValueText;
+                        }
+                        update.Parameters.Add("@vu_gear_id", OleDbType.Integer).Value = DBNull.Value;
                         update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
-
                         update.CommandText = @"Update dbo_vessel_effort set
                                             v_unload_id=@unload_id,
                                             effort_spec_id = @effort_id,
                                             effort_value_numeric = @numeric_value,
-                                            effort_value_text = @text_value
+                                            effort_value_text = @text_value,
+                                            vessel_unload_fishing_gear_id = @vu_gear_id
                                         WHERE effort_row_id = @id";
 
                         try
@@ -485,7 +509,7 @@ namespace NSAP_ODK.Entities.Database
             return success;
         }
 
-        public static bool ClearTable(string otherConnectionString="")
+        public static bool ClearTable(string otherConnectionString = "")
         {
             bool success = false;
             string con_string = Global.ConnectionString;

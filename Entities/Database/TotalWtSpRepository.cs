@@ -145,7 +145,11 @@ namespace NSAP_ODK.Entities.Database
                     {
                         con.Open();
                         cmd.CommandText = "SELECT Max(row_id) AS max_id FROM dbo_total_wt_sp";
-                        maxRecNo = (int)cmd.ExecuteScalar();
+                        var r = cmd.ExecuteScalar();
+                        if (r != DBNull.Value)
+                        {
+                            maxRecNo = (int)r;
+                        }
                     }
                 }
             }

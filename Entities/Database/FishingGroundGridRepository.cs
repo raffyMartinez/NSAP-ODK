@@ -87,7 +87,7 @@ namespace NSAP_ODK.Entities.Database
                         {
                             con.Open();
                             success = cmd.ExecuteNonQuery() >= 0;
-                            
+
                         }
                         catch (Exception ex)
                         {
@@ -98,7 +98,7 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
-        public FishingGroundGridRepository(bool isNew=false)
+        public FishingGroundGridRepository(bool isNew = false)
         {
             if (!isNew)
             {
@@ -128,7 +128,11 @@ namespace NSAP_ODK.Entities.Database
                     const string sql = "SELECT Max(fg_grid_id) AS max_id FROM dbo_fg_grid";
                     using (OleDbCommand getMax = new OleDbCommand(sql, conn))
                     {
-                        max_rec_no = (int)getMax.ExecuteScalar();
+                        var r = getMax.ExecuteScalar();
+                        if (r != DBNull.Value)
+                        {
+                            max_rec_no = (int)r;
+                        }
                     }
                 }
             }
@@ -173,7 +177,7 @@ namespace NSAP_ODK.Entities.Database
             }
             else
             {
-                
+
                 using (var conection = new OleDbConnection(Global.ConnectionString))
                 {
                     using (var cmd = conection.CreateCommand())
@@ -258,8 +262,8 @@ namespace NSAP_ODK.Entities.Database
                     {
                         update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
                         update.Parameters.Add("@unload_id", OleDbType.Integer).Value = item.Parent.PK;
-                        update.Parameters.Add("@utm_zone", OleDbType.VarChar).Value = item.UTMZone.ToString();
-                        update.Parameters.Add("@grid25", OleDbType.VarChar).Value = item.GridCell.ToString();
+                        update.Parameters.Add("@utm_zone", OleDbType.VarChar).Value = item.UTMZone.ToString().ToUpper();
+                        update.Parameters.Add("@grid25", OleDbType.VarChar).Value = item.GridCell.ToString().ToUpper();
                         try
                         {
                             success = update.ExecuteNonQuery() > 0;
@@ -329,8 +333,8 @@ namespace NSAP_ODK.Entities.Database
                     {
 
                         update.Parameters.Add("@unload_id", OleDbType.Integer).Value = item.Parent.PK;
-                        update.Parameters.Add("@utm_zone", OleDbType.VarChar).Value = item.UTMZone.ToString();
-                        update.Parameters.Add("@grid25", OleDbType.VarChar).Value = item.GridCell.ToString();
+                        update.Parameters.Add("@utm_zone", OleDbType.VarChar).Value = item.UTMZone.ToString().ToUpper();
+                        update.Parameters.Add("@grid25", OleDbType.VarChar).Value = item.GridCell.ToString().ToUpper();
                         update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
 
                         update.CommandText = @"Update dbo_fg_grid set
@@ -356,7 +360,7 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
-        public static bool ClearTable(string otherConnectionString="")
+        public static bool ClearTable(string otherConnectionString = "")
         {
             bool success = false;
             string con_string = Global.ConnectionString;

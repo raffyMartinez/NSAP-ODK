@@ -162,7 +162,36 @@ namespace NSAP_ODK.Entities.Database
         }
 
 
+        public static bool UpdateGearOfUnload(string gear_code , VesselEffort ve)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
 
+            }
+            else
+            {
+                using (var conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        cmd.Parameters.Add("@gear_code", OleDbType.VarChar).Value = gear_code;
+                        cmd.Parameters.Add("@gu_id", OleDbType.Integer).Value = ve.Parent.Parent.PK;
+                        cmd.CommandText = "Update dbo_gear_unload set gr_id=@gear_code where unload_gr_id=@gu_id";
+                        try
+                        {
+                            conn.Open();
+                            success = cmd.ExecuteNonQuery() > 0;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
         public static int GearUnloadCount(bool countCompleted = false)
         {
             int count = 0;
@@ -968,7 +997,7 @@ namespace NSAP_ODK.Entities.Database
         private static bool DeleteTempGearUnload()
         {
             bool success = false;
-            if(Global.Settings.UsemySQL)
+            if (Global.Settings.UsemySQL)
             {
 
             }
@@ -984,7 +1013,7 @@ namespace NSAP_ODK.Entities.Database
                             con.Open();
                             success = cmd.ExecuteNonQuery() >= 0;
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             Logger.Log(ex);
                         }

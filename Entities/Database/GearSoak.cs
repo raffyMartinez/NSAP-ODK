@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.ComponentModel;
+using Xceed.Wpf.Toolkit;
 namespace NSAP_ODK.Entities.Database
 {
     public class GearSoakFlattened
@@ -47,8 +48,9 @@ namespace NSAP_ODK.Entities.Database
         [ReadOnly(true)]
         public int PK { get; set; }
         public GearSoak GearSoak { get; set; }
-
+        [Editor(typeof(DateTimePickerEditor), typeof(DateTimePicker))]
         public DateTime TimeAtSet { get; set; }
+        [Editor(typeof(DateTimePickerEditor), typeof(DateTimePicker))]
         public DateTime TimeAtHaul { get; set; }
         public string WaypointAtSet { get; set; }
         public string WaypointAtHaul { get; set; }

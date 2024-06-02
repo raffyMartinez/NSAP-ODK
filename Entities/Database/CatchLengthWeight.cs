@@ -52,8 +52,8 @@ namespace NSAP_ODK.Entities.Database
 
         public CatchLengthWeight CatchLengthWeight { get; set; }
 
-        public double Length { get; set; }
-        public double Weight { get; set; }
+        public double? Length { get; set; }
+        public double? Weight { get; set; }
     }
     public class CatchLengthWeight
     {

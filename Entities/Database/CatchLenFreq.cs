@@ -48,8 +48,8 @@ namespace NSAP_ODK.Entities.Database
         public int PK { get; set; }
         public CatchLenFreq CatchLenFreq { get; set; }
 
-        public double LengthClass { get; set; }
-        public int Frequency { get; set; }
+        public double? LengthClass { get; set; }
+        public int? Frequency { get; set; }
         [ItemsSource(typeof(SexItemsSource))]
         public string SexCode { get; set; }
     }

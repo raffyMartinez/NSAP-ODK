@@ -7,12 +7,6 @@ using System.Threading.Tasks;
 
 namespace NSAP_ODK.Entities.Database
 {
-    public enum LandingSiteTypeOfSampling
-    {
-        SamplingTypeRegular,
-        SamplingTypeCommercialCarrierBoats,
-        SamplingTypeNotDetermined = 999
-    }
     public class LandingSiteSamplingSummarized
     {
         public LandingSiteSamplingSummarized(LandingSiteSampling lss, bool fromSummaryItem = false)
@@ -136,6 +130,7 @@ namespace NSAP_ODK.Entities.Database
         private FMA _fma;
         private FishingGround _fishingGround;
         private List<GearInLandingSite> _gearsInLandingSite;
+        private string _fishingGroundID;
         public CarrierLandingViewModel CarrierLandingViewModel { get; set; }
         //public VesselCatchViewModel VesselCatchViewModel { get; set; }
         //public CatcherBoatOperation_ViewModel CatcherBoatOperation_ViewModel { get; set; }
@@ -183,7 +178,15 @@ namespace NSAP_ODK.Entities.Database
 
 
         public int? LandingSiteID { get; set; }
-        public string FishingGroundID { get; set; }
+        public string FishingGroundID
+        {
+            get { return _fishingGroundID; }
+            set
+            {
+                _fishingGroundID = value;
+                _fishingGround = NSAPEntities.FishingGroundViewModel.GetFishingGround(_fishingGroundID);
+            }
+        }
         public string Remarks { get; set; }
 
         public bool SamplingFromCatchCompositionIsAllowed { get; set; }

@@ -11,6 +11,7 @@ namespace NSAP_ODK.Entities.Database
     using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
     using Xceed.Wpf.Toolkit;
     using Newtonsoft.Json;
+    using DocumentFormat.OpenXml.Drawing.Diagrams;
 
     [CategoryOrder("Header", 1)]
     [CategoryOrder("Effort", 2)]
@@ -22,6 +23,8 @@ namespace NSAP_ODK.Entities.Database
         {
 
         }
+
+
         public VesselUnloadEdit(VesselUnload vesselUnload)
         {
             if (vesselUnload != null)
@@ -59,6 +62,7 @@ namespace NSAP_ODK.Entities.Database
 
                 Identifier = vesselUnload.PK;
                 SamplingDate = vesselUnload.SamplingDate;
+                SamplingDateText = vesselUnload.SamplingDate.ToString("MMM-dd-yyyy HH:mm");
                 IsBoatUsed = vesselUnload.IsBoatUsed;
                 VesselID = vesselUnload.VesselID;
                 VesselText = vesselUnload.VesselText;
@@ -100,6 +104,47 @@ namespace NSAP_ODK.Entities.Database
                 MainGearName = vesselUnload.GearUsed;
                 NumberOfSpeciesInCatchComposition = vesselUnload.NumberOfSpeciesInCatchComposition;
 
+                //FishingGears = new List<VesselUnload_FishingGear>();
+                //foreach (var item in vesselUnload.ListUnloadFishingGears)
+                //{
+                //    FishingGears.Add(item);
+                //}
+
+                VesselCatches = new List<VesselCatch>();
+                if (vesselUnload.VesselCatchViewModel == null)
+                {
+                    vesselUnload.VesselCatchViewModel = new VesselCatchViewModel(vesselUnload);
+                }
+                foreach (var item in vesselUnload.VesselCatchViewModel.VesselCatchCollection)
+                {
+                    VesselCatches.Add(item);
+                }
+                //GearUsed = vesselUnload.GearUsed;
+
+                ListUnloadFishingGears = new List<VesselUnload_FishingGear>();
+                foreach (var item in vesselUnload.ListUnloadFishingGears)
+                {
+                    ListUnloadFishingGears.Add(item);
+                }
+                VesselUnload = vesselUnload;
+
+                //if (!vesselUnload.IsMultiGear)
+                //{
+
+                //}
+                //else if (vesselUnload.VesselUnload_FishingGearsViewModel == null || vesselUnload.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection.Count == 0)
+                //{
+                //    ListUnloadFishingGears = new List<VesselUnload_FishingGear>();
+                //    vesselUnload.VesselUnload_FishingGearsViewModel = new VesselUnload_FishingGearViewModel(vesselUnload);
+
+
+                //    foreach (var item in vesselUnload.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection)
+                //    {
+                //        ListUnloadFishingGears.Add(item);
+                //    }
+                //}
+
+
                 //if (vesselUnload.VesselCatchViewModel == null)
                 //{
                 //    vesselUnload.VesselCatchViewModel = new VesselCatchViewModel(vesselUnload);
@@ -108,14 +153,20 @@ namespace NSAP_ODK.Entities.Database
             }
 
         }
+
+        //public bool IsCatchMeasured { get; set; }
+        public VesselUnload VesselUnload { get; set; }
+        public List<VesselUnload_FishingGear> ListUnloadFishingGears { get; set; }
         [ReadOnly(true)]
         public NSAPRegion NSAPRegion { get; set; }
 
         //public List<VesselCatch> VesselCatches { get; set; }
         public int? NumberOfSpeciesInCatchComposition { get; set; }
+        [ReadOnly(true)]
         public bool FishingTripIsCompleted { get; set; }
         public string Region { get; set; }
 
+        [ReadOnly(true)]
         [ItemsSource(typeof(NSAPRegionItemsSource))]
         public string RegionCode { get; set; }
         [ReadOnly(true)]
@@ -123,6 +174,7 @@ namespace NSAP_ODK.Entities.Database
         public string RefNo { get; set; }
         public FMA FMA { get; set; }
 
+        [ReadOnly(true)]
         [ItemsSource(typeof(FMAInRegionItemsSource))]
         public int FMAID { get; set; }
         [ReadOnly(true)]
@@ -137,6 +189,7 @@ namespace NSAP_ODK.Entities.Database
         [ReadOnly(true)]
         public string FishingGroundName { get; set; }
 
+        [ReadOnly(true)]
         [ItemsSource(typeof(FishingGroundInRegionFMAItemsSource))]
         public string FishingGroundCode { get; set; }
 
@@ -144,10 +197,13 @@ namespace NSAP_ODK.Entities.Database
         [ReadOnly(true)]
         public string LandingSiteName { get; set; }
 
+        [ReadOnly(true)]
         public string OtherLandingSite { get; set; }
 
+        [ReadOnly(true)]
         [ItemsSource(typeof(LandingSiteInFMAFishingGroundItemsSource))]
         public int? LandingSiteID { get; set; }
+        [ReadOnly(true)]
         [ItemsSource(typeof(GearsInNSAPRegionItemsSource))]
         public string MainGearName { get; set; }
         public Gear Gear { get; set; }
@@ -162,8 +218,12 @@ namespace NSAP_ODK.Entities.Database
         [ReadOnly(true)]
         public int Identifier { get; set; }
 
+        [ReadOnly(true)]
         [Editor(typeof(DateTimePickerWithTime), typeof(DateTimePicker))]
         public DateTime SamplingDate { get; set; }
+        [ReadOnly(true)]
+        public string SamplingDateText { get; set; }
+
 
         public bool IsBoatUsed { get; set; }
 
@@ -177,6 +237,8 @@ namespace NSAP_ODK.Entities.Database
         public double? WeightOfCatch { get; set; }
 
         public double? WeightOfCatchSample { get; set; }
+
+        public List<VesselCatch> VesselCatches { get; set; }
 
         public int? Boxes { get; set; }
 
@@ -194,6 +256,11 @@ namespace NSAP_ODK.Entities.Database
         [ItemsSource(typeof(RegionEnumeratorItemsSource))]
         public int? NSAPEnumeratorID { get; set; }
 
+        //public string GearUsed
+        //{
+        //    get; set;
+        //}
+        [ReadOnly(true)]
         public bool OperationIsSuccessful { get; set; }
 
         public bool OperationIsTracked { get; set; }
@@ -209,6 +276,8 @@ namespace NSAP_ODK.Entities.Database
 
         [ItemsSource(typeof(GPSItemsSource))]
         public string GPSCode { get; set; }
+
+        //public List<VesselUnload_FishingGear> FishingGears { get; set; }
 
         [ReadOnly(true)]
         public string DateAddedToDatabase { get; set; }
@@ -640,8 +709,10 @@ namespace NSAP_ODK.Entities.Database
     }
 
     //[JsonObject(MemberSerialization.OptIn)]
-    public class VesselUnload:IDisposable
+    public class VesselUnload : IDisposable
     {
+        private List<VesselUnload_Gear_Spec> _listVesselGearSpec;
+        private List<VesselEffort> _listVesselEffort;
         private LandedCatchValidationResult _landedCatchValidationResult;
         private GPS _gps;
         private GearUnload _parent;
@@ -1232,6 +1303,12 @@ namespace NSAP_ODK.Entities.Database
                 return vu_fgs;
             }
         }
+
+        public void ClearListVesselVesselGearSpecs()
+        {
+            _listVesselGearSpec.Clear();
+        }
+
         public List<VesselEffort> ListVesselEffort
         {
             get
@@ -1240,8 +1317,14 @@ namespace NSAP_ODK.Entities.Database
                 {
                     VesselEffortViewModel = new VesselEffortViewModel(this);
                 }
-                return VesselEffortViewModel.VesselEffortCollection.ToList();
+
+                _listVesselEffort = VesselEffortViewModel.VesselEffortCollection.ToList();
+                return _listVesselEffort;
                 //.Where(t => t.Parent != null && t.Parent.PK == PK).ToList();
+            }
+            set
+            {
+                _listVesselEffort = value;
             }
         }
 
@@ -1350,7 +1433,7 @@ namespace NSAP_ODK.Entities.Database
                 List<VesselCatch> vcs = new List<VesselCatch>();
                 if (Parent.Parent.IsMultiVessel)
                 {
-                    if(VesselUnload_FishingGearsViewModel==null)
+                    if (VesselUnload_FishingGearsViewModel == null)
                     {
                         VesselUnload_FishingGearsViewModel = new VesselUnload_FishingGearViewModel(this);
                     }

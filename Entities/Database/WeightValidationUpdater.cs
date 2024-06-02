@@ -48,7 +48,7 @@ namespace NSAP_ODK.Entities.Database
                 {
                     VesselCatchWV vesselCatchWV = new VesselCatchWV
                     {
-                        PK = c.VesselUnloadID,
+                        PK = (int)c.VesselUnloadID,
                         FromTotalCatch = c.FromTotalCatch,
                         Species_kg = c.Catch_kg,
                         Species_sample_kg = c.Sample_kg,
@@ -311,7 +311,7 @@ namespace NSAP_ODK.Entities.Database
                         {
                             VesselCatchWV vesselCatchWV = new VesselCatchWV
                             {
-                                PK = c.VesselUnloadID,
+                                PK = (int)c.VesselUnloadID,
                                 FromTotalCatch = c.FromTotalCatch,
                                 Species_kg = c.Catch_kg,
                                 Species_sample_kg = c.Sample_kg

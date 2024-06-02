@@ -49,7 +49,7 @@ namespace NSAP_ODK.Entities.Database
 
         public CatchLength CatchLength { get; set; }
 
-        public double Length { get; set; }
+        public double? Length { get; set; }
 
     }
 

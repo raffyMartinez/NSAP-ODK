@@ -117,7 +117,7 @@ namespace NSAP_ODK.Entities.Database
                     {
                         if (string.IsNullOrEmpty(GearCode))
                         {
-                               return "";
+                            return "";
                         }
                         else
                         {
@@ -146,20 +146,41 @@ namespace NSAP_ODK.Entities.Database
                 GearText = vufg.GearText;
                 VesselUnload_FishingGear = vufg;
                 RowID = vufg.RowID;
-                GearUsedName = vufg.GearUsedName;
+                //GearUsedName = vufg.GearUsedName;
+                WeightOfCatch = vufg.WeightOfCatch;
+                WeightOfSample = vufg.WeightOfSample;
+                NumberOfSpeciesInCatch = vufg.CountItemsInCatchComposition;
             }
         }
-        
-        [ItemsSource(typeof(NSAP_ODK.Entities.ItemSources.GearsInNSAPRegionItemsSource))]
+
+        //[ItemsSource(typeof(NSAP_ODK.Entities.ItemSources.GearsInNSAPRegionItemsSource))]
+        [ItemsSource(typeof(NSAP_ODK.Entities.ItemSources.GearItemsSource))]
         public string GearCode { get; set; }
-        
-        [ItemsSource(typeof(NSAP_ODK.Entities.ItemSources.GearsInNSAPRegionItemsSource))]
-        public string GearUsedName { get; set; }
+
+        //[ItemsSource(typeof(NSAP_ODK.Entities.ItemSources.GearsInNSAPRegionItemsSource))]
+        //public string GearUsedName { get; set; }
+        public string GearUsedName
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(GearCode))
+                {
+                    return GearText;
+                }
+                else
+                {
+                    return NSAPEntities.GearViewModel.GetGear(GearCode).GearName;
+                }
+            }
+        }
         public string GearText { get; set; }
+
+        public int? NumberOfSpeciesInCatch { get; set; }
         [ReadOnly(true)]
         public int RowID { get; set; }
 
         public double? WeightOfCatch { get; set; }
+        public double? WeightOfSample { get; set; }
         public VesselUnload_FishingGear VesselUnload_FishingGear { get; private set; }
     }
 }

@@ -32,7 +32,7 @@
             </TreeViewItem>
         </TreeView>
 
-        <vesselUnloadEditor:VesselUnloadEditor Grid.Row="1" Grid.Column="1" x:Name="unloadEditor"/>
+        <vesselUnloadEditor:VesselUnloadEditor Grid.Row="1" Grid.Column="1" x:Name="unloadEditor" />
 
         <StackPanel Grid.Row="1" Grid.Column="3" >
             <Button Content="Ok" x:Name="buttonOk" Click="OnButtonClicked" Margin="10" Height="25" Width="70"/>

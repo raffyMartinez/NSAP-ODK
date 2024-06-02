@@ -13,14 +13,14 @@ namespace NSAP_ODK.Entities
 {
     public class DateTimePickerEditor : DateTimePicker, ITypeEditor
     {
-        public DateTimePickerEditor()
+        public DateTimePickerEditor(bool showSpinner=false)
         {
             Format = DateTimeFormat.Custom;
             //FormatString = "dd.MM.yyyy";
             FormatString = "MMM-dd-yyyy";
 
             TimePickerVisibility = System.Windows.Visibility.Collapsed;
-            ShowButtonSpinner = false;
+            ShowButtonSpinner = showSpinner;
             AutoCloseCalendar = true;
             DefaultValue = DateTime.Parse("1/1/2010");
         }

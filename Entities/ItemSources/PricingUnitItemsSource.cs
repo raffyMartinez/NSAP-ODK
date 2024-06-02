@@ -9,13 +9,15 @@ namespace NSAP_ODK.Entities.ItemSources
 {
     class PricingUnitItemsSource : IItemsSource
     {
+        public ItemCollection PricingUnitItems { get; internal set; } = new ItemCollection();
         public ItemCollection GetValues()
         {
-            ItemCollection items = new ItemCollection();
-            items.Add("kg", "Kilogram");
-            items.Add("box", "Box");
-            items.Add("other", "Other");
-            return items;
+            PricingUnitItems = new ItemCollection();
+            PricingUnitItems.Add("kg", "Kilogram");
+            PricingUnitItems.Add("box", "Box");
+            PricingUnitItems.Add("other", "Other");
+            
+            return PricingUnitItems;
 
         }
     }

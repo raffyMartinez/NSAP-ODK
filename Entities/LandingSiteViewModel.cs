@@ -306,6 +306,11 @@ namespace NSAP_ODK.Entities
                 if (landingSite.Longitude == null || landingSite.Latitude == null)
                     evr.AddMessage("Longitude and latitude must both be filled up or should be both empty");
             }
+
+            if(string.IsNullOrEmpty(landingSite.TypeOfSamplingInLandingSite))
+            {
+                evr.AddMessage("Type of sampling in landing site is required");
+            }
             return evr;
         }
 

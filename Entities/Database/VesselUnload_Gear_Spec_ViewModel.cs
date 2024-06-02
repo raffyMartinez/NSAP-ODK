@@ -20,6 +20,10 @@ namespace NSAP_ODK.Entities.Database
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+        public int Count
+        {
+            get { return VesselUnload_Gear_SpecCollection.Count; }
+        }
 
         public static int CurrentIDNumber { get; set; }
         public bool ClearRepository()
@@ -119,6 +123,10 @@ namespace NSAP_ODK.Entities.Database
                                 _editSucceeded = VesselUnload_Gear_Specs.Add(newItem);
                             }
                         }
+                        else
+                        {
+                            _editSucceeded = true;
+                        }
                         //int newIndex = e.NewStartingIndex;
                         //EditSucceeded = VesselEfforts.Add(VesselEffortCollection[newIndex]);
                     }
@@ -126,8 +134,15 @@ namespace NSAP_ODK.Entities.Database
 
                 case NotifyCollectionChangedAction.Remove:
                     {
-                        List<VesselUnload_Gear_Spec> tempListOfRemovedItems = e.OldItems.OfType<VesselUnload_Gear_Spec>().ToList();
-                        _editSucceeded = VesselUnload_Gear_Specs.Delete(tempListOfRemovedItems[0].RowID);
+                        if (!_isTemporary)
+                        {
+                            List<VesselUnload_Gear_Spec> tempListOfRemovedItems = e.OldItems.OfType<VesselUnload_Gear_Spec>().ToList();
+                            _editSucceeded = VesselUnload_Gear_Specs.Delete(tempListOfRemovedItems[0].RowID);
+                        }
+                        else
+                        {
+                            _editSucceeded = true;
+                        }
                     }
                     break;
 
@@ -139,7 +154,19 @@ namespace NSAP_ODK.Entities.Database
                     break;
             }
         }
-
+        public bool DeleteAllInCollection()
+        {
+            int deletedCount = 0;
+            int collectionCount = VesselUnload_Gear_SpecCollection.Count;
+            foreach(var item in VesselUnload_Gear_SpecCollection.ToList())
+            {
+                if(DeleteRecordFromRepo(item.RowID))
+                {
+                    deletedCount++;
+                }
+            }
+            return deletedCount == collectionCount;
+        }
         public bool AddRecordToRepo(VesselUnload_Gear_Spec item, bool isTemporary = false)
         {
             _editSucceeded = false;
@@ -173,7 +200,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                return NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastVesselEffortsPK+1;
+                return NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastVesselEffortsPK + 1;
                 //if (VesselUnload_Gear_SpecCollection.Count == 0)
                 //{
                 //    return 1;
@@ -185,9 +212,10 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
-        public bool DeleteRecordFromRepo(int id)
+        public bool DeleteRecordFromRepo(int id, bool isTemporary = false)
         {
             _editSucceeded = false;
+            _isTemporary = isTemporary;
             if (id == 0)
                 throw new Exception("Record ID cannot be null");
 

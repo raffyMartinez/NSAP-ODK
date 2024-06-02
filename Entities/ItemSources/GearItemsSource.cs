@@ -12,28 +12,28 @@ namespace NSAP_ODK.Entities.ItemSources
 
     class GearItemsSource : IItemsSource
     {
-        private ItemCollection _gears = new ItemCollection();
+        public ItemCollection Gears { get; internal set; } = new ItemCollection();
         public ItemCollection GetValues()
         {
             if (UnloadGears == null)
             {
                 foreach (var gear in NSAPEntities.GearViewModel.GearCollection.OrderBy(t => t.GearName))
                 {
-                    _gears.Add(gear.Code, gear.GearName);
-                }
-                if (AllowAddBlankGearName)
-                {
-                    _gears.Add("", "");
+                    Gears.Add(gear.Code, gear.GearName);
                 }
             }
             else
             {
                 foreach (var item in UnloadGears)
                 {
-                    _gears.Add( item.GearUsedName);
+                    Gears.Add( item.GearCode, item.GearUsedName);
                 }
             }
-            return _gears;
+            if (AllowAddBlankGearName)
+            {
+                Gears.Add("", "");
+            }
+            return Gears;
         }
 
         public static bool AllowAddBlankGearName { get; set; }
@@ -41,12 +41,12 @@ namespace NSAP_ODK.Entities.ItemSources
 
         public void AddItem(string code, string name)
         {
-            _gears.Add(code, name);
+            Gears.Add(code, name);
         }
 
         public void AddItem(KeyValuePair<string, string> item)
         {
-            _gears.Add(item.Key, item.Value);
+            Gears.Add(item.Key, item.Value);
         }
 
 

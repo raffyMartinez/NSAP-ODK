@@ -36,10 +36,37 @@ namespace NSAP_ODK.Entities.Database
 
     public class VesselCatchEdited
     {
+
+        //public VesselCatch VesselCatchUpdated
+        //{
+        //    get
+        //    {
+        //        return new VesselCatch
+        //        {
+        //            PK = PK,
+        //            VesselUnloadID = VesselUnloadID,
+        //            TaxaCode = TaxaCode,
+        //            Sample_kg = Sample_kg,
+        //            Catch_kg = Catch_kg,
+        //            GearCode = GearCode,
+        //            FromTotalCatch = FromTotalCatch,
+        //            PriceOfSpecies = PriceOfSpecies,
+        //            PriceUnit = PriceUnit,
+        //            OtherPriceUnit = OtherPriceUnit,
+        //            IsCatchSold = IsCatchSold,
+        //            GearText = GearText,
+        //            SpeciesID = SpeciesID
+        //        };
+
+        //    }
+        //}
         public VesselCatchEdited()
         {
 
         }
+        public VesselUnload VesselUnloadParent { get; set; }
+        public CarrierLanding ParentCarrierLanding { get; set; }
+        public VesselUnload_FishingGear ParentFishingGear { get; set; }
         public VesselCatchEdited(VesselCatch vc)
         {
             PK = vc.PK;
@@ -56,6 +83,9 @@ namespace NSAP_ODK.Entities.Database
             OtherPriceUnit = vc.OtherPriceUnit;
             IsCatchSold = vc.IsCatchSold;
             VesselCatch = vc;
+            VesselUnloadParent = vc.Parent;
+            ParentFishingGear = vc.ParentFishingGear;
+            ParentCarrierLanding = vc.ParentCarrierLanding;
             if (!string.IsNullOrEmpty(vc.GearText))
             {
                 GearUsed = vc.GearText;
@@ -65,7 +95,7 @@ namespace NSAP_ODK.Entities.Database
                 GearUsed = vc.Gear.GearName;
             }
             //TWS = vc.TWS;
-
+            //WeighingUnit = vc.WeighingUnit;
 
             if ((vc.SpeciesText == null || vc.SpeciesText.Length == 0) && vc.SpeciesID != null)
             {
@@ -88,9 +118,11 @@ namespace NSAP_ODK.Entities.Database
                 OtherName = vc.SpeciesText;
             }
         }
+
+        public bool IsNew { get; set; }
         [ReadOnly(true)]
         public int PK { get; set; }
-        public int VesselUnloadID { get; set; }
+        public int? VesselUnloadID { get; set; }
         public VesselCatch VesselCatch { get; set; }
         public string TaxaName { get; set; }
 
@@ -119,9 +151,12 @@ namespace NSAP_ODK.Entities.Database
         public bool FromTotalCatch { get; set; }
         public double? PriceOfSpecies { get; set; }
 
+        [ItemsSource(typeof(PricingUnitItemsSource))]
         public string PriceUnit { get; set; }
         public string OtherPriceUnit { get; set; }
         public bool IsCatchSold { get; set; }
+
+        public string WeighingUnit { get; set; }
     }
     public class VesselCatch
     {
@@ -141,7 +176,7 @@ namespace NSAP_ODK.Entities.Database
         public CatchLengthWeightViewModel CatchLengthWeightViewModel { get; set; }
         public CatchMaturityViewModel CatchMaturityViewModel { get; set; }
         public int PK { get; set; }
-        public int VesselUnloadID { get; set; }
+        public int? VesselUnloadID { get; set; }
         public string WeighingUnit { get; set; }
         public int? SpeciesID { get; set; }
         public string TaxaCode { get; set; }

@@ -873,7 +873,11 @@ namespace NSAP_ODK.Entities.Database
                     const string sql = "SELECT Max(v_unload_id) AS max_id FROM dbo_vessel_unload";
                     using (OleDbCommand getMax = new OleDbCommand(sql, conn))
                     {
-                        max_rec_no = (int)getMax.ExecuteScalar();
+                        var r = getMax.ExecuteScalar();
+                        if (r != DBNull.Value)
+                        {
+                            max_rec_no = (int)r;
+                        }
                     }
                 }
             }
@@ -1809,7 +1813,7 @@ namespace NSAP_ODK.Entities.Database
                             {
 
                                 int? submission_id = null;
-                                if (dr["submission_id"]!=DBNull.Value)
+                                if (dr["submission_id"] != DBNull.Value)
                                 {
                                     submission_id = (int)dr["submission_id"];
                                 }
@@ -2489,7 +2493,7 @@ namespace NSAP_ODK.Entities.Database
                                         update.Parameters.Add("@count_species_catch_comp", OleDbType.Integer).Value = item.NumberOfSpeciesInCatchComposition;
                                     }
                                     update1.Parameters.Add("@include_effort", OleDbType.Boolean).Value = item.IncludeEffortIndicators;
-                                    if(item.SubmissionID==null)
+                                    if (item.SubmissionID == null)
                                     {
                                         update1.Parameters.Add("@_id", OleDbType.Integer).Value = DBNull.Value;
                                     }
@@ -3218,11 +3222,12 @@ namespace NSAP_ODK.Entities.Database
                                 }
 
 
-                                cmd_1.Parameters.Add("@ref_no", OleDbType.VarWChar).Value = item.RefNo;
+                                cmd_1.Parameters.Add("@ref_no", OleDbType.VarChar).Value = item.RefNo;
 
 
                                 cmd_1.Parameters.Add("@is_catch_sold", OleDbType.Boolean).Value = item.IsCatchSold;
 
+                                cmd_1.Parameters.Add("@is_multigear", OleDbType.Boolean).Value = item.IsMultiGear;
                                 if (item.IsMultiGear)
                                 {
                                     cmd_1.Parameters.Add("@num_gear_type", OleDbType.Integer).Value = item.CountGearTypesUsed;
@@ -3240,7 +3245,8 @@ namespace NSAP_ODK.Entities.Database
                                     cmd_1.Parameters.Add("@count_species_catch_comp", OleDbType.Integer).Value = item.NumberOfSpeciesInCatchComposition;
                                 }
                                 cmd_1.Parameters.Add("@include_effort", OleDbType.Boolean).Value = item.IncludeEffortIndicators;
-                                cmd_1.Parameters.Add("@lsss_id", OleDbType.VarWChar).Value = item.LandingSiteSamplingSubmissionID;
+                                cmd_1.Parameters.Add("@lsss_id", OleDbType.VarChar).Value = item.LandingSiteSamplingSubmissionID;
+
                                 if (item.SubmissionID == null)
                                 {
                                     cmd_1.Parameters.Add("@_id", OleDbType.Integer).Value = DBNull.Value; ;
@@ -3252,7 +3258,7 @@ namespace NSAP_ODK.Entities.Database
 
                                 cmd_1.Parameters.Add("@Vessel_unload_id", OleDbType.Integer).Value = item.PK;
 
-                                cmd_1.CommandText = $@"UPDATE dbo_vessel_unload_1 SET
+                                cmd_1.CommandText = @"UPDATE dbo_vessel_unload_1 SET
                                         Success = @Operation_success,
                                         Tracked =  @Operation_is_tracked,
                                         trip_is_completed = @Operation_is_completed,
@@ -3282,6 +3288,7 @@ namespace NSAP_ODK.Entities.Database
                                         number_species_catch_composition = @count_species_catch_comp,
                                         include_effort_indicators = @include_effort,
                                         lss_submisionID = @lsss_id,
+                                        submission_id = @_id
                                         WHERE v_unload_id = @Vessel_unload_id";
 
 
@@ -3573,7 +3580,9 @@ namespace NSAP_ODK.Entities.Database
                                     delStatsCommand.CommandText = "Delete * from dbo_vessel_unload_stats where v_unload_id=@delStatID";
                                     try
                                     {
-                                        success = delStatsCommand.ExecuteNonQuery() > 0;
+                                        //success = delStatsCommand.ExecuteNonQuery() > 0;
+                                        delStatsCommand.ExecuteNonQuery();
+                                        success = true;
 
                                     }
                                     catch (OleDbException odbex)
@@ -3583,6 +3592,24 @@ namespace NSAP_ODK.Entities.Database
                                     catch (Exception ex)
                                     {
                                         Logger.Log(ex);
+                                    }
+                                }
+                                if (success)
+                                {
+                                    success = false;
+                                    using (OleDbCommand update2 = conn.CreateCommand())
+                                    {
+                                        update2.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                                        update2.CommandText = "Delete * from dbo_vessel_unload_weight_validation where v_unload_id=@id";
+                                        try
+                                        {
+                                            update2.ExecuteNonQuery();
+                                            success = true;
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Logger.Log(ex);
+                                        }
                                     }
                                 }
                                 if (success)

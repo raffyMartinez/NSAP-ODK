@@ -28,7 +28,7 @@ namespace NSAP_ODK.TreeViewModelControl
         public event EventHandler<AllSamplingEntitiesEventHandler> TreeContextMenu;
         public TreeViewItemViewModel _selectedItem;
         private tv_NSAPViewModel _nsapViewModel;
-        string _currentCheckedMenuName="contextMenuMonitoriedLandingsCalendar";
+        string _currentCheckedMenuName = "contextMenuMonitoriedLandingsCalendar";
 
         public TreeControl()
         {
@@ -110,7 +110,7 @@ namespace NSAP_ODK.TreeViewModelControl
                     break;
 
                 case "tv_MonthViewModel":
-                    
+
                     args.MonthSampled = DateTime.Parse(((tv_MonthViewModel)tvi)._month);
                     args.LandingSite = ((tv_MonthViewModel)tvi)._landingSite;
                     args.LandingSiteText = ((tv_MonthViewModel)tvi)._landingSiteName;
@@ -118,7 +118,7 @@ namespace NSAP_ODK.TreeViewModelControl
                     args.FMA = ((tv_MonthViewModel)tvi)._fma;
                     args.NSAPRegion = ((tv_MonthViewModel)tvi)._nsapRegion;
                     args.CalendarView = CalendarView;
-                    
+                    args.GUID = ((tv_MonthViewModel)tvi).GUID;
                     //tv_CurrentEntities.CurrentMonth = args.MonthSampled;
                     break;
 
@@ -161,6 +161,13 @@ namespace NSAP_ODK.TreeViewModelControl
 
                 case "contextMenuCrosstabMonth":
                 case "contextMenuGearUnloadMonth":
+                case "contextMenuNSAPForm1":
+                case "contextMenuNSAPForm2":
+                case "contextMenuNSAPForm2a":
+                case "contextMenuNSAPForm2b":
+                case "contextMenuNSAPForm3":
+                case "contextMenuNSAPForm4":
+                case "contextMenuNSAPForm5":
                     args.LandingSite = ((tv_MonthViewModel)_selectedItem)._landingSite;
                     args.LandingSiteText = ((tv_MonthViewModel)_selectedItem)._landingSiteName;
                     args.FishingGround = ((tv_MonthViewModel)_selectedItem)._fishingGround;
@@ -178,6 +185,14 @@ namespace NSAP_ODK.TreeViewModelControl
                     //        break;
                     //}
                     break;
+                //case "contextMenuNSAPForm1":
+                //case "contextMenuNSAPForm2":
+                //case "contextMenuNSAPForm2a":
+                //case "contextMenuNSAPForm2b":
+                //case "contextMenuNSAPForm3":
+                //case "contextMenuNSAPForm4":
+                //case "contextMenuNSAPForm5":
+                //    break;
             }
             args.ContextMenuTopic = menuName;
 
@@ -218,7 +233,7 @@ namespace NSAP_ODK.TreeViewModelControl
         private void OnContextMenuCheckChange(object sender, RoutedEventArgs e)
         {
             var mi = (MenuItem)sender;
-            if(mi.Name==_currentCheckedMenuName)
+            if (mi.Name == _currentCheckedMenuName)
             {
                 mi.IsChecked = true;
                 e.Handled = true;
@@ -243,7 +258,7 @@ namespace NSAP_ODK.TreeViewModelControl
                         }
                         break;
                     case "contextMenuTotalLandedWtCalendar":
-                        if(mi.IsChecked)
+                        if (mi.IsChecked)
                         {
                             CalendarView = CalendarViewType.calendarViewTypeWeightAllLandingsByGear;
                         }

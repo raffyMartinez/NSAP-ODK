@@ -16,13 +16,13 @@ namespace NSAP_ODK.Entities.Database
         VesselUnload_FishingGear _parent;
         public List<VesselUnload_Gear_Spec> VesselUnload_Gear_Specses { get; set; }
 
-        public static bool UpdateTable(bool addFKConstraint=false)
+        public static bool UpdateTable(bool addFKConstraint = false)
 
         {
             bool success = false;
             string sql = "ALTER TABLE dbo_vessel_effort ADD COLUMN vessel_unload_fishing_gear_id int";
 
-            if(addFKConstraint)
+            if (addFKConstraint)
             {
                 sql = @"ALTER TABLE dbo_vessel_effort ADD CONSTRAINT FK_vufg_gears_efforts
                                                     FOREIGN KEY(vessel_unload_fishing_gear_id) REFERENCES dbo_vesselunload_fishinggear(row_id)";
@@ -81,7 +81,7 @@ namespace NSAP_ODK.Entities.Database
                         {
                             con.Open();
                             success = cmd.ExecuteNonQuery() >= 0;
-                            
+
                         }
                         catch (Exception ex)
                         {
@@ -157,7 +157,11 @@ namespace NSAP_ODK.Entities.Database
                     const string sql = "SELECT Max(effort_row_id) AS max_id FROM dbo_vessel_effort";
                     using (OleDbCommand getMax = new OleDbCommand(sql, conn))
                     {
-                        max_rec_no = (int)getMax.ExecuteScalar();
+                        var r = getMax.ExecuteScalar();
+                        if (r != DBNull.Value)
+                        {
+                            max_rec_no = (int)r;
+                        }
                     }
                 }
             }
@@ -177,14 +181,16 @@ namespace NSAP_ODK.Entities.Database
                 {
                     conn.Open();
 
-                    var sql = "Insert into dbo_vessel_effort(effort_row_id, vessel_unload_fishing_gear_id,effort_spec_id,effort_value_numeric,effort_value_text) Values (?,?,?,?,?)";
-                    using (OleDbCommand update = new OleDbCommand(sql, conn))
+                    
+                    using (OleDbCommand update = conn.CreateCommand())
                     {
                         try
                         {
                             update.Parameters.Add("@id", OleDbType.Integer).Value = item.RowID;
                             update.Parameters.Add("@unload_gear_id", OleDbType.Integer).Value = item.Parent.RowID;
-                            if (item.EffortValueNumeric==null)
+                            update.Parameters.Add("@v_unload_id", OleDbType.Integer).Value = DBNull.Value;
+                            update.Parameters.Add("@spec_id", OleDbType.Integer).Value = item.EffortSpecID;
+                            if (item.EffortValueNumeric == null)
                             {
                                 update.Parameters.Add("@effort_value_numeric", OleDbType.Double).Value = DBNull.Value;
                             }
@@ -201,6 +207,13 @@ namespace NSAP_ODK.Entities.Database
                                 update.Parameters.Add("@effort_value_text", OleDbType.VarChar).Value = item.EffortValueText;
                             }
 
+                            update.CommandText= @"Insert into dbo_vessel_effort (
+                                                    effort_row_id, 
+                                                    vessel_unload_fishing_gear_id,
+                                                    v_unload_id,
+                                                    effort_spec_id,
+                                                    effort_value_numeric,
+                                                    effort_value_text) Values (?,?,?,?,?,?)";
 
                             try
                             {
@@ -255,6 +268,7 @@ namespace NSAP_ODK.Entities.Database
                     {
 
                         update.Parameters.Add("@unload_gear_id", OleDbType.Integer).Value = item.Parent.RowID;
+                        update.Parameters.Add("@spec_id", OleDbType.Integer).Value = item.EffortSpecID;
                         if (item.EffortValueNumeric == null)
                         {
                             update.Parameters.Add("@effort_value_numeric", OleDbType.Double).Value = DBNull.Value;
@@ -272,13 +286,17 @@ namespace NSAP_ODK.Entities.Database
                         {
                             update.Parameters.Add("@effort_value_text", OleDbType.Double).Value = item.EffortValueText;
                         }
+                        update.Parameters.Add("@unload_id", OleDbType.Integer).Value = DBNull.Value;
                         update.Parameters.Add("@id", OleDbType.Integer).Value = item.RowID;
+
 
                         update.CommandText = @"Update dbo_vessel_effort set
                                             vessel_unload_fishing_gear_id=@unload_gear_id,
+                                            effort_spec_id=@spec_id,
                                             effort_value_numeric = @effort_value_numeric,
-                                            effort_value_text = @effort_value_text
-                                        WHERE row_id = @id";
+                                            effort_value_text = @effort_value_text,
+                                            v_unload_id = @unload_id    
+                                        WHERE effort_row_id = @id";
 
                         try
                         {
@@ -333,7 +351,7 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
-            
+
         public List<VesselUnload_Gear_Spec> getGears_Specs()
         {
             List<VesselUnload_Gear_Spec> thisList = new List<VesselUnload_Gear_Spec>();
@@ -362,7 +380,7 @@ namespace NSAP_ODK.Entities.Database
                             while (dr.Read())
                             {
                                 double? evn = null;
-                                if(dr["effort_value_numeric"]!=DBNull.Value)
+                                if (dr["effort_value_numeric"] != DBNull.Value)
                                 {
                                     evn = (double)dr["effort_value_numeric"];
                                 }

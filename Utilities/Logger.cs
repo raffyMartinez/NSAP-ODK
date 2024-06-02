@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 namespace NSAP_ODK.Utilities
 {
@@ -27,6 +29,34 @@ namespace NSAP_ODK.Utilities
 
         public static string LogTypeModifier { get; set; }
 
+        public static void LogMethodName([CallerMemberName] string methodname = null, string className = null, bool isExiting = false)
+        {
+            if (Debugger.IsAttached)
+            {
+                if (isExiting)
+                {
+                    if (className != null)
+                    {
+                        Log($"exiting {className}.{methodname}");
+                    }
+                    else
+                    {
+                        Log($"exiting {methodname}");
+                    }
+                }
+                else
+                {
+                    if (className != null)
+                    {
+                        Log($"inside {className}.{methodname}");
+                    }
+                    else
+                    {
+                        Log($"inside {methodname}");
+                    }
+                }
+            }
+        }
         public static LogType LogType
         {
             get { return _logType; }

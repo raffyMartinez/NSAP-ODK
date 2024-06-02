@@ -110,12 +110,12 @@ namespace NSAP_ODK.Views
                 textDownloadSizeForBatchMode.Text = "2000";
                 textCutoffWidth.Text = "11";
                 textAcceptableDiff.Text = "10";
-                if(Global.CommandArgs!=null)
+                if (Global.CommandArgs != null)
                 {
-                    switch(Global.CommandArgs[0])
+                    switch (Global.CommandArgs[0])
                     {
                         case "filtered":
-                            Global.Filter1=new DateTime(2023, 1, 1);
+                            Global.Filter1 = new DateTime(2023, 1, 1);
                             textDBFilter.Text = ((DateTime)Global.Filter1).ToString("MMM-dd-yyyy");
 
                             break;
@@ -158,84 +158,90 @@ namespace NSAP_ODK.Views
             DateTime? d2 = null;
             int? loopCount = null;
 
-            string[] arr = dateFilter.Split(' ');
-            if (arr.Length == 1)
+            DateTime dt;
+            if (DateTime.TryParse(dateFilter, out dt))
             {
-                if (int.TryParse(arr[0], out int i))
-                {
-                    d1 = new DateTime(i, 1, 1);
-                }
-                else if (DateTime.TryParse(arr[0], out DateTime d))
-                {
-                    d1 = d;
-                }
-                else
-                {
-                    _filterValidationMessage = "Item must be a valid date";
-                }
-            }
-            else if (arr.Length > 1 && arr.Length <= 3)
-            {
-                loopCount = 0;
-                for (int x = 0; x < arr.Length; x++)
-                {
-                    if (DateTime.TryParse(arr[x], out DateTime d))
-                    {
-                        if (x == 0)
-                        {
-                            d1 = d;
-                        }
-                        else
-                        {
-                            d2 = d;
-                        }
-                    }
-                    else if (int.TryParse(arr[x], out int i))
-                    {
-                        if (i >= 2000)
-                        {
-                            if (x == 0)
-                            {
-                                d1 = new DateTime(i, 1, 1);
-                            }
-                            else
-                            {
-                                d2 = new DateTime(i, 1, 1);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (x == 0)
-                        {
-                            _filterValidationMessage = "First item should be a date";
-                            break;
-                        }
-
-
-
-                    }
-                    loopCount++;
-                }
-
-                if (loopCount != null && loopCount > 1 && d2 == null)
-                {
-                    _filterValidationMessage = "Second item must be a valid date";
-                }
-                else if (d1 == null && d2 == null)
-                {
-                    _filterValidationMessage = "Items should contain at least one date";
-                }
-                else if (d1 != null && d2 != null && d1 > d2)
-                {
-                    _filterValidationMessage = "First date must be before second date";
-                }
-
-
+                return true;
             }
             else
             {
-                _filterValidationMessage = "Could not understand filter";
+                string[] arr = dateFilter.Split(' ');
+                if (arr.Length == 1)
+                {
+                    if (int.TryParse(arr[0], out int i))
+                    {
+                        d1 = new DateTime(i, 1, 1);
+                    }
+                    else if (DateTime.TryParse(arr[0], out DateTime d))
+                    {
+                        d1 = d;
+                    }
+                    else
+                    {
+                        _filterValidationMessage = "Item must be a valid date";
+                    }
+                }
+                else if (arr.Length > 1 && arr.Length <= 3)
+                {
+                    loopCount = 0;
+                    for (int x = 0; x < arr.Length; x++)
+                    {
+                        if (DateTime.TryParse(arr[x], out DateTime d))
+                        {
+                            if (x == 0)
+                            {
+                                d1 = d;
+                            }
+                            else
+                            {
+                                d2 = d;
+                            }
+                        }
+                        else if (int.TryParse(arr[x], out int i))
+                        {
+                            if (i >= 2000)
+                            {
+                                if (x == 0)
+                                {
+                                    d1 = new DateTime(i, 1, 1);
+                                }
+                                else
+                                {
+                                    d2 = new DateTime(i, 1, 1);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (x == 0)
+                            {
+                                _filterValidationMessage = "First item should be a date";
+                                break;
+                            }
+
+
+
+                        }
+                        loopCount++;
+                    }
+
+                    if (loopCount != null && loopCount > 1 && d2 == null)
+                    {
+                        _filterValidationMessage = "Second item must be a valid date";
+                    }
+                    else if (d1 == null && d2 == null)
+                    {
+                        _filterValidationMessage = "Items should contain at least one date";
+                    }
+                    else if (d1 != null && d2 != null && d1 > d2)
+                    {
+                        _filterValidationMessage = "First date must be before second date";
+                    }
+                }
+                else
+                {
+                    _filterValidationMessage = "Could not understand filter";
+                }
             }
 
             return _filterValidationMessage.Length == 0;
@@ -282,7 +288,7 @@ namespace NSAP_ODK.Views
             }
             else
             {
-                if(Global.Filter1!=null)
+                if (Global.Filter1 != null)
                 {
                     textDBFilter.Text = "2023";
                 }
@@ -481,7 +487,7 @@ namespace NSAP_ODK.Views
                         }
                         Utilities.Global.SaveGlobalSettings();
 
-                        if(Global.Filter1!=null && !string.IsNullOrEmpty(_oldDateFilter) && _oldDateFilter!=textDBFilter.Text)
+                        if (Global.Filter1 != null && !string.IsNullOrEmpty(_oldDateFilter) && _oldDateFilter != textDBFilter.Text)
                         {
                             MessageBox.Show("The application need to restart to apply the database filter",
                                             Global.MessageBoxCaption,
@@ -493,9 +499,9 @@ namespace NSAP_ODK.Views
 
                         if (_chkMySQlClicked)
                         {
-                            MessageBox.Show("The application need to restart to switch to another database backend", 
-                                Global.MessageBoxCaption, 
-                                MessageBoxButton.OK, 
+                            MessageBox.Show("The application need to restart to switch to another database backend",
+                                Global.MessageBoxCaption,
+                                MessageBoxButton.OK,
                                 MessageBoxImage.Information);
 
                             ((MainWindow)Owner).CloseAppilication();

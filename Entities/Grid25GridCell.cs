@@ -17,7 +17,18 @@ namespace NSAP_ODK.Entities
     public class Grid25GridCell
     {
         public bool IsValid { get; private set; }
-
+        public override bool Equals(object obj)
+        {
+            if (obj is Grid25GridCell)
+            {
+                Grid25GridCell cell= (Grid25GridCell)obj;
+                return cell.UTMZone.ToString()==UTMZone.ToString() && cell.ToString() == this.ToString();
+            }
+            else
+            {
+                return false;
+            }
+        }
         public ISO_Classes.Coordinate Coordinate { get; private set; }
         public UTMCoordinate UTMCoordinate { get; private set; }
         public UTMZone UTMZone { get; set; }

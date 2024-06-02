@@ -174,11 +174,11 @@ namespace NSAP_ODK.Views
 
                 (_nsapEntity == NSAPEntity.NSAPRegion
                 && NSAPEntities.EntityToRefresh == NSAPEntity.NSAPRegionFMA)
-                
+
 
                 ||
-                (_nsapEntity ==NSAPEntity.LandingSite
-                && NSAPEntities.EntityToRefresh==NSAPEntity.LandingSiteFishingGround)
+                (_nsapEntity == NSAPEntity.LandingSite
+                && NSAPEntities.EntityToRefresh == NSAPEntity.LandingSiteFishingGround)
                 )
             {
                 PropertyGrid.Update();
@@ -1961,13 +1961,28 @@ namespace NSAP_ODK.Views
                                         }
                                         break;
                                     case "Enumerators":
-                                        var nse = (NSAPRegionEnumerator)sfDataGrid.SelectedItem;
-                                        nse.DateEnd = null;
-                                        if (NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(nse.NSAPRegion).UnremoveEnumerator(nse))
+                                        bool refreshGrid = false;
+                                        foreach(var selectedEnum in sfDataGrid.SelectedItems)
+                                        {
+                                            NSAPRegionEnumerator nre = (NSAPRegionEnumerator)selectedEnum;
+                                            nre.DateEnd = null;
+                                            if(NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(nre.NSAPRegion).UnremoveEnumerator(nre))
+                                            {
+                                                refreshGrid = true;
+                                            }
+                                        }
+                                        if(refreshGrid)
                                         {
                                             sfDataGrid.Items.Refresh();
                                             buttonDelete.Content = "Delete";
                                         }
+                                        //var nse = (NSAPRegionEnumerator)sfDataGrid.SelectedItem;
+                                        //nse.DateEnd = null;
+                                        //if (NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(nse.NSAPRegion).UnremoveEnumerator(nse))
+                                        //{
+                                        //    sfDataGrid.Items.Refresh();
+                                        //    buttonDelete.Content = "Delete";
+                                        //}
                                         break;
                                 }
                                 break;
@@ -2197,26 +2212,45 @@ namespace NSAP_ODK.Views
                                         //    }
                                         //    break;
                                         case "Enumerators":
-                                            NSAPRegionEnumerator regionEnumerator = (NSAPRegionEnumerator)sfDataGrid.SelectedItem;
                                             sd = new SelectDeleteActionDialog();
-                                            if ((bool)sd.ShowDialog())
+                                            if ((bool)sd.ShowDialog() && sd.DeleteAction != DeleteAction.deleteActionIgnore)
                                             {
-                                                switch (sd.DeleteAction)
+                                                foreach (var selectedEnum in sfDataGrid.SelectedItems)
                                                 {
-
-                                                    case DeleteAction.deleteActionDelete:
-
-                                                        if (entitiesRepository.DeleteEnumerator(regionEnumerator.RowID))
+                                                    NSAPRegionEnumerator nre = (NSAPRegionEnumerator)selectedEnum;
+                                                    if (sd.DeleteAction == DeleteAction.deleteActionDelete)
+                                                    {
+                                                        if (entitiesRepository.DeleteEnumerator(nre.RowID))
                                                         {
-                                                            success = nsr.NSAPEnumerators.Remove(regionEnumerator);
+                                                            success = nsr.NSAPEnumerators.Remove(nre);
                                                         }
-                                                        break;
-                                                    case DeleteAction.deleteActionRemove:
-                                                        //DateTime dateRemoved = DateTime.Now;
-                                                        success = entitiesRepository.RemoveEnumerator(regionEnumerator, dateRemoved);
-                                                        break;
+                                                    }
+                                                    else if (sd.DeleteAction == DeleteAction.deleteActionRemove)
+                                                    {
+                                                        success = entitiesRepository.RemoveEnumerator(nre, dateRemoved);
+                                                    }
                                                 }
                                             }
+                                            //NSAPRegionEnumerator regionEnumerator = (NSAPRegionEnumerator)sfDataGrid.SelectedItem;
+                                            //sd = new SelectDeleteActionDialog();
+                                            //if ((bool)sd.ShowDialog())
+                                            //{
+                                            //    switch (sd.DeleteAction)
+                                            //    {
+
+                                            //        case DeleteAction.deleteActionDelete:
+
+                                            //            if (entitiesRepository.DeleteEnumerator(regionEnumerator.RowID))
+                                            //            {
+                                            //                success = nsr.NSAPEnumerators.Remove(regionEnumerator);
+                                            //            }
+                                            //            break;
+                                            //        case DeleteAction.deleteActionRemove:
+                                            //            //DateTime dateRemoved = DateTime.Now;
+                                            //            success = entitiesRepository.RemoveEnumerator(regionEnumerator, dateRemoved);
+                                            //            break;
+                                            //    }
+                                            //}
                                             break;
                                     }
                                 }
@@ -2496,7 +2530,7 @@ namespace NSAP_ODK.Views
                             if (NSAPEntities.NSAPRegionViewModel.UpdateRecordInRepo(nr))
                             {
                                 success = true;
-                                
+
                             }
                             break;
                         #endregion
@@ -2858,7 +2892,7 @@ namespace NSAP_ODK.Views
                                         //NSAPEntities.
                                     }
                                 }
-                                if(success)
+                                if (success)
                                 {
                                     Global.CheckForCarrierBasedLanding();
                                 }
@@ -3108,7 +3142,7 @@ namespace NSAP_ODK.Views
                             }
                             break;
                     }
-                    if(addToDict)
+                    if (addToDict)
                     {
                         try
                         {

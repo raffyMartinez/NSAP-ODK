@@ -126,7 +126,11 @@ namespace NSAP_ODK.Entities.Database
                     const string sql = "SELECT Max(gear_soak_id) AS max_id FROM dbo_gear_soak";
                     using (OleDbCommand getMax = new OleDbCommand(sql, conn))
                     {
-                        max_rec_no = (int)getMax.ExecuteScalar();
+                        var r = getMax.ExecuteScalar();
+                        if (r != DBNull.Value)
+                        {
+                            max_rec_no = (int)r;
+                        };
                     }
                 }
             }
@@ -259,16 +263,46 @@ namespace NSAP_ODK.Entities.Database
                 using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
                     conn.Open();
-                    var sql = "Insert into dbo_gear_soak(v_unload_id, time_set,time_hauled,wpt_set,wpt_haul,gear_soak_id) Values (@,@,@,@,@,@)";
-                    using (OleDbCommand update = new OleDbCommand(sql, conn))
+                    //var sql = "Insert into dbo_gear_soak(gear_soak_id,v_unload_id, time_set,time_hauled,wpt_set,wpt_haul) Values (@,@,@,@,@,@)";
+                    //using (OleDbCommand update = new OleDbCommand(sql, conn))
+                    using (OleDbCommand update = conn.CreateCommand())
                     {
-
-                        update.Parameters.Add("@unload_id", OleDbType.Integer).Value = item.Parent.PK;
+                        update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
+                        update.Parameters.Add("@unload_id", OleDbType.Integer).Value = item.VesselUnloadID;
                         update.Parameters.Add("@time_set", OleDbType.Date).Value = item.TimeAtSet;
                         update.Parameters.Add("@time_haul", OleDbType.Date).Value = item.TimeAtHaul;
-                        update.Parameters.Add("@wpt_set", OleDbType.VarChar).Value = item.WaypointAtSet;
-                        update.Parameters.Add("@wpt_haul", OleDbType.VarChar).Value = item.WaypointAtHaul;
-                        update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
+                        if (string.IsNullOrEmpty(item.WaypointAtSet))
+                        {
+                            update.Parameters.Add("@wpt_set", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@wpt_set", OleDbType.VarChar).Value = item.WaypointAtSet;
+                        }
+                        if (string.IsNullOrEmpty(item.WaypointAtHaul))
+                        {
+                            update.Parameters.Add("@wpt_haul", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@wpt_haul", OleDbType.VarChar).Value = item.WaypointAtHaul;
+                        }
+
+                        update.CommandText=@"Insert into dbo_gear_soak (
+                            gear_soak_id,
+                            v_unload_id, 
+                            time_set,
+                            time_hauled,
+                            wpt_set,
+                            wpt_haul) 
+                            Values (
+                            @id,
+                            @unload_id,
+                            @time_set,
+                            @time_haul,
+                            @wpt_set,
+                            @wpt_haul)";
+                        
                         try
                         {
                             success = update.ExecuteNonQuery() > 0;
@@ -343,8 +377,22 @@ namespace NSAP_ODK.Entities.Database
                         update.Parameters.Add("@unload_id", OleDbType.Integer).Value = item.Parent.PK;
                         update.Parameters.Add("@time_set", OleDbType.Date).Value = item.TimeAtSet;
                         update.Parameters.Add("@time_haul", OleDbType.Date).Value = item.TimeAtHaul;
-                        update.Parameters.Add("@wpt_set", OleDbType.VarChar).Value = item.WaypointAtSet;
-                        update.Parameters.Add("@wpt_haul", OleDbType.VarChar).Value = item.WaypointAtHaul;
+                        if (string.IsNullOrEmpty(item.WaypointAtSet))
+                        {
+                               update.Parameters.Add("@wpt_set", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@wpt_set", OleDbType.VarChar).Value = item.WaypointAtSet;
+                        }
+                        if (string.IsNullOrEmpty(item.WaypointAtHaul))
+                        {
+                               update.Parameters.Add("@wpt_haul", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@wpt_haul", OleDbType.VarChar).Value = item.WaypointAtHaul;
+                        }
                         update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
 
                         update.CommandText = @"Update dbo_gear_soak set

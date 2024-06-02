@@ -214,6 +214,7 @@ namespace NSAP_ODK.Entities
 
     public class FishSpeciesViewModel
     {
+        List<string> _listGenus = new List<string>();
         private bool _editSuccess;
         private static HttpClient client = new HttpClient();
         public ObservableCollection<FishSpecies> SpeciesCollection { get; set; }
@@ -286,11 +287,11 @@ namespace NSAP_ODK.Entities
 
         public async Task<OBIResponseRoot> RequestDataFromOBI(string speciesName)
         {
-           
+
             var bytes = await client.GetByteArrayAsync($"https://api.obis.org/v3/taxon/{speciesName}");
             Encoding encoding = Encoding.GetEncoding("utf-8");
             string response = encoding.GetString(bytes, 0, bytes.Length);
-            return  JsonConvert.DeserializeObject<OBIResponseRoot>(response);
+            return JsonConvert.DeserializeObject<OBIResponseRoot>(response);
         }
         public int NextRecordNumber
         {
@@ -399,17 +400,19 @@ namespace NSAP_ODK.Entities
             return new ResultQueryAPI() { Success = true, Message = "", SpeciesDetail = specDetail.Data[0] };
         }
 
-        public List<string>GetAllGenus()
+        public static List<string> FishGenusList { get; private set; }
+        public List<string> GetAllGenus()
         {
-            List<string> listGenus = new List<string>();
+            _listGenus = new List<string>();
 
-            foreach(var g in  SpeciesCollection.OrderBy(t=>t.GenericName).GroupBy(t=>t.GenericName).ToList())
+            foreach (var g in SpeciesCollection.OrderBy(t => t.GenericName).GroupBy(t => t.GenericName).ToList())
             {
-                listGenus.Add(g.Key);
+                _listGenus.Add(g.Key);
             }
-            return listGenus;
+            FishGenusList = _listGenus;
+            return _listGenus;
         }
-        public List<FishSpecies> GetAllSpecies(string search="")
+        public List<FishSpecies> GetAllSpecies(string search = "")
         {
             if (search.Length > 0)
             {
@@ -438,7 +441,7 @@ namespace NSAP_ODK.Entities
                         SortName = item.ToString()
                     });
 
-                    if (item.NameInOldFishbase!=null && item.NameInOldFishbase.Length > 0 && item.NameInOldFishbase != item.ToString())
+                    if (item.NameInOldFishbase != null && item.NameInOldFishbase.Length > 0 && item.NameInOldFishbase != item.ToString())
                     {
                         list.Add(new FishSpeciesForCSV
                         {
@@ -451,20 +454,20 @@ namespace NSAP_ODK.Entities
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Logger.Log(ex);
             }
             return list;
         }
-        public FishSpecies GetSpecies (string species)
+        public FishSpecies GetSpecies(string species)
         {
             return SpeciesCollection.FirstOrDefault(t => t.ToString() == species);
         }
-        public List<string>GetSpeciesNameFromGenus(string genus)
+        public List<string> GetSpeciesNameFromGenus(string genus)
         {
             List<string> speciesList = new List<string>();
-            foreach(var item in SpeciesCollection.Where(t => t.GenericName == genus).ToList())
+            foreach (var item in SpeciesCollection.Where(t => t.GenericName == genus).ToList())
             {
                 speciesList.Add(item.SpecificName);
             }
@@ -486,21 +489,21 @@ namespace NSAP_ODK.Entities
                 case NotifyCollectionChangedAction.Add:
                     {
                         int newIndex = e.NewStartingIndex;
-                        _editSuccess= Specieses.Add(SpeciesCollection[newIndex]);
+                        _editSuccess = Specieses.Add(SpeciesCollection[newIndex]);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
                     {
                         List<FishSpecies> tempListOfRemovedItems = e.OldItems.OfType<FishSpecies>().ToList();
-                        _editSuccess= Specieses.Delete(tempListOfRemovedItems[0].RowNumber);
+                        _editSuccess = Specieses.Delete(tempListOfRemovedItems[0].RowNumber);
                     }
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<FishSpecies> tempListOfFishers = e.NewItems.OfType<FishSpecies>().ToList();
-                        _editSuccess= Specieses.Update(tempListOfFishers[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        _editSuccess = Specieses.Update(tempListOfFishers[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }

@@ -98,12 +98,15 @@ namespace NSAP_ODK.Entities
 
             _fileName = $"{_folderSaveLocation}\\nsap_region_select.csv";
             result += await GenerateNSAPRegionsCSV();
+            FilesCount++;
 
             _fileName = $"{_folderSaveLocation}\\landingsite_fishinggrounds.csv";
             result += await GenerateLandingSiteFishingGroundsCSV();
+            FilesCount++;
 
             _fileName = $"{_folderSaveLocation}\\landingsite_carrierlandings.csv";
             result += await GenerateCarrierLandingsLandingSites();
+            FilesCount++;
 
 
             Dictionary<FisheriesSector, string> filePaths = new Dictionary<FisheriesSector, string>();
@@ -288,7 +291,7 @@ namespace NSAP_ODK.Entities
                     }
 
                     await LogAsync(sb.ToString(), fileName);
-
+                    //FilesCount++;
                     break;
                 case FisheriesSector.Commercial:
                     sb = new StringBuilder("sector_key,name_key,label_key,region_key\r\n");
@@ -306,7 +309,7 @@ namespace NSAP_ODK.Entities
 
 
                     await LogAsync(sb.ToString(), fileName);
-
+                    //FilesCount++;
                     break;
             }
             return counter;

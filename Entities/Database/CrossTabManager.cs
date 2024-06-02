@@ -28,6 +28,8 @@ namespace NSAP_ODK.Entities.Database
 
         private static DataTable _dailyCarrierLandingsDataTable;
         private static DataTable _dailyCarrierCatchCompositionTable;
+        private static DataTable _dailyCarrierLenFreqTable;
+        private static DataTable _dailyCarrierLengthTable;
         private static DataTable _dailyCarrierMaturityTable;
         private static DataTable _dailyCarrierLengthWeightsDataTable;
 
@@ -138,6 +140,7 @@ namespace NSAP_ODK.Entities.Database
                             GutContent = cm.GutContentClassification,
                             GonadWeight = cm.GonadWeight,
                             WeightUnit = vc.WeighingUnit,
+                            GutContentWeight = cm.WeightGutContent
                         };
                         _crossTabMaturities.Add(ctm);
                     }
@@ -146,6 +149,8 @@ namespace NSAP_ODK.Entities.Database
             }
             BuildDailyCarrierLandingsDataTable();
             BuildDailyCarrierCatchCompositionDataTable();
+            BuildDailyCarrierLenFreqDataTable();
+            BuildDailyCarrierLengthDataTable();
             BuildDailyCarrierLengthWeightDataTable();
             BuildDailyCarrierMaturityDataTable();
             return 0;
@@ -522,6 +527,9 @@ namespace NSAP_ODK.Entities.Database
             dc = new DataColumn { ColumnName = "Gut content category", DataType = typeof(string) };
             _dailyCarrierMaturityTable.Columns.Add(dc);
 
+            dc = new DataColumn { ColumnName = "Gut content weight", DataType = typeof(double) };
+            _dailyCarrierMaturityTable.Columns.Add(dc);
+
             int seq = 1;
             foreach (var item in _crossTabMaturities)
             {
@@ -585,12 +593,146 @@ namespace NSAP_ODK.Entities.Database
                 }
 
                 row["Gut content category"] = item.GutContent;
-
+                if (item.GutContentWeight == null)
+                {
+                    row["Gut content weight"] = DBNull.Value;
+                }
+                else
+                {
+                    row["Gut content weight"] = item.GutContentWeight;
+                }
                 _dailyCarrierMaturityTable.Rows.Add(row);
                 seq++;
             }
         }
 
+        private static void BuildDailyCarrierLenFreqDataTable()
+        {
+            _dailyCarrierLenFreqTable = new DataTable();
+
+            DataColumn dc = new DataColumn { ColumnName = "Sequence", DataType = typeof(int) };
+            _dailyCarrierLenFreqTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Sampling date", DataType = typeof(string) };
+            _dailyCarrierLenFreqTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Landing site", DataType = typeof(string) };
+            _dailyCarrierLenFreqTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Carrier name", DataType = typeof(string) };
+            _dailyCarrierLenFreqTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Fishing grounds", DataType = typeof(string) };
+            _dailyCarrierLenFreqTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Catcher boats", DataType = typeof(string) };
+            _dailyCarrierLenFreqTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Weight of landed catch", DataType = typeof(double) };
+            _dailyCarrierLenFreqTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Count species in catch", DataType = typeof(int) };
+            _dailyCarrierLenFreqTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Species name", DataType = typeof(string) };
+            _dailyCarrierLenFreqTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Species weight", DataType = typeof(double) };
+            _dailyCarrierLenFreqTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Length", DataType = typeof(double) };
+            _dailyCarrierLenFreqTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Frequency", DataType = typeof(double) };
+            _dailyCarrierLenFreqTable.Columns.Add(dc);
+
+            int seq = 1;
+            foreach (var item in _crossTabLenFreqs)
+            {
+                var row = _dailyCarrierLenFreqTable.NewRow();
+                row["Sequence"] = seq;
+                row["Sampling date"] = item.CrossTabCarrierLandingVesselCatchCommon.CrossTabCarrierLandingCommon.SamplingDate.ToString("MMM-dd-yyyy");
+                row["Landing site"] = item.CrossTabCarrierLandingVesselCatchCommon.CrossTabCarrierLandingCommon.LandingSite.ToString();
+                row["Carrier name"] = item.CrossTabCarrierLandingVesselCatchCommon.CrossTabCarrierLandingCommon.CarrierLanding.CarrierName;
+                row["Fishing grounds"] = item.CrossTabCarrierLandingVesselCatchCommon.CrossTabCarrierLandingCommon.FishingGroundNames;
+                row["Catcher boats"] = item.CrossTabCarrierLandingVesselCatchCommon.CrossTabCarrierLandingCommon.CatcherBoatNames;
+                if (item.CrossTabCarrierLandingVesselCatchCommon.CrossTabCarrierLandingCommon.WeightOfCatch == null)
+                {
+                    row["Weight of landed catch"] = DBNull.Value;
+                }
+                else
+                {
+                    row["Weight of landed catch"] = item.CrossTabCarrierLandingVesselCatchCommon.CrossTabCarrierLandingCommon.WeightOfCatch;
+                }
+
+                row["Count species in catch"] = item.CrossTabCarrierLandingVesselCatchCommon.CrossTabCarrierLandingCommon.NumberOfSpeciesInCatch;
+                row["Species name"] = item.CrossTabCarrierLandingVesselCatchCommon.CatchName;
+                row["Length"] = item.Length;
+                row["Frequency"] = item.Freq;
+                _dailyCarrierLenFreqTable.Rows.Add(row);
+                seq++;
+            }
+        }
+        private static void BuildDailyCarrierLengthDataTable()
+        {
+            _dailyCarrierLengthTable = new DataTable();
+            DataColumn dc = new DataColumn { ColumnName = "Sequence", DataType = typeof(int) };
+            _dailyCarrierLengthTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Sampling date", DataType = typeof(string) };
+            _dailyCarrierLengthTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Landing site", DataType = typeof(string) };
+            _dailyCarrierLengthTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Carrier name", DataType = typeof(string) };
+            _dailyCarrierLengthTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Fishing grounds", DataType = typeof(string) };
+            _dailyCarrierLengthTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Catcher boats", DataType = typeof(string) };
+            _dailyCarrierLengthTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Weight of landed catch", DataType = typeof(double) };
+            _dailyCarrierLengthTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Count species in catch", DataType = typeof(int) };
+            _dailyCarrierLengthTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Species name", DataType = typeof(string) };
+            _dailyCarrierLengthTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Length", DataType = typeof(double) };
+            _dailyCarrierLengthTable.Columns.Add(dc);
+
+
+            int seq = 1;
+            foreach (var item in _crossTabLengths)
+            {
+                var row = _dailyCarrierLengthTable.NewRow();
+                row["Sequence"] = seq;
+                row["Sampling date"] = item.CrossTabCarrierLandingVesselCatchCommon.CrossTabCarrierLandingCommon.SamplingDate.ToString("MMM-dd-yyyy");
+                row["Landing site"] = item.CrossTabCarrierLandingVesselCatchCommon.CrossTabCarrierLandingCommon.LandingSite.ToString();
+                row["Carrier name"] = item.CrossTabCarrierLandingVesselCatchCommon.CrossTabCarrierLandingCommon.CarrierLanding.CarrierName;
+                row["Fishing grounds"] = item.CrossTabCarrierLandingVesselCatchCommon.CrossTabCarrierLandingCommon.FishingGroundNames;
+                row["Catcher boats"] = item.CrossTabCarrierLandingVesselCatchCommon.CrossTabCarrierLandingCommon.CatcherBoatNames;
+                if (item.CrossTabCarrierLandingVesselCatchCommon.CrossTabCarrierLandingCommon.WeightOfCatch == null)
+                {
+                    row["Weight of landed catch"] = DBNull.Value;
+                }
+                else
+                {
+                    row["Weight of landed catch"] = item.CrossTabCarrierLandingVesselCatchCommon.CrossTabCarrierLandingCommon.WeightOfCatch;
+                }
+
+                row["Count species in catch"] = item.CrossTabCarrierLandingVesselCatchCommon.CrossTabCarrierLandingCommon.NumberOfSpeciesInCatch;
+                row["Species name"] = item.CrossTabCarrierLandingVesselCatchCommon.CatchName;
+                row["Length"] = item.Length;
+                _dailyCarrierLengthTable.Rows.Add(row);
+                seq++;
+            }
+        }
         private static void BuildDailyCarrierCatchCompositionDataTable()
         {
             _dailyCarrierCatchCompositionTable = new DataTable();
@@ -950,11 +1092,12 @@ namespace NSAP_ODK.Entities.Database
 
                 foreach (var ve in ctcp.VesselUnload_FishingGear.VesselUnload_Gear_Specs_ViewModel.VesselUnload_Gear_SpecCollection.ToList())
                 {
+                    string spec_name = "";
                     try
                     {
                         if (ve.EffortSpecification != null)
                         {
-                            string spec_name = ve.EffortSpecification.Name.Replace("/", " or ");
+                            spec_name = ve.EffortSpecification.Name.Replace("/", " or ");
 
                             switch (ve.EffortSpecification.ValueType)
                             {
@@ -968,7 +1111,7 @@ namespace NSAP_ODK.Entities.Database
                                     break;
                                 case ODKValueType.isInteger:
 
-                                    row[spec_name] = double.Parse(ve.EffortValue);
+                                    row[spec_name] = int.Parse(ve.EffortValue);
                                     break;
                                 case ODKValueType.isText:
                                 case ODKValueType.isUndefined:
@@ -980,7 +1123,21 @@ namespace NSAP_ODK.Entities.Database
                     }
                     catch (System.FormatException)
                     {
-                        row[ve.EffortSpecification.Name] = DBNull.Value;
+                        if (ve.EffortValue.Length > 0 && ve.EffortSpecification.ValueType == ODKValueType.isInteger)
+                        {
+                            if (double.TryParse(ve.EffortValue, out double r))
+                            {
+                                row[spec_name] = (int)r;
+                            }
+                            else
+                            {
+                                row[spec_name] = DBNull.Value;
+                            }
+                        }
+                        else
+                        {
+                            row[spec_name] = DBNull.Value;
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -1348,11 +1505,12 @@ namespace NSAP_ODK.Entities.Database
 
                 foreach (var ve in ctcp.VesselUnload_FishingGear.VesselUnload_Gear_Specs_ViewModel.VesselUnload_Gear_SpecCollection.ToList())
                 {
+                    string spec_name = "";
                     try
                     {
                         if (ve.EffortSpecification != null)
                         {
-                            string spec_name = ve.EffortSpecification.Name.Replace("/", " or ");
+                            spec_name = ve.EffortSpecification.Name.Replace("/", " or ");
                             switch (ve.EffortSpecification.ValueType)
                             {
                                 case ODKValueType.isBoolean:
@@ -1373,7 +1531,22 @@ namespace NSAP_ODK.Entities.Database
                     }
                     catch (FormatException)
                     {
-                        row[ve.EffortSpecification.Name] = DBNull.Value;
+                        //row[ve.EffortSpecification.Name] = DBNull.Value;
+                        if (ve.EffortValue.Length > 0 && ve.EffortSpecification.ValueType == ODKValueType.isInteger)
+                        {
+                            if(double.TryParse(ve.EffortValue,out double r))
+                            {
+                                row[spec_name] = (int)r;
+                            }
+                            else
+                            {
+                                row[spec_name] = DBNull.Value;
+                            }
+                        }
+                        else
+                        {
+                            row[spec_name] = DBNull.Value;
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -1387,6 +1560,7 @@ namespace NSAP_ODK.Entities.Database
 
         }
 
+
         public static List<CrossTabLengthWeight> CrossTabLengthWeights { get { return _crossTabLenWts; } }
         public static List<CrossTabLength> CrossTabLengths { get { return _crossTabLengths; } }
         public static List<CrossTabMaturity> CrossTabMaturities { get { return _crossTabMaturities; } }
@@ -1397,6 +1571,10 @@ namespace NSAP_ODK.Entities.Database
 
         public static DataTable DataTableCarrierCatchComposition { get { return _dailyCarrierCatchCompositionTable; } }
         public static DataTable DataTableCarrierLengthWeigths { get { return _dailyCarrierLengthWeightsDataTable; } }
+
+        public static DataTable DataTableCarrierLengths { get { return _dailyCarrierLengthTable; } }
+
+        public static DataTable DataTableCarrierLengthFreq { get { return _dailyCarrierLenFreqTable; } }
         public static DataTable CrossTabDailyLandings { get { return _dailyLandingDataTable; } }
         public static DataTable CrossTabEfforts { get { return _effortSpeciesCrostabDataTable; } }
 
@@ -1417,12 +1595,16 @@ namespace NSAP_ODK.Entities.Database
                         _dailyCarrierLandingsDataTable.TableName = "Carrier landings";
                         _dailyCarrierCatchCompositionTable.TableName = "Catch composition";
                         _dailyCarrierLengthWeightsDataTable.TableName = "Length weight";
+                        _dailyCarrierLenFreqTable.TableName = "Length frequency";
+                        _dailyCarrierLengthTable.TableName = "Length";
                         _dailyCarrierMaturityTable.TableName = "Maturity";
 
 
                         _crossTabDataSet.Tables.Add(_dailyCarrierLandingsDataTable);
                         _crossTabDataSet.Tables.Add(_dailyCarrierCatchCompositionTable);
                         _crossTabDataSet.Tables.Add(_dailyCarrierLengthWeightsDataTable);
+                        _crossTabDataSet.Tables.Add(_dailyCarrierLenFreqTable);
+                        _crossTabDataSet.Tables.Add(_dailyCarrierLengthTable);
                         _crossTabDataSet.Tables.Add(_dailyCarrierMaturityTable);
                     }
                     else

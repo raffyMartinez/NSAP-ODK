@@ -101,6 +101,8 @@ namespace NSAP_ODK.Entities
         public static VesselSelectViewModel VesselSelectViewModel;
         public static FMASelectViewModel FMASelectViewModel;
         public static SamplingDaySubmissionViewModel SamplingDaySubmissionViewModel;
+
+        public static FishingCalendarDayExViewModel FishingCalendarDayExViewModel;
         //public static TotalWtSpViewModel TotalWtSpViewModel;
 
 

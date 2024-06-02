@@ -55,18 +55,18 @@ namespace NSAP_ODK.Entities.Database
             GPSCount = NSAPEntities.GPSViewModel.Count;
             //TrackedOperationsCount = VesselUnloadViewModel.CountVesselUnload(isTracked: true);
             TrackedOperationsCount = NSAPEntities.SummaryItemViewModel.CountTrackedLandings;
-            
+
             if (Global.CommandArgs?.Count() > 0)
             {
                 switch (Global.CommandArgs[0])
                 {
                     case "filtered":
                         FilterType = "Filter by date";
-                        if(!string.IsNullOrEmpty( Global.Settings.DbFilter))
+                        if (!string.IsNullOrEmpty(Global.Settings.DbFilter))
                         {
                             Filter = Global.Settings.DbFilter;
                         }
-                       else
+                        else
                         {
                             Filter = Global.Filter1DateString();
                         }
@@ -75,11 +75,26 @@ namespace NSAP_ODK.Entities.Database
                         FilterType = "Filter by server";
                         Filter = Global.FilterServerID;
                         break;
+                    default:
+                        if (Global.Filter1 != null)
+                        {
+                            FilterType = "Filter by date";
+                            if (Global.Filter2 != null)
+                            {
+
+                            }
+                            else
+                            {
+
+                                Filter = Global.Filter1DateString();
+                            }
+                        }
+                        break;
                 }
 
                 CountAllLandings = VesselUnloadRepository.GetTotalSavedLandingsCount();
             }
-            
+
             if (VesselUnloadCount > 0)
             {
                 //VesselUnloadSummary vs = VesselUnloadViewModel.GetSummary();
@@ -121,7 +136,7 @@ namespace NSAP_ODK.Entities.Database
         }
         public int CountMonths { get; set; }
         public int CountCarrierSamplings { get; set; }
-        public int CountLandingSites { get; set; }  
+        public int CountLandingSites { get; set; }
         public int CountCarrierBoats { get; set; }
         [ReadOnly(true)]
         public int CountAllLandings { get; set; }
@@ -246,14 +261,14 @@ namespace NSAP_ODK.Entities.Database
         public string MonthSampled { get; set; }
 
         public DateTime SampledMonth { get; set; }
-        public string SampledMonthString 
-        { 
+        public string SampledMonthString
+        {
             get
             {
                 return SampledMonth.ToString("MMMM, yyyy");
             }
-                
-                }
+
+        }
         public string SavedJSONFolder { get; set; }
 
         public int SavedFishingEffortJSONCount { get; set; }

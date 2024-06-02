@@ -45,7 +45,11 @@ namespace NSAP_ODK.Entities.Database
                 {
                     landingsite_names.Add(lss.LandingSiteName);
                 }
-                if (lss.CarrierLandingViewModel == null)
+                //if (lss.CarrierLandingViewModel == null)
+                //{
+                //    lss.CarrierLandingViewModel = new CarrierLandingViewModel(lss);
+                //}
+                if(lss.CarrierLandingViewModel==null || lss.CarrierLandingViewModel.CarrierLandingCollection==null)
                 {
                     lss.CarrierLandingViewModel = new CarrierLandingViewModel(lss);
                 }
@@ -58,14 +62,16 @@ namespace NSAP_ODK.Entities.Database
                     }
                 }
             }
-            dbs.CountMonths = month_names.Count();
-            dbs.CountLandingSites = landingsite_names.Count;
-            dbs.CountCarrierBoats = carrier_names.Count();
-            dbs.FirstSampledLandingDate = list_cbl.Min(t => t.SamplingDate);
-            dbs.LastSampledLandingDate = list_cbl.Max(t => t.SamplingDate);
-            dbs.FirstLandingFormattedDate = dbs.FirstSampledLandingDate.ToString("MMM dd, yyyy");
-            dbs.LastLandingFormattedDate = dbs.LastSampledLandingDate.ToString("MMM dd, yyyy");
-
+            if (list_cbl.Count > 0)
+            {
+                dbs.CountMonths = month_names.Count();
+                dbs.CountLandingSites = landingsite_names.Count;
+                dbs.CountCarrierBoats = carrier_names.Count();
+                dbs.FirstSampledLandingDate = list_cbl.Min(t => t.SamplingDate);
+                dbs.LastSampledLandingDate = list_cbl.Max(t => t.SamplingDate);
+                dbs.FirstLandingFormattedDate = dbs.FirstSampledLandingDate.ToString("MMM dd, yyyy");
+                dbs.LastLandingFormattedDate = dbs.LastSampledLandingDate.ToString("MMM dd, yyyy");
+            }
             return dbs;
         }
         public List<SummaryResults> GetCarrierLandingsSummary(LandingSite ls)
@@ -101,6 +107,7 @@ namespace NSAP_ODK.Entities.Database
                         }
                     }
                 }
+
                 dbs.CountCarrierBoats = carrier_names.Count();
                 dbs.FirstSampledLandingDate = group.Min(t => t.SamplingDate);
                 dbs.LastSampledLandingDate = group.Max(t => t.SamplingDate);
@@ -108,7 +115,7 @@ namespace NSAP_ODK.Entities.Database
                 dbs.LastLandingFormattedDate = dbs.LastSampledLandingDate.ToString("MMM dd, yyyy");
                 sr.DBSummary = dbs;
                 sr.Sequence = ++counter;
-                results.Add(sr); ;
+                results.Add(sr);
             }
             return results;
         }
@@ -139,8 +146,6 @@ namespace NSAP_ODK.Entities.Database
                 foreach (var pair in submissionPairs)
                 {
                     var item = LandingSiteSamplingCollection.FirstOrDefault(t => t.Submission_id == pair._id);
-                    //var item = LandingSiteSamplingCollection.FirstOrDefault(t => t.RowID == pair._uuid);
-                    //LandingSiteSamplingCollection.FirstOrDefault(t => t.Submission_id == pair._id).FoundInServer = true;
                     try
                     {
                         item.FoundInServer = true;
@@ -586,6 +591,7 @@ namespace NSAP_ODK.Entities.Database
             List<LandingSiteSampling> samplings = new List<LandingSiteSampling>();
 
             samplings = LandingSiteSamplingCollection.Where(t => t.LandingSiteID != null &&
+                                                                 t.LandingSiteTypeOfSampling=="rs" &&   
                                                                  t.FMAID == ols.FMA.FMAID &&
                                                                  t.FishingGround.Code == ols.FishingGround.Code &&
                                                                  t.LandingSite.LandingSiteID == replacement.LandingSiteID &&

@@ -14,7 +14,20 @@ namespace NSAP_ODK.Entities.Database
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-
+        public bool DeleteAllInCollection()
+        {
+            int deleteCount = 0;
+            int collectionCount = CatchMaturityCollection.Count;
+            foreach (var item in CatchMaturityCollection.ToList())
+            {
+                if (DeleteRecordFromRepo(item.PK))
+                {
+                    deleteCount++;
+                }
+            }
+            Dispose();
+            return deleteCount == collectionCount;
+        }
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
@@ -242,14 +255,14 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if (CatchMaturityCollection.Count == 0)
-                {
-                    return 1;
-                }
-                else
-                {
-                    return CatchMaturities.MaxRecordNumber() + 1;
-                }
+                //if (CatchMaturityCollection.Count == 0)
+                //{
+                //    return 1;
+                //}
+                //else
+                //{
+                return CatchMaturities.MaxRecordNumber() + 1;
+                //}
             }
         }
 

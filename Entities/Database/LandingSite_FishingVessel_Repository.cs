@@ -19,7 +19,7 @@ namespace NSAP_ODK.Entities.Database
             LandingSite_FishingVessels = getLandingSite_FishingVessels(ls);
         }
 
-        public bool RemoveFishingVessel(LandingSite_FishingVessel lsfv,DateTime dateRemoved)
+        public bool RemoveFishingVessel(LandingSite_FishingVessel lsfv, DateTime dateRemoved)
         {
             bool success = false;
             if (Global.Settings.UsemySQL)
@@ -108,7 +108,11 @@ namespace NSAP_ODK.Entities.Database
                         try
                         {
                             con.Open();
-                            maxRecordNumber = (int)cmd.ExecuteScalar();
+                            var r = cmd.ExecuteScalar();
+                            if (r != DBNull.Value)
+                            {
+                                maxRecordNumber = (int)r;
+                            }
 
                         }
                         catch (Exception ex)
@@ -308,7 +312,7 @@ namespace NSAP_ODK.Entities.Database
                             while (dr.Read())
                             {
                                 DateTime? removed = null;
-                                if(dr["date_removed"]!=DBNull.Value)
+                                if (dr["date_removed"] != DBNull.Value)
                                 {
                                     removed = (DateTime)dr["date_removed"];
                                 }

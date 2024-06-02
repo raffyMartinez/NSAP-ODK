@@ -7,6 +7,9 @@ using NSAP_ODK.Entities.Database;
 
 namespace NSAP_ODK.Entities.Database
 {
+    /// <summary>
+    /// Summary item represents a quick view of data of each regular sampling. Data from carrier boat landings are not included here
+    /// </summary>
     public class SummaryItem
     {
         public override bool Equals(object obj)
@@ -146,7 +149,8 @@ namespace NSAP_ODK.Entities.Database
             string gr = Gear != null ? Gear.GearName : GearText;
             string gu_id = $"gu_ID:{GearUnloadID}";
             string s_date = SamplingDayDate == null ? "no sampling" : $"{(DateTime)SamplingDayDate:MMM-dd-yyyy}";
-            return $"{GroupingString} {ID}-{Region.ShortName}-{FMA.Name}-{FishingGround.Name}-{ls}-{gr}-{gu_id}-{s_date}-sector:{SectorCode}";
+            string vu_id = VesselUnloadID == null ? "VUID:x" : $"VUID:{VesselUnloadID}";
+            return $"{GroupingString} {ID}-{Region.ShortName}-{FMA.Name}-{FishingGround.Name}-{ls}-{gr}-{gu_id}-{s_date}-sector:{SectorCode}-{vu_id}";
         }
 
         public string LandingSiteSamplingSubmissionId { get; set; }
@@ -417,9 +421,9 @@ namespace NSAP_ODK.Entities.Database
             {
                 if (_vesselUnload == null)
                 {
-                    if (GearUnload.VesselUnloadViewModel == null || GearUnload.VesselUnloadViewModel.VesselUnloadCollection.Count==0)
+                    if (GearUnload.VesselUnloadViewModel == null || GearUnload.VesselUnloadViewModel.VesselUnloadCollection.Count == 0)
                     {
-                        GearUnload.VesselUnloadViewModel = new VesselUnloadViewModel(GearUnload,updatesubViewModels:true);
+                        GearUnload.VesselUnloadViewModel = new VesselUnloadViewModel(GearUnload, updatesubViewModels: true);
                     }
                     _vesselUnload = GearUnload.VesselUnloadViewModel.VesselUnloadCollection.FirstOrDefault(t => t.PK == VesselUnloadID);
                     if (_vesselUnload != null)

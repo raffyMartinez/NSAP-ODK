@@ -129,7 +129,11 @@ namespace NSAP_ODK.Entities.Database
                     const string sql = "SELECT Max(row_id) AS max_id FROM dbo_vesselunload_fishinggear";
                     using (OleDbCommand getMax = new OleDbCommand(sql, conn))
                     {
-                        max_rec_no = (int)getMax.ExecuteScalar();
+                        var r = getMax.ExecuteScalar();
+                        if (r != DBNull.Value)
+                        {
+                            max_rec_no = (int)r;
+                        }
                     }
                 }
             }
@@ -185,7 +189,16 @@ namespace NSAP_ODK.Entities.Database
                 {
                     conn.Open();
 
-                    var sql = "Insert into dbo_vesselunload_fishinggear(row_id, vessel_unload_id,gear_code,gear_text) Values (?,?,?,?,?,?,?)";
+                    var sql = @"Insert into dbo_vesselunload_fishinggear(
+                                    row_id, 
+                                    vessel_unload_id,
+                                    gear_code,
+                                    gear_text,
+                                    catch_weight,
+                                    sample_weight,
+                                    species_comp_count
+                                    ) 
+                                Values (?,?,?,?,?,?,?)";
                     using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
                         try
@@ -200,14 +213,6 @@ namespace NSAP_ODK.Entities.Database
                             {
                                 update.Parameters.Add("@gear_code", OleDbType.VarChar).Value = item.Gear.Code;
                             }
-                            //if (string.IsNullOrEmpty(item.GearCode))
-                            //{
-                            //    update.Parameters.Add("@gear_code", OleDbType.VarChar).Value = DBNull.Value;
-                            //}
-                            //else
-                            //{
-                            //    update.Parameters.Add("@gear_code", OleDbType.VarChar).Value = item.GearCode;
-                            //}
                             if (string.IsNullOrEmpty(item.GearText))
                             {
                                 update.Parameters.Add("@gear_text", OleDbType.VarChar).Value = DBNull.Value;
@@ -234,7 +239,14 @@ namespace NSAP_ODK.Entities.Database
                             {
                                 update.Parameters.Add("@wt_sample", OleDbType.Double).Value = DBNull.Value;
                             }
-
+                            if (item.CountItemsInCatchComposition == null)
+                            {
+                                update.Parameters.Add("@count_species", OleDbType.Integer).Value = DBNull.Value;
+                            }
+                            else
+                            {
+                                update.Parameters.Add("@count_species", OleDbType.Integer).Value = item.CountItemsInCatchComposition;
+                            }
 
                             try
                             {
@@ -327,20 +339,20 @@ namespace NSAP_ODK.Entities.Database
                         update.Parameters.Add("@unload_id", OleDbType.Integer).Value = item.Parent.PK;
                         if (item.Gear == null)
                         {
-                            update.Parameters.Add("@gear_code", OleDbType.Double).Value = DBNull.Value;
+                            update.Parameters.Add("@gear_code", OleDbType.VarChar).Value = DBNull.Value;
                         }
                         else
                         {
-                            update.Parameters.Add("@gear_code", OleDbType.Double).Value = item.Gear.Code;
+                            update.Parameters.Add("@gear_code", OleDbType.VarChar).Value = item.Gear.Code;
                         }
 
                         if (string.IsNullOrEmpty(item.GearText))
                         {
-                            update.Parameters.Add("@gear_text", OleDbType.Double).Value = DBNull.Value;
+                            update.Parameters.Add("@gear_text", OleDbType.VarChar).Value = DBNull.Value;
                         }
                         else
                         {
-                            update.Parameters.Add("@gear_text", OleDbType.Double).Value = item.GearText;
+                            update.Parameters.Add("@gear_text", OleDbType.VarChar).Value = item.GearText;
                         }
 
                         if (item.WeightOfCatch != null)
@@ -360,15 +372,24 @@ namespace NSAP_ODK.Entities.Database
                         {
                             update.Parameters.Add("@wt_sample", OleDbType.Double).Value = DBNull.Value;
                         }
+                        if (item.CountItemsInCatchComposition == null)
+                        {
+                            update.Parameters.Add("@count_species", OleDbType.Integer).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@count_species", OleDbType.Integer).Value = item.CountItemsInCatchComposition;
+                        }
 
                         update.Parameters.Add("@id", OleDbType.Integer).Value = item.RowID;
 
                         update.CommandText = @"Update dbo_vesselunload_fishinggear set
-                                            v_unload_id=@unload_id,
+                                            vessel_unload_id=@unload_id,
                                             gear_code = @gear_code,
                                             gear_text = @gear_text,
                                             catch_weight = @wt_catch,
-                                            sample_weight = @wt_sample
+                                            sample_weight = @wt_sample,
+                                            species_comp_count = @count_species
                                         WHERE row_id = @id";
 
                         try
@@ -409,6 +430,45 @@ namespace NSAP_ODK.Entities.Database
                         try
                         {
                             success = update.ExecuteNonQuery() > 0;
+                            int result = 0;
+                            if (success)
+                            {
+                                success = false;
+
+                                using (OleDbCommand upd1 = conn.CreateCommand())
+                                {
+                                    upd1.Parameters.Add("@unload_gear_id", OleDbType.Integer).Value = id;
+                                    upd1.CommandText = "Delete * from dbo_vessel_unload_stats where unload_gear=@id";
+
+                                    try
+                                    {
+                                        result = upd1.ExecuteNonQuery();
+                                        success = true;
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Logger.Log(ex);
+                                    }
+                                }
+                            }
+                            if (success)
+                            {
+                                result = 0;
+                                using (OleDbCommand upd2 = conn.CreateCommand())
+                                {
+                                    upd2.Parameters.Add("@id", OleDbType.Integer).Value = id;
+                                    upd2.CommandText = "Delete * from dbo_vessel_unload_weight_validation where unload_gear=@id";
+                                    try
+                                    {
+                                        result = upd2.ExecuteNonQuery();
+                                        success = true;
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Logger.Log(ex);
+                                    }
+                                }
+                            }
                         }
                         catch (OleDbException)
                         {

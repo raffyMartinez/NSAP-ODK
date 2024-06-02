@@ -33,14 +33,16 @@ namespace NSAP_ODK.Entities.Database
                 UnmatchedFieldsFromJSONFileRepository.CheckTableExist() &&
                 CarrierLandingRepository.CheckTableExist() &&
                 CarrierBoatLanding_FishingGroundRepository.CheckTableExist() &&
-                CatcherBoatOperationRepository.CheckTableExist()
-                ) //&&
-                  //LandingSiteFishingGroundRepository.CheckForLandingSiteFishingGroundTable()
-                  //)
+                CatcherBoatOperationRepository.CheckTableExist() &&
+                VesselUnload_FishingGearRepository.CheckTableExists() &&
+                LandingSite_FishingVessel_Repository.CheckTableExists())
+            //LandingSiteFishingGroundRepository.CheckForLandingSiteFishingGroundTable()
+            //  )
             {
                 var cols = CreateTablesInAccess.GetColumnNames("dbo_LC_FG_sample_day");
                 if (cols.Contains("type_of_sampling") || UpdateTableDefinition("type_of_sampling"))
                 {
+                    //proceed = true;
                     proceed = cols.Contains("has_fishing_operation") || UpdateTableDefinition("has_fishing_operation") &&
                      UpdateHasFishingOperationField();
                 }
@@ -66,6 +68,8 @@ namespace NSAP_ODK.Entities.Database
                                                     if (cols.Contains("count_carrier_landings") || UpdateTableDefinition("count_carrier_landings"))
                                                     {
                                                         proceed = cols.Contains("count_carrier_sampling") || UpdateTableDefinition("count_carrier_sampling");
+
+
                                                     }
                                                 }
                                             }
@@ -74,6 +78,12 @@ namespace NSAP_ODK.Entities.Database
                                 }
                             }
                         }
+                    }
+
+                    //delete has_fishing_operation field
+                    if (cols.Contains("has_fishing_operation"))
+                    {
+                        DeleteField("has_fishing_operation");
                     }
 
                     if (proceed)
@@ -255,15 +265,15 @@ namespace NSAP_ODK.Entities.Database
                             cols = CreateTablesInAccess.GetColumnNames("dbo_catch_maturity");
                             proceed = cols.Contains("gonadWt") || CatchMaturityRepository.AddFieldToTable("gonadWt");
                         }
-                        if (proceed)
-                        {
-                            proceed = VesselUnload_FishingGearRepository.CheckTableExists();
-                        }
+                        //if (proceed)
+                        //{
+                        //    proceed = VesselUnload_FishingGearRepository.CheckTableExists();
+                        //}
 
-                        if (proceed)
-                        {
-                            proceed = LandingSite_FishingVessel_Repository.CheckTableExists();
-                        }
+                        //if (proceed)
+                        //{
+                        //    proceed = LandingSite_FishingVessel_Repository.CheckTableExists();
+                        //}
 
                         if (proceed)
                         {
@@ -676,10 +686,10 @@ namespace NSAP_ODK.Entities.Database
                                     }
 
                                     item.LandingSiteTypeOfSampling = dr["type_of_sampling"].ToString();
-                                    
+
                                     if (item.LandingSiteTypeOfSampling == "cbl")
                                     {
-                                        if (dr["count_carrier_landings"]!=DBNull.Value)
+                                        if (dr["count_carrier_landings"] != DBNull.Value)
                                         {
                                             item.CountCarrierLandings = (int)dr["count_carrier_landings"];
                                         }
@@ -809,7 +819,8 @@ namespace NSAP_ODK.Entities.Database
                 cmd.CommandText = sql;
                 try
                 {
-                    success = cmd.ExecuteNonQuery() > 0;
+                    cmd.ExecuteNonQuery();
+                    success = true;
 
                 }
                 catch (Exception ex)
@@ -821,6 +832,35 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
 
+        }
+
+        private static bool DeleteField(string colName)
+        {
+            bool success = false;
+            using (var conn = new OleDbConnection(Global.ConnectionString))
+            {
+                conn.Open();
+                var sql = $"ALTER TABLE dbo_LC_FG_sample_day_1 DROP COLUMN {colName}";
+
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = sql;
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        success = true;
+                    }
+                    catch (OleDbException dbex)
+                    {
+                        Logger.Log(dbex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
         }
         private static bool UpdateTableDefinition(string colName)
         {
@@ -856,6 +896,8 @@ namespace NSAP_ODK.Entities.Database
                         sql = $@"ALTER TABLE dbo_LC_FG_sample_day ADD COLUMN {colName} VARCHAR(3)";
                         break;
                     case "has_fishing_operation":
+                        sql = $@"ALTER TABLE dbo_LC_FG_sample_day ADD COLUMN {colName} YESNO";
+                        break;
                     case "can_sample_from_catch_composition":
                     case "is_multivessel":
                         sql = $@"ALTER TABLE dbo_LC_FG_sample_day_1 ADD COLUMN {colName} YESNO";

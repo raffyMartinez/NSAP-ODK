@@ -48,7 +48,7 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
-        public CatchLenWeightRepository(bool isNew=false)
+        public CatchLenWeightRepository(bool isNew = false)
         {
             if (!isNew)
             {
@@ -78,7 +78,11 @@ namespace NSAP_ODK.Entities.Database
                     const string sql = "SELECT Max(catch_len_wt_id) AS max_id FROM dbo_catch_len_wt";
                     using (OleDbCommand getMax = new OleDbCommand(sql, conn))
                     {
-                        max_rec_no = (int)getMax.ExecuteScalar();
+                        var r = getMax.ExecuteScalar();
+                        if (r != DBNull.Value)
+                        {
+                            max_rec_no = (int)r;
+                        }
                     }
                 }
             }
@@ -213,7 +217,14 @@ namespace NSAP_ODK.Entities.Database
                         update.Parameters.Add("@catch_id", OleDbType.Integer).Value = item.Parent.PK;
                         update.Parameters.Add("@length", OleDbType.Double).Value = item.Length;
                         update.Parameters.Add("@weight", OleDbType.Double).Value = item.Weight;
-                        update.Parameters.Add("@sex", OleDbType.VarChar).Value = item.Sex;
+                        if (item.Sex == null)
+                        {
+                               update.Parameters.Add("@sex", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@sex", OleDbType.VarChar).Value = item.Sex;
+                        }
                         try
                         {
                             success = update.ExecuteNonQuery() > 0;
@@ -286,7 +297,14 @@ namespace NSAP_ODK.Entities.Database
                         update.Parameters.Add("@catch_id", OleDbType.Integer).Value = item.Parent.PK;
                         update.Parameters.Add("@length", OleDbType.Double).Value = item.Length;
                         update.Parameters.Add("@weight", OleDbType.Double).Value = item.Weight;
-                        update.Parameters.Add("@sex", OleDbType.VarChar).Value = item.Sex;
+                        if (item.Sex == null)
+                        {
+                               update.Parameters.Add("@sex", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@sex", OleDbType.VarChar).Value = item.Sex;
+                        }
                         update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
 
                         update.CommandText = @"Update dbo_catch_len_wt set
@@ -314,7 +332,7 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
-        public static bool ClearTable(string otherConnectionString="")
+        public static bool ClearTable(string otherConnectionString = "")
         {
             bool success = false;
             string con_string = Global.ConnectionString;

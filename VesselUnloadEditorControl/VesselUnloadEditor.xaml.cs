@@ -20,6 +20,7 @@ using Xceed.Wpf.Toolkit.PropertyGrid;
 using System.Collections.ObjectModel;
 using NSAP_ODK.Views;
 using System.Diagnostics;
+using System.Data.OleDb;
 
 namespace NSAP_ODK.VesselUnloadEditorControl
 {
@@ -30,9 +31,12 @@ namespace NSAP_ODK.VesselUnloadEditorControl
     public partial class VesselUnloadEditor : UserControl
     {
         //public event EventHandler<UnloadEditorEventArgs> TreeViewItemSelected;
+        public event EventHandler<UnloadEditorEventArgs> UnloadChangesSaved;
         public event EventHandler<UnloadEditorEventArgs> ButtonClicked;
-       
-        
+        public event EventHandler<UnloadEditorEventArgs> GridDoubleClicked;
+        public event EventHandler<UnloadEditorEventArgs> DeleteProceed;
+        public event EventHandler UndoEditVesselUnload;
+
         private CatchLenFreq _clf;
         private CatchLenFreqEdited _clf_edited;
         private CatchLengthWeight _clw;
@@ -48,12 +52,12 @@ namespace NSAP_ODK.VesselUnloadEditorControl
         private VesselUnload_Gear_Spec _vu_gs;
         private VesselUnload_Gear_Spec_Edited _vu_gs_edited;
         private VesselUnload_FishingGear _vufg;
-        private VesselCatchEdited _vesselCatchEdited;
+        //private VesselCatchEdited _vesselCatchEdited;
         private VesselUnload_FishingGear_Edited _vufg_edited;
 
         private Window _owner;
         private VesselUnload _vesselUnload;
-        private VesselUnloadEdit _vesselUnloadEdit;
+        //private VesselUnloadEdit _vesselUnloadEdit;
         private VesselUnloadForDisplay _vesselUnloadForDisplay;
         private string _unloadView;
         private bool _editMode;
@@ -63,8 +67,216 @@ namespace NSAP_ODK.VesselUnloadEditorControl
         private Dictionary<string, int> _dictProperties = new Dictionary<string, int>();
         private GridLength _rowButtonHeight;
         private bool _isDone = false;
+        private bool _isEffortView;
+        private VesselCatch _vesselCatch;
 
-        public VesselUnload VesselUnloadEdited { get; set; }
+        //public VesselUnload VesselUnloadEdited { get; set; }
+
+        public void RefreshView()
+        {
+            switch (_unloadView)
+            {
+                case "treeItemVesselUnload":
+                    break;
+                case "treeItemFishingGears":
+                    effortDataGrid.DataContext = _vesselUnload.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection;
+                    break;
+                case "treeItemSoakTime":
+                    effortDataGrid.DataContext = _vesselUnload.GearSoakViewModel.GearSoakCollection;
+                    break;
+                case "treeItemFishingGround":
+                    effortDataGrid.DataContext = _vesselUnload.FishingGroundGridViewModel.FishingGroundGridCollection;
+                    break;
+                case "treeItemEffortDefinition":
+                    //_vesselUnload.ListVesselEffort = null;
+                    //_vesselUnload.ClearListVesselVesselGearSpecs();
+                    effortDataGrid.DataContext = _vesselUnload.ListVesselGearSpec;
+                    break;
+                case "treeItemCatchComposition":
+                    effortDataGrid.DataContext = _vesselUnload.ListVesselCatch;
+                    break;
+                case "treeItemLenFreq":
+                    catchDataGrid.DataContext = VesselCatch.CatchLenFreqViewModel.CatchLenFreqCollection;
+                    break;
+                case "treeItemLenWeight":
+                    catchDataGrid.DataContext = VesselCatch.CatchLengthWeightViewModel.CatchLengthWeightCollection;
+                    break;
+                case "treeItemLenList":
+                    catchDataGrid.DataContext = VesselCatch.CatchLengthViewModel.CatchLengthCollection;
+                    break;
+                case "treeItemMaturity":
+                    catchDataGrid.DataContext = VesselCatch.CatchMaturityViewModel.CatchMaturityCollection;
+                    break;
+            }
+
+            rowPropertyGrid.Height = new GridLength(0);
+            rowDataGrid.Height = new GridLength(1, GridUnitType.Star);
+            if (effortDataGrid.SelectedItems.Count == 1)
+            {
+
+                if (effortDataGrid.Items[0].GetType().Name == "VesselCatch")
+                {
+                    effortDataGrid.SetValue(Grid.ColumnSpanProperty, 1);
+                    catchDataGrid.Visibility = Visibility.Visible;
+
+
+                    labelEffort.SetValue(Grid.ColumnSpanProperty, 1);
+                    labelCatch.Visibility = Visibility.Visible;
+                }
+            }
+
+
+        }
+        private void ResetProperty(string propertyName)
+        {
+            foreach (PropertyItem prp in propertyGrid.Properties)
+            {
+                if (prp.PropertyName == propertyName)
+                {
+                    switch (propertyName)
+                    {
+                        case "WeightOfCatch":
+                            VesselUnloadEdit.WeightOfCatch = VesselUnload.WeightOfCatch;
+                            prp.Value = VesselUnload.WeightOfCatch;
+                            return;
+                        case "CountGearTypesUsed":
+                            VesselUnloadEdit.CountGearTypesUsed = VesselUnload.CountGearTypesUsed;
+                            prp.Value = VesselUnload.CountGearTypesUsed;
+                            return;
+                    }
+                }
+            }
+        }
+        private bool ValidateVesselUnload()
+        {
+            EditorMessage = "";
+            bool success = false;
+
+            if (VesselUnloadEdit.WeightOfCatch != null)
+            {
+                var wtCatchComp = VesselUnload.ListVesselCatch.Sum(t => t.Catch_kg);
+                success = VesselUnloadEdit.WeightOfCatch >= wtCatchComp;
+
+                
+
+                if (!success)
+                {
+                    EditorMessage = $"Weight of catch ({VesselUnloadEdit.WeightOfCatch}) cannot be less than total weight of catch composition ({wtCatchComp})";
+                    ResetProperty("WeightOfCatch");
+                }
+
+                if(success)
+                {
+                    var totalWtGearCatch = VesselUnload.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection.Sum(t => t.WeightOfCatch);
+                    success = VesselUnloadEdit.WeightOfCatch >= totalWtGearCatch;
+
+                    if(!success)
+                    {
+                        EditorMessage = "Weight of catch must not be less than sum of weight of catch of all gears";
+                        ResetProperty("WeightOfCatch");
+                    }
+                }
+
+                if (success && VesselUnload.IsMultiGear)
+                {
+                    var countGears = VesselUnloadEdit.ListUnloadFishingGears.Count;
+                    success = VesselUnloadEdit.CountGearTypesUsed != null && VesselUnloadEdit.CountGearTypesUsed >= countGears;
+                    if (!success)
+                    {
+                        EditorMessage = $"Number of gear types ({VesselUnloadEdit.CountGearTypesUsed}) cannot be less than number of gear types listed ({countGears})";
+                        ResetProperty("CountGearTypesUsed");
+
+                    }
+                }
+            }
+            VesselUnloadHasChangedProperties = !success;
+            return success;
+        }
+        public bool SaveChangesToVesselUnload()
+        {
+            bool success = false;
+
+
+            if (ValidateVesselUnload())
+            {
+                if (VesselUnloadEdit.EnumeratorText?.Length > 0)
+                {
+                    VesselUnload.EnumeratorText = VesselUnloadEdit.EnumeratorText;
+                    VesselUnload.NSAPEnumeratorID = null;
+                }
+                else
+                {
+                    VesselUnload.NSAPEnumeratorID = VesselUnloadEdit.NSAPEnumeratorID;
+                }
+
+                if (VesselUnloadEdit.VesselText?.Length > 0)
+                {
+                    VesselUnload.VesselText = VesselUnloadEdit.VesselText;
+                    VesselUnload.VesselID = null;
+                }
+                else
+                {
+                    VesselUnload.VesselID = VesselUnloadEdit.VesselID;
+                }
+
+                VesselUnload.WeightOfCatch = VesselUnloadEdit.WeightOfCatch;
+                VesselUnload.WeightOfCatchSample = VesselUnloadEdit.WeightOfCatchSample;
+                VesselUnload.IsCatchSold = VesselUnloadEdit.IsCatchSold;
+                VesselUnload.CountGearTypesUsed = VesselUnloadEdit.CountGearTypesUsed;
+                VesselUnload.Boxes = VesselUnloadEdit.Boxes;
+                VesselUnload.BoxesSampled = VesselUnloadEdit.BoxesSampled;
+                VesselUnload.CountGearTypesUsed = VesselUnloadEdit.CountGearTypesUsed;
+                VesselUnload.NumberOfFishers = VesselUnloadEdit.NumberOfFishers;
+
+
+                success = VesselUnload.Parent.VesselUnloadViewModel.UpdateRecordInRepo(VesselUnload);
+                if (success)
+                {
+                    if (NSAPEntities.SummaryItemViewModel.UpdateRecordInRepo(VesselUnload))
+                    {
+                        _vesselUnloadForDisplay = new VesselUnloadForDisplay(_vesselUnload);
+                        VesselUnloadHasChangedProperties = false;
+                        UnloadEditorEventArgs eventArgs = new UnloadEditorEventArgs();
+                        eventArgs.VesselUnload = VesselUnload;
+                        UnloadChangesSaved?.Invoke(this, eventArgs);
+
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show(EditorMessage, Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            return success;
+        }
+
+        public bool IsUnique(object obj)
+        {
+
+            bool unique = true;
+            switch (UnloadView)
+            {
+                case "treeItemEffortDefinition":
+                    VesselUnload_Gear_Spec vugs = obj as VesselUnload_Gear_Spec;
+                    foreach (VesselUnload_Gear_Spec item in effortDataGrid.Items)
+                    {
+                        if (item.Equals(vugs))
+                        {
+                            unique = false;
+                            break;
+                        }
+                    }
+                    break;
+            }
+            return unique;
+        }
+
+        public GearSoakEdited GearSoakEdited { get; set; }
+        public FishingGroundGridEdited FishingGroundGridEdited { get; set; }
+        public VesselUnload_Gear_Spec_Edited VesselUnload_Gear_Spec_Edited { get; set; }
+        public VesselUnload_FishingGear_Edited VesselUnload_FishingGear_Edited { get; set; }
+        public bool VesselUnloadHasChangedProperties { get; private set; }
+        public VesselUnloadEdit VesselUnloadEdit { get; private set; }
         public VesselUnloadEditor()
         {
             if (LicenseManager.UsageMode == LicenseUsageMode.Runtime)
@@ -73,6 +285,7 @@ namespace NSAP_ODK.VesselUnloadEditorControl
             }
             labelEffort.Content = "";
             effortDataGrid.MouseRightButtonDown += EffortDataGrid_MouseRightButtonDown;
+
 
         }
 
@@ -87,7 +300,7 @@ namespace NSAP_ODK.VesselUnloadEditorControl
             foreach (var url in CatchNameURLGenerator.URLS)
             {
 
-                m = new MenuItem { Header = $"Read about {catchName} in {url.Key}", Tag=url.Value};
+                m = new MenuItem { Header = $"Read about {catchName} in {url.Key}", Tag = url.Value };
                 m.Click += OnMenuClicked;
                 cm.Items.Add(m);
             }
@@ -100,10 +313,28 @@ namespace NSAP_ODK.VesselUnloadEditorControl
 
         private void OnMenuClicked(object sender, RoutedEventArgs e)
         {
-            Process.Start( ((MenuItem)sender).Tag.ToString());
+            Process.Start(((MenuItem)sender).Tag.ToString());
         }
 
-        public VesselCatch VesselCatch { get; set; }
+        //public VesselUnload_FishingGear_Edited VesselUnload_FishingGear_Edited { get; set; }
+        public CatchLenFreqEdited CatchLenFreqEdited { get; set; }
+        public CatchLengthWeightEdited CatchLengthWeightEdited { get; set; }
+        public CatchMaturityEdited CatchMaturityEdited { get; set; }
+        public CatchLengthEdited CatchLengthEdited { get; set; }
+        public VesselCatchEdited VesselCatchEdited { get; set; }
+        public VesselCatch VesselCatch
+        {
+            get { return _vesselCatch; }
+            set
+            {
+                _vesselCatch = value;
+                //if(_vesselCatch==null)
+                //{
+                //    Debugger.Break();
+                //}
+            }
+
+        }
         public VesselUnload VesselUnload
         {
             get { return _vesselUnload; }
@@ -111,11 +342,12 @@ namespace NSAP_ODK.VesselUnloadEditorControl
             {
                 _vesselUnload = value;
                 //var clone = _vesselUnload.Clone();
-                _vesselUnloadEdit = new VesselUnloadEdit(_vesselUnload);
+
                 _vesselUnloadForDisplay = new VesselUnloadForDisplay(_vesselUnload);
                 labelCatch.Content = "No selected catch";
 
                 VesselUnloadViewModel.SetUpFishingGearSubModel(_vesselUnload);
+                VesselUnloadEdit = new VesselUnloadEdit(_vesselUnload);
             }
         }
 
@@ -140,7 +372,8 @@ namespace NSAP_ODK.VesselUnloadEditorControl
             if (_editMode)
             {
                 rowButton.Height = _rowButtonHeight;
-                if (_unloadView == "treeItemCatchComposition")
+                //if (_unloadView == "treeItemCatchComposition")
+                if (_unloadView != "treeItemVesselUnload")
                 {
                     buttonAdd.Visibility = Visibility.Visible;
                     buttonEdit.Visibility = Visibility.Visible;
@@ -397,7 +630,7 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Notes", DisplayName = "Notes", DisplayOrder = 23, Description = "Notes", Category = "Effort" });
 
 
-                if (_vesselUnloadEdit.IsMultigear)
+                if (VesselUnloadEdit.IsMultigear)
                 {
                     propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "CountGearTypesUsed", DisplayName = "Number of gears used", DisplayOrder = 22, Description = "Number of gears used in the operation", Category = "Effort" });
                 }
@@ -421,16 +654,17 @@ namespace NSAP_ODK.VesselUnloadEditorControl
 
                 propertyGrid.IsReadOnly = true;
 
+
             }
         }
         private void SetupPropertyGridForEditing()
         {
 
-            propertyGrid.SelectedObject = _vesselUnloadEdit;
+            propertyGrid.SelectedObject = VesselUnloadEdit;
             propertyGrid.NameColumnWidth = 350;
             propertyGrid.AutoGenerateProperties = false;
 
-            if(VesselUnload.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection==null)
+            if (VesselUnload.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection == null)
             {
                 VesselUnload.VesselUnload_FishingGearsViewModel.RefreshCollection();
             }
@@ -448,7 +682,7 @@ namespace NSAP_ODK.VesselUnloadEditorControl
             propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "MainGearName", DisplayName = "Main gear used", DisplayOrder = 7, Description = "Main gear used in fishing operation", Category = "Header" });
 
             propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Identifier", DisplayName = "Database identifier", DisplayOrder = 1, Description = "Database identifier", Category = "Effort" });
-            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SamplingDate", DisplayName = "Sampling date", DisplayOrder = 2, Description = "Date of sampling", Category = "Effort" });
+            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SamplingDateText", DisplayName = "Sampling date", DisplayOrder = 2, Description = "Date of sampling", Category = "Effort" });
             //propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "NSAPRegionEnumeratorID", DisplayName = "Select name of enumerator", DisplayOrder = 3, Description = "Name of enumerator", Category = "Effort" });
             propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "NSAPEnumeratorID", DisplayName = "Select name of enumerator", DisplayOrder = 3, Description = "Name of enumerator", Category = "Effort" });
             propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "EnumeratorText", DisplayName = "Name of enumerator if not found in selection", DisplayOrder = 4, Description = "Type in name of enumerator", Category = "Effort" });
@@ -457,15 +691,17 @@ namespace NSAP_ODK.VesselUnloadEditorControl
             propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "VesselText", DisplayName = "Name of vessel if not found in selection", DisplayOrder = 7, Description = "Type in the name of vessel", Category = "Effort" });
             propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SectorCode", DisplayName = "Fisheries sector", DisplayOrder = 8, Description = "Select fisheris sector", Category = "Effort" });
             propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "OperationIsSuccessful", DisplayName = "This fishing operation is a success", DisplayOrder = 9, Description = "Is this fishing operation a success\r\nThe catch is not zero", Category = "Effort" });
-            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "FishingTripIsCompleted", DisplayName = "This fishing trip is completed", DisplayOrder = 10, Description = "Is this fishing trip a completed\r\nThe trip was not cancelled", Category = "Effort" });
-            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "WeightOfCatch", DisplayName = "Weight of catch", DisplayOrder = 11, Description = "Weight of catch", Category = "Effort" });
-            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "WeightOfCatchSample", DisplayName = "Weight of sample", DisplayOrder = 12, Description = "Weight of sample taken from catch", Category = "Effort" });
-            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Boxes", DisplayName = "Number of boxes", DisplayOrder = 13, Description = "Number of boxes", Category = "Effort" });
-            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "BoxesSampled", DisplayName = "Number of boxes sampled", DisplayOrder = 14, Description = "Number of boxes sampled", Category = "Effort" });
-            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "IsCatchSold", DisplayName = "Is the catch sold", DisplayOrder = 15, Description = "Is the catch sold at the landing site", Category = "Effort" });
-            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "IsMultigear", DisplayName = "Multiple gears can be documented", DisplayOrder = 16, Description = "The sampling is able to document multiple fishing gears used", Category = "Effort" });
+            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "NumberOfFishers", DisplayName = "Number of fishers", DisplayOrder = 10, Description = "Number of fishers on board", Category = "Effort" });
+            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "FishingTripIsCompleted", DisplayName = "This fishing trip is completed", DisplayOrder = 11, Description = "Is this fishing trip a completed\r\nThe trip was not cancelled", Category = "Effort" });
+            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "HasCatchComposition", DisplayName = "Catch composition is included", DisplayOrder = 12, Description = "Catch composition of sampled landing is recorded", Category = "Effort" });
+            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "WeightOfCatch", DisplayName = "Weight of catch", DisplayOrder = 13, Description = "Weight of catch", Category = "Effort" });
+            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "WeightOfCatchSample", DisplayName = "Weight of sample", DisplayOrder = 14, Description = "Weight of sample taken from catch", Category = "Effort" });
+            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Boxes", DisplayName = "Number of boxes", DisplayOrder = 15, Description = "Number of boxes", Category = "Effort" });
+            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "BoxesSampled", DisplayName = "Number of boxes sampled", DisplayOrder = 16, Description = "Number of boxes sampled", Category = "Effort" });
+            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "IsCatchSold", DisplayName = "Is the catch sold", DisplayOrder = 17, Description = "Is the catch sold at the landing site", Category = "Effort" });
+            propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "IsMultigear", DisplayName = "Multiple gears can be documented", DisplayOrder = 18, Description = "The sampling is able to document multiple fishing gears used", Category = "Effort" });
 
-            if (_vesselUnloadEdit.IsMultigear)
+            if (VesselUnloadEdit.IsMultigear)
             {
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "CountGearTypesUsed", DisplayName = "Number of gears used", DisplayOrder = 17, Description = "Number of gears used in the sampled landing", Category = "Effort" });
             }
@@ -498,12 +734,23 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                 }
 
             }
-            _nsapRegion = _vesselUnloadEdit.NSAPRegion;
-            _nsapRegionFMA = _nsapRegion.FMAs.Where(t => t.FMAID == _vesselUnloadEdit.FMAID).FirstOrDefault();
-            _nsapRegionFMAFishingGround = _nsapRegionFMA.FishingGrounds.Where(t => t.FishingGroundCode == _vesselUnloadEdit.FishingGroundCode).FirstOrDefault();
+            _nsapRegion = VesselUnloadEdit.NSAPRegion;
+            _nsapRegionFMA = _nsapRegion.FMAs.Where(t => t.FMAID == VesselUnloadEdit.FMAID).FirstOrDefault();
+            _nsapRegionFMAFishingGround = _nsapRegionFMA.FishingGrounds.Where(t => t.FishingGroundCode == VesselUnloadEdit.FishingGroundCode).FirstOrDefault();
             propertyGrid.IsReadOnly = false;
+            SetupReadOnlyProperties();
 
+        }
 
+        private void SetupReadOnlyProperties()
+        {
+            foreach (PropertyItem item in propertyGrid.Properties)
+            {
+                if (item.PropertyName == "HasCatchComposition" && VesselUnloadEdit.HasCatchComposition && VesselUnload.VesselCatchViewModel.Count > 0)
+                {
+                    item.Editor = new Label { Content = "True", IsEnabled = false };
+                }
+            }
         }
 
         private void ShowStatusCatchComposition()
@@ -555,12 +802,20 @@ namespace NSAP_ODK.VesselUnloadEditorControl
             get { return _unloadView; }
             set
             {
+                _isEffortView = true;
+                if (VesselUnloadHasChangedProperties)
+                {
+                    SaveChangesToVesselUnload();
+
+                }
                 statusBar.Items.Clear();
                 _unloadView = value;
                 SetupView();
+                buttonAdd.IsEnabled = true;
                 switch (_unloadView)
                 {
                     case "treeItemVesselUnload":
+                        VesselCatch = null;
                         labelEffort.Content = "Details of sampled fish landing";
 
                         propertyGrid.SelectedObject = null;
@@ -569,26 +824,31 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                         if (_editMode)
                         {
                             SetupPropertyGridForEditing();
-
                         }
                         else
                         {
                             SetupPropertyGridForDisplay();// _vesselUnloadForDisplay);
                         }
+                        buttonDelete.IsEnabled = _editMode;
                         break;
                     case "treeItemFishingGears":
+                        VesselCatch = null;
                         labelEffort.Content = "Fishing gears used in the sampled landing";
                         SetupDataGridsForDisplay();
+                        buttonAdd.IsEnabled = VesselUnloadEdit.IsMultigear;
                         break;
                     case "treeItemSoakTime":
+                        VesselCatch = null;
                         labelEffort.Content = "Soak time of gears deployed by sampled landing";
                         SetupDataGridsForDisplay();
                         break;
                     case "treeItemFishingGround":
+                        VesselCatch = null;
                         labelEffort.Content = "Grid location of fishing grounds of sampled landing";
                         SetupDataGridsForDisplay();
                         break;
                     case "treeItemEffortDefinition":
+                        VesselCatch = null;
                         labelEffort.Content = "Fishing effort specifications  of sampled landing";
                         SetupDataGridsForDisplay();
                         break;
@@ -598,37 +858,130 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                         ShowStatusCatchComposition();
                         break;
                     case "treeItemLenFreq":
+                        _isEffortView = false;
                         SetupDataGridsForDisplay(forCatchGrid: true);
                         break;
                     case "treeItemLenWeight":
+                        _isEffortView = false;
                         SetupDataGridsForDisplay(forCatchGrid: true);
                         break;
                     case "treeItemLenList":
+                        _isEffortView = false;
                         SetupDataGridsForDisplay(forCatchGrid: true);
                         break;
                     case "treeItemMaturity":
+                        _isEffortView = false;
                         SetupDataGridsForDisplay(forCatchGrid: true);
                         break;
                 }
+
+                //if(catchDataGrid.Visibility==Visibility.Visible && effortDataGrid.Items.Count>0 && effortDataGrid.Items[0].GetType().Name=="VesselCatch")
+                //{
+
+                //}
             }
+        }
+        public string EditorMessage { get; set; }
+
+        public bool CanAddGear()
+        {
+            EditorMessage = "";
+            bool canAdd = false;
+            if (VesselUnloadEdit.IsMultigear && VesselUnloadEdit.ListUnloadFishingGears.Count < VesselUnloadEdit.CountGearTypesUsed)
+            {
+                double totalCatchOfAllGears = VesselUnloadEdit.ListUnloadFishingGears.Sum(t => (double)t.WeightOfCatch);
+                canAdd = totalCatchOfAllGears < VesselUnloadEdit.WeightOfCatch;
+                if (!canAdd)
+                {
+                    EditorMessage = $"Total weight of catch of all gears ({VesselUnloadEdit.ListUnloadFishingGears.Sum(t => t.WeightOfCatch)}) should be less than declared weight of catch ({VesselUnloadEdit.WeightOfCatch})";
+                }
+            }
+            else
+            {
+                EditorMessage = $"Number of gear types listed ({VesselUnloadEdit.ListUnloadFishingGears.Count}) should be less than number of gears declared ({VesselUnloadEdit.CountGearTypesUsed})";
+            }
+            return canAdd;
+
+        }
+        public bool CanAddToCatchComposition()
+        {
+            EditorMessage = "";
+            bool canAdd = false;
+            if (!VesselUnloadEdit.IsMultigear)
+            {
+                if ( VesselUnloadEdit.HasCatchComposition == true)
+                {
+                    var sum_catch_composition_weight = VesselUnloadEdit.VesselUnload.VesselCatchViewModel.VesselCatchCollection.Sum(t => t.Catch_kg);
+                    canAdd = sum_catch_composition_weight < VesselUnloadEdit.VesselUnload.WeightOfCatch;
+                    //if(!canAdd)
+                    //{
+                    //    EditorMessage = "Weight of total catch must be more than total weight of catch composition";
+                    //}
+                }
+            }
+            else if (VesselUnload.IsMultiGear && VesselUnloadEdit.HasCatchComposition)
+            {
+                double total_species_composition_weight = 0;
+                double gear_catch_wt = 0;
+                foreach (var gear in VesselUnload.ListUnloadFishingGears)
+                {
+                    gear_catch_wt += (double)gear.WeightOfCatch;
+                    foreach (VesselCatch c in gear.VesselCatchViewModel.VesselCatchCollection)
+                    {
+                        total_species_composition_weight += (double)c.Catch_kg;
+                    }
+                }
+
+                canAdd = total_species_composition_weight < gear_catch_wt;
+            }
+            if (!canAdd)
+            {
+                if (VesselUnloadEdit.HasCatchComposition)
+                {
+                    //double wtOfCatch = 0;
+                    //foreach (var item in VesselUnloadEdit.VesselCatches)
+                    //{
+                    //    wtOfCatch += (double)item.Catch_kg;
+                    //}
+
+                    //canAdd = wtOfCatch < VesselUnloadEdit.WeightOfCatch;
+                    //if (!canAdd)
+                    //{
+                    EditorMessage = "Weight of total catch is not greater than weight of catch composition.\n\nNew items cannot be added.";
+                    //}
+                }
+                else
+                {
+                    EditorMessage = "Sampled landing does not include catch composition";
+
+                }
+            }
+            return canAdd;
         }
         private void OnButtonClicked(object sender, RoutedEventArgs e)
         {
             UnloadEditorEventArgs eventArgs = new UnloadEditorEventArgs();
             eventArgs.ButtonPressed = ((Button)sender).Name;
             eventArgs.Proceed = false;
+            eventArgs.UnloadView = UnloadView;
+            eventArgs.VesselCatch = VesselCatch;
 
             ButtonClicked?.Invoke(this, eventArgs);
 
             //only when delete is clicked
             if (eventArgs.ButtonPressed == "buttonDelete" && eventArgs.Proceed)
             {
-
+                eventArgs = new UnloadEditorEventArgs();
+                eventArgs.UnloadView = UnloadView;
+                eventArgs.VesselUnload = VesselUnload;
+                DeleteProceed?.Invoke(this, eventArgs);
             }
         }
 
         private void OnPropertyValueChanged(object sender, PropertyValueChangedEventArgs e)
         {
+
+            VesselUnloadHasChangedProperties = true;
             ComboBox cbo = new ComboBox();
             cbo.Items.Clear();
             cbo.SelectionChanged += OnComboSelectionChanged;
@@ -637,6 +990,18 @@ namespace NSAP_ODK.VesselUnloadEditorControl
 
             switch (currentProperty.PropertyName)
             {
+                case "WeightOfCatch":
+                    //if(!ValidateVesselUnload(currentProperty.PropertyName))
+                    //{
+                    //    UndoEditVesselUnload?.Invoke(this, null);
+                    //}
+                    //double totalCatchCompWt = VesselUnload.ListVesselCatch.Sum(t => (double)t.Catch_kg);
+                    //if ((double)e.NewValue < totalCatchCompWt)
+                    //{
+                    //    MessageBox.Show($"New value of weight of catch ({e.NewValue}) is less than sum of weight of catch composition({totalCatchCompWt}).\r\n\r\nNew value is not accepted");
+                    //    e.NewValue = e.OldValue;
+                    //}
+                    break;
                 case "RegionCode":
                     cbo.Tag = "fma";
                     foreach (var fma in NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(currentProperty.Value.ToString()).FMAs)
@@ -782,9 +1147,10 @@ namespace NSAP_ODK.VesselUnloadEditorControl
             }
             return contextLabel;
         }
+
         private void OnDataGridSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            VesselCatch = null;
+            //VesselCatch = null;
             _cl = null;
             _clf = null;
             _clw = null;
@@ -792,137 +1158,200 @@ namespace NSAP_ODK.VesselUnloadEditorControl
             labelCatch.Content = "No selected catch";
             if (((DataGrid)sender).SelectedItem != null)
             {
-                switch (((DataGrid)sender).Name)
+                DataGrid dg = (DataGrid)sender;
+                if (dg.Name == "effortDataGrid" && !_isEffortView && effortDataGrid.Visibility == Visibility.Visible)
                 {
-                    case "effortDataGrid":
-                        switch (UnloadView)
-                        {
-                            case "treeItemFishingGears":
-                                _vufg = (VesselUnload_FishingGear)((DataGrid)sender).SelectedItem;
-                                if (_editMode)
-                                {
-                                    _vufg_edited = new VesselUnload_FishingGear_Edited(_vufg);
-                                }
-                                break;
-                            case "treeItemSoakTime":
-                                _gs = (GearSoak)((DataGrid)sender).SelectedItem;
-                                if (_editMode)
-                                {
-                                    _gs_edited = new GearSoakEdited(_gs);
-                                }
-                                break;
-                            case "treeItemFishingGround":
-                                _fgg = (FishingGroundGrid)((DataGrid)sender).SelectedItem;
-                                if (_editMode)
-                                {
-                                    _fgg_edited = new FishingGroundGridEdited(_fgg);
-                                }
-                                break;
-                            case "treeItemEffortDefinition":
-                                _vu_gs = (VesselUnload_Gear_Spec)((DataGrid)sender).SelectedItem;
-                                if (_editMode)
-                                {
-                                    _vu_gs_edited = new VesselUnload_Gear_Spec_Edited(_vu_gs);
-                                }
-                                break;
-                            case "treeItemCatchComposition":
-                                VesselCatch = (VesselCatch)((DataGrid)sender).SelectedItem;
-                                SetupDataGridsForDisplay(forCatchGrid: true);
-                                labelCatch.Content = $"{GetContextLabel()} {VesselCatch?.CatchName}";
-
-                                if (_editMode && VesselCatch != null)
-                                {
-                                    _vesselCatchEdited = new VesselCatchEdited(VesselCatch);
-                                }
-                                break;
-                        }
-
-                        break;
-                    case "catchDataGrid":
-                        switch (UnloadView)
-                        {
-                            case "treeItemLenFreq":
-                                _clf = (CatchLenFreq)((DataGrid)sender).SelectedItem;
-                                if (_editMode)
-                                {
-                                    _clf_edited = new CatchLenFreqEdited(_clf);
-                                }
-                                break;
-                            case "treeItemLenWeight":
-                                _clw = (CatchLengthWeight)((DataGrid)sender).SelectedItem;
-                                if (_editMode)
-                                {
-                                    _clw_edited = new CatchLengthWeightEdited(_clw);
-                                }
-                                break;
-                            case "treeItemLenList":
-                                _cl = (CatchLength)((DataGrid)sender).SelectedItem;
-                                if (_editMode)
-                                {
-                                    _cl_edited = new CatchLengthEdited(_cl);
-                                }
-                                break;
-                            case "treeItemMaturity":
-                                _cm = (CatchMaturity)((DataGrid)sender).SelectedItem;
-                                if (_editMode)
-                                {
-                                    _cm_edited = new CatchMaturityEdited(_cm);
-                                }
-                                break;
-                        }
-                        break;
+                    VesselCatch = (VesselCatch)((DataGrid)sender).SelectedItem;
+                    switch (UnloadView)
+                    {
+                        case "treeItemLenFreq":
+                            catchDataGrid.DataContext = VesselCatch?.ListCatchLenFreq;
+                            break;
+                        case "treeItemLenWeight":
+                            catchDataGrid.DataContext = VesselCatch?.ListCatchLengthWeight;
+                            break;
+                        case "treeItemLenList":
+                            catchDataGrid.DataContext = VesselCatch?.ListCatchLength;
+                            break;
+                        case "treeItemMaturity":
+                            catchDataGrid.DataContext = VesselCatch?.ListCatchMaturity;
+                            break;
+                    }
+                    labelCatch.Content = $"{GetContextLabel()} {VesselCatch?.CatchName}";
                 }
-
-                if (effortDataGrid.DataContext != null || catchDataGrid.DataContext != null)
+                else
                 {
-                    buttonDelete.IsEnabled = true;
-                    buttonEdit.IsEnabled = true;
+
+                    switch (dg.Name)
+                    {
+                        case "effortDataGrid":
+                            switch (UnloadView)
+                            {
+                                case "treeItemFishingGears":
+                                    _vufg = (VesselUnload_FishingGear)((DataGrid)sender).SelectedItem;
+                                    if (_editMode)
+                                    {
+                                        VesselUnload_FishingGear_Edited = new VesselUnload_FishingGear_Edited(_vufg);
+                                    }
+
+                                    break;
+                                case "treeItemSoakTime":
+                                    _gs = (GearSoak)((DataGrid)sender).SelectedItem;
+                                    if (_editMode)
+                                    {
+                                        GearSoakEdited = new GearSoakEdited(_gs);
+                                    }
+
+                                    break;
+                                case "treeItemFishingGround":
+                                    _fgg = (FishingGroundGrid)((DataGrid)sender).SelectedItem;
+                                    if (_editMode)
+                                    {
+                                        FishingGroundGridEdited = new FishingGroundGridEdited(_fgg);
+                                    }
+
+                                    break;
+                                case "treeItemEffortDefinition":
+                                    _vu_gs = (VesselUnload_Gear_Spec)((DataGrid)sender).SelectedItem;
+                                    if (_editMode)
+                                    {
+                                        //_vu_gs_edited = new VesselUnload_Gear_Spec_Edited(_vu_gs);
+                                        VesselUnload_Gear_Spec_Edited = new VesselUnload_Gear_Spec_Edited(_vu_gs);
+                                    }
+
+                                    break;
+                                case "treeItemCatchComposition":
+                                    VesselCatch = (VesselCatch)((DataGrid)sender).SelectedItem;
+                                    SetupDataGridsForDisplay(forCatchGrid: true);
+                                    labelCatch.Content = $"{GetContextLabel()} {VesselCatch?.CatchName}";
+
+                                    if (_editMode && VesselCatch != null)
+                                    {
+                                        VesselCatchEdited = new VesselCatchEdited(VesselCatch);
+                                    }
+                                    break;
+                            }
+
+                            break;
+                        case "catchDataGrid":
+                            switch (UnloadView)
+                            {
+                                case "treeItemLenFreq":
+                                    _clf = (CatchLenFreq)((DataGrid)sender).SelectedItem;
+                                    if (_editMode)
+                                    {
+                                        CatchLenFreqEdited = new CatchLenFreqEdited(_clf);
+                                        //_clf_edited = new CatchLenFreqEdited(_clf);
+                                    }
+                                    break;
+                                case "treeItemLenWeight":
+                                    _clw = (CatchLengthWeight)((DataGrid)sender).SelectedItem;
+                                    if (_editMode)
+                                    {
+                                        CatchLengthWeightEdited = new CatchLengthWeightEdited(_clw);
+                                        //_clw_edited = new CatchLengthWeightEdited(_clw);
+                                    }
+                                    break;
+                                case "treeItemLenList":
+                                    _cl = (CatchLength)((DataGrid)sender).SelectedItem;
+                                    if (_editMode)
+                                    {
+                                        CatchLengthEdited = new CatchLengthEdited(_cl);
+                                        //_cl_edited = new CatchLengthEdited(_cl);
+                                    }
+                                    break;
+                                case "treeItemMaturity":
+                                    _cm = (CatchMaturity)((DataGrid)sender).SelectedItem;
+                                    if (_editMode)
+                                    {
+                                        CatchMaturityEdited = new CatchMaturityEdited(_cm);
+                                        //_cm_edited = new CatchMaturityEdited(_cm);
+                                    }
+                                    break;
+                            }
+                            break;
+                    }
+
+                    if (effortDataGrid.DataContext != null || catchDataGrid.DataContext != null)
+                    {
+                        buttonDelete.IsEnabled = true;
+                        buttonEdit.IsEnabled = true;
+                        buttonAdd.IsEnabled = true;
+
+                        if (UnloadView == "treeItemFishingGears")
+                        {
+                            buttonAdd.IsEnabled = VesselUnload.IsMultiGear;
+                        }
+                    }
                 }
             }
         }
 
         private void OnGridDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (_editMode && ((DataGrid)sender).SelectedItem!=null)
+            if (_editMode)
             {
-                VesselUnloadEditorWindow vuew = new VesselUnloadEditorWindow();
-
+                UnloadEditorEventArgs eventArgs = new UnloadEditorEventArgs { UnloadView = UnloadView };//, VesselCatchEdited = VesselCatchEdited };
                 switch (UnloadView)
                 {
-                    case "treeItemFishingGears":
-                        //vuew.VesselUnload_FishingGear = _vufg;
-                        vuew.VesselUnload_FishingGear_Edited = _vufg_edited;
-                        break;
                     case "treeItemSoakTime":
-                        vuew.GearSoakEdited = _gs_edited;
-
+                        eventArgs.GearSoakEdited = GearSoakEdited;
                         break;
                     case "treeItemFishingGround":
-                        vuew.FishingGroundGridEdited = _fgg_edited;
+                        eventArgs.FishingGroundGridEdited = FishingGroundGridEdited;
                         break;
                     case "treeItemEffortDefinition":
-                        vuew.VesselUnload_Gear_Spec_Edited = _vu_gs_edited;
+                        eventArgs.VesselUnload_Gear_Spec_Edited = VesselUnload_Gear_Spec_Edited;
                         break;
                     case "treeItemCatchComposition":
-                        //vuew.VesselCatch = VesselCatch;
-                        vuew.VesselCatchEdited = _vesselCatchEdited;
+                        eventArgs.VesselCatchEdited = VesselCatchEdited;
+                        break;
+                    case "treeItemFishingGears":
+                        eventArgs.VesselUnload_FishingGear_Edited = VesselUnload_FishingGear_Edited;
                         break;
                     case "treeItemLenFreq":
-                        vuew.CatchLenFreqEdited = _clf_edited;
+                        eventArgs.CatchLenFreqEdited = CatchLenFreqEdited;
                         break;
                     case "treeItemLenWeight":
-                        vuew.CatchLengthWeightEdited = _clw_edited;
+                        eventArgs.CatchLengthWeightEdited = CatchLengthWeightEdited;
                         break;
                     case "treeItemLenList":
-                        //vuew.CatchLength = _cl;
-                        vuew.CatchLengthEdited = _cl_edited;
+                        eventArgs.CatchLengthEdited = CatchLengthEdited;
                         break;
                     case "treeItemMaturity":
-                        vuew.CatchMaturityEdited = _cm_edited;
+                        eventArgs.CatchMaturityEdited = CatchMaturityEdited;
                         break;
                 }
-                vuew.UnloadView = UnloadView;
-                vuew.ShowDialog();
+
+                GridDoubleClicked?.Invoke(this, eventArgs);
+            }
+
+        }
+
+        private void OnGridGotFocus(object sender, RoutedEventArgs e)
+        {
+            DataGrid dg = (DataGrid)sender;
+            if (dg.Name == "effortDataGrid" && !_isEffortView && effortDataGrid.Visibility == Visibility.Visible)
+            {
+                switch (UnloadView)
+                {
+                    case "treeItemLenFreq":
+
+                        break;
+                    case "treeItemLenWeight":
+
+                        break;
+                    case "treeItemLenList":
+
+                        break;
+                    case "treeItemMaturity":
+
+                        break;
+                }
+            }
+            else if (dg.Name == "catchDataGrid")
+            {
+
             }
         }
     }

@@ -71,7 +71,6 @@
                             <ContextMenu>
                                 <MenuItem Header="Crosstab report" Click="OnContextMenuClick" x:Name="contextMenuCrosstabLandingSite"/>
                                 <MenuItem Header="Edit gear unload" Click="OnContextMenuClick" x:Name="contextMenuGearUnloadLandingSite"/>
-
                             </ContextMenu>
                         </StackPanel.ContextMenu>
                         <!-- <Image Width="16" Height="16" Margin="3,0" Source="Images\Region.png" /> -->
@@ -86,6 +85,15 @@
                         <StackPanel.ContextMenu>
                             <ContextMenu x:Name="contextMenuMonthView">
                                 <MenuItem Header="Crosstab report" Click="OnContextMenuClick" x:Name="contextMenuCrosstabMonth"/>
+                                <MenuItem Header="NSAP reports">
+                                    <MenuItem Header="NSAP Form 1" Click="OnContextMenuClick" x:Name="contextMenuNSAPForm1"/>
+                                    <MenuItem Header="NSAP Form 2" Click="OnContextMenuClick" x:Name="contextMenuNSAPForm2"/>
+                                    <MenuItem Header="NSAP Form 2a" Click="OnContextMenuClick" x:Name="contextMenuNSAPForm2a"/>
+                                    <MenuItem Header="NSAP Form 2b" Click="OnContextMenuClick" x:Name="contextMenuNSAPForm2b"/>
+                                    <MenuItem Header="NSAP Form 3" Click="OnContextMenuClick" x:Name="contextMenuNSAPForm3"/>
+                                    <MenuItem Header="NSAP Form 4" Click="OnContextMenuClick" x:Name="contextMenuNSAPForm4"/>
+                                    <MenuItem Header="NSAP Form 5" Click="OnContextMenuClick" x:Name="contextMenuNSAPForm5"/>
+                                </MenuItem>
                                 <MenuItem Header="Edit gear unload" Click="OnContextMenuClick" x:Name="contextMenuGearUnloadMonth"/>
                                 <Separator/>
                                 <MenuItem Header="Weight and weight validation for landings" Click="OnContextMenuClick" x:Name="contextMenuWeightValidation"/>

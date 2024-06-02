@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NPOI.OpenXmlFormats.Wordprocessing;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,9 +16,36 @@ namespace NSAP_ODK.Entities.ItemSources
             ItemCollection generas = new ItemCollection();
             if (TaxaCode == "FIS")
             {
-                foreach (var item in NSAPEntities.FishSpeciesViewModel.SpeciesCollection.OrderBy(t => t.GenericName))
+                if (!string.IsNullOrEmpty(SearchFishGenus))
                 {
-                    genus_list.Add(item.GenericName);
+                    var c = SearchFishGenus.ToLower().First();
+                    if (c == SearchFishGenus.First())
+                    {
+                        foreach (string s in FishSpeciesViewModel.FishGenusList)
+                        {
+                            if (s.ToLower().Contains(SearchFishGenus.ToLower()))
+                            {
+                                genus_list.Add(s);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        foreach (string s in FishSpeciesViewModel.FishGenusList)
+                        {
+                            if (s.Contains(SearchFishGenus))
+                            {
+                                genus_list.Add(s);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (string s in FishSpeciesViewModel.FishGenusList)
+                    {
+                        genus_list.Add(s);
+                    }
                 }
             }
             else
@@ -34,9 +62,14 @@ namespace NSAP_ODK.Entities.ItemSources
             {
                 generas.Add(item);
             }
+            GeneraItemCollection = generas;
             return generas;
         }
 
+        public ItemCollection GeneraItemCollection { get; internal set; }
+
         public static string TaxaCode { get; set; }
+
+        public static string SearchFishGenus { get; set; }
     }
 }

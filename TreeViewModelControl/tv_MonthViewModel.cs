@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NPOI.HPSF;
 using NSAP_ODK.Entities;
 namespace NSAP_ODK.TreeViewModelControl
 {
@@ -14,7 +15,7 @@ namespace NSAP_ODK.TreeViewModelControl
         public readonly FMA _fma;
         public readonly NSAPRegion _nsapRegion;
         public readonly string _landingSiteName;
-
+        public string GUID { get; set; }
         public tv_MonthViewModel(string month, tv_LandingSiteViewModel parent):base(parent,true)
         {
             _month = month;
@@ -23,6 +24,10 @@ namespace NSAP_ODK.TreeViewModelControl
             _fishingGround = parent._fishingGround;
             _fma = parent._fma;
             _nsapRegion = parent._region;
+            if(string.IsNullOrEmpty(GUID))
+            {
+                GUID = Guid.NewGuid().ToString();
+            }
         }
 
 

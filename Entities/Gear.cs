@@ -50,7 +50,7 @@ namespace NSAP_ODK.Entities
                 {
                     Gear.BaseGear = NSAPEntities.GearViewModel.GetGear(BaseGear);
                 }
-                else if(IsGeneric)
+                else if (IsGeneric)
                 {
                     Gear.BaseGear = Gear;
                 }
@@ -65,7 +65,7 @@ namespace NSAP_ODK.Entities
                 {
                     Gear.BaseGear = NSAPEntities.GearViewModel.GetGear(BaseGear);
                 }
-                else if(BaseGear==null && !IsGeneric)
+                else if (BaseGear == null && !IsGeneric)
                 {
                     Gear.BaseGear = null;
                 }
@@ -138,7 +138,7 @@ namespace NSAP_ODK.Entities
             GearIsNotUsed = gear.GearIsNotUsed;
             IsUsedInLargeCommercial = gear.IsUsedInLargeCommercial;
 
-            if(gear.GearEffortSpecificationViewModel==null)
+            if (gear.GearEffortSpecificationViewModel == null)
             {
                 gear.GearEffortSpecificationViewModel = new GearEffortSpecificationViewModel(gear);
                 NSAPEntities.GearViewModel.AddBaseGearSpecsToGear(gear);
@@ -151,6 +151,19 @@ namespace NSAP_ODK.Entities
         private Gear _baseGear;
         public event PropertyChangedEventHandler PropertyChanged;
         private string _code;
+
+        public override bool Equals(object obj)
+        {
+            if (obj!=null && obj is Gear)
+            {
+                return ((Gear)obj).Code == this.Code;
+            }
+            else
+            {
+                return false;
+            }
+
+        }
         public string GearName { get; set; }
 
         private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
@@ -187,7 +200,7 @@ namespace NSAP_ODK.Entities
             get { return _baseGear; }
             set
             {
-                if(value==null)
+                if (value == null)
                 {
                     _baseGear = null;
                 }

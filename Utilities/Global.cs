@@ -11,6 +11,8 @@ using NSAP_ODK.Entities;
 using NSAP_ODK.Entities.Database;
 using Newtonsoft.Json;
 using System.Windows;
+using System.Runtime.CompilerServices;
+using System.Diagnostics;
 
 namespace NSAP_ODK.Utilities
 {
@@ -56,6 +58,7 @@ namespace NSAP_ODK.Utilities
         //    return stream;
         //}
         //public static bool CancelOperation { get; set; }
+
 
         public static Stream GenerateStreamFromString(string s)
         {
@@ -386,6 +389,7 @@ namespace NSAP_ODK.Utilities
                     NSAPEntities.JSONFileViewModel = new JSONFileViewModel();
                     NSAPEntities.ODKEformVersionViewModel = new ODKEformVersionViewModel();
                     NSAPEntities.UnmatchedFieldsFromJSONFileViewModel = new UnmatchedFieldsFromJSONFileViewModel();
+                    NSAPEntities.FishingCalendarDayExViewModel = new FishingCalendarDayExViewModel();
 
                     NSAPEntities.ResetEntititesCurrentIDs();
                     VesselUnloadServerRepository.ResetGroupIDState();

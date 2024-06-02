@@ -28,5 +28,7 @@ namespace NSAP_ODK.TreeViewModelControl
         public string TreeViewEntity { get; set; }
 
         public string ContextMenuTopic { get; set; }
+
+        public string GUID { get; set; }
     }
 }

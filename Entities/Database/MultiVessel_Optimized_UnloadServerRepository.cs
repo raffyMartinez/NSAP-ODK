@@ -245,8 +245,6 @@ namespace NSAP_ODK.Entities.Database
                                 DateAdded = DateTime.Now,
                                 FromExcelDownload = false,
                                 FormVersion = root.FormVersion.ToString(),
-                                //EnumeratorID = root.NSAPEnumerator.ID,
-                                //EnumeratorText = root.RegionEnumeratorText,
                                 JSONFileName = jsonFileName,
                                 Remarks = root.ReasonNoLanding,
                                 DateSubmitted = root.SubmissionTime,
@@ -286,7 +284,7 @@ namespace NSAP_ODK.Entities.Database
                                 lss.LandingSiteID = root.LandingSite.LandingSiteID;
                             }
 
-                            if (root.LandingSiteTypeOfSampling == LandingSiteTypeOfSampling.SamplingTypeRegular)
+                            if (root.TypeOfSampling == "rs")
                             {
                                 if (root.RegionFishingGround != null)
                                 {
@@ -341,7 +339,7 @@ namespace NSAP_ODK.Entities.Database
 
                         if (proceed)
                         {
-                            if (root.LandingSiteTypeOfSampling == LandingSiteTypeOfSampling.SamplingTypeRegular)
+                            if (root.TypeOfSampling == "rs")
                             {
                                 proceed = false;
                                 if (!lss.HasFishingOperation)
@@ -846,7 +844,7 @@ namespace NSAP_ODK.Entities.Database
 
                                 }
                             }
-                            else if (root.LandingSiteTypeOfSampling == LandingSiteTypeOfSampling.SamplingTypeCommercialCarrierBoats)
+                            else if (root.TypeOfSampling == "cbl")
                             {
                                 proceed = false;
                                 if (root.FishCarriers?.Count > 0)
@@ -859,7 +857,7 @@ namespace NSAP_ODK.Entities.Database
                                             Parent = lss,
                                             CarrierName = fish_carrier.CarrierName,
                                             SamplingDate = lss.SamplingDate.Add(fish_carrier.SamplingTime.TimeOfDay),
-                                            WeightOfCatch = fish_carrier.WeigthOfCarrierCatch,
+                                            WeightOfCatch = fish_carrier.WeightOfCarrierCatch,
                                             CountCatchers = fish_carrier.CountCatcherBoats,
                                             CountSpeciesComposition = fish_carrier.CountCarrierSpeciesComposition,
                                             RowID = CarrierLandingViewModel.CurrentIDNumber + 1,
@@ -3028,7 +3026,7 @@ namespace NSAP_ODK.Entities.Database
         }
 
         [JsonProperty("G_CBO/R_S_CB/G_cbd_o/G_cbd/wt_catch_of_carrier")]
-        public double? WeigthOfCarrierCatch { get; set; }
+        public double? WeightOfCarrierCatch { get; set; }
 
         [JsonProperty("G_CBO/R_S_CB/G_cbd_o/G_cbd/count_species_of_carrier")]
         public int CountCarrierSpeciesComposition { get; set; }
@@ -3618,6 +3616,13 @@ namespace NSAP_ODK.Entities.Database
         [JsonProperty("G_lss/fma_in_region")]
         public int FMAinRegionID { get; set; }
 
+
+
+        /// <summary>
+        /// So far there are 2 types of sampling at a landing site
+        /// rs = regular sampling - all the data in the catch and eform can be collected
+        /// cbl = carrier based landing - some important data are not known at sampling because the carrier boats do not have that information
+        /// </summary>
         [JsonProperty("G_lss/type_of_sampling")]
         public string TypeOfSampling
         {
@@ -3635,72 +3640,9 @@ namespace NSAP_ODK.Entities.Database
             set
             {
                 _typeOfSampling = value;
-                //if (_typeOfSampling == "cbl") //cbl is carrier based landings
-                //{
-                //    _carrierFishingGround = new MultiVessel_Optimized_CBS_CarrierBoatFishingGround();
-                //}
             }
         }
 
-        //[JsonProperty("G_lss/other_fishing_grounds")]
-        //public string OtherFishingGrounds { get; set; }
-
-        //public List<FishingGround> FishingGroundsOfCarrierLandings
-        //{
-        //    get
-        //    {
-        //        List<FishingGround> fishing_grounds;
-        //        if (LandingSiteTypeOfSampling == LandingSiteTypeOfSampling.SamplingTypeCommercialCarrierBoats)
-        //        {
-        //            fishing_grounds = new List<FishingGround>();
-
-        //            fishing_grounds.Add(FishingGround);
-
-        //            if (!string.IsNullOrEmpty(OtherFishingGrounds))
-        //            {
-        //                var arr = OtherFishingGrounds.Split(' ');
-        //                foreach (var fg in arr)
-        //                {
-        //                    fishing_grounds.Add(NSAPEntities.FishingGroundViewModel.GetFishingGround(fg));
-        //                }
-        //            }
-        //        }
-        //        else
-        //        {
-        //            fishing_grounds = null;
-        //        }
-        //        return fishing_grounds;
-        //    }
-        //}
-
-        public LandingSiteTypeOfSampling LandingSiteTypeOfSampling
-        {
-            get
-
-            {
-                LandingSiteTypeOfSampling sampling_type = LandingSiteTypeOfSampling.SamplingTypeNotDetermined;
-                if (string.IsNullOrEmpty(TypeOfSampling))
-                {
-                    sampling_type = LandingSiteTypeOfSampling.SamplingTypeRegular;
-
-                }
-                else
-                {
-                    switch (TypeOfSampling)
-                    {
-                        //case "Carrier boats only":
-                        case "cbl":
-                            sampling_type = LandingSiteTypeOfSampling.SamplingTypeCommercialCarrierBoats;
-                            break;
-                        //case "Regular sampling":
-                        case "rs":
-                            sampling_type = LandingSiteTypeOfSampling.SamplingTypeRegular;
-                            break;
-                    }
-                }
-                return sampling_type;
-            }
-        }
 
         public double FormVersion
         {

@@ -25,7 +25,21 @@ namespace NSAP_ODK.Entities.Database
         {
             VesselUnload_FishingGearsCollection = new ObservableCollection<VesselUnload_FishingGear>(VesselUnload_FishingGears.VesselUnload_FishingGears);
         }
-
+        public bool DeleteAllInCollection()
+        {
+            int deleteCount = 0;
+            int collectionCount = VesselUnload_FishingGearsCollection.Count;
+            foreach (var item in VesselUnload_FishingGearsCollection.ToList())
+            {
+                if (item.VesselUnload_Gear_Specs_ViewModel.DeleteAllInCollection() &&
+                 item.VesselCatchViewModel.DeleteAllInCollection() &&
+                 DeleteRecordFromRepo(item.RowID))
+                {
+                    deleteCount++;
+                }
+            }
+            return deleteCount == collectionCount;
+        }
         public bool DeleteCascade(VesselUnload_FishingGear gear)
         {
             bool success = false;
@@ -136,11 +150,23 @@ namespace NSAP_ODK.Entities.Database
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+        public bool GearIsDuplicated(VesselUnload_FishingGear_Edited vufge)
+        {
+            bool isDuplicated = false;
+            var vufg = VesselUnload_FishingGearsCollection.FirstOrDefault(t => t.GearCode == vufge.GearCode);
+            isDuplicated = vufg != null && vufge.RowID != vufg.RowID;
+            
+            return isDuplicated;
+        }
+        public Gear GetGear(string gearCode)
+        {
+            return VesselUnload_FishingGearsCollection.FirstOrDefault(t => t.GearCode == gearCode).Gear;
+        }
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
             {
-                foreach(var vufg in VesselUnload_FishingGearsCollection)
+                foreach (var vufg in VesselUnload_FishingGearsCollection)
                 {
                     if (vufg.VesselCatchViewModel != null)
                     {
@@ -299,17 +325,27 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if (VesselUnload_FishingGearsCollection.Count == 0)
-                {
-                    return 1;
-                }
-                else
-                {
-                    return VesselUnload_FishingGears.MaxRecordNumber() + 1;
-                }
+                //if (VesselUnload_FishingGearsCollection.Count == 0)
+                //{
+                //    return 1;
+                //}
+                //else
+                //{
+                return VesselUnload_FishingGears.MaxRecordNumber() + 1;
+                //}
             }
         }
-
+        public VesselUnload_FishingGear Get(string gearUsedName)
+        {
+            foreach (var item in VesselUnload_FishingGearsCollection)
+            {
+                if (item.GearUsedName == gearUsedName)
+                {
+                    return item;
+                }
+            }
+            return null;
+        }
         public bool DeleteRecordFromRepo(int id)
         {
             _editSucceeded = false;

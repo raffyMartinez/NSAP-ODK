@@ -445,7 +445,11 @@ namespace NSAP_ODK.Entities.Database
                                 csv.Append($"{s},");
                                 break;
                             case "Double":
-                                if (!s.Contains('.'))
+                                if(string.IsNullOrEmpty(s))
+                                {
+                                    csv.Append($"{s},");
+                                }
+                                else if (!s.Contains('.'))
                                 {
                                     csv.Append($"{s}.0,");
                                 }

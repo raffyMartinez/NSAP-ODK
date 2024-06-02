@@ -51,7 +51,10 @@ namespace NSAP_ODK.Views
             if (_instance == null) _instance = new GearUnloadWindow(vesselUnloads);
             return _instance;
         }
-
+        public void RefreshAfterDeleteVesselUnload()
+        {
+            SetVesselUnloadGridContext();
+        }
         public static GearUnloadWindow GetInstance(GearUnload gearUnload, TreeViewModelControl.AllSamplingEntitiesEventHandler treeItemData, MainWindow parent)
         {
             if (_instance == null) _instance = new GearUnloadWindow(gearUnload, treeItemData, parent);
@@ -307,6 +310,7 @@ namespace NSAP_ODK.Views
                     }
                     //_vesselUnloadWindow = new VesselUnloadWIndow(_selectedVesselUnload, this);
                     _vesselUnloadWindow = new VesselUnloadEditWindow(this);
+                    _vesselUnloadWindow.UnloadEditor.UnloadChangesSaved += OnUnloadEditor_UnloadChangesSaved;
                     _vesselUnloadWindow.Owner = this;
                     _vesselUnloadWindow.Show();
                 }
@@ -317,6 +321,12 @@ namespace NSAP_ODK.Views
                 //}
             }
 
+        }
+
+        private void OnUnloadEditor_UnloadChangesSaved(object sender, VesselUnloadEditorControl.UnloadEditorEventArgs e)
+        {
+            //GridVesselUnload.DataContext = _vesselUnloads;
+            GridVesselUnload.Items.Refresh();
         }
 
         public void TurnGridOff()
@@ -452,7 +462,31 @@ namespace NSAP_ODK.Views
         {
             _vesselUnloadWindow = null;
         }
+        private void SetVesselUnloadGridContext()
+        {
+            if (_gearUnloads.Count > 0)
+            {
+                //_vesselUnloads = _gearUnloads[0].ListVesselUnload;
+                _vesselUnloads = new List<VesselUnload>();
+                foreach (GearUnload gu in _gearUnloads)
+                {
+                    foreach (VesselUnload vu in gu.ListVesselUnload)
+                    {
+                        if (vu.SectorCode == SectorCode)
+                        {
+                            _vesselUnloads.Add(vu);
+                        }
+                    }
 
+                }
+
+
+               GridVesselUnload.DataContext = _vesselUnloads;
+                 LabelTitle.Content = $"Vessel unloads from {_gearUnloads[0].Parent.LandingSite} using {_gearUnloads[0].GearUsedName} on {_gearUnloads[0].Parent.SamplingDate.ToString("MMM-dd-yyyy")}";
+
+                //((MainWindow)Owner).SetupCalendar();
+            }
+        }
         private void ShowVesselUnloadGrid()
         {
 
@@ -467,27 +501,28 @@ namespace NSAP_ODK.Views
                 {
                     case GearUnloadWindowListSource.ListSourceGearUnload:
                         //_vesselUnloads = VesselUnloadViewModel.GetVesselUnloads(_gearUnloads);
-                        if (_gearUnloads.Count > 0)
-                        {
-                            //_vesselUnloads = _gearUnloads[0].ListVesselUnload;
-                            _vesselUnloads = new List<VesselUnload>();
-                            foreach(GearUnload gu in _gearUnloads)
-                            {
-                                foreach(VesselUnload vu in gu.ListVesselUnload)
-                                {
-                                    if(vu.SectorCode==SectorCode)
-                                    {
-                                        _vesselUnloads.Add(vu);
-                                    }
-                                }
-                                
-                            }
+                        //if (_gearUnloads.Count > 0)
+                        //{
+                        //    //_vesselUnloads = _gearUnloads[0].ListVesselUnload;
+                        //    _vesselUnloads = new List<VesselUnload>();
+                        //    foreach(GearUnload gu in _gearUnloads)
+                        //    {
+                        //        foreach(VesselUnload vu in gu.ListVesselUnload)
+                        //        {
+                        //            if(vu.SectorCode==SectorCode)
+                        //            {
+                        //                _vesselUnloads.Add(vu);
+                        //            }
+                        //        }
 
-                            
-                            GridVesselUnload.DataContext = _vesselUnloads;
+                        //    }
 
-                            LabelTitle.Content = $"Vessel unloads from {_gearUnloads[0].Parent.LandingSite} using {_gearUnloads[0].GearUsedName} on {_gearUnloads[0].Parent.SamplingDate.ToString("MMM-dd-yyyy")}";
-                        }
+
+                        //    GridVesselUnload.DataContext = _vesselUnloads;
+                        SetVesselUnloadGridContext();
+
+                        
+                        //}
                         break;
                     case GearUnloadWindowListSource.listSourceVesselUnload:
                         LabelTitle.Content = "Vessel unloads from summary";
@@ -565,7 +600,7 @@ namespace NSAP_ODK.Views
                 //}
                 //_vesselUnloadWindow.VesselUnload = _selectedVesselUnload;
                 _vesselUnloadWindow = VesselUnloadEditWindow.GetInstance(this);
-                if(_vesselUnloadWindow.Visibility==Visibility.Visible)
+                if (_vesselUnloadWindow.Visibility == Visibility.Visible)
                 {
                     _vesselUnloadWindow.BringIntoView();
                 }
@@ -596,6 +631,10 @@ namespace NSAP_ODK.Views
 
         private void OnWindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            //if (_vesselUnloadWindow?.UnloadEditor != null)
+            //{
+            //    _vesselUnloadWindow.UnloadEditor.UnloadChangesSaved -= OnUnloadEditor_UnloadChangesSaved;
+            //}
 
             this.SavePlacement();
             _instance = null;
@@ -653,7 +692,7 @@ namespace NSAP_ODK.Views
         {
             dataGridWeights.DataContext = _summaryItems;
         }
-        public void FilterWeightGrid(List<SummaryItem>filterdItems)
+        public void FilterWeightGrid(List<SummaryItem> filterdItems)
         {
             dataGridWeights.DataContext = filterdItems;
         }

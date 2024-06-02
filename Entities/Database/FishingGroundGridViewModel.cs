@@ -19,6 +19,52 @@ namespace NSAP_ODK.Entities.Database
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+        public static string FormattingErrorMessage
+        {
+            get; private set;
+        }
+        public static bool IsFormatCorrect(string gridFishingGround, out int? majorGrid)
+        {
+            majorGrid = null;
+            FormattingErrorMessage = "";
+            bool proceed = false;
+            if (gridFishingGround.Contains("-"))
+            {
+                var arr = gridFishingGround.ToLower().Split('-');
+                if (int.TryParse(arr[0], out int v))
+                {
+                    if (arr[1].Length == 2)
+                    {
+                        proceed = arr[1][0] >= 'a' && arr[1][0] <= 'y' && arr[1][1] >= '1' && arr[1][1] <= '9';
+                    }
+                    else if (arr[1].Length == 3)
+                    {
+                        string c = arr[1][1].ToString() + arr[1][2].ToString();
+                        proceed = int.TryParse(c, out int d) && d >= 1 && d <= 25 && arr[1][0] >= 'a' && arr[1][0] <= 'y';
+                    }
+                    majorGrid = v;
+                }
+            }
+            if(!proceed)
+            {
+                FormattingErrorMessage = "Grid location is not formatted correctly";
+            }
+
+            return proceed;
+        }
+        public bool DeleteAllInCollection()
+        {
+            int deleteCount = 0;
+            int collectionCount = FishingGroundGridCollection.Count;
+            foreach (var item in FishingGroundGridCollection.ToList())
+            {
+                if (DeleteRecordFromRepo(item.PK))
+                {
+                    deleteCount++;
+                }
+            }
+            return deleteCount == collectionCount;
+        }
         public static int CurrentIDNumber { get; set; }
         protected virtual void Dispose(bool disposing)
         {
@@ -194,14 +240,14 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if (FishingGroundGridCollection.Count == 0)
-                {
-                    return 1;
-                }
-                else
-                {
-                    return FishingGroundGrids.MaxRecordNumber() + 1;
-                }
+                //if (FishingGroundGridCollection.Count == 0)
+                //{
+                //    return 1;
+                //}
+                //else
+                //{
+                return FishingGroundGrids.MaxRecordNumber() + 1;
+                //}
             }
         }
 
@@ -221,6 +267,18 @@ namespace NSAP_ODK.Entities.Database
                 index++;
             }
             return _editSuccess;
+        }
+
+        public bool CheckForDuplicate(FishingGroundGridEdited fgge)
+        {
+            foreach(var item in FishingGroundGridCollection)
+            {
+                if(item.Equals(fgge) && item.PK!=fgge.PK)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

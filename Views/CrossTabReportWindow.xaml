@@ -19,7 +19,7 @@
         </Grid.ColumnDefinitions>
         <Menu Grid.ColumnSpan="2" VerticalAlignment="Center">
             <MenuItem Header="File">
-                <MenuItem Header="Export to excel" x:Name="menuExportExcel" Click="OnMenuClicked"/>
+                <MenuItem Header="Export to Excel" x:Name="menuExportExcel" Click="OnMenuClicked"/>
                 <MenuItem Header="Close" x:Name="menuClose" Click="OnMenuClicked"/>
             </MenuItem>
         </Menu>

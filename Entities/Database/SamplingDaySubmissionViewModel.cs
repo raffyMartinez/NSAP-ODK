@@ -118,7 +118,7 @@ namespace NSAP_ODK.Entities.Database
             }
             else
             {
-                lss.FishingGroundID = lss.FishingGround.Code;
+                sds.FishingGroundID = lss.FishingGround.Code;
             }
             if(lss.LandingSite!=null)
             {

@@ -18,6 +18,8 @@ namespace NSAP_ODK.Entities.Database
         calendarViewTypeGearDailyLandings,
         calendarViewTypeCarrierLandings
     }
+
+
     public class FishingCalendarDay
     {
         public List<bool> HasLanding { get; set; }
@@ -349,6 +351,13 @@ namespace NSAP_ODK.Entities.Database
                 BuildCalendar(CalendarViewType.calendarViewTypeGearDailyLandings);
             }
         }
+
+        public void UpdateCalendarDay(int numberOfBoats, Gear gear, int dayOfMonth)
+        {
+
+        }
+
+        
         public FishingCalendarViewModel(List<GearUnload> unloadList, CalendarViewType calendarView, DateTime monthYear, TreeViewModelControl.AllSamplingEntitiesEventHandler e)
         {
             _e = e;

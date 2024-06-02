@@ -184,6 +184,7 @@
     <Compile Include="Entities\Database\AccessColumn.cs" />
     <Compile Include="Entities\Database\AnalyzeJsonForMismatch.cs" />
     <Compile Include="Entities\Database\BoatLandingsFromServerRepository.cs" />
+    <Compile Include="Entities\Database\BuildingCalendarEventArg.cs" />
     <Compile Include="Entities\Database\BuildSummaryReportEventArg.cs" />
     <Compile Include="Entities\Database\CalendarDayLineage.cs" />
     <Compile Include="Entities\Database\CarrierBoatLanding_FishingGround.cs" />
@@ -212,6 +213,9 @@
     <Compile Include="Entities\Database\DownloadedJsonMetadata.cs" />
     <Compile Include="Entities\Database\EntityBulkImportEventArg.cs" />
     <Compile Include="Entities\Database\FileInfoJSONMetadata.cs" />
+    <Compile Include="Entities\Database\FishingCalendarDayEx.cs" />
+    <Compile Include="Entities\Database\FishingCalendarRepository.cs" />
+    <Compile Include="Entities\Database\FishingCalendarDayExViewModel.cs" />
     <Compile Include="Entities\Database\GearInLandingSite.cs" />
     <Compile Include="Entities\Database\LandingSiteFishingGround.cs" />
     <Compile Include="Entities\Database\LandingSiteFishingGroundRepository.cs" />
@@ -223,6 +227,8 @@
     <Compile Include="Entities\Database\LandingSite_FishingVesselViewModel.cs" />
     <Compile Include="Entities\Database\LandingSite_FishingVessel_Repository.cs" />
     <Compile Include="Entities\Database\MultiVessel_Optimized_UnloadServerRepository.cs" />
+    <Compile Include="Entities\Database\NSAPReports\DateGearBoatsCatch.cs" />
+    <Compile Include="Entities\Database\NSAPReports\NSAPForm1.cs" />
     <Compile Include="Entities\Database\ObjectDataHolder_KeyValuePair.cs" />
     <Compile Include="Entities\Database\ProcessingItemsEventArg.cs" />
     <Compile Include="Entities\Database\GearAtLandingSiteDaysPerMonth.cs" />
@@ -398,6 +404,7 @@
     <Compile Include="Entities\ItemSources\TaxaItemSourceNotFish.cs" />
     <Compile Include="Entities\ItemSources\TypeOfSamplingItemsSource.cs" />
     <Compile Include="Entities\ItemSources\UTMZoneItemsSource.cs" />
+    <Compile Include="Entities\ItemSources\WeightUnitItemSource.cs" />
     <Compile Include="Entities\KoboForms.cs" />
     <Compile Include="Entities\Koboform_files.cs" />
     <Compile Include="Entities\MDBTablesRowCount.cs" />
@@ -574,6 +581,12 @@
     </Compile>
     <Compile Include="Views\DeleteOptionWindow.xaml.cs">
       <DependentUpon>DeleteOptionWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\EditCatchWindow.xaml.cs">
+      <DependentUpon>EditCatchWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\EditVesselUnloadItemsWindow.xaml.cs">
+      <DependentUpon>EditVesselUnloadItemsWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\EnumeratorLandingSiteSummary.cs" />
     <Compile Include="Views\EnumeratorsAndLandingSitesWindow.xaml.cs">
@@ -766,6 +779,14 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\DeleteOptionWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\EditCatchWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\EditVesselUnloadItemsWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

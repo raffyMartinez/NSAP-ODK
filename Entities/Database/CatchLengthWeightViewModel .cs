@@ -19,6 +19,20 @@ namespace NSAP_ODK.Entities.Database
             GC.SuppressFinalize(this);
         }
         public static int CurrentIDNumber { get; set; }
+        public bool DeleteAllInCollection()
+        {
+            int deleteCount = 0;
+            int collectionCount = CatchLengthWeightCollection.Count;
+            foreach (var item in CatchLengthWeightCollection.ToList())
+            {
+                if (DeleteRecordFromRepo(item.PK))
+                {
+                    deleteCount++;
+                }
+            }
+            Dispose();
+            return deleteCount == collectionCount;
+        }
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
@@ -197,14 +211,14 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if (CatchLengthWeightCollection.Count == 0)
-                {
-                    return 1;
-                }
-                else
-                {
-                    return CatchLengthWeights.MaxRecordNumber() + 1;
-                }
+                //if (CatchLengthWeightCollection.Count == 0)
+                //{
+                //    return 1;
+                //}
+                //else
+                //{
+                return CatchLengthWeights.MaxRecordNumber() + 1;
+                //}
             }
         }
 

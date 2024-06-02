@@ -17,7 +17,10 @@ namespace NSAP_ODK.Entities.ItemSources
             {
                 taxas.Add(taxa.Code, taxa.Name);
             }
+            TaxaItems = taxas;
             return taxas;
         }
+
+        public ItemCollection TaxaItems { get; private set; }
     }
 }

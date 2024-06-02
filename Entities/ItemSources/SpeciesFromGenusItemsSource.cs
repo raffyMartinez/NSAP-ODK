@@ -32,8 +32,11 @@ namespace NSAP_ODK.Entities.ItemSources
             {
                 specieses.Add(item);
             }
+            SpeciesItemCollection = specieses;
             return specieses;
         }
+
+        public ItemCollection SpeciesItemCollection { get; internal set; }
         public static string Genus { get; set; }
 
     }

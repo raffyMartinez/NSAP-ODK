@@ -59,13 +59,22 @@ namespace NSAP_ODK.Entities.Database
         [ReadOnly(true)]
         public int PK { get; set; }
         public FishingGroundGrid FishingGroundGrid { get; set; }
-        
+
         [ItemsSource(typeof(UTMZoneItemsSource))]
         public string UTMZoneText { get; set; }
+
+        public UTMZone UTMZone
+        {
+            get
+            {
+                return new UTMZone(UTMZoneText);
+            }
+        }
         public string Grid
         {
             get; set;
         }
+
     }
     public class FishingGroundGrid
     {
@@ -84,7 +93,41 @@ namespace NSAP_ODK.Entities.Database
                 return new UTMZone(UTMZoneText);
             }
         }
-
+        public override bool Equals(object obj)
+        {
+            string objType = obj.GetType().Name;
+            if(objType=="FishingGroundGrid" || objType=="FishingGroundGridEdited")
+            {
+                if (objType == "FishingGroundGridEdited")
+                {
+                    var fgge = obj as FishingGroundGridEdited;
+                    if (fgge.UTMZoneText.ToUpper() == UTMZoneText && fgge.Grid.ToUpper() == Grid)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    var fgg = obj as FishingGroundGrid;
+                    if (fgg.UTMZoneText.ToUpper() == UTMZoneText && fgg.Grid.ToUpper() == Grid)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
         public Grid25GridCell GridCell
         {
             get { return new Grid25GridCell(UTMZone, Grid); }

@@ -178,7 +178,7 @@ namespace NSAP_ODK.Entities
                 using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
                     conn.Open();
-                    var sql = "Insert into gear (GearName,GearCode,GenericCode,IsGeneric,GearIsNotUsed) Values (?,?,?,?,?,?)";
+                    var sql = "Insert into gear (GearName,GearCode,GenericCode,IsGeneric,GearIsNotUsed,IsUsedInLargeCommercial) Values (?,?,?,?,?,?)";
 
                     using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {

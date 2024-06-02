@@ -185,7 +185,14 @@ namespace NSAP_ODK.Entities.Database
                         update.Parameters.Add("@catch_id", OleDbType.Integer).Value = item.Parent.PK;
                         update.Parameters.Add("@len_class", OleDbType.Double).Value = item.LengthClass;
                         update.Parameters.Add("@freq", OleDbType.Integer).Value = item.Frequency;
-                        update.Parameters.Add("@sex", OleDbType.VarChar).Value = item.Sex;
+                        if (item.Sex == null)
+                        {
+                            update.Parameters.Add("@sex", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@sex", OleDbType.VarChar).Value = item.Sex;
+                        }
                         try
                         {
                             success = update.ExecuteNonQuery() > 0;
@@ -228,7 +235,24 @@ namespace NSAP_ODK.Entities.Database
                     const string sql = "SELECT Max(catch_len_freq_id) AS max_id FROM dbo_catch_len_freq";
                     using (OleDbCommand getMax = new OleDbCommand(sql, conn))
                     {
-                        max_rec_no = (int)getMax.ExecuteScalar();
+                        try
+                        {
+                            var r = getMax.ExecuteScalar();
+                            if(r!=DBNull.Value)
+                            {
+                                max_rec_no = (int)r;
+                            }
+                            
+                        }
+                        catch(OleDbException oex)
+                        {
+
+                        }
+                        catch(Exception ex)
+                        {
+                            //ignore
+                            //Logger.Log(ex);
+                        }
                     }
                 }
             }
@@ -290,7 +314,14 @@ namespace NSAP_ODK.Entities.Database
                         update.Parameters.Add("@catch_id", OleDbType.Integer).Value = item.Parent.PK;
                         update.Parameters.Add("@len_class", OleDbType.Double).Value = item.LengthClass;
                         update.Parameters.Add("@freq", OleDbType.Integer).Value = item.Frequency;
-                        update.Parameters.Add("@sex", OleDbType.VarChar).Value = item.Sex;
+                        if (item.Sex == null)
+                        {
+                            update.Parameters.Add("@sex", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@sex", OleDbType.VarChar).Value = item.Sex;
+                        }
                         update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
 
                         update.CommandText = @"Update dbo_catch_len_freq set

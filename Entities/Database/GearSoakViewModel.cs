@@ -19,7 +19,19 @@ namespace NSAP_ODK.Entities.Database
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-
+        public bool DeleteAllInCollection()
+        {
+            int deleteCount = 0;
+            int collectionCount = GearSoakCollection.Count;
+            foreach(var item in GearSoakCollection.ToList())
+            {
+                if(DeleteRecordFromRepo(item.PK))
+                {
+                    deleteCount++;
+                }
+            }
+            return deleteCount == collectionCount;
+        }
         public DateTime GetFirstSet()
         {
             return GearSoakCollection.OrderBy(t => t.TimeAtSet).First().TimeAtSet;
@@ -221,14 +233,14 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                if (GearSoakCollection.Count == 0)
-                {
-                    return 1;
-                }
-                else
-                {
-                    return GearSoaks.MaxRecordNumber() + 1;
-                }
+                //if (GearSoakCollection.Count == 0)
+                //{
+                //    return 1;
+                //}
+                //else
+                //{
+                return GearSoaks.MaxRecordNumber() + 1;
+                //}
             }
         }
 

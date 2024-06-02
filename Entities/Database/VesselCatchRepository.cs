@@ -67,7 +67,11 @@ namespace NSAP_ODK.Entities.Database
                     const string sql = "SELECT Max(catch_id) AS max_id FROM dbo_vessel_catch";
                     using (OleDbCommand getMax = new OleDbCommand(sql, conn))
                     {
-                        max_rec_no = (int)getMax.ExecuteScalar();
+                        var r = getMax.ExecuteScalar();
+                        if (r != DBNull.Value)
+                        {
+                            max_rec_no = (int)r;
+                        }
                     }
                 }
             }
@@ -773,12 +777,36 @@ namespace NSAP_ODK.Entities.Database
                 {
                     conn.Open();
 
-                    var sql = @"Insert into dbo_vessel_catch(catch_id, v_unload_id, species_id, catch_kg, samp_kg, taxa, species_text, weighing_unit,from_total_catch,price_of_species,price_unit,other_price_unit,is_catch_sold)
-                            Values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    var sql = @"Insert into dbo_vessel_catch (
+                                catch_id, 
+                                v_unload_id, 
+                                species_id, 
+                                catch_kg, 
+                                samp_kg, 
+                                taxa, 
+                                species_text, 
+                                weighing_unit,
+                                from_total_catch,
+                                price_of_species,
+                                price_unit,
+                                other_price_unit,
+                                is_catch_sold,
+                                gear_code,
+                                gear_text,
+                                vessel_unload_gear_id,
+                                carrierlanding_id )
+                            Values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                     using (OleDbCommand update = new OleDbCommand(sql, conn))
                     {
                         update.Parameters.Add("@pk", OleDbType.Integer).Value = item.PK;
-                        update.Parameters.Add("@parent_id", OleDbType.Integer).Value = item.VesselUnloadID;
+                        if (item.VesselUnloadID == null)
+                        {
+                            update.Parameters.Add("@parent_id", OleDbType.Integer).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@parent_id", OleDbType.Integer).Value = item.VesselUnloadID;
+                        }
                         if (item.SpeciesID == null)
                         {
                             update.Parameters.Add("@species_id", OleDbType.Integer).Value = DBNull.Value;
@@ -814,7 +842,14 @@ namespace NSAP_ODK.Entities.Database
                         {
                             update.Parameters.Add("@species_text", OleDbType.VarChar).Value = item.SpeciesText;
                         }
-                        update.Parameters.Add("@wt_unit", OleDbType.VarChar).Value = item.WeighingUnit;
+                        if (item.WeighingUnit == null)
+                        {
+                               update.Parameters.Add("@wt_unit", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@wt_unit", OleDbType.VarChar).Value = item.WeighingUnit;
+                        }
 
                         update.Parameters.Add("@from_total", OleDbType.Boolean).Value = item.FromTotalCatch;
 
@@ -826,9 +861,55 @@ namespace NSAP_ODK.Entities.Database
                         {
                             update.Parameters.Add("@price", OleDbType.Double).Value = item.PriceOfSpecies;
                         }
-                        update.Parameters.Add("@price_unit", OleDbType.VarChar).Value = item.PriceUnit;
-                        update.Parameters.Add("@other_price_unit", OleDbType.VarChar).Value = item.OtherPriceUnit;
-                        update.Parameters.Add("@is_sold", OleDbType.VarChar).Value = item.IsCatchSold;
+                        if (item.PriceUnit == null)
+                        {
+                               update.Parameters.Add("@price_unit", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@price_unit", OleDbType.VarChar).Value = item.PriceUnit;
+                        }
+                        if (item.OtherPriceUnit == null)
+                        {
+                               update.Parameters.Add("@other_price_unit", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@other_price_unit", OleDbType.VarChar).Value = item.OtherPriceUnit;
+                        }
+                        update.Parameters.Add("@is_sold", OleDbType.Boolean).Value = item.IsCatchSold;
+                        if(item.GearCode==null)
+                        {
+                               update.Parameters.Add("@gear_code", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                               update.Parameters.Add("@gear_code", OleDbType.VarChar).Value = item.GearCode;
+                        }
+                        if(item.GearText==null)
+                        {
+                            update.Parameters.Add("@gear_text", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@gear_text", OleDbType.VarChar).Value = item.GearText;
+                        }
+                        if(item.ParentFishingGear==null)
+                        {
+                            update.Parameters.Add("@parent_gear", OleDbType.Integer).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@parent_gear", OleDbType.Integer).Value = item.ParentFishingGear.RowID;
+                        }
+                        if(item.ParentCarrierLanding==null)
+                        {
+                            update.Parameters.Add("@parent_carrier", OleDbType.Integer).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            update.Parameters.Add("@parent_carrier", OleDbType.Integer).Value = item.ParentCarrierLanding.RowID;
+                        }
 
                         //if(item.TWS==null)
                         //{
@@ -956,7 +1037,14 @@ namespace NSAP_ODK.Entities.Database
                     conn.Open();
                     using (OleDbCommand cmd = conn.CreateCommand())
                     {
-                        cmd.Parameters.Add("@v_unload_id", OleDbType.Integer).Value = item.Parent.PK;
+                        if (item.Parent != null)
+                        {
+                            cmd.Parameters.Add("@v_unload_id", OleDbType.Integer).Value = item.Parent.PK;
+                        }
+                        else
+                        {
+                            cmd.Parameters.Add("@v_unload_id", OleDbType.Integer).Value = DBNull.Value;
+                        }
 
                         if (item.SpeciesID == null)
                         {
@@ -995,7 +1083,14 @@ namespace NSAP_ODK.Entities.Database
 
                         cmd.Parameters.Add("@taxa", OleDbType.VarChar).Value = item.TaxaCode;
                         cmd.Parameters.Add("@species_text", OleDbType.VarChar).Value = item.SpeciesText;
-                        cmd.Parameters.Add("@wt_unit", OleDbType.VarChar).Value = item.WeighingUnit;
+                        if (item.WeighingUnit == null)
+                        {
+                               cmd.Parameters.Add("@wt_unit", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            cmd.Parameters.Add("@wt_unit", OleDbType.VarChar).Value = item.WeighingUnit;
+                        }
                         cmd.Parameters.Add("@from_total", OleDbType.Boolean).Value = item.FromTotalCatch;
 
                         if (item.PriceOfSpecies == null)
@@ -1007,12 +1102,43 @@ namespace NSAP_ODK.Entities.Database
                             cmd.Parameters.Add("@price", OleDbType.Double).Value = item.PriceOfSpecies;
                         }
 
-                        cmd.Parameters.Add("@price_unit", OleDbType.VarChar).Value = item.PriceUnit;
-                        cmd.Parameters.Add("@other_price_unit", OleDbType.VarChar).Value = item.OtherPriceUnit;
+                        if (item.PriceUnit == null)
+                        {
+                               cmd.Parameters.Add("@price_unit", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            cmd.Parameters.Add("@price_unit", OleDbType.VarChar).Value = item.PriceUnit;
+                        }
+                        if (item.OtherPriceUnit == null)
+                        {
+                            cmd.Parameters.Add("@other_price_unit", OleDbType.VarChar).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            cmd.Parameters.Add("@other_price_unit", OleDbType.VarChar).Value = item.OtherPriceUnit;
+                        }
                         cmd.Parameters.Add("@is_sold", OleDbType.Boolean).Value = item.IsCatchSold;
 
-                        cmd.Parameters.Add("@catch_id", OleDbType.Integer).Value = item.PK;
+                        if(item.ParentFishingGear==null)
+                        {
+                            cmd.Parameters.Add("@parent_gear", OleDbType.Integer).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            cmd.Parameters.Add("@parent_gear", OleDbType.Integer).Value = item.ParentFishingGear.RowID;
+                        }
+                        if(item.ParentCarrierLanding==null)
+                        {
+                            cmd.Parameters.Add("@parent_carrier", OleDbType.Integer).Value = DBNull.Value;
+                        }
+                        else
+                        {
+                            cmd.Parameters.Add("@parent_carrier", OleDbType.Integer).Value = item.ParentCarrierLanding.RowID;
+                        }
 
+                        cmd.Parameters.Add("@catch_id", OleDbType.Integer).Value = item.PK;
+                        
 
                         cmd.CommandText = @"Update dbo_vessel_catch set
                                 v_unload_id=@v_unload_id,
@@ -1026,7 +1152,9 @@ namespace NSAP_ODK.Entities.Database
                                 price_of_species = @price,
                                 price_unit = @price_unit,
                                 other_price_unit = @other_price_unit,
-                                is_catch_sold = @is_sold
+                                is_catch_sold = @is_sold,
+                                vessel_unload_gear_id = @parent_gear,
+                                carrierlanding_id = @parent_carrier
                             WHERE catch_id = @catch_id";
                         try
                         {
