@@ -131,6 +131,22 @@ namespace NSAP_ODK.Entities.Database
         private FishingGround _fishingGround;
         private List<GearInLandingSite> _gearsInLandingSite;
         private string _fishingGroundID;
+
+        public override bool Equals(object obj)
+        {
+            if (obj != null && obj is LandingSiteSampling)
+            {
+                return PK == ((LandingSiteSampling)obj).PK;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        public override int GetHashCode()
+        {
+            return PK.GetHashCode();
+        }
         public CarrierLandingViewModel CarrierLandingViewModel { get; set; }
         //public VesselCatchViewModel VesselCatchViewModel { get; set; }
         //public CatcherBoatOperation_ViewModel CatcherBoatOperation_ViewModel { get; set; }

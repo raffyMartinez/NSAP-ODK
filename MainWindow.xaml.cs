@@ -2177,6 +2177,30 @@ namespace NSAP_ODK
         }
 
         //public void SetupCalendar(CalendarViewType calendarView)
+        public void SetupCalendarLabels()
+        {
+            //_calendarOption = _allSamplingEntitiesEventHandler.CalendarView;
+            switch (_calendarOption)
+            {
+                case CalendarViewType.calendarViewTypeSampledLandings:
+                    MonthLabel.Content = $"Calendar of sampled/monitored landings per gear for {((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).ToString("MMMM-yyyy")}";
+                    break;
+                case CalendarViewType.calendarViewTypeCountAllLandingsByGear:
+                    MonthLabel.Content = $"Calendar of number of boats landing per gear for {((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).ToString("MMMM-yyyy")}";
+                    break;
+                case CalendarViewType.calendarViewTypeWeightAllLandingsByGear:
+                    MonthLabel.Content = $"Calendar of weight of catch per gear for {((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).ToString("MMMM-yyyy")}";
+                    break;
+                case CalendarViewType.calendarViewTypeCountAllLandings:
+                    MonthLabel.Content = $"Calendar of total number of landings per day for {((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).ToString("MMMM-yyyy")}";
+                    break;
+                case CalendarViewType.calendarViewTypeGearDailyLandings:
+                    MonthLabel.Content = $"Calendar of daily landings per gear per day for {((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).ToString("MMMM-yyyy")}";
+                    break;
+            }
+            labelRowCount.Content = NSAPEntities.FishingCalendarDayExViewModel.SamplingCalendarTitle;
+            MonthSubLabel.Content = NSAPEntities.FishingCalendarDayExViewModel.LocationLabel;
+        }
         public async Task SetupCalendar()
         {
             ShowStatusRow();
@@ -2194,7 +2218,7 @@ namespace NSAP_ODK
                 PropertyGrid.Visibility = Visibility.Collapsed;
                 NSAPEntities.NSAPRegion = _allSamplingEntitiesEventHandler.NSAPRegion;
 
-                await MakeCalendar(_allSamplingEntitiesEventHandler);
+                //await MakeCalendar(_allSamplingEntitiesEventHandler);
 
 
                 //_allSamplingEntitiesEventHandler.CalendarView = calendarView;
@@ -2225,6 +2249,38 @@ namespace NSAP_ODK
                 //PropertyGrid.Visibility = Visibility.Collapsed;
                 //NSAPEntities.NSAPRegion = _allSamplingEntitiesEventHandler.NSAPRegion;
                 //MakeCalendar(_allSamplingEntitiesEventHandler);
+
+                string totlaLandingsCount="";
+                if ( _allSamplingEntitiesEventHandler.CalendarView != CalendarViewType.calendarViewTypeGearDailyLandings)
+                {
+                    int totalLandingsCount = NSAPEntities.FishingCalendarDayExViewModel.TotalVesselUnloadCount;
+                    totlaLandingsCount = $", Total sampled landings: {totalLandingsCount}";
+                    int vuCountInGU = 0;
+                    //foreach (var gu in _fishingCalendarViewModel.UnloadList)
+                    //{
+                    //    vuCountInGU += gu.ListVesselUnload.Count;
+                    //}
+                    //if (vuCountInGU != totalLandingsCount)
+                    //{
+                    //    totlaLandingsCount += $" ({vuCountInGU})";
+                    //    buttonFix.Visibility = Visibility.Visible;
+                    //}
+                }
+                if (GridNSAPData.Items.Count > 0)
+                {
+                    string columnStyle = " (Blue columns represent rest day)";
+                    if (!_hasNonSamplingDayColumns)
+                    {
+                        columnStyle = "";
+                    }
+                    //labelRowCount.Content = $"Rows: {GridNSAPData.Items.Count}{mainStatusBar.Value}{columnStyle}";
+                    //labelRowCount.Content = $"Rows: {GridNSAPData.Items.Count} {totlaLandingsCount} {columnStyle}";
+                    labelRowCount.Content = NSAPEntities.FishingCalendarDayExViewModel.SamplingCalendarTitle;
+                }
+                else
+                {
+                    labelRowCount.Content = "Older eforms cannot encode data. Use Catch and Effort eForm version 7.14";
+                }
             }
 
         }
@@ -2339,43 +2395,67 @@ namespace NSAP_ODK
                 case "menuWeightLandingsCalendar":
                 case "menuTotalLandingsCalendar":
                 case "menuDailyGearLandingCalendar":
-                    foreach (Control mi in menuCalendar.Items)
+                    if (NSAPEntities.FishingCalendarDayExViewModel.CanCreateCalendar)
                     {
-                        var s = mi.GetType().Name;
-                        if (mi.GetType().Name != "Separator" && ((MenuItem)mi).IsCheckable && mi.Name != menuName)
+                        foreach (Control mi in menuCalendar.Items)
                         {
-                            ((MenuItem)mi).IsChecked = false;
+                            var s = mi.GetType().Name;
+                            if (mi.GetType().Name != "Separator" && ((MenuItem)mi).IsCheckable && mi.Name != menuName)
+                            {
+                                ((MenuItem)mi).IsChecked = false;
+                            }
                         }
-                    }
 
-                    switch (menuName)
-                    {
-                        case "menuSampledCalendar":
-                            _calendarOption = CalendarViewType.calendarViewTypeSampledLandings;
-                            break;
+                        switch (menuName)
+                        {
+                            case "menuSampledCalendar":
+                                _calendarOption = CalendarViewType.calendarViewTypeSampledLandings;
+                                break;
 
-                        case "menuAllLandingsCalendar":
-                            _calendarOption = CalendarViewType.calendarViewTypeCountAllLandingsByGear;
-                            break;
-                        case "menuWeightLandingsCalendar":
-                            _calendarOption = CalendarViewType.calendarViewTypeWeightAllLandingsByGear;
-                            break;
-                        case "menuTotalLandingsCalendar":
-                            _calendarOption = CalendarViewType.calendarViewTypeCountAllLandings;
-                            break;
-                        case "menuDailyGearLandingCalendar":
-                            _calendarOption = CalendarViewType.calendarViewTypeGearDailyLandings;
-                            break;
-                    }
-                    if (!_cancelBuildCalendar)
-                    {
-                        //SetupCalendar();//(_calendarOption);
-                        //SetupCalendarView("");
-                    }
-                    else
+                            case "menuAllLandingsCalendar":
+                                _calendarOption = CalendarViewType.calendarViewTypeCountAllLandingsByGear;
+                                break;
+                            case "menuWeightLandingsCalendar":
+                                _calendarOption = CalendarViewType.calendarViewTypeWeightAllLandingsByGear;
+                                break;
+                            case "menuTotalLandingsCalendar":
+                                _calendarOption = CalendarViewType.calendarViewTypeCountAllLandings;
+                                break;
+                            case "menuDailyGearLandingCalendar":
+                                _calendarOption = CalendarViewType.calendarViewTypeGearDailyLandings;
+                                break;
+                        }
+                        if (!_cancelBuildCalendar)
+                        {
+                            NSAPEntities.FishingCalendarDayExViewModel.CalendarViewType = _calendarOption;
+                            NSAPEntities.FishingCalendarDayExViewModel.MakeCalendar();
+                            GridNSAPData.Columns.Clear();
+                            GridNSAPData.AutoGenerateColumns = true;
+                            GridNSAPData.DataContext = NSAPEntities.FishingCalendarDayExViewModel.DataTable;
 
-                    {
+                            _hasNonSamplingDayColumns = false;
+                            foreach (DataGridColumn c in GridNSAPData.Columns)
+                            {
+                                if (int.TryParse(c.Header.ToString(), out int v))
+                                {
+                                    if (NSAPEntities.FishingCalendarDayExViewModel.DayIsRestDay(v))
+                                    {
+                                        _hasNonSamplingDayColumns = true;
+                                        c.CellStyle = new Style(typeof(DataGridCell));
+                                        c.CellStyle.Setters.Add(new Setter(DataGridCell.BackgroundProperty, new SolidColorBrush(Colors.LightBlue)));
+                                    }
+                                }
+                            }
+                            //labelRowCount.Content = NSAPEntities.FishingCalendarDayExViewModel.SamplingCalendarTitle;
+                            SetupCalendarLabels();
+                            //SetupCalendar();//(_calendarOption);
+                            //SetupCalendarView("");
+                        }
+                        else
 
+                        {
+
+                        }
                     }
                     return;
                     //break;
@@ -4098,17 +4178,19 @@ namespace NSAP_ODK
 
                     SetUpCalendarMenu();
                     _calendarOption = e.CalendarView;
+                    NSAPEntities.FishingCalendarDayExViewModel.CalendarViewType = _calendarOption;
                     await NSAPEntities.FishingCalendarDayExViewModel.GetCalendarDaysForMonth(e);
                     NSAPEntities.FishingCalendarDayExViewModel.MakeCalendar();
                     GridNSAPData.Columns.Clear();
                     GridNSAPData.AutoGenerateColumns = true;
                     GridNSAPData.DataContext = NSAPEntities.FishingCalendarDayExViewModel.DataTable;
 
+                    _hasNonSamplingDayColumns = false;
                     foreach (DataGridColumn c in GridNSAPData.Columns)
                     {
                         if (int.TryParse(c.Header.ToString(), out int v))
                         {
-                            if (!NSAPEntities.FishingCalendarDayExViewModel.DayIsSamplingDay(v))
+                            if (NSAPEntities.FishingCalendarDayExViewModel.DayIsRestDay(v))
                             {
                                 _hasNonSamplingDayColumns = true;
                                 c.CellStyle = new Style(typeof(DataGridCell));
@@ -4116,7 +4198,8 @@ namespace NSAP_ODK
                             }
                         }
                     }
-
+                    //SetupCalendar();
+                    SetupCalendarLabels();
                     break;
                 case "tv_MonthViewModelx":
                     _allSamplingEntitiesEventHandler = e;

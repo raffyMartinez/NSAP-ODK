@@ -186,11 +186,12 @@ namespace NSAP_ODK.Entities.Database
             switch (topic)
             {
                 case "contextMenuCrosstabLandingSite":
-                    _landingSiteSamplings = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection
-                        .Where(t => t.NSAPRegion.Code == _sev.NSAPRegion.Code &&
-                               t.FMA.FMAID == _sev.FMA.FMAID &&
-                               t.FishingGround.Code == _sev.FishingGround.Code &&
-                               t.LandingSiteName == _sev.LandingSiteText).ToList();
+                    _landingSiteSamplings = NSAPEntities.FishingCalendarDayExViewModel.LandingSiteSamplings;
+                    //_landingSiteSamplings = NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSamplingCollection
+                    //    .Where(t => t.NSAPRegion.Code == _sev.NSAPRegion.Code &&
+                    //           t.FMA.FMAID == _sev.FMA.FMAID &&
+                    //           t.FishingGround.Code == _sev.FishingGround.Code &&
+                    //           t.LandingSiteName == _sev.LandingSiteText).ToList();
 
                     foreach (var ls in _landingSiteSamplings)
                     {
@@ -217,6 +218,7 @@ namespace NSAP_ODK.Entities.Database
                                t.SamplingDate.Date < ((DateTime)_sev.MonthSampled).AddMonths(1))
                                .OrderBy(t => t.SamplingDate)
                                .ToList();
+                    //_landingSiteSamplings = NSAPEntities.FishingCalendarDayExViewModel.LandingSiteSamplings;
 
                     foreach (var ls in _landingSiteSamplings)
                     {

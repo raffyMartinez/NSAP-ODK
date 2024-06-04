@@ -66,6 +66,7 @@ namespace NSAP_ODK.Entities.Database
     {
         public DateTime SamplingDate { get; set; }
         public LandingSite LandingSite { get; set; }
+
         public GearUnload GearUnload { get; set; }
         public int? CountGearTypes { get; set; }
 
@@ -96,8 +97,8 @@ namespace NSAP_ODK.Entities.Database
 
         public int? CountMunicipalLandings { get; set; }
         public int? CountCommercialLandings { get; set; }
-        public double TotalWeightMunicipalLandings { get; set; }
-        public double TotalWeightCommercialLandings { get; set; }
+        public double? TotalWeightMunicipalLandings { get; set; }
+        public double? TotalWeightCommercialLandings { get; set; }
         public string Remarks { get; set; }
         public List<VesselUnload> VesselUnloads { get; set; }
         public bool IsSamplingDay { get; set; }

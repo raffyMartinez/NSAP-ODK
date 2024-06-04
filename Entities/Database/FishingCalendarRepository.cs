@@ -91,7 +91,8 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_LC_FG_sample_day.land_ctr_id=@landing_site AND 
                                                 dbo_LC_FG_sample_day.type_of_sampling=@sampling_type AND 
                                                 dbo_LC_FG_sample_day.sdate>=@month_start AND 
-                                                dbo_LC_FG_sample_day.sdate<@month_end";
+                                                dbo_LC_FG_sample_day.sdate<@month_end AND
+                                                dbo_gear_unload.gr_id Is Not Null";
                         try
                         {
                             con.Open();
