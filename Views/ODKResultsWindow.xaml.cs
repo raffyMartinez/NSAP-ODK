@@ -72,7 +72,7 @@ namespace NSAP_ODK.Views
         private bool _updateMissingSubmission = false;
 
         public bool IsOptimizedMultiVessel { get; set; }
-        public void JSONFromServer(string json, bool isMultivessel, bool is_optimized = false, bool updateMissingSubmission=false)
+        public void JSONFromServer(string json, bool isMultivessel, bool is_optimized = false, bool updateMissingSubmission = false)
         {
             JSON = json;
             _jsonFromServer = true;
@@ -80,7 +80,6 @@ namespace NSAP_ODK.Views
             IsOptimizedMultiVessel = is_optimized;
             _updateMissingSubmission = updateMissingSubmission;
         }
-
         public string JSON
         {
             get { return _json; }
@@ -230,7 +229,6 @@ namespace NSAP_ODK.Views
 
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
-
 
             Title = "Manage NSAP-ODK data";
             labelProgress.Content = "";
@@ -436,7 +434,7 @@ namespace NSAP_ODK.Views
             }
         }
 
-        
+
         public List<MultiVesselGear_SampledLanding> MultiVesselMainSheets
         {
             get { return _multiVesselMainSheets; }
@@ -1880,8 +1878,9 @@ namespace NSAP_ODK.Views
             }
         }
 
-        public async Task UploadToDatabase()
+        public async Task<bool> UploadToDatabase()
         {
+            bool success = false;
             if (MainSheets != null || MultiVesselMainSheets != null || MultiVesselOptimizedMainSheets != null)
             {
                 VesselUnloadServerRepository.CancelUpload = false;
@@ -1929,17 +1928,20 @@ namespace NSAP_ODK.Views
             {
                 //the actual call to save the data contained in csv files is called in the call below
                 //await SaveUploadedJsonInLoop(verbose: true, allowDownloadAgain: true, isHistoryJson: menuName == "menuUpload");
-                await SaveUploadedJsonInLoop(verbose: true, allowDownloadAgain: true, isHistoryJson: false);
-                if (_listJSONNotUploaded?.Count > 0)
-                {
 
-                }
+                success = await SaveUploadedJsonInLoop(verbose: true, allowDownloadAgain: true, isHistoryJson: false);
+
+                //if (_listJSONNotUploaded?.Count > 0)
+                //{
+
+                //}
                 JSON = string.Empty;
                 _jsonFromServer = false;
             }
+            return success;
         }
         public bool IsMultiVessel { get; set; }
-        private async Task<bool> SaveUploadedJsonInLoop(bool closeWindow = false, bool verbose = false, bool isHistoryJson = true, bool allowDownloadAgain = false)
+        public async Task<bool> SaveUploadedJsonInLoop(bool closeWindow = false, bool verbose = false, bool isHistoryJson = true, bool allowDownloadAgain = false)
         {
             bool success = false;
             //await ProcessJSONHistoryNodes((TreeViewItem)treeViewJSONNavigator.SelectedItem);
@@ -1977,7 +1979,7 @@ namespace NSAP_ODK.Views
                 //success if true if we have made this far wityout exceptions called earlier
                 success = true;
 
-                if(_updateMissingSubmission)
+                if (_updateMissingSubmission)
                 {
                     verbose = false;
                 }
@@ -2122,10 +2124,11 @@ namespace NSAP_ODK.Views
             }
         }
 
-        public async Task Upload_unmatched_landings_JSON(string formID)
+        public async Task Upload_unmatched_landings_JSON(string formID, ProgressDialogWindow pdw)
         {
             //var resultsWindow = (ODKResultsWindow)((DownloadFromServerWindow)Owner).Owner;
             FormID = formID;
+            int savedCount = 0;
             //resultsWindow.BatchUpload = true;
             foreach (var json in SubmissionIdentifierPairing.UnmatchedLandingsJSON)
             {
@@ -2152,8 +2155,13 @@ namespace NSAP_ODK.Views
                     VesselUnloadServerRepository.CreateLandingsFromJSON();
                     MainSheets = VesselUnloadServerRepository.VesselLandings;
                 }
-                await UploadToDatabase();
+                if (await UploadToDatabase())
+                {
+                    savedCount++;
+                    pdw.SavedUnmatchedJson(savedCount);
+                }
             }
+
 
         }
         private async Task<bool> Upload(bool verbose = true, bool fromJSONBatchFiles = false, int loopCount = 0, string jsonFullFileName = "", bool fromHistoryFiles = false)
@@ -2310,7 +2318,7 @@ namespace NSAP_ODK.Views
                                             {
 
                                             }
-                                            else if(IsOptimizedMultiVessel)
+                                            else if (IsOptimizedMultiVessel)
                                             {
 
                                             }
@@ -2461,6 +2469,7 @@ namespace NSAP_ODK.Views
             }
             return versionNumber;
         }
+
         public List<UnrecognizedFishingGround> UnrecognizedFishingGrounds
         {
             get { return _unrecognizedFishingGrounds.OrderBy(t => t.SamplingDate).ToList(); }

@@ -46,6 +46,12 @@ namespace NSAP_ODK.Views
         public string KoboFormNumericID { get; set; }
         public HttpClient HttpClient { get; set; }
 
+        public void SavedUnmatchedJson(int savedCount)
+        {
+            progressBar.Value = savedCount;
+            progressLabel.Content = $"Saved {savedCount} submission of {progressBar.Maximum}";
+        }
+
 
         private async Task<string> JSONStringFromAPICall(string api_call)
         {
@@ -280,9 +286,12 @@ namespace NSAP_ODK.Views
 
                         if (SubmissionIdentifierPairing.UnmatchedLandingsJSON.Count > 0)
                         {
-                            Visibility = Visibility.Collapsed;
-                            _resultsWindow.Focus();
-                            await _resultsWindow.Upload_unmatched_landings_JSON(KoboFormNumericID);
+                            //Visibility = Visibility.Collapsed;
+                            progressBar.Value = 0;
+                            progressBar.Maximum = SubmissionIdentifierPairing.UnmatchedLandingsJSON.Count;
+                            textBlockDescription.Text = $"Saving {SubmissionIdentifierPairing.UnmatchedLandingsJSON.Count} submissions to database";
+                            //_resultsWindow.Focus();
+                            await _resultsWindow.Upload_unmatched_landings_JSON(KoboFormNumericID, this);
                         }
                         else if (SubmissionIdentifierPairing.UnmatchedPairs.Count > 0)
                         {

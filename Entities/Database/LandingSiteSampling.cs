@@ -94,7 +94,10 @@ namespace NSAP_ODK.Entities.Database
             NumberOfGearTypesInLandingSite = lss.NumberOfGearTypesInLandingSite;
             HasFishingOperation = lss.HasFishingOperation;
             NumberOfLandings = lss.NumberOfLandings;
-            GearUnloads = lss.GearUnloadViewModel.GearUnloadCollection.ToList();
+            if (lss.GearUnloadViewModel != null)
+            {
+                GearUnloads = lss.GearUnloadViewModel.GearUnloadCollection.ToList();
+            }
             SamplingDate_MDY = SamplingDate.ToString("MMM-dd-yyyy");
         }
 

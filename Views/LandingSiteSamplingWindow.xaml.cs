@@ -111,25 +111,27 @@ namespace NSAP_ODK.Views
 
 
             List<VesselUnload> unloads = new List<VesselUnload>();
-            foreach (var gu in lssf.GearUnloads)
+            if (lssf.GearUnloads != null)
             {
-                unloads.AddRange(gu.ListVesselUnload);
+                foreach (var gu in lssf.GearUnloads)
+                {
+                    unloads.AddRange(gu.ListVesselUnload);
+                }
+                gridLandings.ItemsSource = unloads;
+                gridLandings.AutoGenerateColumns = false;
+                gridLandings.CanUserAddRows = false;
+                gridLandings.IsReadOnly = true;
+
+                gridLandings.Columns.Add(new DataGridTextColumn { Header = "Vessel", Binding = new Binding("VesselName") });
+                gridLandings.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Sector") });
+                gridLandings.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("GearUsed") });
+                gridLandings.Columns.Add(new DataGridCheckBoxColumn { Header = "Success", Binding = new Binding("OperationIsSuccessful") });
+                gridLandings.Columns.Add(new DataGridTextColumn { Header = "Weight of catch", Binding = new Binding("WeightOfCatch") });
+                gridLandings.Columns.Add(new DataGridCheckBoxColumn { Header = "Has catch composition", Binding = new Binding("HasCatchComposition") });
+                gridLandings.Columns.Add(new DataGridTextColumn { Header = "Ref #", Binding = new Binding("RefNo") });
+                gridLandings.Columns.Add(new DataGridTextColumn { Header = "Notes", Binding = new Binding("Notes") });
+                gridLandings.Columns.Add(new DataGridTextColumn { Header = "Form version", Binding = new Binding("Parent.Parent.FormVersion") });
             }
-            gridLandings.ItemsSource = unloads;
-            gridLandings.AutoGenerateColumns = false;
-            gridLandings.CanUserAddRows = false;
-            gridLandings.IsReadOnly = true;
-
-            gridLandings.Columns.Add(new DataGridTextColumn { Header = "Vessel", Binding = new Binding("VesselName") });
-            gridLandings.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Sector") });
-            gridLandings.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("GearUsed") });
-            gridLandings.Columns.Add(new DataGridCheckBoxColumn { Header = "Success", Binding = new Binding("OperationIsSuccessful") });
-            gridLandings.Columns.Add(new DataGridTextColumn { Header = "Weight of catch", Binding = new Binding("WeightOfCatch") });
-            gridLandings.Columns.Add(new DataGridCheckBoxColumn { Header = "Has catch composition", Binding = new Binding("HasCatchComposition") });
-            gridLandings.Columns.Add(new DataGridTextColumn { Header = "Ref #", Binding = new Binding("RefNo") });
-            gridLandings.Columns.Add(new DataGridTextColumn { Header = "Notes", Binding = new Binding("Notes") });
-            gridLandings.Columns.Add(new DataGridTextColumn { Header = "Form version", Binding = new Binding("Parent.Parent.FormVersion") });
-
 
 
         }

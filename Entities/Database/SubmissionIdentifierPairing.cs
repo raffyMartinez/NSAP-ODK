@@ -69,7 +69,7 @@ namespace NSAP_ODK.Entities.Database
                 UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { ItemsUpdatedCount = loop_count, Intent = UploadToDBIntent.UpdatedUnmatchedJSONDone });
             }
 
-            return update_count > 0;
+          return update_count > 0;
         }
 
 
