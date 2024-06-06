@@ -13,6 +13,7 @@ namespace NSAP_ODK.Entities.Database
     {
         calendarViewTypeSampledLandings,
         calendarViewTypeCountAllLandingsByGear,
+        calendarViewTypeWeightAllLandings,
         calendarViewTypeWeightAllLandingsByGear,
         calendarViewTypeCountAllLandings,
         calendarViewTypeGearDailyLandings,

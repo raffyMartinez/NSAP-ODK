@@ -258,16 +258,25 @@ namespace NSAP_ODK.Entities.Database
                             {
                                 lss.LandingSiteTypeOfSampling = "rs";
                             }
-
-                            if (root.RegionEnumeratorID != null)
+                            try
                             {
-                                lss.EnumeratorID = root.NSAPEnumerator.ID;
+                                if (root.RegionEnumeratorID != null && root.NSAPEnumerator != null)
+                                {
+                                    lss.EnumeratorID = root.NSAPEnumerator.ID;
+                                }
+                                else
+                                {
+                                    lss.EnumeratorText = root.RegionEnumeratorText;
+                                }
                             }
-                            else
+                            catch
                             {
-                                lss.EnumeratorText = root.RegionEnumeratorText;
-                            }
+                                if(root.RegionEnumeratorText==null)
 
+                                {
+                                    lss.EnumeratorText = "";
+                                }                                //ignore
+                            }
                             if (root.LandingSite == null)
                             {
                                 if (fls != null)

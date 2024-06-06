@@ -672,7 +672,7 @@ namespace NSAP_ODK
                                 if (vuCountInGU != totalLandingsCount)
                                 {
                                     totlaLandingsCount += $" ({vuCountInGU})";
-                                    buttonFix.Visibility = Visibility.Visible;
+                                    buttonNote.Visibility = Visibility.Visible;
                                 }
                             }
                             if (GridNSAPData.Items.Count > 0)
@@ -2118,6 +2118,9 @@ namespace NSAP_ODK
             {
                 //case "buttonEntitySummary":
                 //    break;
+                case "buttonNote":
+
+                    break;
                 case "buttonFix":
                     ShowFixMismatchCalendarWindow();
 
@@ -2250,8 +2253,8 @@ namespace NSAP_ODK
                 //NSAPEntities.NSAPRegion = _allSamplingEntitiesEventHandler.NSAPRegion;
                 //MakeCalendar(_allSamplingEntitiesEventHandler);
 
-                string totlaLandingsCount="";
-                if ( _allSamplingEntitiesEventHandler.CalendarView != CalendarViewType.calendarViewTypeGearDailyLandings)
+                string totlaLandingsCount = "";
+                if (_allSamplingEntitiesEventHandler.CalendarView != CalendarViewType.calendarViewTypeGearDailyLandings)
                 {
                     int totalLandingsCount = NSAPEntities.FishingCalendarDayExViewModel.TotalVesselUnloadCount;
                     totlaLandingsCount = $", Total sampled landings: {totalLandingsCount}";
@@ -2277,7 +2280,7 @@ namespace NSAP_ODK
                     //labelRowCount.Content = $"Rows: {GridNSAPData.Items.Count} {totlaLandingsCount} {columnStyle}";
                     labelRowCount.Content = NSAPEntities.FishingCalendarDayExViewModel.SamplingCalendarTitle;
                 }
-                else
+                else if (!NSAPEntities.FishingCalendarDayExViewModel.CalendarHasValue)
                 {
                     labelRowCount.Content = "Older eforms cannot encode data. Use Catch and Effort eForm version 7.14";
                 }
@@ -2395,6 +2398,7 @@ namespace NSAP_ODK
                 case "menuWeightLandingsCalendar":
                 case "menuTotalLandingsCalendar":
                 case "menuDailyGearLandingCalendar":
+                case "menuTotalWeightsCalendar":
                     if (NSAPEntities.FishingCalendarDayExViewModel.CanCreateCalendar)
                     {
                         foreach (Control mi in menuCalendar.Items)
@@ -2424,6 +2428,9 @@ namespace NSAP_ODK
                             case "menuDailyGearLandingCalendar":
                                 _calendarOption = CalendarViewType.calendarViewTypeGearDailyLandings;
                                 break;
+                            case "menuTotalWeightsCalendar":
+                                _calendarOption = CalendarViewType.calendarViewTypeWeightAllLandings;
+                                break;
                         }
                         if (!_cancelBuildCalendar)
                         {
@@ -2432,6 +2439,14 @@ namespace NSAP_ODK
                             GridNSAPData.Columns.Clear();
                             GridNSAPData.AutoGenerateColumns = true;
                             GridNSAPData.DataContext = NSAPEntities.FishingCalendarDayExViewModel.DataTable;
+                            if (!NSAPEntities.FishingCalendarDayExViewModel.CalendarHasValue)
+                            {
+                                GridNSAPData.Visibility = Visibility.Collapsed;
+                            }
+                            else
+                            {
+                                GridNSAPData.Visibility = Visibility.Visible;
+                            }
 
                             _hasNonSamplingDayColumns = false;
                             foreach (DataGridColumn c in GridNSAPData.Columns)
@@ -3810,6 +3825,7 @@ namespace NSAP_ODK
                             //    }
                             //    break;
                             case CalendarViewType.calendarViewTypeCountAllLandings:
+                            case CalendarViewType.calendarViewTypeWeightAllLandings:
                                 if (GridNSAPData.SelectedCells.Count > 0)
                                 {
                                     var cellinfo = GridNSAPData.SelectedCells[0];
@@ -3853,6 +3869,10 @@ namespace NSAP_ODK
                                             LandingSiteSamplingWindow lssw = new LandingSiteSamplingWindow(lss);
                                             lssw.Owner = this;
                                             lssw.Show();
+                                        }
+                                        else
+                                        {
+                                            MessageBox.Show("No data for this date", Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
                                         }
                                     }
                                 }
@@ -4125,7 +4145,7 @@ namespace NSAP_ODK
             _monthYear = null;
             _cancelBuildCalendar = false;
             menuCalendar.Visibility = Visibility.Collapsed;
-            buttonFix.Visibility = Visibility.Collapsed;
+            buttonNote.Visibility = Visibility.Collapsed;
             _fishingCalendarViewModel = null;
             gridCalendarHeader.Visibility = Visibility.Visible;
             _calendarTreeSelectedEntity = e.TreeViewEntity;
@@ -4184,6 +4204,14 @@ namespace NSAP_ODK
                     GridNSAPData.Columns.Clear();
                     GridNSAPData.AutoGenerateColumns = true;
                     GridNSAPData.DataContext = NSAPEntities.FishingCalendarDayExViewModel.DataTable;
+                    if (NSAPEntities.FishingCalendarDayExViewModel.CalendarHasValue)
+                    {
+                        GridNSAPData.Visibility = Visibility.Visible;
+                    }
+                    else
+                    {
+                        GridNSAPData.Visibility = Visibility.Collapsed;
+                    }
 
                     _hasNonSamplingDayColumns = false;
                     foreach (DataGridColumn c in GridNSAPData.Columns)
@@ -4377,7 +4405,7 @@ namespace NSAP_ODK
                             else if (_gridCol >= 4)
                             {
 
-                                GearUnload gear_unload_from_day = NSAPEntities.FishingCalendarDayExViewModel.GetGearUnload(_gearName, _fish_sector, _gridCol - 3);
+                                GearUnload gear_unload_from_day = NSAPEntities.FishingCalendarDayExViewModel.GetGearUnload(_gearName, _fish_sector, _gridCol - 3, _calendarOption);
                                 //GearUnload gear_unload_from_day = _fishingCalendarViewModel.FishingCalendarList.FirstOrDefault(t => t.GearName == _gearName && t.Sector == _fish_sector).GearUnloads[_gridCol - 4];
 
                                 //sectorCode = gear_unload_from_day.SectorCode;

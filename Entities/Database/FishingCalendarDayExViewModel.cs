@@ -13,26 +13,50 @@ namespace NSAP_ODK.Entities.Database
         private List<FishingCalendarDayEx> _fishingCalendarDays;
         private int _numberOfDays;
         private List<FishingGearAndSector> _gearsAndSectors;
+        private List<int> _vesselUnloads;
         private AllSamplingEntitiesEventHandler _selectedMonth;
         public CalendarViewType CalendarViewType { get; set; }
         public int TotalVesselUnloadCount { get; set; }
-        public int TotalLandingCount { get; set; }
-        public double TotalLandedCatchWeight { get; set; }
+        public int? TotalLandingCount { get; set; }
+        public double? TotalWeightLanded { get; set; }
+        public double? TotalLandedCatchWeight { get; set; }
         public FishingCalendarRepository Repository { get; set; }
         public Dictionary<string, List<FishingCalendarDayEx>> CalendarDaysDictionary { get; private set; } = new Dictionary<string, List<FishingCalendarDayEx>>();
         public Dictionary<string, List<FishingGearAndSector>> UniqueGearListDictionary { get; private set; } = new Dictionary<string, List<FishingGearAndSector>>();
+        public Dictionary<string, List<int>> VesselUnloadIDsDictionary { get; private set; } = new Dictionary<string, List<int>>();
         public FishingCalendarDayExViewModel()
         {
             Repository = new FishingCalendarRepository();
         }
         public DataTable DataTable { get; set; }
 
+        public List<CrossTabCommon> ListCrossTabCommon
+        {
+            get
+            {
+                List<CrossTabCommon> this_list = new List<CrossTabCommon>();
+                foreach (int vu_id in _vesselUnloads)
+                {
+                    VesselUnload vu = NSAPEntities.SummaryItemViewModel.GetVesselUnload(vu_id);
+                    CrossTabCommon ctb = new CrossTabCommon(vu);
+                }
+                return this_list;
+            }
+        }
+
         public string LocationLabel
         {
             get
             {
-                var day = _fishingCalendarDays.First();
-                return $"{_selectedMonth.LandingSite}, {_selectedMonth.FishingGround}, {_selectedMonth.FMA}, {_selectedMonth.NSAPRegion}";
+                if (_fishingCalendarDays.Count == 0)
+                {
+                    return "";
+                }
+                else
+                {
+                    var day = _fishingCalendarDays.First();
+                    return $"{_selectedMonth.LandingSite}, {_selectedMonth.FishingGround}, {_selectedMonth.FMA}, {_selectedMonth.NSAPRegion}";
+                }
             }
         }
         public string SamplingCalendarTitle
@@ -54,16 +78,29 @@ namespace NSAP_ODK.Entities.Database
                     case CalendarViewType.calendarViewTypeCountAllLandings:
                         labelCountWeight = $"Total number of landings for all gears and sectors: {TotalLandingCount}";
                         break;
+                    case CalendarViewType.calendarViewTypeWeightAllLandings:
+                        labelCountWeight = $"Total weight of catch of landings for all gears and sectors: {TotalWeightLanded}";
+                        break;
                 }
                 string restDayIndicator = "";
                 if (_fishingCalendarDays.Where(t => !t.IsSamplingDay).Count() > 0)
                 {
                     restDayIndicator = "(Blue columns represent rest day)";
                 }
-                return $"Rows: {_gearsAndSectors.Where(t => t.Sector != "Other").Count()}, {labelCountWeight} {restDayIndicator}";
+                var label = $"Rows: {_gearsAndSectors.Where(t => t.Sector != "Other").Count()}, {labelCountWeight} {restDayIndicator}";
+                if (CalendarHasValue)
+                {
+                    return $"Rows: {_gearsAndSectors.Where(t => t.Sector != "Other").Count()}, {labelCountWeight} {restDayIndicator}";
+                }
+                else
+                {
+                    return "The version of the electronic form cannot display the information requested";
+                }
 
             }
         }
+        public bool HasEformNeedingUpdate { get; set; }
+        public bool CalendarHasValue { get; set; }
         public bool DayIsRestDay(int day)
         {
             var sd = _fishingCalendarDays.FirstOrDefault(t => t.SamplingDate.Day == day);
@@ -78,6 +115,12 @@ namespace NSAP_ODK.Entities.Database
         }
         public void MakeCalendar()
         {
+            CalendarHasValue = false;
+            if (_fishingCalendarDays.Count == 0)
+            {
+                return;
+            }
+
             DataRow row;
             TotalVesselUnloadCount = 0;
             TotalLandingCount = 0;
@@ -120,6 +163,7 @@ namespace NSAP_ODK.Entities.Database
                             }
                             else
                             {
+                                CalendarHasValue = true;
                                 row[x.ToString()] = day.CountVesselUnloads;
                                 TotalVesselUnloadCount += day.CountVesselUnloads;
                             }
@@ -127,7 +171,9 @@ namespace NSAP_ODK.Entities.Database
                         DataTable.Rows.Add(row);
                     }
                     break;
+
                 case CalendarViewType.calendarViewTypeCountAllLandingsByGear:
+                    TotalLandingCount = null;
                     foreach (var gear_sector in _gearsAndSectors.Where(t => t.SectorCode == "c" || t.SectorCode == "m").OrderBy(t => t.Gear.GearName).ThenBy(t => t.SectorCode))
                     {
                         row = DataTable.NewRow();
@@ -144,23 +190,35 @@ namespace NSAP_ODK.Entities.Database
                             }
                             else
                             {
-                                int landedCount;
+                                int? landedCount = null;
                                 if (day.CountCommercialLandings != null && day.CountMunicipalLandings != null)
                                 {
                                     landedCount = (int)day.CountCommercialLandings + (int)day.CountMunicipalLandings;
                                 }
-                                else
+                                else if (day.TotalNumberOfLandings != null)
                                 {
                                     landedCount = (int)day.TotalNumberOfLandings;
                                 }
+                                else
+                                {
+                                    landedCount = day.CountVesselUnloads;
+                                }
                                 row[x.ToString()] = landedCount;
-                                TotalLandingCount += landedCount;
+                                if (landedCount != null)
+                                {
+                                    TotalLandingCount = (TotalLandingCount ?? 0) + (int)landedCount;
+                                }
+                                if (CalendarHasValue == false)
+                                {
+                                    CalendarHasValue = landedCount != null;
+                                }
                             }
                         }
                         DataTable.Rows.Add(row);
                     }
                     break;
                 case CalendarViewType.calendarViewTypeWeightAllLandingsByGear:
+                    TotalLandedCatchWeight = null;
                     foreach (var gear_sector in _gearsAndSectors.Where(t => t.SectorCode == "c" || t.SectorCode == "m").OrderBy(t => t.Gear.GearName).ThenBy(t => t.SectorCode))
                     {
                         row = DataTable.NewRow();
@@ -177,23 +235,74 @@ namespace NSAP_ODK.Entities.Database
                             }
                             else
                             {
-                                double landedWeight;
-                                if (day.TotalWeightCommercialLandings != null && day.TotalWeightMunicipalLandings != null)
+                                double? landedWeight = null;
+                                if (day.TotalWeightCommercialLandings != null || day.TotalWeightMunicipalLandings != null)
                                 {
-                                    landedWeight = (double)day.TotalWeightCommercialLandings + (double)day.TotalWeightMunicipalLandings;
+                                    landedWeight = (day.TotalWeightCommercialLandings ?? 0) + day.TotalWeightMunicipalLandings ?? 0;
                                 }
                                 else
                                 {
                                     landedWeight = (double)day.TotalWeightOfCatch;
                                 }
                                 row[x.ToString()] = landedWeight;
-                                TotalLandedCatchWeight += landedWeight;
+                                if (landedWeight != null)
+                                {
+                                    TotalLandedCatchWeight = (TotalLandedCatchWeight ?? 0) + (landedWeight ?? 0);
+                                    if (!CalendarHasValue)
+                                    {
+                                        CalendarHasValue = true;
+                                    }
+                                }
                             }
                         }
                         DataTable.Rows.Add(row);
                     }
                     break;
                 case CalendarViewType.calendarViewTypeCountAllLandings:
+                    TotalLandingCount = null;
+                    row = DataTable.NewRow();
+                    row["GearName"] = "All gears";
+                    row["GearCode"] = "All sectors";
+                    row["Sector"] = "";
+                    row["Month"] = samplingMonthYear.ToString("MMM-yyyy");
+
+                    int? landingCount = null;
+                    for (int x = 1; x <= _numberOfDays; x++)
+                    {
+                        //row[x.ToString()] = "-";
+                        var day_gears = _fishingCalendarDays.Where(t => t.SamplingDate.Day == x).ToList();
+                        landingCount = null;
+                        foreach (var d in day_gears)
+                        {
+                            if (!d.HasFishingOperation)
+                            {
+                                row[x.ToString()] = "x";
+                            }
+                            else if (d.SectorCode == "m" && d.CountMunicipalLandings != null)
+                            {
+                                landingCount = (landingCount ?? 0) + d.CountMunicipalLandings;
+                            }
+                            else if (d.SectorCode == "c" && d.CountCommercialLandings != null)
+                            {
+                                landingCount = (landingCount ?? 0) + d.CountCommercialLandings;
+                            }
+                            else
+                            {
+                                landingCount = (landingCount ?? 0) + d.CountVesselUnloads;
+                            }
+                        }
+                        if (landingCount != null)
+                        {
+                            row[x.ToString()] = landingCount;
+                            TotalLandingCount = (TotalLandingCount ?? 0) + landingCount;
+                            CalendarHasValue = true;
+                        }
+                    }
+
+                    DataTable.Rows.Add(row);
+                    break;
+                case CalendarViewType.calendarViewTypeWeightAllLandings:
+                    TotalWeightLanded = null;
                     row = DataTable.NewRow();
                     row["GearName"] = "All gears";
                     row["GearCode"] = "All sectors";
@@ -202,29 +311,41 @@ namespace NSAP_ODK.Entities.Database
 
                     for (int x = 1; x <= _numberOfDays; x++)
                     {
-                        int landingCount = 0;
+                        //row[x.ToString()] = "-";
+                        double? weight_catch = null;
                         var day_gears = _fishingCalendarDays.Where(t => t.SamplingDate.Day == x).ToList();
                         foreach (var d in day_gears)
                         {
-                            if (d.SectorCode == "m")
+                            if (!d.HasFishingOperation)
                             {
-                                landingCount += (int)d.CountMunicipalLandings;
+                                row[x.ToString()] = "x";
                             }
-                            else if (d.SectorCode == "c")
+                            else if (d.TotalWeightMunicipalLandings != null | d.TotalWeightCommercialLandings != null)
                             {
-                                landingCount += (int)d.CountCommercialLandings;
+                                if (d.SectorCode == "m")
+                                {
+                                    weight_catch = (weight_catch ?? 0) + d.TotalWeightMunicipalLandings;
+                                }
+                                else if (d.SectorCode == "c")
+                                {
+                                    weight_catch = (weight_catch ?? 0) + d.TotalWeightCommercialLandings;
+                                }
+                            }
+                            else if (weight_catch == null && d.TotalWeightOfCatch != null)
+                            {
+                                weight_catch = (weight_catch ?? 0) + d.TotalWeightOfCatch;
                             }
                         }
-                        if (landingCount > 0)
+                        if (weight_catch != null)
                         {
-                            row[x.ToString()] = landingCount;
-                            TotalLandingCount += landingCount;
+                            CalendarHasValue = true;
+                            row[x.ToString()] = ((double)weight_catch).ToString("N1");
+                            TotalWeightLanded = (TotalWeightLanded ?? 0) + weight_catch;
                         }
                     }
 
                     DataTable.Rows.Add(row);
                     break;
-
             }
 
         }
@@ -260,10 +381,25 @@ namespace NSAP_ODK.Entities.Database
                 return _fishingCalendarDays != null && _fishingCalendarDays.Count > 0;
             }
         }
-        public GearUnload GetGearUnload(string gearName, string sector, int day)
+        public GearUnload GetGearUnload(string gearName, string sector, int day, CalendarViewType calendarView)
         {
             //var l = _fishingCalendarDays.Where(t => t.Gear != null && t.Gear.GearName == gearName && t.Sector == sector && t.SamplingDate.Day == day).ToList();
-            GearUnload gu = _fishingCalendarDays.Where(t => t.Gear != null && t.Gear.GearName == gearName && t.Sector == sector && t.SamplingDate.Day == day).First().GearUnload;
+            GearUnload gu = null;
+            if (calendarView == CalendarViewType.calendarViewTypeCountAllLandings)
+            {
+
+            }
+            else
+            {
+                try
+                {
+                    gu = _fishingCalendarDays.Where(t => t.Gear != null && t.Gear.GearName == gearName && t.Sector == sector && t.SamplingDate.Day == day).First().GearUnload;
+                }
+                catch
+                {
+                    //ignore
+                }
+            }
             return gu;
             //return new GearUnload();
         }
@@ -274,9 +410,11 @@ namespace NSAP_ODK.Entities.Database
             {
                 CalendarDaysDictionary.Add(selectedMonth.GUID, await Repository.GetCalendarDaysAsync(selectedMonth));
                 UniqueGearListDictionary.Add(selectedMonth.GUID, Repository.UniqueGearSectorList.ToList());
+                VesselUnloadIDsDictionary.Add(selectedMonth.GUID, Repository.GetVesselUnloadIDsOfCalendar(selectedMonth));
             }
             _fishingCalendarDays = CalendarDaysDictionary[selectedMonth.GUID];
             _gearsAndSectors = UniqueGearListDictionary[selectedMonth.GUID];
+            _vesselUnloads = VesselUnloadIDsDictionary[selectedMonth.GUID];
             return _fishingCalendarDays;
         }
     }

@@ -105,6 +105,7 @@
                 <MenuItem Header="Number of landings by gear calendar" x:Name="menuAllLandingsCalendar" IsCheckable="True" Checked="OnMenuItemChecked" />
                 <MenuItem Header="Weight of landed catch by gear calendar" x:Name="menuWeightLandingsCalendar" IsCheckable="True" Checked="OnMenuItemChecked" />
                 <MenuItem Header="Total number of landings by day calendar" x:Name="menuTotalLandingsCalendar" IsCheckable="True" Checked="OnMenuItemChecked" />
+                <MenuItem Header="Total weight of catch landings by day calendar" x:Name="menuTotalWeightsCalendar" IsCheckable="True" Checked="OnMenuItemChecked" />
                 <!--<Separator/>
                 <MenuItem Header="Daily gear landing calendar" x:Name="menuDailyGearLandingCalendar" IsCheckable="True" Checked="OnMenuItemChecked"/>-->
             </MenuItem>
@@ -245,7 +246,7 @@
                     <Label x:Name="MonthSubLabel" Foreground="Gray"  Content="This is a sublabel"  HorizontalAlignment="Center" FontSize="12" />
                     <WrapPanel HorizontalAlignment="Center">
                         <Label x:Name="labelRowCount" Content="Rows: 100" HorizontalAlignment="Center"/>
-                        <Button x:Name="buttonFix" Content="!" Click="OnButtonClick" Height="20" Width="20" Visibility="Collapsed" FontWeight="Bold" Foreground="#FFF72E2E"/>
+                        <Button x:Name="buttonNote" Content="!" Click="OnButtonClick" Height="20" Width="20" Visibility="Collapsed" FontWeight="Bold" Foreground="#FFF72E2E"/>
                     </WrapPanel>
                 </StackPanel>
             </Grid>

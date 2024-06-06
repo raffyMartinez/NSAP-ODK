@@ -48,12 +48,20 @@ namespace NSAP_ODK.Entities.Database
                 {
                     VesselCatchWV vesselCatchWV = new VesselCatchWV
                     {
-                        PK = (int)c.VesselUnloadID,
+                        //PK = (int)c.VesselUnloadID,
                         FromTotalCatch = c.FromTotalCatch,
                         Species_kg = c.Catch_kg,
                         Species_sample_kg = c.Sample_kg,
                         VesselUnload_GearID = vufg.RowID
                     };
+                    if(c.VesselUnloadID==null)
+                    {
+                        vesselCatchWV.PK = c.ParentFishingGear.Parent.PK;
+                    }
+                    else
+                    {
+                        vesselCatchWV.PK = (int)c.VesselUnloadID;
+                    }
                     catchList.Add(vesselCatchWV);
                 }
 
