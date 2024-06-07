@@ -1878,7 +1878,7 @@ namespace NSAP_ODK.Views
             }
         }
 
-        public async Task<bool> UploadToDatabase()
+        public async Task<bool> UploadToDatabase(bool fromUnmatchedJSON = false, int? loopCount = null)
         {
             bool success = false;
             if (MainSheets != null || MultiVesselMainSheets != null || MultiVesselOptimizedMainSheets != null)
@@ -1886,7 +1886,7 @@ namespace NSAP_ODK.Views
                 VesselUnloadServerRepository.CancelUpload = false;
                 MultiVesselGear_UnloadServerRepository.CancelUpload = false;
                 MultiVessel_Optimized_UnloadServerRepository.CancelUpload = false;
-                if (!Global.Settings.UsemySQL)
+                if (!Global.Settings.UsemySQL && !fromUnmatchedJSON)
                 {
                     NSAPEntities.ClearCSVData();
                 }
@@ -1901,21 +1901,23 @@ namespace NSAP_ODK.Views
             //{
             //    fileName = _selectedJSONMetaData.JSONFileInfo.FullName;
             //}
-
-            if (IsOptimizedMultiVessel)
+            if (!fromUnmatchedJSON || loopCount==0)
             {
-                MultiVessel_Optimized_UnloadServerRepository.ResetTotalUploadCounter();
-                MultiVessel_Optimized_UnloadServerRepository.ResetGroupIDs();
-            }
-            else if (IsMultiVessel)
-            {
-                MultiVesselGear_UnloadServerRepository.ResetTotalUploadCounter();
-                MultiVesselGear_UnloadServerRepository.ResetGroupIDs();
-            }
-            else
-            {
-                VesselUnloadServerRepository.ResetTotalUploadCounter();
-                VesselUnloadServerRepository.ResetGroupIDs();// VesselUnloadServerRepository.DelayedSave);
+                if (IsOptimizedMultiVessel)
+                {
+                    MultiVessel_Optimized_UnloadServerRepository.ResetTotalUploadCounter();
+                    MultiVessel_Optimized_UnloadServerRepository.ResetGroupIDs();
+                }
+                else if (IsMultiVessel)
+                {
+                    MultiVesselGear_UnloadServerRepository.ResetTotalUploadCounter();
+                    MultiVesselGear_UnloadServerRepository.ResetGroupIDs();
+                }
+                else
+                {
+                    VesselUnloadServerRepository.ResetTotalUploadCounter();
+                    VesselUnloadServerRepository.ResetGroupIDs();// VesselUnloadServerRepository.DelayedSave);
+                }
             }
 
 
@@ -1928,9 +1930,14 @@ namespace NSAP_ODK.Views
             {
                 //the actual call to save the data contained in csv files is called in the call below
                 //await SaveUploadedJsonInLoop(verbose: true, allowDownloadAgain: true, isHistoryJson: menuName == "menuUpload");
-
-                success = await SaveUploadedJsonInLoop(verbose: true, allowDownloadAgain: true, isHistoryJson: false);
-
+                if (!fromUnmatchedJSON)
+                {
+                    success = await SaveUploadedJsonInLoop(verbose: true, allowDownloadAgain: true, isHistoryJson: false);
+                }
+                else
+                {
+                    success = true;
+                }
                 //if (_listJSONNotUploaded?.Count > 0)
                 //{
 
@@ -2155,12 +2162,14 @@ namespace NSAP_ODK.Views
                     VesselUnloadServerRepository.CreateLandingsFromJSON();
                     MainSheets = VesselUnloadServerRepository.VesselLandings;
                 }
-                if (await UploadToDatabase())
+                if (await UploadToDatabase(fromUnmatchedJSON: true, savedCount))
                 {
                     savedCount++;
                     pdw.SavedUnmatchedJson(savedCount);
                 }
+
             }
+            await SaveUploadedJsonInLoop(verbose: true, allowDownloadAgain: true, isHistoryJson: false);
 
 
         }
