@@ -747,7 +747,9 @@ namespace NSAP_ODK.Entities.Database
         public bool IncludeEffortIndicators { get; set; }
         public int? NumberOfSpeciesInCatchComposition { get; set; }
 
-
+        public string FirstFishingGround { get; set; }
+        public DateTime? GearSettingFirst { get; set; }
+        public DateTime? GearHaulingFirst { get; set; }
         public int? SequenceOfSampling { get; set; }
         public int? CountGearTypesUsed { get; set; }
         public LandedCatchValidationResult LandedCatchValidationResult
@@ -1503,6 +1505,10 @@ namespace NSAP_ODK.Entities.Database
                 return _fishingVessel;
             }
         }
+
+
+
+
         public GearUnload Parent
         {
             set { _parent = value; }

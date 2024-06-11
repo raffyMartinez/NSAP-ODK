@@ -30,5 +30,39 @@ namespace NSAP_ODK.TreeViewModelControl
         public string ContextMenuTopic { get; set; }
 
         public string GUID { get; set; }
+        public override int GetHashCode()
+        {
+            return (NSAPRegion.Code, FMA.FMAID, FishingGround.Code, LandingSite.LandingSiteID, MonthSampled).GetHashCode();
+        }
+        public override bool Equals(object obj)
+        {
+            if (obj != null)
+            {
+                if (obj is AllSamplingEntitiesEventHandler)
+                {
+                    var aseeh = obj as AllSamplingEntitiesEventHandler;
+                    if (aseeh.FishingGround != null && aseeh.LandingSite != null && MonthSampled != null)
+                    {
+                        return aseeh.NSAPRegion.Code == NSAPRegion.Code &&
+                            aseeh.FMA.FMAID == FMA.FMAID &&
+                            aseeh.FishingGround.Code == FishingGround.Code &&
+                            aseeh.LandingSite.LandingSiteID == LandingSite.LandingSiteID &&
+                            aseeh.MonthSampled == MonthSampled;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
 }

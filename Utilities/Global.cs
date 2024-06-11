@@ -25,7 +25,8 @@ namespace NSAP_ODK.Utilities
     }
     public static class Global
     {
-
+        
+        private static DateTime? _commandArgsFilterDate;
         public static event EventHandler<EntityLoadedEventArg> EntityLoading;
         public static event EventHandler<EntityLoadedEventArg> EntityLoaded;
         public static event EventHandler RequestLogIn = delegate { };
@@ -59,7 +60,7 @@ namespace NSAP_ODK.Utilities
         //}
         //public static bool CancelOperation { get; set; }
 
-
+        public static bool CommandArgumentIsValidDate { get; private set; }
         public static Stream GenerateStreamFromString(string s)
         {
             var stream = new MemoryStream();
@@ -476,6 +477,29 @@ namespace NSAP_ODK.Utilities
         public static bool MySQLLogInCancelled { get; set; }
 
         public static string FilterError { get; set; }
+
+        public static bool CommandArgsIsValidDate()
+        {
+            bool isValid = false;
+            string args = "";
+            for (int x = 0; x < CommandArgs.Count(); x++)
+            {
+                args += $"{CommandArgs[x]} ";
+            }
+            args = args.Trim();
+
+            if (DateTime.TryParse(args, out DateTime dt))
+            {
+                if (dt < DateTime.Now)
+                {
+                    _commandArgsFilterDate = dt;
+                    Filter1 = dt;
+                    isValid = true;
+                }
+            }
+            CommandArgumentIsValidDate = isValid;
+            return CommandArgumentIsValidDate;
+        }
         public static void DoAppProceed()
         {
             AppProceed = Settings != null && File.Exists(Settings.MDBPath);

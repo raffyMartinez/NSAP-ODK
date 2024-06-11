@@ -1346,9 +1346,10 @@ namespace NSAP_ODK.Entities.Database
             return success;
         }
 
-        public static bool UpdateSubmissionID(string formID, string submissionUID, int id)
+        public static bool? UpdateSubmissionID(string formID, string submissionUID, int id)
         {
             bool success = false;
+            bool isnull_submission_id=false;
             if (Global.Settings.UsemySQL)
             {
 
@@ -1357,27 +1358,75 @@ namespace NSAP_ODK.Entities.Database
             {
                 using (var con = new OleDbConnection(Global.ConnectionString))
                 {
-                    using (var cmd = con.CreateCommand())
+                    con.Open();
+                    using (var c = con.CreateCommand())
                     {
-                        //var guid = new Guid(submissionUID);
-                        //cmd.Parameters.Add("@form_id", OleDbType.VarChar).Value = formID;
-                        //cmd.Parameters.Add("@submission_uid", OleDbType.VarChar).Value = submissionUID;
-                        //cmd.Parameters.Add("@id", OleDbType.Integer).Value= id;
+                        c.Parameters.AddWithValue("@xf_id", formID);
+                        c.Parameters.AddWithValue("@row_id", $"{{{submissionUID}}}");
 
-                        cmd.CommandText = $@"UPDATE dbo_LC_FG_sample_day_1
-                                            SET submission_id = {id}
-                                            WHERE XFormIdentifier = '{formID}' AND RowID = '{submissionUID}'";
-
+                        c.CommandText = @"SELECT 
+                                            unload_day_id, 
+                                            submission_id 
+                                        FROM 
+                                            dbo_LC_FG_sample_day_1 
+                                        WHERE 
+                                            XFormIdentifier=@xf_id AND
+                                            RowID=@row_id";
                         try
                         {
-                            con.Open();
-                            int r = (int)cmd.ExecuteNonQuery();
-                            success = r > 0;
+                            var dr = c.ExecuteReader();
+                            if (dr.HasRows)
+                            {
+                                while (dr.Read())
+                                {
+                                    isnull_submission_id = string.IsNullOrEmpty(dr["submission_id"].ToString());
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                return false;
+                            }
                         }
                         catch (Exception ex)
                         {
                             Logger.Log(ex);
                         }
+                    }
+
+                    if (isnull_submission_id)
+                    {
+                        using (var cmd = con.CreateCommand())
+                        {
+                            //cmd.Parameters.AddWithValue("@id", id);
+                            //cmd.Parameters.AddWithValue("@form_id", formID);
+                            //cmd.Parameters.AddWithValue("@submission_uid", $"{{{submissionUID}}}");
+                            string s_uid = $"{{{submissionUID}}}";
+
+                            //cmd.CommandText = $@"UPDATE dbo_LC_FG_sample_day_1
+                            //                SET submission_id = @id
+                            //                WHERE XFormIdentifier = @form_id AND RowID = @submission_uid";
+                            //cmd.CommandText = $@"UPDATE dbo_LC_FG_sample_day_1
+                            //                SET submission_id = {id}
+                            //                WHERE XFormIdentifier = '{formID}' AND RowID = '{submissionUID}'";
+                            cmd.CommandText = $@"UPDATE dbo_LC_FG_sample_day_1
+                                                SET submission_id = {id}
+                                                WHERE XFormIdentifier = '{formID}' AND RowID = '{s_uid}'";
+
+                            try
+                            {
+                                int r = (int)cmd.ExecuteNonQuery();
+                                success = r > 0;
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Log(ex);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        return true;
                     }
                 }
             }

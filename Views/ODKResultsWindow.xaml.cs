@@ -2137,8 +2137,14 @@ namespace NSAP_ODK.Views
             FormID = formID;
             int savedCount = 0;
             //resultsWindow.BatchUpload = true;
+            
             foreach (var json in SubmissionIdentifierPairing.UnmatchedLandingsJSON)
             {
+                if(savedCount==0)
+                {
+                    NSAPEntities.ClearCSVData();
+                }
+
                 bool isMultiVessel = json.Contains("repeat_landings") || json.Contains("landing_site_sampling_group/are_there_landings");
                 bool isOptimizedMultiVessel = json.Contains("G_lss/sampling_date");
 

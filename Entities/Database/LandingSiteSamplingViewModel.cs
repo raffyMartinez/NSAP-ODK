@@ -27,6 +27,30 @@ namespace NSAP_ODK.Entities.Database
         private bool _addToCollectionOnly = false;
         public bool EditSuccess { get; set; }
 
+        public bool PopulateListIdentifiers()
+        {
+            LandingSiteSampingIdentifiers = new List<LandingSiteSampingIdentifier>();
+            foreach (var item in LandingSiteSamplingCollection)
+            {
+
+                LandingSiteSampingIdentifiers.Add(new LandingSiteSampingIdentifier
+                {
+                    PK = item.PK,
+                    XFormIdentifier = item.XFormIdentifier,
+                    SubmissionID = item.Submission_id,
+                    RowID = item.RowID
+                });
+            }
+            return true;
+        }
+
+        public List<LandingSiteSampingIdentifier> ListWithCompleteIdentifiers
+        {
+            get
+            {
+                return LandingSiteSampingIdentifiers.Where(t => !string.IsNullOrEmpty(t.XFormIdentifier) && !string.IsNullOrEmpty(t.RowID)).ToList();
+            }
+        }
         public DBSummary GetCarrierLandingsOverallSummary()
         {
 
@@ -37,7 +61,7 @@ namespace NSAP_ODK.Entities.Database
             HashSet<string> month_names = new HashSet<string>();
             foreach (var lss in list_cbl)
             {
-                if(!month_names.Contains(lss.SamplingDate.ToString("MMM-yyyy")))
+                if (!month_names.Contains(lss.SamplingDate.ToString("MMM-yyyy")))
                 {
                     month_names.Add(lss.SamplingDate.ToString("MMM-yyyy"));
                 }
@@ -49,7 +73,7 @@ namespace NSAP_ODK.Entities.Database
                 //{
                 //    lss.CarrierLandingViewModel = new CarrierLandingViewModel(lss);
                 //}
-                if(lss.CarrierLandingViewModel==null || lss.CarrierLandingViewModel.CarrierLandingCollection==null)
+                if (lss.CarrierLandingViewModel == null || lss.CarrierLandingViewModel.CarrierLandingCollection == null)
                 {
                     lss.CarrierLandingViewModel = new CarrierLandingViewModel(lss);
                 }
@@ -74,12 +98,14 @@ namespace NSAP_ODK.Entities.Database
             }
             return dbs;
         }
+
+        public List<LandingSiteSampingIdentifier> LandingSiteSampingIdentifiers { get; set; }
         public List<SummaryResults> GetCarrierLandingsSummary(LandingSite ls)
         {
             List<SummaryResults> results = new List<SummaryResults>();
             var group_cbl = LandingSiteSamplingCollection
                 .Where(t => t.LandingSiteTypeOfSampling == "cbl" && t.LandingSite != null && t.LandingSiteID == ls.LandingSiteID)
-                .OrderBy(t=>t.SamplingDate)
+                .OrderBy(t => t.SamplingDate)
                 .GroupBy(t => t.MonthSampled);
             int counter = 0;
             foreach (var group in group_cbl)
@@ -591,7 +617,7 @@ namespace NSAP_ODK.Entities.Database
             List<LandingSiteSampling> samplings = new List<LandingSiteSampling>();
 
             samplings = LandingSiteSamplingCollection.Where(t => t.LandingSiteID != null &&
-                                                                 t.LandingSiteTypeOfSampling=="rs" &&   
+                                                                 t.LandingSiteTypeOfSampling == "rs" &&
                                                                  t.FMAID == ols.FMA.FMAID &&
                                                                  t.FishingGround.Code == ols.FishingGround.Code &&
                                                                  t.LandingSite.LandingSiteID == replacement.LandingSiteID &&
@@ -614,7 +640,6 @@ namespace NSAP_ODK.Entities.Database
 
         public LandingSiteSampling CreateInstance(int lss_id)
         {
-
             var lss = LandingSiteSamplings.Create(lss_id);
             _addToCollectionOnly = true;
             LandingSiteSamplingCollection.Add(lss);
@@ -638,11 +663,11 @@ namespace NSAP_ODK.Entities.Database
             DateTime end = start.AddMonths(1);
             List<CarrierLanding> this_list = new List<CarrierLanding>();
             foreach (var item in LandingSiteSamplingCollection
-                .Where(t => t.LandingSiteTypeOfSampling=="cbl" &&
+                .Where(t => t.LandingSiteTypeOfSampling == "cbl" &&
                        t.LandingSiteID == ls.LandingSiteID &&
                        t.SamplingDate >= start &&
                        t.SamplingDate < end)
-                .OrderBy(t=>t.SamplingDate))
+                .OrderBy(t => t.SamplingDate))
             {
 
                 item.CarrierLandingViewModel = new CarrierLandingViewModel(item);

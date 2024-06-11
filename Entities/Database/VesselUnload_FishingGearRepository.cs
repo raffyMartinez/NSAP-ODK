@@ -8,6 +8,7 @@ using System.Data.OleDb;
 using NSAP_ODK.Utilities;
 using MySql.Data.MySqlClient;
 using NSAP_ODK.NSAPMysql;
+using NSAP_ODK.TreeViewModelControl;
 namespace NSAP_ODK.Entities.Database
 {
     class VesselUnload_FishingGearRepository
@@ -71,6 +72,114 @@ namespace NSAP_ODK.Entities.Database
                     return true;
                 }
             }
+        }
+
+        public static List<VesselUnload_FishingGear> GetFishingGears(AllSamplingEntitiesEventHandler entities)
+        {
+            List<VesselUnload_FishingGear> gears = new List<VesselUnload_FishingGear>();
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@reg", entities.NSAPRegion.Code);
+                        cmd.Parameters.AddWithValue("@ls", entities.LandingSite.LandingSiteID);
+                        cmd.Parameters.AddWithValue("@fma", entities.FMA.FMAID);
+                        cmd.Parameters.AddWithValue("@fg", entities.FishingGround.Code);
+                        DateTime sMonth = (DateTime)entities.MonthSampled;
+                        cmd.Parameters.AddWithValue("@start", sMonth.ToString("MMM/dd/yyyy"));
+                        cmd.Parameters.AddWithValue("@end", sMonth.AddMonths(1).ToString("MMM/dd/yyyy"));
+                        cmd.CommandText = @"SELECT 
+                                                dbo_vessel_unload.v_unload_id,
+                                                dbo_gear_unload.gr_id AS gear_code,
+                                                dbo_vessel_unload.catch_total AS catch_weight,
+                                                dbo_vessel_unload.catch_samp AS sample_weight,
+                                                dbo_vessel_unload_1.number_species_catch_composition,
+                                                's' AS unload_type
+                                            FROM 
+                                                dbo_LC_FG_sample_day INNER JOIN 
+                                                ((dbo_gear_unload INNER JOIN 
+                                                dbo_vessel_unload ON 
+                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) INNER JOIN 
+                                                dbo_vessel_unload_1 ON 
+                                                dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) ON 
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id
+                                            WHERE 
+                                                dbo_vessel_unload_1.is_multigear=False AND
+                                                dbo_LC_FG_sample_day.region_id=@reg AND
+                                                dbo_LC_FG_sample_day.land_ctr_id = @ls AND
+                                                dbo_LC_FG_sample_day.fma = @fma AND
+                                                dbo_LC_FG_sample_day.ground_id = @fg AND
+                                                dbo_LC_FG_sample_day.sdate >=@start AND
+                                                dbo_LC_FG_sample_day.sdate <@end
+                                                
+                                                
+                                            ORDER BY 
+                                                dbo_vessel_unload.v_unload_id,
+                                                dbo_gear_unload.gr_id
+                                            
+                                            UNION ALL
+                                            
+                                            SELECT 
+                                                dbo_vessel_unload.v_unload_id,
+                                                dbo_vesselunload_fishinggear.gear_code,
+                                                dbo_vesselunload_fishinggear.catch_weight,
+                                                dbo_vesselunload_fishinggear.sample_weight,
+                                                dbo_vesselunload_fishinggear.species_comp_count,
+                                                'm' AS unload_type
+                                            FROM
+                                                (dbo_LC_FG_sample_day INNER JOIN
+                                                (dbo_gear_unload INNER JOIN 
+                                                dbo_vessel_unload ON 
+                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) LEFT JOIN 
+                                                dbo_vesselunload_fishinggear ON 
+                                                dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id
+                                            WHERE
+                                                dbo_LC_FG_sample_day.region_id = @reg AND
+                                                dbo_LC_FG_sample_day.land_ctr_id = @ls AND
+                                                dbo_LC_FG_sample_day.fma = @fma AND
+                                                dbo_LC_FG_sample_day.ground_id = @fg AND
+                                                dbo_LC_FG_sample_day.sdate >=@start AND
+                                                dbo_LC_FG_sample_day.sdate <@end";
+                                          
+                        con.Open();
+                        try
+                        {
+                            OleDbDataReader dr = cmd.ExecuteReader();
+                            while (dr.Read())
+                            {
+                                VesselUnload_FishingGear vufg = new VesselUnload_FishingGear
+                                {
+                                    ParentID = (int)dr["v_unload_id"],
+                                    GearCode = dr["gear_code"].ToString(),
+                                    WeightOfCatch = (double)dr["catch_weight"]
+                                };
+                                if (dr["sample_weight"] != DBNull.Value && (double)dr["sample_weight"] > 0)
+                                {
+                                    vufg.WeightOfSample = (double)dr["sample_weight"];
+                                }
+                                if (dr["number_species_catch_composition"] != DBNull.Value)
+                                {
+                                    vufg.CountItemsInCatchComposition = (int)dr["number_species_catch_composition"];
+                                }
+
+                                gears.Add(vufg);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return gears;
         }
 
         public static bool ClearTable(string otherConnectionString = "")

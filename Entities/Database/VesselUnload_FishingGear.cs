@@ -51,6 +51,8 @@ namespace NSAP_ODK.Entities.Database
                 VesselUnload_Gear_Specs_ViewModel = new VesselUnload_Gear_Spec_ViewModel(this);
             }
         }
+
+        public int ParentID { get; set; }
         public VesselUnload Parent
         {
             get { return _vesselUnload; }

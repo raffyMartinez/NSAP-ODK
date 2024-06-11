@@ -7,6 +7,17 @@ using System.Threading.Tasks;
 
 namespace NSAP_ODK.Entities.Database
 {
+    public class LandingSiteSampingIdentifier
+    {
+        public int PK { get; set; }
+        public string XFormIdentifier { get; set; }
+        public string RowID { get; set; }
+        public int? SubmissionID { get; set; }
+        public override string ToString()
+        {
+            return $"RowID:{RowID} - SubmissionID:{SubmissionID} - XFormID:{XFormIdentifier}";
+        }
+    }
     public class LandingSiteSamplingSummarized
     {
         public LandingSiteSamplingSummarized(LandingSiteSampling lss, bool fromSummaryItem = false)

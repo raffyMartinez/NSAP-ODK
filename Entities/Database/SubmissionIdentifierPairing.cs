@@ -13,6 +13,10 @@ namespace NSAP_ODK.Entities.Database
     {
         public int _id { get; set; }
         public string _uuid { get; set; }
+        public override string ToString()
+        {
+            return $"_id:{_id} - _uuid:{_uuid}";
+        }
     }
     public static class SubmissionIdentifierPairing
     {
@@ -27,28 +31,51 @@ namespace NSAP_ODK.Entities.Database
         }
         public static async Task<bool> UpdateDatabase()
         {
+            UnmatchedPairs.Clear();
+            var lss_with_complete_ids = NSAPEntities.LandingSiteSamplingViewModel.ListWithCompleteIdentifiers.Where(t => t.XFormIdentifier == KoboForm.id_string).ToList();
+
             UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { ItemsForUpdatingCount = SubmissionIDPairs.Count, Intent = UploadToDBIntent.UpdateTableFields });
             int update_count = 0;
-            foreach (var item in SubmissionIDPairs)
+            if (lss_with_complete_ids.Count > 0)
             {
-                string uid = $"{{{item._uuid}}}";
-                if (LandingSiteSamplingRepository.UpdateSubmissionID(KoboForm.id_string, uid, item._id))
+                foreach (var item in SubmissionIDPairs)
                 {
+                    var ls_id = lss_with_complete_ids.FirstOrDefault(t => t.RowID == item._uuid);
+                    bool proceed = false;
+                    try
+                    {
+                        proceed = ls_id == null || ls_id.SubmissionID == null;
+                    }
+                    catch
+                    {
+                        proceed = true;
+                    }
+                    if (proceed)
+                    {
+                        bool? successUpdate = LandingSiteSamplingRepository.UpdateSubmissionID(KoboForm.id_string, item._uuid, item._id);
+
+                        if (successUpdate != null && (bool)successUpdate)
+                        {
+                            //update_count++;
+                            //UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { ItemsUpdatedCount = update_count, Intent = UploadToDBIntent.UpdatedTableField });
+                        }
+                        else if (successUpdate != null)
+                        {
+                            if (NSAPEntities.LandingSiteSamplingSubmissionViewModel.GetLandingSiteSampling(item._uuid) == null)
+                            {
+                                UnmatchedPairs.Add(item);
+                            }
+                        }
+                    }
+
                     update_count++;
                     UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { ItemsUpdatedCount = update_count, Intent = UploadToDBIntent.UpdatedTableField });
-                }
-                else
-                {
-                    if (NSAPEntities.LandingSiteSamplingSubmissionViewModel.GetLandingSiteSampling(item._uuid) == null)
-                    {
-                        UnmatchedPairs.Add(item);
-                    }
                 }
             }
 
             UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { ItemsUpdatedCount = update_count, Intent = UploadToDBIntent.UpdatedTableDone });
 
-            
+
             if (UnmatchedPairs.Count > 0)
             {
                 int loop_count = 0;
@@ -62,14 +89,14 @@ namespace NSAP_ODK.Entities.Database
                     {
                         AddUnmatchedJSON(s);
                         loop_count++;
-                        
+
                     }
                     UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { ItemsUpdatedCount = loop_count, Intent = UploadToDBIntent.UpdatedUnmatchedJSON });
                 }
                 UploadSubmissionToDB?.Invoke(null, new UploadToDbEventArg { ItemsUpdatedCount = loop_count, Intent = UploadToDBIntent.UpdatedUnmatchedJSONDone });
             }
 
-          return update_count > 0;
+            return update_count > 0;
         }
 
 

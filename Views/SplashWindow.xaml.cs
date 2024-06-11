@@ -95,7 +95,8 @@ namespace NSAP_ODK.Views
             //ProgressBarRead.IsIndeterminate = true;
             if (CommandArgs != null)
             {
-                if ((bool)CommandArgs.Contains("filtered") || (bool)CommandArgs.Contains("server_id") || CommandArgsIsValidDate())
+                //if ((bool)CommandArgs.Contains("filtered") || (bool)CommandArgs.Contains("server_id") || CommandArgsIsValidDate())
+                if ((bool)CommandArgs.Contains("filtered") || (bool)CommandArgs.Contains("server_id") || Global.CommandArgsIsValidDate())
                 {
                     labelSubLabel.Visibility = Visibility.Visible;
                     labelSubLabel.Content = "Database will load with filtered data";

@@ -268,64 +268,82 @@ namespace NSAP_ODK.Views
                     //await  _resultsWindow.Upload_unmatched_landings_JSON(KoboFormNumericID);
                     break;
                 case "update submission pairing":
-                    _resultsWindow = (ODKResultsWindow)((DownloadFromServerWindow)Owner).Owner;
-                    bool success = false;
-                    SubmissionIdentifierPairing.UploadSubmissionToDB += SubmissionIdentifierPairing_UploadSubmissionToDB;
-                    SubmissionIdentifierPairing.KoboForm = FormSummary.KoboForm;
-                    SubmissionIdentifierPairing.ServerPassword = ServerPassword;
-                    SubmissionIdentifierPairing.ServerUserName = ServerUserName;
-                    SubmissionIdentifierPairing.HttpClient = HttpClient;
-
-                    textBlockDescription.Text = "Updating missing submission IDs";
-
-
-                    if (await SubmissionIdentifierPairing.UpDateDatabaseTaskAsync())
+                    bool proceed = false;
+                    if (NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSampingIdentifiers == null ||
+                        NSAPEntities.LandingSiteSamplingViewModel.LandingSiteSampingIdentifiers.Count == 0)
                     {
-                        textBlockDescription.Text = "Downloading unmatched JSON";
-
-
-                        if (SubmissionIdentifierPairing.UnmatchedLandingsJSON.Count > 0)
-                        {
-                            //Visibility = Visibility.Collapsed;
-                            progressBar.Value = 0;
-                            progressBar.Maximum = SubmissionIdentifierPairing.UnmatchedLandingsJSON.Count;
-                            textBlockDescription.Text = $"Saving {SubmissionIdentifierPairing.UnmatchedLandingsJSON.Count} submissions to database";
-                            //_resultsWindow.Focus();
-                            await _resultsWindow.Upload_unmatched_landings_JSON(KoboFormNumericID, this);
-                        }
-                        else if (SubmissionIdentifierPairing.UnmatchedPairs.Count > 0)
-                        {
-                            closing_message = "Server refused to download JSON data\r\n\r\nTry another time";
-                        }
-                        else
-                        {
-                            closing_message = "Data is updated\r\n\r\nJSON was not downloaded";
-                        }
-
-                        success = true;
-                    }
-                    if (!string.IsNullOrEmpty(closing_message))
-                    {
-                        Visibility = Visibility.Visible;
-                        panelButtons.Visibility = Visibility.Collapsed;
-                        textBlockDescription.Text = closing_message;
-                        buttonCancel.Content = "Close";
-
+                        proceed = NSAPEntities.LandingSiteSamplingViewModel.PopulateListIdentifiers();
                     }
                     else
                     {
-                        try
-                        {
-                            DialogResult = success;
-                        }
-                        catch (Exception ex)
-                        {
-                            //Logger.Log(ex);
-                        }
-                        _resultsWindow.Close();
-
+                        proceed = true;
                     }
-                    SubmissionIdentifierPairing.UploadSubmissionToDB -= SubmissionIdentifierPairing_UploadSubmissionToDB;
+                    if (proceed)
+                    {
+                        _resultsWindow = (ODKResultsWindow)((DownloadFromServerWindow)Owner).Owner;
+                        bool success = false;
+                        SubmissionIdentifierPairing.UploadSubmissionToDB += SubmissionIdentifierPairing_UploadSubmissionToDB;
+                        SubmissionIdentifierPairing.KoboForm = FormSummary.KoboForm;
+                        SubmissionIdentifierPairing.ServerPassword = ServerPassword;
+                        SubmissionIdentifierPairing.ServerUserName = ServerUserName;
+                        SubmissionIdentifierPairing.HttpClient = HttpClient;
+
+                        textBlockDescription.Text = "Updating missing submission IDs";
+
+
+                        if (await SubmissionIdentifierPairing.UpDateDatabaseTaskAsync())
+                        {
+                            textBlockDescription.Text = "Downloading unmatched JSON";
+
+
+                            if (SubmissionIdentifierPairing.UnmatchedLandingsJSON.Count > 0)
+                            {
+                                //Visibility = Visibility.Collapsed;
+                                progressBar.Value = 0;
+                                progressBar.Maximum = SubmissionIdentifierPairing.UnmatchedLandingsJSON.Count;
+                                textBlockDescription.Text = $"Saving {SubmissionIdentifierPairing.UnmatchedLandingsJSON.Count} submissions to database";
+                                //_resultsWindow.Focus();
+                                await _resultsWindow.Upload_unmatched_landings_JSON(KoboFormNumericID, this);
+                            }
+                            else if (SubmissionIdentifierPairing.UnmatchedPairs.Count > 0)
+                            {
+                                closing_message = "Server refused to download JSON data\r\n\r\nTry another time";
+                            }
+                            else
+                            {
+                                closing_message = "Data is updated\r\n\r\nJSON was not downloaded";
+                            }
+
+                            success = true;
+                        }
+                        else
+                        {
+                            closing_message = "Data from selected server cannot be updated";
+                        }
+                        if (!string.IsNullOrEmpty(closing_message))
+                        {
+                            Visibility = Visibility.Visible;
+                            panelButtons.Visibility = Visibility.Collapsed;
+                            textBlockDescription.Text = closing_message;
+                            buttonCancel.Content = "Close";
+
+                        }
+                        else
+                        {
+                            try
+                            {
+                                DialogResult = success;
+                            }
+                            catch (Exception ex)
+                            {
+                                //Logger.Log(ex);
+                            }
+                            _resultsWindow.Close();
+
+                        }
+
+                        SubmissionIdentifierPairing.UploadSubmissionToDB -= SubmissionIdentifierPairing_UploadSubmissionToDB;
+                    }
                     break;
                 case "delete landing data from selected server":
                     DeleteServerData.DeletingServerDataEvent += DeleteServerData_DeletingServerDataEvent;

@@ -24,6 +24,8 @@ using System.Net.Http;
 using System.Windows.Media;
 using System.Diagnostics;
 using NSAP_ODK.Entities.Database.NSAPReports;
+using NSAP_ODK.Entities.CrossTabBuilder;
+using NSAP_ODK.TreeViewModelControl;
 //using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace NSAP_ODK
@@ -521,9 +523,13 @@ namespace NSAP_ODK
 
                         if (Global.CommandArgs != null)
                         {
-                            if (Global.CommandArgs.Count() >= 1 && Global.CommandArgs[0] == "filtered")// || Global.CommandArgs[0] == "server_id")
+                            if (Global.CommandArgs.Count() >= 1 && Global.CommandArgs[0] == "filtered" || Global.CommandArgumentIsValidDate)
                             {
                                 Title += " (Filtered)";
+                            }
+                            else
+                            {
+
                             }
                         }
 
@@ -4193,6 +4199,7 @@ namespace NSAP_ODK
                     break;
                 case "tv_MonthViewModel":
                     _allSamplingEntitiesEventHandler = e;
+                    //CrossTabGenerator.GetVesselUnloads(_allSamplingEntitiesEventHandler);
                     GridNSAPData.SelectionUnit = DataGridSelectionUnit.Cell;
                     menuCalendar.Visibility = Visibility.Visible;
 
@@ -4463,9 +4470,19 @@ namespace NSAP_ODK
                 e.Column.Visibility = Visibility.Hidden;
             }
         }
-
+        private async Task GenerateCrossTabFirstVersion()
+        {
+            ShowStatusRow();
+            CrossTabManager.IsCarrierLandding = false;
+            await CrossTabManager.GearByMonthYearAsync(_allSamplingEntitiesEventHandler);
+            ShowCrossTabWIndow();
+        }
         private async void OnTreeContextMenu(object sender, TreeViewModelControl.AllSamplingEntitiesEventHandler e)
         {
+            if(e.Equals(_allSamplingEntitiesEventHandler) && string.IsNullOrEmpty(e.GUID))
+            {
+                e.GUID=_allSamplingEntitiesEventHandler.GUID;
+            }
             _allSamplingEntitiesEventHandler = e;
             switch (e.ContextMenuTopic)
             {
@@ -4477,14 +4494,30 @@ namespace NSAP_ODK
                     editUnloadsWindow.Show();
 
                     break;
-
                 case "contextMenuCrosstabLandingSite":
                 case "contextMenuCrosstabMonth":
+                    if (Debugger.IsAttached)
+                    {
 
-                    ShowStatusRow();
-                    CrossTabManager.IsCarrierLandding = false;
-                    await CrossTabManager.GearByMonthYearAsync(_allSamplingEntitiesEventHandler);
-                    ShowCrossTabWIndow();
+                        var r = MessageBox.Show("Do stable version of cross tab?", Global.MessageBoxCaption, MessageBoxButton.YesNo, MessageBoxImage.Question);
+                        if (r == MessageBoxResult.No)
+                        {
+                            CrossTabGenerator.GenerateCrossTab(_allSamplingEntitiesEventHandler);
+                        }
+                        else
+                        {
+                            await GenerateCrossTabFirstVersion();
+                        }
+                    }
+                    else
+                    {
+                        //var watch = System.Diagnostics.Stopwatch.StartNew();
+                        await GenerateCrossTabFirstVersion();
+                        //watch.Stop();
+                        //var elapsedMs = watch.ElapsedMilliseconds;
+                        //Title = $"Elapsed time ms:{elapsedMs}";
+                    }
+
                     break;
                 case "contextMenuWeightValidation":
                     ShowStatusRow();

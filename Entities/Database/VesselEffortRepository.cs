@@ -8,6 +8,7 @@ using System.Data.OleDb;
 using NSAP_ODK.Utilities;
 using MySql.Data.MySqlClient;
 using NSAP_ODK.NSAPMysql;
+using NSAP_ODK.TreeViewModelControl;
 namespace NSAP_ODK.Entities.Database
 {
     public class VesselEffortRepository
@@ -52,6 +53,8 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
+
+
 
         public static Task<bool> DeleteServerDataAsync(string serverID, bool isMultiVessel)
         {
@@ -227,6 +230,113 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
             return thisList;
+        }
+
+        public static List<VesselEffortCrossTab>GetEffortForCrossTab(AllSamplingEntitiesEventHandler e)
+        {
+            List<VesselEffortCrossTab> ects = new List<VesselEffortCrossTab>();
+            if(Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con =  new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@reg", e.NSAPRegion.Code);
+                        cmd.Parameters.AddWithValue("@ls", e.LandingSite.LandingSiteID);
+                        cmd.Parameters.AddWithValue("@fg", e.FishingGround.Code);
+                        cmd.Parameters.AddWithValue("@fma", e.FMA.FMAID);
+                        DateTime sDate = (DateTime)e.MonthSampled;
+                        cmd.Parameters.AddWithValue("@start", sDate.ToString("MMM-dd-yyyy"));
+                        cmd.Parameters.AddWithValue("@end", sDate.AddMonths(1).ToString("MMM-dd-yyyy"));
+
+                        cmd.CommandText = @"SELECT 
+                                                dbo_gear_unload.gr_id as gear_code, 
+                                                dbo_vessel_unload.v_unload_id, 
+                                                dbo_vessel_effort.effort_spec_id, 
+                                                dbo_vessel_effort.effort_value_numeric, 
+                                                dbo_vessel_effort.effort_value_text, 
+                                                's' AS unload_type
+                                            FROM 
+                                                dbo_LC_FG_sample_day INNER JOIN
+                                                (dbo_gear_unload INNER JOIN 
+                                                (dbo_vessel_unload INNER JOIN 
+                                                dbo_vessel_effort ON 
+                                                dbo_vessel_unload.v_unload_id = dbo_vessel_effort.v_unload_id) ON 
+                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id
+                                            WHERE 
+                                                dbo_LC_FG_sample_day.region_id = @reg AND 
+                                                dbo_LC_FG_sample_day.land_ctr_id = @ls AND 
+                                                dbo_LC_FG_sample_day.ground_id = @fg AND 
+                                                dbo_LC_FG_sample_day.fma = @fma AND 
+                                                dbo_LC_FG_sample_day.sdate >=@start AND 
+                                                dbo_LC_FG_sample_day.sdate<@end
+                                            ORDER BY 
+                                                dbo_vessel_unload.v_unload_id, 
+                                                dbo_gear_unload.gr_id;
+
+
+                                            UNION ALL
+
+                                            SELECT 
+                                                dbo_vesselunload_fishinggear.gear_code, 
+                                                dbo_vessel_unload.v_unload_id, 
+                                                dbo_vessel_effort.effort_spec_id, 
+                                                dbo_vessel_effort.effort_value_numeric, 
+                                                dbo_vessel_effort.effort_value_text, 'm' AS unload_type
+                                            FROM 
+                                                dbo_LC_FG_sample_day INNER JOIN
+                                                (dbo_gear_unload INNER JOIN 
+                                                ((dbo_vessel_unload LEFT JOIN 
+                                                dbo_vesselunload_fishinggear ON 
+                                                dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) 
+                                            LEFT JOIN 
+                                                dbo_vessel_effort ON 
+                                                dbo_vesselunload_fishinggear.row_id = dbo_vessel_effort.vessel_unload_fishing_gear_id) ON 
+                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id
+                                            WHERE
+                                                dbo_LC_FG_sample_day.region_id = @reg AND
+                                                dbo_LC_FG_sample_day.land_ctr_id = @ls AND                                                
+                                                dbo_LC_FG_sample_day.ground_id = @fg AND
+                                                dbo_LC_FG_sample_day.fma = @fma AND
+                                                dbo_LC_FG_sample_day.sdate >=@start AND 
+                                                dbo_LC_FG_sample_day.sdate<@end";
+                        con.Open();
+
+                        try
+                        {
+                            OleDbDataReader reader = cmd.ExecuteReader();
+                            while (reader.Read())
+                            {
+                                VesselEffortCrossTab vect = new VesselEffortCrossTab
+                                {
+                                    VesselUnloadID = (int)reader["v_unload_id"],
+                                    GearCode = reader["gear_code"].ToString(),
+                                    EffortID = (int)reader["effort_spec_id"],
+                                    EffortValueText = reader["effort_value_text"].ToString(),
+                                    UnloadGearsCategory = reader["unload_type"].ToString()
+                                    
+                                };
+                                if (reader["effort_value_numeric"]!=DBNull.Value)
+                                {
+                                    vect.EffortValue = (double)reader["effort_value_numeric"];
+                                }
+                                ects.Add(vect);
+                            }
+                        }
+                        catch(Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return ects;
         }
         private List<VesselEffort> getVesselEfforts(VesselUnload vu = null)
         {

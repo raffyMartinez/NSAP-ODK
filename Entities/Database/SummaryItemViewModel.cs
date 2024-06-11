@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using NSAP_ODK.Utilities;
 using NSAP_ODK.Entities.Database.NSAPReports;
+using NSAP_ODK.TreeViewModelControl;
 
 namespace NSAP_ODK.Entities.Database
 {
@@ -859,7 +860,26 @@ namespace NSAP_ODK.Entities.Database
         {
             return SummaryItemCollection.Where(t => t.EnumeratorID == null && t.EnumeratorText == enumenratorName && t.LandingSiteNameText == landingSiteName).ToList();
         }
+        public List<VesselUnload>GetSampledVesselUnloads(AllSamplingEntitiesEventHandler entites)
+        {
+            List<VesselUnload> unloads = new List<VesselUnload>();
+            
+            var list= SummaryItemCollection.Where(t => t.RegionID == entites.NSAPRegion.Code &&
+            t.FMAId == entites.FMA.FMAID &&
+            t.FishingGround.Code == entites.FishingGround.Code &&
+            t.LandingSite.LandingSiteID == entites.LandingSite.LandingSiteID &&
+            t.MonthSampled == entites.MonthSampled).ToList();
 
+            foreach(var item in list)
+            {
+                if (item.VesselUnloadID != null)
+                {
+                    unloads.Add(item.VesselUnload);
+                }
+            }
+
+            return unloads;
+        }
         public List<VesselUnload> GetSampledVesselUnloads(string enumeratorName, string landingSiteName)
         {
             List<VesselUnload> this_list = new List<VesselUnload>();
@@ -1529,7 +1549,7 @@ namespace NSAP_ODK.Entities.Database
                 unload_list.Add(item.GearUnload);
             }
 
-            return unload_list;
+            return unload_list.OrderBy(t=>t.PK).ToList();
         }
         private int NumberOfEnumeratorsByMonthForKoboServer(Koboserver ks, DateTime monthSubmitted)
         {

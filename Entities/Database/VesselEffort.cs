@@ -6,6 +6,18 @@ using System.Threading.Tasks;
 using NSAP_ODK.Utilities;
 namespace NSAP_ODK.Entities.Database
 {
+    public class VesselEffortCrossTab
+    {
+        public int VesselUnloadID { get; set; }
+        
+        public VesselUnload VesselUnload { get; set; }
+        
+        public string GearCode { get; set; }
+        public int EffortID { get; set; }
+        public double? EffortValue { get; set; }
+        public string EffortValueText { get; set; }
+        public string UnloadGearsCategory { get; set; }
+    }
     public class VesselEffortEdited
     {
         public VesselEffortEdited(VesselEffort ve)

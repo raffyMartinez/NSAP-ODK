@@ -180,9 +180,11 @@ namespace NSAP_ODK.Entities.Database
         public string WeighingUnit { get; set; }
         public int? SpeciesID { get; set; }
         public string TaxaCode { get; set; }
+        public double GearCatchWeight { get; set; }
         public string GearCode { get; set; }
         public string GearText { get; set; }
 
+        public string GearNameForDisplay { get; set; }
         public string GearNameUsedEx
         {
             get
@@ -346,6 +348,8 @@ namespace NSAP_ODK.Entities.Database
                 return rv;
             }
         }
+        public string CatchNameForDisplay { get; set; }
+        public string UnloadType { get; set; }
 
         public string CatchName
         {
