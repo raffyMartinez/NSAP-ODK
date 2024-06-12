@@ -8,6 +8,24 @@ using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
 using System.ComponentModel;
 namespace NSAP_ODK.Entities.Database
 {
+    public class CatchLengthFreqCrossTab
+    {
+        public int RowID { get; set; }
+
+        public int V_unload_id { get; set; }
+        public VesselUnload VesselUnload { get; set; }
+        public double WeightOfCatch { get; set; }
+        public string GearName { get; set; }
+        public double WeightGearCatch { get; set; }
+        public double? SampleWeightGearCatch { get; set; }
+        public string SpeciesName { get; set; }
+        public string Taxa { get; set; }
+        public double WeightSpecies { get; set; }
+        public double Length { get; set; }
+        public int Frequency { get; set; }
+        public string Sex { get; set; }
+
+    }
     public class CatchLenFreqFlattened
     {
         public CatchLenFreqFlattened(CatchLenFreq clf)

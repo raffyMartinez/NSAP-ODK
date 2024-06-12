@@ -20,6 +20,252 @@ namespace NSAP_ODK.Entities.Database
         {
             CatchMaturities = getCatchMaturites(vc);
         }
+
+        public static List<CatchMaturityCrossTab> GetCatchMaturityForCrosstab(NSAP_ODK.TreeViewModelControl.AllSamplingEntitiesEventHandler e)
+        {
+            List<CatchMaturityCrossTab> cmcts = new List<CatchMaturityCrossTab>();
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@reg", e.NSAPRegion.Code);
+                        DateTime sDate = (DateTime)e.MonthSampled;
+                        cmd.Parameters.AddWithValue("@start", sDate.ToString("MMM/dd/yyyy"));
+                        cmd.Parameters.AddWithValue("@end", sDate.AddMonths(1).ToString("MMM/dd/yyyy"));
+                        cmd.Parameters.AddWithValue("@ls", e.LandingSite.LandingSiteID);
+                        cmd.Parameters.AddWithValue("@fg", e.FishingGround.Code);
+                        cmd.Parameters.AddWithValue("@fma", e.FMA.FMAID);
+
+                        cmd.CommandText = @"
+                    SELECT
+                      dbo_catch_maturity.catch_maturity_id,
+                      dbo_vessel_unload.v_unload_id,
+                      dbo_vessel_unload.catch_total AS wt_catch,
+                      gear.GearName,
+                      dbo_vessel_unload.catch_total AS wt_gear,
+                      dbo_vessel_unload.catch_samp AS sample_wt_gear,
+                      [Genus] & ' ' & [Species] AS spName,
+                      dbo_vessel_catch.taxa,
+                      dbo_vessel_catch.catch_kg AS wt_sp,
+                      dbo_catch_maturity.length,
+                      dbo_catch_maturity.weight,
+                      dbo_catch_maturity.sex,
+                      dbo_catch_maturity.maturity,
+                      dbo_catch_maturity.gut_content_wt,
+                      dbo_catch_maturity.gut_content_code,
+                      dbo_catch_maturity.gonadWt,
+                      's' AS unload_type
+                   FROM
+                      gear INNER JOIN
+                      (phFish INNER JOIN
+                      (dbo_LC_FG_sample_day INNER JOIN
+                      (dbo_gear_unload INNER JOIN
+                      ((dbo_vessel_unload INNER JOIN
+                      (dbo_vessel_catch INNER JOIN
+                      dbo_catch_maturity ON
+                      dbo_vessel_catch.catch_id = dbo_catch_maturity.catch_id) ON
+                      dbo_vessel_unload.v_unload_id = dbo_vessel_catch.v_unload_id) INNER JOIN
+                      dbo_vessel_unload_1 ON
+                      dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) ON
+                      dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON
+                      dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) ON
+                      phFish.SpeciesID = dbo_vessel_catch.species_id) ON
+                      gear.GearCode = dbo_gear_unload.gr_id
+                   WHERE
+                      dbo_LC_FG_sample_day.region_id=@reg AND
+                      dbo_LC_FG_sample_day.sdate>=@start AND
+                      dbo_LC_FG_sample_day.sdate<@end AND
+                      dbo_LC_FG_sample_day.land_ctr_id=@ls AND
+                      dbo_LC_FG_sample_day.ground_id=@fg AND
+                      dbo_LC_FG_sample_day.fma=@fma AND
+                      dbo_vessel_unload_1.is_multigear=False
+
+                  UNION ALL
+
+                   SELECT
+                      dbo_catch_maturity.catch_maturity_id,
+                      dbo_vessel_unload.v_unload_id,
+                      dbo_vessel_unload.catch_total AS wt_catch,
+                      gear.GearName,
+                      dbo_vessel_unload.catch_total AS wt_gear,
+                      dbo_vessel_unload.catch_samp AS sample_wt_gear,
+                      [Genus] & ' ' & [Species] AS spName,
+                      dbo_vessel_catch.taxa,
+                      dbo_vessel_catch.catch_kg AS wt_sp,
+                      dbo_catch_maturity.length,
+                      dbo_catch_maturity.weight,
+                      dbo_catch_maturity.sex,
+                      dbo_catch_maturity.maturity,
+                      dbo_catch_maturity.gut_content_wt,
+                      dbo_catch_maturity.gut_content_code,
+                      dbo_catch_maturity.gonadWt,
+                      's' AS unload_type
+                   FROM
+                      notFishSpecies INNER JOIN
+                      (gear INNER JOIN
+                      (((dbo_LC_FG_sample_day INNER JOIN
+                      (dbo_gear_unload INNER JOIN
+                      dbo_vessel_unload ON
+                      dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON
+                      dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN
+                      (dbo_vessel_catch INNER JOIN
+                      dbo_catch_maturity ON
+                      dbo_vessel_catch.catch_id = dbo_catch_maturity.catch_id) ON
+                      dbo_vessel_unload.v_unload_id = dbo_vessel_catch.v_unload_id) INNER JOIN
+                      dbo_vessel_unload_1 ON
+                      dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) ON
+                      gear.GearCode = dbo_gear_unload.gr_id) ON
+                      notFishSpecies.SpeciesID = dbo_vessel_catch.species_id
+                   WHERE
+                      dbo_LC_FG_sample_day.region_id=@reg AND
+                      dbo_LC_FG_sample_day.sdate>=@start AND
+                      dbo_LC_FG_sample_day.sdate<@end AND
+                      dbo_LC_FG_sample_day.land_ctr_id=@ls AND
+                      dbo_LC_FG_sample_day.ground_id=@fg AND
+                      dbo_LC_FG_sample_day.fma=@fma AND
+                      dbo_vessel_unload_1.is_multigear=False
+
+                   UNION ALL
+
+                   SELECT
+                      dbo_catch_maturity.catch_maturity_id,
+                      dbo_vessel_unload.v_unload_id,
+                      dbo_vessel_unload.catch_total AS wt_catch,
+                      gear.GearName,
+                      dbo_vesselunload_fishinggear.catch_weight AS wt_gear,
+                      dbo_vesselunload_fishinggear.sample_weight AS sample_wt_gear,
+                      [Genus] & ' ' & [Species] AS spName,
+                      dbo_vessel_catch.taxa,
+                      dbo_vessel_catch.catch_kg AS wt_sp,
+                      dbo_catch_maturity.length,
+                      dbo_catch_maturity.weight,
+                      dbo_catch_maturity.sex,
+                      dbo_catch_maturity.maturity,
+                      dbo_catch_maturity.gut_content_wt,
+                      dbo_catch_maturity.gut_content_code,
+                      dbo_catch_maturity.gonadWt,
+                      'm' AS unload_type
+                   FROM
+                      phFish INNER JOIN
+                      (gear INNER JOIN
+                      (dbo_LC_FG_sample_day INNER JOIN
+                      (dbo_gear_unload INNER JOIN
+                      (dbo_vessel_unload INNER JOIN
+                      (dbo_vesselunload_fishinggear INNER JOIN
+                      (dbo_vessel_catch INNER JOIN
+                      dbo_catch_maturity ON
+                      dbo_vessel_catch.catch_id = dbo_catch_maturity.catch_id) ON
+                      dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id) ON
+                      dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) ON
+                      dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON
+                      dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) ON
+                      gear.GearCode = dbo_vesselunload_fishinggear.gear_code) ON
+                      phFish.SpeciesID = dbo_vessel_catch.species_id
+                   WHERE
+                      dbo_LC_FG_sample_day.region_id = @reg AND
+                      dbo_LC_FG_sample_day.sdate >= @start AND
+                      dbo_LC_FG_sample_day.sdate < @end AND
+                      dbo_LC_FG_sample_day.land_ctr_id = @ls AND
+                      dbo_LC_FG_sample_day.ground_id = @fg AND
+                      dbo_LC_FG_sample_day.fma = @fma
+
+                   UNION ALL
+
+                   SELECT
+                      dbo_catch_maturity.catch_maturity_id,
+                      dbo_vessel_unload.v_unload_id,
+                      dbo_vessel_unload.catch_total AS wt_catch,
+                      gear.GearName,
+                      dbo_vesselunload_fishinggear.catch_weight AS wt_gear,
+                      dbo_vesselunload_fishinggear.sample_weight AS sample_wt_gear,
+                      [Genus] & ' ' & [Species] AS spName,
+                      dbo_vessel_catch.taxa,
+                      dbo_vessel_catch.catch_kg AS wt_sp,
+                      dbo_catch_maturity.length,
+                      dbo_catch_maturity.weight,
+                      dbo_catch_maturity.sex,
+                      dbo_catch_maturity.maturity,
+                      dbo_catch_maturity.gut_content_wt,
+                      dbo_catch_maturity.gut_content_code,
+                      dbo_catch_maturity.gonadWt,
+                      'm' AS unload_type
+                   FROM
+                      notFishSpecies INNER JOIN
+                      (((dbo_LC_FG_sample_day INNER JOIN
+                      (dbo_gear_unload INNER JOIN
+                      dbo_vessel_unload ON
+                      dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON
+                      dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN
+                      (gear INNER JOIN
+                      dbo_vesselunload_fishinggear ON
+                      gear.GearCode = dbo_vesselunload_fishinggear.gear_code) ON
+                      dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) INNER JOIN
+                      (dbo_vessel_catch INNER JOIN
+                      dbo_catch_maturity ON
+                      dbo_vessel_catch.catch_id = dbo_catch_maturity.catch_id) ON
+                      dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id) ON
+                      notFishSpecies.SpeciesID = dbo_vessel_catch.species_id
+                   WHERE
+                      dbo_LC_FG_sample_day.region_id = @reg AND
+                      dbo_LC_FG_sample_day.sdate >= @start AND
+                      dbo_LC_FG_sample_day.sdate < @end AND
+                      dbo_LC_FG_sample_day.land_ctr_id = @ls AND
+                      dbo_LC_FG_sample_day.ground_id = @fg AND
+                      dbo_LC_FG_sample_day.fma = @fma";
+                        con.Open();
+                        try
+                        {
+                            OleDbDataReader dr = cmd.ExecuteReader();
+                            while (dr.Read())
+                            {
+                                CatchMaturityCrossTab cmct = new CatchMaturityCrossTab
+                                {
+                                    RowID = (int)dr["catch_maturity_id"],
+                                    V_unload_id = (int)dr["v_unload_id"],
+                                    WeightOfCatch = (double)dr["wt_catch"],
+                                    GearName = dr["GearName"].ToString(),
+                                    WeightGearCatch = (double)dr["wt_gear"],
+                                    SpeciesName = dr["spName"].ToString(),
+                                    Taxa = dr["taxa"].ToString(),
+                                    WeightSpecies = (double)dr["wt_sp"],
+                                    Sex = dr["sex"].ToString(),
+                                    MaturityStage = dr["maturity"].ToString(),
+                                    GutContentCategory = dr["gut_content_code"].ToString()
+                                };
+                                if (dr["weight"] != DBNull.Value && (double)dr["weight"] > 0)
+                                {
+                                    cmct.Weight = (double)dr["weight"];
+                                }
+                                if (dr["length"] != DBNull.Value && (double)dr["length"] > 0)
+                                {
+                                    cmct.Length = (double)dr["length"];
+                                }
+                                if (dr["gut_content_wt"] != DBNull.Value && (double)dr["gut_content_wt"] > 0)
+                                {
+                                    cmct.GutContentWeight = (double)dr["gut_content_wt"];
+                                }
+                                if (dr["gonadWt"] != DBNull.Value && (double)dr["gonadWt"] > 0)
+                                {
+                                    cmct.GonadWeight = (double)dr["gonadWt"];
+                                }
+                                cmcts.Add(cmct);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return cmcts;
+        }
         public CatchMaturityRepository(bool isNew = false)
         {
             if (!isNew)
@@ -566,7 +812,7 @@ namespace NSAP_ODK.Entities.Database
                     conn.Open();
                     using (OleDbCommand update = conn.CreateCommand())
                     {
-                        
+
                         update.Parameters.Add("@parent_id", OleDbType.Integer).Value = item.VesselCatchID;
                         if (item.Length == null)
                         {
@@ -584,7 +830,7 @@ namespace NSAP_ODK.Entities.Database
                         {
                             update.Parameters.Add("@wt", OleDbType.Double).Value = item.Weight;
                         }
-                        if (string.IsNullOrEmpty( item.SexCode))
+                        if (string.IsNullOrEmpty(item.SexCode))
                         {
                             update.Parameters.Add("@sex_code", OleDbType.VarChar).Value = DBNull.Value;
                         }

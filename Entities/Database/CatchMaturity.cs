@@ -31,7 +31,7 @@ namespace NSAP_ODK.Entities.Database
         }
         [ItemsSource(typeof(GutContentItemsSource))]
         public string GutContentCode { get; set; }
-        
+
         [ItemsSource(typeof(MaturityItemsSource))]
         public string MaturityCode { get; set; }
 
@@ -56,7 +56,7 @@ namespace NSAP_ODK.Entities.Database
     }
     public class CatchMaturityFlattened
     {
-        
+
         public CatchMaturityFlattened(CatchMaturity cm)
         {
 
@@ -89,6 +89,29 @@ namespace NSAP_ODK.Entities.Database
 
         public double? GonadWeight { get; set; }
         public string GutContentClassification { get; set; }
+    }
+    public class CatchMaturityCrossTab
+    {
+        public int RowID { get; set; }
+
+        public int V_unload_id { get; set; }
+        public VesselUnload VesselUnload { get; set; }
+        public double WeightOfCatch { get; set; }
+        public string GearName { get; set; }
+        public double WeightGearCatch { get; set; }
+        public double? SampleWeightGearCatch { get; set; }
+        public string SpeciesName { get; set; }
+        public string Taxa { get; set; }
+        public double WeightSpecies { get; set; }
+        public double? Length { get; set; }
+        public double? Weight { get; set; }
+        public string Sex { get; set; }
+        public string MaturityStage { get; set; }
+        public double? GonadWeight { get; set; }
+        public string GutContentCategory { get; set; }
+        public double? GutContentWeight { get; set; }
+
+
     }
     public class CatchMaturity
     {

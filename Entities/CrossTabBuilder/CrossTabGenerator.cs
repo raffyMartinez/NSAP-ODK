@@ -19,6 +19,17 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
         public static Dictionary<string, List<VesselEffortCrossTab>> VesselEffortDictionary { get; private set; } = new Dictionary<string, List<VesselEffortCrossTab>>();
         public static Dictionary<string, List<VesselUnload_FishingGear>> VesselUnloadGearDictionary { get; private set; } = new Dictionary<string, List<VesselUnload_FishingGear>>();
         public static Dictionary<string, List<VesselCatch>> VesselCatchDictionary { get; private set; } = new Dictionary<string, List<VesselCatch>>();
+
+        public static Dictionary<string, List<CatchLengthWeightCrossTab>> CatchLengthWeightCrossTabDictionary = new Dictionary<string, List<CatchLengthWeightCrossTab>>();
+
+        public static Dictionary<string, List<CatchMaturityCrossTab>> CatchMaturityCrossTabDictionary = new Dictionary<string, List<CatchMaturityCrossTab>>();
+        public static Dictionary<string, List<CatchLengthCrossTab>> CatchLengthCrossTabDictionary = new Dictionary<string, List<CatchLengthCrossTab>>();
+
+        public static Dictionary<string, List<CatchLengthFreqCrossTab>> CatchLengthFreqCrossTabDictionary = new Dictionary<string, List<CatchLengthFreqCrossTab>>();
+        public static List<CatchMaturityCrossTab> CatchMaturityCrossTabs { get; set; }
+        public static List<CatchLengthFreqCrossTab> CatchLengthFreqCrossTabs { get; set; }
+        public static List<CatchLengthCrossTab> CatchLengthCrossTabs { get; set; }
+        public static List<CatchLengthWeightCrossTab> CatchLengthWeightCrossTabs { get; set; }
         public static List<VesselUnload> VesselUnloads { get; set; }
         public static List<VesselUnload_FishingGear> VesselUnload_FishingGears { get; set; }
         public static List<VesselEffortCrossTab> VesselEffortCrossTabs { get; set; }
@@ -52,6 +63,26 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
             foreach (VesselCatch vc in VesselCatches)
             {
                 vc.Parent = VesselUnloads.Find(t => t.PK == vc.VesselUnloadID);
+            }
+            CatchLengthWeightCrossTabs = CatchLenWeightRepository.GetLengthWeightForCrosstab(EntitiesOfMonth);
+            foreach (CatchLengthWeightCrossTab clwct in CatchLengthWeightCrossTabs)
+            {
+                clwct.VesselUnload = VesselUnloads.Find(t => t.PK == clwct.V_unload_id);
+            }
+            CatchLengthCrossTabs = CatchLengthRepository.GetLengthForCrosstab(EntitiesOfMonth);
+            foreach (CatchLengthCrossTab clct in CatchLengthCrossTabs)
+            {
+                clct.VesselUnload = VesselUnloads.Find(t => t.PK == clct.V_unload_id);
+            }
+            CatchLengthFreqCrossTabs = CatchLenFreqRepository.GetLengthFreqForCrosstab(EntitiesOfMonth);
+            foreach (CatchLengthFreqCrossTab clfct in CatchLengthFreqCrossTabs)
+            {
+                clfct.VesselUnload = VesselUnloads.Find(t => t.PK == clfct.V_unload_id);
+            }
+            CatchMaturityCrossTabs = CatchMaturityRepository.GetCatchMaturityForCrosstab(EntitiesOfMonth);
+            foreach (CatchMaturityCrossTab cmt in CatchMaturityCrossTabs)
+            {
+                cmt.VesselUnload = VesselUnloads.Find(t => t.PK == cmt.V_unload_id);
             }
             AddToDictionary();
         }
@@ -369,12 +400,20 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
             VesselEffortCrossTabs = new List<VesselEffortCrossTab>();
             VesselUnload_FishingGears = new List<VesselUnload_FishingGear>();
             VesselCatches = new List<VesselCatch>();
+            CatchLengthWeightCrossTabs = new List<CatchLengthWeightCrossTab>();
+            CatchLengthCrossTabs = new List<CatchLengthCrossTab>();
+            CatchLengthFreqCrossTabs = new List<CatchLengthFreqCrossTab>();
+            CatchMaturityCrossTabs = new List<CatchMaturityCrossTab>();
             try
             {
                 VesselUnloads = VesselUnloadsDictionary[EntitiesOfMonth.GUID];
                 VesselEffortCrossTabs = VesselEffortDictionary[EntitiesOfMonth.GUID];
                 VesselUnload_FishingGears = VesselUnloadGearDictionary[EntitiesOfMonth.GUID];
                 VesselCatches = VesselCatchDictionary[EntitiesOfMonth.GUID];
+                CatchLengthWeightCrossTabs = CatchLengthWeightCrossTabDictionary[EntitiesOfMonth.GUID];
+                CatchLengthCrossTabs = CatchLengthCrossTabDictionary[EntitiesOfMonth.GUID];
+                CatchLengthFreqCrossTabs = CatchLengthFreqCrossTabDictionary[EntitiesOfMonth.GUID];
+                CatchMaturityCrossTabs = CatchMaturityCrossTabDictionary[EntitiesOfMonth.GUID];
             }
             catch
             {
@@ -399,6 +438,22 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
             if (VesselUnloadGearDictionary.Keys.Count == 0 || !VesselUnloadGearDictionary.Keys.Contains(EntitiesOfMonth.GUID))
             {
                 VesselUnloadGearDictionary.Add(EntitiesOfMonth.GUID, VesselUnload_FishingGears);
+            }
+            if (CatchLengthWeightCrossTabDictionary.Keys.Count == 0 || !CatchLengthWeightCrossTabDictionary.Keys.Contains(EntitiesOfMonth.GUID))
+            {
+                CatchLengthWeightCrossTabDictionary.Add(EntitiesOfMonth.GUID, CatchLengthWeightCrossTabs);
+            }
+            if (CatchLengthCrossTabDictionary.Keys.Count == 0 || !CatchLengthCrossTabDictionary.Keys.Contains(EntitiesOfMonth.GUID))
+            {
+                CatchLengthCrossTabDictionary.Add(EntitiesOfMonth.GUID, CatchLengthCrossTabs);
+            }
+            if (CatchLengthFreqCrossTabDictionary.Keys.Count == 0 || !CatchLengthFreqCrossTabDictionary.Keys.Contains(EntitiesOfMonth.GUID))
+            {
+                CatchLengthFreqCrossTabDictionary.Add(EntitiesOfMonth.GUID, CatchLengthFreqCrossTabs);
+            }
+            if (CatchMaturityCrossTabDictionary.Keys.Count == 0 || !CatchMaturityCrossTabDictionary.Keys.Contains(EntitiesOfMonth.GUID))
+            {
+                CatchMaturityCrossTabDictionary.Add(EntitiesOfMonth.GUID, CatchMaturityCrossTabs);
             }
 
         }

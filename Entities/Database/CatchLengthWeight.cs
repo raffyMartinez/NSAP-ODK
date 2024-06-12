@@ -29,7 +29,24 @@ namespace NSAP_ODK.Entities.Database
         public double Length { get; set; }
         public double Weight { get; set; }
     }
+    public class CatchLengthWeightCrossTab
+    {
+        public int RowID { get; set; }
 
+        public int V_unload_id { get; set; }
+        public VesselUnload VesselUnload { get; set; }
+        public double WeightOfCatch { get; set; }
+        public string GearName { get; set; }
+        public double WeightGearCatch { get; set; }
+        public double? SampleWeightGearCatch { get; set; }
+        public string SpeciesName { get; set; }
+        public string Taxa { get; set; }
+        public double WeightSpecies { get; set; }
+        public double Length { get; set; }
+        public double Weight { get; set; }
+        public string Sex { get; set; }
+
+    }
     public class CatchLengthWeightEdited
     {
         public CatchLengthWeightEdited(CatchLengthWeight clw)
@@ -42,7 +59,7 @@ namespace NSAP_ODK.Entities.Database
         }
         public CatchLengthWeightEdited()
         {
-            
+
         }
 
         [ItemsSource(typeof(SexItemsSource))]
