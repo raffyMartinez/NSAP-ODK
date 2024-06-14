@@ -4502,7 +4502,10 @@ namespace NSAP_ODK
                         var r = MessageBox.Show("Do stable version of cross tab?", Global.MessageBoxCaption, MessageBoxButton.YesNo, MessageBoxImage.Question);
                         if (r == MessageBoxResult.No)
                         {
-                            CrossTabGenerator.GenerateCrossTab(_allSamplingEntitiesEventHandler);
+                            if(CrossTabGenerator.GenerateCrossTab(_allSamplingEntitiesEventHandler))
+                            {
+
+                            }
                         }
                         else
                         {

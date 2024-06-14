@@ -46,7 +46,9 @@ namespace NSAP_ODK.Entities.Database
                     SELECT
                       dbo_catch_maturity.catch_maturity_id,
                       dbo_vessel_unload.v_unload_id,
+                      dbo_catch_maturity.catch_id,
                       dbo_vessel_unload.catch_total AS wt_catch,
+                      gear.GearCode,
                       gear.GearName,
                       dbo_vessel_unload.catch_total AS wt_gear,
                       dbo_vessel_unload.catch_samp AS sample_wt_gear,
@@ -91,7 +93,9 @@ namespace NSAP_ODK.Entities.Database
                    SELECT
                       dbo_catch_maturity.catch_maturity_id,
                       dbo_vessel_unload.v_unload_id,
+                      dbo_catch_maturity.catch_id,
                       dbo_vessel_unload.catch_total AS wt_catch,
+                      gear.GearCode,
                       gear.GearName,
                       dbo_vessel_unload.catch_total AS wt_gear,
                       dbo_vessel_unload.catch_samp AS sample_wt_gear,
@@ -136,7 +140,9 @@ namespace NSAP_ODK.Entities.Database
                    SELECT
                       dbo_catch_maturity.catch_maturity_id,
                       dbo_vessel_unload.v_unload_id,
+                      dbo_catch_maturity.catch_id,
                       dbo_vessel_unload.catch_total AS wt_catch,
+                      gear.GearCode,
                       gear.GearName,
                       dbo_vesselunload_fishinggear.catch_weight AS wt_gear,
                       dbo_vesselunload_fishinggear.sample_weight AS sample_wt_gear,
@@ -180,7 +186,9 @@ namespace NSAP_ODK.Entities.Database
                    SELECT
                       dbo_catch_maturity.catch_maturity_id,
                       dbo_vessel_unload.v_unload_id,
+                      dbo_catch_maturity.catch_id,
                       dbo_vessel_unload.catch_total AS wt_catch,
+                      gear.GearCode,
                       gear.GearName,
                       dbo_vesselunload_fishinggear.catch_weight AS wt_gear,
                       dbo_vesselunload_fishinggear.sample_weight AS sample_wt_gear,
@@ -227,8 +235,10 @@ namespace NSAP_ODK.Entities.Database
                                 CatchMaturityCrossTab cmct = new CatchMaturityCrossTab
                                 {
                                     RowID = (int)dr["catch_maturity_id"],
+                                    ParentCatchID = (int)dr["catch_id"],
                                     V_unload_id = (int)dr["v_unload_id"],
                                     WeightOfCatch = (double)dr["wt_catch"],
+                                    GearCode = dr["GearCode"].ToString(),
                                     GearName = dr["GearName"].ToString(),
                                     WeightGearCatch = (double)dr["wt_gear"],
                                     SpeciesName = dr["spName"].ToString(),

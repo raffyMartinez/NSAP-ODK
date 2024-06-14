@@ -378,6 +378,10 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
+        public List<CatchLengthWeightCrossTab> ListCrossTabLengthWeight { get; set; }
+        public List<CatchLengthCrossTab> ListCrossTabLength { get; set; }
+        public List<CatchLengthFreqCrossTab> ListCrossTabLengthFreq { get; set; }
+        public List<CatchMaturityCrossTab> ListCrossTabMaturity { get; set; }
         public List<CatchLenFreq> ListCatchLenFreq
         {
             get

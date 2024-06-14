@@ -9,6 +9,8 @@ namespace NSAP_ODK.Entities.Database
 {
     public class VesselUnload_FishingGear
     {
+        public List<VesselCatch> ListOfCatchForCrossTab { get; set; }
+        public List<VesselEffortCrossTab> ListOfSpecsForCrossTab { get; set; }
         private VesselUnload _vesselUnload;
         //public List<VesselCatch> Catches
         //{

@@ -68,6 +68,8 @@ namespace NSAP_ODK.Entities.Database
 
                         cmd.CommandText = @"SELECT 
                                                 dbo_vessel_unload.v_unload_id,
+                                                dbo_vessel_catch.catch_id,
+                                                gear.GearCode,
                                                 gear.GearName,
                                                 dbo_vessel_unload.catch_total AS catch_of_gear,
                                                 phFish.SpeciesID,
@@ -106,6 +108,8 @@ namespace NSAP_ODK.Entities.Database
                                             
                                             SELECT 
                                                 dbo_vessel_unload.v_unload_id,
+                                                dbo_vessel_catch.catch_id,
+                                                gear.GearCode,
                                                 gear.GearName,
                                                 dbo_vessel_unload.catch_total AS catch_of_gear,
                                                 notFishSpecies.SpeciesID,
@@ -144,6 +148,8 @@ namespace NSAP_ODK.Entities.Database
                                             
                                             SELECT 
                                                 dbo_vessel_unload.v_unload_id,
+                                                dbo_vessel_catch.catch_id,
+                                                gear.GearCode,
                                                 gear.GearName,
                                                 dbo_vesselunload_fishinggear.catch_weight AS catch_of_gear,
                                                 notFishSpecies.SpeciesID,
@@ -180,6 +186,8 @@ namespace NSAP_ODK.Entities.Database
                                             
                                             SELECT 
                                                 dbo_vessel_unload.v_unload_id,
+                                                dbo_vessel_catch.catch_id,
+                                                gear.GearCode,
                                                 gear.GearName,
                                                 dbo_vesselunload_fishinggear.catch_weight AS catch_of_gear,
                                                 phFish.SpeciesID,
@@ -220,6 +228,8 @@ namespace NSAP_ODK.Entities.Database
                                 VesselCatch vc = new VesselCatch
                                 {
                                     VesselUnloadID = (int)dr["v_unload_id"],
+                                    PK = (int)dr["catch_id"],
+                                    GearCode = dr["GearCode"].ToString(),
                                     GearNameForDisplay = dr["GearName"].ToString(),
                                     GearCatchWeight = (double)dr["catch_of_gear"],
                                     SpeciesID = (int)dr["SpeciesID"],
@@ -228,7 +238,12 @@ namespace NSAP_ODK.Entities.Database
                                     Catch_kg = (double)dr["catch_kg"],
                                     IsCatchSold = (bool)dr["is_catch_sold"],
                                     UnloadType = dr["unload_type"].ToString()
+                                    
                                 };
+                                vc.ListCrossTabLengthWeight = new List<CatchLengthWeightCrossTab>();
+                                vc.ListCrossTabLength = new List<CatchLengthCrossTab>();
+                                vc.ListCrossTabLengthFreq = new List<CatchLengthFreqCrossTab>();
+                                vc.ListCrossTabMaturity = new List<CatchMaturityCrossTab>();
                                 if (dr["samp_kg"] != DBNull.Value && (double)dr["samp_kg"]>0)
                                 {
                                     vc.Sample_kg = (double)dr["samp_kg"];

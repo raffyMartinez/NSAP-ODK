@@ -49,95 +49,239 @@ namespace NSAP_ODK.Entities.Database
                 {
                     using (var cmd = con.CreateCommand())
                     {
-                        cmd.Parameters.AddWithValue("@ls_id", entities.LandingSite.LandingSiteID);
-                        cmd.Parameters.AddWithValue("@fma", entities.FMA.FMAID);
-                        cmd.Parameters.AddWithValue("@fg", entities.FishingGround.Code);
                         cmd.Parameters.AddWithValue("@reg", entities.NSAPRegion.Code);
+                        cmd.Parameters.AddWithValue("@ls", entities.LandingSite.LandingSiteID);
+                        cmd.Parameters.AddWithValue("@fg", entities.FishingGround.Code);
+                        cmd.Parameters.AddWithValue("@fma", entities.FMA.FMAID);
                         DateTime sMonth = (DateTime)entities.MonthSampled;
                         cmd.Parameters.AddWithValue("@start", sMonth.ToString("MMM/dd/yyyy"));
                         cmd.Parameters.AddWithValue("@end", sMonth.AddMonths(1).ToString("MMM/dd/yyyy"));
-                        cmd.CommandText = @"SELECT 
-                                                dbo_vessel_unload.unload_gr_id,
-                                                dbo_vessel_unload_1.EnumeratorID,
-                                                dbo_vessel_unload.is_boat_used,
-                                                dbo_vessel_unload_1.is_catch_sold,
-                                                dbo_vessel_unload_1.EnumeratorText,
-                                                dbo_vessel_unload_1.Success,
+                        cmd.CommandText = @"SELECT
+                                                dbo_gear_unload.unload_gr_id,
                                                 dbo_vessel_unload_1.is_multigear,
-                                                dbo_vessel_unload_1.count_gear_types,
-                                                dbo_vessel_unload_1.form_version,
-                                                dbo_vessel_unload_1.NumberOfFishers,
-                                                dbo_vessel_unload_1.trip_is_completed,
                                                 dbo_vessel_unload.v_unload_id,
-                                                dbo_vessel_unload_1.ref_no,
-                                                dbo_vessel_unload_1.sector_code,
-                                                dbo_vessel_unload_1.Notes,
+                                                dbo_vessel_unload_1.Success,
+                                                dbo_vessel_unload_1.trip_is_completed, 
                                                 dbo_vessel_unload_1.SamplingDate,
-                                                dbo_vessel_unload.boat_text,
-                                                dbo_vessel_unload.catch_total,
-                                                dbo_vessel_unload.catch_samp,
-                                                dbo_vessel_unload_1.HasCatchComposition,
-                                                dbo_vessel_unload_1.DepartureLandingSite,
-                                                dbo_vessel_unload_1.ArrivalLandingSite,
+                                                dbo_vessel_unload_1.form_version,
+                                                Provinces.ProvinceName,
+                                                Municipalities.Municipality,
+                                                nsapRegion.ShortName AS Region,
+                                                dbo_LC_FG_sample_day.fma,
+                                                fishingGround.FishingGroundName,
+                                                landingSite.LandingSiteName,
+                                                dbo_vessel_unload_1.EnumeratorID,
+                                                NSAPEnumerator.EnumeratorName,
+                                                dbo_vessel_unload_1.sector_code,
                                                 First(dbo_fg_grid.utm_zone) AS grid_utm_zone,
                                                 First(dbo_fg_grid.grid25) AS grid,
+                                                gear.GearName,
                                                 First(dbo_gear_soak.time_set) AS setting,
-                                                First(dbo_gear_soak.time_hauled) AS hauling
-                                           FROM 
-                                                (((dbo_LC_FG_sample_day INNER JOIN 
-                                                (dbo_gear_unload INNER JOIN 
-                                                dbo_vessel_unload ON 
-                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
-                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
-                                                dbo_vessel_unload_1 ON 
-                                                dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) LEFT JOIN 
-                                                dbo_fg_grid ON dbo_vessel_unload.v_unload_id = dbo_fg_grid.v_unload_id) LEFT JOIN 
-                                                dbo_gear_soak ON dbo_vessel_unload.v_unload_id = dbo_gear_soak.v_unload_id
-                                           WHERE 
-                                                dbo_LC_FG_sample_day.land_ctr_id=@ls_id AND 
-                                                dbo_LC_FG_sample_day.fma=@fma AND 
-                                                dbo_LC_FG_sample_day.ground_id=@fg AND 
-                                                dbo_LC_FG_sample_day.region_id=@reg AND
-                                                dbo_LC_FG_sample_day.sdate>=@start AND 
-                                                dbo_LC_FG_sample_day.sdate<@end
-                                           GROUP BY 
-                                                dbo_vessel_unload.unload_gr_id,
-                                                dbo_vessel_unload_1.EnumeratorID,
-                                                dbo_vessel_unload.is_boat_used,
-                                                dbo_vessel_unload_1.is_catch_sold,
-                                                dbo_vessel_unload_1.EnumeratorText,
-                                                dbo_vessel_unload_1.Success,
-                                                dbo_vessel_unload_1.is_multigear,
-                                                dbo_vessel_unload_1.count_gear_types,
-                                                dbo_vessel_unload_1.form_version,
-                                                dbo_vessel_unload_1.NumberOfFishers,
-                                                dbo_vessel_unload_1.trip_is_completed,
-                                                dbo_vessel_unload.v_unload_id,
+                                                First(dbo_gear_soak.time_hauled) AS hauling,
+                                                dbo_vessel_unload.catch_total AS gear_catch_wt,
+                                                dbo_vessel_unload_1.number_species_catch_composition AS number_species_catch,
                                                 dbo_vessel_unload_1.ref_no,
-                                                dbo_vessel_unload_1.sector_code,
-                                                dbo_vessel_unload_1.Notes,
-                                                dbo_vessel_unload_1.SamplingDate,
+                                                dbo_vessel_unload_1.HasCatchComposition,
+                                                dbo_vessel_unload.is_boat_used,
                                                 dbo_vessel_unload.boat_text,
+                                                fishingVessel.VesselName,
+                                                dbo_vessel_unload_1.NumberOfFishers,
+                                                dbo_vessel_unload_1.number_species_catch_composition,
+                                                dbo_vessel_unload.catch_total AS total_wt_catch,
+                                                dbo_vessel_unload.catch_samp AS sample_wt_catch,
+                                                dbo_vessel_unload_1.is_catch_sold,
+                                                dbo_vessel_unload_1.count_gear_types,
+                                                dbo_vessel_unload_1.Notes
+                                            FROM
+                                                 (gear INNER JOIN
+                                                 (NSAPEnumerator RIGHT JOIN
+                                                 (fishingGround INNER JOIN
+                                                 (nsapRegion INNER JOIN
+                                                 (Provinces INNER JOIN
+                                                 (Municipalities INNER JOIN
+                                                 (landingSite INNER JOIN
+                                                 ((((dbo_LC_FG_sample_day INNER JOIN
+                                                 (dbo_gear_unload INNER JOIN
+                                                 dbo_vessel_unload ON
+                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN
+                                                 dbo_vessel_unload_1 ON
+                                                dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) LEFT JOIN dbo_fg_grid ON
+                                                dbo_vessel_unload.v_unload_id = dbo_fg_grid.v_unload_id) LEFT JOIN dbo_gear_soak ON
+                                                dbo_vessel_unload.v_unload_id = dbo_gear_soak.v_unload_id) ON
+                                                landingSite.LandingSiteID = dbo_LC_FG_sample_day.land_ctr_id) ON
+                                                Municipalities.MunNo = landingSite.Municipality) ON
+                                                Provinces.ProvNo = Municipalities.ProvNo) ON
+                                                nsapRegion.Code = dbo_LC_FG_sample_day.region_id) ON
+                                                fishingGround.FishingGroundCode = dbo_LC_FG_sample_day.ground_id) ON
+                                                NSAPEnumerator.EnumeratorID = dbo_vessel_unload_1.EnumeratorID) ON
+                                                gear.GearCode = dbo_gear_unload.gr_id) LEFT JOIN fishingVessel ON
+                                                dbo_vessel_unload.boat_id = fishingVessel.VesselID
+                                            WHERE
+                                                dbo_LC_FG_sample_day.region_id=@reg AND
+                                                dbo_LC_FG_sample_day.land_ctr_id=@ls AND
+                                                dbo_LC_FG_sample_day.ground_id=@fg AND
+                                                dbo_LC_FG_sample_day.fma=@fma AND
+                                                dbo_LC_FG_sample_day.sdate>=@start AND
+                                                dbo_LC_FG_sample_day.sdate<@end
+                                            GROUP BY
+                                                dbo_gear_unload.unload_gr_id,
+                                                dbo_vessel_unload_1.is_multigear,
+                                                dbo_vessel_unload.v_unload_id,
+                                                dbo_vessel_unload_1.Success,
+                                                dbo_vessel_unload_1.trip_is_completed, 
+                                                dbo_vessel_unload_1.SamplingDate,
+                                                dbo_vessel_unload_1.form_version,
+                                                Provinces.ProvinceName,
+                                                Municipalities.Municipality,
+                                                nsapRegion.ShortName,
+                                                dbo_LC_FG_sample_day.fma,
+                                                fishingGround.FishingGroundName,
+                                                landingSite.LandingSiteName,
+                                                dbo_vessel_unload_1.EnumeratorID,
+                                                NSAPEnumerator.EnumeratorName,
+                                                dbo_vessel_unload_1.sector_code,
+                                                gear.GearName,
+                                                dbo_vessel_unload.catch_total,
+                                                dbo_vessel_unload_1.number_species_catch_composition,
+                                                dbo_vessel_unload_1.ref_no,
+                                                dbo_vessel_unload_1.HasCatchComposition,
+                                                dbo_vessel_unload.is_boat_used,
+                                                dbo_vessel_unload.boat_text,
+                                                fishingVessel.VesselName,
+                                                dbo_vessel_unload_1.NumberOfFishers,
+                                                dbo_vessel_unload_1.number_species_catch_composition,
                                                 dbo_vessel_unload.catch_total,
                                                 dbo_vessel_unload.catch_samp,
-                                                dbo_vessel_unload_1.HasCatchComposition,
-                                                dbo_vessel_unload_1.DepartureLandingSite,
-                                                dbo_vessel_unload_1.ArrivalLandingSite
-                                           ORDER BY 
-                                                dbo_vessel_unload.v_unload_id";
+                                                dbo_vessel_unload_1.is_catch_sold,
+                                                dbo_vessel_unload_1.count_gear_types,
+                                                dbo_vessel_unload_1.Notes
+                                            HAVING
+                                                dbo_vessel_unload_1.is_multigear=False 
+                                            ORDER BY
+                                                dbo_vessel_unload.v_unload_id
 
-                        con.Open();
+                                            UNION ALL
+
+                                            SELECT
+                                                dbo_gear_unload.unload_gr_id,
+                                                dbo_vessel_unload_1.is_multigear,
+                                                dbo_vessel_unload.v_unload_id,
+                                                dbo_vessel_unload_1.Success,
+                                                dbo_vessel_unload_1.trip_is_completed, 
+                                                dbo_vessel_unload_1.SamplingDate,
+                                                dbo_vessel_unload_1.form_version,
+                                                Provinces.ProvinceName,
+                                                Municipalities.Municipality,
+                                                nsapRegion.ShortName AS Region,
+                                                dbo_LC_FG_sample_day.fma,
+                                                fishingGround.FishingGroundName,
+                                                landingSite.LandingSiteName,
+                                                dbo_vessel_unload_1.EnumeratorID,
+                                                NSAPEnumerator.EnumeratorName,
+                                                dbo_vessel_unload_1.sector_code,
+                                                First(dbo_fg_grid.utm_zone) AS grid_utm_zone,
+                                                First(dbo_fg_grid.grid25) AS grid,
+                                                gear.GearName,
+                                                First(dbo_gear_soak.time_set) AS setting,
+                                                First(dbo_gear_soak.time_hauled) AS hauling,
+                                                dbo_vesselunload_fishinggear.catch_weight AS gear_catch_wt,
+                                                dbo_vessel_unload_1.number_species_catch_composition AS number_species_catch,
+                                                dbo_vessel_unload_1.ref_no,
+                                                dbo_vessel_unload_1.HasCatchComposition,
+                                                dbo_vessel_unload.is_boat_used,
+                                                dbo_vessel_unload.boat_text,
+                                                fishingVessel.VesselName,
+                                                dbo_vessel_unload_1.NumberOfFishers,
+                                                dbo_vessel_unload_1.number_species_catch_composition,
+                                                dbo_vessel_unload.catch_total AS total_wt_catch,
+                                                dbo_vessel_unload.catch_samp AS sample_wt_catch,
+                                                dbo_vessel_unload_1.is_catch_sold,
+                                                dbo_vessel_unload_1.count_gear_types,
+                                                dbo_vessel_unload_1.Notes
+                                            FROM
+                                                 (nsapRegion INNER JOIN
+                                                 ((Provinces INNER JOIN
+                                                 Municipalities ON
+                                                Provinces.ProvNo = Municipalities.ProvNo) INNER JOIN
+                                                 (landingSite INNER JOIN
+                                                 (fishingGround INNER JOIN
+                                                 ((((dbo_LC_FG_sample_day INNER JOIN
+                                                 (dbo_gear_unload INNER JOIN
+                                                 (dbo_vessel_unload LEFT JOIN fishingVessel ON
+                                                dbo_vessel_unload.boat_id = fishingVessel.VesselID) ON
+                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) LEFT JOIN dbo_fg_grid ON
+                                                dbo_vessel_unload.v_unload_id = dbo_fg_grid.v_unload_id) LEFT JOIN dbo_gear_soak ON
+                                                dbo_vessel_unload.v_unload_id = dbo_gear_soak.v_unload_id) INNER JOIN
+                                                 (NSAPEnumerator RIGHT JOIN
+                                                 dbo_vessel_unload_1 ON
+                                                NSAPEnumerator.EnumeratorID = dbo_vessel_unload_1.EnumeratorID) ON
+                                                dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) ON
+                                                fishingGround.FishingGroundCode = dbo_LC_FG_sample_day.ground_id) ON
+                                                landingSite.LandingSiteID = dbo_LC_FG_sample_day.land_ctr_id) ON
+                                                Municipalities.MunNo = landingSite.Municipality) ON
+                                                nsapRegion.Code = dbo_LC_FG_sample_day.region_id) INNER JOIN
+                                                 (gear INNER JOIN
+                                                 dbo_vesselunload_fishinggear ON
+                                                gear.GearCode = dbo_vesselunload_fishinggear.gear_code) ON
+                                                dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id
+                                            WHERE
+                                                dbo_LC_FG_sample_day.region_id=@reg AND
+                                                dbo_LC_FG_sample_day.land_ctr_id=@ls AND
+                                                dbo_LC_FG_sample_day.ground_id=@fg AND
+                                                dbo_LC_FG_sample_day.fma=@fma AND
+                                                dbo_LC_FG_sample_day.sdate>=@start AND
+                                                dbo_LC_FG_sample_day.sdate<@end
+                                            GROUP BY
+                                                dbo_gear_unload.unload_gr_id,
+                                                dbo_vessel_unload_1.is_multigear,
+                                                dbo_vessel_unload.v_unload_id,
+                                                dbo_vessel_unload_1.Success,
+                                                dbo_vessel_unload_1.trip_is_completed, 
+                                                dbo_vessel_unload_1.SamplingDate,
+                                                dbo_vessel_unload_1.form_version,
+                                                Provinces.ProvinceName,
+                                                Municipalities.Municipality,
+                                                nsapRegion.ShortName,
+                                                dbo_LC_FG_sample_day.fma,
+                                                fishingGround.FishingGroundName,
+                                                landingSite.LandingSiteName,
+                                                dbo_vessel_unload_1.EnumeratorID,
+                                                NSAPEnumerator.EnumeratorName,
+                                                dbo_vessel_unload_1.sector_code,
+                                                gear.GearName,
+                                                dbo_vesselunload_fishinggear.catch_weight,
+                                                dbo_vessel_unload_1.number_species_catch_composition,
+                                                dbo_vessel_unload_1.ref_no,
+                                                dbo_vessel_unload_1.HasCatchComposition,
+                                                dbo_vessel_unload.is_boat_used,
+                                                dbo_vessel_unload.boat_text,
+                                                fishingVessel.VesselName,
+                                                dbo_vessel_unload_1.NumberOfFishers,
+                                                dbo_vessel_unload_1.number_species_catch_composition,
+                                                dbo_vessel_unload.catch_total,
+                                                dbo_vessel_unload.catch_samp,
+                                                dbo_vessel_unload_1.is_catch_sold,
+                                                dbo_vessel_unload_1.count_gear_types,
+                                                dbo_vessel_unload_1.Notes
+                                            HAVING
+                                                 dbo_vessel_unload_1.is_multigear=True";
+
+                         con.Open();
+                        VesselUnload vu = null;
                         try
                         {
+                            
                             OleDbDataReader dr = cmd.ExecuteReader();
                             while (dr.Read())
                             {
-                                VesselUnload vu = new VesselUnload
+                                vu = new VesselUnload
                                 {
                                     GearUnloadID = (int)dr["unload_gr_id"],
                                     PK = (int)dr["v_unload_id"],
                                     RefNo = dr["ref_no"].ToString(),
-                                    EnumeratorText = dr["EnumeratorText"].ToString(),
+                                    //EnumeratorText = dr["EnumeratorText"].ToString(),
                                     IsCatchSold = (bool)dr["is_catch_sold"],
                                     IsBoatUsed = (bool)dr["is_boat_used"],
                                     SamplingDate = (DateTime)dr["SamplingDate"],
@@ -150,6 +294,13 @@ namespace NSAP_ODK.Entities.Database
                                     FishingTripIsCompleted = (bool)dr["trip_is_completed"],
                                     FirstFishingGround = $"{dr["grid_utm_zone"].ToString()} - {dr["grid"].ToString()}",
                                 };
+                                vu.ListUnloadFishingGearsEx = new List<VesselUnload_FishingGear>();
+                                if (dr["grid"]!=DBNull.Value && dr["grid_utm_zone"]!=DBNull.Value)
+                                {
+                                    UTMZone z = new UTMZone(dr["grid_utm_zone"].ToString());
+                                    var gridCell = new Grid25GridCell(z, dr["grid"].ToString());
+                                    vu.FirstFishingGroundCoordinate = gridCell.Coordinate;
+                                }
                                 if (dr["setting"]!=DBNull.Value)
                                 {
                                     vu.GearSettingFirst = (DateTime)dr["setting"];
@@ -158,7 +309,7 @@ namespace NSAP_ODK.Entities.Database
                                 {
                                     vu.GearHaulingFirst = (DateTime)dr["hauling"];
                                 }
-                                if (dr["NumberOfFishers"] != DBNull.Value)
+                                if (dr["NumberOfFishers"] != DBNull.Value && (int)dr["NumberOfFishers"]>0)
                                 {
                                     vu.NumberOfFishers = (int)dr["NumberOfFishers"];
                                 }
@@ -167,22 +318,22 @@ namespace NSAP_ODK.Entities.Database
                                     vu.NSAPEnumeratorID = (int)dr["EnumeratorID"];
                                     vu.NSAPEnumerator = NSAPEntities.NSAPEnumeratorViewModel.GetNSAPEnumerator((int)vu.NSAPEnumeratorID);
                                 }
-                                if (dr["catch_total"] != DBNull.Value)
+                                if (dr["total_wt_catch"] != DBNull.Value)
                                 {
-                                    vu.WeightOfCatch = (double)dr["catch_total"];
+                                    vu.WeightOfCatch = (double)dr["total_wt_catch"];
                                 }
-                                if (dr["catch_samp"] != DBNull.Value)
+                                if (dr["sample_wt_catch"] != DBNull.Value && (double)dr["sample_wt_catch"]>0)
                                 {
-                                    vu.WeightOfCatchSample = (double)dr["catch_samp"];
+                                    vu.WeightOfCatchSample = (double)dr["sample_wt_catch"];
                                 }
-                                if (dr["DepartureLandingSite"] != DBNull.Value)
-                                {
-                                    vu.DepartureFromLandingSite = (DateTime)dr["DepartureLandingSite"];
-                                }
-                                if (dr["ArrivalLandingSite"] != DBNull.Value)
-                                {
-                                    vu.ArrivalAtLandingSite = (DateTime)dr["ArrivalLandingSite"];
-                                }
+                                //if (dr["DepartureLandingSite"] != DBNull.Value)
+                                //{
+                                //    vu.DepartureFromLandingSite = (DateTime)dr["DepartureLandingSite"];
+                                //}
+                                //if (dr["ArrivalLandingSite"] != DBNull.Value)
+                                //{
+                                //    vu.ArrivalAtLandingSite = (DateTime)dr["ArrivalLandingSite"];
+                                //}
                                 if (vu.IsMultiGear && dr["count_gear_types"] != DBNull.Value)
                                 {
                                     vu.CountGearTypesUsed = (int)dr["count_gear_types"];

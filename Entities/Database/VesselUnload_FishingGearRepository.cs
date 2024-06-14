@@ -147,7 +147,7 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_LC_FG_sample_day.ground_id = @fg AND
                                                 dbo_LC_FG_sample_day.sdate >=@start AND
                                                 dbo_LC_FG_sample_day.sdate <@end";
-                                          
+
                         con.Open();
                         try
                         {
@@ -160,6 +160,8 @@ namespace NSAP_ODK.Entities.Database
                                     GearCode = dr["gear_code"].ToString(),
                                     WeightOfCatch = (double)dr["catch_weight"]
                                 };
+                                vufg.ListOfSpecsForCrossTab = new List<VesselEffortCrossTab>();
+                                vufg.ListOfCatchForCrossTab = new List<VesselCatch>();
                                 if (dr["sample_weight"] != DBNull.Value && (double)dr["sample_weight"] > 0)
                                 {
                                     vufg.WeightOfSample = (double)dr["sample_weight"];

@@ -9,14 +9,22 @@ namespace NSAP_ODK.Entities.Database
     public class VesselEffortCrossTab
     {
         public int VesselUnloadID { get; set; }
-        
+
         public VesselUnload VesselUnload { get; set; }
-        
+
         public string GearCode { get; set; }
         public int EffortID { get; set; }
         public double? EffortValue { get; set; }
         public string EffortValueText { get; set; }
         public string UnloadGearsCategory { get; set; }
+
+        public EffortSpecification EffortSpecification
+        {
+            get
+            {
+                return NSAPEntities.EffortSpecificationViewModel.GetEffortSpecification(EffortID);
+            }
+        }
     }
     public class VesselEffortEdited
     {
@@ -46,6 +54,8 @@ namespace NSAP_ODK.Entities.Database
         public string EffortSpecification { get; set; }
         public double? EffortValueNumeric { get; set; }
         public string EffortValueText { get; set; }
+
+
     }
     public class VesselEffort
     {

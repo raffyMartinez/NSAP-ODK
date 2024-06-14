@@ -55,10 +55,11 @@ namespace NSAP_ODK.Entities.Database
     public class CatchLengthCrossTab
     {
         public int RowID { get; set; }
-
+        public int ParentCatchID { get; set; }
         public int V_unload_id { get; set; }
         public VesselUnload VesselUnload { get; set; }
         public double WeightOfCatch { get; set; }
+        public string GearCode { get; set; }
         public string GearName { get; set; }
         public double WeightGearCatch { get; set; }
         public double? SampleWeightGearCatch { get; set; }

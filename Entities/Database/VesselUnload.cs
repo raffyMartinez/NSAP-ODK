@@ -12,6 +12,7 @@ namespace NSAP_ODK.Entities.Database
     using Xceed.Wpf.Toolkit;
     using Newtonsoft.Json;
     using DocumentFormat.OpenXml.Drawing.Diagrams;
+    using ISO_Classes;
 
     [CategoryOrder("Header", 1)]
     [CategoryOrder("Effort", 2)]
@@ -746,7 +747,7 @@ namespace NSAP_ODK.Entities.Database
         public string LandingSiteSamplingSubmissionID { get; set; }
         public bool IncludeEffortIndicators { get; set; }
         public int? NumberOfSpeciesInCatchComposition { get; set; }
-
+        public Coordinate FirstFishingGroundCoordinate { get; set; }
         public string FirstFishingGround { get; set; }
         public DateTime? GearSettingFirst { get; set; }
         public DateTime? GearHaulingFirst { get; set; }
@@ -1289,6 +1290,8 @@ namespace NSAP_ODK.Entities.Database
                 return vu_gses;
             }
         }
+
+        public List<VesselUnload_FishingGear> ListUnloadFishingGearsEx { get; set; }
         public List<VesselUnload_FishingGear> ListUnloadFishingGears
         {
             get
