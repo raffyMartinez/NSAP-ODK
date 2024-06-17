@@ -57,12 +57,12 @@ namespace NSAP_ODK.Entities.Database
                         cmd.Parameters.AddWithValue("@start", sMonth.ToString("MMM/dd/yyyy"));
                         cmd.Parameters.AddWithValue("@end", sMonth.AddMonths(1).ToString("MMM/dd/yyyy"));
                         cmd.CommandText = @"SELECT
+                                                dbo_vessel_unload_1.SamplingDate,
                                                 dbo_gear_unload.unload_gr_id,
                                                 dbo_vessel_unload_1.is_multigear,
                                                 dbo_vessel_unload.v_unload_id,
                                                 dbo_vessel_unload_1.Success,
                                                 dbo_vessel_unload_1.trip_is_completed, 
-                                                dbo_vessel_unload_1.SamplingDate,
                                                 dbo_vessel_unload_1.form_version,
                                                 Provinces.ProvinceName,
                                                 Municipalities.Municipality,
@@ -125,12 +125,12 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_LC_FG_sample_day.sdate>=@start AND
                                                 dbo_LC_FG_sample_day.sdate<@end
                                             GROUP BY
+                                                dbo_vessel_unload_1.SamplingDate,
                                                 dbo_gear_unload.unload_gr_id,
                                                 dbo_vessel_unload_1.is_multigear,
                                                 dbo_vessel_unload.v_unload_id,
                                                 dbo_vessel_unload_1.Success,
                                                 dbo_vessel_unload_1.trip_is_completed, 
-                                                dbo_vessel_unload_1.SamplingDate,
                                                 dbo_vessel_unload_1.form_version,
                                                 Provinces.ProvinceName,
                                                 Municipalities.Municipality,
@@ -159,17 +159,18 @@ namespace NSAP_ODK.Entities.Database
                                             HAVING
                                                 dbo_vessel_unload_1.is_multigear=False 
                                             ORDER BY
-                                                dbo_vessel_unload.v_unload_id
+                                                dbo_vessel_unload_1.SamplingDate
+
 
                                             UNION ALL
 
                                             SELECT
+                                                dbo_vessel_unload_1.SamplingDate,
                                                 dbo_gear_unload.unload_gr_id,
                                                 dbo_vessel_unload_1.is_multigear,
                                                 dbo_vessel_unload.v_unload_id,
                                                 dbo_vessel_unload_1.Success,
                                                 dbo_vessel_unload_1.trip_is_completed, 
-                                                dbo_vessel_unload_1.SamplingDate,
                                                 dbo_vessel_unload_1.form_version,
                                                 Provinces.ProvinceName,
                                                 Municipalities.Municipality,
@@ -234,12 +235,12 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_LC_FG_sample_day.sdate>=@start AND
                                                 dbo_LC_FG_sample_day.sdate<@end
                                             GROUP BY
+                                                dbo_vessel_unload_1.SamplingDate,
                                                 dbo_gear_unload.unload_gr_id,
                                                 dbo_vessel_unload_1.is_multigear,
                                                 dbo_vessel_unload.v_unload_id,
                                                 dbo_vessel_unload_1.Success,
                                                 dbo_vessel_unload_1.trip_is_completed, 
-                                                dbo_vessel_unload_1.SamplingDate,
                                                 dbo_vessel_unload_1.form_version,
                                                 Provinces.ProvinceName,
                                                 Municipalities.Municipality,
@@ -334,6 +335,15 @@ namespace NSAP_ODK.Entities.Database
                                 //{
                                 //    vu.ArrivalAtLandingSite = (DateTime)dr["ArrivalLandingSite"];
                                 //}
+                                if (string.IsNullOrEmpty( dr["boat_text"].ToString()))
+                                {
+                                    vu.VesselText = dr["VesselName"].ToString();
+                                }
+                                else
+
+                                {
+                                    vu.VesselText = dr["boat_text"].ToString();
+                                }
                                 if (vu.IsMultiGear && dr["count_gear_types"] != DBNull.Value)
                                 {
                                     vu.CountGearTypesUsed = (int)dr["count_gear_types"];

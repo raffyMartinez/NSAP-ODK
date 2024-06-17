@@ -25,6 +25,119 @@ namespace NSAP_ODK.Entities.Database
             GearUnloads = getGearUnloads();
         }
 
+        public static List<GearUnload> GetGearUnloadsForCrosstab(NSAP_ODK.TreeViewModelControl.AllSamplingEntitiesEventHandler e)
+        {
+            List<GearUnload> gus = new List<GearUnload>();
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+
+                        DateTime sDate = (DateTime)e.MonthSampled;
+                        cmd.Parameters.AddWithValue("@start", sDate.ToString("MMM/dd/yyyy"));
+                        cmd.Parameters.AddWithValue("@end", sDate.AddMonths(1).ToString("MMM/dd/yyyy"));
+                        cmd.Parameters.AddWithValue("@reg", e.NSAPRegion.Code);
+                        cmd.Parameters.AddWithValue("@fma", e.FMA.FMAID);
+                        cmd.Parameters.AddWithValue("@fg", e.FishingGround.Code);
+                        cmd.Parameters.AddWithValue("@ls", e.LandingSite.LandingSiteID);
+
+                        //cmd.CommandText = @"SELECT 
+                        //                        dbo_gear_unload.gr_id, 
+                        //                        dbo_gear_unload.gear_count_municipal, 
+                        //                        dbo_gear_unload.gear_count_commercial, 
+                        //                        dbo_gear_unload.gear_catch_municipal, 
+                        //                        dbo_gear_unload.gear_catch_commercial, 
+                        //                        dbo_gear_unload.unload_gr_id
+                        //                   FROM 
+                        //                        dbo_LC_FG_sample_day INNER JOIN 
+                        //                        dbo_gear_unload ON 
+                        //                        dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id
+                        //                   WHERE 
+                        //                        dbo_LC_FG_sample_day.sdate>=@start AND 
+                        //                        dbo_LC_FG_sample_day.sdate<@end AND 
+                        //                        dbo_LC_FG_sample_day.region_id=@reg 
+                        //                        AND dbo_LC_FG_sample_day.fma=@fma AND 
+                        //                        dbo_LC_FG_sample_day.ground_id=@fg AND 
+                        //                        dbo_LC_FG_sample_day.land_ctr_id=@ls";
+
+                        cmd.CommandText = @"SELECT 
+                                                dbo_gear_unload.gr_id, 
+                                                dbo_gear_unload.gear_count_municipal, 
+                                                dbo_gear_unload.gear_count_commercial, 
+                                                dbo_gear_unload.gear_catch_municipal, 
+                                                dbo_gear_unload.gear_catch_commercial, 
+                                                dbo_gear_unload.unload_gr_id, 
+                                                Count(dbo_vessel_unload.v_unload_id) AS count_sampled_landings
+                                            FROM 
+                                                (dbo_LC_FG_sample_day INNER JOIN 
+                                                dbo_gear_unload ON 
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                dbo_vessel_unload ON 
+                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id
+                                            WHERE 
+                                                dbo_LC_FG_sample_day.sdate>=@start AND 
+                                                dbo_LC_FG_sample_day.sdate<@end AND 
+                                                dbo_LC_FG_sample_day.region_id=@reg 
+                                                AND dbo_LC_FG_sample_day.fma=@fma AND 
+                                                dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                dbo_LC_FG_sample_day.land_ctr_id=@ls
+                                            GROUP BY
+                                                dbo_gear_unload.gr_id, 
+                                                dbo_gear_unload.gear_count_municipal, 
+                                                dbo_gear_unload.gear_count_commercial, 
+                                                dbo_gear_unload.gear_catch_municipal, 
+                                                dbo_gear_unload.gear_catch_commercial, 
+                                                dbo_gear_unload.unload_gr_id";
+                        con.Open();
+                        try
+                        {
+                            OleDbDataReader dr = cmd.ExecuteReader();
+                            while (dr.Read())
+                            {
+                                GearUnload gu = new GearUnload
+                                {
+                                    PK = (int)dr["unload_gr_id"],
+                                    GearID = dr["gr_id"].ToString(),
+
+                                };
+                                if (dr["count_sampled_landings"] != DBNull.Value)
+                                {
+                                    gu.NumberOfSampledLandingsEx = (int)dr["count_sampled_landings"];
+                                }
+                                if (dr["gear_count_municipal"] != DBNull.Value && (int)dr["gear_count_municipal"] > 0)
+                                {
+                                    gu.NumberOfMunicipalLandings = (int)dr["gear_count_municipal"];
+                                }
+                                if (dr["gear_count_commercial"] != DBNull.Value && (int)dr["gear_count_commercial"] > 0)
+                                {
+                                    gu.NumberOfCommercialLandings = (int)dr["gear_count_commercial"];
+                                }
+                                if (dr["gear_catch_municipal"] != DBNull.Value && (double)dr["gear_catch_municipal"] > 0)
+                                {
+                                    gu.WeightOfMunicipalLandings = (double)dr["gear_catch_municipal"];
+                                }
+                                if (dr["gear_catch_commercial"] != DBNull.Value && (double)dr["gear_catch_commercial"] > 0)
+                                {
+                                    gu.WeightOfCommercialLandings = (double)dr["gear_catch_commercial"];
+                                }
+                                gus.Add(gu);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return gus;
+        }
         public static int MaxRecordNumberFromDB()
         {
             int maxRecNo = 0;
@@ -162,7 +275,7 @@ namespace NSAP_ODK.Entities.Database
         }
 
 
-        public static bool UpdateGearOfUnload(string gear_code , VesselEffort ve)
+        public static bool UpdateGearOfUnload(string gear_code, VesselEffort ve)
         {
             bool success = false;
             if (Global.Settings.UsemySQL)

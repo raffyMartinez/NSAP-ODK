@@ -167,7 +167,7 @@ namespace NSAP_ODK.Entities.Database
         private bool _fromTotalCatch;
 
         public double? PriceOfSpecies { get; set; }
-
+        public string Family { get; set; }
         public string OtherPriceUnit { get; set; }
         public string PriceUnit { get; set; }
         public bool DelayedSave { get; set; }

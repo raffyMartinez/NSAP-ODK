@@ -137,6 +137,130 @@ namespace NSAP_ODK.Entities.Database
 
         public List<GearUnload> GearUnloads { get; private set; }
     }
+    public class LandingSiteSamplingForCrosstab
+    {
+        public int RowID { get; set; }
+        public DateTime SamplingDate { get; set; }
+        public DateTime SampledMonth { get; set; }
+        public string Region { get; set; }
+        public string FMA { get; set; }
+        public string FishingGround { get; set; }
+        public string LandingSite { get; set; }
+        public string Enumerator { get; set; }
+        public bool HasFishingOperation { get; set; }
+        public bool IsSamplingDay { get; set; }
+        public string Notes { get; set; }
+        public int? NumberOfLandings { get; set; }
+
+        public int? NumberLandingsMonitored { get; set; }
+        public int? NumberGearTypes { get; set; }
+        public string Gear { get; set; }
+
+        public string SectorCode { get; set; }
+        public string Sector
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(SectorCode))
+                {
+                    return string.Empty;
+                }
+                else if (SectorCode == "c")
+                {
+                    return "Commercial";
+                }
+                else if (SectorCode == "m")
+                {
+                    return "Municipal";
+                }
+                else
+                {
+                    return "Other";
+                }
+            }
+        }
+
+        public int? NumberLandingsOfGear { get; set; }
+        public double? WeightCatchOfGear { get; set; }
+        public static bool PropertyColumnVisible(string pn)
+        {
+            bool isVisible = true;
+            if (pn == "SampledMonth" || pn == "SectorCode")
+            {
+                isVisible = false;
+            }
+            return isVisible;
+        }
+        public static bool PropertyIsNumeric(string pn)
+        {
+            bool isNumeric = false;
+            if (pn == "NumberLandingsOfGear" ||
+                pn == "WeightCatchOfGear" ||
+                pn == "NumberGearTypes" ||
+                pn == "NumberLandingsMonitored" ||
+                pn == "NumberOfLandings" ||
+                pn == "RowID")
+            {
+                isNumeric = true;
+            }
+            return isNumeric;
+        }
+        public static string GetPropertyAlias(string pn)
+        {
+            string rv = pn;
+            if (pn == "RowID")
+            {
+                rv = "Row ID";
+            }
+            else if (pn == "SamplingDate")
+            {
+                rv = "Sampling date";
+            }
+            else if (pn == "SampledMonth")
+            {
+                rv = "Sampling month";
+            }
+            else if (pn == "FishingGround")
+            {
+                rv = "Fishing ground";
+            }
+            else if (pn == "LandingSite")
+            {
+                rv = "Landing site";
+            }
+            else if (pn == "HasFishingOperation")
+            {
+                rv = "Has landings";
+            }
+            else if (pn == "NumberOfLandings")
+            {
+                rv = "# of landings";
+            }
+            else if (pn == "IsSamplingDay")
+            {
+                rv = "Is sampling day";
+            }
+            else if (pn == "NumberLandingsMonitored")
+            {
+                rv = "# of landings monitored";
+            }
+            else if (pn == "NumberGearTypes")
+            {
+                rv = "# of gear types";
+            }
+            else if (pn == "NumberLandingsOfGear")
+            {
+                rv = "Number of landings of gear";
+            }
+            else if (pn == "WeightCatchOfGear")
+            {
+                rv = "Total weight of catch of gear";
+            }
+
+            return rv;
+        }
+
+    }
     public class LandingSiteSampling
     {
         private LandingSite _landingSite;

@@ -4504,7 +4504,8 @@ namespace NSAP_ODK
                         {
                             if(CrossTabGenerator.GenerateCrossTab(_allSamplingEntitiesEventHandler))
                             {
-
+                                CrossTabWindow ctw = new CrossTabWindow();
+                                ctw.ShowDialog();
                             }
                         }
                         else

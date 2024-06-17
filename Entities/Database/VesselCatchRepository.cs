@@ -67,12 +67,14 @@ namespace NSAP_ODK.Entities.Database
                         cmd.Parameters.AddWithValue("@fma", e.FMA.FMAID);
 
                         cmd.CommandText = @"SELECT 
+                                                dbo_vessel_unload_1.SamplingDate,
                                                 dbo_vessel_unload.v_unload_id,
                                                 dbo_vessel_catch.catch_id,
                                                 gear.GearCode,
                                                 gear.GearName,
                                                 dbo_vessel_unload.catch_total AS catch_of_gear,
                                                 phFish.SpeciesID,
+                                                phFish.Family,
                                                 [Genus] & ' ' & [Species] AS spName,
                                                 dbo_vessel_catch.taxa,
                                                 dbo_vessel_catch.catch_kg,
@@ -80,6 +82,7 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_vessel_catch.is_catch_sold,
                                                 dbo_vessel_catch.price_of_species,
                                                 dbo_vessel_catch.price_unit,
+                                                dbo_vessel_catch.other_price_unit,
                                                 's' AS unload_type
                                             FROM 
                                                 gear INNER JOIN 
@@ -103,16 +106,20 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
                                                 dbo_LC_FG_sample_day.ground_id=@fg AND 
                                                 dbo_LC_FG_sample_day.fma=@fma
-                                            
+                                            ORDER BY
+                                                dbo_vessel_unload_1.SamplingDate
+
                                             UNION ALL
                                             
                                             SELECT 
+                                                dbo_vessel_unload_1.SamplingDate,
                                                 dbo_vessel_unload.v_unload_id,
                                                 dbo_vessel_catch.catch_id,
                                                 gear.GearCode,
                                                 gear.GearName,
                                                 dbo_vessel_unload.catch_total AS catch_of_gear,
                                                 notFishSpecies.SpeciesID,
+                                                'not fish' AS Family,
                                                 [Genus] & ' ' & [Species] AS spName,
                                                 dbo_vessel_catch.taxa,
                                                 dbo_vessel_catch.catch_kg,
@@ -120,6 +127,7 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_vessel_catch.is_catch_sold,
                                                 dbo_vessel_catch.price_of_species,
                                                 dbo_vessel_catch.price_unit,
+                                                dbo_vessel_catch.other_price_unit,
                                                 's' AS unload_type
                                             FROM 
                                                 gear INNER JOIN 
@@ -147,12 +155,14 @@ namespace NSAP_ODK.Entities.Database
                                             UNION ALL
                                             
                                             SELECT 
+                                                dbo_vessel_unload_1.SamplingDate,
                                                 dbo_vessel_unload.v_unload_id,
                                                 dbo_vessel_catch.catch_id,
                                                 gear.GearCode,
                                                 gear.GearName,
                                                 dbo_vesselunload_fishinggear.catch_weight AS catch_of_gear,
                                                 notFishSpecies.SpeciesID,
+                                                'not fish' AS Family,
                                                 [Genus] & ' ' & [Species] AS spName,
                                                 dbo_vessel_catch.taxa,
                                                 dbo_vessel_catch.catch_kg,
@@ -160,20 +170,22 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_vessel_catch.is_catch_sold,
                                                 dbo_vessel_catch.price_of_species,
                                                 dbo_vessel_catch.price_unit,
+                                                dbo_vessel_catch.other_price_unit,
                                                 'm' AS unload_type
                                             FROM 
-                                                gear INNER JOIN 
                                                 (((dbo_LC_FG_sample_day INNER JOIN 
                                                 (dbo_gear_unload INNER JOIN 
                                                 dbo_vessel_unload ON 
                                                 dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
                                                 dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
-                                                dbo_vesselunload_fishinggear ON 
+                                                (gear INNER JOIN dbo_vesselunload_fishinggear ON 
+                                                gear.GearCode = dbo_vesselunload_fishinggear.gear_code) ON 
                                                 dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) INNER JOIN 
-                                                (notFishSpecies INNER JOIN dbo_vessel_catch ON 
+                                                (notFishSpecies INNER JOIN 
+                                                dbo_vessel_catch ON 
                                                 notFishSpecies.SpeciesID = dbo_vessel_catch.species_id) ON 
-                                                dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id) ON 
-                                                gear.GearCode = dbo_vesselunload_fishinggear.gear_code
+                                                dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id) INNER JOIN 
+                                                dbo_vessel_unload_1 ON dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id
                                             WHERE 
                                                 dbo_LC_FG_sample_day.region_id=@reg AND 
                                                 dbo_LC_FG_sample_day.sdate>=@start AND 
@@ -185,12 +197,14 @@ namespace NSAP_ODK.Entities.Database
                                             UNION ALL
                                             
                                             SELECT 
+                                                dbo_vessel_unload_1.SamplingDate,
                                                 dbo_vessel_unload.v_unload_id,
                                                 dbo_vessel_catch.catch_id,
                                                 gear.GearCode,
                                                 gear.GearName,
                                                 dbo_vesselunload_fishinggear.catch_weight AS catch_of_gear,
                                                 phFish.SpeciesID,
+                                                phFish.Family,
                                                 [Genus] & ' ' & [Species] AS spName,
                                                 dbo_vessel_catch.taxa,
                                                 dbo_vessel_catch.catch_kg,
@@ -198,20 +212,22 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_vessel_catch.is_catch_sold,
                                                 dbo_vessel_catch.price_of_species,
                                                 dbo_vessel_catch.price_unit,
+                                                dbo_vessel_catch.other_price_unit,
                                                 'm' AS unload_type
                                             FROM 
-                                                gear INNER JOIN 
-                                                (phFish INNER JOIN 
-                                                (((dbo_LC_FG_sample_day INNER JOIN 
-                                                (dbo_gear_unload INNER JOIN 
-                                                dbo_vessel_unload ON dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
-                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
-                                                dbo_vesselunload_fishinggear ON 
-                                                dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) INNER JOIN 
-                                                dbo_vessel_catch ON 
-                                                dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id) ON 
-                                                phFish.SpeciesID = dbo_vessel_catch.species_id) ON 
-                                                gear.GearCode = dbo_vesselunload_fishinggear.gear_code
+                                               (((dbo_LC_FG_sample_day INNER JOIN 
+                                               (dbo_gear_unload INNER JOIN 
+                                               dbo_vessel_unload ON 
+                                               dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                               dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                               (gear INNER JOIN dbo_vesselunload_fishinggear ON 
+                                               gear.GearCode = dbo_vesselunload_fishinggear.gear_code) ON 
+                                               dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) INNER JOIN 
+                                               (phFish INNER JOIN 
+                                               dbo_vessel_catch ON 
+                                               phFish.SpeciesID = dbo_vessel_catch.species_id) ON 
+                                               dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id) INNER JOIN 
+                                               dbo_vessel_unload_1 ON dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id
                                             WHERE 
                                                 dbo_LC_FG_sample_day.region_id=@reg AND 
                                                 dbo_LC_FG_sample_day.sdate>=@start AND 
@@ -237,9 +253,19 @@ namespace NSAP_ODK.Entities.Database
                                     TaxaCode = dr["taxa"].ToString(),
                                     Catch_kg = (double)dr["catch_kg"],
                                     IsCatchSold = (bool)dr["is_catch_sold"],
-                                    UnloadType = dr["unload_type"].ToString()
-                                    
+                                    PriceUnit = dr["price_unit"].ToString(),
+                                    OtherPriceUnit = dr["other_price_unit"].ToString(),
+                                    UnloadType = dr["unload_type"].ToString(),
                                 };
+                                if(vc.TaxaCode=="FIS")
+                                {
+                                    vc.Family = dr["Family"].ToString();
+                                }
+                                else
+                                {
+                                    vc.Family = vc.Taxa.ToString();
+                                }
+
                                 vc.ListCrossTabLengthWeight = new List<CatchLengthWeightCrossTab>();
                                 vc.ListCrossTabLength = new List<CatchLengthCrossTab>();
                                 vc.ListCrossTabLengthFreq = new List<CatchLengthFreqCrossTab>();

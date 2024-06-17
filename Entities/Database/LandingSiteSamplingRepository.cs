@@ -361,6 +361,166 @@ namespace NSAP_ODK.Entities.Database
 
         public List<LandingSiteSampling> LandingSiteSamplings { get; set; }
 
+
+        public static List<LandingSiteSamplingForCrosstab> GetLandingSiteSamplingsForCrossTab(TreeViewModelControl.AllSamplingEntitiesEventHandler e)
+        {
+            List<LandingSiteSamplingForCrosstab> landingSiteSamplings = new List<LandingSiteSamplingForCrosstab>();
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@reg", e.NSAPRegion.Code);
+                        cmd.Parameters.AddWithValue("@fg", e.FishingGround.Code);
+                        cmd.Parameters.AddWithValue("@fma", e.FMA.FMAID);
+                        cmd.Parameters.AddWithValue("@ls", e.LandingSite.LandingSiteID);
+                        DateTime sDate = (DateTime)e.MonthSampled;
+                        cmd.Parameters.AddWithValue("@start", sDate.ToString("MMM/dd/yyyy"));
+                        cmd.Parameters.AddWithValue("@end", sDate.AddMonths(1).ToString("MMM/dd/yyyy"));
+
+                        cmd.CommandText = @"SELECT 
+                                                dbo_LC_FG_sample_day.unload_day_id,
+                                                dbo_LC_FG_sample_day.sdate,
+                                                NSAPEnumerator.EnumeratorName,
+                                                dbo_LC_FG_sample_day.has_fishing_operation,
+                                                dbo_LC_FG_sample_day.remarks,
+                                                dbo_LC_FG_sample_day_1.number_landings,
+                                                dbo_LC_FG_sample_day.sampleday,
+                                                dbo_LC_FG_sample_day_1.number_landings_sampled,
+                                                dbo_LC_FG_sample_day_1.number_gear_types_in_landingsite,
+                                                gear.GearName,
+                                                dbo_vessel_unload_1.sector_code,
+                                                Count(dbo_vessel_unload.v_unload_id) AS count_sampled_landings,
+                                                Sum(dbo_vessel_unload.catch_total) AS sum_catch_sampled_landings,
+                                                dbo_gear_unload.gear_count_municipal,
+                                                dbo_gear_unload.gear_count_commercial,
+                                                dbo_gear_unload.gear_catch_municipal,
+                                                dbo_gear_unload.gear_catch_commercial
+                                            FROM 
+                                                ((gear RIGHT JOIN
+                                                ((dbo_LC_FG_sample_day LEFT JOIN
+                                                (dbo_LC_FG_sample_day_1 LEFT JOIN
+                                                NSAPEnumerator ON
+                                                dbo_LC_FG_sample_day_1.EnumeratorID = NSAPEnumerator.EnumeratorID) ON
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id) LEFT JOIN
+                                                dbo_gear_unload ON
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) ON
+                                                gear.GearCode = dbo_gear_unload.gr_id) LEFT JOIN
+                                                dbo_vessel_unload ON
+                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) LEFT JOIN
+                                                dbo_vessel_unload_1 ON
+                                                dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id
+                                            WHERE
+                                                dbo_LC_FG_sample_day.region_id=@reg AND
+                                                dbo_LC_FG_sample_day.ground_id = @fg AND
+                                                dbo_LC_FG_sample_day.fma = @fma AND
+                                                dbo_LC_FG_sample_day.land_ctr_id = @ls
+                                            GROUP BY
+                                                dbo_LC_FG_sample_day.unload_day_id,                                                
+                                                dbo_LC_FG_sample_day.sdate,
+                                                NSAPEnumerator.EnumeratorName,
+                                                dbo_LC_FG_sample_day.has_fishing_operation,
+                                                dbo_LC_FG_sample_day.remarks,
+                                                dbo_LC_FG_sample_day_1.number_landings,
+                                                dbo_LC_FG_sample_day.sampleday,
+                                                dbo_LC_FG_sample_day_1.number_landings_sampled,
+                                                dbo_LC_FG_sample_day_1.number_gear_types_in_landingsite,
+                                                gear.GearName,
+                                                dbo_vessel_unload_1.sector_code,
+                                                dbo_gear_unload.gear_count_municipal,
+                                                dbo_gear_unload.gear_count_commercial,
+                                                dbo_gear_unload.gear_catch_municipal,
+                                                dbo_gear_unload.gear_catch_commercial
+                                            HAVING
+                                                dbo_LC_FG_sample_day.sdate >=@start AND 
+                                                dbo_LC_FG_sample_day.sdate <@end
+                                            ORDER BY 
+                                                dbo_LC_FG_sample_day.sdate,
+                                                gear.GearName";
+                        con.Open();
+                        try
+                        {
+                            OleDbDataReader dr = cmd.ExecuteReader();
+                            while (dr.Read())
+                            {
+                                try
+                                {
+                                    LandingSiteSamplingForCrosstab lss = new LandingSiteSamplingForCrosstab
+                                    {
+                                        RowID = (int)dr["unload_day_id"],
+                                        SampledMonth = (DateTime)e.MonthSampled,
+                                        SamplingDate = (DateTime)dr["sdate"],
+                                        Region = e.NSAPRegion.ToString(),
+                                        FMA = e.FMA.ToString(),
+                                        FishingGround = e.FishingGround.ToString(),
+                                        LandingSite = e.LandingSite.ToString(),
+                                        Notes = dr["remarks"].ToString(),
+                                        HasFishingOperation = (bool)dr["has_fishing_operation"],
+                                        IsSamplingDay = (bool)dr["sampleday"],
+                                        Enumerator = dr["EnumeratorName"].ToString(),
+                                    };
+                                    if (lss.HasFishingOperation)
+                                    {
+                                        if (dr["number_gear_types_in_landingsite"] != DBNull.Value)
+                                        {
+                                            lss.NumberGearTypes = (int)dr["number_gear_types_in_landingsite"];
+                                        }
+
+                                        lss.Gear = dr["GearName"].ToString();
+                                        lss.SectorCode = dr["sector_code"].ToString();
+
+
+
+                                        if (dr["number_landings"] != DBNull.Value)
+                                        {
+                                            lss.NumberOfLandings = (int)dr["number_landings"];
+                                        }
+                                        if (dr["number_landings_sampled"] != DBNull.Value)
+                                        {
+                                            lss.NumberLandingsMonitored = (int)dr["number_landings_sampled"];
+                                        }
+                                        if (lss.SectorCode == "c" &&
+                                            dr["gear_count_commercial"] != DBNull.Value &&
+                                            dr["gear_catch_commercial"] != DBNull.Value &&
+                                            (double)dr["gear_catch_commercial"] > 0)
+                                        {
+                                            lss.NumberLandingsOfGear = (int)dr["gear_count_commercial"];
+                                            lss.WeightCatchOfGear = (double)dr["gear_catch_commercial"];
+                                        }
+                                        else if (lss.SectorCode == "m" &&
+                                            dr["gear_count_municipal"] != DBNull.Value &&
+                                            dr["gear_catch_municipal"] != DBNull.Value &&
+                                            (double)dr["gear_catch_municipal"] > 0)
+                                        {
+                                            lss.NumberLandingsOfGear = (int)dr["gear_count_municipal"];
+                                            lss.WeightCatchOfGear = (double)dr["gear_catch_municipal"];
+                                        }
+                                    }
+
+
+
+
+                                    landingSiteSamplings.Add(lss);
+                                }
+                                catch
+                                { // ignre
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return landingSiteSamplings;
+        }
         public LandingSiteSamplingRepository()
         {
 
@@ -1349,7 +1509,7 @@ namespace NSAP_ODK.Entities.Database
         public static bool? UpdateSubmissionID(string formID, string submissionUID, int id)
         {
             bool success = false;
-            bool isnull_submission_id=false;
+            bool isnull_submission_id = false;
             if (Global.Settings.UsemySQL)
             {
 

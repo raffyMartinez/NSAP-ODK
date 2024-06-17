@@ -120,6 +120,7 @@ namespace NSAP_ODK.Entities.Database
                                                 
                                                 
                                             ORDER BY 
+                                                dbo_vessel_unload_1.SamplingDate,
                                                 dbo_vessel_unload.v_unload_id,
                                                 dbo_gear_unload.gr_id
                                             
