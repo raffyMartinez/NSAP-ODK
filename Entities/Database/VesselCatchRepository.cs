@@ -83,6 +83,7 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_vessel_catch.price_of_species,
                                                 dbo_vessel_catch.price_unit,
                                                 dbo_vessel_catch.other_price_unit,
+                                                dbo_vessel_catch.weighing_unit,
                                                 's' AS unload_type
                                             FROM 
                                                 gear INNER JOIN 
@@ -128,6 +129,7 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_vessel_catch.price_of_species,
                                                 dbo_vessel_catch.price_unit,
                                                 dbo_vessel_catch.other_price_unit,
+                                                dbo_vessel_catch.weighing_unit,
                                                 's' AS unload_type
                                             FROM 
                                                 gear INNER JOIN 
@@ -171,6 +173,7 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_vessel_catch.price_of_species,
                                                 dbo_vessel_catch.price_unit,
                                                 dbo_vessel_catch.other_price_unit,
+                                                dbo_vessel_catch.weighing_unit,
                                                 'm' AS unload_type
                                             FROM 
                                                 (((dbo_LC_FG_sample_day INNER JOIN 
@@ -213,6 +216,7 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_vessel_catch.price_of_species,
                                                 dbo_vessel_catch.price_unit,
                                                 dbo_vessel_catch.other_price_unit,
+                                                dbo_vessel_catch.weighing_unit,
                                                 'm' AS unload_type
                                             FROM 
                                                (((dbo_LC_FG_sample_day INNER JOIN 
@@ -256,6 +260,7 @@ namespace NSAP_ODK.Entities.Database
                                     PriceUnit = dr["price_unit"].ToString(),
                                     OtherPriceUnit = dr["other_price_unit"].ToString(),
                                     UnloadType = dr["unload_type"].ToString(),
+                                    WeighingUnit = dr["weighing_unit"].ToString()
                                 };
                                 if(vc.TaxaCode=="FIS")
                                 {

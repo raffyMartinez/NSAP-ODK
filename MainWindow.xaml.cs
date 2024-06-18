@@ -2206,6 +2206,9 @@ namespace NSAP_ODK
                 case CalendarViewType.calendarViewTypeGearDailyLandings:
                     MonthLabel.Content = $"Calendar of daily landings per gear per day for {((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).ToString("MMMM-yyyy")}";
                     break;
+                case CalendarViewType.calendarViewTypeWeightAllLandings:
+                    MonthLabel.Content = $"Calendar of total weight of landings per day for {((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).ToString("MMMM-yyyy")}";
+                    break;
             }
             labelRowCount.Content = NSAPEntities.FishingCalendarDayExViewModel.SamplingCalendarTitle;
             MonthSubLabel.Content = NSAPEntities.FishingCalendarDayExViewModel.LocationLabel;
@@ -4206,8 +4209,12 @@ namespace NSAP_ODK
                     SetUpCalendarMenu();
                     _calendarOption = e.CalendarView;
                     NSAPEntities.FishingCalendarDayExViewModel.CalendarViewType = _calendarOption;
+
+                    NSAPEntities.FishingCalendarDayExViewModel.CalendarEvent += FishingCalendarDayExViewModel_CalendarEvent;
+                    ShowStatusRow();
                     await NSAPEntities.FishingCalendarDayExViewModel.GetCalendarDaysForMonth(e);
-                    NSAPEntities.FishingCalendarDayExViewModel.MakeCalendar();
+                    await NSAPEntities.FishingCalendarDayExViewModel.MakeCalendarTask();
+                    //NSAPEntities.FishingCalendarDayExViewModel.MakeCalendar();
                     GridNSAPData.Columns.Clear();
                     GridNSAPData.AutoGenerateColumns = true;
                     GridNSAPData.DataContext = NSAPEntities.FishingCalendarDayExViewModel.DataTable;
@@ -4235,6 +4242,8 @@ namespace NSAP_ODK
                     }
                     //SetupCalendar();
                     SetupCalendarLabels();
+                    NSAPEntities.FishingCalendarDayExViewModel.CalendarEvent += FishingCalendarDayExViewModel_CalendarEvent;
+                    ShowStatusRow(isVisible: false);
                     break;
                 case "tv_MonthViewModelx":
                     _allSamplingEntitiesEventHandler = e;
@@ -4265,6 +4274,79 @@ namespace NSAP_ODK
             }
 
             SetupCalendarView(labelContent);
+        }
+
+        private void FishingCalendarDayExViewModel_CalendarEvent(object sender, MakeCalendarEventArg e)
+        {
+            switch(e.Context)
+            {
+                case "Fetching landing data from database":
+                    mainStatusBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              mainStatusBar.IsIndeterminate = true;
+                              mainStatusBar.Value = 0;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+                    mainStatusLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusLabel.Content = "Fetching landing data. Please wait...";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case "Fetched landing data from database":
+                    mainStatusLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusLabel.Content = "Landing data retrieved";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case "Preparing calendar data":
+                    mainStatusLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusLabel.Content = "Creating calendar";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case "Calendar data created":
+                    mainStatusBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              mainStatusBar.IsIndeterminate = false;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+                    mainStatusLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusLabel.Content = "Calendar created";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+
+            }
         }
 
         private void SetupCalendarView(string labelContent)
@@ -4479,9 +4561,9 @@ namespace NSAP_ODK
         }
         private async void OnTreeContextMenu(object sender, TreeViewModelControl.AllSamplingEntitiesEventHandler e)
         {
-            if(e.Equals(_allSamplingEntitiesEventHandler) && string.IsNullOrEmpty(e.GUID))
+            if (e.Equals(_allSamplingEntitiesEventHandler) && string.IsNullOrEmpty(e.GUID))
             {
-                e.GUID=_allSamplingEntitiesEventHandler.GUID;
+                e.GUID = _allSamplingEntitiesEventHandler.GUID;
             }
             _allSamplingEntitiesEventHandler = e;
             switch (e.ContextMenuTopic)
@@ -4496,31 +4578,36 @@ namespace NSAP_ODK
                     break;
                 case "contextMenuCrosstabLandingSite":
                 case "contextMenuCrosstabMonth":
-                    if (Debugger.IsAttached)
-                    {
+                    //if (Debugger.IsAttached)
+                    //{
 
-                        var r = MessageBox.Show("Do stable version of cross tab?", Global.MessageBoxCaption, MessageBoxButton.YesNo, MessageBoxImage.Question);
-                        if (r == MessageBoxResult.No)
-                        {
-                            if(CrossTabGenerator.GenerateCrossTab(_allSamplingEntitiesEventHandler))
-                            {
-                                CrossTabWindow ctw = new CrossTabWindow();
-                                ctw.ShowDialog();
-                            }
-                        }
-                        else
-                        {
-                            await GenerateCrossTabFirstVersion();
-                        }
-                    }
-                    else
+                    //    var r = MessageBox.Show("Do stable version of cross tab?", Global.MessageBoxCaption, MessageBoxButton.YesNo, MessageBoxImage.Question);
+                    //    if (r == MessageBoxResult.No)
+                    //    {
+                    ShowStatusRow();
+                    CrossTabGenerator.CrossTabEvent += CrossTabGenerator_CrossTabEvent;
+                    CrossTabDatasetsGenerator.CrossTabDatasetEvent += CrossTabDatasetsGenerator_CrossTabDatasetEvent;
+                    if (await CrossTabGenerator.GenerateCrossTabTask(_allSamplingEntitiesEventHandler))
                     {
-                        //var watch = System.Diagnostics.Stopwatch.StartNew();
-                        await GenerateCrossTabFirstVersion();
-                        //watch.Stop();
-                        //var elapsedMs = watch.ElapsedMilliseconds;
-                        //Title = $"Elapsed time ms:{elapsedMs}";
+                        CrossTabWindow ctw = new CrossTabWindow();
+                        ctw.ShowDialog();
                     }
+                    CrossTabDatasetsGenerator.CrossTabDatasetEvent -= CrossTabDatasetsGenerator_CrossTabDatasetEvent;
+                    CrossTabGenerator.CrossTabEvent -= CrossTabGenerator_CrossTabEvent;
+                    //    }
+                    //    else
+                    //    {
+                    //        await GenerateCrossTabFirstVersion();
+                    //    }
+                    //}
+                    //else
+                    //{
+                    //    //var watch = System.Diagnostics.Stopwatch.StartNew();
+                    //    await GenerateCrossTabFirstVersion();
+                    //    //watch.Stop();
+                    //    //var elapsedMs = watch.ElapsedMilliseconds;
+                    //    //Title = $"Elapsed time ms:{elapsedMs}";
+                    //}
 
                     break;
                 case "contextMenuWeightValidation":
@@ -4548,6 +4635,103 @@ namespace NSAP_ODK
                     break;
             }
         }
+
+        private void CrossTabDatasetsGenerator_CrossTabDatasetEvent(object sender, CrossTabReportEventArg e)
+        {
+            switch(e.Context)
+            {
+                case "Creating datasets":
+                    mainStatusLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusLabel.Content = "Creating datasets...";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case "Done creating datasets":
+                    mainStatusBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              mainStatusBar.IsIndeterminate = false;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+                    rowStatus.Dispatcher.BeginInvoke(
+                        DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                            {
+
+                                rowStatus.Height = new GridLength(0);
+                                //do what you need to do on UI Thread
+                                return null;
+                            }), null);
+                    //mainStatusLabel.Dispatcher.BeginInvoke
+                    //    (
+                    //      DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                    //      {
+                    //          mainStatusLabel.Content = "Finished creating datasets...";
+                    //          //do what you need to do on UI Thread
+                    //          return null;
+                    //      }
+                    //     ), null);
+                    break;
+            }
+        }
+
+        private void CrossTabGenerator_CrossTabEvent(object sender, CrossTabReportEventArg e)
+        {
+            switch (e.Context)
+            {
+                case "Getting entities":
+                    mainStatusBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              mainStatusBar.IsIndeterminate = true;
+                              mainStatusBar.Value = 0;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+                    mainStatusLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusLabel.Content = "Fetching landing data. Please wait...";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case "Finished getting entities":
+                    //mainStatusBar.Dispatcher.BeginInvoke
+                    //    (
+                    //      DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                    //      {
+
+                    //          mainStatusBar.IsIndeterminate = false;
+                    //          //do what you need to do on UI Thread
+                    //          return null;
+                    //      }), null);
+
+                    //rowStatus.Dispatcher.BeginInvoke(
+                    //    DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                    //        {
+
+                    //            rowStatus.Height = new GridLength(0);
+                    //            //do what you need to do on UI Thread
+                    //            return null;
+                    //        }), null);
+                    break;
+            }
+        }
+
         public void RefreshDownloadHistory()
         {
             _vesselDownloadHistory = DownloadToDatabaseHistory.DownloadToDatabaseHistoryDictionary;

@@ -507,8 +507,9 @@ namespace NSAP_ODK.Entities.Database
 
                                     landingSiteSamplings.Add(lss);
                                 }
-                                catch
-                                { // ignre
+                                catch(Exception ex)
+                                {
+                                    Logger.Log(ex);
                                 }
                             }
                         }

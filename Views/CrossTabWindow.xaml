@@ -23,20 +23,20 @@
                 <MenuItem Header="Close" x:Name="menuClose" Click="OnMenuClicked"/>
             </MenuItem>
         </Menu>
-        <Label Grid.Row="1" Grid.ColumnSpan="2" Content="This is the label" HorizontalContentAlignment="Center" FontWeight="Bold"/>
+        <Label Grid.Row="1" Grid.ColumnSpan="2" Content="" HorizontalContentAlignment="Center" FontWeight="Bold" x:Name="labelTitle" />
         <TreeView Grid.Row="2" Margin="10" SelectedItemChanged="OnTreeSelectedItemChanged">
             <TreeViewItem Header="Landings" x:Name="tviLandings"/>
             <TreeViewItem Header="Effort" x:Name="tviEffort"/>
             <TreeViewItem Header="Effort with catch composition" x:Name="tviEffortAndCatch"/>
             <TreeViewItem Header="Catch length" x:Name="tviLength"/>
             <TreeViewItem Header="Catch length-weight" x:Name="tviLenWt"/>
-            <TreeViewItem Header="Catch frequency" x:Name="tviLenFreq"/>
+            <TreeViewItem Header="Catch length frequency" x:Name="tviLenFreq"/>
             <TreeViewItem Header="Catch maturity" x:Name="tviMaturity"/>
         </TreeView>
         <DataGrid Grid.Row="2" Grid.Column="1" x:Name="dataGrid" Margin="10" ItemsSource="{Binding}" />
         <WrapPanel Grid.Row="3" Grid.ColumnSpan="2" HorizontalAlignment="Right" Margin="5">
             <Button Content="Ok" Click="OnButtonClick" x:Name="buttonOk" Width="50" Height="35" Margin="5 0"/>
-            <Button Content="Cancel" Click="OnButtonClick" x:Name="buttonCancel" Width="50" Height="35" Margin="5 0"/>
+            <!--<Button Content="Cancel" Click="OnButtonClick" x:Name="buttonCancel" Width="50" Height="35" Margin="5 0"/>-->
         </WrapPanel>
     </Grid>
 </Window>

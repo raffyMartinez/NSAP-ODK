@@ -9,12 +9,13 @@ using NSAP_ODK.TreeViewModelControl;
 using System.Windows;
 using System.Data;
 using NSAP_ODK.Utilities;
+using System.Runtime.CompilerServices;
 
 namespace NSAP_ODK.Entities.CrossTabBuilder
 {
     public static class CrossTabGenerator
     {
-
+        public static event EventHandler<CrossTabReportEventArg> CrossTabEvent;
         public static AllSamplingEntitiesEventHandler EntitiesOfMonth { get; set; }
         public static Dictionary<string, List<VesselUnload>> VesselUnloadsDictionary { get; private set; } = new Dictionary<string, List<VesselUnload>>();
         public static Dictionary<string, List<VesselEffortCrossTab>> VesselEffortDictionary { get; private set; } = new Dictionary<string, List<VesselEffortCrossTab>>();
@@ -58,25 +59,57 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 VesselUnload_FishingGears = VesselUnload_FishingGearRepository.GetFishingGears(EntitiesOfMonth);
                 foreach (VesselUnload_FishingGear vufg in VesselUnload_FishingGears)
                 {
-                    vufg.Parent = VesselUnloads.Find(t => t.PK == vufg.ParentID);
-                    vufg.Parent.ListUnloadFishingGearsEx.Add(vufg);
+                    try
+                    {
+                        vufg.Parent = VesselUnloads.Find(t => t.PK == vufg.ParentID);
+                        if (vufg.Parent != null)
+                        {
+                            vufg.Parent.ListUnloadFishingGearsEx.Add(vufg);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+
                 }
                 VesselEffortCrossTabs = VesselEffortRepository.GetEffortForCrossTab(EntitiesOfMonth);
                 foreach (VesselEffortCrossTab vect in VesselEffortCrossTabs)
                 {
-                    vect.VesselUnload = VesselUnloads.Find(t => t.PK == vect.VesselUnloadID);
-                    var vufg = vect.VesselUnload.ListUnloadFishingGearsEx.Find(t => t.GearCode == vect.GearCode);
-                    vufg.ListOfSpecsForCrossTab.Add(vect);
+                    try
+                    {
+                        vect.VesselUnload = VesselUnloads.Find(t => t.PK == vect.VesselUnloadID);
+                        if (vect.VesselUnload != null)
+                        {
+                            var vufg = vect.VesselUnload.ListUnloadFishingGearsEx.Find(t => t.GearCode == vect.GearCode);
+                            vufg.ListOfSpecsForCrossTab.Add(vect);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
 
                 VesselCatches = VesselCatchRepository.GetVesselCatchForCrosstab(EntitiesOfMonth);
                 foreach (VesselCatch vc in VesselCatches)
                 {
-                    vc.Parent = VesselUnloads.Find(t => t.PK == vc.VesselUnloadID);
-                    var vufg = vc.Parent.ListUnloadFishingGearsEx.Find(t => t.GearCode == vc.GearCode);
-                    vc.ParentFishingGear = vufg;
-                    vc.ParentFishingGear.ListOfCatchForCrossTab.Add(vc);
+                    try
+                    {
+                        vc.Parent = VesselUnloads.Find(t => t.PK == vc.VesselUnloadID);
+                        if (vc.Parent != null)
+                        {
+                            var vufg = vc.Parent.ListUnloadFishingGearsEx.Find(t => t.GearCode == vc.GearCode);
+                            vc.ParentFishingGear = vufg;
+                            vc.ParentFishingGear.ListOfCatchForCrossTab.Add(vc);
+                        }
+                    }
+                    catch
+                    {
+                        //
+                    }
                 }
+
                 CatchLengthWeightCrossTabs = CatchLenWeightRepository.GetLengthWeightForCrosstab(EntitiesOfMonth);
                 foreach (CatchLengthWeightCrossTab clwct in CatchLengthWeightCrossTabs)
                 {
@@ -84,6 +117,7 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                     clwct.VesselUnload.ListUnloadFishingGearsEx.
                         Find(t => t.GearCode == clwct.GearCode).ListOfCatchForCrossTab.
                         Find(t => t.PK == clwct.ParentCatchID).ListCrossTabLengthWeight.Add(clwct);
+                    clwct.Parent = VesselCatches.Find(t => t.PK == clwct.ParentCatchID);
                 }
                 CatchLengthCrossTabs = CatchLengthRepository.GetLengthForCrosstab(EntitiesOfMonth);
                 foreach (CatchLengthCrossTab clct in CatchLengthCrossTabs)
@@ -92,6 +126,7 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                     clct.VesselUnload.ListUnloadFishingGearsEx.
                         Find(t => t.GearCode == clct.GearCode).ListOfCatchForCrossTab.
                         Find(t => t.PK == clct.ParentCatchID).ListCrossTabLength.Add(clct);
+                    clct.Parent = VesselCatches.Find(t => t.PK == clct.ParentCatchID);
                 }
                 CatchLengthFreqCrossTabs = CatchLenFreqRepository.GetLengthFreqForCrosstab(EntitiesOfMonth);
                 foreach (CatchLengthFreqCrossTab clfct in CatchLengthFreqCrossTabs)
@@ -100,6 +135,7 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                     clfct.VesselUnload.ListUnloadFishingGearsEx.
                         Find(t => t.GearCode == clfct.GearCode).ListOfCatchForCrossTab.
                         Find(t => t.PK == clfct.ParentCatchID).ListCrossTabLengthFreq.Add(clfct);
+                    clfct.Parent = VesselCatches.Find(t => t.PK == clfct.ParentCatchID);
                 }
 
 
@@ -111,6 +147,7 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                     cmt.VesselUnload.ListUnloadFishingGearsEx.
                         Find(t => t.GearCode == cmt.GearCode).ListOfCatchForCrossTab.
                         Find(t => t.PK == cmt.ParentCatchID).ListCrossTabMaturity.Add(cmt);
+                    cmt.Parent = VesselCatches.Find(t => t.PK == cmt.ParentCatchID);
                 }
             }
             catch (Exception ex)
@@ -118,6 +155,11 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 Logger.Log(ex);
             }
             AddToDictionary();
+        }
+
+        public static Task<bool> GenerateCrossTabTask(AllSamplingEntitiesEventHandler e)
+        {
+            return Task.Run(() => GenerateCrossTab(e));
         }
         public static bool GenerateCrossTab(AllSamplingEntitiesEventHandler entitiesDefinition)
         {
@@ -154,7 +196,7 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
 
         public static void GetEntities(AllSamplingEntitiesEventHandler entities)
         {
-            //var watch = System.Diagnostics.Stopwatch.StartNew();
+            CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { Context = "Getting entities" });
             EntitiesOfMonth = entities;
 
             NewLists();
@@ -176,14 +218,11 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
             {
                 GetFromRepository();
             }
-            //watch.Stop();
-            //var elapsedMs = watch.ElapsedMilliseconds;
-            //MessageBox.Show($"execution time:{elapsedMs} ms");
-
+            CrossTabEvent?.Invoke(null, new CrossTabReportEventArg { Context = "Finished getting entities" });
         }
         public static void AddToDictionary()
         {
-            if(LandingSiteSamplingForCrosstabDictionary.Keys.Count==0 ||!GearUnloadCrossTabDictionary.Keys.Contains(EntitiesOfMonth.GUID))
+            if (LandingSiteSamplingForCrosstabDictionary.Keys.Count == 0 || !GearUnloadCrossTabDictionary.Keys.Contains(EntitiesOfMonth.GUID))
             {
                 LandingSiteSamplingForCrosstabDictionary.Add(EntitiesOfMonth.GUID, LandingSiteSamplingForCrosstabs);
             }

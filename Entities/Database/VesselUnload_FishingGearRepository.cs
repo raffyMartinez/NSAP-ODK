@@ -155,24 +155,37 @@ namespace NSAP_ODK.Entities.Database
                             OleDbDataReader dr = cmd.ExecuteReader();
                             while (dr.Read())
                             {
-                                VesselUnload_FishingGear vufg = new VesselUnload_FishingGear
+                                try
                                 {
-                                    ParentID = (int)dr["v_unload_id"],
-                                    GearCode = dr["gear_code"].ToString(),
-                                    WeightOfCatch = (double)dr["catch_weight"]
-                                };
-                                vufg.ListOfSpecsForCrossTab = new List<VesselEffortCrossTab>();
-                                vufg.ListOfCatchForCrossTab = new List<VesselCatch>();
-                                if (dr["sample_weight"] != DBNull.Value && (double)dr["sample_weight"] > 0)
-                                {
-                                    vufg.WeightOfSample = (double)dr["sample_weight"];
-                                }
-                                if (dr["number_species_catch_composition"] != DBNull.Value)
-                                {
-                                    vufg.CountItemsInCatchComposition = (int)dr["number_species_catch_composition"];
-                                }
+                                    VesselUnload_FishingGear vufg = new VesselUnload_FishingGear
+                                    {
+                                        ParentID = (int)dr["v_unload_id"],
+                                    };
+                                    if (dr["gear_code"]!=DBNull.Value)
+                                    {
+                                        vufg.GearCode = dr["gear_code"].ToString();
+                                    }
+                                    if (dr["catch_weight"]!=DBNull.Value)
+                                    {
+                                        vufg.WeightOfCatch = (double)dr["catch_weight"];
+                                    }
+                                    vufg.ListOfSpecsForCrossTab = new List<VesselEffortCrossTab>();
+                                    vufg.ListOfCatchForCrossTab = new List<VesselCatch>();
+                                    if (dr["sample_weight"] != DBNull.Value && (double)dr["sample_weight"] > 0)
+                                    {
+                                        vufg.WeightOfSample = (double)dr["sample_weight"];
+                                    }
+                                    if (dr["number_species_catch_composition"] != DBNull.Value)
+                                    {
+                                        vufg.CountItemsInCatchComposition = (int)dr["number_species_catch_composition"];
+                                    }
 
-                                gears.Add(vufg);
+                                    gears.Add(vufg);
+                                }
+                                catch(Exception ex)
+                                {
+                                    Logger.Log(ex);
+                                }
                             }
                         }
                         catch (Exception ex)

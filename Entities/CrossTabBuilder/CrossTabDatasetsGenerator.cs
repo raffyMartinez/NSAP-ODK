@@ -12,6 +12,7 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
 {
     public static class CrossTabDatasetsGenerator
     {
+        public static event  EventHandler<CrossTabReportEventArg> CrossTabDatasetEvent;
         public static DataTable EffortDataTable { get; private set; }
         public static DataTable DailyLandingsDataTable { get; private set; }
         public static DataTable EffortSpeciesDataTable { get; private set; }
@@ -244,7 +245,10 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 row["# species in catch of gear"] = vc.ParentFishingGear.CountItemsInCatchComposition;
                 row["Is a fishing boat used"] = vc.Parent.IsBoatUsed;
                 row["Fishing vessel"] = vc.Parent.VesselText;
-                row["# of fishers"] = vc.Parent.NumberOfFishers;
+                if (vc.Parent.NumberOfFishers != null)
+                {
+                    row["# of fishers"] = vc.Parent.NumberOfFishers;
+                }
                 row["Weight of catch of gear"] = vc.GearCatchWeight;
                 if (vc.Parent.GearSettingFirst == null || vc.Parent.GearHaulingFirst == null)
                 {
@@ -256,7 +260,15 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                     row["Date of set"] = vc.Parent.GearSettingFirst;
                     row["Date of haul"] = vc.Parent.GearHaulingFirst;
                 }
-                row["Fishing vessels landed"] = vc.Parent.Parent.NumberOfCommercialLandings ?? 0 + vc.Parent.Parent.NumberOfMunicipalLandings ?? 0;
+                int landed = vc.Parent.Parent.NumberOfCommercialLandings ?? 0 + vc.Parent.Parent.NumberOfMunicipalLandings ?? 0;
+                if (landed > 0)
+                {
+                    row["Fishing vessels landed"] = landed;
+                }
+                else
+                {
+                    row["Fishing vessels landed"] = DBNull.Value;
+                }
                 if (vc.Parent.Parent.NumberOfSampledLandingsEx == 0)
                 {
                     row["Fishing vessels monitored"] = DBNull.Value;
@@ -345,6 +357,7 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
         }
         public static bool GenerateDatasets()
         {
+            CrossTabDatasetEvent?.Invoke(null, new CrossTabReportEventArg { Context = "Creating datasets" });
             GenerateDailyLandingsDataTabe();
             GenerateEffortDataTable();
             GenerateEffortSpeciesDataTable();
@@ -352,25 +365,794 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
             GenerateSpeciesLengthDataTable();
             GenerateSpeciesLenWeightDataTable();
             GenerateSpeciesMaturityDataTable();
+            CrossTabDatasetEvent?.Invoke(null, new CrossTabReportEventArg { Context = "Done creating datasets" });
             return true;
         }
         private static void GenerateSpeciesLengthDataTable()
         {
             SpeciesLengthsDataTable = new DataTable();
+            DataColumn dc = new DataColumn { ColumnName = "Data ID", DataType = typeof(string) };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Year", DataType = typeof(int) };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Month" };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Date", DataType = typeof(DateTime) };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Province" };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Municipality" };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Region" };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "FMA" };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Fishing ground" };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+
+            dc = new DataColumn { ColumnName = "Landing site" };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Enumerator" };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+
+            dc = new DataColumn { ColumnName = "Sector" };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Grid location" };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Longitude", DataType = typeof(double) };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Latitude", DataType = typeof(double) };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Gear" };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Weight of catch of gear" };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            //dc = new DataColumn { ColumnName = "# species in catch of gear" };
+            //SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Date of set", DataType = typeof(DateTime) };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Date of haul", DataType = typeof(DateTime) };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Ref #" };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Is a fishing boat used", DataType = typeof(bool) };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Fishing vessel" };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "# of fishers", DataType = typeof(int) };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Fishing vessels landed", DataType = typeof(int) };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Fishing vessels monitored", DataType = typeof(int) };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Total weight of catch", DataType = typeof(double) };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Is the catch sold", DataType = typeof(bool) };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Price", DataType = typeof(double) };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Unit", DataType = typeof(string) };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Family", DataType = typeof(string) };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Species", DataType = typeof(string) };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Weight of species", DataType = typeof(double) };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Length", DataType = typeof(double) };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Sex" };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
+            foreach (var sl in CrossTabGenerator.CatchLengthCrossTabs)
+            {
+                var row = SpeciesLengthsDataTable.NewRow();
+                var ls = CrossTabGenerator.EntitiesOfMonth.LandingSite;
+                row["Data ID"] = sl.VesselUnload.PK;
+                row["Year"] = sl.VesselUnload.SamplingDate.Year;
+                row["Month"] = sl.VesselUnload.SamplingDate.ToString("MMMM");
+                row["Date"] = sl.VesselUnload.SamplingDate;
+                row["Province"] = ls.Municipality.Province;
+                row["Municipality"] = ls.Municipality;
+                row["Region"] = CrossTabGenerator.EntitiesOfMonth.NSAPRegion;
+                row["FMA"] = CrossTabGenerator.EntitiesOfMonth.FMA;
+                row["Fishing ground"] = CrossTabGenerator.EntitiesOfMonth.FishingGround;
+                row["Landing site"] = ls;
+                row["Enumerator"] = sl.VesselUnload.EnumeratorName;
+                row["Sector"] = sl.VesselUnload.Sector;
+                
+                if (sl.VesselUnload.FirstFishingGround != " - ")
+                {
+                    row["Grid location"] = sl.VesselUnload.FirstFishingGround;
+                    row["Longitude"] = sl.VesselUnload.FirstFishingGroundCoordinate.Longitude;
+                    row["Latitude"] = sl.VesselUnload.FirstFishingGroundCoordinate.Latitude;
+                }
+                row["Gear"] = sl.GearName;
+                row["Weight of catch of gear"] = sl.WeightGearCatch;
+                //row["# species in catch of gear"] = sl.;
+                if (sl.VesselUnload.GearSettingFirst == null || sl.VesselUnload.GearHaulingFirst == null)
+                {
+                    row["Date of set"] = DBNull.Value;
+                    row["Date of haul"] = DBNull.Value;
+                }
+                else
+                {
+                    row["Date of set"] = sl.VesselUnload.GearSettingFirst;
+                    row["Date of haul"] = sl.VesselUnload.GearHaulingFirst;
+                }
+                row["Ref #"] = sl.VesselUnload.RefNo;
+                row["Is a fishing boat used"] = sl.VesselUnload.IsBoatUsed;
+                row["Fishing vessel"] = sl.VesselUnload.VesselName;
+                row["# of fishers"] = sl.VesselUnload.NumberOfFishers;
+                int landed = sl.VesselUnload.Parent.NumberOfCommercialLandings ?? 0 + sl.VesselUnload.Parent.NumberOfMunicipalLandings ?? 0;
+                if (landed > 0)
+                {
+                    row["Fishing vessels landed"] = landed;
+                }
+                else
+                {
+                    row["Fishing vessels landed"] = DBNull.Value;
+                }
+                if (sl.VesselUnload.Parent.NumberOfSampledLandingsEx == 0)
+                {
+                    row["Fishing vessels monitored"] = DBNull.Value;
+                }
+                else
+                {
+                    row["Fishing vessels monitored"] = sl.VesselUnload.Parent.NumberOfSampledLandingsEx;
+                }
+                row["Total weight of catch"] = sl.VesselUnload.WeightOfCatch;
+                row["Is the catch sold"] = sl.Parent.IsCatchSold;
+                if (sl.Parent.PriceOfSpecies == null)
+                {
+                    row["Price"] = DBNull.Value;
+                }
+                else
+                {
+                    row["Price"] = sl.Parent.PriceOfSpecies;
+                    row["Unit"] = sl.Parent.PriceUnit == "other" ? sl.Parent.OtherPriceUnit : sl.Parent.PriceUnit;
+                }
+                row["Family"] = sl.Parent.Family;
+                row["Species"] = sl.Parent.CatchName;
+                row["Weight of species"] = sl.Parent.Catch_kg;
+                row["Length"] = sl.Length;
+                row["Sex"] = sl.Sex;
+
+                SpeciesLengthsDataTable.Rows.Add(row);
+            }
+
 
         }
 
         private static void GenerateSpeciesLenWeightDataTable()
         {
             SpeciesLengthWeightDataTable = new DataTable();
+            DataColumn dc = new DataColumn { ColumnName = "Data ID", DataType = typeof(string) };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Year", DataType = typeof(int) };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Month" };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Date", DataType = typeof(DateTime) };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Province" };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Municipality" };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Region" };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "FMA" };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Fishing ground" };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+
+            dc = new DataColumn { ColumnName = "Landing site" };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Enumerator" };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+
+            dc = new DataColumn { ColumnName = "Sector" };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Grid location" };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Longitude", DataType = typeof(double) };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Latitude", DataType = typeof(double) };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Gear" };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Weight of catch of gear" };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            //dc = new DataColumn { ColumnName = "# species in catch of gear" };
+            //SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Date of set", DataType = typeof(DateTime) };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Date of haul", DataType = typeof(DateTime) };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Ref #" };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Is a fishing boat used", DataType = typeof(bool) };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Fishing vessel" };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "# of fishers", DataType = typeof(int) };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Fishing vessels landed", DataType = typeof(int) };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Fishing vessels monitored", DataType = typeof(int) };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Total weight of catch", DataType = typeof(double) };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Is the catch sold", DataType = typeof(bool) };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Price", DataType = typeof(double) };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Unit", DataType = typeof(string) };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Family", DataType = typeof(string) };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Species", DataType = typeof(string) };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Weight of species", DataType = typeof(double) };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Length", DataType = typeof(double) };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Weight", DataType = typeof(double) };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Unit of weight"};
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Sex" };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
+            foreach (var slw in CrossTabGenerator.CatchLengthWeightCrossTabs)
+            {
+                var row = SpeciesLengthWeightDataTable.NewRow();
+                var ls = CrossTabGenerator.EntitiesOfMonth.LandingSite;
+                row["Data ID"] = slw.VesselUnload.PK;
+                row["Year"] = slw.VesselUnload.SamplingDate.Year;
+                row["Month"] = slw.VesselUnload.SamplingDate.ToString("MMMM");
+                row["Date"] = slw.VesselUnload.SamplingDate;
+                row["Province"] = ls.Municipality.Province;
+                row["Municipality"] = ls.Municipality;
+                row["Region"] = CrossTabGenerator.EntitiesOfMonth.NSAPRegion;
+                row["FMA"] = CrossTabGenerator.EntitiesOfMonth.FMA;
+                row["Fishing ground"] = CrossTabGenerator.EntitiesOfMonth.FishingGround;
+                row["Landing site"] = ls;
+                row["Enumerator"] = slw.VesselUnload.EnumeratorName;
+                row["Sector"] = slw.VesselUnload.Sector;
+                row["Grid location"] = slw.VesselUnload.FirstFishingGround;
+                row["Longitude"] = slw.VesselUnload.FirstFishingGroundCoordinate.Longitude;
+                row["Latitude"] = slw.VesselUnload.FirstFishingGroundCoordinate.Latitude;
+                row["Gear"] = slw.GearName;
+                row["Weight of catch of gear"] = slw.WeightGearCatch;
+                //row["# species in catch of gear"] = slw.;
+                if (slw.VesselUnload.GearSettingFirst == null || slw.VesselUnload.GearHaulingFirst == null)
+                {
+                    row["Date of set"] = DBNull.Value;
+                    row["Date of haul"] = DBNull.Value;
+                }
+                else
+                {
+                    row["Date of set"] = slw.VesselUnload.GearSettingFirst;
+                    row["Date of haul"] = slw.VesselUnload.GearHaulingFirst;
+                }
+                row["Ref #"] = slw.VesselUnload.RefNo;
+                row["Is a fishing boat used"] = slw.VesselUnload.IsBoatUsed;
+                row["Fishing vessel"] = slw.VesselUnload.VesselName;
+                if (slw.VesselUnload.NumberOfFishers != null)
+                {
+                    row["# of fishers"] = slw.VesselUnload.NumberOfFishers;
+                }
+                int landed = slw.VesselUnload.Parent.NumberOfCommercialLandings ?? 0 + slw.VesselUnload.Parent.NumberOfMunicipalLandings ?? 0;
+                if (landed > 0)
+                {
+                    row["Fishing vessels landed"] = landed;
+                }
+                else
+                {
+                    row["Fishing vessels landed"] = DBNull.Value;
+                }
+                if (slw.VesselUnload.Parent.NumberOfSampledLandingsEx == 0)
+                {
+                    row["Fishing vessels monitored"] = DBNull.Value;
+                }
+                else
+                {
+                    row["Fishing vessels monitored"] = slw.VesselUnload.Parent.NumberOfSampledLandingsEx;
+                }
+                row["Total weight of catch"] = slw.VesselUnload.WeightOfCatch;
+                row["Is the catch sold"] = slw.Parent.IsCatchSold;
+                if (slw.Parent.PriceOfSpecies == null)
+                {
+                    row["Price"] = DBNull.Value;
+                }
+                else
+                {
+                    row["Price"] = slw.Parent.PriceOfSpecies;
+                    row["Unit"] = slw.Parent.PriceUnit == "other" ? slw.Parent.OtherPriceUnit : slw.Parent.PriceUnit;
+                }
+                row["Family"] = slw.Parent.Family;
+                row["Species"] = slw.Parent.CatchName;
+                row["Weight of species"] = slw.Parent.Catch_kg;
+                row["Length"] = slw.Length;
+                row["Weight"] = slw.Weight;
+                row["Unit of weight"] = slw.Parent.WeighingUnit;
+                row["Sex"] = slw.Sex;
+
+                SpeciesLengthWeightDataTable.Rows.Add(row);
+            }
         }
         private static void GenerateSpeciesLenFreqDataTable()
         {
             SpeciesLengthFreqDataTable = new DataTable();
+            DataColumn dc = new DataColumn { ColumnName = "Data ID", DataType = typeof(string) };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Year", DataType = typeof(int) };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Month" };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Date", DataType = typeof(DateTime) };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Province" };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Municipality" };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Region" };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "FMA" };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Fishing ground" };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+
+            dc = new DataColumn { ColumnName = "Landing site" };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Enumerator" };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+
+            dc = new DataColumn { ColumnName = "Sector" };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Grid location" };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Longitude", DataType = typeof(double) };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Latitude", DataType = typeof(double) };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Gear" };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Weight of catch of gear" };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            //dc = new DataColumn { ColumnName = "# species in catch of gear" };
+            //SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Date of set", DataType = typeof(DateTime) };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Date of haul", DataType = typeof(DateTime) };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Ref #" };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Is a fishing boat used", DataType = typeof(bool) };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Fishing vessel" };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "# of fishers", DataType = typeof(int) };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Fishing vessels landed", DataType = typeof(int) };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Fishing vessels monitored", DataType = typeof(int) };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Total weight of catch", DataType = typeof(double) };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Is the catch sold", DataType = typeof(bool) };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Price", DataType = typeof(double) };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Unit", DataType = typeof(string) };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Family", DataType = typeof(string) };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Species", DataType = typeof(string) };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Weight of species", DataType = typeof(double) };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Length", DataType = typeof(double) };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Frequency", DataType = typeof(double) };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Sex" };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
+            foreach (var slf in CrossTabGenerator.CatchLengthFreqCrossTabs)
+            {
+                var row = SpeciesLengthFreqDataTable.NewRow();
+                var ls = CrossTabGenerator.EntitiesOfMonth.LandingSite;
+                row["Data ID"] = slf.VesselUnload.PK;
+                row["Year"] = slf.VesselUnload.SamplingDate.Year;
+                row["Month"] = slf.VesselUnload.SamplingDate.ToString("MMMM");
+                row["Date"] = slf.VesselUnload.SamplingDate;
+                row["Province"] = ls.Municipality.Province;
+                row["Municipality"] = ls.Municipality;
+                row["Region"] = CrossTabGenerator.EntitiesOfMonth.NSAPRegion;
+                row["FMA"] = CrossTabGenerator.EntitiesOfMonth.FMA;
+                row["Fishing ground"] = CrossTabGenerator.EntitiesOfMonth.FishingGround;
+                row["Landing site"] = ls;
+                row["Enumerator"] = slf.VesselUnload.EnumeratorName;
+                row["Sector"] = slf.VesselUnload.Sector;
+                row["Grid location"] = slf.VesselUnload.FirstFishingGround;
+                row["Longitude"] = slf.VesselUnload.FirstFishingGroundCoordinate.Longitude;
+                row["Latitude"] = slf.VesselUnload.FirstFishingGroundCoordinate.Latitude;
+                row["Gear"] = slf.GearName;
+                row["Weight of catch of gear"] = slf.WeightGearCatch;
+                //row["# species in catch of gear"] = slf.;
+                if (slf.VesselUnload.GearSettingFirst == null || slf.VesselUnload.GearHaulingFirst == null)
+                {
+                    row["Date of set"] = DBNull.Value;
+                    row["Date of haul"] = DBNull.Value;
+                }
+                else
+                {
+                    row["Date of set"] = slf.VesselUnload.GearSettingFirst;
+                    row["Date of haul"] = slf.VesselUnload.GearHaulingFirst;
+                }
+                row["Ref #"] = slf.VesselUnload.RefNo;
+                row["Is a fishing boat used"] = slf.VesselUnload.IsBoatUsed;
+                row["Fishing vessel"] = slf.VesselUnload.VesselName;
+                row["# of fishers"] = slf.VesselUnload.NumberOfFishers;
+                int landed = slf.VesselUnload.Parent.NumberOfCommercialLandings ?? 0 + slf.VesselUnload.Parent.NumberOfMunicipalLandings ?? 0;
+                if (landed > 0)
+                {
+                    row["Fishing vessels landed"] = landed;
+                }
+                else
+                {
+                    row["Fishing vessels landed"] = DBNull.Value;
+                }
+                if (slf.VesselUnload.Parent.NumberOfSampledLandingsEx == 0)
+                {
+                    row["Fishing vessels monitored"] = DBNull.Value;
+                }
+                else
+                {
+                    row["Fishing vessels monitored"] = slf.VesselUnload.Parent.NumberOfSampledLandingsEx;
+                }
+                row["Total weight of catch"] = slf.VesselUnload.WeightOfCatch;
+                row["Is the catch sold"] = slf.Parent.IsCatchSold;
+                if (slf.Parent.PriceOfSpecies == null)
+                {
+                    row["Price"] = DBNull.Value;
+                }
+                else
+                {
+                    row["Price"] = slf.Parent.PriceOfSpecies;
+                    row["Unit"] = slf.Parent.PriceUnit == "other" ? slf.Parent.OtherPriceUnit : slf.Parent.PriceUnit;
+                }
+                row["Family"] = slf.Parent.Family;
+                row["Species"] = slf.Parent.CatchName;
+                row["Weight of species"] = slf.Parent.Catch_kg;
+                row["Length"] = slf.Length;
+                row["Frequency"] = slf.Frequency;
+                row["Sex"] = slf.Sex;
+
+                SpeciesLengthFreqDataTable.Rows.Add(row);
+            }
         }
         private static void GenerateSpeciesMaturityDataTable()
         {
             SpeciesMaturityDataTable = new DataTable();
+            DataColumn dc = new DataColumn { ColumnName = "Data ID", DataType = typeof(string) };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Year", DataType = typeof(int) };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Month" };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Date", DataType = typeof(DateTime) };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Province" };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Municipality" };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Region" };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "FMA" };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Fishing ground" };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+
+            dc = new DataColumn { ColumnName = "Landing site" };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Enumerator" };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+
+            dc = new DataColumn { ColumnName = "Sector" };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Grid location" };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Longitude", DataType = typeof(double) };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Latitude", DataType = typeof(double) };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Gear" };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Weight of catch of gear" };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            //dc = new DataColumn { ColumnName = "# species in catch of gear" };
+            //SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Date of set", DataType = typeof(DateTime) };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Date of haul", DataType = typeof(DateTime) };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Ref #" };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Is a fishing boat used", DataType = typeof(bool) };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Fishing vessel" };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "# of fishers", DataType = typeof(int) };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Fishing vessels landed", DataType = typeof(int) };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Fishing vessels monitored", DataType = typeof(int) };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Total weight of catch", DataType = typeof(double) };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Is the catch sold", DataType = typeof(bool) };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Price", DataType = typeof(double) };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Unit", DataType = typeof(string) };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Family", DataType = typeof(string) };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Species", DataType = typeof(string) };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Weight of species", DataType = typeof(double) };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Length", DataType = typeof(double) };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Weight", DataType = typeof(double) };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Unit of weight"  };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Sex" };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Maturity stage" };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Gonad weight" };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Gut content" };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            dc = new DataColumn { ColumnName = "Gut content category" };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
+            foreach (var scm in CrossTabGenerator.CatchMaturityCrossTabs)
+            {
+                var row = SpeciesMaturityDataTable.NewRow();
+                var ls = CrossTabGenerator.EntitiesOfMonth.LandingSite;
+                row["Data ID"] = scm.VesselUnload.PK;
+                row["Year"] = scm.VesselUnload.SamplingDate.Year;
+                row["Month"] = scm.VesselUnload.SamplingDate.ToString("MMMM");
+                row["Date"] = scm.VesselUnload.SamplingDate;
+                row["Province"] = ls.Municipality.Province;
+                row["Municipality"] = ls.Municipality;
+                row["Region"] = CrossTabGenerator.EntitiesOfMonth.NSAPRegion;
+                row["FMA"] = CrossTabGenerator.EntitiesOfMonth.FMA;
+                row["Fishing ground"] = CrossTabGenerator.EntitiesOfMonth.FishingGround;
+                row["Landing site"] = ls;
+                row["Enumerator"] = scm.VesselUnload.EnumeratorName;
+                row["Sector"] = scm.VesselUnload.Sector;
+                row["Grid location"] = scm.VesselUnload.FirstFishingGround;
+                row["Longitude"] = scm.VesselUnload.FirstFishingGroundCoordinate.Longitude;
+                row["Latitude"] = scm.VesselUnload.FirstFishingGroundCoordinate.Latitude;
+                row["Gear"] = scm.GearName;
+                row["Weight of catch of gear"] = scm.WeightGearCatch;
+                //row["# species in catch of gear"] = scm.;
+                if (scm.VesselUnload.GearSettingFirst == null || scm.VesselUnload.GearHaulingFirst == null)
+                {
+                    row["Date of set"] = DBNull.Value;
+                    row["Date of haul"] = DBNull.Value;
+                }
+                else
+                {
+                    row["Date of set"] = scm.VesselUnload.GearSettingFirst;
+                    row["Date of haul"] = scm.VesselUnload.GearHaulingFirst;
+                }
+                row["Ref #"] = scm.VesselUnload.RefNo;
+                row["Is a fishing boat used"] = scm.VesselUnload.IsBoatUsed;
+                row["Fishing vessel"] = scm.VesselUnload.VesselName;
+                if (scm.VesselUnload.NumberOfFishers != null)
+                {
+                    row["# of fishers"] = scm.VesselUnload.NumberOfFishers;
+                }
+                int landed = scm.VesselUnload.Parent.NumberOfCommercialLandings ?? 0 + scm.VesselUnload.Parent.NumberOfMunicipalLandings ?? 0;
+                if (landed > 0)
+                {
+                    row["Fishing vessels landed"] = landed;
+                }
+                else
+                {
+                    row["Fishing vessels landed"] = DBNull.Value;
+                }
+                if (scm.VesselUnload.Parent.NumberOfSampledLandingsEx == 0)
+                {
+                    row["Fishing vessels monitored"] = DBNull.Value;
+                }
+                else
+                {
+                    row["Fishing vessels monitored"] = scm.VesselUnload.Parent.NumberOfSampledLandingsEx;
+                }
+                row["Total weight of catch"] = scm.VesselUnload.WeightOfCatch;
+                row["Is the catch sold"] = scm.Parent.IsCatchSold;
+                if (scm.Parent.PriceOfSpecies == null)
+                {
+                    row["Price"] = DBNull.Value;
+                }
+                else
+                {
+                    row["Price"] = scm.Parent.PriceOfSpecies;
+                    row["Unit"] = scm.Parent.PriceUnit == "other" ? scm.Parent.OtherPriceUnit : scm.Parent.PriceUnit;
+                }
+                row["Family"] = scm.Parent.Family;
+                row["Species"] = scm.Parent.CatchName;
+                row["Weight of species"] = scm.Parent.Catch_kg;
+                if (scm.Length != null)
+                {
+                    row["Length"] = scm.Length;
+                }
+                if (scm.Weight != null)
+                {
+                    row["Weight"] = scm.Weight;
+                }
+                row["Unit of weight"] = scm.Parent.WeighingUnit;
+                row["Sex"] = scm.Sex;
+                row["Maturity stage"] = scm.MaturityStage;
+                row["Gonad weight"] = scm.GonadWeight;
+                row["Gut content"] = scm.GutContentWeight;
+                row["Gut content category"] = scm.GutContentCategory;
+                SpeciesMaturityDataTable.Rows.Add(row);
+            }
         }
         private static void GenerateEffortDataTable()
         {
@@ -550,15 +1332,17 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 {
                     row["# of fishers"] = vu.NumberOfFishers;
                 }
-                int landed=vu.Parent.NumberOfCommercialLandings ?? 0 + vu.Parent.NumberOfMunicipalLandings ?? 0;
+
+                int landed = vu.Parent.NumberOfCommercialLandings ?? 0 + vu.Parent.NumberOfMunicipalLandings ?? 0;
                 if (landed == 0)
                 {
-                    row["Fishing vessels landed"]=DBNull.Value;
+                    row["Fishing vessels landed"] = DBNull.Value;
                 }
                 else
                 {
-                    row["Fishing vessels landed"] = vu.Parent.NumberOfCommercialLandings ?? 0 + vu.Parent.NumberOfMunicipalLandings ?? 0;
+                    row["Fishing vessels landed"] = landed;
                 }
+
                 if (vu.Parent.NumberOfSampledLandingsEx == 0)
                 {
                     row["Fishing vessels monitored"] = DBNull.Value;
@@ -567,6 +1351,7 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 {
                     row["Fishing vessels monitored"] = vu.Parent.NumberOfSampledLandingsEx;
                 }
+
                 row["Catch composition count"] = vu.CountCatchCompositionItems;
                 row["Total weight of catch"] = vu.WeightOfCatch;
                 row["Is the catch sold"] = vu.IsCatchSold;

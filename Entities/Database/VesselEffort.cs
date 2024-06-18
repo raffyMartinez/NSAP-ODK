@@ -13,7 +13,7 @@ namespace NSAP_ODK.Entities.Database
         public VesselUnload VesselUnload { get; set; }
 
         public string GearCode { get; set; }
-        public int EffortID { get; set; }
+        public int? EffortID { get; set; }
         public double? EffortValue { get; set; }
         public string EffortValueText { get; set; }
         public string UnloadGearsCategory { get; set; }
@@ -22,7 +22,7 @@ namespace NSAP_ODK.Entities.Database
         {
             get
             {
-                return NSAPEntities.EffortSpecificationViewModel.GetEffortSpecification(EffortID);
+                return NSAPEntities.EffortSpecificationViewModel.GetEffortSpecification((int)EffortID);
             }
         }
     }

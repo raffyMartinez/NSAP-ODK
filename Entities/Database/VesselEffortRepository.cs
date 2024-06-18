@@ -232,16 +232,16 @@ namespace NSAP_ODK.Entities.Database
             return thisList;
         }
 
-        public static List<VesselEffortCrossTab>GetEffortForCrossTab(AllSamplingEntitiesEventHandler e)
+        public static List<VesselEffortCrossTab> GetEffortForCrossTab(AllSamplingEntitiesEventHandler e)
         {
             List<VesselEffortCrossTab> ects = new List<VesselEffortCrossTab>();
-            if(Global.Settings.UsemySQL)
+            if (Global.Settings.UsemySQL)
             {
 
             }
             else
             {
-                using (var con =  new OleDbConnection(Global.ConnectionString))
+                using (var con = new OleDbConnection(Global.ConnectionString))
                 {
                     using (var cmd = con.CreateCommand())
                     {
@@ -287,18 +287,18 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_vessel_unload.v_unload_id, 
                                                 dbo_vessel_effort.effort_spec_id, 
                                                 dbo_vessel_effort.effort_value_numeric, 
-                                                dbo_vessel_effort.effort_value_text, 'm' AS unload_type
+                                                dbo_vessel_effort.effort_value_text, 
+                                                'm' AS unload_type
                                             FROM 
-                                                dbo_LC_FG_sample_day INNER JOIN
+                                                (dbo_LC_FG_sample_day INNER JOIN 
                                                 (dbo_gear_unload INNER JOIN 
-                                                ((dbo_vessel_unload LEFT JOIN 
-                                                dbo_vesselunload_fishinggear ON 
-                                                dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) 
-                                            LEFT JOIN 
+                                                dbo_vessel_unload ON 
+                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                (dbo_vesselunload_fishinggear INNER JOIN 
                                                 dbo_vessel_effort ON 
                                                 dbo_vesselunload_fishinggear.row_id = dbo_vessel_effort.vessel_unload_fishing_gear_id) ON 
-                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
-                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id
+                                                dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id
                                             WHERE
                                                 dbo_LC_FG_sample_day.region_id = @reg AND
                                                 dbo_LC_FG_sample_day.land_ctr_id = @ls AND                                                
@@ -313,23 +313,38 @@ namespace NSAP_ODK.Entities.Database
                             OleDbDataReader reader = cmd.ExecuteReader();
                             while (reader.Read())
                             {
+                                //try
+                                //{
                                 VesselEffortCrossTab vect = new VesselEffortCrossTab
                                 {
                                     VesselUnloadID = (int)reader["v_unload_id"],
-                                    GearCode = reader["gear_code"].ToString(),
-                                    EffortID = (int)reader["effort_spec_id"],
                                     EffortValueText = reader["effort_value_text"].ToString(),
                                     UnloadGearsCategory = reader["unload_type"].ToString()
-                                    
+
                                 };
-                                if (reader["effort_value_numeric"]!=DBNull.Value)
+                                if (reader["effort_spec_id"] != DBNull.Value)
+                                {
+                                    vect.EffortID = (int)reader["effort_spec_id"];
+                                }
+
+                                string g = reader["gear_code"].ToString();
+                                if (!string.IsNullOrEmpty(g))
+                                {
+                                    vect.GearCode = g;
+                                }
+                                if (reader["effort_value_numeric"] != DBNull.Value)
                                 {
                                     vect.EffortValue = (double)reader["effort_value_numeric"];
                                 }
                                 ects.Add(vect);
+                                //}
+                                //catch(Exception ex)
+                                //{
+                                //    Logger.Log(ex);
+                                //}
                             }
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             Logger.Log(ex);
                         }
@@ -454,7 +469,7 @@ namespace NSAP_ODK.Entities.Database
                             update.Parameters.Add("@id", OleDbType.Integer).Value = item.PK;
                             if (item.Parent != null)
                             {
-                                   update.Parameters.Add("@unload_id", OleDbType.Integer).Value = item.Parent.PK;
+                                update.Parameters.Add("@unload_id", OleDbType.Integer).Value = item.Parent.PK;
                             }
                             else
                             {
@@ -585,7 +600,7 @@ namespace NSAP_ODK.Entities.Database
                         }
                         if (item.EffortValueText == null)
                         {
-                               update.Parameters.Add("@text_value", OleDbType.VarChar).Value = DBNull.Value;
+                            update.Parameters.Add("@text_value", OleDbType.VarChar).Value = DBNull.Value;
                         }
                         else
                         {

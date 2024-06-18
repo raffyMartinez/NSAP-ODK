@@ -10,6 +10,7 @@ namespace NSAP_ODK.Entities.Database
 {
     public class FishingCalendarDayExViewModel
     {
+        public event EventHandler<MakeCalendarEventArg> CalendarEvent;
         private List<FishingCalendarDayEx> _fishingCalendarDays;
         private int _numberOfDays;
         private List<FishingGearAndSector> _gearsAndSectors;
@@ -113,8 +114,13 @@ namespace NSAP_ODK.Entities.Database
                 return !sd.IsSamplingDay;
             }
         }
+        public Task MakeCalendarTask()
+        {
+            return Task.Run(() => MakeCalendar());
+        }
         public void MakeCalendar()
         {
+            CalendarEvent?.Invoke(null, new MakeCalendarEventArg { Context = "Preparing calendar data" });
             CalendarHasValue = false;
             if (_fishingCalendarDays.Count == 0)
             {
@@ -347,7 +353,7 @@ namespace NSAP_ODK.Entities.Database
                     DataTable.Rows.Add(row);
                     break;
             }
-
+            CalendarEvent?.Invoke(null, new MakeCalendarEventArg { Context = "Calendar data created" });
         }
 
         public List<LandingSiteSampling> LandingSiteSamplings
@@ -405,6 +411,7 @@ namespace NSAP_ODK.Entities.Database
         }
         public async Task<List<FishingCalendarDayEx>> GetCalendarDaysForMonth(AllSamplingEntitiesEventHandler selectedMonth)
         {
+            CalendarEvent?.Invoke(null, new MakeCalendarEventArg { Context = "Fetching landing data from database" });
             _selectedMonth = selectedMonth;
             if (CalendarDaysDictionary.Keys.Count == 0 || !CalendarDaysDictionary.Keys.Contains(selectedMonth.GUID))
             {
@@ -415,6 +422,7 @@ namespace NSAP_ODK.Entities.Database
             _fishingCalendarDays = CalendarDaysDictionary[selectedMonth.GUID];
             _gearsAndSectors = UniqueGearListDictionary[selectedMonth.GUID];
             _vesselUnloads = VesselUnloadIDsDictionary[selectedMonth.GUID];
+            CalendarEvent?.Invoke(null, new MakeCalendarEventArg { Context = "Fetched landing data from database" });
             return _fishingCalendarDays;
         }
     }

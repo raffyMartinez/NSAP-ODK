@@ -189,6 +189,7 @@
     <Compile Include="Entities\Database\BuildingCalendarEventArg.cs" />
     <Compile Include="Entities\Database\BuildSummaryReportEventArg.cs" />
     <Compile Include="Entities\Database\CalendarDayLineage.cs" />
+    <Compile Include="Entities\Database\MakeCalendarEventArg.cs" />
     <Compile Include="Entities\Database\CarrierBoatLanding_FishingGround.cs" />
     <Compile Include="Entities\Database\CarrierBoatLanding_FishingGroundRepository.cs" />
     <Compile Include="Entities\Database\CarrierBoatLanding_FishingGround_ViewModel.cs" />

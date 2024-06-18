@@ -112,7 +112,7 @@ namespace NSAP_ODK.Entities.Database
         public double? GonadWeight { get; set; }
         public string GutContentCategory { get; set; }
         public double? GutContentWeight { get; set; }
-
+        public VesselCatch Parent { get; set; }
 
     }
     public class CatchMaturity

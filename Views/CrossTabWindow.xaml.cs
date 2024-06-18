@@ -1,4 +1,5 @@
-﻿using NSAP_ODK.Entities.CrossTabBuilder;
+﻿using ClosedXML;
+using NSAP_ODK.Entities.CrossTabBuilder;
 using NSAP_ODK.Entities.Database;
 using System;
 using System.Collections.Generic;
@@ -13,6 +14,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using NSAP_ODK.Utilities;
 
 namespace NSAP_ODK.Views
 {
@@ -27,10 +29,21 @@ namespace NSAP_ODK.Views
             InitializeComponent();
             Loaded += CrossTabWindow_Loaded;
             ContentRendered += CrossTabWindow_ContentRendered;
+            Closing += CrossTabWindow_Closing;
 
 
         }
 
+        private void CrossTabWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            this.SavePlacement();
+        }
+
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+            this.ApplyPlacement();
+        }
         private void CrossTabWindow_ContentRendered(object sender, EventArgs e)
         {
             tviLandings.IsSelected = true;
@@ -44,7 +57,7 @@ namespace NSAP_ODK.Views
 
         private void OnButtonClick(object sender, RoutedEventArgs e)
         {
-
+            Close();
         }
         private Style RightAlignStyle()
         {
@@ -55,31 +68,41 @@ namespace NSAP_ODK.Views
 
         private void OnTreeSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
+            var e_m = CrossTabGenerator.EntitiesOfMonth;
+            string location_date = $"{e_m.LandingSite}, {e_m.NSAPRegion}, {e_m.FMA}, {e_m.FishingGround} on {((DateTime)e_m.MonthSampled).ToString("MMM, yyyy")}";
             dataGrid.AutoGenerateColumns = true;
             switch (((TreeViewItem)((TreeView)sender).SelectedItem).Name)
             {
                 case "tviLandings":
                     dataGrid.DataContext = CrossTabDatasetsGenerator.DailyLandingsDataTable;
+                    labelTitle.Content = $"Landings per day at {location_date}";
                     break;
                 case "tviEffort":
                     dataGrid.DataContext = CrossTabDatasetsGenerator.EffortDataTable;
+                    labelTitle.Content = $"Sampled landings and gear effort indicators at {location_date}";
                     break;
                 case "tviEffortAndCatch":
                     dataGrid.DataContext = CrossTabDatasetsGenerator.EffortSpeciesDataTable;
+                    labelTitle.Content = $"Catch composition of sampled landings and gear effort indicators at {location_date}";
                     break;
                 case "tviLength":
                     dataGrid.DataContext = CrossTabDatasetsGenerator.SpeciesLengthsDataTable;
+                    labelTitle.Content = $"Length of catch from sampled landings at {location_date}";
                     break;
                 case "tviLenWt":
                     dataGrid.DataContext = CrossTabDatasetsGenerator.SpeciesLengthWeightDataTable;
+                    labelTitle.Content = $"Length and weight of catch from sampled landings at {location_date}";
                     break;
                 case "tviLenFreq":
                     dataGrid.DataContext = CrossTabDatasetsGenerator.SpeciesLengthFreqDataTable;
+                    labelTitle.Content = $"Length frequency of catch from sampled landings at {location_date}";
                     break;
                 case "tviMaturity":
                     dataGrid.DataContext = CrossTabDatasetsGenerator.SpeciesMaturityDataTable;
+                    labelTitle.Content = $"Length, weight, and maturity data of catch from sampled landings at {location_date}";
                     break;
             }
+            //labelTitle.Visibility = Visibility.Visible;
         }
         private void ExportToExcel()
         {
