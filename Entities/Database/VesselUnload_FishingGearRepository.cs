@@ -161,11 +161,11 @@ namespace NSAP_ODK.Entities.Database
                                     {
                                         ParentID = (int)dr["v_unload_id"],
                                     };
-                                    if (dr["gear_code"]!=DBNull.Value)
+                                    if (dr["gear_code"] != DBNull.Value )
                                     {
                                         vufg.GearCode = dr["gear_code"].ToString();
                                     }
-                                    if (dr["catch_weight"]!=DBNull.Value)
+                                    if (dr["catch_weight"] != DBNull.Value)
                                     {
                                         vufg.WeightOfCatch = (double)dr["catch_weight"];
                                     }
@@ -182,7 +182,7 @@ namespace NSAP_ODK.Entities.Database
 
                                     gears.Add(vufg);
                                 }
-                                catch(Exception ex)
+                                catch (Exception ex)
                                 {
                                     Logger.Log(ex);
                                 }

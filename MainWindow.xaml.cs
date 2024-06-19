@@ -4641,6 +4641,17 @@ namespace NSAP_ODK
             switch(e.Context)
             {
                 case "Creating datasets":
+                    mainStatusBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              mainStatusBar.IsIndeterminate = false;
+                              mainStatusBar.Maximum = e.DataSetsToProcessCount;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
                     mainStatusLabel.Dispatcher.BeginInvoke
                         (
                           DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
@@ -4650,6 +4661,17 @@ namespace NSAP_ODK
                               return null;
                           }
                          ), null);
+                    break;
+                case "Created datasets":
+                    mainStatusBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              mainStatusBar.Value = e.DataSetsProcessedCount;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
                     break;
                 case "Done creating datasets":
                     mainStatusBar.Dispatcher.BeginInvoke

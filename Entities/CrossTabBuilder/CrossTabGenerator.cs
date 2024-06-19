@@ -61,10 +61,13 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 {
                     try
                     {
-                        vufg.Parent = VesselUnloads.Find(t => t.PK == vufg.ParentID);
-                        if (vufg.Parent != null)
+                        if (vufg.GearCode != null)
                         {
-                            vufg.Parent.ListUnloadFishingGearsEx.Add(vufg);
+                            vufg.Parent = VesselUnloads.Find(t => t.PK == vufg.ParentID);
+                            if (vufg.Parent != null)
+                            {
+                                vufg.Parent.ListUnloadFishingGearsEx.Add(vufg);
+                            }
                         }
                     }
                     catch (Exception ex)

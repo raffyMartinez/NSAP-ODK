@@ -15,5 +15,8 @@ namespace NSAP_ODK.Entities.Database
         public bool IsDone { get; set; }
 
         public string Context { get; set; }
+        public string DataSetName { get; set; }
+        public int DataSetsToProcessCount { get; set; }
+        public int DataSetsProcessedCount { get; set; }
     }
 }

@@ -244,9 +244,9 @@ namespace NSAP_ODK.Entities.Database
                                     SpeciesName = dr["spName"].ToString(),
                                     Taxa = dr["taxa"].ToString(),
                                     WeightSpecies = (double)dr["wt_sp"],
-                                    Sex = dr["sex"].ToString(),
-                                    MaturityStage = dr["maturity"].ToString(),
-                                    GutContentCategory = dr["gut_content_code"].ToString()
+                                    SexCode = dr["sex"].ToString(),
+                                    MaturityCode = dr["maturity"].ToString(),
+                                    GutContentCode = dr["gut_content_code"].ToString()
                                 };
                                 if (dr["weight"] != DBNull.Value && (double)dr["weight"] > 0)
                                 {

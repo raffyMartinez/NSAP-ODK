@@ -12,7 +12,8 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
 {
     public static class CrossTabDatasetsGenerator
     {
-        public static event  EventHandler<CrossTabReportEventArg> CrossTabDatasetEvent;
+        private static int _datatsetProcessedCount;
+        public static event EventHandler<CrossTabReportEventArg> CrossTabDatasetEvent;
         public static DataTable EffortDataTable { get; private set; }
         public static DataTable DailyLandingsDataTable { get; private set; }
         public static DataTable EffortSpeciesDataTable { get; private set; }
@@ -59,6 +60,14 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                         SpeciesLengthFreqDataTable.TableName = "Length-frequency";
                         SpeciesMaturityDataTable.TableName = "Maturity";
 
+                        _crossTabDataSet.Tables.Add(DailyLandingsDataTable);
+                        _crossTabDataSet.Tables.Add(EffortDataTable);
+                        _crossTabDataSet.Tables.Add(EffortSpeciesDataTable);
+                        _crossTabDataSet.Tables.Add(SpeciesLengthsDataTable);
+                        _crossTabDataSet.Tables.Add(SpeciesLengthWeightDataTable);
+                        _crossTabDataSet.Tables.Add(SpeciesLengthFreqDataTable);
+                        _crossTabDataSet.Tables.Add(SpeciesMaturityDataTable);
+
                         //_crossTabDataSet.Tables.Add(_dailyLandingDataTable);
                         //_crossTabDataSet.Tables.Add(_effortCrostabDataTable);
                         //_crossTabDataSet.Tables.Add(_effortSpeciesCrostabDataTable);
@@ -72,7 +81,7 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 catch (Exception ex)
                 {
                     ErrorMessage = ex.Message;
-                    Utilities.Logger.Log(ex);
+                    Logger.Log(ex);
                 }
                 return _crossTabDataSet;
             }
@@ -230,16 +239,11 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 row["Landing site"] = ls;
                 row["Enumerator"] = vc.Parent.EnumeratorName;
                 row["Sector"] = vc.Parent.Sector;
-                row["Grid location"] = vc.Parent.FirstFishingGround;
-                if (vc.Parent.FirstFishingGroundCoordinate != null)
+                if (vc.Parent.FirstFishingGround != " - ")
                 {
+                    row["Grid location"] = vc.Parent.FirstFishingGround;
                     row["Longitude"] = vc.Parent.FirstFishingGroundCoordinate.Longitude;
                     row["Latitude"] = vc.Parent.FirstFishingGroundCoordinate.Latitude;
-                }
-                else
-                {
-                    row["Longitude"] = DBNull.Value;
-                    row["Latitude"] = DBNull.Value;
                 }
                 row["Gear"] = vc.ParentFishingGear.Gear;
                 row["# species in catch of gear"] = vc.ParentFishingGear.CountItemsInCatchComposition;
@@ -355,17 +359,50 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 DailyLandingsDataTable.Rows.Add(row);
             }
         }
+        private static void AnnounceDataSetCreated(bool start = false, bool end = false)
+        {
+            if (start)
+            {
+                CrossTabDatasetEvent?.Invoke(null, new CrossTabReportEventArg { Context = "Creating datasets", DataSetsToProcessCount = 7 });
+            }
+            else if (end)
+            {
+                CrossTabDatasetEvent?.Invoke(null, new CrossTabReportEventArg { Context = "Done creating datasets" });
+            }
+            else
+            {
+                CrossTabDatasetEvent?.Invoke(null, new CrossTabReportEventArg { Context = "Created datasets", DataSetsProcessedCount = ++_datatsetProcessedCount });
+            }
+        }
         public static bool GenerateDatasets()
         {
-            CrossTabDatasetEvent?.Invoke(null, new CrossTabReportEventArg { Context = "Creating datasets" });
+            _datatsetProcessedCount = 0;
+            AnnounceDataSetCreated(start: true);
+
             GenerateDailyLandingsDataTabe();
+            AnnounceDataSetCreated();
+
             GenerateEffortDataTable();
+            AnnounceDataSetCreated();
+
             GenerateEffortSpeciesDataTable();
+            AnnounceDataSetCreated();
+
             GenerateSpeciesLenFreqDataTable();
+            AnnounceDataSetCreated();
+
             GenerateSpeciesLengthDataTable();
+            AnnounceDataSetCreated();
+
             GenerateSpeciesLenWeightDataTable();
+            AnnounceDataSetCreated();
+
             GenerateSpeciesMaturityDataTable();
-            CrossTabDatasetEvent?.Invoke(null, new CrossTabReportEventArg { Context = "Done creating datasets" });
+            AnnounceDataSetCreated();
+
+            AnnounceDataSetCreated(end: true);
+
+
             return true;
         }
         private static void GenerateSpeciesLengthDataTable()
@@ -494,7 +531,7 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 row["Landing site"] = ls;
                 row["Enumerator"] = sl.VesselUnload.EnumeratorName;
                 row["Sector"] = sl.VesselUnload.Sector;
-                
+
                 if (sl.VesselUnload.FirstFishingGround != " - ")
                 {
                     row["Grid location"] = sl.VesselUnload.FirstFishingGround;
@@ -517,7 +554,10 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 row["Ref #"] = sl.VesselUnload.RefNo;
                 row["Is a fishing boat used"] = sl.VesselUnload.IsBoatUsed;
                 row["Fishing vessel"] = sl.VesselUnload.VesselName;
-                row["# of fishers"] = sl.VesselUnload.NumberOfFishers;
+                if (sl.VesselUnload.NumberOfFishers != null)
+                {
+                    row["# of fishers"] = sl.VesselUnload.NumberOfFishers;
+                }
                 int landed = sl.VesselUnload.Parent.NumberOfCommercialLandings ?? 0 + sl.VesselUnload.Parent.NumberOfMunicipalLandings ?? 0;
                 if (landed > 0)
                 {
@@ -668,7 +708,7 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
             dc = new DataColumn { ColumnName = "Weight", DataType = typeof(double) };
             SpeciesLengthWeightDataTable.Columns.Add(dc);
 
-            dc = new DataColumn { ColumnName = "Unit of weight"};
+            dc = new DataColumn { ColumnName = "Unit of weight" };
             SpeciesLengthWeightDataTable.Columns.Add(dc);
 
             dc = new DataColumn { ColumnName = "Sex" };
@@ -690,9 +730,12 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 row["Landing site"] = ls;
                 row["Enumerator"] = slw.VesselUnload.EnumeratorName;
                 row["Sector"] = slw.VesselUnload.Sector;
-                row["Grid location"] = slw.VesselUnload.FirstFishingGround;
-                row["Longitude"] = slw.VesselUnload.FirstFishingGroundCoordinate.Longitude;
-                row["Latitude"] = slw.VesselUnload.FirstFishingGroundCoordinate.Latitude;
+                if (slw.VesselUnload.FirstFishingGround != " - ")
+                {
+                    row["Grid location"] = slw.VesselUnload.FirstFishingGround;
+                    row["Longitude"] = slw.VesselUnload.FirstFishingGroundCoordinate.Longitude;
+                    row["Latitude"] = slw.VesselUnload.FirstFishingGroundCoordinate.Latitude;
+                }
                 row["Gear"] = slw.GearName;
                 row["Weight of catch of gear"] = slw.WeightGearCatch;
                 //row["# species in catch of gear"] = slw.;
@@ -881,9 +924,12 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 row["Landing site"] = ls;
                 row["Enumerator"] = slf.VesselUnload.EnumeratorName;
                 row["Sector"] = slf.VesselUnload.Sector;
-                row["Grid location"] = slf.VesselUnload.FirstFishingGround;
-                row["Longitude"] = slf.VesselUnload.FirstFishingGroundCoordinate.Longitude;
-                row["Latitude"] = slf.VesselUnload.FirstFishingGroundCoordinate.Latitude;
+                if (slf.VesselUnload.FirstFishingGround != " - ")
+                {
+                    row["Grid location"] = slf.VesselUnload.FirstFishingGround;
+                    row["Longitude"] = slf.VesselUnload.FirstFishingGroundCoordinate.Longitude;
+                    row["Latitude"] = slf.VesselUnload.FirstFishingGroundCoordinate.Latitude;
+                }
                 row["Gear"] = slf.GearName;
                 row["Weight of catch of gear"] = slf.WeightGearCatch;
                 //row["# species in catch of gear"] = slf.;
@@ -900,7 +946,10 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 row["Ref #"] = slf.VesselUnload.RefNo;
                 row["Is a fishing boat used"] = slf.VesselUnload.IsBoatUsed;
                 row["Fishing vessel"] = slf.VesselUnload.VesselName;
-                row["# of fishers"] = slf.VesselUnload.NumberOfFishers;
+                if (slf.VesselUnload.NumberOfFishers != null)
+                {
+                    row["# of fishers"] = slf.VesselUnload.NumberOfFishers;
+                }
                 int landed = slf.VesselUnload.Parent.NumberOfCommercialLandings ?? 0 + slf.VesselUnload.Parent.NumberOfMunicipalLandings ?? 0;
                 if (landed > 0)
                 {
@@ -1049,7 +1098,7 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
             dc = new DataColumn { ColumnName = "Weight", DataType = typeof(double) };
             SpeciesMaturityDataTable.Columns.Add(dc);
 
-            dc = new DataColumn { ColumnName = "Unit of weight"  };
+            dc = new DataColumn { ColumnName = "Unit of weight" };
             SpeciesMaturityDataTable.Columns.Add(dc);
 
             dc = new DataColumn { ColumnName = "Sex" };
@@ -1083,9 +1132,12 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 row["Landing site"] = ls;
                 row["Enumerator"] = scm.VesselUnload.EnumeratorName;
                 row["Sector"] = scm.VesselUnload.Sector;
-                row["Grid location"] = scm.VesselUnload.FirstFishingGround;
-                row["Longitude"] = scm.VesselUnload.FirstFishingGroundCoordinate.Longitude;
-                row["Latitude"] = scm.VesselUnload.FirstFishingGroundCoordinate.Latitude;
+                if (scm.VesselUnload.FirstFishingGround != " - ")
+                {
+                    row["Grid location"] = scm.VesselUnload.FirstFishingGround;
+                    row["Longitude"] = scm.VesselUnload.FirstFishingGroundCoordinate.Longitude;
+                    row["Latitude"] = scm.VesselUnload.FirstFishingGroundCoordinate.Latitude;
+                }
                 row["Gear"] = scm.GearName;
                 row["Weight of catch of gear"] = scm.WeightGearCatch;
                 //row["# species in catch of gear"] = scm.;
@@ -1147,10 +1199,10 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 }
                 row["Unit of weight"] = scm.Parent.WeighingUnit;
                 row["Sex"] = scm.Sex;
-                row["Maturity stage"] = scm.MaturityStage;
+                row["Maturity stage"] = scm.Maturity;
                 row["Gonad weight"] = scm.GonadWeight;
                 row["Gut content"] = scm.GutContentWeight;
-                row["Gut content category"] = scm.GutContentCategory;
+                row["Gut content category"] = scm.GutContentClassification;
                 SpeciesMaturityDataTable.Rows.Add(row);
             }
         }
@@ -1296,18 +1348,13 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 row["Region"] = CrossTabGenerator.EntitiesOfMonth.NSAPRegion;
                 row["FMA"] = CrossTabGenerator.EntitiesOfMonth.FMA;
                 row["Sector"] = vu.Sector;
-                if (!string.IsNullOrEmpty(vu.FirstFishingGround) && vu.FirstFishingGround.Length > 3)
+                if (vu.FirstFishingGround != " - ")
                 {
                     row["Grid location"] = vu.FirstFishingGround;
                     row["Longitude"] = vu.FirstFishingGroundCoordinate.Longitude;
                     row["Latitude"] = vu.FirstFishingGroundCoordinate.Latitude;
                 }
-                else
-                {
-                    row["Grid location"] = DBNull.Value;
-                    row["Longitude"] = DBNull.Value;
-                    row["Latitude"] = DBNull.Value;
-                }
+
                 row["Number of gears used"] = vu.ListUnloadFishingGearsEx.Count;
                 if (vu.GearSettingFirst == null || vu.GearHaulingFirst == null)
                 {

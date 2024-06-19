@@ -30,10 +30,32 @@ namespace NSAP_ODK.Views
             Loaded += CrossTabWindow_Loaded;
             ContentRendered += CrossTabWindow_ContentRendered;
             Closing += CrossTabWindow_Closing;
+            dataGrid.LoadingRow += OnGridLoadingRow;
 
 
         }
+        private void ExportToExcel()
+        {
+            //string filePath;
+            string exportResult="";
+            string file = ExportExcel.GetSaveAsExcelFileName(this, _filePath);
+            if (file.Length > 0)
+            {
+                if (ExportExcel.ExportDatasetToExcel(CrossTabDatasetsGenerator.CrossTabDataSet, file))
+                {
+                    exportResult = "Successfully exported to Excel";
+                }
+                else
+                {
+                    if (CrossTabDatasetsGenerator.ErrorMessage.Length > 0)
+                    {
+                        exportResult = $"Was not successfull in exporting to Excel\r\n{CrossTabDatasetsGenerator.ErrorMessage}";
+                    }
+                }
 
+                MessageBox.Show(exportResult, Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
         private void CrossTabWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             this.SavePlacement();
@@ -102,33 +124,17 @@ namespace NSAP_ODK.Views
                     labelTitle.Content = $"Length, weight, and maturity data of catch from sampled landings at {location_date}";
                     break;
             }
-            //labelTitle.Visibility = Visibility.Visible;
-        }
-        private void ExportToExcel()
-        {
-            //string filePath;
-            string exportResult;
-            string file = Utilities.ExportExcel.GetSaveAsExcelFileName(this, _filePath);
-            if (file.Length > 0)
-            {
-                if (Utilities.ExportExcel.ExportDatasetToExcel(CrossTabManager.CrossTabDataSet, file))
-                {
-                    exportResult = "Successfully exported to Excel";
-                }
-                else
-                {
-                    if (CrossTabManager.ErrorMessage.Length > 0)
-                    {
-                        exportResult = $"Was not successfull in exporting to Excel\r\n{CrossTabManager.ErrorMessage}";
-                    }
-                    else
-                    {
-                        exportResult = $"Was not successfull in exporting to Excel\r\n{Utilities.ExportExcel.ErrorMessage}";
-                    }
-                }
+            var eh = CrossTabGenerator.EntitiesOfMonth;
 
-                MessageBox.Show(exportResult, Utilities.Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
-            }
+            string ls = eh.LandingSiteText;
+            string month = ((DateTime)eh.MonthSampled).ToString("MMMM, yyyy");
+            string location = $"{eh.NSAPRegion.ShortName} {eh.FMA.Name} {eh.FishingGround.Name}";
+            _filePath = $"Crosstab {location} {ls} - {month}";
+
+        }
+        private void OnGridLoadingRow(object sender, DataGridRowEventArgs e)
+        {
+            e.Row.Header = (e.Row.GetIndex() + 1).ToString();
         }
         private void OnMenuClicked(object sender, RoutedEventArgs e)
         {
