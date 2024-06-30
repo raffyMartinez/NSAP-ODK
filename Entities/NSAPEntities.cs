@@ -42,7 +42,8 @@ namespace NSAP_ODK.Entities
         GPS,
         DBSummary,
         SpeciesName,
-        LandingSiteFishingGround
+        LandingSiteFishingGround,
+        WatchedSpecies
     }
 
 

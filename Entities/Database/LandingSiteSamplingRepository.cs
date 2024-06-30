@@ -35,6 +35,7 @@ namespace NSAP_ODK.Entities.Database
                 CarrierBoatLanding_FishingGroundRepository.CheckTableExist() &&
                 CatcherBoatOperationRepository.CheckTableExist() &&
                 VesselUnload_FishingGearRepository.CheckTableExists() &&
+                RegionWatchedSpeciesRepository.CheckTableExist() &&
                 LandingSite_FishingVessel_Repository.CheckTableExists())
             //LandingSiteFishingGroundRepository.CheckForLandingSiteFishingGroundTable()
             //  )

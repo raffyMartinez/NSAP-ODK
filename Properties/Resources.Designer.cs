@@ -63,10 +63,45 @@ namespace NSAP_ODK.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap aoi {
+            get {
+                object obj = ResourceManager.GetObject("aoi", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap calendar2 {
             get {
                 object obj = ResourceManager.GetObject("calendar2", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;MapWindow version=&quot;&quot;&gt;
+        ///  &lt;ColorSchemes&gt;
+        ///    &lt;ColorScheme&gt;
+        ///      &lt;Break Color=&quot;-5383962&quot; Value=&quot;0&quot; /&gt;
+        ///      &lt;Break Color=&quot;-23296&quot; Value=&quot;1&quot; /&gt;
+        ///    &lt;/ColorScheme&gt;
+        ///    &lt;ColorScheme&gt;
+        ///      &lt;Break Color=&quot;-256&quot; Value=&quot;0&quot; /&gt;
+        ///      &lt;Break Color=&quot;-23296&quot; Value=&quot;1&quot; /&gt;
+        ///    &lt;/ColorScheme&gt;
+        ///    &lt;ColorScheme&gt;
+        ///      &lt;Break Color=&quot;-16096246&quot; Value=&quot;0&quot; /&gt;
+        ///      &lt;Break Color=&quot;-3702211&quot; Value=&quot;0.5&quot; /&gt;
+        ///      &lt;Break Color=&quot;-926587&quot; Value=&quot;1&quot; /&gt;
+        ///    &lt;/ColorScheme&gt;
+        ///    &lt;ColorScheme&gt;
+        ///      &lt;Break Color=&quot;-13399600&quot; V [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string colorschemes {
+            get {
+                return ResourceManager.GetString("colorschemes", resourceCulture);
             }
         }
         
@@ -113,9 +148,89 @@ namespace NSAP_ODK.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap gps2 {
+            get {
+                object obj = ResourceManager.GetObject("gps2", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap icons_fish_01 {
             get {
                 object obj = ResourceManager.GetObject("icons_fish_01", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap layer_remove {
+            get {
+                object obj = ResourceManager.GetObject("layer_remove", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap layers {
+            get {
+                object obj = ResourceManager.GetObject("layers", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap layers_new {
+            get {
+                object obj = ResourceManager.GetObject("layers_new", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap map_screen_grey {
+            get {
+                object obj = ResourceManager.GetObject("map_screen_grey", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap move {
+            get {
+                object obj = ResourceManager.GetObject("move", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap move_to_left {
+            get {
+                object obj = ResourceManager.GetObject("move_to_left", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap move_to_right {
+            get {
+                object obj = ResourceManager.GetObject("move_to_right", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -133,10 +248,80 @@ namespace NSAP_ODK.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap ruler {
+            get {
+                object obj = ResourceManager.GetObject("ruler", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap select_none1 {
+            get {
+                object obj = ResourceManager.GetObject("select_none1", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap select1 {
+            get {
+                object obj = ResourceManager.GetObject("select1", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap table1 {
             get {
                 object obj = ResourceManager.GetObject("table1", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap track {
+            get {
+                object obj = ResourceManager.GetObject("track", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap zoom_ {
+            get {
+                object obj = ResourceManager.GetObject("zoom_", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap zoom_1 {
+            get {
+                object obj = ResourceManager.GetObject("zoom_1", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] zoom_plus {
+            get {
+                object obj = ResourceManager.GetObject("zoom_plus", resourceCulture);
+                return ((byte[])(obj));
             }
         }
     }

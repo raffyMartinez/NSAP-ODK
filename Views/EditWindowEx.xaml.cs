@@ -772,12 +772,27 @@ namespace NSAP_ODK.Views
 
         private void FillPropertyGrid()
         {
+            //buttonGetFromExisting.Visibility = Visibility.Collapsed;
             _originalSource = _nsapObject;
             PropertyGrid.AutoGenerateProperties = false;
             switch (_nsapEntity)
             {
 
-
+                case NSAPEntity.WatchedSpecies:
+                    RegionWatchedSpeciesForAdding rwsa = new RegionWatchedSpeciesForAdding(null);
+                    //var region = NSAPEntities.NSAPRegionViewModel.CurrentEntity;
+                    Title = "Watched species in NSAP Region";
+                    LabelTop.Content = $"New watched species in {rwsa.RegionWatchedSpecies.NSAPRegion}";
+                    if (!_isNew)
+                    {
+                        //LabelTop.Content = $"Details of watched species in {rwsa.RegionWatchedSpecies.NSAPRegion}";
+                    }
+                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "rwsa.RegionWatchedSpecies.NSAPRegion", DisplayName = "Region", DisplayOrder = 1, Description = "Region" });
+                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Taxa", DisplayName = "Taxa", DisplayOrder = 2, Description = "Taxa" });
+                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Genus", DisplayName = "Genus", DisplayOrder = 3, Description = "Genus" });
+                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Species", DisplayName = "Species", DisplayOrder = 4, Description = "Species" });
+                    PropertyGrid.SelectedObject = rwsa;
+                    break;
                 case NSAPEntity.NSAPRegionFMAFishingGroundLandingSite:
                     #region NSAP Region FMA FishingGround LandingSite
 
@@ -1267,11 +1282,16 @@ namespace NSAP_ODK.Views
                 #endregion 
                 case NSAPEntity.NSAPRegion:
                     #region nsap region
+                    //buttonGetFromExisting.Visibility = Visibility.Visible;
                     Title = "NSAP Region";
                     NSAPRegionEdit nsapRegionEdit = new NSAPRegionEdit();
                     if (!_isNew)
                     {
                         var nsr = NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(_entityID);
+                        if (nsr.RegionWatchedSpeciesViewModel == null)
+                        {
+                            nsr.RegionWatchedSpeciesViewModel = new RegionWatchedSpeciesViewModel(nsr);
+                        }
                         nsapRegionEdit = new NSAPRegionEdit(nsr);
                         LabelTop.Content = $"Details for {nsr}";
                     }
@@ -1281,7 +1301,8 @@ namespace NSAP_ODK.Views
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "FMAs", DisplayName = "Number of FMAs", DisplayOrder = 3, Description = "Number of FMAs included in the region" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Gears", DisplayName = "Number of Gears", DisplayOrder = 4, Description = "Number of gear types used in the region" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Vessels", DisplayName = "Number of Vessels", DisplayOrder = 5, Description = "Number of vessels listed in the region" });
-                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Enumerators", DisplayName = "Number of Enumerators", DisplayOrder = 6, Description = "Number of enumerators listed in the region" });
+                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "WatchedSpecies", DisplayName = "Number of watched species", DisplayOrder = 6, Description = "Number of enumerators listed in the region" });
+                    PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Enumerators", DisplayName = "Number of Enumerators", DisplayOrder = 7, Description = "Number of watched species in the region" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "IsTotalEnumerationOnly", DisplayName = "Total enumeration only", DisplayOrder = 8, Description = "Catch composition is from total enumeration and not from samples" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "IsRegularSamplingOnly", DisplayName = "Regular sampling only", DisplayOrder = 9, Description = "All samplings in region are regular samplings" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "ID", DisplayName = "Database identifier", DisplayOrder = 10, Description = "Identifier of the landing site in database" });
@@ -1839,6 +1860,35 @@ namespace NSAP_ODK.Views
             EditWindowEx ewx = null;
             switch (((Button)sender).Name)
             {
+                case "buttonGetFromExisting":
+                    RegionWatchedSpeciesRepository.WatchedSpeciesEvent += OnRegionWatchedSpeciesRepository_WatchedSpeciesEvent;
+                    var watchedSpecieses = await RegionWatchedSpeciesRepository.GetFromExistingTask(NSAPEntities.NSAPRegionViewModel.CurrentEntity);
+                    if (watchedSpecieses?.Count > 0)
+                    {
+                        AddToSpeciesWatchWindow asww = new AddToSpeciesWatchWindow();
+                        asww.NSAPRegion = NSAPEntities.NSAPRegionViewModel.CurrentEntity;
+                        asww.WatchedSpeciesList = watchedSpecieses;
+                        asww.Owner = this;
+                        if ((bool)asww.ShowDialog())
+                        {
+                            //sfDataGrid.DataContext = asww.SpeciesForAddingToList;
+                            sfDataGrid.ItemsSource = NSAPEntities.NSAPRegionViewModel.CurrentEntity.RegionWatchedSpeciesViewModel.RegionWatchedSpeciesCollection.OrderBy(t => t.TaxaCode).ThenBy(t => t.SpeciesName);
+                        }
+
+                    }
+                    RegionWatchedSpeciesRepository.WatchedSpeciesEvent -= OnRegionWatchedSpeciesRepository_WatchedSpeciesEvent;
+
+                    if (watchedSpecieses?.Count == 0)
+                    {
+                        MessageBox.Show("No species for watching was found.\r\n\r\nAdd species manually",
+                            Global.MessageBoxCaption,
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information
+                           );
+
+                    }
+
+                    break;
                 case "buttonCleanup":
                     #region buttonCleanup
                     var msg_cleanup = $"Cleaning up removes {_propertyFriendlyName} in the database that do not belong to the selected region\r\nIs this what you want to do?";
@@ -1962,16 +2012,16 @@ namespace NSAP_ODK.Views
                                         break;
                                     case "Enumerators":
                                         bool refreshGrid = false;
-                                        foreach(var selectedEnum in sfDataGrid.SelectedItems)
+                                        foreach (var selectedEnum in sfDataGrid.SelectedItems)
                                         {
                                             NSAPRegionEnumerator nre = (NSAPRegionEnumerator)selectedEnum;
                                             nre.DateEnd = null;
-                                            if(NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(nre.NSAPRegion).UnremoveEnumerator(nre))
+                                            if (NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(nre.NSAPRegion).UnremoveEnumerator(nre))
                                             {
                                                 refreshGrid = true;
                                             }
                                         }
-                                        if(refreshGrid)
+                                        if (refreshGrid)
                                         {
                                             sfDataGrid.Items.Refresh();
                                             buttonDelete.Content = "Delete";
@@ -2386,7 +2436,7 @@ namespace NSAP_ODK.Views
                                 }
                             }
                             break;
-                        #endregion 
+                        #endregion
                         case NSAPEntity.NonFishSpecies:
                             #region nonfishspecies
                             var nfe = (NotFishSpeciesEdit)PropertyGrid.SelectedObject;
@@ -3086,11 +3136,14 @@ namespace NSAP_ODK.Views
                             }
                             break;
 
+
+
                         case NSAPEntity.NSAPRegion:
 
                             if (_selectedProperty == "Gears"
                                 || _selectedProperty == "Vessels"
-                                || _selectedProperty == "Enumerators")
+                                || _selectedProperty == "Enumerators"
+                                || _selectedProperty == "WatchedSpecies")
                             {
                                 this.Visibility = Visibility.Hidden;
                                 addToDict = true;
@@ -3112,6 +3165,15 @@ namespace NSAP_ODK.Views
 
                                 case "Enumerators":
                                     ewx = new EditWindowEx(NSAPEntity.NSAPRegionEnumerator);
+                                    break;
+                                case "WatchedSpecies":
+                                    AddToSpeciesWatchWindow asww = new AddToSpeciesWatchWindow(getExistingFromDb: false);
+                                    asww.NSAPRegion = NSAPEntities.NSAPRegionViewModel.CurrentEntity;
+                                    asww.Owner = this;
+                                    if ((bool)asww.ShowDialog())
+                                    {
+                                        sfDataGrid.Items.Refresh();
+                                    }
                                     break;
                             }
 
@@ -3178,6 +3240,73 @@ namespace NSAP_ODK.Views
                     break;
 
 
+            }
+        }
+
+        private void OnRegionWatchedSpeciesRepository_WatchedSpeciesEvent(object sender, CrossTabReportEventArg e)
+        {
+            switch (e.Context)
+            {
+                case "Reading database":
+                    statusBar.Dispatcher.BeginInvoke
+                    (
+                      DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                      {
+                          statusBar.Visibility = Visibility.Visible;
+                          return null;
+                      }
+                     ), null);
+
+                    progressBar.Dispatcher.BeginInvoke
+                    (
+                      DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                      {
+                          progressBar.IsIndeterminate = true;
+                          return null;
+                      }
+                     ), null);
+
+                    progressLabel.Dispatcher.BeginInvoke
+                    (
+                      DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                      {
+                          progressLabel.Content = "Reading database...";
+                          //do what you need to do on UI Thread
+                          return null;
+                      }
+                     ), null);
+                    break;
+                case "Getting entities":
+                    progressLabel.Dispatcher.BeginInvoke
+                    (
+                      DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                      {
+                          progressLabel.Content = "Getting data from database...";
+                          //do what you need to do on UI Thread
+                          return null;
+                      }
+                     ), null);
+                    break;
+                case "Entities retrieved":
+                    progressLabel.Dispatcher.BeginInvoke
+                    (
+                      DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                      {
+                          progressLabel.Content = "Finished getting data from database";
+                          //do what you need to do on UI Thread
+                          return null;
+                      }
+                     ), null);
+
+                    statusBar.Dispatcher.BeginInvoke
+                    (
+                      DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                      {
+                          statusBar.Visibility = Visibility.Collapsed;
+                          return null;
+                      }
+                     ), null);
+                    break;
             }
         }
 
@@ -3354,8 +3483,10 @@ namespace NSAP_ODK.Views
 
         private void OnSelectedPropertyItemChanged(object sender, RoutedPropertyChangedEventArgs<PropertyItemBase> e)
         {
+            buttonEdit.Visibility = Visibility.Visible;
             buttonValidate.Visibility = Visibility.Collapsed;
             buttonCleanup.Visibility = Visibility.Collapsed;
+            buttonGetFromExisting.Visibility = Visibility.Collapsed;
             buttonAdd.IsEnabled = true;
             rowDataGrid.Height = new GridLength(0);
 
@@ -3366,6 +3497,7 @@ namespace NSAP_ODK.Views
 
             switch (_selectedProperty)
             {
+
                 case "CountFishingGrounds":
                     LabelBottom.Content = $"List of fishing grounds of {NSAPEntities.LandingSiteViewModel.CurrentEntity}";
                     rowBottomLabel.Height = new GridLength(40);
@@ -3454,6 +3586,16 @@ namespace NSAP_ODK.Views
                     buttonValidate.Visibility = Visibility.Visible;
                     buttonCleanup.Visibility = sfDataGrid.Items.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
                     _propertyFriendlyName = "landing site enumerators";
+                    break;
+                case "WatchedSpecies":
+                    LabelBottom.Content = $"List of watched species in {NSAPEntities.NSAPRegionViewModel.CurrentEntity}";
+                    rowBottomLabel.Height = new GridLength(40);
+                    SetUpSubForm();
+                    buttonEdit.Visibility = Visibility.Collapsed;
+                    //buttonValidate.Visibility = Visibility.Visible;
+                    //buttonCleanup.Visibility = sfDataGrid.Items.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+                    buttonGetFromExisting.Visibility = Visibility.Visible;
+                    _propertyFriendlyName = "landing site watched species";
                     break;
                 default:
                     break;
@@ -3554,19 +3696,10 @@ namespace NSAP_ODK.Views
                 case "Enumerators":
                     nsr = NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(_entityID);
                     sfDataGrid.ItemsSource = nsr.NSAPEnumerators.OrderBy(t => t.Enumerator.Name);
-                    //var eList = nsr.NSAPEnumerators.OrderBy(t => t.Enumerator.Name);
-                    //try
-                    //{
-                    //    sfDataGrid.ItemsSource = null;
-                    //    sfDataGrid.Items.Clear();
-
-                    //    //sfDataGrid.ItemsSource = nsr.NSAPEnumerators.OrderBy(t => t.Enumerator.Name);
-                    //    sfDataGrid.ItemsSource = eList;
-                    //}
-                    //catch (Exception ex)
-                    //{
-                    //    Logger.Log(ex);
-                    //}
+                    break;
+                case "WatchedSpecies":
+                    nsr = NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(_entityID);
+                    sfDataGrid.ItemsSource = nsr.RegionWatchedSpeciesViewModel.RegionWatchedSpeciesCollection.OrderBy(t => t.TaxaCode).ThenBy(t => t.SpeciesName);
                     break;
             }
         }
@@ -3683,6 +3816,11 @@ namespace NSAP_ODK.Views
                     sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("Enumerator.Name") });
                     sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Date added", Binding = new Binding("DateStart") });
                     sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Date removed", Binding = new Binding("DateEnd") });
+                    break;
+                case "WatchedSpecies":
+                    sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("PK"), Visibility = Visibility.Visible });
+                    sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Family", Binding = new Binding("Family") });
+                    sfDataGrid.Columns.Add(new DataGridTextColumn { Header = "Species", Binding = new Binding("SpeciesName") });
                     break;
             }
 

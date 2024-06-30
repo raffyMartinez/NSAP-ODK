@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using NSAP_ODK.Entities.Database;
 
 namespace NSAP_ODK.Entities
 {
@@ -20,6 +21,8 @@ namespace NSAP_ODK.Entities
 
         public bool IsTotalEnumerationOnly { get; set; }
         public bool IsRegularSamplingOnly { get; set; }
+
+        public RegionWatchedSpeciesViewModel RegionWatchedSpeciesViewModel { get; set; }
         public List<NSAPRegionFMA> FMAs { get; set; }
 
         public List<NSAPRegionGear> Gears { get; set; }

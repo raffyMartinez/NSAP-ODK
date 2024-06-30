@@ -36,6 +36,55 @@ namespace NSAP_ODK.Entities.Database
             return fieldSize;
         }
 
+        public static ParentIDs GetParentIDs(int v_unloadID)
+        {
+            ParentIDs pids = new ParentIDs();
+            if(Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@vuid", v_unloadID);
+                        cmd.CommandText = @"SELECT 
+                                                dbo_vessel_unload.v_unload_id, 
+                                                dbo_gear_unload.unload_gr_id, 
+                                                dbo_LC_FG_sample_day.unload_day_id
+                                            FROM 
+                                                dbo_LC_FG_sample_day INNER JOIN 
+                                                (dbo_gear_unload INNER JOIN 
+                                                dbo_vessel_unload ON 
+                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id
+                                            WHERE 
+                                                dbo_vessel_unload.v_unload_id=@vuid";
+                        try
+                        {
+                            con.Open();
+                            var dr = cmd.ExecuteReader();
+                            while(dr.Read())
+                            {
+                                pids = new ParentIDs
+                                {
+                                    VesselUnloadID = (int)dr["v_unload_id"],
+                                    GearUnloadID = (int)dr["unload_gr_id"],
+                                    LandingSiteSamplingID = (int)dr["unload_day_id"]
+                                };
+                            }
+                        }
+                        catch(Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return pids;
+        }
         public static List<VesselUnload> GetVesselUnloads(AllSamplingEntitiesEventHandler entities)
         {
             List<VesselUnload> unloads = new List<VesselUnload>();

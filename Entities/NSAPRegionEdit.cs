@@ -29,6 +29,7 @@ namespace NSAP_ODK.Entities
             IsTotalEnumerationOnly = NSAPRegion.IsTotalEnumerationOnly;
             IsRegularSamplingOnly = NSAPRegion.IsRegularSamplingOnly;
             ID = NSAPRegion.Code;
+            WatchedSpecies = NSAPRegion.RegionWatchedSpeciesViewModel.Count;
         }
 
         public NSAPRegionEdit()
@@ -36,6 +37,7 @@ namespace NSAP_ODK.Entities
             IsNew = true;
         }
 
+        public int WatchedSpecies { get; set; }
         public bool IsRegularSamplingOnly { get; set; }
 
         public bool IsTotalEnumerationOnly { get; set; }

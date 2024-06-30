@@ -39,6 +39,9 @@
     <ApplicationIcon>icons fish-02.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AxInterop.MapWinGIS">
+      <HintPath>..\windows forms control for mapwingis\WinFormControl\bin\Debug\AxInterop.MapWinGIS.dll</HintPath>
+    </Reference>
     <Reference Include="BouncyCastle.Crypto, Version=1.8.5.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
       <HintPath>packages\BouncyCastle.1.8.5\lib\BouncyCastle.Crypto.dll</HintPath>
     </Reference>
@@ -56,6 +59,9 @@
     </Reference>
     <Reference Include="Gavaghan.Geodesy">
       <HintPath>Entities\gpx\3rdParty\Gavaghan.Geodesy.dll</HintPath>
+    </Reference>
+    <Reference Include="GongSolutions.WPF.DragDrop, Version=3.0.0.0, Culture=neutral, PublicKeyToken=91f1945125b7a587, processorArchitecture=MSIL">
+      <HintPath>packages\gong-wpf-dragdrop.3.2.1\lib\net47\GongSolutions.WPF.DragDrop.dll</HintPath>
     </Reference>
     <Reference Include="Google.Protobuf, Version=3.14.0.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604, processorArchitecture=MSIL">
       <HintPath>packages\Google.Protobuf.3.14.0\lib\net45\Google.Protobuf.dll</HintPath>
@@ -152,6 +158,7 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsFormsIntegration" />
     <Reference Include="WPFTextBoxAutoComplete, Version=1.0.0.2, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\WPFTextBoxAutoComplete.1.0.5\lib\net40\WPFTextBoxAutoComplete.dll</HintPath>
     </Reference>
@@ -243,6 +250,10 @@
     <Compile Include="Entities\Database\KoboServerViewModel.cs" />
     <Compile Include="Entities\Database\LastPrimaryKeys.cs" />
     <Compile Include="Entities\Database\OrphanedSpeciesNameRaw.cs" />
+    <Compile Include="Entities\Database\ParentIDs.cs" />
+    <Compile Include="Entities\Database\RegionWatchedSpecies.cs" />
+    <Compile Include="Entities\Database\RegionWatchedSpeciesRepository.cs" />
+    <Compile Include="Entities\Database\RegionWatchedSpeciesViewModel.cs" />
     <Compile Include="Entities\Database\SamplingCalendaryMismatchFixer.cs" />
     <Compile Include="Entities\Database\SamplingDaySubmissionViewModel.cs" />
     <Compile Include="Entities\Database\ServerUploadsByMonth.cs" />
@@ -431,6 +442,7 @@
     <Compile Include="Entities\Media_csv\VesselSelectRepository.cs" />
     <Compile Include="Entities\Media_csv\VesselSelectViewModel.cs" />
     <Compile Include="Entities\MySQLConnectEventArgs.cs" />
+    <Compile Include="Entities\PrettyXML.cs" />
     <Compile Include="Entities\SamplingDaySubmission.cs" />
     <Compile Include="Entities\SamplingDaySubmissionRepository.cs" />
     <Compile Include="Entities\ServerLogInInformation.cs" />
@@ -538,12 +550,81 @@
     <Compile Include="Entities\TaxaViewModel.cs" />
     <Compile Include="Entities\UTMCoordinate.cs" />
     <Compile Include="Entities\UTMZone.cs" />
+    <Compile Include="Mapping\AOI.cs" />
+    <Compile Include="Mapping\AOIManager.cs" />
+    <Compile Include="Mapping\AOIRepository.cs" />
+    <Compile Include="Mapping\AOIViewModel.cs" />
+    <Compile Include="Mapping\Callback.cs" />
+    <Compile Include="Mapping\CategoryItem.cs" />
+    <Compile Include="Mapping\ClassifiedItem.cs" />
+    <Compile Include="Mapping\Colors.cs" />
+    <Compile Include="Mapping\ColorSchemes.cs" />
+    <Compile Include="Mapping\Entities.cs" />
+    <Compile Include="Mapping\EntityValidationMessage.cs" />
+    <Compile Include="Mapping\EntityValidationResult.cs" />
+    <Compile Include="Mapping\Enums.cs" />
+    <Compile Include="Mapping\extension.cs" />
+    <Compile Include="Mapping\FishingGroundPointsFromCalendarMappingManager.cs" />
+    <Compile Include="Mapping\globalMapping.cs" />
+    <Compile Include="Mapping\Grid25.cs" />
+    <Compile Include="Mapping\GridMapping.cs" />
+    <Compile Include="Mapping\IWaypoint.cs" />
+    <Compile Include="Mapping\JenksFisher.cs" />
+    <Compile Include="Mapping\LabelProperty.cs" />
+    <Compile Include="Mapping\LatLonUTMConverter.cs" />
+    <Compile Include="Mapping\LayerEventArg.cs" />
+    <Compile Include="Mapping\MapInterActionHandler.cs" />
+    <Compile Include="Mapping\MapLayer.cs" />
+    <Compile Include="Mapping\MapLayerSequence.cs" />
+    <Compile Include="Mapping\MapLayersHandler.cs" />
+    <Compile Include="Mapping\MapLayersViewModel.cs" />
+    <Compile Include="Mapping\MapWindowManager.cs" />
+    <Compile Include="Mapping\PointLayerSymbologyHandler.cs" />
+    <Compile Include="Mapping\RenderToBitmap.cs" />
+    <Compile Include="Mapping\ShapefileAttributeTableManager.cs" />
+    <Compile Include="Mapping\ShapefileFactory.cs" />
+    <Compile Include="Mapping\ShapefileFieldSummary.cs" />
+    <Compile Include="Mapping\ShapefileFieldValue.cs" />
+    <Compile Include="Mapping\ShapefileLabelHandler.cs" />
+    <Compile Include="Mapping\ShapefileLayerHelper.cs" />
+    <Compile Include="Mapping\TripMappingManager.cs" />
+    <Compile Include="Mapping\usercontrols\ImageCombo.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Mapping\views\AOIWindow.xaml.cs" />
+    <Compile Include="Mapping\views\FormatGridMapWindow.xaml.cs">
+      <DependentUpon>FormatGridMapWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Mapping\views\GridMappingWindow.xaml.cs">
+      <DependentUpon>GridMappingWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Mapping\views\MakeAOIGridWindow.xaml.cs" />
+    <Compile Include="Mapping\views\MapLayersWindow.xaml.cs">
+      <DependentUpon>MapLayersWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Mapping\views\MapWindowForm.IconInfo.cs" />
+    <Compile Include="Mapping\views\MapWindowForm.xaml.cs" />
+    <Compile Include="Mapping\views\SelectedGridRowsSummaryWindow.xaml.cs" />
+    <Compile Include="Mapping\views\SelectGridFileWindow.xaml.cs" />
+    <Compile Include="Mapping\views\SelectTileProviderWindow.xaml.cs">
+      <DependentUpon>SelectTileProviderWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Mapping\views\ShapeFileAttributesWindow.xaml.cs">
+      <DependentUpon>ShapeFileAttributesWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Mapping\views\ShapeFileVisibilityExpressionWindow.xaml.cs" />
+    <Compile Include="Mapping\Waypoint.cs" />
     <Compile Include="NSAPMysql\CreateMySQLTables.cs" />
     <Compile Include="NSAPMysql\MigrateDataEventArg.cs" />
     <Compile Include="NSAPMysql\MigrateDataToMySQL.cs" />
     <Compile Include="NSAPMysql\TablesStats.cs" />
     <Compile Include="NSAPMysql\TableStats.cs" />
     <Compile Include="Oware\LatLngUTMConverter.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="Utilities\DateTimePickerEditor1.cs" />
     <Compile Include="Utilities\GridCellHelper.cs" />
     <Compile Include="Utilities\MD5.cs" />
@@ -575,6 +656,9 @@
     </Compile>
     <Compile Include="Views\AboutWindow.xaml.cs">
       <DependentUpon>AboutWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\AddToSpeciesWatchWindow.xaml.cs">
+      <DependentUpon>AddToSpeciesWatchWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\backupMySQLWindow.xaml.cs">
       <DependentUpon>backupMySQLWindow.xaml</DependentUpon>
@@ -764,6 +848,50 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Mapping\views\AOIWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Mapping\views\FormatGridMapWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Mapping\views\GridMappingWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Mapping\views\MakeAOIGridWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Mapping\views\MapLayersWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Mapping\views\MapWindowForm.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Mapping\views\SelectedGridRowsSummaryWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Mapping\views\SelectGridFileWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Mapping\views\SelectTileProviderWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Mapping\views\ShapeFileAttributesWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Mapping\views\ShapeFileVisibilityExpressionWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="TreeViewModelControl\TreeControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -773,6 +901,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\AboutWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\AddToSpeciesWatchWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -1005,11 +1137,6 @@
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
@@ -1088,6 +1215,122 @@
     <EmbeddedResource Include="Resources\cbl_calendar.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="MapWinGIS">
+      <Guid>{C368D713-CC5F-40ED-9F53-F84FE197B96A}</Guid>
+      <VersionMajor>5</VersionMajor>
+      <VersionMinor>3</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="stdole">
+      <Guid>{00020430-0000-0000-C000-000000000046}</Guid>
+      <VersionMajor>2</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>primary</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\colorschemes.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\move to right.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\move to left.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\layer remove.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\layers new.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\aoi.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\gps2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\layers.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\map screen grey.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\move.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\ruler.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\select_none1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\select1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\track.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\zoom-.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\zoom+.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Mapping\views\layers.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Mapping\views\layers new.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Mapping\views\zoom+.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Mapping\views\zoom-.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Mapping\views\move.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Mapping\views\table1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Mapping\views\gps2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Mapping\views\select.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Mapping\views\select1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Mapping\views\select_none1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Mapping\views\track.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Mapping\views\ruler.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Mapping\views\map screen grey.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Mapping\views\aoi.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Mapping\views\exit.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Mapping\views\layer remove.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

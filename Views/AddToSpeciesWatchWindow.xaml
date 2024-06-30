@@ -1,0 +1,51 @@
+﻿<Window x:Class="NSAP_ODK.Views.AddToSpeciesWatchWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NSAP_ODK.Views"
+        mc:Ignorable="d"
+        Title="Select species watched by NSAP Region" Height="450" Width="460.412">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition/>
+            <RowDefinition Height="40"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="75"/>
+        </Grid.ColumnDefinitions>
+        <Label Content="List of species to add to watch" FontWeight="Bold" HorizontalAlignment="Center" Grid.ColumnSpan="2" x:Name="labelTitle"/>
+        <DataGrid x:Name="dataGrid" ItemsSource="{Binding}" Grid.Row="1" Margin="5" AutoGenerateColumns="False" LoadingRow="OnGridLoadingRow" Visibility="Collapsed"/>
+        <StackPanel x:Name="stackPanelGenusSpecies" Grid.Row="1" Visibility="Visible">
+            <WrapPanel>
+                <Label Content="Taxa" Width="150"/>
+                <ComboBox x:Name="cboTaxa" Width="200" SelectionChanged="OnComboSelectionChanged"/>
+            </WrapPanel>
+            <WrapPanel>
+                <Label Content="Genus" Width="150"/>
+                <ComboBox x:Name="cboGenus" Width="200" SelectionChanged="OnComboSelectionChanged"/>
+            </WrapPanel>
+            <WrapPanel>
+                <Label Content="Species" Width="150"/>
+                <ComboBox x:Name="cboSpecies" Width="200" SelectionChanged="OnComboSelectionChanged"/>
+            </WrapPanel>
+            <WrapPanel>
+                <Label Content="Identifier" Width="150"/>
+                <TextBox x:Name="txtIdentifier" Width="200"/>
+            </WrapPanel>
+        </StackPanel>
+        <!--<ScrollViewer HorizontalScrollBarVisibility="Disabled" Grid.Row="1">
+            <StackPanel x:Name="stackPanelSpecies" Grid.Row="1" Margin="5"/>
+        </ScrollViewer>-->
+        <StackPanel Grid.Row="1" Grid.Column="1">
+            <Button Content="Select all" Height="25" Width="60" Click="OnButtonClick" Margin="0 25" x:Name="buttonSelectAll"/>
+        </StackPanel>
+
+        <WrapPanel Grid.Row="2" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5 0" Grid.ColumnSpan="2">
+            <Button Content="Cancel" x:Name="buttonCancel" Height="25" Width="50" Margin="10 0" Click="OnButtonClick"/>
+            <Button Content="Ok" x:Name="buttonOk" Height="25" Width="50" Click="OnButtonClick"/>
+        </WrapPanel>
+    </Grid>
+</Window>

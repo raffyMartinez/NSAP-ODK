@@ -16,6 +16,11 @@ namespace NSAP_ODK.Entities.ItemSources
             ItemCollection generas = new ItemCollection();
             if (TaxaCode == "FIS")
             {
+                if (FishSpeciesViewModel.FishGenusList == null || FishSpeciesViewModel.FishGenusList.Count == 0)
+                {
+                    NSAPEntities.FishSpeciesViewModel.GetAllGenus();
+                }
+
                 if (!string.IsNullOrEmpty(SearchFishGenus))
                 {
                     var c = SearchFishGenus.ToLower().First();

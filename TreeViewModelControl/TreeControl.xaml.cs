@@ -119,6 +119,8 @@ namespace NSAP_ODK.TreeViewModelControl
                     args.NSAPRegion = ((tv_MonthViewModel)tvi)._nsapRegion;
                     args.CalendarView = CalendarView;
                     args.GUID = ((tv_MonthViewModel)tvi).GUID;
+
+                    
                     //tv_CurrentEntities.CurrentMonth = args.MonthSampled;
                     break;
 
@@ -168,6 +170,7 @@ namespace NSAP_ODK.TreeViewModelControl
                 case "contextMenuNSAPForm3":
                 case "contextMenuNSAPForm4":
                 case "contextMenuNSAPForm5":
+                case "contextMenuMapMonth":
                     args.LandingSite = ((tv_MonthViewModel)_selectedItem)._landingSite;
                     args.LandingSiteText = ((tv_MonthViewModel)_selectedItem)._landingSiteName;
                     args.FishingGround = ((tv_MonthViewModel)_selectedItem)._fishingGround;

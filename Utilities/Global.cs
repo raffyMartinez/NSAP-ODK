@@ -406,7 +406,7 @@ namespace NSAP_ODK.Utilities
         {
             HasCarrierBoatLandings = NSAPEntities.LandingSiteViewModel.LandingSiteCollection.Count(t => t.LandingSiteTypeOfSampling == "cbl") > 0;
         }
-
+        public static NSAP_ODK.Mapping.fad3MappingMode MappingMode { get; set; }
         public static string Filter2DateString()
         {
             if (Filter2 != null)
@@ -437,6 +437,7 @@ namespace NSAP_ODK.Utilities
                 return string.Empty;
             }
         }
+        
         public static string Filter1DateString()
         {
             if (Filter1 != null)

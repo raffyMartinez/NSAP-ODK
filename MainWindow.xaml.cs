@@ -26,6 +26,7 @@ using System.Diagnostics;
 using NSAP_ODK.Entities.Database.NSAPReports;
 using NSAP_ODK.Entities.CrossTabBuilder;
 using NSAP_ODK.TreeViewModelControl;
+using NSAP_ODK.Mapping.views;
 //using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace NSAP_ODK
@@ -58,6 +59,7 @@ namespace NSAP_ODK
         private CarrierLanding _carrierLandingFromCalendar;
         private int _gridCol;
         private int _gridRow;
+        private int? _calendarDay;
         private string _gearCode;
         private string _gearName;
         private string _fish_sector;
@@ -2996,6 +2998,39 @@ namespace NSAP_ODK
                     }
 
                     break;
+
+                case "menuCalendarGearMapping":
+                case "menuCalendarDayGearMapping":
+                    string calendarDayFailMessage = "";
+                    Mapping.MapWindowManager.OpenMapWindow(this);
+                    Mapping.FishingGroundPointsFromCalendarMappingManager.MapInteractionHandler = Mapping.MapWindowManager.MapInterActionHandler;
+                    Mapping.FishingGroundPointsFromCalendarMappingManager.EntitiesMonth = _allSamplingEntitiesEventHandler;
+                    Mapping.FishingGroundPointsFromCalendarMappingManager.GearName = _gearName;
+                    Mapping.FishingGroundPointsFromCalendarMappingManager.Sector = _fish_sector;
+                    Mapping.FishingGroundPointsFromCalendarMappingManager.CalendarDay = _calendarDay;
+                    if (itemName == "menuCalendarGearMapping")
+                    {
+                        if (await Mapping.FishingGroundPointsFromCalendarMappingManager.MapFishingGroundPoint(_gearName, _fish_sector) == false)
+                        {
+                            calendarDayFailMessage = "Sampled landings do not contain fishing ground data";
+                        }
+                    }
+                    else if(itemName=="menuCalendarDayGearMapping")
+                    {
+                        if (await Mapping.FishingGroundPointsFromCalendarMappingManager.MapFishingGroundPoint(_gearName, _fish_sector, _calendarDay) == false)
+                        {
+                            calendarDayFailMessage = "Sampled landings do not contain fishing ground data";
+                        }
+                    }
+                    if(!string.IsNullOrEmpty(calendarDayFailMessage))
+                    {
+                        MessageBox.Show(calendarDayFailMessage,
+                            Global.MessageBoxCaption,
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information
+                            );
+                    }
+                    break;
                 case "menuWeightValidationTally":
                 case "menuWeightValidationTally_context":
                     _wvtw = WeightValidationTallyWindow.GetInstance((List<SummaryItem>)GridNSAPData.DataContext);
@@ -4202,6 +4237,7 @@ namespace NSAP_ODK
                     break;
                 case "tv_MonthViewModel":
                     _allSamplingEntitiesEventHandler = e;
+
                     //CrossTabGenerator.GetVesselUnloads(_allSamplingEntitiesEventHandler);
                     GridNSAPData.SelectionUnit = DataGridSelectionUnit.Cell;
                     menuCalendar.Visibility = Visibility.Visible;
@@ -4278,7 +4314,7 @@ namespace NSAP_ODK
 
         private void FishingCalendarDayExViewModel_CalendarEvent(object sender, MakeCalendarEventArg e)
         {
-            switch(e.Context)
+            switch (e.Context)
             {
                 case "Fetching landing data from database":
                     mainStatusBar.Dispatcher.BeginInvoke
@@ -4400,6 +4436,7 @@ namespace NSAP_ODK
         }
         private async void OnSelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {
+            _calendarDay = null;
             DataGridCellInfo cell;
             //_monthYear = null;
             if (_monthYear == null && _treeItemData != null)
@@ -4436,6 +4473,7 @@ namespace NSAP_ODK
                         cell = GridNSAPData.SelectedCells[0];
                         _gridRow = GridNSAPData.Items.IndexOf(cell.Item);
                         _gridCol = cell.Column.DisplayIndex;
+
                         var item = GridNSAPData.Items[_gridRow] as DataRowView;
                         if (item != null)
                         {
@@ -4443,6 +4481,7 @@ namespace NSAP_ODK
 
                             _gearName = (string)item.Row.ItemArray[0];
                             _gearCode = (string)item.Row.ItemArray[1];
+                            _fish_sector = (string)item.Row.ItemArray[2];
                             _monthYear = DateTime.Parse(item.Row.ItemArray[3].ToString());
 
                             if (_gridCol == 0)
@@ -4464,6 +4503,10 @@ namespace NSAP_ODK
                             else
                             {
                                 GridNSAPData.ContextMenu = null;
+                                if (_gridCol > 3)
+                                {
+                                    _calendarDay = _gridCol - 3;
+                                }
                             }
 
 
@@ -4471,7 +4514,6 @@ namespace NSAP_ODK
                             {
 
                             }
-                            _fish_sector = (string)item.Row.ItemArray[2];
 
                             if (!string.IsNullOrEmpty(_fish_sector))
                             {
@@ -4633,12 +4675,25 @@ namespace NSAP_ODK
                 case "contextMenuNSAPForm4":
                 case "contextMenuNSAPForm5":
                     break;
+                case "contextMenuMapMonth":
+                    Mapping.MapWindowManager.OpenMapWindow(this);
+                    Mapping.FishingGroundPointsFromCalendarMappingManager.MapInteractionHandler = Mapping.MapWindowManager.MapInterActionHandler;
+                    Mapping.FishingGroundPointsFromCalendarMappingManager.EntitiesMonth = _allSamplingEntitiesEventHandler;
+                    if (await Mapping.FishingGroundPointsFromCalendarMappingManager.MapFishingGroundPoint() == false)
+                    {
+                        MessageBox.Show("Sampled landings do not contain fishing ground data",
+                            Global.MessageBoxCaption,
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information
+                            );
+                    }
+                    break;
             }
         }
 
         private void CrossTabDatasetsGenerator_CrossTabDatasetEvent(object sender, CrossTabReportEventArg e)
         {
-            switch(e.Context)
+            switch (e.Context)
             {
                 case "Creating datasets":
                     mainStatusBar.Dispatcher.BeginInvoke
@@ -5737,6 +5792,17 @@ namespace NSAP_ODK
                                         {
                                             m.IsEnabled = true;
                                             m.Header += $" for {_gearName} ({_fish_sector})";
+
+
+                                            m = new MenuItem { Header = $"Map fishing ground for {_gearName}  ({_fish_sector})", Name = "menuCalendarGearMapping" };
+                                            m.Click += OnMenuClicked;
+                                            cm.Items.Add(m);
+                                        }
+                                        else if (_gridCol > 3)
+                                        {
+                                            m = new MenuItem { Header = $"Map fishing ground for {_gearName}  ({_fish_sector}) for {((DateTime)_monthYear).ToString("MMMM")} {_calendarDay}, {((DateTime)_monthYear).ToString("yyyy")}", Name = "menuCalendarDayGearMapping" };
+                                            m.Click += OnMenuClicked;
+                                            cm.Items.Add(m);
                                         }
 
                                     }
@@ -5744,6 +5810,7 @@ namespace NSAP_ODK
                                     {
                                         m.Header += $" for landings sampled on {((DateTime)_monthYear).ToString("MMMM, yyyy")}";
                                     }
+
 
 
                                     if (_calendarTreeSelectedEntity == "tv_LandingSiteViewModel")

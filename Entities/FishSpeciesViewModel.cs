@@ -462,6 +462,7 @@ namespace NSAP_ODK.Entities
         }
         public FishSpecies GetSpecies(string species)
         {
+            //var fp = SpeciesCollection.FirstOrDefault(t => t.ToString() == species);
             return SpeciesCollection.FirstOrDefault(t => t.ToString() == species);
         }
         public List<string> GetSpeciesNameFromGenus(string genus)

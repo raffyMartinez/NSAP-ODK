@@ -30,7 +30,7 @@ namespace NSAP_ODK.Views
         private VesselUnload _vesselUnload;
         private bool _editMode;
         private string _canAddMessage;
-        public VesselUnloadEditWindow(Window parent)
+        public VesselUnloadEditWindow(Window parent, VesselUnload vu=null)
         {
             InitializeComponent();
             Closing += OnWindowClosing;
@@ -55,6 +55,7 @@ namespace NSAP_ODK.Views
                     GearUnloadWindowParent = (GearUnloadWindow)parent;
                     break;
             }
+            _vesselUnload = vu;
         }
 
         private void UnloadEditor_UndoEditVesselUnload(object sender, EventArgs e)
@@ -397,6 +398,10 @@ namespace NSAP_ODK.Views
             //if (Debugger.IsAttached)
             //{
             buttonEdit.Visibility = Visibility.Visible;
+            if(_vesselUnload!=null)
+            {
+                VesselUnload = _vesselUnload;
+            }
             //}
         }
 

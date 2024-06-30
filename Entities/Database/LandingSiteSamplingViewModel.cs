@@ -598,7 +598,10 @@ namespace NSAP_ODK.Entities.Database
                     t.SamplingDate < monthSampled.AddMonths(1).Date)
                 .ToList();
         }
-
+        public LandingSiteSampling GetLandingSiteSamling(int samplingDayID)
+        {
+            return LandingSiteSamplingCollection.FirstOrDefault(t => t.PK == samplingDayID);
+        }
         public List<LandingSiteSampling> GetLandingSiteSampling(FMA fma, FishingGround fg, LandingSite ls, DateTime samplingDate)
         {
             return LandingSiteSamplingCollection

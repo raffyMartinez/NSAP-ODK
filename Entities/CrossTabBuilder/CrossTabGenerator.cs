@@ -160,14 +160,21 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
             AddToDictionary();
         }
 
-        public static Task<bool> GenerateCrossTabTask(AllSamplingEntitiesEventHandler e)
+        public static Task<bool> GenerateCrossTabTask(AllSamplingEntitiesEventHandler e, bool generateDataset = true)
         {
-            return Task.Run(() => GenerateCrossTab(e));
+            return Task.Run(() => GenerateCrossTab(e, generateDataset));
         }
-        public static bool GenerateCrossTab(AllSamplingEntitiesEventHandler entitiesDefinition)
+        public static bool GenerateCrossTab(AllSamplingEntitiesEventHandler entitiesDefinition, bool generateDataset = true)
         {
             GetEntities(entitiesDefinition);
-            return CrossTabDatasetsGenerator.GenerateDatasets();
+            if (generateDataset)
+            {
+                return CrossTabDatasetsGenerator.GenerateDatasets();
+            }
+            else
+            {
+                return true;
+            }
         }
         public static void Clear()
         {
