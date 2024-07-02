@@ -17,6 +17,7 @@ namespace NSAP_ODK.Utilities
         public static int DefaultWeigthDiffPercent = 10;
 
         private static int? _acceptableWeightsDifferencePercent;
+
         public string MDBPath { get; set; }
         public string JSONFolder { get; set; }
 
@@ -26,7 +27,9 @@ namespace NSAP_ODK.Utilities
         public string TBL_TWSPKoboserverServerNumericID { get; set; }
         public string NSAPFishCatchMonitoringKoboserverServerNumericID { get; set; }
         public bool UsemySQL { get; set; }
-        public string FileNameFBSpeciesUpdate { get; set; }
+
+        public string PathToFBSpeciesMDB { get; set; }
+        //public string FileNameFBSpeciesUpdate { get; set; }
         public int? AcceptableWeightsDifferencePercent
         {
             get

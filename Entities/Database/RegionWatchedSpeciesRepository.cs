@@ -386,7 +386,32 @@ namespace NSAP_ODK.Entities.Database
 
         public bool Delete(int rws_id)
         {
-            return false;
+            bool success = false;
+            if(Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@id", rws_id);
+                        cmd.CommandText = "Delete * from dbo_region_watched_species where row_id=@id";
+                        con.Open();
+                        try
+                        {
+                            success = cmd.ExecuteNonQuery() > 0;
+                        }
+                        catch(Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
         }
 
         public static int MaxRecordNumber()

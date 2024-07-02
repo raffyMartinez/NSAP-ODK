@@ -73,6 +73,9 @@ namespace NSAP_ODK.Views
         public NSAPEntity NSAPEntity { get { return _nsapEntity; } }
         public bool Cancelled { get; set; } = false;
         public string PathToFBSpeciesMDB { get; set; }
+
+        public string Genus { get; set; }
+        public string Species { get; set; }
         public EditWindowEx(NSAPEntity nsapENtity, string entityID = "", object nsapObject = null)
         {
             InitializeComponent();
@@ -364,14 +367,21 @@ namespace NSAP_ODK.Views
         {
             int comboAdded = 0;
 
-
+            int? index = null;
             foreach (PropertyItem prp in PropertyGrid.Properties)
             {
                 if (prp.PropertyName == "GenericName" && _cboGenus.Items.Count == 0)
                 {
+                    
+                    int loop_count = 0;
                     foreach (var item in NSAPEntities.FBSpeciesViewModel.GetAllGenus().ToList())
                     {
                         _cboGenus.Items.Add(new KeyValuePair<string, string>(item, item));
+                        if(item==Genus)
+                        {
+                            index = loop_count;
+                        }
+                        loop_count++;
                     }
                     prp.Editor = _cboGenus;
                     _cboGenus.IsEditable = true;
@@ -394,6 +404,11 @@ namespace NSAP_ODK.Views
                     _cboSpecies.GotFocus += OncboGotFocus;
                     _cboSpecies.LostFocus += OncboLostFocus;
                     comboAdded++;
+                }
+                if (!string.IsNullOrEmpty(Genus))
+                {
+                    _cboGenus.SelectedIndex = (int)index;
+                    FillSpeciesCombo(Genus);
                 }
 
                 if (comboAdded == 2)
@@ -1070,7 +1085,8 @@ namespace NSAP_ODK.Views
                             }
                             else
                             {
-                                Global.Settings.FileNameFBSpeciesUpdate = PathToFBSpeciesMDB;
+                                //Global.Settings.FileNameFBSpeciesUpdate = PathToFBSpeciesMDB;
+                                Global.Settings.PathToFBSpeciesMDB = PathToFBSpeciesMDB;
                                 Global.SaveGlobalSettings();
                             }
                         }
@@ -1086,6 +1102,11 @@ namespace NSAP_ODK.Views
                     {
                         panelButtonsLower.Visibility = Visibility.Collapsed;
                         fishSpeciesEdit.RowNumber = NSAPEntities.FishSpeciesViewModel.NextRecordNumber;
+                        if (!string.IsNullOrEmpty(Genus) && !string.IsNullOrEmpty(Species))
+                        {
+                            fishSpeciesEdit.GenericName = Genus;
+                            fishSpeciesEdit.SpecificName = Species;
+                        }
                         //_requireUpdateToFishBase = true;
                         PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "GenericName", DisplayName = "Genus", DisplayOrder = 3, Description = "Generic name of the species" });
                         PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SpecificName", DisplayName = "Species", DisplayOrder = 4, Description = "Specific name of the species" });
@@ -1155,6 +1176,8 @@ namespace NSAP_ODK.Views
                     else
                     {
                         notFishSpeciesEdit.SpeciesID = NSAPEntities.NotFishSpeciesViewModel.NextRecordNumber;
+                        notFishSpeciesEdit.Genus = Genus;
+                        notFishSpeciesEdit.Species = Species;
                     }
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "SpeciesID", DisplayName = "Species ID", DisplayOrder = 1, Description = "Identifier used in the database" });
                     PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Genus", DisplayName = "Genus", DisplayOrder = 2, Description = "Generic name of the species" });
@@ -1685,6 +1708,10 @@ namespace NSAP_ODK.Views
                         {
                             if (prp.PropertyName == "SpecificName")
                             {
+                                if(_newGenus==null && Genus.Length>0)
+                                {
+                                    _newGenus = Genus;
+                                }
                                 _newSpecies = ((KeyValuePair<string, string>)cbo.SelectedItem).Key;
                                 prp.Value = _newSpecies;
                                 _selectedFishSpecies = NSAPEntities.FishSpeciesViewModel.GetSpecies($"{_newGenus} {_newSpecies}");
@@ -1748,9 +1775,20 @@ namespace NSAP_ODK.Views
         private void FillSpeciesCombo(string selectedGenus)
         {
             _cboSpecies.Items.Clear();
+            int loop_count = 0;
+            int? index = null;
             foreach (var item in NSAPEntities.FBSpeciesViewModel.GetSpeciesNameFromGenus(selectedGenus))
             {
                 _cboSpecies.Items.Add(new KeyValuePair<string, string>(item, item));
+                if(item==Species)
+                {
+                    index = loop_count;
+                }
+                loop_count++;
+            }
+            if (index != null)
+            {
+                _cboSpecies.SelectedIndex = (int)index;
             }
         }
 
@@ -1926,7 +1964,16 @@ namespace NSAP_ODK.Views
                         //DialogResult = true;
                         _cboGenus.SelectedItem = null;
                         _cboSpecies.SelectedItem = null;
-                        ((MainWindow)Owner).NewSpeciesEditedSuccess();
+                        string ownerName = Owner.GetType().Name;
+                        if (ownerName== "MainWindow")
+                        {
+                            ((MainWindow)Owner).NewSpeciesEditedSuccess();
+                        }
+                        else if(ownerName=="SelectionToReplaceOrpanWIndow")
+                        {
+                            DialogResult = true;
+                            return;
+                        }
                         panelForNewFishSpecies.Visibility = Visibility.Collapsed;
                         //Close();
                         MessageBox.Show(
@@ -1935,7 +1982,7 @@ namespace NSAP_ODK.Views
                             MessageBoxButton.OK,
                             MessageBoxImage.Information
                             );
-
+                        
                     }
                     break;
                 #endregion
@@ -1951,6 +1998,8 @@ namespace NSAP_ODK.Views
                     {
                         switch (_nsapEntity)
                         {
+                            case NSAPEntity.WatchedSpecies:
+                                break;
                             case NSAPEntity.LandingSite:
                                 if (sfDataGrid.SelectedItems.Count > 1)
                                 {
@@ -2047,6 +2096,26 @@ namespace NSAP_ODK.Views
                         var entitiesRepository = NSAPEntities.NSAPRegionViewModel.GetNSAPRegionWithEntitiesRepository(nsr);
                         switch (_nsapEntity)
                         {
+                            case NSAPEntity.WatchedSpecies:
+                                var ws = (RegionWatchedSpecies)sfDataGrid.SelectedItem;
+                                sd = new SelectDeleteActionDialog();
+                                if ((bool)sd.ShowDialog())
+                                {
+                                    switch (sd.DeleteAction)
+                                    {
+                                        case DeleteAction.deleteActionDelete:
+                                           if( nsr.RegionWatchedSpeciesViewModel.DeleteRecordFromRepo(ws.PK))
+                                            {
+                                                PropertyGrid.Update();
+                                                sfDataGrid.Items.Refresh();
+                                                
+                                            }
+                                            break;
+                                        case DeleteAction.deleteActionRemove:
+                                            break;
+                                    }
+                                }
+                                break;
                             case NSAPEntity.LandingSite:
                                 var fv = (Entities.Database.LandingSite_FishingVessel)sfDataGrid.SelectedItem;
                                 sd = new SelectDeleteActionDialog();
@@ -2177,6 +2246,27 @@ namespace NSAP_ODK.Views
                                 {
                                     switch (_selectedProperty)
                                     {
+                                        case "WatchedSpecies":
+                                            RegionWatchedSpecies rws = (RegionWatchedSpecies)sfDataGrid.SelectedItem;
+                                            sd = new SelectDeleteActionDialog(ignoreRemove:true);
+                                            if ((bool)sd.ShowDialog())
+                                            {
+                                                var deleteAction = sd.DeleteAction;
+                                                if (deleteAction == DeleteAction.deleteActionDelete)
+                                                {
+                                                    success = NSAPEntities.NSAPRegionViewModel.CurrentEntity.RegionWatchedSpeciesViewModel.DeleteRecordFromRepo(rws.PK);
+                                                    //if (deleteSelectedOnly && entitiesRepository.DeleteGear(regionGear.RowID))
+                                                    //{
+                                                    //    success = nsr.Gears.Remove(regionGear);
+                                                    //}
+                                                }
+                                                else if (deleteAction == DeleteAction.deleteActionRemove)
+                                                {
+                                                    //DateTime dateRemoved = DateTime.Now;
+                                                    //success = entitiesRepository.RemoveGear(regionGear, dateRemoved);
+                                                }
+                                            }
+                                            break;
                                         case "Gears":
 
                                             NSAPRegionGear regionGear = (NSAPRegionGear)sfDataGrid.SelectedItem;
@@ -2482,8 +2572,20 @@ namespace NSAP_ODK.Views
 
                                 if (success)
                                 {
+                                    string ownerName = Owner.GetType().Name;
+                                    if (ownerName == "MainWindow")
+                                    {
+                                        ((MainWindow)Owner).NewSpeciesEditedSuccess();
+                                    }
+                                    else if(ownerName=="SelectionToReplaceOrpanWIndow")
+                                    {
+                                        DialogResult = true;
+                                        return;
+                                    }
+                                    //else if(ownerName=="SelectionToReplaceOrpanWIndow")
+                                    //{
 
-                                    ((MainWindow)Owner).NewSpeciesEditedSuccess();
+                                    //}
 
                                     //FillPropertyGrid();
                                     MessageBox.Show(
@@ -3100,6 +3202,7 @@ namespace NSAP_ODK.Views
                     break;
 
                 case "buttonAdd":
+                    #region buttonAdd
                     bool addToDict = false;
                     switch (_nsapEntity)
                     {
@@ -3173,6 +3276,8 @@ namespace NSAP_ODK.Views
                                     if ((bool)asww.ShowDialog())
                                     {
                                         sfDataGrid.Items.Refresh();
+                                        ((NSAPRegionEdit)PropertyGrid.SelectedObject).Refresh();
+                                        PropertyGrid.Update();
                                     }
                                     break;
                             }
@@ -3238,7 +3343,7 @@ namespace NSAP_ODK.Views
 
                     SetUpSubFormSource();
                     break;
-
+                    #endregion
 
             }
         }

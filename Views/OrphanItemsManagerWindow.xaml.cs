@@ -570,16 +570,22 @@ namespace NSAP_ODK.Views
                             {
                                 foreach (var unload in sp.SampledLandings)
                                 {
-                                    if (unload.VesselCatchViewModel == null)
-                                    {
-                                        unload.VesselCatchViewModel = new VesselCatchViewModel(unload);
-                                    }
-                                    foreach (VesselCatch vc in unload.ListVesselCatch)
-                                    {
-                                        if (vc.SpeciesID == null)
-                                        {
+                                    var vu = NSAPEntities.SummaryItemViewModel.GetVesselUnload(unload.PK);
+                                    List<VesselCatch> list_vc = new List<VesselCatch>();
 
-                                        }
+                                    if (vu.VesselCatchViewModel == null)
+                                    {
+                                        vu.VesselCatchViewModel = new VesselCatchViewModel(unload);
+                                    }
+                                    list_vc.AddRange(vu.VesselCatchViewModel.VesselCatchCollection.ToList());
+
+
+                                    foreach (VesselCatch vc in list_vc)
+                                    {
+                                        //if (vc.SpeciesID == null)
+                                        //{
+
+                                        //}
                                         if (vc.SpeciesID == null && vc.SpeciesText != null && vc.SpeciesText.Trim(new char[] { '\n', ' ' }) == sp.Name)
                                         {
                                             if (_replacementFishSpecies != null)
@@ -593,7 +599,8 @@ namespace NSAP_ODK.Views
                                                 vc.SetTaxa(ReplacementNotFishSpecies.Taxa);
                                             }
 
-                                            if (unload.VesselCatchViewModel.UpdateRecordInRepo(vc))
+                                            if (vu.VesselCatchViewModel.UpdateRecordInRepo(vc))
+                                            //if (VesselCatchRepository.UpdateVesselCatchIdentity(vc))
                                             {
                                                 //Console.WriteLine(vc.SpeciesID);
                                                 _countReplaced++;
@@ -605,6 +612,8 @@ namespace NSAP_ODK.Views
                                             }
                                         }
                                     }
+
+
                                 }
                             }
                         }
@@ -1244,6 +1253,18 @@ namespace NSAP_ODK.Views
                         //}
                         //else
                         //{
+
+                        if (NSAPEntity == NSAPEntity.SpeciesName)
+                        {
+                            foreach (var item in dataGrid.Items)
+                            {
+                                if (((OrphanedSpeciesName)item).ForReplacement)
+                                {
+                                    checkCount++;
+                                }
+                            }
+                        }
+
                         if (checkCount == 1)
                         {
                             switch (NSAPEntity)

@@ -157,7 +157,7 @@ namespace NSAP_ODK.Views
                         NSAPRegion = NSAPRegion,
                         SpeciesID = (int)_speciesID,
                         TaxaCode = ((KeyValuePair<string, string>)cboTaxa.SelectedItem).Key,
-                        PK=RegionWatchedSpeciesRepository.MaxRecordNumber()+1
+                        PK = RegionWatchedSpeciesRepository.MaxRecordNumber() + 1
                     };
                     return NSAPRegion.RegionWatchedSpeciesViewModel.AddRecordToRepo(rws);
                 }
@@ -184,13 +184,13 @@ namespace NSAP_ODK.Views
 
                     break;
                 case "buttonOk":
-                    if (_speciesID != null)
+                    if (_getExisitingFromDB || _speciesID != null)
                     {
                         DialogResult = ProcessSpeciesForAdding();
                     }
-                    else
+                    else if (_speciesID == null)
                     {
-                        MessageBox.Show("Provide species for adding to the watch list",
+                        MessageBox.Show("Provide species for adding to the watch list\r\n\r\nMake sure all fields are not blank",
                             Utilities.Global.MessageBoxCaption,
                             MessageBoxButton.OK,
                             MessageBoxImage.Information

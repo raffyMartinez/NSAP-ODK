@@ -31,6 +31,8 @@ namespace NSAP_ODK.Views
         private OBIResponseRoot _obiResponse;
         private string _itemHit;
         private string _itemInOBIS;
+        private string _genus;
+        private string _species;
         public SelectionToReplaceOrpanWIndow()
         {
             InitializeComponent();
@@ -158,6 +160,22 @@ namespace NSAP_ODK.Views
                 txtNotFound.MouseRightButtonDown += OnRadioButtonRightMouseButtonDown;
                 panelButtons.Children.Add(txtNotFound);
 
+                if (_itemHit != null && _itemHit.Length > 0)
+                {
+                    Button buttonAddToSpeciesList = new Button
+                    {
+                        Height = 25,
+                        Width = 300,
+                        Content = $"Add {_itemHit} to species list",
+                        Margin = new Thickness(10),
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        Name = "buttonAddToSpeciesList"
+                    };
+                    buttonAddToSpeciesList.Click += onButtonClick;
+                    panelButtons.Children.Add(buttonAddToSpeciesList);
+
+                }
+
             }
 
             //speciesHyperLink.Inlines.Clear();
@@ -180,14 +198,15 @@ namespace NSAP_ODK.Views
                 }
                 else if (sender.GetType().Name == "TextBlock")
                 {
-                    if (textSearch.Text.Length > 0)
-                    {
-                        speciesToBrowse = textSearch.Text;
-                    }
-                    else
+                    if (!string.IsNullOrEmpty(_itemInOBIS))
                     {
                         speciesToBrowse = _itemInOBIS;
                     }
+                    else if (textSearch.Text.Length > 0)
+                    {
+                        speciesToBrowse = textSearch.Text;
+                    }
+
                     //_isFish = true;
 
                 }
@@ -199,6 +218,13 @@ namespace NSAP_ODK.Views
                 {
                     m = new MenuItem { Header = $"Open {speciesToBrowse} in Fishbaase", Name = "menuFishBasePage" };
                     m.Tag = $"https://www.fishbase.de/summary/{speciesToBrowse.Replace(' ', '-')}.html";
+                    m.Click += OnMenuClick;
+                    cm.Items.Add(m);
+                }
+                else
+                {
+                    m = new MenuItem { Header = $"Open {speciesToBrowse} in Sealifebase", Name = "menuSealifeBase" };
+                    m.Tag = $"https://www.sealifebase.se/summary/{speciesToBrowse.Replace(' ','-')}.html";
                     m.Click += OnMenuClick;
                     cm.Items.Add(m);
                 }
@@ -351,7 +377,7 @@ namespace NSAP_ODK.Views
                     title = "Get replacement enumerator";
                     break;
                 case Entities.NSAPEntity.FishingGear:
-                    foreach(var g in GearUnload.Parent.NSAPRegion.Gears.OrderBy(t=>t.Gear.GearName))
+                    foreach (var g in GearUnload.Parent.NSAPRegion.Gears.OrderBy(t => t.Gear.GearName))
                     {
                         var rb = new RadioButton { Content = g.Gear.GearName, Tag = g.Gear };
                         rb.Checked += OnButtonChecked;
@@ -429,8 +455,61 @@ namespace NSAP_ODK.Views
         public EntityContext EntityContext { get; set; }
         private void onButtonClick(object sender, RoutedEventArgs e)
         {
+            bool proceed = false;
             switch (((Button)sender).Name)
             {
+                case "buttonAddToSpeciesList":
+                    if (_isFish)
+                    {
+                        //MainWindow mw = (MainWindow)((OrphanItemsManagerWindow)Owner).Owner;
+                        //mw.SetNSAPEntity(NSAPEntity.FishSpecies);
+                        //mw.AddEntity(_genus, _species);
+
+                        EditWindowEx ew = new EditWindowEx(NSAPEntity.FishSpecies);
+                        ew.Genus = _genus;
+                        ew.Species = _species;
+
+                        //if (NSAPEntities.FBSpeciesViewModel == null || NSAPEntities.FBSpeciesViewModel.ErrorInGettingFishSpeciesFromExternalFile().Length > 0)
+                        if (string.IsNullOrEmpty(Global.Settings.PathToFBSpeciesMDB))
+                        {
+                            //pathToFbSpeciesMD = ;
+                            ew.PathToFBSpeciesMDB = MainWindow.GetPathToFBSpeciesMDB();
+                        }
+                        else
+                        {
+                            ew.PathToFBSpeciesMDB = Global.Settings.PathToFBSpeciesMDB;
+                        }
+                        proceed = NSAPEntities.FBSpeciesViewModel != null && NSAPEntities.FBSpeciesViewModel.Count > 0 || ew.PathToFBSpeciesMDB.Length > 0;
+
+                        if (proceed)
+                        {
+                            ew.Owner = this;
+                            if ((bool)ew.ShowDialog())
+                            {
+                                panelButtons.Children.Clear();
+                                SearchReplacements($"{_genus} {_species}");
+                            }
+                        }
+                        //if(proceed)
+                        //{
+                        //    //Global.Settings.PathToFBSpeciesMDB = ew.PathToFBSpeciesMDB;
+                        //    //Global.SaveGlobalSettings();
+                        //}
+
+                    }
+                    else
+                    {
+                        EditWindowEx edwx = new EditWindowEx(NSAPEntity.NonFishSpecies);
+                        edwx.Owner = this;
+                        edwx.Genus = _genus;
+                        edwx.Species = _species;
+                        if((bool)edwx.ShowDialog())
+                        {
+                            panelButtons.Children.Clear();
+                            SearchReplacements($"{_genus} {_species}");
+                        }
+                    }
+                    break;
                 case "buttonNotInList":
                     //Visibility = Visibility.Collapsed;
                     IsEnabled = false;
@@ -546,6 +625,7 @@ namespace NSAP_ODK.Views
 
         private async void OnRequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
         {
+            string this_class = "";
             _isFish = false;
             _itemInOBIS = "";
             _itemHit = "";
@@ -575,7 +655,13 @@ namespace NSAP_ODK.Views
                             {
                                 _itemHit = ItemToReplace;
                                 _itemInOBIS = _obiResponse.results[0].acceptedNameUsage;
-                                _isFish = _obiResponse.results[0].@class == "Actinopteri" || _obiResponse.results[0].@class == "Elasmobranchii";
+                                this_class = _obiResponse.results[0].@class;
+                                _isFish = this_class == "Actinopteri" ||
+                                    this_class == "Elasmobranchii" ||
+                                    this_class == "Teleostei";
+                                _genus = _obiResponse.results[0].genus;
+                                //_species = _obiResponse.results[0].species;
+                                _species = _obiResponse.results[0].species.Replace($"{_genus} ", "");
                                 SearchReplacements(_itemInOBIS);
                             }
                             else
@@ -594,6 +680,12 @@ namespace NSAP_ODK.Views
                                 {
                                     _itemHit = name;
                                     _itemInOBIS = _obiResponse.results[0].acceptedNameUsage;
+                                    this_class = _obiResponse.results[0].@class;
+                                    _isFish = this_class == "Actinopteri" ||
+                                        this_class == "Elasmobranchii" ||
+                                        this_class == "Teleostei";
+                                    _genus = _obiResponse.results[0].genus;
+                                    _species = _obiResponse.results[0].species.Replace($"{_genus} ", "");
                                     SearchReplacements(_itemInOBIS);
                                     //SearchReplacements(_obiResponse.results[0].acceptedNameUsage);
                                     isFound = true;

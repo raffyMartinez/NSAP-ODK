@@ -45,6 +45,45 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
+        public static bool UpdateVesselCatchIdentity(VesselCatch vc)
+        {
+            bool success = false;
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@sp_id", vc.SpeciesID);
+                        cmd.Parameters.AddWithValue("@taxa", vc.TaxaCode);
+                        cmd.Parameters.AddWithValue("@id", vc.PK);
+
+                        cmd.CommandText = @"UPDATE dbo_vessel_catch 
+                                            SET
+                                                species_id=@sp_id,
+                                                taxa=@taxa
+                                            WHERE
+                                                catch_id=@id";
+
+                        con.Open();
+                        try
+                        {
+                            success = cmd.ExecuteNonQuery() >= 0;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+
+                }
+            }
+            return success;
+        }
         public static List<VesselCatch> GetVesselCatchForCrosstab(AllSamplingEntitiesEventHandler e)
         {
             List<VesselCatch> vcs = new List<VesselCatch>();
@@ -262,7 +301,7 @@ namespace NSAP_ODK.Entities.Database
                                     UnloadType = dr["unload_type"].ToString(),
                                     WeighingUnit = dr["weighing_unit"].ToString()
                                 };
-                                if(vc.TaxaCode=="FIS")
+                                if (vc.TaxaCode == "FIS")
                                 {
                                     vc.Family = dr["Family"].ToString();
                                 }
@@ -275,7 +314,7 @@ namespace NSAP_ODK.Entities.Database
                                 vc.ListCrossTabLength = new List<CatchLengthCrossTab>();
                                 vc.ListCrossTabLengthFreq = new List<CatchLengthFreqCrossTab>();
                                 vc.ListCrossTabMaturity = new List<CatchMaturityCrossTab>();
-                                if (dr["samp_kg"] != DBNull.Value && (double)dr["samp_kg"]>0)
+                                if (dr["samp_kg"] != DBNull.Value && (double)dr["samp_kg"] > 0)
                                 {
                                     vc.Sample_kg = (double)dr["samp_kg"];
                                 }

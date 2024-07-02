@@ -1744,20 +1744,20 @@ namespace NSAP_ODK
             }
         }
 
-        private string GetPathToFBSpeciesMDB()
+        public static string GetPathToFBSpeciesMDB()
         {
             OpenFileDialog ofd = new OpenFileDialog();
             ofd.Title = "Locate Fishbase species database file (MDB)";
             ofd.DefaultExt = ".mdb";
             ofd.Filter = "Microsoft Access Database (*.mdb)|*.mdb|All files (*.*)|*.*";
-            if (Global.Settings.FileNameFBSpeciesUpdate == null)
+            if (Global.Settings.PathToFBSpeciesMDB == null)
             {
                 ofd.InitialDirectory = AppDomain.CurrentDomain.BaseDirectory;
             }
             else
             {
-                ofd.InitialDirectory = Path.GetDirectoryName(Global.Settings.FileNameFBSpeciesUpdate);
-                ofd.FileName = Global.Settings.FileNameFBSpeciesUpdate;
+                ofd.InitialDirectory = Path.GetDirectoryName(Global.Settings.PathToFBSpeciesMDB);
+                ofd.FileName = Global.Settings.PathToFBSpeciesMDB;
             }
             if ((bool)ofd.ShowDialog() && File.Exists(ofd.FileName))
             {
@@ -1765,25 +1765,40 @@ namespace NSAP_ODK
             }
             return "";
         }
-
+        public void SetNSAPEntity(NSAPEntity en)
+        {
+            _nsapEntity = en;
+        }
         public void NewSpeciesEditedSuccess()
         {
             SetDataGridSource();
         }
-        private void AddEntity()
+        public void AddEntity(string genus = "", string species = "")
         {
             //string pathToFbSpeciesMD = "";
             bool proceed = false;
 
             EditWindowEx ew = new EditWindowEx(_nsapEntity);
+            ew.Genus = genus;
+            ew.Species = species;
             if (_nsapEntity == NSAPEntity.FishSpecies)
             {
-                if (NSAPEntities.FBSpeciesViewModel == null || NSAPEntities.FBSpeciesViewModel.ErrorInGettingFishSpeciesFromExternalFile().Length > 0)
+                //if (NSAPEntities.FBSpeciesViewModel == null || NSAPEntities.FBSpeciesViewModel.ErrorInGettingFishSpeciesFromExternalFile().Length > 0)
+                if(string.IsNullOrEmpty( Global.Settings.PathToFBSpeciesMDB))
                 {
                     //pathToFbSpeciesMD = ;
                     ew.PathToFBSpeciesMDB = GetPathToFBSpeciesMDB();
                 }
+                else
+                {
+                    ew.PathToFBSpeciesMDB = Global.Settings.PathToFBSpeciesMDB;
+                }
                 proceed = NSAPEntities.FBSpeciesViewModel != null && NSAPEntities.FBSpeciesViewModel.Count > 0 || ew.PathToFBSpeciesMDB.Length > 0;
+                //if(proceed)
+                //{
+                //    //Global.Settings.PathToFBSpeciesMDB = ew.PathToFBSpeciesMDB;
+                //    //Global.SaveGlobalSettings();
+                //}
             }
             else
             {
@@ -3015,14 +3030,14 @@ namespace NSAP_ODK
                             calendarDayFailMessage = "Sampled landings do not contain fishing ground data";
                         }
                     }
-                    else if(itemName=="menuCalendarDayGearMapping")
+                    else if (itemName == "menuCalendarDayGearMapping")
                     {
                         if (await Mapping.FishingGroundPointsFromCalendarMappingManager.MapFishingGroundPoint(_gearName, _fish_sector, _calendarDay) == false)
                         {
                             calendarDayFailMessage = "Sampled landings do not contain fishing ground data";
                         }
                     }
-                    if(!string.IsNullOrEmpty(calendarDayFailMessage))
+                    if (!string.IsNullOrEmpty(calendarDayFailMessage))
                     {
                         MessageBox.Show(calendarDayFailMessage,
                             Global.MessageBoxCaption,
@@ -4236,6 +4251,10 @@ namespace NSAP_ODK
                     }
                     break;
                 case "tv_MonthViewModel":
+                    if (e.NSAPRegion.RegionWatchedSpeciesViewModel == null)
+                    {
+                        e.NSAPRegion.RegionWatchedSpeciesViewModel = new RegionWatchedSpeciesViewModel(e.NSAPRegion);
+                    }
                     _allSamplingEntitiesEventHandler = e;
 
                     //CrossTabGenerator.GetVesselUnloads(_allSamplingEntitiesEventHandler);

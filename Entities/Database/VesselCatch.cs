@@ -165,7 +165,7 @@ namespace NSAP_ODK.Entities.Database
         private VesselUnload_FishingGear _parentFishingGear;
         private CarrierLanding _parentCarrierLanding;
         private bool _fromTotalCatch;
-
+        public bool IsWatchedSpecies { get; set; }
         public double? PriceOfSpecies { get; set; }
         public string Family { get; set; }
         public string OtherPriceUnit { get; set; }

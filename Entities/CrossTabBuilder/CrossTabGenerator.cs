@@ -48,6 +48,10 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
         {
             try
             {
+                //if(EntitiesOfMonth.NSAPRegion.RegionWatchedSpeciesViewModel==null)
+                //{
+                //    EntitiesOfMonth.NSAPRegion.RegionWatchedSpeciesViewModel = new RegionWatchedSpeciesViewModel(EntitiesOfMonth.NSAPRegion);
+                //}
                 LandingSiteSamplingForCrosstabs = LandingSiteSamplingRepository.GetLandingSiteSamplingsForCrossTab(EntitiesOfMonth);
                 GearUnloads = GearUnloadRepository.GetGearUnloadsForCrosstab(EntitiesOfMonth);
                 VesselUnloads = VesselUnloadRepository.GetVesselUnloads(EntitiesOfMonth);

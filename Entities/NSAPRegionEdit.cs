@@ -36,7 +36,7 @@ namespace NSAP_ODK.Entities
         {
             IsNew = true;
         }
-
+        [ReadOnly(true)]
         public int WatchedSpecies { get; set; }
         public bool IsRegularSamplingOnly { get; set; }
 
