@@ -106,6 +106,9 @@
                 <MenuItem Header="Weight of landed catch by gear calendar" x:Name="menuWeightLandingsCalendar" IsCheckable="True" Checked="OnMenuItemChecked" />
                 <MenuItem Header="Total number of landings by day calendar" x:Name="menuTotalLandingsCalendar" IsCheckable="True" Checked="OnMenuItemChecked" />
                 <MenuItem Header="Total weight of catch landings by day calendar" x:Name="menuTotalWeightsCalendar" IsCheckable="True" Checked="OnMenuItemChecked" />
+                <Separator />
+                <MenuItem Header="Landings of watched species" x:Name="menuWatchedSpeciesLandingCalendar" IsCheckable="True" Checked="OnMenuItemChecked" />
+                <MenuItem Header="Landed weight of watched species" x:Name="menuWeightWatchedSpeciesLandingCalendar" IsCheckable="True" Checked="OnMenuItemChecked" />
                 <!--<Separator/>
                 <MenuItem Header="Daily gear landing calendar" x:Name="menuDailyGearLandingCalendar" IsCheckable="True" Checked="OnMenuItemChecked"/>-->
             </MenuItem>

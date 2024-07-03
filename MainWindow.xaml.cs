@@ -1784,7 +1784,7 @@ namespace NSAP_ODK
             if (_nsapEntity == NSAPEntity.FishSpecies)
             {
                 //if (NSAPEntities.FBSpeciesViewModel == null || NSAPEntities.FBSpeciesViewModel.ErrorInGettingFishSpeciesFromExternalFile().Length > 0)
-                if(string.IsNullOrEmpty( Global.Settings.PathToFBSpeciesMDB))
+                if (string.IsNullOrEmpty(Global.Settings.PathToFBSpeciesMDB))
                 {
                     //pathToFbSpeciesMD = ;
                     ew.PathToFBSpeciesMDB = GetPathToFBSpeciesMDB();
@@ -2425,6 +2425,8 @@ namespace NSAP_ODK
                 case "menuTotalLandingsCalendar":
                 case "menuDailyGearLandingCalendar":
                 case "menuTotalWeightsCalendar":
+                case "menuWatchedSpeciesLandingCalendar":
+                case "menuWeightWatchedSpeciesLandingCalendar":
                     if (NSAPEntities.FishingCalendarDayExViewModel.CanCreateCalendar)
                     {
                         foreach (Control mi in menuCalendar.Items)
@@ -2435,7 +2437,7 @@ namespace NSAP_ODK
                                 ((MenuItem)mi).IsChecked = false;
                             }
                         }
-
+                        bool watchedSpeciesCalendar = false;
                         switch (menuName)
                         {
                             case "menuSampledCalendar":
@@ -2457,11 +2459,20 @@ namespace NSAP_ODK
                             case "menuTotalWeightsCalendar":
                                 _calendarOption = CalendarViewType.calendarViewTypeWeightAllLandings;
                                 break;
+                            case "menuWeightWatchedSpeciesLandingCalendar":
+                                _calendarOption = CalendarViewType.calendarViewTypeWatchedSpeciesLandedWeight;
+                                watchedSpeciesCalendar = true;
+                                break;
+                            case "menuWatchedSpeciesLandingCalendar":
+                                _calendarOption = CalendarViewType.calendarViewTypeWatchedSpeciesLandings;
+                                watchedSpeciesCalendar = true;
+                                break;
                         }
                         if (!_cancelBuildCalendar)
                         {
+                            
                             NSAPEntities.FishingCalendarDayExViewModel.CalendarViewType = _calendarOption;
-                            NSAPEntities.FishingCalendarDayExViewModel.MakeCalendar();
+                            NSAPEntities.FishingCalendarDayExViewModel.MakeCalendar(isWatchedSpeciesCalendar: watchedSpeciesCalendar);
                             GridNSAPData.Columns.Clear();
                             GridNSAPData.AutoGenerateColumns = true;
                             GridNSAPData.DataContext = NSAPEntities.FishingCalendarDayExViewModel.DataTable;
@@ -2487,10 +2498,7 @@ namespace NSAP_ODK
                                     }
                                 }
                             }
-                            //labelRowCount.Content = NSAPEntities.FishingCalendarDayExViewModel.SamplingCalendarTitle;
                             SetupCalendarLabels();
-                            //SetupCalendar();//(_calendarOption);
-                            //SetupCalendarView("");
                         }
                         else
 

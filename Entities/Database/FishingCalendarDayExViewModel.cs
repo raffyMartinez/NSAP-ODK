@@ -12,7 +12,9 @@ namespace NSAP_ODK.Entities.Database
     {
         public event EventHandler<MakeCalendarEventArg> CalendarEvent;
         private List<FishingCalendarDayEx> _fishingCalendarDays;
+        private List<SpeciesCalendarDay> _speciesCalendarDays;
         private int _numberOfDays;
+        private List<SpeciesFishingGearAndSector> _speciesFishingGearAndSectors;
         private List<FishingGearAndSector> _gearsAndSectors;
         private List<int> _vesselUnloads;
         private AllSamplingEntitiesEventHandler _selectedMonth;
@@ -22,6 +24,8 @@ namespace NSAP_ODK.Entities.Database
         public double? TotalWeightLanded { get; set; }
         public double? TotalLandedCatchWeight { get; set; }
         public FishingCalendarRepository Repository { get; set; }
+
+        public Dictionary<string, List<SpeciesCalendarDay>> SpeciesCalendarDayDictionary { get; private set; } = new Dictionary<string, List<SpeciesCalendarDay>>();
         public Dictionary<string, List<FishingCalendarDayEx>> CalendarDaysDictionary { get; private set; } = new Dictionary<string, List<FishingCalendarDayEx>>();
         public Dictionary<string, List<FishingGearAndSector>> UniqueGearListDictionary { get; private set; } = new Dictionary<string, List<FishingGearAndSector>>();
         public Dictionary<string, List<int>> VesselUnloadIDsDictionary { get; private set; } = new Dictionary<string, List<int>>();
@@ -114,13 +118,14 @@ namespace NSAP_ODK.Entities.Database
                 return !sd.IsSamplingDay;
             }
         }
-        public Task MakeCalendarTask()
+        public Task MakeCalendarTask(bool isWatchedSpeciesCalendar = false)
         {
-            return Task.Run(() => MakeCalendar());
+            return Task.Run(() => MakeCalendar(isWatchedSpeciesCalendar));
         }
-        public void MakeCalendar()
+        public async void MakeCalendar(bool isWatchedSpeciesCalendar = false)
         {
             CalendarEvent?.Invoke(null, new MakeCalendarEventArg { Context = "Preparing calendar data" });
+
             CalendarHasValue = false;
             if (_fishingCalendarDays.Count == 0)
             {
@@ -135,6 +140,20 @@ namespace NSAP_ODK.Entities.Database
             _numberOfDays = DateTime.DaysInMonth(samplingMonthYear.Year, samplingMonthYear.Month);
 
             DataTable = new DataTable();
+            if (isWatchedSpeciesCalendar)
+            {
+                _speciesCalendarDays = await GetSpeciesCalendarDayForMonthTask(_selectedMonth);
+                HashSet<SpeciesFishingGearAndSector> sfgss = new HashSet<SpeciesFishingGearAndSector>();
+                foreach (var item in _speciesCalendarDays)
+                {
+                    FishingGearAndSector fgs = new FishingGearAndSector(g: item.Gear, sector_code: item.SectorCode);
+                    sfgss.Add(new SpeciesFishingGearAndSector(fgs, item.SpeciesID, item.SpeciesName, item.TaxaCode));
+                }
+                _speciesFishingGearAndSectors = sfgss.ToList();
+
+                DataTable.Columns.Add("Taxa");
+                DataTable.Columns.Add("Species");
+            }
             DataTable.Columns.Add("GearName");
             DataTable.Columns.Add("GearCode");
 
@@ -148,8 +167,64 @@ namespace NSAP_ODK.Entities.Database
                 DataTable.Columns.Add(n.ToString());
             }
 
+
             switch (CalendarViewType)
             {
+                case CalendarViewType.calendarViewTypeWatchedSpeciesLandings:
+                    foreach (var sp_gr_sec in _speciesFishingGearAndSectors.Where(t => t.FishingGearAndSector.SectorCode == "c" || t.FishingGearAndSector.SectorCode == "m").OrderBy(t => t.TaxaCode).ThenBy(t => t.SpeciesName).ThenBy(t => t.FishingGearAndSector.Gear.GearName))
+                    //foreach (var sp_gr_sec in _speciesFishingGearAndSectors)
+                    {
+                        row = DataTable.NewRow();
+                        row["Taxa"] = sp_gr_sec.Taxa;
+                        row["Species"] = sp_gr_sec.SpeciesName;
+                        row["GearName"] = sp_gr_sec.FishingGearAndSector.Gear.GearName;
+                        row["GearCode"] = sp_gr_sec.FishingGearAndSector.Gear.Code;
+                        row["Sector"] = sp_gr_sec.FishingGearAndSector.Sector;
+                        row["Month"] = samplingMonthYear.ToString("MMM-yyyy");
+                        for (int x = 1; x <= _numberOfDays; x++)
+                        {
+                            //var day = _speciesCalendarDays.FirstOrDefault(t => t.SamplingDate.Day == x && t.SpeciesID == sp_gr_sec.SpeciesID && t.Gear == sp_gr_sec.FishingGearAndSector.Gear && t.SectorCode == sp_gr_sec.FishingGearAndSector.SectorCode);
+                            var day = _speciesCalendarDays.FirstOrDefault(t => t.SamplingDate.Day == x && t.SpeciesID == sp_gr_sec.SpeciesID && t.GearCode == sp_gr_sec.FishingGearAndSector.Gear.Code && t.SectorCode == sp_gr_sec.FishingGearAndSector.SectorCode);
+                            if (day == null)
+                            {
+                                row[x.ToString()] = null;
+                            }
+                            else
+                            {
+                                CalendarHasValue = true;
+                                row[x.ToString()] = day.NumberOfLandingsOfSpecies;
+                            }
+                        }
+                        DataTable.Rows.Add(row);
+                    }
+                    break;
+                case CalendarViewType.calendarViewTypeWatchedSpeciesLandedWeight:
+                    foreach (var sp_gr_sec in _speciesFishingGearAndSectors.Where(t => t.FishingGearAndSector.SectorCode == "c" || t.FishingGearAndSector.SectorCode == "m").OrderBy(t => t.TaxaCode).ThenBy(t => t.SpeciesName).ThenBy(t => t.FishingGearAndSector.Gear.GearName))
+                    //foreach (var sp_gr_sec in _speciesFishingGearAndSectors)
+                    {
+                        row = DataTable.NewRow();
+                        row["Taxa"] = sp_gr_sec.Taxa;
+                        row["Species"] = sp_gr_sec.SpeciesName;
+                        row["GearName"] = sp_gr_sec.FishingGearAndSector.Gear.GearName;
+                        row["GearCode"] = sp_gr_sec.FishingGearAndSector.Gear.Code;
+                        row["Sector"] = sp_gr_sec.FishingGearAndSector.Sector;
+                        row["Month"] = samplingMonthYear.ToString("MMM-yyyy");
+                        for (int x = 1; x <= _numberOfDays; x++)
+                        {
+                            var day = _speciesCalendarDays.FirstOrDefault(t => t.SamplingDate.Day == x && t.SpeciesID == sp_gr_sec.SpeciesID && t.Gear == sp_gr_sec.FishingGearAndSector.Gear && t.SectorCode == sp_gr_sec.FishingGearAndSector.SectorCode);
+                            if (day == null)
+                            {
+                                row[x.ToString()] = null;
+                            }
+                            else
+                            {
+                                CalendarHasValue = true;
+                                row[x.ToString()] = day.WeightOfSpeciesLanded;
+                            }
+                        }
+                        DataTable.Rows.Add(row);
+                    }
+                    break;
                 case CalendarViewType.calendarViewTypeSampledLandings:
 
                     foreach (var gear_sector in _gearsAndSectors.Where(t => t.SectorCode == "c" || t.SectorCode == "m").OrderBy(t => t.Gear.GearName).ThenBy(t => t.SectorCode))
@@ -408,6 +483,25 @@ namespace NSAP_ODK.Entities.Database
             }
             return gu;
             //return new GearUnload();
+        }
+
+        public Task<List<SpeciesCalendarDay>> GetSpeciesCalendarDayForMonthTask(AllSamplingEntitiesEventHandler selectedMonth)
+        {
+            return Task.Run(() => GetSpeciesCalendarDayForMonth(selectedMonth));
+        }
+        public List<SpeciesCalendarDay> GetSpeciesCalendarDayForMonth(AllSamplingEntitiesEventHandler selectedMonth)
+        {
+
+            try
+            {
+                _speciesCalendarDays = SpeciesCalendarDayDictionary[selectedMonth.GUID];
+            }
+            catch
+            {
+                _speciesCalendarDays = Repository.GetWatchedSpeciesCalendarDays(selectedMonth);
+                SpeciesCalendarDayDictionary.Add(selectedMonth.GUID, _speciesCalendarDays);
+            }
+            return _speciesCalendarDays;
         }
         public async Task<List<FishingCalendarDayEx>> GetCalendarDaysForMonth(AllSamplingEntitiesEventHandler selectedMonth)
         {

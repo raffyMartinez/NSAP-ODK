@@ -17,7 +17,9 @@ namespace NSAP_ODK.Entities.Database
         calendarViewTypeWeightAllLandingsByGear,
         calendarViewTypeCountAllLandings,
         calendarViewTypeGearDailyLandings,
-        calendarViewTypeCarrierLandings
+        calendarViewTypeCarrierLandings,
+        calendarViewTypeWatchedSpeciesLandings,
+        calendarViewTypeWatchedSpeciesLandedWeight,
     }
 
 

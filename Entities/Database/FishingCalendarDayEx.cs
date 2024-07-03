@@ -9,12 +9,64 @@ using System.Threading.Tasks;
 
 namespace NSAP_ODK.Entities.Database
 {
+    public class SpeciesFishingGearAndSector
+    {
+        private Taxa _taxa;
+        public SpeciesFishingGearAndSector(FishingGearAndSector fgs, int speciesID, string speciesName, string taxaCode)
+        {
+            FishingGearAndSector = fgs;
+            SpeciesID = speciesID;
+            SpeciesName = speciesName;
+            TaxaCode = taxaCode;
+        }
+        public FishingGearAndSector FishingGearAndSector { get; set; }
+        public Taxa Taxa
+        {
+            get
+            {
+                if (_taxa == null)
+                {
+                    _taxa = NSAPEntities.TaxaViewModel.GetTaxa(TaxaCode);
+                }
+                return _taxa;
+            }
+            set
+            {
+                _taxa = value;
+            }
+        }
+        public string SpeciesName { get; set; }
+
+        public int SpeciesID { get; set; }
+        public string TaxaCode { get; set; }
+
+        public override int GetHashCode()
+        {
+            return (SpeciesID, FishingGearAndSector.Gear.Code, FishingGearAndSector.SectorCode).GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj != null && obj is SpeciesFishingGearAndSector)
+            {
+                SpeciesFishingGearAndSector sfgs = obj as SpeciesFishingGearAndSector;
+
+                return sfgs.FishingGearAndSector.Gear.Code == FishingGearAndSector.Gear.Code &&
+                    sfgs.FishingGearAndSector.SectorCode == FishingGearAndSector.SectorCode &&
+                    sfgs.SpeciesID == SpeciesID;
+            }
+            else
+            {
+                return false;
+            }
+        }
+    }
     public class FishingGearAndSector
     {
-        public FishingGearAndSector(Gear g , string sector_code)
+        public FishingGearAndSector(Gear g, string sector_code)
         {
             Gear = g;
-            SectorCode = sector_code; 
+            SectorCode = sector_code;
         }
         public Gear Gear { get; set; }
         public string SectorCode { get; set; }
@@ -62,6 +114,8 @@ namespace NSAP_ODK.Entities.Database
             }
         }
     }
+
+
     public class FishingCalendarDayEx
     {
         public DateTime SamplingDate { get; set; }
@@ -80,7 +134,7 @@ namespace NSAP_ODK.Entities.Database
             get
             {
                 string sector = "";
-                switch(SectorCode)
+                switch (SectorCode)
                 {
                     case "m":
                         sector = "Municipal";

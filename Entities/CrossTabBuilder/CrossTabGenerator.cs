@@ -228,7 +228,7 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 CatchLengthFreqCrossTabs = CatchLengthFreqCrossTabDictionary[EntitiesOfMonth.GUID];
                 CatchMaturityCrossTabs = CatchMaturityCrossTabDictionary[EntitiesOfMonth.GUID];
             }
-            catch
+            catch (Exception ex)
             {
                 GetFromRepository();
             }
@@ -255,6 +255,10 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
             if (VesselUnloadGearDictionary.Keys.Count == 0 || !VesselUnloadGearDictionary.Keys.Contains(EntitiesOfMonth.GUID))
             {
                 VesselUnloadGearDictionary.Add(EntitiesOfMonth.GUID, VesselUnload_FishingGears);
+            }
+            if (VesselUnloadGearDictionary.Keys.Count == 0 || !VesselCatchDictionary.Keys.Contains(EntitiesOfMonth.GUID))
+            {
+                VesselCatchDictionary.Add(EntitiesOfMonth.GUID, VesselCatches);
             }
             if (CatchLengthWeightCrossTabDictionary.Keys.Count == 0 || !CatchLengthWeightCrossTabDictionary.Keys.Contains(EntitiesOfMonth.GUID))
             {
