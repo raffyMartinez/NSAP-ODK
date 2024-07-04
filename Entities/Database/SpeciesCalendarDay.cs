@@ -109,5 +109,9 @@ namespace NSAP_ODK.Entities.Database
         }
         public int NumberOfLandingsOfSpecies { get; set; }
         public double WeightOfSpeciesLanded { get; set; }
+        public int CountLenFreqMeas { get; set; }
+        public int CountLenWtMeas { get; set; }
+        public int CountLenMeas { get; set; }
+        public int CountMaturityMeas { get; set; }
     }
 }

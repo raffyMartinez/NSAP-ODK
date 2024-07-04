@@ -19,10 +19,10 @@ namespace NSAP_ODK.Entities.Database
             return Task.Run(() => GetCalendarDays(selectedMonth));
         }
 
-        public List<int>GetVesselUnloadIDsOfCalendar(AllSamplingEntitiesEventHandler selectedMonth)
+        public List<int> GetVesselUnloadIDsOfCalendar(AllSamplingEntitiesEventHandler selectedMonth)
         {
             List<int> unloadIDs = new List<int>();
-            if(Global.Settings.UsemySQL)
+            if (Global.Settings.UsemySQL)
             {
 
             }
@@ -86,11 +86,28 @@ namespace NSAP_ODK.Entities.Database
             }
             return unloadIDs;
         }
-
-        public  List<SpeciesCalendarDay> GetWatchedSpeciesCalendarDays(AllSamplingEntitiesEventHandler selectedMonth)
+        public List<SpeciesCalendarDay> GetMeasuredSpeciesCalendarDays(AllSamplingEntitiesEventHandler selectedMonth, CalendarViewType viewType)
         {
-            List<SpeciesCalendarDay> speciesCalendarDays = new List<SpeciesCalendarDay>();
-            if(Global.Settings.UsemySQL)
+            string m_table = "";
+            switch (viewType)
+            {
+                case CalendarViewType.calendarViewTypeLengthFrequencyMeasurement:
+                    m_table = "dbo_catch_len_freq";
+                    break;
+                case CalendarViewType.calendarViewTypeLengthMeasurement:
+                    m_table = "dbo_catch_len";
+                    break;
+                case CalendarViewType.calendarViewTypeLengthWeightMeasurement:
+                    m_table = "dbo_catch_len_wt";
+                    break;
+                case CalendarViewType.calendarViewTypeMaturityMeasurement:
+                    m_table = "dbo_catch_maturity";
+                    break;
+                default:
+                    break;
+            }
+            List<SpeciesCalendarDay> days = new List<SpeciesCalendarDay>();
+            if (Global.Settings.UsemySQL)
             {
 
             }
@@ -98,7 +115,311 @@ namespace NSAP_ODK.Entities.Database
             {
                 using (var con = new OleDbConnection(Global.ConnectionString))
                 {
-                    using (var cmd=con.CreateCommand())
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.Add("@reg", OleDbType.VarChar).Value = selectedMonth.NSAPRegion.Code;
+                        cmd.Parameters.AddWithValue("@ls", selectedMonth.LandingSite.LandingSiteID);
+                        cmd.Parameters.AddWithValue("@fg", selectedMonth.FishingGround.Code);
+                        cmd.Parameters.AddWithValue("@fma", selectedMonth.FMA.FMAID);
+                        DateTime month_start = (DateTime)selectedMonth.MonthSampled;
+                        cmd.Parameters.AddWithValue("@start", month_start.ToString("MM/dd/yyyy"));
+                        cmd.Parameters.AddWithValue("@end", month_start.AddMonths(1).ToString("MM/dd/yyyy"));
+
+                        cmd.CommandText = $@"SELECT
+                                                dbo_LC_FG_sample_day.sdate,
+                                                dbo_gear_unload.gr_id,
+                                                dbo_vessel_unload_1.sector_code,
+                                                dbo_vessel_catch.taxa,
+                                                dbo_vessel_catch.species_id,
+                                                Count({m_table}.catch_id) AS n
+                                             FROM
+                                                ((dbo_LC_FG_sample_day INNER JOIN
+                                                (dbo_gear_unload INNER JOIN
+                                                dbo_vessel_unload ON
+                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN
+                                                dbo_vessel_unload_1 ON
+                                                dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) INNER JOIN
+                                                (dbo_vessel_catch INNER JOIN
+                                                {m_table} ON
+                                                dbo_vessel_catch.catch_id = {m_table}.catch_id) ON
+                                                dbo_vessel_unload.v_unload_id = dbo_vessel_catch.v_unload_id
+                                             WHERE
+                                                dbo_vessel_unload_1.is_multigear=False AND
+                                                dbo_LC_FG_sample_day.region_id=@reg AND
+                                                dbo_LC_FG_sample_day.land_ctr_id=@ls AND
+                                                dbo_LC_FG_sample_day.ground_id=@fg AND
+                                                dbo_LC_FG_sample_day.fma=@fma
+                                             GROUP BY
+                                                dbo_LC_FG_sample_day.sdate,
+                                                dbo_gear_unload.gr_id,
+                                                dbo_vessel_unload_1.sector_code,
+                                                dbo_vessel_catch.taxa,
+                                                dbo_vessel_catch.species_id
+                                             HAVING
+                                                dbo_LC_FG_sample_day.sdate>=@start AND
+                                                dbo_LC_FG_sample_day.sdate<@end AND
+                                                Count({m_table}.catch_id)>0
+                                             ORDER BY dbo_LC_FG_sample_day.sdate;
+
+                                             UNION ALL
+
+                                             SELECT
+                                                dbo_LC_FG_sample_day.sdate,
+                                                dbo_gear_unload.gr_id,
+                                                dbo_vessel_unload_1.sector_code,
+                                                dbo_vessel_catch.taxa,
+                                                dbo_vessel_catch.species_id,
+                                                Count({m_table}.catch_id) AS n
+                                             FROM
+                                                (((dbo_LC_FG_sample_day INNER JOIN
+                                                (dbo_gear_unload INNER JOIN
+                                                dbo_vessel_unload ON
+                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN
+                                                dbo_vessel_unload_1 ON
+                                                dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) INNER JOIN
+                                                dbo_vesselunload_fishinggear ON
+                                                dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) INNER JOIN
+                                                (dbo_vessel_catch INNER JOIN
+                                                {m_table} ON
+                                                dbo_vessel_catch.catch_id = {m_table}.catch_id) ON
+                                                dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id
+                                             WHERE
+                                                dbo_vessel_unload_1.is_multigear=True AND
+                                                dbo_LC_FG_sample_day.region_id=@reg AND
+                                                dbo_LC_FG_sample_day.land_ctr_id=@ls AND
+                                                dbo_LC_FG_sample_day.ground_id=@fg AND
+                                                dbo_LC_FG_sample_day.fma=@fma
+                                                GROUP BY
+                                                dbo_LC_FG_sample_day.sdate,
+                                                dbo_gear_unload.gr_id,
+                                                dbo_vessel_unload_1.sector_code,
+                                                dbo_vessel_catch.taxa,
+                                                dbo_vessel_catch.species_id
+                                             HAVING
+                                                dbo_LC_FG_sample_day.sdate>=@start AND
+                                                dbo_LC_FG_sample_day.sdate<@end AND
+                                                Count({m_table}.catch_id)>0";
+
+                        con.Open();
+
+                        var qryText = cmd.CommandText
+                            .Replace("@reg", $"'{selectedMonth.NSAPRegion.Code}'")
+                            .Replace("@ls", $"{selectedMonth.LandingSite.LandingSiteID}")
+                            .Replace("@fg", $"'{selectedMonth.FishingGround.Code}'")
+                            .Replace("@fma", $"{selectedMonth.FMA.FMAID}")
+                            .Replace("@start", $"#{month_start.ToString("M/d/yyyy")}#")
+                            .Replace("@end", $"#{month_start.AddMonths(1).ToString("M/d/yyyy")}#");
+                        try
+                        {
+                            var dr = cmd.ExecuteReader();
+                            while (dr.Read())
+                            {
+                                SpeciesCalendarDay scd = new SpeciesCalendarDay
+                                {
+                                    MonthViewModel = selectedMonth,
+                                    SpeciesID = (int)dr["species_id"],
+                                    TaxaCode = dr["taxa"].ToString(),
+                                    SamplingDate = (DateTime)dr["sdate"],
+                                    GearCode = dr["gr_id"].ToString(),
+                                    SectorCode = dr["sector_code"].ToString(),
+                                };
+
+                                int counts = (int)dr["n"];
+                                
+                                switch (viewType)
+                                {
+                                    case CalendarViewType.calendarViewTypeLengthFrequencyMeasurement:
+                                        scd.CountLenFreqMeas = counts;
+                                        break;
+                                    case CalendarViewType.calendarViewTypeLengthMeasurement:
+                                        scd.CountLenMeas = counts;
+                                        break;
+                                    case CalendarViewType.calendarViewTypeLengthWeightMeasurement:
+                                        scd.CountLenWtMeas = counts;
+                                        break;
+                                    case CalendarViewType.calendarViewTypeMaturityMeasurement:
+                                        scd.CountMaturityMeas = counts;
+                                        break;
+                                }
+                                days.Add(scd);
+
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return days;
+        }
+        public List<SpeciesCalendarDay> GetMeasuredWatchedSpeciesCalendarDays(AllSamplingEntitiesEventHandler selectedMonth)
+        {
+            List<SpeciesCalendarDay> speciesCalendarDays = new List<SpeciesCalendarDay>();
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.Add("@reg", OleDbType.VarChar).Value = selectedMonth.NSAPRegion.Code;
+                        cmd.Parameters.AddWithValue("@ls", selectedMonth.LandingSite.LandingSiteID);
+                        cmd.Parameters.AddWithValue("@fg", selectedMonth.FishingGround.Code);
+                        cmd.Parameters.AddWithValue("@fma", selectedMonth.FMA.FMAID);
+                        DateTime month_start = (DateTime)selectedMonth.MonthSampled;
+                        cmd.Parameters.AddWithValue("@start", month_start.ToString("MM/dd/yyyy"));
+                        cmd.Parameters.AddWithValue("@end", month_start.AddMonths(1).ToString("MM/dd/yyyy"));
+
+                        cmd.CommandText = @"SELECT
+                                                dbo_LC_FG_sample_day.sdate,
+                                                dbo_gear_unload.gr_id,
+                                                dbo_vessel_unload_1.sector_code,
+                                                dbo_vessel_catch.taxa,
+                                                dbo_vessel_catch.species_id,
+                                                Count(dbo_catch_len.catch_len_id) AS CountOfcatch_len_id,
+                                                Count(dbo_catch_len_wt.catch_len_wt_id) AS CountOfcatch_len_wt_id,
+                                                Count(dbo_catch_len_freq.catch_len_freq_id) AS CountOfcatch_len_freq_id,
+                                                Count(dbo_catch_maturity.catch_maturity_id) AS CountOfcatch_maturity_id
+                                            FROM
+                                                ((dbo_LC_FG_sample_day INNER JOIN
+                                                (dbo_gear_unload INNER JOIN
+                                                dbo_vessel_unload ON
+                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN
+                                                dbo_vessel_unload_1 ON
+                                                dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) INNER JOIN
+                                                (((((dbo_vessel_catch INNER JOIN
+                                                dbo_region_watched_species ON
+                                                dbo_vessel_catch.species_id = dbo_region_watched_species.sp_id) LEFT JOIN
+                                                dbo_catch_len_freq ON
+                                                dbo_vessel_catch.catch_id = dbo_catch_len_freq.catch_id) LEFT JOIN
+                                                dbo_catch_len_wt ON
+                                                dbo_vessel_catch.catch_id = dbo_catch_len_wt.catch_id) LEFT JOIN
+                                                dbo_catch_len ON
+                                                dbo_vessel_catch.catch_id = dbo_catch_len.catch_id) LEFT JOIN
+                                                dbo_catch_maturity ON
+                                                dbo_vessel_catch.catch_id = dbo_catch_maturity.catch_id) ON
+                                                dbo_vessel_unload.v_unload_id = dbo_vessel_catch.v_unload_id
+                                            WHERE
+                                                dbo_vessel_unload_1.is_multigear=False AND
+                                                dbo_LC_FG_sample_day.region_id=@reg AND
+                                                dbo_LC_FG_sample_day.land_ctr_id=@ls AND
+                                                dbo_LC_FG_sample_day.ground_id=@fg AND
+                                                dbo_LC_FG_sample_day.fma=@fma
+                                            GROUP BY
+                                                dbo_LC_FG_sample_day.sdate,
+                                                dbo_gear_unload.gr_id,
+                                                dbo_vessel_unload_1.sector_code,
+                                                dbo_vessel_catch.taxa,
+                                                dbo_vessel_catch.species_id
+                                            HAVING
+                                                dbo_LC_FG_sample_day.sdate>=@start AND
+                                                dbo_LC_FG_sample_day.sdate<@end
+
+                                            UNION ALL
+
+                                            SELECT
+                                                dbo_LC_FG_sample_day.sdate,
+                                                dbo_gear_unload.gr_id,
+                                                dbo_vessel_unload_1.sector_code,
+                                                dbo_vessel_catch.taxa,
+                                                dbo_vessel_catch.species_id,
+                                                Count(dbo_catch_len.catch_len_id) AS CountOfcatch_len_id,
+                                                Count(dbo_catch_len_wt.catch_len_wt_id) AS CountOfcatch_len_wt_id,
+                                                Count(dbo_catch_len_freq.catch_len_freq_id) AS CountOfcatch_len_freq_id,
+                                                Count(dbo_catch_maturity.catch_maturity_id) AS CountOfcatch_maturity_id
+                                            FROM
+                                                ((((((((dbo_LC_FG_sample_day INNER JOIN
+                                                (dbo_gear_unload INNER JOIN
+                                                dbo_vessel_unload ON
+                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN
+                                                dbo_vessel_unload_1 ON
+                                                dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) INNER JOIN
+                                                dbo_vesselunload_fishinggear ON
+                                                dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) INNER JOIN
+                                                dbo_vessel_catch ON
+                                                dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id) LEFT JOIN
+                                                dbo_catch_len ON
+                                                dbo_vessel_catch.catch_id = dbo_catch_len.catch_id) LEFT JOIN 
+                                                dbo_catch_len_wt ON
+                                                dbo_vessel_catch.catch_id = dbo_catch_len_wt.catch_id) INNER JOIN
+                                                dbo_region_watched_species ON
+                                                dbo_vessel_catch.species_id = dbo_region_watched_species.sp_id) LEFT JOIN 
+                                                dbo_catch_len_freq ON
+                                                dbo_vessel_catch.catch_id = dbo_catch_len_freq.catch_id) LEFT JOIN 
+                                                dbo_catch_maturity ON
+                                                dbo_vessel_catch.catch_id = dbo_catch_maturity.catch_id
+                                            WHERE
+                                                dbo_vessel_unload_1.is_multigear=True AND
+                                                dbo_LC_FG_sample_day.region_id=@reg AND
+                                                dbo_LC_FG_sample_day.land_ctr_id=@ls AND
+                                                dbo_LC_FG_sample_day.ground_id=@fg AND
+                                                dbo_LC_FG_sample_day.fma=@fma
+                                            GROUP BY
+                                                dbo_LC_FG_sample_day.sdate,
+                                                dbo_gear_unload.gr_id,
+                                                dbo_vessel_unload_1.sector_code,
+                                                dbo_vessel_catch.taxa,
+                                                dbo_vessel_catch.species_id
+                                            HAVING
+                                                dbo_LC_FG_sample_day.sdate>=@start AND
+                                                dbo_LC_FG_sample_day.sdate<@end";
+
+                        con.Open();
+                        try
+                        {
+                            var dr = cmd.ExecuteReader();
+                            while (dr.Read())
+                            {
+                                SpeciesCalendarDay scd = new SpeciesCalendarDay
+                                {
+                                    MonthViewModel = selectedMonth,
+                                    SpeciesID = (int)dr["species_id"],
+                                    TaxaCode = dr["taxa"].ToString(),
+                                    SamplingDate = (DateTime)dr["sdate"],
+                                    GearCode = dr["gr_id"].ToString(),
+                                    SectorCode = dr["sector_code"].ToString(),
+                                    CountLenFreqMeas = (int)dr["CountOfcatch_len_freq_id"],
+                                    CountLenMeas = (int)dr["CountOfcatch_len_id"],
+                                    CountLenWtMeas = (int)dr["CountOfcatch_len_wt_id"],
+                                    CountMaturityMeas = (int)dr["CountOfcatch_maturity_id"],
+                                };
+                                if (scd.CountLenFreqMeas + scd.CountLenMeas + scd.CountLenWtMeas + scd.CountMaturityMeas > 0)
+                                {
+                                    speciesCalendarDays.Add(scd);
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return speciesCalendarDays;
+        }
+
+        public List<SpeciesCalendarDay> GetWatchedSpeciesCalendarDays(AllSamplingEntitiesEventHandler selectedMonth)
+        {
+            List<SpeciesCalendarDay> speciesCalendarDays = new List<SpeciesCalendarDay>();
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
                     {
                         cmd.Parameters.Add("@nsapRegion", OleDbType.VarChar).Value = selectedMonth.NSAPRegion.Code;
                         cmd.Parameters.AddWithValue("@landing_site", selectedMonth.LandingSite.LandingSiteID);
@@ -142,8 +463,8 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_vessel_catch.taxa,
                                                 dbo_vessel_catch.species_id
                                              HAVING
-                                                dbo_LC_FG_sample_day.sdate > @month_start AND
-                                                dbo_LC_FG_sample_day.sdate <= @month_end
+                                                dbo_LC_FG_sample_day.sdate >= @month_start AND
+                                                dbo_LC_FG_sample_day.sdate < @month_end
 
                                              UNION ALL
 
@@ -183,14 +504,14 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_vessel_catch.taxa,
                                                 dbo_vessel_catch.species_id
                                              HAVING
-                                                dbo_LC_FG_sample_day.sdate > @month_start AND
-                                                dbo_LC_FG_sample_day.sdate <= @month_end";
+                                                dbo_LC_FG_sample_day.sdate >= @month_start AND
+                                                dbo_LC_FG_sample_day.sdate < @month_end";
 
                         con.Open();
                         try
                         {
                             var dr = cmd.ExecuteReader();
-                            while(dr.Read())
+                            while (dr.Read())
                             {
                                 SpeciesCalendarDay scd = new SpeciesCalendarDay
                                 {
@@ -200,13 +521,13 @@ namespace NSAP_ODK.Entities.Database
                                     SamplingDate = (DateTime)dr["sdate"],
                                     NumberOfLandingsOfSpecies = (int)dr["CountOfv_unload_id"],
                                     WeightOfSpeciesLanded = (double)dr["SumOfcatch_kg"],
-                                    GearCode =  dr["gr_id"].ToString(),
+                                    GearCode = dr["gr_id"].ToString(),
                                     SectorCode = dr["sector_code"].ToString()
                                 };
                                 speciesCalendarDays.Add(scd);
                             }
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             Logger.Log(ex);
                         }
@@ -289,7 +610,7 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_LC_FG_sample_day.type_of_sampling=@sampling_type AND 
                                                 dbo_LC_FG_sample_day.sdate>=@month_start AND 
                                                 dbo_LC_FG_sample_day.sdate<@month_end";
-                                                //AND dbo_gear_unload.gr_id Is Not Null";
+                        //AND dbo_gear_unload.gr_id Is Not Null";
                         try
                         {
                             con.Open();
@@ -340,7 +661,7 @@ namespace NSAP_ODK.Entities.Database
                                                 UniqueGearSectorList.Add(fgs);
                                             }
                                         }
-                                        if (reader["number_landings"]!=DBNull.Value)
+                                        if (reader["number_landings"] != DBNull.Value)
                                         {
                                             day.TotalNumberOfLandings = (int)reader["number_landings"];
                                         }
@@ -348,10 +669,10 @@ namespace NSAP_ODK.Entities.Database
                                         {
                                             day.TotalNumberOfLandingsSampled = (int)reader["number_landings_sampled"];
                                         }
-                                        
-                                        
+
+
                                     }
-                                    if(day.TotalWeightCommercialLandings==0 && day.TotalWeightMunicipalLandings==0 && day.TotalWeightOfCatch>0)
+                                    if (day.TotalWeightCommercialLandings == 0 && day.TotalWeightMunicipalLandings == 0 && day.TotalWeightOfCatch > 0)
                                     {
                                         day.TotalWeightCommercialLandings = null;
                                         day.TotalWeightMunicipalLandings = null;

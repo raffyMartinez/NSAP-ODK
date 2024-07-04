@@ -2318,7 +2318,7 @@ namespace NSAP_ODK
             menuDummy.IsChecked = true;
             menuDatabaseSummary.IsChecked = true;
         }
-        private void OnMenuItemChecked(object sender, RoutedEventArgs e)
+        private async void OnMenuItemChecked(object sender, RoutedEventArgs e)
         {
             buttonImport.Visibility = Visibility.Collapsed;
             buttonOrphan.Visibility = Visibility.Collapsed;
@@ -2427,6 +2427,10 @@ namespace NSAP_ODK
                 case "menuTotalWeightsCalendar":
                 case "menuWatchedSpeciesLandingCalendar":
                 case "menuWeightWatchedSpeciesLandingCalendar":
+                case "menuNumberLenMeas":
+                case "menuNumberLenWtMeas":
+                case "menuNumberLenFreqMeas":
+                case "menuNumberMaturityMeas":
                     if (NSAPEntities.FishingCalendarDayExViewModel.CanCreateCalendar)
                     {
                         foreach (Control mi in menuCalendar.Items)
@@ -2467,38 +2471,60 @@ namespace NSAP_ODK
                                 _calendarOption = CalendarViewType.calendarViewTypeWatchedSpeciesLandings;
                                 watchedSpeciesCalendar = true;
                                 break;
+                            case "menuNumberLenMeas":
+                                _calendarOption = CalendarViewType.calendarViewTypeLengthMeasurement;
+                                watchedSpeciesCalendar = true;
+                                break;
+                            case "menuNumberLenWtMeas":
+                                _calendarOption = CalendarViewType.calendarViewTypeLengthWeightMeasurement;
+                                watchedSpeciesCalendar = true;
+                                break;
+                            case "menuNumberLenFreqMeas":
+                                _calendarOption = CalendarViewType.calendarViewTypeLengthFrequencyMeasurement;
+                                watchedSpeciesCalendar = true;
+                                break;
+                            case "menuNumberMaturityMeas":
+                                _calendarOption = CalendarViewType.calendarViewTypeMaturityMeasurement;
+                                watchedSpeciesCalendar = true;
+                                break;
                         }
                         if (!_cancelBuildCalendar)
                         {
                             
                             NSAPEntities.FishingCalendarDayExViewModel.CalendarViewType = _calendarOption;
-                            NSAPEntities.FishingCalendarDayExViewModel.MakeCalendar(isWatchedSpeciesCalendar: watchedSpeciesCalendar);
-                            GridNSAPData.Columns.Clear();
-                            GridNSAPData.AutoGenerateColumns = true;
-                            GridNSAPData.DataContext = NSAPEntities.FishingCalendarDayExViewModel.DataTable;
-                            if (!NSAPEntities.FishingCalendarDayExViewModel.CalendarHasValue)
+                            //NSAPEntities.FishingCalendarDayExViewModel.MakeCalendar(isWatchedSpeciesCalendar: watchedSpeciesCalendar);
+                            //await NSAPEntities.FishingCalendarDayExViewModel.MakeCalendarTask(isWatchedSpeciesCalendar: watchedSpeciesCalendar);
+                            if (await NSAPEntities.FishingCalendarDayExViewModel.MakeCalendar(isWatchedSpeciesCalendar: watchedSpeciesCalendar))
                             {
-                                GridNSAPData.Visibility = Visibility.Collapsed;
-                            }
-                            else
-                            {
-                                GridNSAPData.Visibility = Visibility.Visible;
-                            }
 
-                            _hasNonSamplingDayColumns = false;
-                            foreach (DataGridColumn c in GridNSAPData.Columns)
-                            {
-                                if (int.TryParse(c.Header.ToString(), out int v))
+
+                                GridNSAPData.Columns.Clear();
+                                GridNSAPData.AutoGenerateColumns = true;
+                                GridNSAPData.DataContext = NSAPEntities.FishingCalendarDayExViewModel.DataTable;
+                                if (!NSAPEntities.FishingCalendarDayExViewModel.CalendarHasValue)
                                 {
-                                    if (NSAPEntities.FishingCalendarDayExViewModel.DayIsRestDay(v))
+                                    GridNSAPData.Visibility = Visibility.Collapsed;
+                                }
+                                else
+                                {
+                                    GridNSAPData.Visibility = Visibility.Visible;
+                                }
+
+                                _hasNonSamplingDayColumns = false;
+                                foreach (DataGridColumn c in GridNSAPData.Columns)
+                                {
+                                    if (int.TryParse(c.Header.ToString(), out int v))
                                     {
-                                        _hasNonSamplingDayColumns = true;
-                                        c.CellStyle = new Style(typeof(DataGridCell));
-                                        c.CellStyle.Setters.Add(new Setter(DataGridCell.BackgroundProperty, new SolidColorBrush(Colors.LightBlue)));
+                                        if (NSAPEntities.FishingCalendarDayExViewModel.DayIsRestDay(v))
+                                        {
+                                            _hasNonSamplingDayColumns = true;
+                                            c.CellStyle = new Style(typeof(DataGridCell));
+                                            c.CellStyle.Setters.Add(new Setter(DataGridCell.BackgroundProperty, new SolidColorBrush(Colors.LightBlue)));
+                                        }
                                     }
                                 }
+                                SetupCalendarLabels();
                             }
-                            SetupCalendarLabels();
                         }
                         else
 
