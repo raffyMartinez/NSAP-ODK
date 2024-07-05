@@ -2206,25 +2206,44 @@ namespace NSAP_ODK
         public void SetupCalendarLabels()
         {
             //_calendarOption = _allSamplingEntitiesEventHandler.CalendarView;
+            string monthOfSampling = ((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).ToString("MMM-yyyy");
             switch (_calendarOption)
             {
                 case CalendarViewType.calendarViewTypeSampledLandings:
-                    MonthLabel.Content = $"Calendar of sampled/monitored landings per gear for {((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).ToString("MMMM-yyyy")}";
+                    MonthLabel.Content = $"Calendar of sampled/monitored landings per gear for {monthOfSampling}";
                     break;
                 case CalendarViewType.calendarViewTypeCountAllLandingsByGear:
-                    MonthLabel.Content = $"Calendar of number of boats landing per gear for {((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).ToString("MMMM-yyyy")}";
+                    MonthLabel.Content = $"Calendar of number of boats landing per gear for {monthOfSampling}";
                     break;
                 case CalendarViewType.calendarViewTypeWeightAllLandingsByGear:
-                    MonthLabel.Content = $"Calendar of weight of catch per gear for {((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).ToString("MMMM-yyyy")}";
+                    MonthLabel.Content = $"Calendar of weight of catch per gear for {monthOfSampling}";
                     break;
                 case CalendarViewType.calendarViewTypeCountAllLandings:
-                    MonthLabel.Content = $"Calendar of total number of landings per day for {((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).ToString("MMMM-yyyy")}";
+                    MonthLabel.Content = $"Calendar of total number of landings per day for {monthOfSampling}";
                     break;
                 case CalendarViewType.calendarViewTypeGearDailyLandings:
-                    MonthLabel.Content = $"Calendar of daily landings per gear per day for {((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).ToString("MMMM-yyyy")}";
+                    MonthLabel.Content = $"Calendar of daily landings per gear per day for {monthOfSampling}";
                     break;
                 case CalendarViewType.calendarViewTypeWeightAllLandings:
-                    MonthLabel.Content = $"Calendar of total weight of landings per day for {((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).ToString("MMMM-yyyy")}";
+                    MonthLabel.Content = $"Calendar of total weight of landings per day for {monthOfSampling}";
+                    break;
+                case CalendarViewType.calendarViewTypeWatchedSpeciesLandings:
+                    MonthLabel.Content = $"Calendar of number of landings of watched species per day for {monthOfSampling}";
+                    break;
+                case CalendarViewType.calendarViewTypeWatchedSpeciesLandedWeight:
+                    MonthLabel.Content = $"Calendar of landed weight of watched species per day for {monthOfSampling}";
+                    break;
+                case CalendarViewType.calendarViewTypeLengthFrequencyMeasurement:
+                    MonthLabel.Content = $"Calendar of number of length frequency measurements of watched species per day for {monthOfSampling}";
+                    break;
+                case CalendarViewType.calendarViewTypeLengthMeasurement:
+                    MonthLabel.Content = $"Calendar of number of length measurements of watched species per day for {monthOfSampling}";
+                    break;
+                case CalendarViewType.calendarViewTypeLengthWeightMeasurement:
+                    MonthLabel.Content = $"Calendar of number of length weight measurements of watched species per day for {monthOfSampling}";
+                    break;
+                case CalendarViewType.calendarViewTypeMaturityMeasurement:
+                    MonthLabel.Content = $"Calendar of number of maturity measurements (length, weight, sex, maturity stage) of watched species per day for {monthOfSampling}";
                     break;
             }
             labelRowCount.Content = NSAPEntities.FishingCalendarDayExViewModel.SamplingCalendarTitle;
@@ -2524,6 +2543,16 @@ namespace NSAP_ODK
                                     }
                                 }
                                 SetupCalendarLabels();
+                                if(!NSAPEntities.FishingCalendarDayExViewModel.CalendarHasValue)
+                                {
+                                    
+                                    TimedMessageBox.Show("No data for buidling calendar",
+                                        Global.MessageBoxCaption,
+                                        timeout:2000,
+                                        System.Windows.Forms.MessageBoxButtons.OK
+                                        
+                                        );
+                                }
                             }
                         }
                         else

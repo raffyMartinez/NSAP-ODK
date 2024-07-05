@@ -204,13 +204,13 @@ namespace NSAP_ODK.Entities.Database
 
                         con.Open();
 
-                        var qryText = cmd.CommandText
-                            .Replace("@reg", $"'{selectedMonth.NSAPRegion.Code}'")
-                            .Replace("@ls", $"{selectedMonth.LandingSite.LandingSiteID}")
-                            .Replace("@fg", $"'{selectedMonth.FishingGround.Code}'")
-                            .Replace("@fma", $"{selectedMonth.FMA.FMAID}")
-                            .Replace("@start", $"#{month_start.ToString("M/d/yyyy")}#")
-                            .Replace("@end", $"#{month_start.AddMonths(1).ToString("M/d/yyyy")}#");
+                        //var qryText = cmd.CommandText
+                            //.Replace("@reg", $"'{selectedMonth.NSAPRegion.Code}'")
+                            //.Replace("@ls", $"{selectedMonth.LandingSite.LandingSiteID}")
+                            //.Replace("@fg", $"'{selectedMonth.FishingGround.Code}'")
+                            //.Replace("@fma", $"{selectedMonth.FMA.FMAID}")
+                            //.Replace("@start", $"#{month_start.ToString("M/d/yyyy")}#")
+                            //.Replace("@end", $"#{month_start.AddMonths(1).ToString("M/d/yyyy")}#");
                         try
                         {
                             var dr = cmd.ExecuteReader();

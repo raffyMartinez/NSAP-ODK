@@ -10,8 +10,10 @@ namespace NSAP_ODK.Entities.Database
 {
     public class FishingCalendarDayExViewModel
     {
+        
         public event EventHandler<MakeCalendarEventArg> CalendarEvent;
         private List<FishingCalendarDayEx> _fishingCalendarDays;
+        private bool _isWatchedSpeciesCalendar;
         private List<SpeciesCalendarDay> _speciesCalendarDays;
         private List<SpeciesCalendarDay> _speciesMeasurementCalendarDays;
         private int _numberOfDays;
@@ -22,6 +24,8 @@ namespace NSAP_ODK.Entities.Database
         private AllSamplingEntitiesEventHandler _selectedMonth;
         public CalendarViewType CalendarViewType { get; set; }
         public int TotalVesselUnloadCount { get; set; }
+
+        public int? TotalMeasurementCount { get; set; }
         public int? TotalLandingCount { get; set; }
         public double? TotalWeightLanded { get; set; }
         public double? TotalLandedCatchWeight { get; set; }
@@ -67,27 +71,85 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
         }
+        
         public string SamplingCalendarTitle
         {
             get
             {
+                int rows = 0;
                 string labelCountWeight = "";
                 switch (CalendarViewType)
                 {
                     case CalendarViewType.calendarViewTypeSampledLandings:
                         labelCountWeight = $"Total sampled landings: {TotalVesselUnloadCount}";
+                        rows = _gearsAndSectors.Where(t => t.Sector != "Other").Count();
                         break;
                     case CalendarViewType.calendarViewTypeCountAllLandingsByGear:
                         labelCountWeight = $"Total number of landings by gear and sector: {TotalLandingCount}";
+                        rows = _gearsAndSectors.Where(t => t.Sector != "Other").Count();
                         break;
                     case CalendarViewType.calendarViewTypeWeightAllLandingsByGear:
                         labelCountWeight = $"Total weight of catch of landings by gear and sector: {TotalLandedCatchWeight}";
+                        rows = _gearsAndSectors.Where(t => t.Sector != "Other").Count();
                         break;
                     case CalendarViewType.calendarViewTypeCountAllLandings:
                         labelCountWeight = $"Total number of landings for all gears and sectors: {TotalLandingCount}";
+                        rows = _gearsAndSectors.Where(t => t.Sector != "Other").Count();
                         break;
                     case CalendarViewType.calendarViewTypeWeightAllLandings:
                         labelCountWeight = $"Total weight of catch of landings for all gears and sectors: {TotalWeightLanded}";
+                        break;
+                    case CalendarViewType.calendarViewTypeWatchedSpeciesLandedWeight:
+                        rows = _speciesFishingGearAndSectors.Count();
+                        labelCountWeight = $"Total weight of watched species of landings for all gears and sectors: {((double)TotalWeightLanded).ToString("N2")}";
+                        break;
+                    case CalendarViewType.calendarViewTypeWatchedSpeciesLandings:
+                        //labelCountWeight = $"Total weight of watched species of landings for all gears and sectors: {TotalWeightLanded}";
+                        rows = _speciesFishingGearAndSectors.Count();
+                        break;
+                    case CalendarViewType.calendarViewTypeLengthMeasurement:
+                        if(CalendarHasValue)
+                        {
+                            labelCountWeight = $"Number of length measurements: {TotalMeasurementCount}"; 
+                        }
+                        else
+                        {
+                            labelCountWeight = "No length measurements were done";
+                        }
+                        rows = _measured_speciesFishingGearAndSectors.Count();
+                        break;
+                    case CalendarViewType.calendarViewTypeLengthWeightMeasurement:
+                        if (CalendarHasValue)
+                        {
+                            labelCountWeight = $"Number of length weight measurements: {TotalMeasurementCount}"; 
+                        }
+                        else
+                        {
+                            labelCountWeight = "No length weight measurements were done";
+                        }
+                        rows = _measured_speciesFishingGearAndSectors.Count();
+                        break;
+                    case CalendarViewType.calendarViewTypeLengthFrequencyMeasurement:
+                        if (CalendarHasValue)
+                        {
+                            labelCountWeight = $"Number of length frequency measurements: {TotalMeasurementCount}"; 
+                        }
+                        else
+                        {
+                            labelCountWeight = "No length frequency measurements were done";
+                        }
+                        rows = _measured_speciesFishingGearAndSectors.Count();
+                        break;
+                    case CalendarViewType.calendarViewTypeMaturityMeasurement:
+                        if (CalendarHasValue)
+                        {
+                            labelCountWeight = $"Number of maturity measurements (length, weight, sex, and maturity stage): {TotalMeasurementCount}"; 
+                        }
+                        else
+                        {
+                            labelCountWeight = "No maturity measurements (length, weight, sex, and maturity stage) were done";
+                        }
+                        rows = _measured_speciesFishingGearAndSectors.Count();
                         break;
                 }
                 string restDayIndicator = "";
@@ -95,14 +157,22 @@ namespace NSAP_ODK.Entities.Database
                 {
                     restDayIndicator = "(Blue columns represent rest day)";
                 }
-                var label = $"Rows: {_gearsAndSectors.Where(t => t.Sector != "Other").Count()}, {labelCountWeight} {restDayIndicator}";
+                //var label = $"Rows: {_gearsAndSectors.Where(t => t.Sector != "Other").Count()}, {labelCountWeight} {restDayIndicator}";
                 if (CalendarHasValue)
                 {
-                    return $"Rows: {_gearsAndSectors.Where(t => t.Sector != "Other").Count()}, {labelCountWeight} {restDayIndicator}";
+                    //return $"Rows: {_gearsAndSectors.Where(t => t.Sector != "Other").Count()}, {labelCountWeight} {restDayIndicator}";
+                    return $"Rows: {rows}, {labelCountWeight} {restDayIndicator}";
                 }
                 else
                 {
-                    return "The version of the electronic form cannot display the information requested";
+                    if (_isWatchedSpeciesCalendar)
+                    {
+                        return $"{labelCountWeight}";
+                    }
+                    else
+                    {
+                        return "The version of the electronic form cannot display the information requested";
+                    }
                 }
 
             }
@@ -128,6 +198,7 @@ namespace NSAP_ODK.Entities.Database
         //public async void MakeCalendar(bool isWatchedSpeciesCalendar = false)
         public async Task<bool> MakeCalendar(bool isWatchedSpeciesCalendar = false)
         {
+            _isWatchedSpeciesCalendar = isWatchedSpeciesCalendar;
             CalendarEvent?.Invoke(null, new MakeCalendarEventArg { Context = "Preparing calendar data" });
 
             CalendarHasValue = false;
@@ -197,8 +268,8 @@ namespace NSAP_ODK.Entities.Database
                 case CalendarViewType.calendarViewTypeLengthMeasurement:
                 case CalendarViewType.calendarViewTypeLengthWeightMeasurement:
                 case CalendarViewType.calendarViewTypeMaturityMeasurement:
+                    TotalMeasurementCount = 0;
                     foreach (var msp_gr_sec in _measured_speciesFishingGearAndSectors.Where(t => t.FishingGearAndSector.SectorCode == "c" || t.FishingGearAndSector.SectorCode == "m").OrderBy(t => t.TaxaCode).ThenBy(t => t.SpeciesName).ThenBy(t => t.FishingGearAndSector.Gear.GearName))
-                    //foreach (var sp_gr_sec in _speciesFishingGearAndSectors)
                     {
                         row = DataTable.NewRow();
                         row["Taxa"] = msp_gr_sec.Taxa;
@@ -209,7 +280,6 @@ namespace NSAP_ODK.Entities.Database
                         row["Month"] = samplingMonthYear.ToString("MMM-yyyy");
                         for (int x = 1; x <= _numberOfDays; x++)
                         {
-                            //var day = _speciesCalendarDays.FirstOrDefault(t => t.SamplingDate.Day == x && t.SpeciesID == sp_gr_sec.SpeciesID && t.Gear == sp_gr_sec.FishingGearAndSector.Gear && t.SectorCode == sp_gr_sec.FishingGearAndSector.SectorCode);
                             var day = _speciesMeasurementCalendarDays.FirstOrDefault(t => t.SamplingDate.Day == x && t.SpeciesID == msp_gr_sec.SpeciesID && t.GearCode == msp_gr_sec.FishingGearAndSector.Gear.Code && t.SectorCode == msp_gr_sec.FishingGearAndSector.SectorCode);
                             if (day == null)
                             {
@@ -228,6 +298,7 @@ namespace NSAP_ODK.Entities.Database
                                         else
                                         {
                                             row[x.ToString()] = day.CountLenFreqMeas;
+                                            TotalMeasurementCount += day.CountLenFreqMeas;
                                         }
                                         break;
                                     case CalendarViewType.calendarViewTypeLengthMeasurement:
@@ -238,6 +309,7 @@ namespace NSAP_ODK.Entities.Database
                                         else
                                         {
                                             row[x.ToString()] = day.CountLenMeas;
+                                            TotalMeasurementCount += day.CountLenMeas;
                                         }
                                         break;
                                     case CalendarViewType.calendarViewTypeLengthWeightMeasurement:
@@ -248,6 +320,7 @@ namespace NSAP_ODK.Entities.Database
                                         else
                                         {
                                             row[x.ToString()] = day.CountLenWtMeas;
+                                            TotalMeasurementCount += day.CountLenWtMeas;
                                         }
                                         break;
                                     case CalendarViewType.calendarViewTypeMaturityMeasurement:
@@ -258,6 +331,7 @@ namespace NSAP_ODK.Entities.Database
                                         else
                                         {
                                             row[x.ToString()] = day.CountMaturityMeas;
+                                            TotalMeasurementCount += day.CountMaturityMeas;
                                         }
                                         break;
                                 }
@@ -270,7 +344,6 @@ namespace NSAP_ODK.Entities.Database
 
                 case CalendarViewType.calendarViewTypeWatchedSpeciesLandings:
                     foreach (var sp_gr_sec in _speciesFishingGearAndSectors.Where(t => t.FishingGearAndSector.SectorCode == "c" || t.FishingGearAndSector.SectorCode == "m").OrderBy(t => t.TaxaCode).ThenBy(t => t.SpeciesName).ThenBy(t => t.FishingGearAndSector.Gear.GearName))
-                    //foreach (var sp_gr_sec in _speciesFishingGearAndSectors)
                     {
                         row = DataTable.NewRow();
                         row["Taxa"] = sp_gr_sec.Taxa;
@@ -281,7 +354,6 @@ namespace NSAP_ODK.Entities.Database
                         row["Month"] = samplingMonthYear.ToString("MMM-yyyy");
                         for (int x = 1; x <= _numberOfDays; x++)
                         {
-                            //var day = _speciesCalendarDays.FirstOrDefault(t => t.SamplingDate.Day == x && t.SpeciesID == sp_gr_sec.SpeciesID && t.Gear == sp_gr_sec.FishingGearAndSector.Gear && t.SectorCode == sp_gr_sec.FishingGearAndSector.SectorCode);
                             var day = _speciesCalendarDays.FirstOrDefault(t => t.SamplingDate.Day == x && t.SpeciesID == sp_gr_sec.SpeciesID && t.GearCode == sp_gr_sec.FishingGearAndSector.Gear.Code && t.SectorCode == sp_gr_sec.FishingGearAndSector.SectorCode);
                             if (day == null)
                             {
@@ -297,8 +369,8 @@ namespace NSAP_ODK.Entities.Database
                     }
                     break;
                 case CalendarViewType.calendarViewTypeWatchedSpeciesLandedWeight:
+                    TotalWeightLanded = null;
                     foreach (var sp_gr_sec in _speciesFishingGearAndSectors.Where(t => t.FishingGearAndSector.SectorCode == "c" || t.FishingGearAndSector.SectorCode == "m").OrderBy(t => t.TaxaCode).ThenBy(t => t.SpeciesName).ThenBy(t => t.FishingGearAndSector.Gear.GearName))
-                    //foreach (var sp_gr_sec in _speciesFishingGearAndSectors)
                     {
                         row = DataTable.NewRow();
                         row["Taxa"] = sp_gr_sec.Taxa;
@@ -318,6 +390,7 @@ namespace NSAP_ODK.Entities.Database
                             {
                                 CalendarHasValue = true;
                                 row[x.ToString()] = day.WeightOfSpeciesLanded;
+                                TotalWeightLanded = (TotalWeightLanded??0) + day.WeightOfSpeciesLanded;
                             }
                         }
                         DataTable.Rows.Add(row);
@@ -490,7 +563,6 @@ namespace NSAP_ODK.Entities.Database
 
                     for (int x = 1; x <= _numberOfDays; x++)
                     {
-                        //row[x.ToString()] = "-";
                         double? weight_catch = null;
                         var day_gears = _fishingCalendarDays.Where(t => t.SamplingDate.Day == x).ToList();
                         foreach (var d in day_gears)
@@ -535,10 +607,6 @@ namespace NSAP_ODK.Entities.Database
             get
             {
                 HashSet<LandingSiteSampling> llss = new HashSet<LandingSiteSampling>();
-                //foreach (var fcd in _fishingCalendarDays.GroupBy(t => t.GearUnload.PK))
-                //{
-                //    llss.Add(fcd.First().GearUnload.Parent);
-                //}
                 foreach (var fcd in _fishingCalendarDays)
                 {
                     var parent = fcd.GearUnload.Parent;
@@ -563,7 +631,6 @@ namespace NSAP_ODK.Entities.Database
         }
         public GearUnload GetGearUnload(string gearName, string sector, int day, CalendarViewType calendarView)
         {
-            //var l = _fishingCalendarDays.Where(t => t.Gear != null && t.Gear.GearName == gearName && t.Sector == sector && t.SamplingDate.Day == day).ToList();
             GearUnload gu = null;
             if (calendarView == CalendarViewType.calendarViewTypeCountAllLandings)
             {
