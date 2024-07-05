@@ -43,7 +43,7 @@ namespace NSAP_ODK.Views
         private GearUnloadWindowListSource _listSource;
         private static GearUnloadWindow _instance;
         private List<SummaryItem> _summaryItems;
-
+        private string _watchedSpecies = "";
 
         public static GearUnloadWindow GetInstance(List<VesselUnload> vesselUnloads)
         {
@@ -329,6 +329,14 @@ namespace NSAP_ODK.Views
             GridVesselUnload.Items.Refresh();
         }
 
+        public string WatchedSpecies
+        {
+            get { return _watchedSpecies; }
+            set
+            {
+                _watchedSpecies = value;
+            }
+        }
         public void TurnGridOff()
         {
             dataGridUnloadSummary.Visibility = Visibility.Hidden;
@@ -462,6 +470,8 @@ namespace NSAP_ODK.Views
         {
             _vesselUnloadWindow = null;
         }
+
+        public CalendarViewType CalendarViewType { get; set; }
         private void SetVesselUnloadGridContext()
         {
             if (_gearUnloads.Count > 0)
@@ -474,15 +484,42 @@ namespace NSAP_ODK.Views
                     {
                         if (vu.SectorCode == SectorCode)
                         {
-                            _vesselUnloads.Add(vu);
+                            if (!string.IsNullOrEmpty(_watchedSpecies))
+                            {
+                                VesselCatch vc = vu.ListVesselCatch.Find(t => t.CatchName == _watchedSpecies);
+                                if (vc != null)
+                                {
+                                    if (CalendarViewType == CalendarViewType.calendarViewTypeLengthMeasurement ||
+                                        CalendarViewType == CalendarViewType.calendarViewTypeLengthWeightMeasurement ||
+                                        CalendarViewType == CalendarViewType.calendarViewTypeLengthFrequencyMeasurement ||
+                                        CalendarViewType == CalendarViewType.calendarViewTypeMaturityMeasurement)
+                                    {
+                                        if (vc.ListCatchLenFreq.Count > 0 ||
+                                            vc.ListCatchLength.Count > 0 ||
+                                            vc.ListCatchMaturity.Count > 0 ||
+                                            vc.ListCatchLengthWeight.Count > 0)
+                                        {
+                                            _vesselUnloads.Add(vu);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        _vesselUnloads.Add(vu);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                _vesselUnloads.Add(vu);
+                            }
                         }
                     }
 
                 }
 
 
-               GridVesselUnload.DataContext = _vesselUnloads;
-                 LabelTitle.Content = $"Vessel unloads from {_gearUnloads[0].Parent.LandingSite} using {_gearUnloads[0].GearUsedName} on {_gearUnloads[0].Parent.SamplingDate.ToString("MMM-dd-yyyy")}";
+                GridVesselUnload.DataContext = _vesselUnloads;
+                LabelTitle.Content = $"Vessel unloads from {_gearUnloads[0].Parent.LandingSite} using {_gearUnloads[0].GearUsedName} on {_gearUnloads[0].Parent.SamplingDate.ToString("MMM-dd-yyyy")}";
 
                 //((MainWindow)Owner).SetupCalendar();
             }
@@ -521,7 +558,7 @@ namespace NSAP_ODK.Views
                         //    GridVesselUnload.DataContext = _vesselUnloads;
                         SetVesselUnloadGridContext();
 
-                        
+
                         //}
                         break;
                     case GearUnloadWindowListSource.listSourceVesselUnload:
