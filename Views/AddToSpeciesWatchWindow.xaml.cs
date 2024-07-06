@@ -128,25 +128,33 @@ namespace NSAP_ODK.Views
         {
             if (_getExisitingFromDB)
             {
-                int addedCount = 0;
-                foreach (var item in dataGrid.Items)
+                try
                 {
-                    var ws = (RegionWatchedSpeciesForAdding)item;
-                    if (ws.AddToWatchList)
+                    int addedCount = 0;
+                    foreach (var item in dataGrid.Items)
                     {
-                        ws.RegionWatchedSpecies.NSAPRegion = NSAPRegion;
-                        if (ws.RegionWatchedSpecies.PK == 0)
+                        var ws = (RegionWatchedSpeciesForAdding)item;
+                        if (ws.AddToWatchList)
                         {
-                            ws.RegionWatchedSpecies.PK = RegionWatchedSpeciesRepository.MaxRecordNumber() + 1;
-                        }
-                        if (Entities.NSAPEntities.NSAPRegionViewModel.CurrentEntity.RegionWatchedSpeciesViewModel.AddRecordToRepo(ws.RegionWatchedSpecies))
-                        {
-                            addedCount++;
+                            ws.RegionWatchedSpecies.NSAPRegion = NSAPRegion;
+                            if (ws.RegionWatchedSpecies.PK == 0)
+                            {
+                                ws.RegionWatchedSpecies.PK = RegionWatchedSpeciesRepository.MaxRecordNumber() + 1;
+                            }
+                            if (Entities.NSAPEntities.NSAPRegionViewModel.CurrentEntity.RegionWatchedSpeciesViewModel.AddRecordToRepo(ws.RegionWatchedSpecies))
+                            {
+                                addedCount++;
+                            }
                         }
                     }
-                }
 
-                return addedCount > 0;
+                    return addedCount > 0;
+                }
+                catch(Exception ex)
+                {
+                    Utilities.Logger.Log(ex);
+                    return false;
+                }
             }
             else
             {

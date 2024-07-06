@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NSAP_ODK.Views"
         mc:Ignorable="d"
-        Title="Settings window" Height="429" Width="853" WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+        Title="Settings window" Height="472.622" Width="853" WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="40"/>
@@ -68,6 +68,13 @@
                     <TextBox x:Name="textmySQLBackupFolder" Width="400" Margin="10 0" IsReadOnly="True"/>
                     <Button x:Name="buttonLocateMySQlBackupFolder" Content="Locate" Click="OnButtonClick" Width="50" Height="25" />
                 </WrapPanel>
+            </StackPanel>
+            <StackPanel x:Name="stackpanelMapping">
+                <Label Content="Mapping" HorizontalAlignment="Center" Margin="0 10 0 0" FontWeight="Bold"/>
+                <WrapPanel Margin="10 2">
+                    <Label Content="BingMaps API Key" Width="180" HorizontalContentAlignment="Right"/>
+                    <TextBox x:Name="textBingAPIKey" Width="400" Margin="10 0" />
+                </WrapPanel>                
             </StackPanel>
         </StackPanel>
 

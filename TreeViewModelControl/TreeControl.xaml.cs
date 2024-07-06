@@ -37,6 +37,7 @@ namespace NSAP_ODK.TreeViewModelControl
                 InitializeComponent();
             }
             CalendarView = CalendarViewType.calendarViewTypeSampledLandings;
+
         }
 
 
@@ -64,7 +65,7 @@ namespace NSAP_ODK.TreeViewModelControl
             {
                 ReadDatabase();
             }
-
+            
         }
 
 
@@ -134,7 +135,11 @@ namespace NSAP_ODK.TreeViewModelControl
             string treeViewEntity = _selectedItem.GetType().Name;
             args.TreeViewEntity = treeViewEntity;
 
+
+
             string menuName = ((MenuItem)sender).Name;
+
+
             switch (menuName)
             {
                 case "contextMenuGearUnloadFishingGround":
@@ -188,14 +193,14 @@ namespace NSAP_ODK.TreeViewModelControl
                     //        break;
                     //}
                     break;
-                //case "contextMenuNSAPForm1":
-                //case "contextMenuNSAPForm2":
-                //case "contextMenuNSAPForm2a":
-                //case "contextMenuNSAPForm2b":
-                //case "contextMenuNSAPForm3":
-                //case "contextMenuNSAPForm4":
-                //case "contextMenuNSAPForm5":
-                //    break;
+                    //case "contextMenuNSAPForm1":
+                    //case "contextMenuNSAPForm2":
+                    //case "contextMenuNSAPForm2a":
+                    //case "contextMenuNSAPForm2b":
+                    //case "contextMenuNSAPForm3":
+                    //case "contextMenuNSAPForm4":
+                    //case "contextMenuNSAPForm5":
+                    //    break;
             }
             args.ContextMenuTopic = menuName;
 
@@ -282,6 +287,23 @@ namespace NSAP_ODK.TreeViewModelControl
                 TreeViewItemSelected?.Invoke(this, args);
             }
         }
+
+        private void OnContextMenuOpened(object sender, RoutedEventArgs e)
+        {
+            if(!Utilities.Global.IsMapComponentRegistered)
+            {
+                 foreach(MenuItem item in ((ContextMenu)sender).Items)
+                {
+                    if(item.Name=="contextMenuMapMonth")
+                    {
+                        item.Visibility = Visibility.Collapsed;
+                        break;
+                    }
+                }
+            }
+        }
+
+
     }
 
 }

@@ -44,6 +44,14 @@ namespace NSAP_ODK.Views
         {
             if (Global.Settings != null)
             {
+                if (Global.IsMapComponentRegistered)
+                {
+                    textBingAPIKey.Text = Global.Settings.BingAPIKey;
+                }
+                else
+                {
+                    stackpanelMapping.Visibility = Visibility.Collapsed;
+                }
                 textBackenDB.Text = Global.Settings.MDBPath;
                 textJsonFolder.Text = Global.Settings.JSONFolder;
                 textmySQLBackupFolder.Text = Global.Settings.MySQLBackupFolder;
@@ -467,7 +475,7 @@ namespace NSAP_ODK.Views
                 case "buttonOk":
                     if (ValidateForm())
                     {
-
+                        Global.Settings.BingAPIKey = textBingAPIKey.Text;
                         Utilities.Global.Settings.MDBPath = textBackenDB.Text;
                         Utilities.Global.Settings.JSONFolder = textJsonFolder.Text;
                         Utilities.Global.Settings.CutOFFUndersizedCW = int.Parse(textCutoffWidth.Text);

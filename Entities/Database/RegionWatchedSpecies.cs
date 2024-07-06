@@ -96,7 +96,10 @@ namespace NSAP_ODK.Entities.Database
                     {
                         FishSpecies = NSAPEntities.FishSpeciesViewModel.GetSpecies(SpeciesID);
                     }
-                    sp_name = FishSpecies.ToString();
+                    if (FishSpecies != null)
+                    {
+                        sp_name = FishSpecies.ToString();
+                    }
                 }
                 else
                 {

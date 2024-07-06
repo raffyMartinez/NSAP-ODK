@@ -222,7 +222,11 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
             {
                 Logger.Log(ex);
             }
-            foreach (VesselCatch vc in CrossTabGenerator.VesselCatches.OrderBy(t => t.Parent.SamplingDate).ThenBy(t => t.PK))
+            foreach (VesselCatch vc in CrossTabGenerator.VesselCatches.OrderBy(t => t.Parent.SamplingDate.Date)
+                .ThenBy(t=>t.GearNameUsed)
+                .ThenBy(t => t.VesselUnloadID)
+                .ThenBy(t => t.CatchName)
+                )
             {
                 var row = EffortSpeciesDataTable.NewRow();
                 var ls = CrossTabGenerator.EntitiesOfMonth.LandingSite;
@@ -515,7 +519,12 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
             dc = new DataColumn { ColumnName = "Sex" };
             SpeciesLengthsDataTable.Columns.Add(dc);
 
-            foreach (var sl in CrossTabGenerator.CatchLengthCrossTabs)
+            foreach (var sl in CrossTabGenerator.CatchLengthCrossTabs
+                .OrderBy(t => t.Parent.Parent.SamplingDate.Date)
+                .ThenBy(t => t.Parent.Parent.GearUsed)
+                .ThenBy(t => t.Parent.Parent.PK)
+                .ThenBy(t => t.Parent.CatchName)
+                )
             {
                 var row = SpeciesLengthsDataTable.NewRow();
                 var ls = CrossTabGenerator.EntitiesOfMonth.LandingSite;
@@ -714,7 +723,12 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
             dc = new DataColumn { ColumnName = "Sex" };
             SpeciesLengthWeightDataTable.Columns.Add(dc);
 
-            foreach (var slw in CrossTabGenerator.CatchLengthWeightCrossTabs)
+            foreach (var slw in CrossTabGenerator.CatchLengthWeightCrossTabs
+                .OrderBy(t => t.Parent.Parent.SamplingDate.Date)
+                .ThenBy(t => t.Parent.Parent.GearUsed)
+                .ThenBy(t => t.Parent.Parent.PK)
+                .ThenBy(t => t.Parent.CatchName)
+                )
             {
                 var row = SpeciesLengthWeightDataTable.NewRow();
                 var ls = CrossTabGenerator.EntitiesOfMonth.LandingSite;
@@ -908,7 +922,12 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
             dc = new DataColumn { ColumnName = "Sex" };
             SpeciesLengthFreqDataTable.Columns.Add(dc);
 
-            foreach (var slf in CrossTabGenerator.CatchLengthFreqCrossTabs)
+            foreach (var slf in CrossTabGenerator.CatchLengthFreqCrossTabs
+                .OrderBy(t => t.Parent.Parent.SamplingDate.Date)
+                .ThenBy(t=>t.Parent.Parent.GearUsed)
+                .ThenBy(t => t.Parent.Parent.PK)
+                .ThenBy(t => t.Parent.CatchName)
+                )
             {
                 var row = SpeciesLengthFreqDataTable.NewRow();
                 var ls = CrossTabGenerator.EntitiesOfMonth.LandingSite;
@@ -1116,7 +1135,12 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
             dc = new DataColumn { ColumnName = "Gut content category" };
             SpeciesMaturityDataTable.Columns.Add(dc);
 
-            foreach (var scm in CrossTabGenerator.CatchMaturityCrossTabs)
+            foreach (var scm in CrossTabGenerator.CatchMaturityCrossTabs
+                .OrderBy(t => t.Parent.Parent.SamplingDate.Date)
+                .ThenBy(t => t.Parent.Parent.GearUsed)
+                .ThenBy(t => t.Parent.Parent.PK)
+                .ThenBy(t => t.Parent.CatchName)
+                )
             {
                 var row = SpeciesMaturityDataTable.NewRow();
                 var ls = CrossTabGenerator.EntitiesOfMonth.LandingSite;
@@ -1331,7 +1355,10 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 Logger.Log(ex);
             }
 
-            foreach (var vu in CrossTabGenerator.VesselUnloads)
+            foreach (var vu in CrossTabGenerator.VesselUnloads
+                .OrderBy(t => t.SamplingDate.Date)
+                .ThenBy(t=>t.GearUsed)
+                )
             {
                 var row = EffortDataTable.NewRow();
 

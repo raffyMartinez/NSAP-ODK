@@ -722,7 +722,6 @@ namespace NSAP_ODK.Entities.Database
         private double _runningSum = 0;
         private bool _speciesWeightIsZero;
 
-        public bool HasWatchedSpecies { get; set; }
         public int? SubmissionID { get; set; }
         public void Dispose()
         {

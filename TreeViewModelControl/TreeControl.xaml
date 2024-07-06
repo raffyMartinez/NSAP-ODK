@@ -83,7 +83,7 @@
 
                     <StackPanel Orientation="Horizontal" x:Name="panelMonthView">
                         <StackPanel.ContextMenu>
-                            <ContextMenu x:Name="contextMenuMonthView">
+                            <ContextMenu x:Name="contextMenuMonthView" Opened="OnContextMenuOpened">
                                 <MenuItem Header="Crosstab report" Click="OnContextMenuClick" x:Name="contextMenuCrosstabMonth"/>
                                 <MenuItem Header="Map fishing grounds" Click="OnContextMenuClick" x:Name="contextMenuMapMonth"/>
                                 <MenuItem Header="NSAP reports">
@@ -95,7 +95,7 @@
                                     <MenuItem Header="NSAP Form 4" Click="OnContextMenuClick" x:Name="contextMenuNSAPForm4"/>
                                     <MenuItem Header="NSAP Form 5" Click="OnContextMenuClick" x:Name="contextMenuNSAPForm5"/>
                                 </MenuItem>
-                                <MenuItem Header="Edit gear unload" Click="OnContextMenuClick" x:Name="contextMenuGearUnloadMonth"/>
+                                <MenuItem Header="Edit gear unload" Click="OnContextMenuClick" x:Name="contextMenuGearUnloadMonth" />
                                 <Separator/>
                                 <MenuItem Header="Weight and weight validation for landings" Click="OnContextMenuClick" x:Name="contextMenuWeightValidation"/>
                                 <!--<Separator/>

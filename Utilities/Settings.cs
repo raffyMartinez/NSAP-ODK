@@ -47,7 +47,7 @@ namespace NSAP_ODK.Utilities
 
         public int? CutOFFUndersizedCW { get; set; }
 
-
+        public string BingAPIKey { get; set; }
         public int? DownloadSizeForBatchMode { get; set; }
         public int? DownloadSizeForBatchModeMultiVessel { get; set; }
 

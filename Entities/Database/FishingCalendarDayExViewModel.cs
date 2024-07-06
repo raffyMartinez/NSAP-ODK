@@ -389,7 +389,7 @@ namespace NSAP_ODK.Entities.Database
                             else
                             {
                                 CalendarHasValue = true;
-                                row[x.ToString()] = day.WeightOfSpeciesLanded;
+                                row[x.ToString()] = day.WeightOfSpeciesLanded.ToString("N2");
                                 TotalWeightLanded = (TotalWeightLanded??0) + day.WeightOfSpeciesLanded;
                             }
                         }

@@ -13,6 +13,7 @@ using Newtonsoft.Json;
 using System.Windows;
 using System.Runtime.CompilerServices;
 using System.Diagnostics;
+using Microsoft.Win32;
 
 namespace NSAP_ODK.Utilities
 {
@@ -30,6 +31,7 @@ namespace NSAP_ODK.Utilities
         public static event EventHandler<EntityLoadedEventArg> EntityLoading;
         public static event EventHandler<EntityLoadedEventArg> EntityLoaded;
         public static event EventHandler RequestLogIn = delegate { };
+        private static bool _isMapComponentRegistered;
 
         public const string UserSettingsFilename = "settings.xml";
 
@@ -59,7 +61,10 @@ namespace NSAP_ODK.Utilities
         //    return stream;
         //}
         //public static bool CancelOperation { get; set; }
-
+        public static bool IsMapComponentRegistered
+        {
+            get { return _isMapComponentRegistered; }
+        }
         public static bool CommandArgumentIsValidDate { get; private set; }
         public static Stream GenerateStreamFromString(string s)
         {
@@ -118,7 +123,18 @@ namespace NSAP_ODK.Utilities
             //ConnectionString = "Provider=Microsoft.ACE.OLEDB.12.0;data source=" + Grid25MDBPath;
             return ConnectionStringGrid25;
         }
-
+        private static void IsMapWinGISRegistered()
+        {
+            try
+            {
+                var key = Registry.ClassesRoot.OpenSubKey("MapWinGIS.Shapefile");
+                _isMapComponentRegistered = key.Name.Length > 0;
+            }
+            catch
+            {
+                _isMapComponentRegistered = false;
+            }
+        }
         static Global()
         {
 
@@ -136,6 +152,7 @@ namespace NSAP_ODK.Utilities
                 Logger.Log("Settings file not read");
             }
 
+            IsMapWinGISRegistered();
             if (!Directory.Exists(_KoboFormsFolder))
             {
                 Directory.CreateDirectory(_KoboFormsFolder);

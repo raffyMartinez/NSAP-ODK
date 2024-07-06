@@ -2990,6 +2990,9 @@ namespace NSAP_ODK
             ProgressDialogWindow pdw = null;
             switch (itemName)
             {
+                case "menuSpeciesForInternet":
+                    Process.Start(((MenuItem)sender).Tag.ToString());
+                    break;
                 case "menuCrossTabCBL_Month":
                     CrossTabManager.IsCarrierLandding = true;
                     await CrossTabManager.CarrierBoatLandingsByMonthAsync(_landingSite, (DateTime)_monthYear);
@@ -4291,6 +4294,7 @@ namespace NSAP_ODK
 
             _treeItemData = e;
             var tvi = ((TreeViewModelControl.TreeControl)sender)._selectedItem;
+
             //switch (e.TreeViewEntity)
             switch (_calendarTreeSelectedEntity)
             {
@@ -4328,6 +4332,7 @@ namespace NSAP_ODK
                     }
                     break;
                 case "tv_MonthViewModel":
+
                     if (e.NSAPRegion.RegionWatchedSpeciesViewModel == null)
                     {
                         e.NSAPRegion.RegionWatchedSpeciesViewModel = new RegionWatchedSpeciesViewModel(e.NSAPRegion);
@@ -5848,6 +5853,27 @@ namespace NSAP_ODK
 
         }
 
+        private void GenerateSpeciesContextMenuForInternet(string catchName)
+        {
+            ContextMenu cm = new ContextMenu();
+            MenuItem m = null;
+
+            CatchNameURLGenerator.CatchName = catchName;
+
+            foreach (var url in CatchNameURLGenerator.URLS)
+            {
+
+                m = new MenuItem { Header = $"Read about {catchName} in {url.Key}", Tag = url.Value };
+                m.Click += OnMenuClicked;
+                cm.Items.Add(m);
+                m.Name = "menuSpeciesForInternet";
+            }
+
+            if (cm.Items.Count > 0)
+            {
+                cm.IsOpen = true;
+            }
+        }
         private void OnGridGotFocus(object sender, RoutedEventArgs e)
         {
             _dataGrid = (DataGrid)sender;
@@ -5906,22 +5932,33 @@ namespace NSAP_ODK
                                     if (_calendarTreeSelectedEntity == "tv_MonthViewModel")
                                     {
                                         m.IsEnabled = false;
-                                        if (_gridCol == 0)
+                                        if (Global.IsMapComponentRegistered)
                                         {
-                                            m.IsEnabled = true;
-                                            m.Header += $" for {_gearName} ({_fish_sector})";
+                                            if (_gridCol == 0)
+                                            {
+                                                m.IsEnabled = true;
+                                                m.Header += $" for {_gearName} ({_fish_sector})";
 
 
-                                            m = new MenuItem { Header = $"Map fishing ground for {_gearName}  ({_fish_sector})", Name = "menuCalendarGearMapping" };
-                                            m.Click += OnMenuClicked;
-                                            cm.Items.Add(m);
+                                                m = new MenuItem { Header = $"Map fishing ground for {_gearName}  ({_fish_sector})", Name = "menuCalendarGearMapping" };
+                                                m.Click += OnMenuClicked;
+                                                cm.Items.Add(m);
+                                            }
+                                            else if (_gridCol > 3)
+                                            {
+                                                m = new MenuItem { Header = $"Map fishing ground for {_gearName}  ({_fish_sector}) for {((DateTime)_monthYear).ToString("MMMM")} {_calendarDay}, {((DateTime)_monthYear).ToString("yyyy")}", Name = "menuCalendarDayGearMapping" };
+                                                m.Click += OnMenuClicked;
+                                                cm.Items.Add(m);
+                                            }
                                         }
-                                        else if (_gridCol > 3)
+
+
+                                        if (_gridCol == 1 && _isWatchedSpeciesCalendar)
                                         {
-                                            m = new MenuItem { Header = $"Map fishing ground for {_gearName}  ({_fish_sector}) for {((DateTime)_monthYear).ToString("MMMM")} {_calendarDay}, {((DateTime)_monthYear).ToString("yyyy")}", Name = "menuCalendarDayGearMapping" };
-                                            m.Click += OnMenuClicked;
-                                            cm.Items.Add(m);
+                                            GenerateSpeciesContextMenuForInternet(_speciesName);
+                                            return;
                                         }
+
 
                                     }
                                     else

@@ -198,6 +198,8 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_LC_FG_sample_day.region_id=@reg AND 
                                                 dbo_vessel_catch.species_id Is Not Null";
 
+                        string qry = cmd.CommandText.Replace("@reg", $"'{reg.Code}'");
+
                         con.Open();
                         try
                         {

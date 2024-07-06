@@ -179,7 +179,7 @@ namespace NSAP_ODK.Mapping
             TileProviders.Add(1, "OpenCycleMap");
             TileProviders.Add(2, "OpenTransportMap");
 
-            if (!string.IsNullOrEmpty( globalMapping.BingAPIKey))
+            if (!string.IsNullOrEmpty( Global.Settings.BingAPIKey))
             {
                 TileProviders.Add(3, "BingMaps");
                 TileProviders.Add(4, "BingSatellite");
