@@ -31,9 +31,12 @@ namespace NSAP_ODK.Entities
         public void FillUpRegionEntities()
         {
             List<NSAPRegion> regions = NSAPRegionCollection.ToList();
-            foreach (NSAPRegionEnumerator nren in NSAPEnumeratorRepository.GetNSAPRegionEnumerators())
+            List<NSAPEnumerator> nSAPEnumerators = NSAPEntities.NSAPEnumeratorViewModel.GetALlNSAPENumerators();
+            List<NSAPRegionEnumerator> regionEnumerators = NSAPEnumeratorRepository.GetNSAPRegionEnumerators();
+            foreach (NSAPRegionEnumerator nren in regionEnumerators)
             {
                 nren.NSAPRegion = regions.Find(t => t.Code == nren.NSAPRegionCode);
+                nren.Enumerator = nSAPEnumerators.Find(t => t.ID == nren.EnumeratorID);
                 nren.NSAPRegion.NSAPEnumerators.Add(nren);
             }
 
@@ -65,7 +68,7 @@ namespace NSAP_ODK.Entities
                 fg_ls.NSAPRegionFMAFishingGround.LandingSites.Add(fg_ls);
             }
 
-            
+
             foreach (NSAPRegionFishingVessel nrfv in FishingVesselRepository.GeRegionFishingVessels())
             {
                 nrfv.NSAPRegion = regions.Find(t => t.Code == nrfv.NSAPRegionCode);
@@ -74,7 +77,7 @@ namespace NSAP_ODK.Entities
             }
 
             List<Gear> gears = NSAPEntities.GearViewModel.GetAllGears();
-            foreach(NSAPRegionGear nrg in GearRepository.GetRegionGears())
+            foreach (NSAPRegionGear nrg in GearRepository.GetRegionGears())
             {
                 nrg.NSAPRegion = regions.Find(t => t.Code == nrg.NSAPRegionID);
                 nrg.Gear = gears.Find(t => t.Code == nrg.GearCode);
@@ -82,9 +85,9 @@ namespace NSAP_ODK.Entities
             }
 
             NSAPRegionsWithEntitiesRepositories = new Dictionary<string, NSAPRegionWithEntitiesRepository>();
-            foreach(NSAPRegion reg in regions)
+            foreach (NSAPRegion reg in regions)
             {
-                NSAPRegionWithEntitiesRepository nswer = new NSAPRegionWithEntitiesRepository(reg, processSubEntities:false );
+                NSAPRegionWithEntitiesRepository nswer = new NSAPRegionWithEntitiesRepository(reg, processSubEntities: false);
                 NSAPRegionsWithEntitiesRepositories.Add(reg.Code, nswer);
             }
         }

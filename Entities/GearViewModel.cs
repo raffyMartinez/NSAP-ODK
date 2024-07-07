@@ -105,9 +105,54 @@ namespace NSAP_ODK.Entities
 
         public void FillGearEffortSpecifications(bool includeNumberFishers = false)
         {
+            List<GearEffortSpecification> gear_specs = EffortSpecificationRepository.GetGearEffortSpecifications();
+
+            List<Gear> gears = GearCollection.ToList();
+            foreach (Gear gear in gears)
+            {
+                if (gear.GearEffortSpecificationViewModel == null)
+                {
+                    gear.GearEffortSpecificationViewModel = new GearEffortSpecificationViewModel(gear, readDatabase: false);
+                    foreach (GearEffortSpecification g in gear_specs)
+                    {
+                        g.Gear = gears.Find(t => t.Code == g.GearCode);
+                        gear.GearEffortSpecificationViewModel.AddRecordToRepo(g);
+                    }
+                    if (gear.Code == gear.BaseGear.Code && gear.BaseGear.IsGenericGear)
+                    {
+                        AddBaseGearSpecsToGear(gear);
+                    }
+                }
+                foreach (var gearEffort in gear.GearEffortSpecificationViewModel.GearEffortSpecificationCollection)
+                {
+                    string key = $"{gear.Code}-{gearEffort.EffortSpecificationID}";
+                    if (!GearEffortSpecifications.Keys.Contains(key))
+                        GearEffortSpecifications.Add(key, gearEffort);
+                }
+                if (gear.BaseGear != null)
+                {
+                    if (gear.BaseGear.GearEffortSpecificationViewModel == null)
+                    {
+                        gear.BaseGear.GearEffortSpecificationViewModel = new GearEffortSpecificationViewModel(gear.BaseGear, readDatabase: false);
+                    }
+                    foreach (var gearEffort in gear.BaseGear.GearEffortSpecificationViewModel.GearEffortSpecificationCollection)
+                    {
+                        string key = $"{gear.Code}-{gearEffort.EffortSpecificationID}";
+                        if (!GearEffortSpecifications.Keys.Contains(key))
+                        {
+                            GearEffortSpecification ges = new GearEffortSpecification { EffortSpecification = gearEffort.EffortSpecification, Gear = gear, RowID = gearEffort.EffortSpecification.ID };
+                            GearEffortSpecifications.Add(key, ges);
+                        }
+                    }
+                }
+            }
+        }
+        public void FillGearEffortSpecificationsEx(bool includeNumberFishers = false)
+        {
+            //List<GearEffortSpecification> gear_specs = EffortSpecificationRepository.GetGearEffortSpecifications();
             foreach (Gear gear in GearCollection)
             {
-                if(gear.GearEffortSpecificationViewModel==null )
+                if (gear.GearEffortSpecificationViewModel == null)
                 {
                     gear.GearEffortSpecificationViewModel = new GearEffortSpecificationViewModel(gear);
                     if (gear.Code == gear.BaseGear.Code && gear.BaseGear.IsGenericGear)
@@ -123,7 +168,7 @@ namespace NSAP_ODK.Entities
                 }
                 if (gear.BaseGear != null)
                 {
-                    if(gear.BaseGear.GearEffortSpecificationViewModel==null)
+                    if (gear.BaseGear.GearEffortSpecificationViewModel == null)
                     {
                         gear.BaseGear.GearEffortSpecificationViewModel = new GearEffortSpecificationViewModel(gear.BaseGear);
                     }
@@ -154,20 +199,32 @@ namespace NSAP_ODK.Entities
                 GearEffortSpecification ges = new GearEffortSpecification();
                 ges.Gear = g;
                 ges.EffortSpecification = specAllFishingType;
-                g.GearEffortSpecificationViewModel.AddBaseGearEffortSpecification(ges);
+                g.GearEffortSpecificationViewModel.AddBaseGearEffortSpecification(ges,addToCollectionOnly:true);
             }
         }
+
         public GearViewModel()
         {
             Gears = new GearRepository();
             GearCollection = new ObservableCollection<Gear>(Gears.Gears);
 
             //List<EffortSpecification> baseGearEffortSpecs = NSAPEntities.EffortSpecificationViewModel.GetBaseGearEffortSpecification();
-            
-            
-            foreach (Gear g in GearCollection)
+            List<EffortSpecification> efSpecs = NSAPEntities.EffortSpecificationViewModel.GetAllEffortSpecifications();
+            List<GearEffortSpecification> specs = EffortSpecificationRepository.GetGearEffortSpecifications();
+            List<Gear> gears = GearCollection.ToList();
+            foreach (Gear g in gears)
             {
-                g.GetEffortSpecificationsForGear();
+                g.GearEffortSpecificationViewModel = new GearEffortSpecificationViewModel(g, readDatabase: false);
+                foreach (GearEffortSpecification spec in specs)
+                {
+                    spec.Gear = gears.Find(t => t.Code == spec.GearCode);
+                    if (spec.Gear.Equals(g))
+                    {
+                        spec.EffortSpecification = efSpecs.Find(t => t.ID == spec.EffortSpecificationID);
+                        spec.Gear.GearEffortSpecificationViewModel.AddRecordToRepo(spec, addToCollectionOnly: true);
+                    }
+                }
+                //g.GetEffortSpecificationsForGear();
 
                 if (g.CodeOfBaseGear.Length > 0)
                 {
@@ -191,7 +248,7 @@ namespace NSAP_ODK.Entities
                         GearEffortSpecification ges = new GearEffortSpecification();
                         ges.Gear = g;
                         ges.EffortSpecification = specAllFishingType;
-                        g.GearEffortSpecificationViewModel.AddBaseGearEffortSpecification(ges);
+                        g.GearEffortSpecificationViewModel.AddBaseGearEffortSpecification(ges,addToCollectionOnly:true);
                     }
                 }
             }
@@ -199,6 +256,48 @@ namespace NSAP_ODK.Entities
             GearCollection.CollectionChanged += Gearss_CollectionChanged;
             FillGearEffortSpecifications();
         }
+        //public GearViewModel()
+        //{
+        //    Gears = new GearRepository();
+        //    GearCollection = new ObservableCollection<Gear>(Gears.Gears);
+
+        //    //List<EffortSpecification> baseGearEffortSpecs = NSAPEntities.EffortSpecificationViewModel.GetBaseGearEffortSpecification();
+
+
+        //    foreach (Gear g in GearCollection)
+        //    {
+        //        g.GetEffortSpecificationsForGear();
+
+        //        if (g.CodeOfBaseGear.Length > 0)
+        //        {
+        //            g.BaseGear = GetGear(g.CodeOfBaseGear);
+        //            if (g.Code == g.BaseGear.Code && g.BaseGear.IsGenericGear)
+        //            {
+        //                AddBaseGearSpecsToGear(g);
+        //                //foreach (var specAllFishingType in baseGearEffortSpecs)
+        //                //{
+        //                //    GearEffortSpecification ges = new GearEffortSpecification();
+        //                //    ges.Gear = g;
+        //                //    ges.EffortSpecification = specAllFishingType;
+        //                //    g.GearEffortSpecificationViewModel.AddBaseGearEffortSpecification(ges);
+        //                //}
+        //            }
+        //        }
+        //        else
+        //        {
+        //            foreach (var specAllFishingType in NSAPEntities.EffortSpecificationViewModel.GetBaseGearEffortSpecification())
+        //            {
+        //                GearEffortSpecification ges = new GearEffortSpecification();
+        //                ges.Gear = g;
+        //                ges.EffortSpecification = specAllFishingType;
+        //                g.GearEffortSpecificationViewModel.AddBaseGearEffortSpecification(ges);
+        //            }
+        //        }
+        //    }
+        //    GearEffortSpecifications = new Dictionary<string, GearEffortSpecification>();
+        //    GearCollection.CollectionChanged += Gearss_CollectionChanged;
+        //    FillGearEffortSpecifications();
+        //}
 
         public void AddUniversalSpec(EffortSpecification es)
         {

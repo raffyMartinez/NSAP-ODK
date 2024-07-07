@@ -44,7 +44,7 @@ namespace NSAP_ODK.Entities
                                 NSAPRegionEnumerator nren = new NSAPRegionEnumerator
                                 {
                                     RowID = (int)dr["RowID"],
-                                    NSAPRegionCode = dr["NSAPRegion"].ToString(),
+                                    NSAPRegionCode = dr["NSAPRegionCode"].ToString(),
                                     EnumeratorID = (int)dr["EnumeratorID"],
                                     DateStart = (DateTime)dr["DateStart"]
                                 };

@@ -10,6 +10,7 @@ namespace NSAP_ODK.Entities
     {
         private bool _editSuccess;
         private bool _isBaseSpec = false;
+        private bool _addToCollectionOnly = false;
         public ObservableCollection<GearEffortSpecification> GearEffortSpecificationCollection { get; set; }
         private GearEffortSpecificationRepository GearEffortSpecifications { get; set; }
 
@@ -17,9 +18,16 @@ namespace NSAP_ODK.Entities
         {
             return GearEffortSpecificationCollection.FirstOrDefault(t => t.EffortSpecificationID == e_spec.ID) != null;
         }
-        public GearEffortSpecificationViewModel(Gear gear)
+        public GearEffortSpecificationViewModel(Gear gear, bool readDatabase = true)
         {
-            GearEffortSpecifications = new GearEffortSpecificationRepository(gear);
+            if (readDatabase)
+            {
+                GearEffortSpecifications = new GearEffortSpecificationRepository(gear);
+            }
+            else
+            {
+                GearEffortSpecifications = new GearEffortSpecificationRepository();
+            }
             GearEffortSpecificationCollection = new ObservableCollection<GearEffortSpecification>(GearEffortSpecifications.GearEffortSpecifications);
             GearEffortSpecificationCollection.CollectionChanged += GearEffortSpecificationCollection_CollectionChanged;
         }
@@ -52,10 +60,13 @@ namespace NSAP_ODK.Entities
             {
                 case NotifyCollectionChangedAction.Add:
                     {
-                        if (!_isBaseSpec)
+                        if (!_addToCollectionOnly)
                         {
-                            int newIndex = e.NewStartingIndex;
-                            _editSuccess = GearEffortSpecifications.Add(GearEffortSpecificationCollection[newIndex]);
+                            if (!_isBaseSpec)
+                            {
+                                int newIndex = e.NewStartingIndex;
+                                _editSuccess = GearEffortSpecifications.Add(GearEffortSpecificationCollection[newIndex]);
+                            }
                         }
                     }
                     break;
@@ -95,8 +106,9 @@ namespace NSAP_ODK.Entities
                 GearEffortSpecificationCollection.Remove(ges);
             }
         }
-        public void AddBaseGearEffortSpecification(GearEffortSpecification ges)
+        public void AddBaseGearEffortSpecification(GearEffortSpecification ges, bool addToCollectionOnly = false)
         {
+            _addToCollectionOnly = addToCollectionOnly;
             if (ges.EffortSpecification.IsForAllTypesFishing)
             {
                 _isBaseSpec = true;
@@ -104,8 +116,9 @@ namespace NSAP_ODK.Entities
             }
         }
 
-        public bool AddRecordToRepo(GearEffortSpecification ges)
+        public bool AddRecordToRepo(GearEffortSpecification ges, bool addToCollectionOnly = false)
         {
+            _addToCollectionOnly = addToCollectionOnly;
             if (ges == null)
                 throw new ArgumentNullException("Error: The argument is Null");
 

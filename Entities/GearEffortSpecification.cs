@@ -9,6 +9,7 @@ namespace NSAP_ODK.Entities
         private EffortSpecification _effortSpecification;
         public Gear Gear { get; set; }
 
+        public string GearCode { get; set; }
         public EffortSpecification EffortSpecification
         {
             get { return _effortSpecification; }

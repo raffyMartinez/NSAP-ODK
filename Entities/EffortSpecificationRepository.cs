@@ -19,6 +19,44 @@ namespace NSAP_ODK.Entities
             EffortSpecifications = getEffortSpecifications();
         }
 
+        public static List<GearEffortSpecification> GetGearEffortSpecifications()
+        {
+            List<GearEffortSpecification> specs = new List<GearEffortSpecification>();
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = "Select * from GearEffortSpecification";
+                        con.Open();
+                        try
+                        {
+                            var dr = cmd.ExecuteReader();
+                            while (dr.Read())
+                            {
+                                GearEffortSpecification ges = new GearEffortSpecification
+                                {
+                                    RowID=(int)dr["RowID"],
+                                    EffortSpecificationID=(int)dr["EffortSpec"],
+                                    GearCode = dr["GearCode"].ToString()
+                                };
+                                specs.Add(ges);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return specs;
+        }
         private List<EffortSpecification> getEffortSpecificationsMySQL()
         {
             List<EffortSpecification> thisList = new List<EffortSpecification>();

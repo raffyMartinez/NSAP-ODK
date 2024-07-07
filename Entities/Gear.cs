@@ -152,6 +152,10 @@ namespace NSAP_ODK.Entities
         public event PropertyChangedEventHandler PropertyChanged;
         private string _code;
 
+        public override int GetHashCode()
+        {
+            return Code.GetHashCode();
+        }
         public override bool Equals(object obj)
         {
             if (obj!=null && obj is Gear)

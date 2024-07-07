@@ -11,6 +11,10 @@ namespace NSAP_ODK.Entities
     internal class GearEffortSpecificationRepository
     {
         public List<GearEffortSpecification> GearEffortSpecifications { get; set; }
+        public GearEffortSpecificationRepository()
+        {
+            GearEffortSpecifications = new List<GearEffortSpecification>();
+        }
 
         public GearEffortSpecificationRepository(Gear gear)
         {
