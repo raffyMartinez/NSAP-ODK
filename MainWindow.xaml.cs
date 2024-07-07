@@ -2256,7 +2256,7 @@ namespace NSAP_ODK
                     else
                     {
                         MonthLabel.Content = $"Calendar of number of maturity measurements (length, weight, sex, maturity stage) of watched species per day for {monthOfSampling}";
-                        
+
 
                     }
 
@@ -2531,8 +2531,26 @@ namespace NSAP_ODK
                                 _getFemaleMaturity = true;
                                 break;
                         }
-                        if (!_cancelBuildCalendar)
+
+                        bool proceed = false;
+                        if (_isWatchedSpeciesCalendar)
                         {
+                            var reg = NSAPEntities.NSAPRegionViewModel.CurrentEntity;
+                            if(reg.RegionWatchedSpeciesViewModel==null)
+                            {
+                                reg.RegionWatchedSpeciesViewModel = new RegionWatchedSpeciesViewModel(reg);
+                            }
+                            proceed = NSAPEntities.NSAPRegionViewModel.CurrentEntity.RegionWatchedSpeciesViewModel.Count > 0;
+                        }
+                        else
+                        {
+                            proceed = true;
+                        }
+
+                        if (proceed && !_cancelBuildCalendar)
+                        {
+
+
 
                             NSAPEntities.FishingCalendarDayExViewModel.CalendarViewType = _calendarOption;
                             //NSAPEntities.FishingCalendarDayExViewModel.MakeCalendar(isWatchedSpeciesCalendar: watchedSpeciesCalendar);
@@ -2577,12 +2595,16 @@ namespace NSAP_ODK
 
                                         );
                                 }
+
                             }
                         }
-                        else
-
+                        else if (!proceed)
                         {
-
+                            MessageBox.Show("There are no watched species for the selected NSAP Region",
+                                Global.MessageBoxCaption,
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Information
+                                );
                         }
                     }
                     return;

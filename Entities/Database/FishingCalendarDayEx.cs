@@ -44,7 +44,7 @@ namespace NSAP_ODK.Entities.Database
 
         public override int GetHashCode()
         {
-            return (SpeciesID, FishingGearAndSector.Gear.Code, FishingGearAndSector.SectorCode, MaturityStage).GetHashCode();
+            return (SpeciesID, FishingGearAndSector.Gear.Code, FishingGearAndSector.SectorCode, (MaturityStage ?? "")).GetHashCode();
         }
 
         public override bool Equals(object obj)
