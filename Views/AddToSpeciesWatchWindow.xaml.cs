@@ -126,6 +126,7 @@ namespace NSAP_ODK.Views
         public List<RegionWatchedSpecies> WatchedSpeciesList { get; set; }
         private bool ProcessSpeciesForAdding()
         {
+            int? maxRecordNo = null;
             if (_getExisitingFromDB)
             {
                 try
@@ -139,11 +140,16 @@ namespace NSAP_ODK.Views
                             ws.RegionWatchedSpecies.NSAPRegion = NSAPRegion;
                             if (ws.RegionWatchedSpecies.PK == 0)
                             {
-                                ws.RegionWatchedSpecies.PK = RegionWatchedSpeciesRepository.MaxRecordNumber() + 1;
+                                if(maxRecordNo==null)
+                                {
+                                    maxRecordNo = RegionWatchedSpeciesRepository.MaxRecordNumber();
+                                }
+                                ws.RegionWatchedSpecies.PK = (int)maxRecordNo+1;
                             }
                             if (Entities.NSAPEntities.NSAPRegionViewModel.CurrentEntity.RegionWatchedSpeciesViewModel.AddRecordToRepo(ws.RegionWatchedSpecies))
                             {
                                 addedCount++;
+                                maxRecordNo = maxRecordNo + 1;
                             }
                         }
                     }

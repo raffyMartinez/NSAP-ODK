@@ -231,10 +231,19 @@ namespace NSAP_ODK.Entities.Database
                     _speciesCalendarDays = await GetSpeciesCalendarDayForMonthTask(_selectedMonth);
 
                     HashSet<SpeciesFishingGearAndSector> sfgss = new HashSet<SpeciesFishingGearAndSector>();
-                    foreach (var item in _speciesCalendarDays)
+
+                    foreach (var item in _speciesCalendarDays.Where(t=>t.Gear!=null))
                     {
-                        FishingGearAndSector fgs = new FishingGearAndSector(g: item.Gear, sector_code: item.SectorCode);
-                        sfgss.Add(new SpeciesFishingGearAndSector(fgs, item.SpeciesID, item.SpeciesName, item.TaxaCode));
+                        try
+
+                        {
+                            FishingGearAndSector fgs = new FishingGearAndSector(g: item.Gear, sector_code: item.SectorCode);
+                            sfgss.Add(new SpeciesFishingGearAndSector(fgs, item.SpeciesID, item.SpeciesName, item.TaxaCode));
+                        }
+                        catch(Exception ex)
+                        {
+                            Utilities.Logger.Log(ex);
+                        }
                     }
                     _speciesFishingGearAndSectors = sfgss.ToList();
                 }
