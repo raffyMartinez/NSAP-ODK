@@ -18,6 +18,8 @@ namespace NSAP_ODK.Entities
         [ReadOnly(true)]
         public int RowID { get; set; }
         public NSAPRegion NSAPRegion { get; set; }
+
+        public string NSAPRegionCode { get; set; }
         public NSAPEnumerator Enumerator 
         { get { return _nsapEnumerator; }
             set

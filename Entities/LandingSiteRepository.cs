@@ -69,6 +69,49 @@ namespace NSAP_ODK.Entities
         {
             return Task.Run(() => AddFieldToTable(fieldName));
         }
+        public static List<NSAPRegionFMAFishingGroundLandingSite> GetFishingGround_LandingSites()
+        {
+            List<NSAPRegionFMAFishingGroundLandingSite> fg_lss = new List<NSAPRegionFMAFishingGroundLandingSite>();
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = "Select * from NSAPRegionLandingSite";
+                        con.Open();
+                        try
+                        {
+                            var dr = cmd.ExecuteReader();
+                            while (dr.Read())
+                            {
+                                NSAPRegionFMAFishingGroundLandingSite fg_ls = new NSAPRegionFMAFishingGroundLandingSite
+                                {
+                                    RowID = (int)dr["RowID"],
+                                    FMA_FishingGroundID = (int)dr["NSAPRegionFMAFishingGround"],
+                                    LandingSiteID = (int)dr["LandingSiteID"],
+                                    DateStart = (DateTime)dr["DateStart"]
+                                };
+                                if (dr["DateEnd"] != DBNull.Value)
+                                {
+                                    fg_ls.DateEnd = (DateTime)dr["DateEnd"];
+                                }
+                                fg_lss.Add(fg_ls);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return fg_lss;
+        }
         public static bool AddFieldToTable(string fieldName)
         {
             bool success = false;
@@ -89,7 +132,7 @@ namespace NSAP_ODK.Entities
                     {
                         cmd.ExecuteNonQuery();
                         success = true;
-                        if(success && fieldName=="TypeOfSampling")
+                        if (success && fieldName == "TypeOfSampling")
                         {
                             success = UpdateSamplingTypeField();
                         }
@@ -117,13 +160,13 @@ namespace NSAP_ODK.Entities
                         cmd.ExecuteNonQuery();
                         success = true;
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Logger.Log(ex);
                     }
                 }
             }
-                return success;
+            return success;
         }
         private List<LandingSite> getLandingSites()
         {
@@ -219,7 +262,7 @@ namespace NSAP_ODK.Entities
                     {
                         update.Parameters.Add("@brgy", MySqlDbType.VarChar).Value = ls.Barangay;
                     }
-                    update.CommandText =@"Insert into landing_sites (landing_site_id, landing_site_name,municipality,longitude,latitude,barangay) 
+                    update.CommandText = @"Insert into landing_sites (landing_site_id, landing_site_name,municipality,longitude,latitude,barangay) 
                                          Values (@id,@name,@muni,@lon,@lat,@brgy)";
                     conn.Open();
                     try
@@ -295,7 +338,7 @@ namespace NSAP_ODK.Entities
             return success;
         }
 
-       
+
         private bool UpdateMySQL(LandingSite ls)
         {
             bool success = false;

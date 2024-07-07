@@ -17,6 +17,50 @@ namespace NSAP_ODK.Entities
             FishingVessels = getFishingVessels();
         }
 
+
+        public static  List<NSAPRegionFishingVessel>GeRegionFishingVessels()
+        {
+            List<NSAPRegionFishingVessel> rfvs = new List<NSAPRegionFishingVessel>();
+            if(Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = "Select * from NSAPRegionVessel";
+                        con.Open();
+                        try
+                        {
+                            var dr = cmd.ExecuteReader();
+                            while(dr.Read())
+                            {
+                                NSAPRegionFishingVessel nrfv = new NSAPRegionFishingVessel
+                                {
+                                    RowID = (int)dr["RowID"],
+                                    NSAPRegionCode=dr["NSAPRegionCode"].ToString(),
+                                    FishingVesselID = (int)dr["VesselID"],
+                                    DateStart = (DateTime)dr["DateStart"]
+                                };
+                                if(dr["DateEnd"]!=DBNull.Value)
+                                {
+                                    nrfv.DateEnd = (DateTime)dr["DateEnd"];
+                                }
+                                rfvs.Add(nrfv);
+                            }
+                        }
+                        catch(Exception ex)
+                        {
+
+                        }
+                    }
+                }
+            }
+            return rfvs;
+        }
         private List<FishingVessel>getFishingVesselsMySQL()
         {
             List<FishingVessel> thisList = new List<FishingVessel>();

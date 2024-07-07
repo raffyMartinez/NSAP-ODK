@@ -12,6 +12,8 @@ namespace NSAP_ODK.Entities
 
         //[ReadOnly(true)]
         public int RowID { get; set; }
+        public int LandingSiteID { get; set; }
+        public int FMA_FishingGroundID { get; set; }
         public NSAPRegionFMAFishingGround NSAPRegionFMAFishingGround { get; set; }
         public LandingSite LandingSite { get; set; }
         public int? NumberOfLandings { get { return LandingSite.CountLandings; } }

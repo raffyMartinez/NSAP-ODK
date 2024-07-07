@@ -20,7 +20,43 @@ namespace NSAP_ODK.Entities
             FishingGrounds = getFishingGrounds();
         }
 
-        private List<FishingGround>getFishingGroundsMySQL()
+        public static List<NSAPRegionFMAFishingGround> GetFMAFishingGrounds()
+        {
+            List<NSAPRegionFMAFishingGround> fma_fgs = new List<NSAPRegionFMAFishingGround>();
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    con.Open();
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = "Select * from NSAPRegionFMAFishingGrounds";
+                        var dr = cmd.ExecuteReader();
+                        while (dr.Read())
+                        {
+                            NSAPRegionFMAFishingGround fma_fg = new NSAPRegionFMAFishingGround
+                            {
+                                RowID = (int)dr["RowID"],
+                                RegionFMAID = (int)dr["RegionFMA"],
+                                FishingGroundCode = dr["FishingGround"].ToString(),
+                                DateStart = (DateTime)dr["DateStart"]
+                            };
+                            if (dr["DateEnd"] != DBNull.Value)
+                            {
+                                fma_fg.DateEnd = (DateTime)dr["DateEnd"];
+                            }
+                            fma_fgs.Add(fma_fg);
+                        }
+                    }
+                }
+            }
+            return fma_fgs;
+        }
+        private List<FishingGround> getFishingGroundsMySQL()
         {
             List<FishingGround> thisList = new List<FishingGround>();
             using (var conn = new MySqlConnection(MySQLConnect.ConnectionString()))
@@ -94,7 +130,7 @@ namespace NSAP_ODK.Entities
                     conn.Open();
                     cmd.Parameters.Add("@fg_name", MySqlDbType.VarChar).Value = fg.Name;
                     cmd.Parameters.Add("@fg_code", MySqlDbType.VarChar).Value = fg.Code.ToUpper();
-                    cmd.CommandText= "Insert into fishing_grounds(fishing_ground_name,fishing_ground_code) Values (@fg_name, @fg_code)";
+                    cmd.CommandText = "Insert into fishing_grounds(fishing_ground_name,fishing_ground_code) Values (@fg_name, @fg_code)";
                     try
                     {
                         success = cmd.ExecuteNonQuery() > 0;
@@ -118,7 +154,7 @@ namespace NSAP_ODK.Entities
                     }
                 }
             }
-                return success;
+            return success;
         }
         public bool Add(FishingGround fg)
         {

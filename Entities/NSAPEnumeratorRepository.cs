@@ -20,6 +20,54 @@ namespace NSAP_ODK.Entities
         {
             NSAPEnumerators = getNSAPEnumerators();
         }
+
+        public static List<NSAPRegionEnumerator> GetNSAPRegionEnumerators()
+        {
+            List<NSAPRegionEnumerator> nsapRegionEns = new List<NSAPRegionEnumerator>();
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = "Select * from NSAPRegionEnumerator";
+                        con.Open();
+                        try
+                        {
+                            var dr = cmd.ExecuteReader();
+                            while (dr.Read())
+                            {
+                                NSAPRegionEnumerator nren = new NSAPRegionEnumerator
+                                {
+                                    RowID = (int)dr["RowID"],
+                                    NSAPRegionCode = dr["NSAPRegion"].ToString(),
+                                    EnumeratorID = (int)dr["EnumeratorID"],
+                                    DateStart = (DateTime)dr["DateStart"]
+                                };
+                                if (dr["DateEnd"] != DBNull.Value)
+                                {
+                                    nren.DateEnd = (DateTime)dr["DateEnd"];
+                                }
+                                if (dr["DateFirstSampling"] != DBNull.Value)
+                                {
+                                    nren.DateFirstSampling = (DateTime)dr["DateFirstSampling"];
+                                }
+                                nsapRegionEns.Add(nren);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return nsapRegionEns;
+        }
         private List<NSAPEnumerator> getFromMySQL()
         {
             List<NSAPEnumerator> thisList = new List<NSAPEnumerator>();

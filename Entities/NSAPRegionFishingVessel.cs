@@ -13,7 +13,7 @@ namespace NSAP_ODK.Entities
     {
         public NSAPRegionFishingVesselEdit() { }
 
-        public NSAPRegionFishingVessel NSAPRegionFishingVessel{get;set;}
+        public NSAPRegionFishingVessel NSAPRegionFishingVessel { get; set; }
         public NSAPRegionFishingVesselEdit(NSAPRegionFishingVessel regionVessel)
         {
             NSAPRegionFishingVessel = regionVessel;
@@ -29,12 +29,12 @@ namespace NSAP_ODK.Entities
         [ReadOnly(true)]
         public int RowID { get; set; }
 
-         [ItemsSource(typeof(FishingVesselItemsSource))]
+        [ItemsSource(typeof(FishingVesselItemsSource))]
         public int FishingVesselID { get; set; }
 
-         public FishingVessel FishingVessel { get; set; }
+        public FishingVessel FishingVessel { get; set; }
 
-         [Editor(typeof(DateTimePickerEditor), typeof(DateTimePicker))]
+        [Editor(typeof(DateTimePickerEditor), typeof(DateTimePicker))]
         public DateTime DateStart { get; set; }
 
         public FisheriesSector FisheriesSector { get; set; }
@@ -50,11 +50,11 @@ namespace NSAP_ODK.Entities
 
 
         public int RowID { get; set; }
-
+        public string NSAPRegionCode { get; set; }
         public NSAPRegion NSAPRegion { get; set; }
 
-       
-       public int FishingVesselID { get; set; }
+
+        public int FishingVesselID { get; set; }
         public FishingVessel FishingVessel
         {
             get { return _fishingVessel; }
@@ -65,7 +65,7 @@ namespace NSAP_ODK.Entities
             }
         }
 
-       
+
         public DateTime DateStart { get; set; }
 
 

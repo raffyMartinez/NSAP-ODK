@@ -16,6 +16,49 @@ namespace NSAP_ODK.Entities
             Gears = getGears();
         }
 
+        public static List<NSAPRegionGear> GetRegionGears()
+        {
+            List<NSAPRegionGear> gears = new List<NSAPRegionGear>();
+            if(Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = "Select * from NSAPRegionGear";
+                        con.Open();
+                        try
+                        {
+                            var dr = cmd.ExecuteReader();
+                            while (dr.Read())
+                            {
+                                NSAPRegionGear rg = new NSAPRegionGear
+                                {
+                                    RowID = (int)dr["RowID"],
+                                    NSAPRegionID = dr["NSAPRegionCode"].ToString(),
+                                    GearCode = dr["GearCode"].ToString(),
+                                    DateStart = (DateTime)dr["DateStart"]
+                                };
+                                if(dr["DateEnd"]!=DBNull.Value)
+                                {
+                                    rg.DateEnd = (DateTime)dr["DateEnd"];
+                                }
+                                gears.Add(rg);
+                            }
+                        }
+                        catch(Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return gears;
+        }
         private List<Gear> getGearsMySQL()
         {
             List<Gear> thisList = new List<Gear>();

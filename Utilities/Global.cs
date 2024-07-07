@@ -295,6 +295,10 @@ namespace NSAP_ODK.Utilities
             NSAPEntities.GPSViewModel = new GPSViewModel();
             EntityLoaded?.Invoke(null, new EntityLoadedEventArg { Count = NSAPEntities.GPSViewModel.Count });
 
+            EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "NSAP region" });
+            NSAPEntities.NSAPRegionViewModel = new NSAPRegionViewModel();
+            EntityLoaded?.Invoke(null, new EntityLoadedEventArg { Count = NSAPEntities.NSAPRegionViewModel.Count });
+
             EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "FMA" });
             NSAPEntities.FMAViewModel = new FMAViewModel();
             EntityLoaded?.Invoke(null, new EntityLoadedEventArg { Count = NSAPEntities.FMAViewModel.Count });
@@ -323,9 +327,9 @@ namespace NSAP_ODK.Utilities
             NSAPEntities.NSAPEnumeratorViewModel = new NSAPEnumeratorViewModel();
             EntityLoaded?.Invoke(null, new EntityLoadedEventArg { Count = NSAPEntities.NSAPEnumeratorViewModel.Count });
 
-            EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "NSAP region" });
-            NSAPEntities.NSAPRegionViewModel = new NSAPRegionViewModel();
-            EntityLoaded?.Invoke(null, new EntityLoadedEventArg { Count = NSAPEntities.NSAPRegionViewModel.Count });
+            //EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "NSAP region" });
+            //NSAPEntities.NSAPRegionViewModel = new NSAPRegionViewModel();
+            //EntityLoaded?.Invoke(null, new EntityLoadedEventArg { Count = NSAPEntities.NSAPRegionViewModel.Count });
 
             EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "Province" });
             NSAPEntities.ProvinceViewModel = new ProvinceViewModel();
@@ -342,8 +346,9 @@ namespace NSAP_ODK.Utilities
                 EntityLoaded?.Invoke(null, new EntityLoadedEventArg { Count = NSAPEntities.GearAtLandingSiteDaysPerMonthViewModel.Count });
 
                 EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "NSAP region entities" });
-                var c = NSAPEntities.NSAPRegionViewModel.SetNSAPRegionsWithEntitiesRepositories();
-                EntityLoaded?.Invoke(null, new EntityLoadedEventArg { Count = c });
+                //var c = NSAPEntities.NSAPRegionViewModel.SetNSAPRegionsWithEntitiesRepositories();
+                NSAPEntities.NSAPRegionViewModel.FillUpRegionEntities();
+                //EntityLoaded?.Invoke(null, new EntityLoadedEventArg { Count = c });
 
                 EntityLoading?.Invoke(null, new EntityLoadedEventArg { Name = "Size type" });
                 NSAPEntities.SizeTypeViewModel = new SizeTypeViewModel();

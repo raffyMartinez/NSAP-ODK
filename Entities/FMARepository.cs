@@ -20,6 +20,44 @@ namespace NSAP_ODK.Entities
             FMAs = getFMAs();
         }
 
+        public static  List<NSAPRegionFMA> GetNSAPRegionFMAs()
+        {
+            List<NSAPRegionFMA> nsapRegionFMAs = new List<NSAPRegionFMA>();
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = "Select * from NSAPRegionFMA";
+                        con.Open();
+                        try
+                        {
+                            var dr = cmd.ExecuteReader();
+                            while (dr.Read())
+                            {
+                                NSAPRegionFMA nrfma = new NSAPRegionFMA
+                                {
+                                    RowID = (int)dr["RowID"],
+                                    NSAPRegionCode = dr["NSAPRegion"].ToString(),
+                                    FMAID = (int)dr["FMA"]
+                                };
+                                nsapRegionFMAs.Add(nrfma);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+
+                        }
+                    }
+                }
+            }
+            return nsapRegionFMAs;
+        }
         private List<FMA> getFromMySQL()
         {
             List<FMA> thisList = new List<FMA>();

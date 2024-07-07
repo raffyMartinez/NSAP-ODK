@@ -133,7 +133,7 @@ namespace NSAP_ODK.Entities
             }
 
         }
-        public List<FishingVessel> GetAllGears()
+        public List<FishingVessel> GetAllFishingVessels()
         {
             return FishingVesselCollection.ToList();
         }

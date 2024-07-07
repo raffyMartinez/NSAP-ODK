@@ -21,6 +21,8 @@ namespace NSAP_ODK.Entities
         [ReadOnly(true)]
         public int RowID { get; set; }
         public NSAPRegion NSAPRegion { get; set; }
+
+        public string NSAPRegionID { get; set; }
         [ItemsSource(typeof(GearItemsSource))]
         public string GearCode { get; set; }  
         

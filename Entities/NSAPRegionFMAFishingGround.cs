@@ -20,7 +20,7 @@ namespace NSAP_ODK.Entities
         public int RowID { get; set; }
 
         public NSAPRegionFMA RegionFMA { get; set; }
-
+        public int RegionFMAID { get; set; }
         public FishingGround FishingGround
         {
             get { return _fishingGround; }

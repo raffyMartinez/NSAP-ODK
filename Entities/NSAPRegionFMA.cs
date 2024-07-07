@@ -14,7 +14,7 @@ namespace NSAP_ODK.Entities
         {
             FishingGrounds = new List<NSAPRegionFMAFishingGround>();
         }
-
+        public string NSAPRegionCode { get; set; }
         [ReadOnly(true)]
         public int RowID { get; set; }
 

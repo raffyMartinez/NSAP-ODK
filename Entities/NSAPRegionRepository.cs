@@ -138,8 +138,10 @@ namespace NSAP_ODK.Entities
                     }
                 }
             }
+
             return thisList;
         }
+        
 
         private bool AddToMySQL(NSAPRegion nsr)
         {

@@ -28,7 +28,66 @@ namespace NSAP_ODK.Entities
 
         public Dictionary<string, NSAPRegionWithEntitiesRepository> NSAPRegionsWithEntitiesRepositories { get; set; }
 
+        public void FillUpRegionEntities()
+        {
+            List<NSAPRegion> regions = NSAPRegionCollection.ToList();
+            foreach (NSAPRegionEnumerator nren in NSAPEnumeratorRepository.GetNSAPRegionEnumerators())
+            {
+                nren.NSAPRegion = regions.Find(t => t.Code == nren.NSAPRegionCode);
+                nren.NSAPRegion.NSAPEnumerators.Add(nren);
+            }
 
+            List<FMA> fmas = NSAPEntities.FMAViewModel.GetAllFMAs();
+            List<NSAPRegionFMA> region_fmas = FMARepository.GetNSAPRegionFMAs();
+            foreach (NSAPRegionFMA nrfma in region_fmas)
+            {
+                nrfma.NSAPRegion = regions.Find(t => t.Code == nrfma.NSAPRegionCode);
+                nrfma.FMA = fmas.Find(t => t.FMAID == nrfma.FMAID);
+                nrfma.NSAPRegion.FMAs.Add(nrfma);
+            }
+
+            List<FishingGround> fgs = NSAPEntities.FishingGroundViewModel.GetAllFishingGrounds();
+            List<NSAPRegionFMAFishingGround> fma_fishingGrounds = FishingGroundRepository.GetFMAFishingGrounds();
+            foreach (NSAPRegionFMAFishingGround fma_fg in fma_fishingGrounds)
+            {
+                fma_fg.RegionFMA = region_fmas.Find(t => t.RowID == fma_fg.RegionFMAID);
+                fma_fg.FishingGround = fgs.Find(t => t.Code == fma_fg.FishingGroundCode);
+                fma_fg.RegionFMA.FishingGrounds.Add(fma_fg);
+            }
+
+            List<FishingVessel> fvs = NSAPEntities.FishingVesselViewModel.GetAllFishingVessels();
+            List<NSAPRegionFMAFishingGroundLandingSite> fg_lss = LandingSiteRepository.GetFishingGround_LandingSites();
+            List<LandingSite> landingSites = NSAPEntities.LandingSiteViewModel.GetAllLandingSites();
+            foreach (NSAPRegionFMAFishingGroundLandingSite fg_ls in fg_lss)
+            {
+                fg_ls.NSAPRegionFMAFishingGround = fma_fishingGrounds.Find(t => t.RowID == fg_ls.FMA_FishingGroundID);
+                fg_ls.LandingSite = landingSites.Find(t => t.LandingSiteID == fg_ls.LandingSiteID);
+                fg_ls.NSAPRegionFMAFishingGround.LandingSites.Add(fg_ls);
+            }
+
+            
+            foreach (NSAPRegionFishingVessel nrfv in FishingVesselRepository.GeRegionFishingVessels())
+            {
+                nrfv.NSAPRegion = regions.Find(t => t.Code == nrfv.NSAPRegionCode);
+                nrfv.FishingVessel = fvs.Find(t => t.ID == nrfv.FishingVesselID);
+                nrfv.NSAPRegion.FishingVessels.Add(nrfv);
+            }
+
+            List<Gear> gears = NSAPEntities.GearViewModel.GetAllGears();
+            foreach(NSAPRegionGear nrg in GearRepository.GetRegionGears())
+            {
+                nrg.NSAPRegion = regions.Find(t => t.Code == nrg.NSAPRegionID);
+                nrg.Gear = gears.Find(t => t.Code == nrg.GearCode);
+                nrg.NSAPRegion.Gears.Add(nrg);
+            }
+
+            NSAPRegionsWithEntitiesRepositories = new Dictionary<string, NSAPRegionWithEntitiesRepository>();
+            foreach(NSAPRegion reg in regions)
+            {
+                NSAPRegionWithEntitiesRepository nswer = new NSAPRegionWithEntitiesRepository(reg, processSubEntities:false );
+                NSAPRegionsWithEntitiesRepositories.Add(reg.Code, nswer);
+            }
+        }
         private void ManageVesselListingEvent(string intent, int? listCount = 0)
         {
             EventHandler h = VesselListEvent;
@@ -118,15 +177,15 @@ namespace NSAP_ODK.Entities
             set
             {
                 _editedLandingSite = value;
-                foreach(var item in NSAPRegionsWithEntitiesRepositories)
+                foreach (var item in NSAPRegionsWithEntitiesRepositories)
                 {
-                    foreach(var fma in item.Value.NSAPRegion.FMAs)
+                    foreach (var fma in item.Value.NSAPRegion.FMAs)
                     {
-                        foreach(var fg in fma.FishingGrounds)
+                        foreach (var fg in fma.FishingGrounds)
                         {
-                            foreach(var ls in fg.LandingSites)
+                            foreach (var ls in fg.LandingSites)
                             {
-                                if(ls.LandingSite.LandingSiteID==_editedLandingSite.LandingSiteID)
+                                if (ls.LandingSite.LandingSiteID == _editedLandingSite.LandingSiteID)
                                 {
                                     ls.LandingSite = _editedLandingSite;
                                     break;
@@ -751,7 +810,7 @@ namespace NSAP_ODK.Entities
                 }
                 index++;
             }
-            if(_editSuccess)
+            if (_editSuccess)
             {
                 _editSuccess = UpdateNSAPRegionWithEntitiesRepository(nsr);
             }

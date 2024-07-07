@@ -19,23 +19,28 @@ namespace NSAP_ODK.Entities
 
         public string DatabaseErrorMessage { get; internal set; }
         public NSAPRegionWithEntitiesRepository() { }
-        public NSAPRegionWithEntitiesRepository(NSAPRegion nsapRegion)
+
+
+        public NSAPRegionWithEntitiesRepository(NSAPRegion nsapRegion, bool processSubEntities = true)
         {
             NSAPRegion = nsapRegion;
 
-            GetFMAS();
-            foreach (NSAPRegionFMA regionFMA in NSAPRegion.FMAs)
+            if (processSubEntities)
             {
-                GetFishingGroundsInFMAs(regionFMA);
-                foreach (var item in regionFMA.FishingGrounds)
+                GetFMAS();
+                foreach (NSAPRegionFMA regionFMA in NSAPRegion.FMAs)
                 {
-                    GetLandingSitesInFMAFishingGrounds(item);
+                    GetFishingGroundsInFMAs(regionFMA);
+                    foreach (var item in regionFMA.FishingGrounds)
+                    {
+                        GetLandingSitesInFMAFishingGrounds(item);
+                    }
                 }
-            }
 
-            GetEnumerators();
-            GetFishingVessels();
-            GetGears();
+                GetEnumerators();
+                GetFishingVessels();
+                GetGears();
+            }
         }
 
         public static FishingGround GetFishingGround(string region, string fma, string fishing_ground)
