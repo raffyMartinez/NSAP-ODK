@@ -113,6 +113,7 @@
                 <MenuItem Header="Number of length-weight measurements" x:Name="menuNumberLenWtMeas" IsCheckable="True" Checked="OnMenuItemChecked" />
                 <MenuItem Header="Number of length-frequency measurements" x:Name="menuNumberLenFreqMeas" IsCheckable="True" Checked="OnMenuItemChecked" />
                 <MenuItem Header="Number of maturity measurements" x:Name="menuNumberMaturityMeas" IsCheckable="True" Checked="OnMenuItemChecked" />
+                <MenuItem Header="Number of female maturity measurements" x:Name="menuNumberFemaleMaturityMeas" IsCheckable="True" Checked="OnMenuItemChecked" />
                 <!--<Separator/>
                 <MenuItem Header="Daily gear landing calendar" x:Name="menuDailyGearLandingCalendar" IsCheckable="True" Checked="OnMenuItemChecked"/>-->
             </MenuItem>

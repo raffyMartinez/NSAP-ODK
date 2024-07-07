@@ -20,9 +20,83 @@ namespace NSAP_ODK.Entities.Database
         {
             GearUnloads = getGearUnloads(ls);
         }
-        public GearUnloadRepository()
+
+        public static List<GearUnload> GetAllGearUnloads()
         {
-            GearUnloads = getGearUnloads();
+            List<GearUnload> allGearUnloads = new List<GearUnload>();
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = "Select * from dbo_gear_unload order by unload_gr_id";
+                        con.Open();
+                        try
+                        {
+                            var dr = cmd.ExecuteReader();
+                            while (dr.Read())
+                            {
+                                GearUnload gu = new GearUnload
+                                {
+                                    LandingSiteSamplingID = (int)dr["unload_day_id"],
+                                    PK = (int)dr["unload_gr_id"],
+                                    GearID = dr["gr_id"].ToString(),
+                                    Boats = string.IsNullOrEmpty(dr["boats"].ToString()) ? null : (int?)dr["boats"],
+                                    Catch = string.IsNullOrEmpty(dr["catch"].ToString()) ? null : (double?)dr["catch"],
+                                    SpeciesWithTWSpCount = string.IsNullOrEmpty(dr["sp_twsp_count"].ToString()) ? null : (int?)dr["sp_twsp_count"],
+                                    GearUsedText = dr["gr_text"].ToString(),
+                                    Remarks = dr["remarks"].ToString(),
+                                    SectorCode = dr["sector"].ToString()
+                                };
+                                //TotalWtSpViewModel = new TotalWtSpViewModel(item),
+                                if (dr["gear_count_commercial"] != DBNull.Value)
+                                {
+                                    gu.NumberOfCommercialLandings = (int)dr["gear_count_commercial"];
+                                }
+                                if (dr["gear_count_municipal"] != DBNull.Value)
+                                {
+                                    gu.NumberOfMunicipalLandings = (int)dr["gear_count_municipal"];
+                                }
+                                if (dr["gear_catch_municipal"] != DBNull.Value)
+                                {
+                                    gu.WeightOfMunicipalLandings = (double)dr["gear_catch_municipal"];
+                                }
+                                if (dr["gear_catch_commercial"] != DBNull.Value)
+                                {
+                                    gu.WeightOfCommercialLandings = (double)dr["gear_catch_commercial"];
+                                }
+                                if (dr["gear_sequence"] != DBNull.Value)
+                                {
+                                    gu.Sequence = (int)dr["gear_sequence"];
+                                }
+
+                                allGearUnloads.Add(gu);
+                            };
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return allGearUnloads;
+        }
+        public GearUnloadRepository(bool fetch = true)
+        {
+            if (fetch)
+            {
+                GearUnloads = getGearUnloads();
+            }
+            else
+            {
+                GearUnloads = new List<GearUnload>();
+            }
         }
 
         public static List<GearUnload> GetGearUnloadsForCrosstab(NSAP_ODK.TreeViewModelControl.AllSamplingEntitiesEventHandler e)

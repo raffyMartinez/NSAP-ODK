@@ -97,6 +97,50 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
         }
+        public string MaturityStage
+        {
+            get
+            {
+                string maturity = "";
+                switch (MaturityStageCode)
+                {
+                    case "pr":
+                        maturity = "Premature";
+                        break;
+                    case "im":
+                        maturity = "Immature";
+                        break;
+                    case "de":
+                        maturity = "Developing";
+                        break;
+                    case "ma":
+                        maturity = "Maturing";
+                        break;
+
+                    case "mt":
+                        maturity = "Mature";
+                        break;
+                    case "ri":
+                        maturity = "Ripening";
+                        break;
+                    case "gr":
+                        maturity = "Gravid";
+                        break; ;
+                    case "spw":
+                        maturity = "Spawning";
+                        break;
+                    case "sp":
+                        maturity = "Spent";
+                        break;
+                    default:
+                        maturity = "";
+                        break;
+
+                }
+                return maturity;
+            }
+        }
+        public string MaturityStageCode { get; set; }
         public string Species { get; set; }
         public string TaxaCode { get; set; }
 

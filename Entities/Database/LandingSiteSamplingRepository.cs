@@ -508,7 +508,7 @@ namespace NSAP_ODK.Entities.Database
 
                                     landingSiteSamplings.Add(lss);
                                 }
-                                catch(Exception ex)
+                                catch (Exception ex)
                                 {
                                     Logger.Log(ex);
                                 }
@@ -721,6 +721,177 @@ namespace NSAP_ODK.Entities.Database
         }
         private List<LandingSiteSampling> getLandingSiteSamplings(int? lss_id = null)
         {
+            List<LandingSiteSampling> thisList = new List<LandingSiteSampling>();
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = @"SELECT dbo_LC_FG_sample_day.*, dbo_LC_FG_sample_day_1.*
+                                                    FROM dbo_LC_FG_sample_day 
+                                                    LEFT JOIN dbo_LC_FG_sample_day_1 
+                                                    ON dbo_LC_FG_sample_day.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id";
+
+
+                        if (lss_id != null)
+                        {
+                            cmd.Parameters.AddWithValue("@id", (int)lss_id);
+                            cmd.CommandText += $" WHERE dbo_LC_FG_sample_day.unload_day_id = @id";
+                        }
+                        else if (Global.Filter1 != null)
+                        {
+                            cmd.Parameters.AddWithValue("@d1", Global.Filter1DateString());
+                            if (Global.Filter2 != null)
+                            {
+                                cmd.Parameters.AddWithValue("@d2", Global.Filter2DateString());
+                                cmd.CommandText += $" WHERE sDate >= @d1 AND sDate < @d2";
+                            }
+                            else
+                            {
+                                cmd.CommandText += $" WHERE sDate >= @d1";
+                            }
+                        }
+                        else if (!string.IsNullOrEmpty(Global.FilterServerID))
+                        {
+                            if (UpdateXFormIDInTable(Global.FilterServerID))
+                            {
+                                cmd.Parameters.AddWithValue("@srv", Global.FilterServerID);
+                                cmd.CommandText += $" WHERE XFormIdentifier = @srv";
+                            }
+                        }
+
+                        var qryString = cmd.CommandText
+                            .Replace("@d1", $"#{Global.Filter1DateString()}#")
+                            .Replace("@d2", $"#{Global.Filter2DateString()}#")
+                            .Replace("@srv", $"'{Global.FilterServerID}'");
+                        thisList.Clear();
+                        con.Open();
+                        try
+                        {
+                            OleDbDataReader dr = cmd.ExecuteReader();
+                            while (dr.Read())
+                            {
+                                if (dr["fma"] != DBNull.Value)
+                                {
+                                    LandingSiteSampling item = new LandingSiteSampling();
+                                    item.PK = (int)dr["dbo_LC_FG_sample_day.unload_day_id"];
+                                    item.NSAPRegionID = dr["region_id"].ToString();
+                                    item.SamplingDate = (DateTime)dr["sdate"];
+                                    item.LandingSiteID = dr["land_ctr_id"] == DBNull.Value ? null : (int?)dr["land_ctr_id"];
+                                    item.FishingGroundID = dr["ground_id"].ToString();
+                                    item.Remarks = dr["remarks"].ToString();
+                                    item.IsSamplingDay = (bool)dr["sampleday"];
+                                    item.LandingSiteText = dr["land_ctr_text"].ToString();
+                                    item.HasFishingOperation = (bool)dr["has_fishing_operation"];
+                                    if (dr["is_multivessel"] == DBNull.Value)
+                                    {
+                                        item.IsMultiVessel = false;
+                                    }
+                                    else
+                                    {
+                                        item.IsMultiVessel = (bool)dr["is_multivessel"];
+                                    }
+                                    item.FMAID = (int)dr["fma"];
+                                    item.DateSubmitted = dr["datetime_submitted"] == DBNull.Value ? null : (DateTime?)dr["datetime_submitted"];
+                                    item.UserName = dr["user_name"].ToString();
+                                    item.DeviceID = dr["device_id"].ToString();
+                                    item.XFormIdentifier = dr["XFormIdentifier"].ToString();
+                                    item.DateAdded = dr["DateAdded"] == DBNull.Value ? null : (DateTime?)dr["DateAdded"];
+                                    item.FromExcelDownload = dr["FromExcelDownload"] == DBNull.Value ? false : (bool)dr["FromExcelDownload"];
+                                    item.FormVersion = dr["form_version"].ToString();
+                                    item.RowID = dr["RowID"].ToString();
+                                    item.EnumeratorID = dr["EnumeratorID"] == DBNull.Value ? null : (int?)int.Parse(dr["EnumeratorID"].ToString());
+                                    item.EnumeratorText = dr["EnumeratorText"].ToString();
+
+                                    if (lss_id == null)
+                                    {
+                                        item.GearUnloadViewModel = new GearUnloadViewModel();
+                                    }
+                                    else
+                                    {
+                                        item.GearUnloadViewModel = new GearUnloadViewModel(item);
+                                    }
+
+                                    if (dr["date_deleted_from_server"] != DBNull.Value)
+                                    {
+                                        item.DateDeletedFromServer = (DateTime)dr["date_deleted_from_server"];
+                                    }
+
+                                    int? submission_id = null;
+                                    if (dr["submission_id"] != DBNull.Value)
+                                    {
+                                        submission_id = (int)dr["submission_id"];
+                                    }
+                                    item.Submission_id = submission_id;
+
+                                    if (item.IsMultiVessel)
+                                    {
+                                        if (dr["number_gear_types_in_landingsite"] != DBNull.Value)
+                                        {
+                                            item.NumberOfGearTypesInLandingSite = (int)dr["number_gear_types_in_landingsite"];
+                                        }
+                                        if (dr["number_landings_sampled"] != DBNull.Value)
+                                        {
+                                            item.NumberOfLandingsSampled = (int)dr["number_landings_sampled"];
+                                        }
+                                        if (dr["number_landings"] != DBNull.Value)
+                                        {
+                                            item.NumberOfLandings = (int)dr["number_landings"];
+                                        }
+                                    }
+                                    item.GearsInLandingSite = null;//GetGearsInLandingSite(item);
+                                    if (dr["can_sample_from_catch_composition"] == DBNull.Value)
+                                    {
+                                        item.SamplingFromCatchCompositionIsAllowed = false;
+                                    }
+                                    else
+                                    {
+                                        item.SamplingFromCatchCompositionIsAllowed = (bool)dr["can_sample_from_catch_composition"];
+                                    }
+
+                                    item.LandingSiteTypeOfSampling = dr["type_of_sampling"].ToString();
+
+                                    if (item.LandingSiteTypeOfSampling == "cbl")
+                                    {
+                                        if (dr["count_carrier_landings"] != DBNull.Value)
+                                        {
+                                            item.CountCarrierLandings = (int)dr["count_carrier_landings"];
+                                        }
+                                        item.CountCarrierSamplings = (int)dr["count_carrier_sampling"];
+                                        //item.CarrierBoatLanding_FishingGround_ViewModel = new CarrierBoatLanding_FishingGround_ViewModel(item);
+                                        //item.CatcherBoatOperation_ViewModel = new CatcherBoatOperation_ViewModel(item);
+                                    }
+                                    //item.VesselCatchViewModel = new VesselCatchViewModel(item);
+
+                                    thisList.Add(item);
+                                }
+                            }
+                            if (lss_id == null)
+                            {
+                                var gus = GearUnloadRepository.GetAllGearUnloads();
+                                foreach (var gu in gus)
+                                {
+                                    gu.Parent = thisList.Find(t => t.PK == gu.LandingSiteSamplingID);
+                                    gu.Parent.GearUnloadViewModel.AddRecordToRepo(gu, addToCollectionOnly: true);
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+
+                        }
+                    }
+                }
+            }
+            return thisList;
+        }
+        private List<LandingSiteSampling> getLandingSiteSamplingsEx(int? lss_id = null)
+        {
 
             List<LandingSiteSampling> thisList = new List<LandingSiteSampling>();
             if (Global.Settings.UsemySQL)
@@ -770,7 +941,10 @@ namespace NSAP_ODK.Entities.Database
                                 }
                             }
 
-
+                            var qryString = cmd.CommandText
+                                .Replace("@d1", $"#{Global.Filter1DateString()}#")
+                                .Replace("@d2", $"#{Global.Filter2DateString()}#")
+                                .Replace("@srv", $"'{Global.FilterServerID}'");
                             thisList.Clear();
                             conection.Open();
                             OleDbDataReader dr = cmd.ExecuteReader();
@@ -866,6 +1040,8 @@ namespace NSAP_ODK.Entities.Database
                                 }
                             }
 
+
+
                         }
                         catch (OleDbException olx)
                         {
@@ -896,6 +1072,9 @@ namespace NSAP_ODK.Entities.Database
                     }
                 }
             }
+
+
+
             return thisList;
         }
         public List<GearInLandingSite> GetGearsInLandingSite(LandingSiteSampling lss)

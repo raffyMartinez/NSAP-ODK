@@ -95,6 +95,7 @@ namespace NSAP_ODK
         private LandingSite _landingSite;
         private bool _isWatchedSpeciesCalendar;
         DateTime _downloadHistorySelectedItem;
+        private bool _getFemaleMaturity;
         public MainWindow()
         {
             InitializeComponent();
@@ -2243,10 +2244,22 @@ namespace NSAP_ODK
                     MonthLabel.Content = $"Calendar of number of length measurements of watched species per day for {monthOfSampling}";
                     break;
                 case CalendarViewType.calendarViewTypeLengthWeightMeasurement:
+
                     MonthLabel.Content = $"Calendar of number of length weight measurements of watched species per day for {monthOfSampling}";
                     break;
                 case CalendarViewType.calendarViewTypeMaturityMeasurement:
-                    MonthLabel.Content = $"Calendar of number of maturity measurements (length, weight, sex, maturity stage) of watched species per day for {monthOfSampling}";
+                    if (_getFemaleMaturity)
+                    {
+                        MonthLabel.Content = $"Calendar of number of maturity measurements for females (length, weight, sex, maturity stage) of watched species per day for {monthOfSampling}";
+
+                    }
+                    else
+                    {
+                        MonthLabel.Content = $"Calendar of number of maturity measurements (length, weight, sex, maturity stage) of watched species per day for {monthOfSampling}";
+                        
+
+                    }
+
                     break;
             }
             labelRowCount.Content = NSAPEntities.FishingCalendarDayExViewModel.SamplingCalendarTitle;
@@ -2453,6 +2466,7 @@ namespace NSAP_ODK
                 case "menuNumberLenWtMeas":
                 case "menuNumberLenFreqMeas":
                 case "menuNumberMaturityMeas":
+                case "menuNumberFemaleMaturityMeas":
                     if (NSAPEntities.FishingCalendarDayExViewModel.CanCreateCalendar)
                     {
                         foreach (Control mi in menuCalendar.Items)
@@ -2464,6 +2478,7 @@ namespace NSAP_ODK
                             }
                         }
                         _isWatchedSpeciesCalendar = false;
+
                         switch (menuName)
                         {
                             case "menuSampledCalendar":
@@ -2508,6 +2523,12 @@ namespace NSAP_ODK
                             case "menuNumberMaturityMeas":
                                 _calendarOption = CalendarViewType.calendarViewTypeMaturityMeasurement;
                                 _isWatchedSpeciesCalendar = true;
+                                _getFemaleMaturity = false;
+                                break;
+                            case "menuNumberFemaleMaturityMeas":
+                                _calendarOption = CalendarViewType.calendarViewTypeMaturityMeasurement;
+                                _isWatchedSpeciesCalendar = true;
+                                _getFemaleMaturity = true;
                                 break;
                         }
                         if (!_cancelBuildCalendar)
@@ -2516,7 +2537,7 @@ namespace NSAP_ODK
                             NSAPEntities.FishingCalendarDayExViewModel.CalendarViewType = _calendarOption;
                             //NSAPEntities.FishingCalendarDayExViewModel.MakeCalendar(isWatchedSpeciesCalendar: watchedSpeciesCalendar);
                             //await NSAPEntities.FishingCalendarDayExViewModel.MakeCalendarTask(isWatchedSpeciesCalendar: watchedSpeciesCalendar);
-                            if (await NSAPEntities.FishingCalendarDayExViewModel.MakeCalendar(isWatchedSpeciesCalendar: _isWatchedSpeciesCalendar))
+                            if (await NSAPEntities.FishingCalendarDayExViewModel.MakeCalendar(isWatchedSpeciesCalendar: _isWatchedSpeciesCalendar, getFemaleMaturity: _getFemaleMaturity))
                             {
 
 

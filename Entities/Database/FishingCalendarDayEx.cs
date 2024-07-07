@@ -20,6 +20,8 @@ namespace NSAP_ODK.Entities.Database
             TaxaCode = taxaCode;
         }
         public FishingGearAndSector FishingGearAndSector { get; set; }
+
+        public string MaturityStage { get; set; }
         public Taxa Taxa
         {
             get
@@ -42,7 +44,7 @@ namespace NSAP_ODK.Entities.Database
 
         public override int GetHashCode()
         {
-            return (SpeciesID, FishingGearAndSector.Gear.Code, FishingGearAndSector.SectorCode).GetHashCode();
+            return (SpeciesID, FishingGearAndSector.Gear.Code, FishingGearAndSector.SectorCode, MaturityStage).GetHashCode();
         }
 
         public override bool Equals(object obj)

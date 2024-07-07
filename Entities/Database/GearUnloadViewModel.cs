@@ -18,13 +18,21 @@ namespace NSAP_ODK.Entities.Database
         private GearUnloadRepository GearUnloads { get; set; }
         private static StringBuilder _csv = new StringBuilder();
         private static StringBuilder _temp_csv = new StringBuilder();
+        private bool _addToCollectionOnly;
+
+        public GearUnloadViewModel()
+        {
+            GearUnloads = new GearUnloadRepository(fetch: false);
+            GearUnloadCollection = new ObservableCollection<GearUnload>(GearUnloads.GearUnloads);
+            GearUnloadCollection.CollectionChanged += GearUnloadCollection_CollectionChanged;
+        }
         public GearUnloadViewModel(LandingSiteSampling parent)
         {
             GearUnloads = new GearUnloadRepository(parent);
             GearUnloadCollection = new ObservableCollection<GearUnload>(GearUnloads.GearUnloads);
             GearUnloadCollection.CollectionChanged += GearUnloadCollection_CollectionChanged;
         }
-         public static void MarkVesselUnloadsWithWatchedSpecies(string watchedSpeciesName, List<GearUnload>gearUnloads)
+        public static void MarkVesselUnloadsWithWatchedSpecies(string watchedSpeciesName, List<GearUnload> gearUnloads)
         {
 
         }
@@ -181,12 +189,12 @@ namespace NSAP_ODK.Entities.Database
         {
             return GearUnloadRepository.GearUnloadCount(isCompleted);
         }
-        public GearUnloadViewModel()
-        {
-            GearUnloads = new GearUnloadRepository();
-            GearUnloadCollection = new ObservableCollection<GearUnload>(GearUnloads.GearUnloads);
-            GearUnloadCollection.CollectionChanged += GearUnloadCollection_CollectionChanged;
-        }
+        //public GearUnloadViewModel()
+        //{
+        //    GearUnloads = new GearUnloadRepository();
+        //    GearUnloadCollection = new ObservableCollection<GearUnload>(GearUnloads.GearUnloads);
+        //    GearUnloadCollection.CollectionChanged += GearUnloadCollection_CollectionChanged;
+        //}
         private static bool SetCSV(GearUnload item)
         {
             Dictionary<string, string> myDict = new Dictionary<string, string>();
@@ -240,7 +248,7 @@ namespace NSAP_ODK.Entities.Database
                     gear_sequence = @"\N";
                 }
 
-                if (item.Parent.IsMultiVessel && item.Sequence!=null)
+                if (item.Parent.IsMultiVessel && item.Sequence != null)
                 {
                     gear_sequence = ((int)item.Sequence).ToString();
                 }
@@ -731,7 +739,7 @@ namespace NSAP_ODK.Entities.Database
                         {
                             EditSuccess = SetCSV(newItem);
                         }
-                        else
+                        else if (!_addToCollectionOnly)
                         {
                             EditSuccess = GearUnloads.Add(newItem);
                         }
@@ -759,8 +767,9 @@ namespace NSAP_ODK.Entities.Database
             get { return GearUnloadCollection.Count; }
         }
 
-        public bool AddRecordToRepo(GearUnload item)
+        public bool AddRecordToRepo(GearUnload item, bool addToCollectionOnly = false)
         {
+            _addToCollectionOnly = addToCollectionOnly;
             if (item == null)
                 throw new ArgumentNullException("Error: The argument is Null");
             GearUnloadCollection.Add(item);

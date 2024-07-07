@@ -86,9 +86,15 @@ namespace NSAP_ODK.Entities.Database
             }
             return unloadIDs;
         }
-        public List<SpeciesCalendarDay> GetMeasuredSpeciesCalendarDays(AllSamplingEntitiesEventHandler selectedMonth, CalendarViewType viewType)
+        public List<SpeciesCalendarDay> GetMeasuredSpeciesCalendarDays(
+            AllSamplingEntitiesEventHandler selectedMonth,
+            CalendarViewType viewType,
+            bool getMatureGravidFemaleMaturity = false)
         {
             string m_table = "";
+            string where_female = "";
+            //string having_female = "";
+            string select_maturity = "";
             switch (viewType)
             {
                 case CalendarViewType.calendarViewTypeLengthFrequencyMeasurement:
@@ -102,6 +108,12 @@ namespace NSAP_ODK.Entities.Database
                     break;
                 case CalendarViewType.calendarViewTypeMaturityMeasurement:
                     m_table = "dbo_catch_maturity";
+                    if (getMatureGravidFemaleMaturity)
+                    {
+                        select_maturity = ", dbo_catch_maturity.maturity";
+                        where_female = " AND dbo_catch_maturity.sex='f'";
+                        // having_female = " AND dbo_catch_maturity.maturity In ('mt','ri','gr','spw')";
+                    }
                     break;
                 default:
                     break;
@@ -132,6 +144,7 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_vessel_catch.taxa,
                                                 dbo_vessel_catch.species_id,
                                                 Count({m_table}.catch_id) AS n
+                                                {select_maturity}
                                              FROM
                                                 ((dbo_LC_FG_sample_day INNER JOIN
                                                 (dbo_gear_unload INNER JOIN
@@ -150,16 +163,19 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_LC_FG_sample_day.land_ctr_id=@ls AND
                                                 dbo_LC_FG_sample_day.ground_id=@fg AND
                                                 dbo_LC_FG_sample_day.fma=@fma
+                                                {where_female}
                                              GROUP BY
                                                 dbo_LC_FG_sample_day.sdate,
                                                 dbo_gear_unload.gr_id,
                                                 dbo_vessel_unload_1.sector_code,
                                                 dbo_vessel_catch.taxa,
                                                 dbo_vessel_catch.species_id
+                                                {select_maturity}
                                              HAVING
                                                 dbo_LC_FG_sample_day.sdate>=@start AND
                                                 dbo_LC_FG_sample_day.sdate<@end AND
                                                 Count({m_table}.catch_id)>0
+
                                              ORDER BY dbo_LC_FG_sample_day.sdate;
 
                                              UNION ALL
@@ -171,6 +187,7 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_vessel_catch.taxa,
                                                 dbo_vessel_catch.species_id,
                                                 Count({m_table}.catch_id) AS n
+                                                {select_maturity}
                                              FROM
                                                 (((dbo_LC_FG_sample_day INNER JOIN
                                                 (dbo_gear_unload INNER JOIN
@@ -191,12 +208,14 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_LC_FG_sample_day.land_ctr_id=@ls AND
                                                 dbo_LC_FG_sample_day.ground_id=@fg AND
                                                 dbo_LC_FG_sample_day.fma=@fma
-                                                GROUP BY
+                                                {where_female}
+                                             GROUP BY
                                                 dbo_LC_FG_sample_day.sdate,
                                                 dbo_gear_unload.gr_id,
                                                 dbo_vessel_unload_1.sector_code,
                                                 dbo_vessel_catch.taxa,
                                                 dbo_vessel_catch.species_id
+                                                {select_maturity}
                                              HAVING
                                                 dbo_LC_FG_sample_day.sdate>=@start AND
                                                 dbo_LC_FG_sample_day.sdate<@end AND
@@ -204,13 +223,13 @@ namespace NSAP_ODK.Entities.Database
 
                         con.Open();
 
-                        //var qryText = cmd.CommandText
-                            //.Replace("@reg", $"'{selectedMonth.NSAPRegion.Code}'")
-                            //.Replace("@ls", $"{selectedMonth.LandingSite.LandingSiteID}")
-                            //.Replace("@fg", $"'{selectedMonth.FishingGround.Code}'")
-                            //.Replace("@fma", $"{selectedMonth.FMA.FMAID}")
-                            //.Replace("@start", $"#{month_start.ToString("M/d/yyyy")}#")
-                            //.Replace("@end", $"#{month_start.AddMonths(1).ToString("M/d/yyyy")}#");
+                        var qryText = cmd.CommandText
+                        .Replace("@reg", $"'{selectedMonth.NSAPRegion.Code}'")
+                        .Replace("@ls", $"{selectedMonth.LandingSite.LandingSiteID}")
+                        .Replace("@fg", $"'{selectedMonth.FishingGround.Code}'")
+                        .Replace("@fma", $"{selectedMonth.FMA.FMAID}")
+                        .Replace("@start", $"#{month_start.ToString("M/d/yyyy")}#")
+                        .Replace("@end", $"#{month_start.AddMonths(1).ToString("M/d/yyyy")}#");
                         try
                         {
                             var dr = cmd.ExecuteReader();
@@ -227,7 +246,7 @@ namespace NSAP_ODK.Entities.Database
                                 };
 
                                 int counts = (int)dr["n"];
-                                
+
                                 switch (viewType)
                                 {
                                     case CalendarViewType.calendarViewTypeLengthFrequencyMeasurement:
@@ -241,6 +260,10 @@ namespace NSAP_ODK.Entities.Database
                                         break;
                                     case CalendarViewType.calendarViewTypeMaturityMeasurement:
                                         scd.CountMaturityMeas = counts;
+                                        if (getMatureGravidFemaleMaturity)
+                                        {
+                                            scd.MaturityStageCode = dr["maturity"].ToString();
+                                        }
                                         break;
                                 }
                                 days.Add(scd);
