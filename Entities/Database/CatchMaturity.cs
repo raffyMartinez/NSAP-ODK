@@ -222,7 +222,10 @@ namespace NSAP_ODK.Entities.Database
 
         public string SexCode { get; set; }
 
-
+        public override string ToString()
+        {
+            return $"Sex:{Sex} - Maturity:{Maturity}";
+        }
 
         public string Sex
         {
@@ -271,6 +274,44 @@ namespace NSAP_ODK.Entities.Database
                 }
                 return gutContent;
             }
+        }
+
+        public static string CodeFromMaturityStage(string stage)
+        {
+
+
+            string code = "";
+            switch (stage)
+            {
+                case "Premature":
+                    code = "pr";
+                    break;
+                case "Immature":
+                    code = "im";
+                    break;
+                case "Developing":
+                    code = "de";
+                    break;
+                case "Maturing":
+                    code = "ma";
+                    break;
+                case "Mature":
+                    code = "mt";
+                    break;
+                case "Ripening":
+                    code = "ri";
+                    break;
+                case "Gravid":
+                    code = "gr";
+                    break; ;
+                case "Spawning":
+                    code = "spw";
+                    break;
+                case "Spent":
+                    code = "sp";
+                    break;
+            }
+            return code;
         }
         public string Maturity
         {

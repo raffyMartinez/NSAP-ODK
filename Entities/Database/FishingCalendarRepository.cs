@@ -238,35 +238,39 @@ namespace NSAP_ODK.Entities.Database
                                 SpeciesCalendarDay scd = new SpeciesCalendarDay
                                 {
                                     MonthViewModel = selectedMonth,
-                                    SpeciesID = (int)dr["species_id"],
                                     TaxaCode = dr["taxa"].ToString(),
                                     SamplingDate = (DateTime)dr["sdate"],
                                     GearCode = dr["gr_id"].ToString(),
                                     SectorCode = dr["sector_code"].ToString(),
                                 };
-
-                                int counts = (int)dr["n"];
-
-                                switch (viewType)
+                                if (dr["species_id"] != DBNull.Value)
                                 {
-                                    case CalendarViewType.calendarViewTypeLengthFrequencyMeasurement:
-                                        scd.CountLenFreqMeas = counts;
-                                        break;
-                                    case CalendarViewType.calendarViewTypeLengthMeasurement:
-                                        scd.CountLenMeas = counts;
-                                        break;
-                                    case CalendarViewType.calendarViewTypeLengthWeightMeasurement:
-                                        scd.CountLenWtMeas = counts;
-                                        break;
-                                    case CalendarViewType.calendarViewTypeMaturityMeasurement:
-                                        scd.CountMaturityMeas = counts;
-                                        if (getMatureGravidFemaleMaturity)
-                                        {
-                                            scd.MaturityStageCode = dr["maturity"].ToString();
-                                        }
-                                        break;
+                                    scd.SpeciesID = (int)dr["species_id"];
+
+                                    int counts = (int)dr["n"];
+
+                                    switch (viewType)
+                                    {
+                                        case CalendarViewType.calendarViewTypeLengthFrequencyMeasurement:
+                                            scd.CountLenFreqMeas = counts;
+                                            break;
+                                        case CalendarViewType.calendarViewTypeLengthMeasurement:
+                                            scd.CountLenMeas = counts;
+                                            break;
+                                        case CalendarViewType.calendarViewTypeLengthWeightMeasurement:
+                                            scd.CountLenWtMeas = counts;
+                                            break;
+                                        case CalendarViewType.calendarViewTypeMaturityMeasurement:
+                                            scd.CountMaturityMeas = counts;
+                                            if (getMatureGravidFemaleMaturity)
+                                            {
+                                                scd.MaturityStageCode = dr["maturity"].ToString();
+                                            }
+                                            break;
+                                    }
+                                    days.Add(scd);
                                 }
-                                days.Add(scd);
+
 
                             }
                         }

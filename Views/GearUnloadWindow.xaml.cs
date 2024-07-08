@@ -328,6 +328,9 @@ namespace NSAP_ODK.Views
             //GridVesselUnload.DataContext = _vesselUnloads;
             GridVesselUnload.Items.Refresh();
         }
+        public string MaturityStage { get; set; }
+        public string MaturityCode { get; set; }
+        public int SpeciesID { get; set; }
 
         public string WatchedSpecies
         {
@@ -478,47 +481,88 @@ namespace NSAP_ODK.Views
             {
                 //_vesselUnloads = _gearUnloads[0].ListVesselUnload;
                 _vesselUnloads = new List<VesselUnload>();
+                bool isMeasurementCalendar = false;
                 foreach (GearUnload gu in _gearUnloads)
                 {
-                    foreach (VesselUnload vu in gu.ListVesselUnload)
+                    if (string.IsNullOrEmpty(MaturityCode))
                     {
-                        if (vu.SectorCode == SectorCode)
+                        if (CalendarViewType == CalendarViewType.calendarViewTypeLengthMeasurement ||
+                                CalendarViewType == CalendarViewType.calendarViewTypeLengthWeightMeasurement ||
+                                CalendarViewType == CalendarViewType.calendarViewTypeLengthFrequencyMeasurement ||
+                                CalendarViewType == CalendarViewType.calendarViewTypeMaturityMeasurement)
                         {
-                            if (!string.IsNullOrEmpty(_watchedSpecies))
+                            isMeasurementCalendar = true;
+                            _vesselUnloads.AddRange(gu.ListVesselUnload);
+                        }
+                        else if (!string.IsNullOrEmpty(_watchedSpecies))
+                        {
+                            _vesselUnloads.AddRange(gu.ListVesselUnload);
+                        }
+                        else
+                        {
+                            foreach (VesselUnload vu in gu.ListVesselUnload)
                             {
-                                VesselCatch vc = vu.ListVesselCatch.Find(t => t.CatchName == _watchedSpecies);
-                                if (vc != null)
+                                if (vu.SectorCode == SectorCode)
                                 {
-                                    if (CalendarViewType == CalendarViewType.calendarViewTypeLengthMeasurement ||
-                                        CalendarViewType == CalendarViewType.calendarViewTypeLengthWeightMeasurement ||
-                                        CalendarViewType == CalendarViewType.calendarViewTypeLengthFrequencyMeasurement ||
-                                        CalendarViewType == CalendarViewType.calendarViewTypeMaturityMeasurement)
-                                    {
-                                        if (vc.ListCatchLenFreq.Count > 0 ||
-                                            vc.ListCatchLength.Count > 0 ||
-                                            vc.ListCatchMaturity.Count > 0 ||
-                                            vc.ListCatchLengthWeight.Count > 0)
-                                        {
-                                            _vesselUnloads.Add(vu);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        _vesselUnloads.Add(vu);
-                                    }
+                                    _vesselUnloads.Add(vu);
+
                                 }
                             }
-                            else
-                            {
-                                _vesselUnloads.Add(vu);
-                            }
+                            GridVesselUnload.DataContext = _vesselUnloads;
                         }
-                    }
 
+                    }
+                    else
+                    {
+                        _vesselUnloads.AddRange(gu.ListVesselUnload);
+                    }
                 }
 
+                if (GridVesselUnload.DataContext == null)
+                {
+                    List<VesselUnload> vus = new List<VesselUnload>();
+                    List<int> vu_ids = new List<int>();
+                    if (!string.IsNullOrEmpty(MaturityCode))
+                    {
+                        vu_ids = CatchMaturityRepository.GetVesselUnloadIDsForFemaleCatchMaturityStage(_treeItemData,
+                            _gearUnloads.First().Parent.SamplingDate.Day,
+                            _gearUnloads.First().GearID,
+                            MaturityCode, SpeciesID);
+                        foreach (var vu_id in vu_ids)
+                        {
+                            vus.Add(_vesselUnloads.Find(t => t.PK == vu_id));
+                        }
+                        GridVesselUnload.DataContext = vus;
+                    }
+                    else if (isMeasurementCalendar)
+                    {
+                        vu_ids = VesselCatchRepository.GetUnloadIDsWithCatchMeasurement(_treeItemData,
+                            _gearUnloads.First().GearID,
+                            SpeciesID,
+                            _gearUnloads.First().Parent.SamplingDate.Day,
+                            CalendarViewType);
 
-                GridVesselUnload.DataContext = _vesselUnloads;
+                        foreach (var vu_id in vu_ids)
+                        {
+                            vus.Add(_vesselUnloads.Find(t => t.PK == vu_id));
+                        }
+                        GridVesselUnload.DataContext = vus;
+                    }
+                    else
+                    {
+                        vu_ids = VesselCatchRepository.GetUnloadIDsWithCatch(_treeItemData,
+                            _gearUnloads.First().GearID,
+                            SpeciesID,
+                            _gearUnloads.First().Parent.SamplingDate.Day
+                            );
+                        foreach (var vu_id in vu_ids)
+                        {
+                            vus.Add(_vesselUnloads.Find(t => t.PK == vu_id));
+                        }
+                        GridVesselUnload.DataContext = vus;
+                    }
+                }
+
                 LabelTitle.Content = $"Vessel unloads from {_gearUnloads[0].Parent.LandingSite} using {_gearUnloads[0].GearUsedName} on {_gearUnloads[0].Parent.SamplingDate.ToString("MMM-dd-yyyy")}";
 
                 //((MainWindow)Owner).SetupCalendar();

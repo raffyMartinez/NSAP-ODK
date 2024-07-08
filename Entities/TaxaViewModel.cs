@@ -45,6 +45,10 @@ namespace NSAP_ODK.Entities
             return count == TaxaCollection.Count;
         }
 
+        public string TaxaCodeFromName(string taxaName)
+        {
+            return TaxaCollection.FirstOrDefault(t => t.Name == taxaName).Code;
+        }
         public ObservableCollection<string> AllTaxaTerms()
         {
             ObservableCollection<string> list = new ObservableCollection<string>();

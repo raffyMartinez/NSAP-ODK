@@ -96,6 +96,7 @@ namespace NSAP_ODK
         private bool _isWatchedSpeciesCalendar;
         DateTime _downloadHistorySelectedItem;
         private bool _getFemaleMaturity;
+        private string _maturityStage;
         public MainWindow()
         {
             InitializeComponent();
@@ -2536,7 +2537,7 @@ namespace NSAP_ODK
                         if (_isWatchedSpeciesCalendar)
                         {
                             var reg = NSAPEntities.NSAPRegionViewModel.CurrentEntity;
-                            if(reg.RegionWatchedSpeciesViewModel==null)
+                            if (reg.RegionWatchedSpeciesViewModel == null)
                             {
                                 reg.RegionWatchedSpeciesViewModel = new RegionWatchedSpeciesViewModel(reg);
                             }
@@ -3979,13 +3980,35 @@ namespace NSAP_ODK
                                 {
                                     _gearUnloadWindow = new GearUnloadWindow(_gearUnloads, _treeItemData, this, _sector_code);
                                     _gearUnloadWindow.CalendarViewType = _calendarOption;
-                                    if (_isWatchedSpeciesCalendar)
+                                    if (_calendarOption == CalendarViewType.calendarViewTypeMaturityMeasurement && _getFemaleMaturity)
                                     {
-                                        _gearUnloadWindow.WatchedSpecies = _speciesName;
+                                        _gearUnloadWindow.MaturityCode = CatchMaturity.CodeFromMaturityStage(_maturityStage);
+                                        var taxa_code = NSAPEntities.TaxaViewModel.TaxaCodeFromName(_speciesTaxa);
+                                        _gearUnloadWindow.SpeciesID = VesselCatchViewModel.SpeciesIDFromSpeciesName(taxa_code, _speciesName);
+                                    }
+                                    else if (_calendarOption == CalendarViewType.calendarViewTypeLengthMeasurement ||
+                                        _calendarOption == CalendarViewType.calendarViewTypeLengthFrequencyMeasurement ||
+                                        _calendarOption == CalendarViewType.calendarViewTypeMaturityMeasurement ||
+                                        _calendarOption == CalendarViewType.calendarViewTypeLengthWeightMeasurement
+                                        )
+                                    {
+                                        var taxa_code = NSAPEntities.TaxaViewModel.TaxaCodeFromName(_speciesTaxa);
+                                        _gearUnloadWindow.SpeciesID = VesselCatchViewModel.SpeciesIDFromSpeciesName(taxa_code, _speciesName);
+                                    }
+                                    else
+                                    {
+
+                                        if (_isWatchedSpeciesCalendar)
+                                        {
+                                            var taxa_code = NSAPEntities.TaxaViewModel.TaxaCodeFromName(_speciesTaxa);
+                                            _gearUnloadWindow.SpeciesID = VesselCatchViewModel.SpeciesIDFromSpeciesName(taxa_code, _speciesName);
+                                            _gearUnloadWindow.WatchedSpecies = _speciesName;
+                                        }
                                     }
                                     _gearUnloadWindow.Owner = this;
 
                                     _gearUnloadWindow.Show();
+
                                 }
                                 else
                                 {
@@ -3995,6 +4018,7 @@ namespace NSAP_ODK
                                         _gearUnloadWindow = null;
                                     }
                                 }
+
                                 break;
                             //case CalendarViewType.calendarViewTypeCountAllLandingsByGear:
                             //case CalendarViewType.calendarViewTypeWeightAllLandingsByGear:
@@ -4626,13 +4650,27 @@ namespace NSAP_ODK
 
                             if (_isWatchedSpeciesCalendar)
                             {
-                                _speciesTaxa = (string)item.Row.ItemArray[0];
-                                _speciesName = (string)item.Row.ItemArray[1];
-                                _gearName = (string)item.Row.ItemArray[2];
-                                _gearCode = (string)item.Row.ItemArray[3];
-                                _fish_sector = (string)item.Row.ItemArray[4];
-                                _monthYear = DateTime.Parse(item.Row.ItemArray[5].ToString());
-                                gridColumnForDay1 = 6;
+                                if (_getFemaleMaturity)
+                                {
+                                    _speciesTaxa = (string)item.Row.ItemArray[0];
+                                    _speciesName = (string)item.Row.ItemArray[1];
+                                    _maturityStage = (string)item.Row.ItemArray[2];
+                                    _gearName = (string)item.Row.ItemArray[3];
+                                    _gearCode = (string)item.Row.ItemArray[4];
+                                    _fish_sector = (string)item.Row.ItemArray[5];
+                                    _monthYear = DateTime.Parse(item.Row.ItemArray[6].ToString());
+                                    gridColumnForDay1 = 7;
+                                }
+                                else
+                                {
+                                    _speciesTaxa = (string)item.Row.ItemArray[0];
+                                    _speciesName = (string)item.Row.ItemArray[1];
+                                    _gearName = (string)item.Row.ItemArray[2];
+                                    _gearCode = (string)item.Row.ItemArray[3];
+                                    _fish_sector = (string)item.Row.ItemArray[4];
+                                    _monthYear = DateTime.Parse(item.Row.ItemArray[5].ToString());
+                                    gridColumnForDay1 = 6;
+                                }
                             }
                             else
                             {

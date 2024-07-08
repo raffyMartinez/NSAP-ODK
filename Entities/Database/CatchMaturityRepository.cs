@@ -20,7 +20,95 @@ namespace NSAP_ODK.Entities.Database
         {
             CatchMaturities = getCatchMaturites(vc);
         }
+       
+        public static List<int>GetVesselUnloadIDsForFemaleCatchMaturityStage(TreeViewModelControl.AllSamplingEntitiesEventHandler e,
+            int day,
+            string gearCode,
+            string maturityCode,
+            int speciesID)
+        {
+            List<int> vu_ids = new List<int>();
+            if(Global.Settings.UsemySQL)
+            {
 
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@ls",e.LandingSite.LandingSiteID);
+                        cmd.Parameters.AddWithValue("@fg",e.FishingGround.Code);
+                        cmd.Parameters.AddWithValue("@fma",e.FMA.FMAID);
+                        cmd.Parameters.AddWithValue("@reg",e.NSAPRegion.Code);
+                        cmd.Parameters.AddWithValue("@day",((DateTime)e.MonthSampled).AddDays(day-1).ToString("M/d/yyyy"));
+                        cmd.Parameters.AddWithValue("@gear",gearCode);
+                        cmd.Parameters.AddWithValue("@species",speciesID);
+                        cmd.Parameters.AddWithValue("@sex","f");
+                        cmd.Parameters.AddWithValue("@stage",maturityCode);
+                        cmd.CommandText = @"SELECT DISTINCT 
+                                                dbo_vessel_unload.v_unload_id
+                                            FROM
+                                                (((dbo_LC_FG_sample_day INNER JOIN 
+                                                dbo_gear_unload ON 
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                dbo_vessel_unload ON 
+                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) INNER JOIN 
+                                                dbo_vessel_catch ON dbo_vessel_unload.v_unload_id = dbo_vessel_catch.v_unload_id) INNER JOIN 
+                                                dbo_catch_maturity ON dbo_vessel_catch.catch_id = dbo_catch_maturity.catch_id
+                                            WHERE
+                                                dbo_LC_FG_sample_day.land_ctr_id = @ls AND
+                                                dbo_LC_FG_sample_day.ground_id = @fg AND
+                                                dbo_LC_FG_sample_day.fma = @fma AND
+                                                dbo_LC_FG_sample_day.region_id = @reg AND
+                                                dbo_LC_FG_sample_day.sdate =@day AND 
+                                                dbo_gear_unload.gr_id=@gear AND 
+                                                dbo_vessel_catch.species_id=@species AND 
+                                                dbo_catch_maturity.sex=@sex AND 
+                                                dbo_catch_maturity.maturity=@stage
+                                            UNION
+                                            SELECT DISTINCT 
+                                                dbo_vessel_unload.v_unload_id
+                                            FROM 
+                                                ((dbo_LC_FG_sample_day INNER JOIN 
+                                                (dbo_gear_unload INNER JOIN 
+                                                dbo_vessel_unload ON 
+                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                dbo_vesselunload_fishinggear ON 
+                                                dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) INNER JOIN 
+                                                (dbo_vessel_catch INNER JOIN 
+                                                dbo_catch_maturity ON dbo_vessel_catch.catch_id = dbo_catch_maturity.catch_id) ON 
+                                                dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id
+                                            WHERE
+                                                dbo_LC_FG_sample_day.land_ctr_id = @ls AND
+                                                dbo_LC_FG_sample_day.ground_id = @fg AND
+                                                dbo_LC_FG_sample_day.fma = @fma AND
+                                                dbo_LC_FG_sample_day.region_id = @reg AND
+                                                dbo_LC_FG_sample_day.sdate =@day AND 
+                                                dbo_gear_unload.gr_id=@gear AND 
+                                                dbo_vessel_catch.species_id=@species AND 
+                                                dbo_catch_maturity.sex=@sex AND 
+                                                dbo_catch_maturity.maturity=@stage;";
+                        con.Open();
+                        try
+                        {
+                            var dr = cmd.ExecuteReader();
+                            while(dr.Read())
+                            {
+                                vu_ids.Add((int)dr["v_unload_id"]);
+                            }
+                        }
+                        catch(Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return vu_ids;
+        }
         public static List<CatchMaturityCrossTab> GetCatchMaturityForCrosstab(NSAP_ODK.TreeViewModelControl.AllSamplingEntitiesEventHandler e)
         {
             List<CatchMaturityCrossTab> cmcts = new List<CatchMaturityCrossTab>();

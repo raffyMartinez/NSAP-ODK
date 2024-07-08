@@ -22,7 +22,19 @@ namespace NSAP_ODK.Entities.Database
             GC.SuppressFinalize(this);
         }
 
-
+        public static int SpeciesIDFromSpeciesName(string taxa, string speciesName)
+        {
+            int sp_id;
+            if(taxa=="FIS")
+            {
+                sp_id= (int)NSAPEntities.FishSpeciesViewModel.GetAllSpecies(speciesName).First().SpeciesCode;
+            }
+            else
+            {
+                sp_id = NSAPEntities.NotFishSpeciesViewModel.GetAllSpecies(speciesName).First().SpeciesID;
+            }
+            return sp_id;
+        }
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
