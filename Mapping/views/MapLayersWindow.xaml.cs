@@ -262,6 +262,7 @@ namespace NSAP_ODK.Mapping.views
         {
             dataGridLayers.Columns.Add(new DataGridCheckBoxColumn { Header = "Visible", Binding = new Binding("Visible") });
             dataGridLayers.Columns.Add(new DataGridTextColumn { Header = "Name", Binding = new Binding("Name") });
+            
 
             FrameworkElementFactory factory = new FrameworkElementFactory(typeof(System.Windows.Controls.Image));
             Binding bind = new Binding("image");//please keep "image" name as you have set in your class data member name

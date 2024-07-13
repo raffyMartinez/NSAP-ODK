@@ -142,6 +142,9 @@ namespace NSAP_ODK.TreeViewModelControl
 
             switch (menuName)
             {
+                case "contextMenuFemaleMaturitySummary":
+                    args.NSAPRegion = ((tv_NSAPRegionViewModel)_selectedItem)._region;
+                    break;
                 case "contextMenuGearUnloadFishingGround":
                     args.FishingGround = ((tv_FishingGroundViewModel)_selectedItem)._fishingGround;
                     args.FMA = ((tv_FishingGroundViewModel)_selectedItem)._fma;

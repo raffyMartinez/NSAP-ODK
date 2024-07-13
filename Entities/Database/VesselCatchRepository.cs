@@ -20,7 +20,1335 @@ namespace NSAP_ODK.Entities.Database
 
         private string _newColumnName;
 
+        private static bool RemoveUnusedParameter(OleDbCommand cmd, string parameterName)
+        {
+            var p = cmd.Parameters[parameterName];
+            try
+            {
+                cmd.Parameters.Remove(p);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        public static List<int> GetVesselUnloadIDs(AllSamplingEntitiesEventHandler e, string context, int calendarDay, int? sp_id = null, string gear_code = "", string sector_code = "")
+        {
+            List<int> vu_ids = new List<int>();
+            if (Global.Settings.UsemySQL)
+            {
 
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@reg", e.NSAPRegion.Code);
+                        cmd.Parameters.AddWithValue("@fma", e.FMA.FMAID.ToString());
+                        cmd.Parameters.AddWithValue("@fg", e.FishingGround.Code);
+                        cmd.Parameters.AddWithValue("@ls", e.LandingSite.LandingSiteID.ToString());
+                        DateTime sampling_date = ((DateTime)e.MonthSampled).AddDays(calendarDay - 1);
+                        cmd.Parameters.AddWithValue("@start", sampling_date.ToString("M/d/yyyy"));
+                        cmd.Parameters.AddWithValue("@end", sampling_date.AddDays(1).ToString("M/d/yyyy"));
+                        cmd.Parameters.AddWithValue("@sp_id", (int)sp_id);
+                        cmd.Parameters.AddWithValue("@gear", gear_code);
+                        cmd.Parameters.AddWithValue("@sector", sector_code);
+                        var arr = context.Split(':');
+                        string meas_table = "";
+                        string maturity_not_null = "";
+                        string stage = "";
+                        if (arr[0] == "measured")
+                        {
+                            switch (arr[1])
+                            {
+                                case "maturity":
+                                    meas_table = "dbo_catch_maturity";
+                                    maturity_not_null = "AND dbo_catch_maturity.maturity IS NOT NULL";
+                                    break;
+                                case "length":
+                                    meas_table = "dbo_catch_len";
+                                    break;
+                                case "length-weight":
+                                    meas_table = "dbo_catch_len_wt";
+                                    break;
+                                case "length frequency":
+                                    meas_table = "dbo_catch_len_freq";
+                                    break;
+                            }
+                        }
+                        else if (arr[0] == "maturity")
+                        {
+                            stage = CatchMaturity.CodeFromMaturityStage(arr[1]);
+                            cmd.Parameters.AddWithValue("@stage", stage);
+                        }
+
+                        switch (arr[0])
+                        {
+                            case "sector_month":
+                                break;
+                            case "maturity":
+                                if (arr.Length > 2)
+                                {
+                                    switch (arr[2])
+                                    {
+                                        case "by_day_species":
+                                            cmd.CommandText = @"SELECT DISTINCT 
+                                                                dbo_vessel_unload.v_unload_id
+                                                            FROM 
+                                                                ((dbo_LC_FG_sample_day INNER JOIN 
+                                                                (dbo_gear_unload INNER JOIN 
+                                                                dbo_vessel_unload ON 
+                                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                                dbo_vessel_unload_1 ON 
+                                                                dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) INNER JOIN 
+                                                                (dbo_vessel_catch INNER JOIN 
+                                                                dbo_catch_maturity ON 
+                                                                dbo_vessel_catch.catch_id = dbo_catch_maturity.catch_id) ON 
+                                                                dbo_vessel_unload.v_unload_id = dbo_vessel_catch.v_unload_id
+                                                            WHERE 
+                                                                dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                                dbo_LC_FG_sample_day.fma=@fma AND 
+                                                                dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                                dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                                dbo_vessel_unload_1.SamplingDate>=@start AND
+                                                                dbo_vessel_unload_1.SamplingDate<@end AND 
+                                                                dbo_vessel_catch.species_id=@sp_id AND 
+                                                                dbo_catch_maturity.maturity=@stage
+                                                            UNION
+                                                            SELECT DISTINCT 
+                                                                dbo_vessel_unload.v_unload_id
+                                                            FROM
+                                                                (((dbo_LC_FG_sample_day INNER JOIN
+                                                                (dbo_gear_unload INNER JOIN 
+                                                                dbo_vessel_unload ON 
+                                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                                dbo_vessel_unload_1 ON 
+                                                                dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) INNER JOIN 
+                                                                dbo_vesselunload_fishinggear ON 
+                                                                dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) INNER JOIN
+                                                                (dbo_vessel_catch INNER JOIN 
+                                                                dbo_catch_maturity ON 
+                                                                dbo_vessel_catch.catch_id = dbo_catch_maturity.catch_id) ON 
+                                                                dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id
+                                                            WHERE 
+                                                                dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                                dbo_LC_FG_sample_day.fma=@fma AND 
+                                                                dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                                dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                                dbo_vessel_unload_1.SamplingDate>=@start AND
+                                                                dbo_vessel_unload_1.SamplingDate<@end AND 
+                                                                dbo_vessel_catch.species_id=@sp_id AND 
+                                                                dbo_catch_maturity.maturity=@stage";
+
+                                            RemoveUnusedParameter(cmd, "@gear");
+                                            RemoveUnusedParameter(cmd, "@sector");
+                                            break;
+                                        case "by_sector":
+
+                                            RemoveUnusedParameter(cmd, "@gear");
+
+                                            cmd.CommandText = @"SELECT DISTINCT 
+                                                                dbo_vessel_unload.v_unload_id
+                                                            FROM 
+                                                                ((dbo_LC_FG_sample_day INNER JOIN 
+                                                                (dbo_gear_unload INNER JOIN 
+                                                                dbo_vessel_unload ON 
+                                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                                dbo_vessel_unload_1 ON 
+                                                                dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) INNER JOIN 
+                                                                (dbo_vessel_catch INNER JOIN 
+                                                                dbo_catch_maturity ON 
+                                                                dbo_vessel_catch.catch_id = dbo_catch_maturity.catch_id) ON 
+                                                                dbo_vessel_unload.v_unload_id = dbo_vessel_catch.v_unload_id
+                                                            WHERE 
+                                                                dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                                dbo_LC_FG_sample_day.fma=@fma AND 
+                                                                dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                                dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                                dbo_vessel_unload_1.SamplingDate>=@start AND
+                                                                dbo_vessel_unload_1.SamplingDate<@end AND 
+                                                                dbo_vessel_catch.species_id=@sp_id AND 
+                                                                dbo_vessel_unload_1.sector_code=@sector AND
+                                                                dbo_catch_maturity.maturity=@stage
+                                                            UNION
+                                                            SELECT DISTINCT 
+                                                                dbo_vessel_unload.v_unload_id
+                                                            FROM
+                                                                (((dbo_LC_FG_sample_day INNER JOIN
+                                                                (dbo_gear_unload INNER JOIN 
+                                                                dbo_vessel_unload ON 
+                                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                                dbo_vessel_unload_1 ON 
+                                                                dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) INNER JOIN 
+                                                                dbo_vesselunload_fishinggear ON 
+                                                                dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) INNER JOIN
+                                                                (dbo_vessel_catch INNER JOIN 
+                                                                dbo_catch_maturity ON 
+                                                                dbo_vessel_catch.catch_id = dbo_catch_maturity.catch_id) ON 
+                                                                dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id
+                                                            WHERE 
+                                                                dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                                dbo_LC_FG_sample_day.fma=@fma AND 
+                                                                dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                                dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                                dbo_vessel_unload_1.SamplingDate>=@start AND
+                                                                dbo_vessel_unload_1.SamplingDate<@end AND 
+                                                                dbo_vessel_catch.species_id=@sp_id AND 
+                                                                dbo_vessel_unload_1.sector_code=@sector AND
+                                                                dbo_catch_maturity.maturity=@stage";
+
+
+
+                                            break;
+                                    }
+                                }
+                                else
+                                {
+                                    cmd.CommandText = @"SELECT DISTINCT 
+                                                                dbo_vessel_unload.v_unload_id
+                                                            FROM 
+                                                                ((dbo_LC_FG_sample_day INNER JOIN 
+                                                                (dbo_gear_unload INNER JOIN 
+                                                                dbo_vessel_unload ON 
+                                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                                dbo_vessel_unload_1 ON 
+                                                                dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) INNER JOIN 
+                                                                (dbo_vessel_catch INNER JOIN 
+                                                                dbo_catch_maturity ON 
+                                                                dbo_vessel_catch.catch_id = dbo_catch_maturity.catch_id) ON 
+                                                                dbo_vessel_unload.v_unload_id = dbo_vessel_catch.v_unload_id
+                                                            WHERE 
+                                                                dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                                dbo_LC_FG_sample_day.fma=@fma AND 
+                                                                dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                                dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                                dbo_vessel_unload_1.SamplingDate>=@start AND
+                                                                dbo_vessel_unload_1.SamplingDate<@end AND 
+                                                                dbo_vessel_catch.species_id=@sp_id AND 
+                                                                dbo_gear_unload.gr_id=@gear AND 
+                                                                dbo_vessel_unload_1.sector_code=@sector AND
+                                                                dbo_catch_maturity.maturity=@stage
+                                                            UNION
+                                                            SELECT DISTINCT 
+                                                                dbo_vessel_unload.v_unload_id
+                                                            FROM
+                                                                (((dbo_LC_FG_sample_day INNER JOIN
+                                                                (dbo_gear_unload INNER JOIN 
+                                                                dbo_vessel_unload ON 
+                                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                                dbo_vessel_unload_1 ON 
+                                                                dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) INNER JOIN 
+                                                                dbo_vesselunload_fishinggear ON 
+                                                                dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) INNER JOIN
+                                                                (dbo_vessel_catch INNER JOIN 
+                                                                dbo_catch_maturity ON 
+                                                                dbo_vessel_catch.catch_id = dbo_catch_maturity.catch_id) ON 
+                                                                dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id
+                                                            WHERE 
+                                                                dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                                dbo_LC_FG_sample_day.fma=@fma AND 
+                                                                dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                                dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                                dbo_vessel_unload_1.SamplingDate>=@start AND
+                                                                dbo_vessel_unload_1.SamplingDate<@end AND 
+                                                                dbo_vessel_catch.species_id=@sp_id AND 
+                                                                dbo_gear_unload.gr_id=@gear AND 
+                                                                dbo_vessel_unload_1.sector_code=@sector AND
+                                                                dbo_catch_maturity.maturity=@stage";
+                                }
+                                break;
+                            case "measured":
+                                if (arr.Length > 2)
+                                {
+                                    if (arr[2] == "by_day_species")
+                                    {
+                                        RemoveUnusedParameter(cmd, "@gear");
+                                        RemoveUnusedParameter(cmd, "@sector");
+                                        cmd.CommandText = $@"SELECT DISTINCT 
+                                                            dbo_vessel_unload.v_unload_id
+                                                         FROM 
+                                                            (((dbo_LC_FG_sample_day INNER JOIN 
+                                                            (dbo_gear_unload INNER JOIN 
+                                                            dbo_vessel_unload ON 
+                                                            dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                            dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                            dbo_vessel_unload_1 ON 
+                                                            dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) INNER JOIN 
+                                                            dbo_vessel_catch ON 
+                                                            dbo_vessel_unload.v_unload_id = dbo_vessel_catch.v_unload_id) INNER JOIN 
+                                                            {meas_table} ON dbo_vessel_catch.catch_id = {meas_table}.catch_id
+                                                         WHERE 
+                                                            dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                            dbo_LC_FG_sample_day.fma=@fma AND 
+                                                            dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                            dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                            dbo_vessel_unload_1.SamplingDate>=@start AND
+                                                            dbo_vessel_unload_1.SamplingDate<@end AND 
+                                                            dbo_vessel_catch.species_id=@sp_id
+                                                            {maturity_not_null}
+
+                                                         UNION
+
+                                                         SELECT DISTINCT 
+                                                            dbo_vessel_unload.v_unload_id
+                                                         FROM 
+                                                            ((((dbo_LC_FG_sample_day INNER JOIN 
+                                                            (dbo_gear_unload INNER JOIN 
+                                                            dbo_vessel_unload ON 
+                                                            dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                            dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                            dbo_vessel_unload_1 ON 
+                                                            dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) INNER JOIN 
+                                                            dbo_vesselunload_fishinggear ON 
+                                                            dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) INNER JOIN 
+                                                            dbo_vessel_catch ON 
+                                                            dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id) INNER JOIN 
+                                                            {meas_table} ON dbo_vessel_catch.catch_id = {meas_table}.catch_id
+                                                         WHERE 
+                                                            dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                            dbo_LC_FG_sample_day.fma=@fma AND 
+                                                            dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                            dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                            dbo_vessel_unload_1.SamplingDate>=@start AND
+                                                            dbo_vessel_unload_1.SamplingDate<@end AND 
+                                                            dbo_vessel_catch.species_id=@sp_id
+                                                            {maturity_not_null}";
+                                    }
+                                    else if (arr[2] == "by_sector")
+                                    {
+                                        RemoveUnusedParameter(cmd, "@gear");
+                                        cmd.CommandText = $@"SELECT DISTINCT 
+                                                            dbo_vessel_unload.v_unload_id
+                                                         FROM 
+                                                            (((dbo_LC_FG_sample_day INNER JOIN 
+                                                            (dbo_gear_unload INNER JOIN 
+                                                            dbo_vessel_unload ON 
+                                                            dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                            dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                            dbo_vessel_unload_1 ON 
+                                                            dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) INNER JOIN 
+                                                            dbo_vessel_catch ON 
+                                                            dbo_vessel_unload.v_unload_id = dbo_vessel_catch.v_unload_id) INNER JOIN 
+                                                            {meas_table} ON dbo_vessel_catch.catch_id = {meas_table}.catch_id
+                                                         WHERE 
+                                                            dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                            dbo_LC_FG_sample_day.fma=@fma AND 
+                                                            dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                            dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                            dbo_vessel_unload_1.SamplingDate>=@start AND
+                                                            dbo_vessel_unload_1.SamplingDate<@end AND 
+                                                            dbo_vessel_catch.species_id=@sp_id AND                                                            
+                                                            dbo_vessel_unload_1.sector_code=@sector 
+                                                            {maturity_not_null}
+
+                                                         UNION
+
+                                                         SELECT DISTINCT 
+                                                            dbo_vessel_unload.v_unload_id
+                                                         FROM 
+                                                            ((((dbo_LC_FG_sample_day INNER JOIN 
+                                                            (dbo_gear_unload INNER JOIN 
+                                                            dbo_vessel_unload ON 
+                                                            dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                            dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                            dbo_vessel_unload_1 ON 
+                                                            dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) INNER JOIN 
+                                                            dbo_vesselunload_fishinggear ON 
+                                                            dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) INNER JOIN 
+                                                            dbo_vessel_catch ON 
+                                                            dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id) INNER JOIN 
+                                                            {meas_table} ON dbo_vessel_catch.catch_id = {meas_table}.catch_id
+                                                         WHERE 
+                                                            dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                            dbo_LC_FG_sample_day.fma=@fma AND 
+                                                            dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                            dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                            dbo_vessel_unload_1.SamplingDate>=@start AND
+                                                            dbo_vessel_unload_1.SamplingDate<@end AND 
+                                                            dbo_vessel_catch.species_id=@sp_id AND
+                                                            dbo_vessel_unload_1.sector_code=@sector 
+                                                            {maturity_not_null}";
+                                    }
+                                }
+                                else
+                                {
+                                    cmd.CommandText = $@"SELECT DISTINCT 
+                                                            dbo_vessel_unload.v_unload_id
+                                                         FROM 
+                                                            (((dbo_LC_FG_sample_day INNER JOIN 
+                                                            (dbo_gear_unload INNER JOIN 
+                                                            dbo_vessel_unload ON 
+                                                            dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                            dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                            dbo_vessel_unload_1 ON 
+                                                            dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) INNER JOIN 
+                                                            dbo_vessel_catch ON 
+                                                            dbo_vessel_unload.v_unload_id = dbo_vessel_catch.v_unload_id) INNER JOIN 
+                                                            {meas_table} ON dbo_vessel_catch.catch_id = {meas_table}.catch_id
+                                                         WHERE 
+                                                            dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                            dbo_LC_FG_sample_day.fma=@fma AND 
+                                                            dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                            dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                            dbo_vessel_unload_1.SamplingDate>=@start AND
+                                                            dbo_vessel_unload_1.SamplingDate<@end AND 
+                                                            dbo_vessel_catch.species_id=@sp_id AND
+                                                            dbo_gear_unload.gr_id=@gear AND
+                                                            dbo_vessel_unload_1.sector_code=@sector  
+                                                            {maturity_not_null}
+
+                                                         UNION
+
+                                                         SELECT DISTINCT 
+                                                            dbo_vessel_unload.v_unload_id
+                                                         FROM 
+                                                            ((((dbo_LC_FG_sample_day INNER JOIN 
+                                                            (dbo_gear_unload INNER JOIN 
+                                                            dbo_vessel_unload ON 
+                                                            dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                            dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                            dbo_vessel_unload_1 ON 
+                                                            dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) INNER JOIN 
+                                                            dbo_vesselunload_fishinggear ON 
+                                                            dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) INNER JOIN 
+                                                            dbo_vessel_catch ON 
+                                                            dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id) INNER JOIN 
+                                                            {meas_table} ON dbo_vessel_catch.catch_id = {meas_table}.catch_id
+                                                         WHERE 
+                                                            dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                            dbo_LC_FG_sample_day.fma=@fma AND 
+                                                            dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                            dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                            dbo_vessel_unload_1.SamplingDate>=@start AND
+                                                            dbo_vessel_unload_1.SamplingDate<@end AND 
+                                                            dbo_vessel_catch.species_id=@sp_id AND
+                                                            dbo_gear_unload.gr_id=@gear AND
+                                                            dbo_vessel_unload_1.sector_code=@sector 
+                                                            {maturity_not_null}";
+                                }
+                                break;
+                            case "by_day_sector":
+                                RemoveUnusedParameter(cmd, "@gear");
+                                cmd.CommandText = @"SELECT DISTINCT 
+                                                            dbo_vessel_unload.v_unload_id
+                                                        FROM 
+                                                            ((dbo_LC_FG_sample_day INNER JOIN 
+                                                            (dbo_gear_unload INNER JOIN 
+                                                            dbo_vessel_unload ON 
+                                                            dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                            dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                            dbo_vessel_unload_1 ON 
+                                                            dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) INNER JOIN 
+                                                            dbo_vessel_catch ON 
+                                                            dbo_vessel_unload.v_unload_id = dbo_vessel_catch.v_unload_id
+                                                        WHERE 
+                                                            dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                            dbo_LC_FG_sample_day.fma=@fma AND 
+                                                            dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                            dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                            dbo_vessel_unload_1.SamplingDate>=@start AND
+                                                            dbo_vessel_unload_1.SamplingDate<@end AND 
+                                                            dbo_vessel_catch.species_id=@sp_id AND
+                                                            dbo_vessel_unload_1.sector_code=@sector
+                                                        UNION
+                                                        SELECT DISTINCT 
+                                                            dbo_vessel_unload.v_unload_id
+                                                        FROM
+                                                            (((dbo_LC_FG_sample_day INNER JOIN
+                                                            (dbo_gear_unload INNER JOIN 
+                                                            dbo_vessel_unload ON 
+                                                            dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                            dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                            dbo_vessel_unload_1 ON 
+                                                            dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) INNER JOIN 
+                                                            dbo_vesselunload_fishinggear ON 
+                                                            dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) INNER JOIN 
+                                                            dbo_vessel_catch ON 
+                                                            dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id
+                                                        WHERE
+                                                            dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                            dbo_LC_FG_sample_day.fma=@fma AND 
+                                                            dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                            dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                            dbo_vessel_unload_1.SamplingDate>=@start AND
+                                                            dbo_vessel_unload_1.SamplingDate<@end AND 
+                                                            dbo_vessel_catch.species_id=@sp_id AND
+                                                            dbo_vessel_unload_1.sector_code=@sector";
+                                break;
+                            case "by_day_species":
+                                RemoveUnusedParameter(cmd, "@gear");
+                                RemoveUnusedParameter(cmd, "@sector");
+                                cmd.CommandText = @"SELECT DISTINCT 
+                                                            dbo_vessel_unload.v_unload_id
+                                                        FROM 
+                                                            ((dbo_LC_FG_sample_day INNER JOIN 
+                                                            (dbo_gear_unload INNER JOIN 
+                                                            dbo_vessel_unload ON 
+                                                            dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                            dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                            dbo_vessel_unload_1 ON 
+                                                            dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) INNER JOIN 
+                                                            dbo_vessel_catch ON 
+                                                            dbo_vessel_unload.v_unload_id = dbo_vessel_catch.v_unload_id
+                                                        WHERE 
+                                                            dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                            dbo_LC_FG_sample_day.fma=@fma AND 
+                                                            dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                            dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                            dbo_vessel_unload_1.SamplingDate>=@start AND
+                                                            dbo_vessel_unload_1.SamplingDate<@end AND 
+                                                            dbo_vessel_catch.species_id=@sp_id
+                                                        UNION
+                                                        SELECT DISTINCT 
+                                                            dbo_vessel_unload.v_unload_id
+                                                        FROM
+                                                            (((dbo_LC_FG_sample_day INNER JOIN
+                                                            (dbo_gear_unload INNER JOIN 
+                                                            dbo_vessel_unload ON 
+                                                            dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                            dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                            dbo_vessel_unload_1 ON 
+                                                            dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) INNER JOIN 
+                                                            dbo_vesselunload_fishinggear ON 
+                                                            dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) INNER JOIN 
+                                                            dbo_vessel_catch ON 
+                                                            dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id
+                                                        WHERE
+                                                            dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                            dbo_LC_FG_sample_day.fma=@fma AND 
+                                                            dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                            dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                            dbo_vessel_unload_1.SamplingDate>=@start AND
+                                                            dbo_vessel_unload_1.SamplingDate<@end AND 
+                                                            dbo_vessel_catch.species_id=@sp_id";
+                                break;
+                            case "gear_day_species":
+                                cmd.CommandText = @"SELECT DISTINCT 
+                                                            dbo_vessel_unload.v_unload_id
+                                                        FROM 
+                                                            ((dbo_LC_FG_sample_day INNER JOIN 
+                                                            (dbo_gear_unload INNER JOIN 
+                                                            dbo_vessel_unload ON 
+                                                            dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                            dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                            dbo_vessel_unload_1 ON 
+                                                            dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) INNER JOIN 
+                                                            dbo_vessel_catch ON 
+                                                            dbo_vessel_unload.v_unload_id = dbo_vessel_catch.v_unload_id
+                                                        WHERE 
+                                                            dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                            dbo_LC_FG_sample_day.fma=@fma AND 
+                                                            dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                            dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                            dbo_vessel_unload_1.SamplingDate>=@start AND
+                                                            dbo_vessel_unload_1.SamplingDate<@end AND 
+                                                            dbo_vessel_catch.species_id=@sp_id AND                                                            
+                                                            dbo_gear_unload.gr_id=@gear AND
+                                                            dbo_vessel_unload_1.sector_code=@sector
+                                                        UNION
+                                                        SELECT DISTINCT 
+                                                            dbo_vessel_unload.v_unload_id
+                                                        FROM
+                                                            (((dbo_LC_FG_sample_day INNER JOIN
+                                                            (dbo_gear_unload INNER JOIN 
+                                                            dbo_vessel_unload ON 
+                                                            dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                            dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                            dbo_vessel_unload_1 ON 
+                                                            dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) INNER JOIN 
+                                                            dbo_vesselunload_fishinggear ON 
+                                                            dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) INNER JOIN 
+                                                            dbo_vessel_catch ON 
+                                                            dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id
+                                                        WHERE
+                                                            dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                            dbo_LC_FG_sample_day.fma=@fma AND 
+                                                            dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                            dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                            dbo_vessel_unload_1.SamplingDate>=@start AND
+                                                            dbo_vessel_unload_1.SamplingDate<@end AND 
+                                                            dbo_vessel_catch.species_id=@sp_id AND                                                            
+                                                            dbo_gear_unload.gr_id=@gear AND
+                                                            dbo_vessel_unload_1.sector_code=@sector";
+                                break;
+                            case "gear_day":
+                                cmd.CommandText = @"SELECT DISTINCT 
+                                                        dbo_vessel_unload.v_unload_id
+                                                      FROM 
+                                                        (dbo_LC_FG_sample_day INNER JOIN 
+                                                        (dbo_gear_unload INNER JOIN 
+                                                        dbo_vessel_unload ON 
+                                                        dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                        dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                        dbo_vessel_unload_1 ON 
+                                                        dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id
+                                                      WHERE 
+                                                        dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                        dbo_LC_FG_sample_day.fma=@fma AND 
+                                                        dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                        dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                        dbo_vessel_unload_1.SamplingDate>=@start AND
+                                                        dbo_vessel_unload_1.SamplingDate<@end AND
+                                                        dbo_gear_unload.gr_id=@gear AND 
+                                                        dbo_vessel_unload_1.sector_code=@sector";
+                                break;
+                            case "by_day":
+                                cmd.CommandText = @"SELECT DISTINCT 
+                                                        dbo_vessel_unload.v_unload_id
+                                                      FROM 
+                                                        (dbo_LC_FG_sample_day INNER JOIN 
+                                                        (dbo_gear_unload INNER JOIN 
+                                                        dbo_vessel_unload ON 
+                                                        dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                        dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                        dbo_vessel_unload_1 ON 
+                                                        dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id
+                                                      WHERE 
+                                                        dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                        dbo_LC_FG_sample_day.fma=@fma AND 
+                                                        dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                        dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                        dbo_vessel_unload_1.SamplingDate>=@start AND
+                                                        dbo_vessel_unload_1.SamplingDate<@end";
+                                break;
+                            case "by_Sector":
+                                cmd.CommandText = @"SELECT DISTINCT 
+                                                        dbo_vessel_unload.v_unload_id
+                                                      FROM 
+                                                        (dbo_LC_FG_sample_day INNER JOIN 
+                                                        (dbo_gear_unload INNER JOIN 
+                                                        dbo_vessel_unload ON 
+                                                        dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                        dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                        dbo_vessel_unload_1 ON 
+                                                        dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id
+                                                      WHERE 
+                                                        dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                        dbo_LC_FG_sample_day.fma=@fma AND 
+                                                        dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                        dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                        dbo_vessel_unload_1.SamplingDate>=@start AND
+                                                        dbo_vessel_unload_1.SamplingDate<@end AND
+                                                        dbo_vessel_unload_1.sector_code=@sector";
+                                break;
+                        }
+
+                        try
+                        {
+                            var qryText = cmd.CommandText.Replace("@reg", $"'{e.NSAPRegion.Code}'")
+                                .Replace("@fma", e.FMA.FMAID.ToString())
+                                .Replace("@fg", $"'{e.FishingGround.Code}'")
+                                .Replace("@ls", e.LandingSite.LandingSiteID.ToString())
+                                .Replace("@start", $"#{sampling_date.ToString("M/d/yyyy")}#")
+                                .Replace("@end", $"#{sampling_date.AddDays(1).ToString("M/d/yyyy")}#")
+                                .Replace("@gear", $"'{gear_code}'")
+                                .Replace("@sector", $"'{sector_code}'")
+                                .Replace("@sp_id", sp_id.ToString())
+                                .Replace("@stage", $"'{stage}'");
+                            con.Open();
+                            var dr = cmd.ExecuteReader();
+                            while (dr.Read())
+                            {
+                                vu_ids.Add((int)dr["v_unload_id"]);
+                            }
+
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+
+                }
+            }
+            return vu_ids;
+        }
+        public static List<int> GetVesselUnloadIDs(TreeViewModelControl.AllSamplingEntitiesEventHandler e, int speciesID, string context = "", string gear_code = "", string sector_code = "")
+        {
+            List<int> vu_ids = new List<int>();
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+
+                        cmd.Parameters.AddWithValue("@reg", e.NSAPRegion.Code);
+                        cmd.Parameters.AddWithValue("@fma", e.FMA.FMAID);
+                        cmd.Parameters.AddWithValue("@fg", e.FishingGround.Code);
+                        cmd.Parameters.AddWithValue("@ls", e.LandingSite.LandingSiteID);
+                        DateTime s_date = (DateTime)e.MonthSampled;
+                        cmd.Parameters.AddWithValue("@start", s_date.ToString("M/d/yyyy"));
+                        cmd.Parameters.AddWithValue("@end", s_date.AddMonths(1).ToString("M/d/yyyy"));
+                        cmd.Parameters.AddWithValue("@sp_id", speciesID);
+
+
+                        var arr_context = context.Split(':');
+                        string st = "";
+
+                        string meas_table = "";
+                        string maturity_not_null = "";
+
+                        if (arr_context[0] == "measured")
+                        {
+                            switch (arr_context[1])
+                            {
+                                case "maturity":
+                                    meas_table = "dbo_catch_maturity";
+                                    maturity_not_null = "AND dbo_catch_maturity.maturity IS NOT NULL";
+                                    break;
+                                case "length":
+                                    meas_table = "dbo_catch_len";
+                                    break;
+                                case "length-weight":
+                                    meas_table = "dbo_catch_len_wt";
+                                    break;
+                                case "length frequency":
+                                    meas_table = "dbo_catch_len_freq";
+                                    break;
+                            }
+                        }
+
+
+                        if (gear_code.Length > 0)
+                        {
+                            cmd.Parameters.AddWithValue("@gear", gear_code);
+                            cmd.Parameters.AddWithValue("@sector", sector_code);
+                            if(arr_context[0]=="sector_month_allspecies")
+                            {
+                                RemoveUnusedParameter(cmd, "@sp_id");
+                                RemoveUnusedParameter(cmd, "@gear");
+                                RemoveUnusedParameter(cmd, "@start");
+                                RemoveUnusedParameter(cmd, "@end");
+                                DateTime month = (DateTime)e.MonthSampled;
+                                cmd.Parameters.AddWithValue("@start", month.ToString("M/d/yyyy"));
+                                cmd.Parameters.AddWithValue("@end", month.AddMonths(1).ToString("M/d/yyyy"));
+
+                                cmd.CommandText = @"SELECT DISTINCT 
+                                                        dbo_vessel_unload.v_unload_id
+                                                    FROM 
+                                                        (dbo_LC_FG_sample_day INNER JOIN 
+                                                        (dbo_gear_unload INNER JOIN 
+                                                        dbo_vessel_unload ON 
+                                                        dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                        dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                        dbo_vessel_unload_1 ON dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id
+                                                    WHERE 
+                                                        dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                        dbo_LC_FG_sample_day.fma=@fma AND 
+                                                        dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                        dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                        dbo_vessel_unload_1.sector_code=@sector AND
+                                                        dbo_LC_FG_sample_day.sdate>=@start AND
+                                                        dbo_LC_FG_sample_day.sdate<@end";
+                            }
+                            else if (arr_context[0] == "sector_month")
+                            {
+                                RemoveUnusedParameter(cmd, "@gear");
+                                RemoveUnusedParameter(cmd, "@start");
+                                RemoveUnusedParameter(cmd, "@end");
+                                DateTime month = (DateTime)e.MonthSampled;
+                                cmd.Parameters.AddWithValue("@start", month.ToString("M,d,yyyy"));
+                                cmd.Parameters.AddWithValue("@end", month.AddMonths(1).ToString("M,d,yyyy"));
+                                cmd.CommandText = @"SELECT DISTINCT 
+                                                    dbo_vessel_unload.v_unload_id
+                                                FROM 
+                                                    ((dbo_LC_FG_sample_day INNER JOIN 
+                                                    (dbo_gear_unload INNER JOIN 
+                                                    dbo_vessel_unload ON dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                    dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                    dbo_vessel_catch ON 
+                                                    dbo_vessel_unload.v_unload_id = dbo_vessel_catch.v_unload_id) INNER JOIN 
+                                                    dbo_vessel_unload_1 ON 
+                                                    dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id
+                                                WHERE 
+                                                    dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                    dbo_LC_FG_sample_day.fma=@fma AND 
+                                                    dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                    dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                    dbo_vessel_catch.species_id=@sp_id AND 
+                                                    dbo_vessel_unload_1.sector_code=@sector AND
+                                                    dbo_LC_FG_sample_day.sdate>=@start AND
+                                                    dbo_LC_FG_sample_day.sdate<@end
+
+                                                UNION
+
+                                                SELECT DISTINCT 
+                                                    dbo_vessel_unload.v_unload_id
+                                                FROM
+                                                    (((dbo_LC_FG_sample_day INNER JOIN
+                                                    (dbo_gear_unload INNER JOIN 
+                                                    dbo_vessel_unload ON 
+                                                    dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                    dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                    dbo_vesselunload_fishinggear ON 
+                                                    dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) INNER JOIN 
+                                                    dbo_vessel_catch ON 
+                                                    dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id) INNER JOIN 
+                                                    dbo_vessel_unload_1 ON dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id
+                                                WHERE 
+                                                    dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                    dbo_LC_FG_sample_day.fma=@fma AND 
+                                                    dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                    dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                    dbo_vessel_catch.species_id=@sp_id AND 
+                                                    dbo_vessel_unload_1.sector_code=@sector AND
+                                                    dbo_LC_FG_sample_day.sdate>=@start AND
+                                                    dbo_LC_FG_sample_day.sdate<@end";
+                            }
+                            else if (arr_context[0] == "maturity")
+                            {
+                                st = CatchMaturity.CodeFromMaturityStage(arr_context[1]);
+                                cmd.Parameters.AddWithValue("@stage", st);
+                                cmd.CommandText = @"SELECT DISTINCT 
+                                                    dbo_vessel_unload.v_unload_id
+                                                 FROM 
+                                                    ((dbo_LC_FG_sample_day INNER JOIN 
+                                                    (dbo_gear_unload INNER JOIN 
+                                                    dbo_vessel_unload ON 
+                                                    dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                    dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                    dbo_vessel_unload_1 ON 
+                                                    dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) INNER JOIN 
+                                                    (dbo_vessel_catch INNER JOIN 
+                                                    dbo_catch_maturity ON 
+                                                    dbo_vessel_catch.catch_id = dbo_catch_maturity.catch_id) ON 
+                                                    dbo_vessel_unload.v_unload_id = dbo_vessel_catch.v_unload_id
+                                                 WHERE 
+                                                    dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                    dbo_LC_FG_sample_day.fma=@fma AND 
+                                                    dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                    dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                    dbo_LC_FG_sample_day.sdate>=@start AND
+                                                    dbo_LC_FG_sample_day.sdate<@end AND 
+                                                    dbo_vessel_catch.species_id=@sp_id AND
+                                                    dbo_gear_unload.gr_id=@gear AND 
+                                                    dbo_vessel_unload_1.sector_code=@sector AND 
+                                                    dbo_catch_maturity.maturity=@st
+
+                                                 UNION
+
+                                                 SELECT DISTINCT 
+                                                    dbo_vessel_unload.v_unload_id
+                                                 FROM 
+                                                    (dbo_LC_FG_sample_day INNER JOIN 
+                                                    (dbo_gear_unload INNER JOIN 
+                                                    (dbo_vessel_unload INNER JOIN 
+                                                    (dbo_vesselunload_fishinggear INNER JOIN 
+                                                    (dbo_vessel_catch INNER JOIN 
+                                                    dbo_catch_maturity ON 
+                                                    dbo_vessel_catch.catch_id = dbo_catch_maturity.catch_id) ON 
+                                                    dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id) ON 
+                                                    dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) ON 
+                                                    dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                    dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                    dbo_vessel_unload_1 ON 
+                                                    dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id
+                                                 WHERE 
+                                                    dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                    dbo_LC_FG_sample_day.fma=@fma AND 
+                                                    dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                    dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                    dbo_LC_FG_sample_day.sdate>=@start AND
+                                                    dbo_LC_FG_sample_day.sdate<@end AND 
+                                                    dbo_vessel_catch.species_id=@sp_id AND
+                                                    dbo_gear_unload.gr_id=@gear AND 
+                                                    dbo_vessel_unload_1.sector_code=@sector AND 
+                                                    dbo_catch_maturity.maturity=@st";
+                            }
+                            else if (arr_context[0] == "occurence")
+                            {
+                                cmd.CommandText = @"SELECT DISTINCT 
+                                                        dbo_vessel_unload.v_unload_id
+                                                    FROM 
+                                                        ((dbo_LC_FG_sample_day INNER JOIN 
+                                                        (dbo_gear_unload INNER JOIN 
+                                                        dbo_vessel_unload ON 
+                                                        dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                        dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                        dbo_vessel_unload_1 ON 
+                                                        dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) INNER JOIN 
+                                                        dbo_vessel_catch ON 
+                                                        dbo_vessel_unload.v_unload_id = dbo_vessel_catch.v_unload_id
+                                                    WHERE 
+                                                        dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                        dbo_LC_FG_sample_day.fma=@fma AND 
+                                                        dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                        dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                        dbo_LC_FG_sample_day.sdate>=@start AND
+                                                        dbo_LC_FG_sample_day.sdate<@end AND 
+                                                        dbo_vessel_catch.species_id=@sp_id AND
+                                                        dbo_gear_unload.gr_id=@gear AND 
+                                                        dbo_vessel_unload_1.sector_code=@sector
+                                                    UNION
+                                                    SELECT DISTINCT 
+                                                        dbo_vessel_unload.v_unload_id
+                                                    FROM
+                                                        (dbo_LC_FG_sample_day INNER JOIN
+                                                        (dbo_gear_unload INNER JOIN
+                                                        (dbo_vessel_unload INNER JOIN
+                                                        (dbo_vesselunload_fishinggear INNER JOIN 
+                                                        dbo_vessel_catch ON 
+                                                        dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id) ON 
+                                                        dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) ON 
+                                                        dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                        dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                        dbo_vessel_unload_1 ON 
+                                                        dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id
+                                                    WHERE
+                                                        dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                        dbo_LC_FG_sample_day.fma=@fma AND 
+                                                        dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                        dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                        dbo_LC_FG_sample_day.sdate>=@start AND
+                                                        dbo_LC_FG_sample_day.sdate<@end AND 
+                                                        dbo_vessel_catch.species_id=@sp_id AND
+                                                        dbo_gear_unload.gr_id=@gear AND 
+                                                        dbo_vessel_unload_1.sector_code=@sector";
+
+                                string qryText = cmd.CommandText.Replace("@reg", $"'{e.NSAPRegion.Code}'")
+                                                                .Replace("@fma", e.FMA.FMAID.ToString())
+                                                                .Replace("@fg", $"'{e.FishingGround.Code}'")
+                                                                .Replace("@ls", e.LandingSite.LandingSiteID.ToString())
+                                                                .Replace("@start", $"#{s_date.ToString("M,d,yyyy")}#")
+                                                                .Replace("@end", $"#{s_date.AddMonths(1).ToString("M,d,yyyy")}#")
+                                                                .Replace("@sp_id", speciesID.ToString())
+                                                                .Replace("@gear", $"'{gear_code}'")
+                                                                .Replace("@sector", $"'{sector_code}'");
+                            }
+                            else
+                            {
+                                cmd.CommandText = $@"SELECT DISTINCT 
+                                                        dbo_vessel_unload.v_unload_id
+                                                    FROM 
+                                                        ((((dbo_LC_FG_sample_day INNER JOIN 
+                                                        (dbo_gear_unload INNER JOIN 
+                                                        dbo_vessel_unload ON 
+                                                        dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                        dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                        dbo_vessel_unload_1 ON 
+                                                        dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) INNER JOIN 
+                                                        dbo_vesselunload_fishinggear ON 
+                                                        dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) INNER JOIN 
+                                                        dbo_vessel_catch ON 
+                                                        dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id) INNER JOIN 
+                                                        {meas_table} ON 
+                                                        dbo_vessel_catch.catch_id = {meas_table}.catch_id
+                                                    WHERE 
+                                                        dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                        dbo_LC_FG_sample_day.fma=@fma AND 
+                                                        dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                        dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                        dbo_LC_FG_sample_day.sdate>=@start AND
+                                                        dbo_LC_FG_sample_day.sdate<@end AND 
+                                                        dbo_vessel_catch.species_id=@sp_id AND
+                                                        dbo_gear_unload.gr_id=@gear AND 
+                                                        dbo_vessel_unload_1.sector_code=@sector
+                                                        {maturity_not_null}
+                                                    UNION
+                                                    SELECT DISTINCT 
+                                                        dbo_vessel_unload.v_unload_id
+                                                    FROM 
+                                                        ((((dbo_LC_FG_sample_day INNER JOIN 
+                                                        (dbo_gear_unload INNER JOIN 
+                                                        dbo_vessel_unload ON 
+                                                        dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                        dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                        dbo_vessel_unload_1 ON 
+                                                        dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) INNER JOIN 
+                                                        dbo_vesselunload_fishinggear ON 
+                                                        dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) INNER JOIN 
+                                                        dbo_vessel_catch ON 
+                                                        dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id) INNER JOIN 
+                                                        {meas_table} ON 
+                                                        dbo_vessel_catch.catch_id = {meas_table}.catch_id
+                                                    WHERE
+                                                        dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                        dbo_LC_FG_sample_day.fma=@fma AND 
+                                                        dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                        dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                        dbo_LC_FG_sample_day.sdate>=@start AND
+                                                        dbo_LC_FG_sample_day.sdate<@end AND 
+                                                        dbo_vessel_catch.species_id=@sp_id AND
+                                                        dbo_gear_unload.gr_id=@gear AND 
+                                                        dbo_vessel_unload_1.sector_code=@sector
+                                                        {maturity_not_null}";
+
+
+                                //string qryText = cmd.CommandText.Replace("@reg", $"'{e.NSAPRegion.Code}'")
+                                //                                .Replace("@fma", e.FMA.FMAID.ToString())
+                                //                                .Replace("@fg", $"'{e.FishingGround.Code}'")
+                                //                                .Replace("@ls", e.LandingSite.LandingSiteID.ToString())
+                                //                                .Replace("@start", $"#{s_date.ToString("M,d,yyyy")}#")
+                                //                                .Replace("@end", $"#{s_date.AddMonths(1).ToString("M,d,yyyy")}#")
+                                //                                .Replace("@sp_id", speciesID.ToString())
+                                //                                .Replace("@gear", $"'{gear_code}'")
+                                //                                .Replace("@sector", $"'{sector_code}'");
+
+
+                            }
+                        }
+                        else if (arr_context[0] == "occurence")
+                        {
+                            cmd.CommandText = $@"SELECT DISTINCT 
+                                                dbo_vessel_unload.v_unload_id
+                                            FROM 
+                                                (dbo_LC_FG_sample_day INNER JOIN 
+                                                (dbo_gear_unload INNER JOIN
+                                                dbo_vessel_unload ON
+                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN
+                                                dbo_vessel_catch ON
+                                                dbo_vessel_unload.v_unload_id = dbo_vessel_catch.v_unload_id
+                                            WHERE 
+                                                dbo_LC_FG_sample_day.region_id=@reg AND
+                                                dbo_LC_FG_sample_day.fma=@fma AND
+                                                dbo_LC_FG_sample_day.ground_id=@fg AND
+                                                dbo_LC_FG_sample_day.land_ctr_id=@ls AND
+                                                dbo_LC_FG_sample_day.sdate>=@start AND
+                                                dbo_LC_FG_sample_day.sdate<@end AND
+                                                dbo_vessel_catch.species_id=@sp_id
+
+                                            UNION
+
+                                            SELECT DISTINCT 
+                                                dbo_vessel_unload.v_unload_id
+                                            FROM
+                                                ((dbo_LC_FG_sample_day INNER JOIN
+                                                (dbo_gear_unload INNER JOIN
+                                                dbo_vessel_unload ON
+                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN
+                                                dbo_vesselunload_fishinggear ON
+                                                dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) INNER JOIN
+                                                dbo_vessel_catch ON
+                                                dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id
+                                            WHERE 
+                                                dbo_LC_FG_sample_day.region_id=@reg AND
+                                                dbo_LC_FG_sample_day.fma=@fma AND
+                                                dbo_LC_FG_sample_day.ground_id=@fg AND
+                                                dbo_LC_FG_sample_day.land_ctr_id=@ls AND
+                                                dbo_LC_FG_sample_day.sdate>=@start AND
+                                                dbo_LC_FG_sample_day.sdate<@end AND
+                                                dbo_vessel_catch.species_id=@sp_id";
+
+                        }
+                        else if (arr_context[0] == "maturity")
+                        {
+                            st = CatchMaturity.CodeFromMaturityStage(arr_context[1]);
+                            cmd.Parameters.AddWithValue("@stage", st);
+
+                            cmd.CommandText = $@"SELECT DISTINCT 
+                                                    dbo_vessel_unload.v_unload_id
+                                                FROM 
+                                                    (dbo_LC_FG_sample_day INNER JOIN 
+                                                    (dbo_gear_unload INNER JOIN 
+                                                    dbo_vessel_unload ON 
+                                                    dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                    dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                    (dbo_vessel_catch INNER JOIN 
+                                                    dbo_catch_maturity ON 
+                                                    dbo_vessel_catch.catch_id = dbo_catch_maturity.catch_id) ON 
+                                                    dbo_vessel_unload.v_unload_id = dbo_vessel_catch.v_unload_id
+                                                WHERE 
+                                                    dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                    dbo_LC_FG_sample_day.fma=@fma AND 
+                                                    dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                    dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                    dbo_LC_FG_sample_day.sdate>=@start AND
+                                                    dbo_LC_FG_sample_day.sdate<@end AND 
+                                                    dbo_vessel_catch.species_id=@sp_id AND 
+                                                    dbo_catch_maturity.maturity=@stage
+
+                                                UNION
+                                                SELECT DISTINCT 
+                                                    dbo_vesselunload_fishinggear.vessel_unload_id
+                                                FROM 
+                                                    dbo_LC_FG_sample_day INNER JOIN
+                                                    (dbo_gear_unload INNER JOIN
+                                                    (dbo_vessel_unload INNER JOIN
+                                                    (dbo_vesselunload_fishinggear INNER JOIN
+                                                    (dbo_vessel_catch INNER JOIN 
+                                                    dbo_catch_maturity ON 
+                                                    dbo_vessel_catch.catch_id = dbo_catch_maturity.catch_id) ON 
+                                                    dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id) ON 
+                                                    dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) ON 
+                                                    dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                    dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id
+                                                WHERE 
+                                                    dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                    dbo_LC_FG_sample_day.fma=@fma AND 
+                                                    dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                    dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                    dbo_LC_FG_sample_day.sdate>=@start AND
+                                                    dbo_LC_FG_sample_day.sdate<@end AND 
+                                                    dbo_vessel_catch.species_id=@sp_id AND 
+                                                    dbo_catch_maturity.maturity=@stage";
+
+                        }
+                        else
+                        {
+                            cmd.CommandText = $@"SELECT DISTINCT 
+                                                    dbo_vessel_unload.v_unload_id
+                                                FROM (dbo_LC_FG_sample_day INNER JOIN 
+                                                    (dbo_gear_unload INNER JOIN 
+                                                    dbo_vessel_unload ON 
+                                                    dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                    dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                    (dbo_vessel_catch INNER JOIN 
+                                                    {meas_table} ON 
+                                                    dbo_vessel_catch.catch_id = {meas_table}.catch_id) ON 
+                                                    dbo_vessel_unload.v_unload_id = dbo_vessel_catch.v_unload_id
+                                                WHERE 
+                                                    dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                    dbo_LC_FG_sample_day.fma=@fma AND 
+                                                    dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                    dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                    dbo_LC_FG_sample_day.sdate>=@start And 
+                                                    dbo_LC_FG_sample_day.sdate<@end AND 
+                                                    dbo_vessel_catch.species_id=@sp_id
+                                                    {maturity_not_null}
+                                                UNION
+                                                SELECT DISTINCT 
+                                                    dbo_vesselunload_fishinggear.vessel_unload_id
+                                                FROM 
+                                                    dbo_LC_FG_sample_day INNER JOIN
+                                                    (dbo_gear_unload INNER JOIN
+                                                    (dbo_vessel_unload INNER JOIN
+                                                    (dbo_vesselunload_fishinggear INNER JOIN
+                                                    (dbo_vessel_catch INNER JOIN 
+                                                    {meas_table} ON 
+                                                    dbo_vessel_catch.catch_id = {meas_table}.catch_id) ON 
+                                                    dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id) ON 
+                                                    dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) ON 
+                                                    dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                    dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id
+                                                WHERE 
+                                                    dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                    dbo_LC_FG_sample_day.fma=@fma AND 
+                                                    dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                    dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                    dbo_LC_FG_sample_day.sdate>=@start And 
+                                                    dbo_LC_FG_sample_day.sdate<@end AND 
+                                                    dbo_vessel_catch.species_id=@sp_id
+                                                    {maturity_not_null}";
+                        }
+
+                        con.Open();
+                        try
+                        {
+                            var dr = cmd.ExecuteReader();
+                            while (dr.Read())
+                            {
+                                vu_ids.Add((int)dr["v_unload_id"]);
+                            }
+
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+
+
+
+                    }
+                }
+            }
+            return vu_ids;
+        }
+
+        public static List<int> GetVesselUnloadIDs(AllSamplingEntitiesEventHandler e, DateTime samplingDate, string sector_code = "", string gear_code = "")
+        {
+            List<int> vu_ids = new List<int>();
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+
+                        cmd.Parameters.AddWithValue("@reg", e.NSAPRegion.Code);
+                        cmd.Parameters.AddWithValue("@fma", e.FMA.FMAID);
+                        cmd.Parameters.AddWithValue("@fg", e.FishingGround.Code);
+                        cmd.Parameters.AddWithValue("@ls", e.LandingSite.LandingSiteID);
+                        cmd.Parameters.AddWithValue("@start", samplingDate.ToString("M/d/yyyy"));
+                        cmd.Parameters.AddWithValue("@end", samplingDate.AddDays(1).ToString("M/d/yyyy"));
+
+                        string gear_sector_where = "";
+                        if (!string.IsNullOrEmpty(sector_code))
+                        {
+                            cmd.Parameters.AddWithValue("@sector", sector_code);
+                            gear_sector_where = "AND dbo_vessel_unload_1.sector_code=@sector";
+                        }
+                        if (!string.IsNullOrEmpty(gear_code))
+                        {
+                            cmd.Parameters.AddWithValue("@sector", sector_code);
+                            cmd.Parameters.AddWithValue("@gear", gear_code);
+                            gear_sector_where = "AND dbo_vessel_unload_1.sector_code=@sector AND dbo_gear_unload.gr_id=@gear";
+                        }
+                        cmd.CommandText = $@"SELECT DISTINCT 
+                                                dbo_vessel_unload.v_unload_id
+                                            FROM
+                                                (dbo_LC_FG_sample_day INNER JOIN
+                                                (dbo_gear_unload INNER JOIN 
+                                                dbo_vessel_unload ON 
+                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                dbo_vessel_unload_1 ON 
+                                                dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id
+                                            WHERE
+                                                dbo_LC_FG_sample_day.region_id = @reg AND
+                                                dbo_LC_FG_sample_day.fma = @fma AND
+                                                dbo_LC_FG_sample_day.ground_id = @fg AND
+                                                dbo_LC_FG_sample_day.land_ctr_id = @ls AND
+                                                dbo_vessel_unload_1.SamplingDate >=@start AND
+                                                dbo_vessel_unload_1.SamplingDate<@end
+                                                {gear_sector_where}";
+                        con.Open();
+                        try
+                        {
+                            var dr = cmd.ExecuteReader();
+                            while (dr.Read())
+                            {
+                                vu_ids.Add((int)dr["v_unload_id"]);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+
+                    }
+                }
+            }
+            return vu_ids;
+        }
+
+
+
+        public static List<int> GetVesselUnloadIDs(
+                                AllSamplingEntitiesEventHandler e,
+                                string gear_code,
+                                string sectorCode,
+                                int speciesID)
+        {
+            List<int> vu_ids = new List<int>();
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+
+                        cmd.Parameters.AddWithValue("@reg", e.NSAPRegion.Code);
+                        cmd.Parameters.AddWithValue("@fma", e.FMA.FMAID);
+                        cmd.Parameters.AddWithValue("@fg", e.FishingGround.Code);
+                        cmd.Parameters.AddWithValue("@ls", e.LandingSite.LandingSiteID);
+
+                        cmd.Parameters.AddWithValue("@gear", gear_code);
+                        cmd.Parameters.AddWithValue("@sector", sectorCode);
+                        DateTime s_date = (DateTime)e.MonthSampled;
+                        cmd.Parameters.AddWithValue("@start", s_date.ToString("M/d/yyyy"));
+                        cmd.Parameters.AddWithValue("@end", s_date.AddMonths(1).ToString("M/d/yyyy"));
+                        cmd.Parameters.AddWithValue("@sp_id", speciesID);
+
+
+
+                        cmd.CommandText = @"SELECT DISTINCT 
+                                                dbo_vessel_unload.v_unload_id
+                                            FROM 
+                                                ((dbo_LC_FG_sample_day INNER JOIN 
+                                                (dbo_gear_unload INNER JOIN
+                                                dbo_vessel_unload ON 
+                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                dbo_vessel_catch ON 
+                                                dbo_vessel_unload.v_unload_id = dbo_vessel_catch.v_unload_id) INNER JOIN 
+                                                dbo_vessel_unload_1 ON dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id
+                                            WHERE 
+                                                dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                dbo_LC_FG_sample_day.fma=@fma AND 
+                                                dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                dbo_gear_unload.gr_id=@gear AND 
+                                                dbo_vessel_unload_1.sector_code=@sector AND 
+                                                dbo_LC_FG_sample_day.sdate>=@start AND 
+                                                dbo_LC_FG_sample_day.sdate<@end AND
+                                                dbo_vessel_catch.species_id=@sp_id
+                                            UNION
+                                            SELECT DISTINCT 
+                                                dbo_vessel_unload.v_unload_id
+                                            FROM
+                                                (((dbo_LC_FG_sample_day INNER JOIN 
+                                                (dbo_gear_unload INNER JOIN 
+                                                dbo_vessel_unload ON 
+                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                dbo_vessel_unload_1 ON 
+                                                dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) INNER JOIN 
+                                                dbo_vesselunload_fishinggear ON 
+                                                dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) INNER JOIN 
+                                                dbo_vessel_catch ON dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id
+                                            WHERE
+                                                dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                dbo_LC_FG_sample_day.fma=@fma AND 
+                                                dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                dbo_gear_unload.gr_id=@gear AND 
+                                                dbo_vessel_unload_1.sector_code=@sector AND 
+                                                dbo_LC_FG_sample_day.sdate>=@start AND 
+                                                dbo_LC_FG_sample_day.sdate<@end AND
+                                                dbo_vessel_catch.species_id=@sp_id";
+                        con.Open();
+                        string qryText = cmd.CommandText
+                             .Replace("@reg", $"'{e.NSAPRegion.Code}'")
+                             .Replace("@fma", e.FMA.FMAID.ToString())
+                             .Replace("@fg", $"'{e.FishingGround.Code}'")
+                             .Replace("@ls", e.LandingSite.LandingSiteID.ToString())
+                             .Replace("@gear", $"'{gear_code}'")
+                             .Replace("@sector", $"'{sectorCode}'")
+                             .Replace("@start", $"#{s_date.ToString("M/d/yyyy")}#")
+                             .Replace("@end", $"#{s_date.AddMonths(1).ToString("M/d/yyyy")}#")
+                             .Replace("@sp_id", speciesID.ToString());
+                        try
+                        {
+                            var dr = cmd.ExecuteReader();
+                            while (dr.Read())
+                            {
+                                vu_ids.Add((int)dr["v_unload_id"]);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+
+                    }
+                }
+            }
+            return vu_ids;
+        }
         public static List<int> GetUnloadIDsWithCatch(TreeViewModelControl.AllSamplingEntitiesEventHandler e,
             string gearCode,
             int speciesID,
@@ -88,10 +1416,10 @@ namespace NSAP_ODK.Entities.Database
                         string qry = cmd.CommandText.Replace("@ls", e.LandingSite.LandingSiteID.ToString())
                             .Replace("@fg", $"'{e.FishingGround.Code}'")
                             .Replace("@fma", e.FMA.FMAID.ToString())
-                            .Replace("@reg",$"'{e.NSAPRegion.Code}'")
-                            .Replace("@day",$"#{((DateTime)e.MonthSampled).AddDays(day - 1).ToString("M/d/yyyy")}#")
-                            .Replace("@gear",gearCode)
-                            .Replace("@sp_id",speciesID.ToString());
+                            .Replace("@reg", $"'{e.NSAPRegion.Code}'")
+                            .Replace("@day", $"#{((DateTime)e.MonthSampled).AddDays(day - 1).ToString("M/d/yyyy")}#")
+                            .Replace("@gear", gearCode)
+                            .Replace("@sp_id", speciesID.ToString());
                         try
                         {
                             var dr = cmd.ExecuteReader();

@@ -111,7 +111,7 @@ namespace NSAP_ODK.Entities.Database
                     if (getMatureGravidFemaleMaturity)
                     {
                         select_maturity = ", dbo_catch_maturity.maturity";
-                        where_female = " AND dbo_catch_maturity.sex='f'";
+                        where_female = " AND dbo_catch_maturity.sex='f' AND dbo_catch_maturity.maturity IS NOT NULL";
                         // having_female = " AND dbo_catch_maturity.maturity In ('mt','ri','gr','spw')";
                     }
                     break;
@@ -265,6 +265,7 @@ namespace NSAP_ODK.Entities.Database
                                             if (getMatureGravidFemaleMaturity)
                                             {
                                                 scd.MaturityStageCode = dr["maturity"].ToString();
+                                                scd.MaturityStageEnum = CatchMaturity.GetStageFromCode(scd.MaturityStageCode);
                                             }
                                             break;
                                     }
@@ -638,6 +639,16 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_LC_FG_sample_day.sdate>=@month_start AND 
                                                 dbo_LC_FG_sample_day.sdate<@month_end";
                         //AND dbo_gear_unload.gr_id Is Not Null";
+
+                        string qry = cmd.CommandText
+                            .Replace("@nsapRegion", $"'{selectedMonth.NSAPRegion.Code}'")
+                            .Replace("@fma", selectedMonth.FMA.FMAID.ToString())
+                            .Replace("@fishing_ground", $"'{selectedMonth.FishingGround.Code}'")
+                            .Replace("@landing_site", selectedMonth.LandingSite.LandingSiteID.ToString())
+                            .Replace("@sampling_type", "'rs'")
+                            .Replace("@month_start", $"#{month_start.ToString("MM/d/yyyy")}#")
+                            .Replace("@month_end", $"#{month_start.AddMonths(1).ToString("MM/d/yyyy")}#");
+
                         try
                         {
                             con.Open();

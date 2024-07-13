@@ -32,6 +32,11 @@
                     ItemsSource="{Binding Children}">
 
                     <StackPanel Orientation="Horizontal">
+                        <StackPanel.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Female maturity summary" Click="OnContextMenuClick" x:Name="contextMenuFemaleMaturitySummary"/>
+                            </ContextMenu>
+                        </StackPanel.ContextMenu>
                         <!-- <Image Width="16" Height="16" Margin="3,0" Source="Images\Region.png" /> -->
                         <TextBlock Text="{Binding Name}" />
                     </StackPanel>

@@ -20,7 +20,7 @@ namespace NSAP_ODK.Entities.Database
             TaxaCode = taxaCode;
         }
         public FishingGearAndSector FishingGearAndSector { get; set; }
-
+        public MaturityStageEnum MaturityStageEnum { get; set; }
         public string MaturityStage { get; set; }
         public Taxa Taxa
         {

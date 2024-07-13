@@ -527,6 +527,7 @@ namespace NSAP_ODK.Views
                         vu_ids = CatchMaturityRepository.GetVesselUnloadIDsForFemaleCatchMaturityStage(_treeItemData,
                             _gearUnloads.First().Parent.SamplingDate.Day,
                             _gearUnloads.First().GearID,
+                            SectorCode,
                             MaturityCode, SpeciesID);
                         foreach (var vu_id in vu_ids)
                         {

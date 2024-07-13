@@ -16,6 +16,9 @@ namespace NSAP_ODK.Mapping
         public static event EventHandler<CrossTabReportEventArg> FishingGroundMappingEvent;
         public static AllSamplingEntitiesEventHandler EntitiesMonth { get; set; }
         private static MapInterActionHandler _mapInterActionHandler;
+
+        public static string SpeciesName { get; set; }
+        public static string MaturityStage { get; set; }
         public static string GearName { get; set; }
         public static string Sector { get; set; }
         public static int? CalendarDay { get; set; }
@@ -176,7 +179,9 @@ namespace NSAP_ODK.Mapping
             sf.Key = "convex hull from fg points";
             _mapInterActionHandler.MapLayersHandler.AddLayer(sf, $"Convex hull of {fishingGroundPoints.Name}", layerKey: sf.Key);
         }
-        public static async Task<bool> MapFishingGroundPoint(string gearName = "", string sector = "", int? calendarDay = null)
+
+        public static string MappingContext { get; set; }
+        public static async Task<bool> MapFishingGroundPoint(string gearName = "", string sector = "", int? calendarDay = null, List<int> vesselUnloadIDs = null)
         {
             bool success = false;
             string layerName = "";
@@ -189,20 +194,30 @@ namespace NSAP_ODK.Mapping
 
             List<int> handles;
             List<VesselUnload> vus = null;
-            if (string.IsNullOrEmpty(gearName))
-            {
-                vus = CrossTabGenerator.VesselUnloads.Where(t => t.FirstFishingGroundCoordinate != null).ToList();
-                layerName = $"{EntitiesMonth.LandingSite}, {((DateTime)EntitiesMonth.MonthSampled).ToString("MMM - yyyy")}";
-            }
 
-            else if (gearName.Length > 0 && sector.Length > 0)
+            vus = new List<VesselUnload>();
+            DateTime? samplingDate = null;
+            if (CalendarDay != null)
             {
-                if (calendarDay != null)
-                {
-                    DateTime samplingDate = new DateTime(
-                            ((DateTime)EntitiesMonth.MonthSampled).Year,
-                            ((DateTime)EntitiesMonth.MonthSampled).Month,
-                            (int)calendarDay);
+                samplingDate = new DateTime(
+                        ((DateTime)EntitiesMonth.MonthSampled).Year,
+                        ((DateTime)EntitiesMonth.MonthSampled).Month,
+                        (int)CalendarDay);
+            }
+            switch (MappingContext)
+            {
+                case "menuCalendarDaySpeciesGearMapping":
+                    foreach (int id in vesselUnloadIDs)
+                    {
+                        vus.Add(CrossTabGenerator.VesselUnloads.Find(t => t.PK == id));
+                    }
+                    break;
+                case "menuCalendarGearMapping":
+                    vus = CrossTabGenerator.VesselUnloads.Where(t => t.FirstFishingGroundCoordinate != null && t.Parent.GearUsedName == gearName && t.Sector == sector).ToList();
+                    layerName = $"{gearName} ({sector}) {EntitiesMonth.LandingSite}, {((DateTime)EntitiesMonth.MonthSampled).ToString("MMM-yyyy")}";
+                    break;
+                case "menuCalendarDayGearMapping":
+
                     vus = CrossTabGenerator.VesselUnloads.Where(
                         t => t.FirstFishingGroundCoordinate != null &&
                         t.Parent.GearUsedName == gearName &&
@@ -210,13 +225,33 @@ namespace NSAP_ODK.Mapping
                         t.SamplingDate.Date == samplingDate)
                      .ToList();
 
-                    layerName = $"{gearName} ({sector}) {EntitiesMonth.LandingSite}, {samplingDate.ToString("MMM-dd-yyyy")}";
-                }
-                else
-                {
-                    vus = CrossTabGenerator.VesselUnloads.Where(t => t.FirstFishingGroundCoordinate != null && t.Parent.GearUsedName == gearName && t.Sector == sector).ToList();
-                    layerName = $"{gearName} ({sector}) {EntitiesMonth.LandingSite}, {((DateTime)EntitiesMonth.MonthSampled).ToString("MMM-yyyy")}";
-                }
+                    layerName = $"{gearName} ({sector}) {EntitiesMonth.LandingSite}, {((DateTime)samplingDate).ToString("MMM-dd-yyyy")}";
+                    break;
+                case "menuCalendarDayFemaleMaturityMapping":
+                    foreach (int id in vesselUnloadIDs)
+                    {
+                        vus.Add(CrossTabGenerator.VesselUnloads.Find(t => t.PK == id));
+                    }
+                    layerName = $"{SpeciesName} ({MaturityStage}) {GearName} {EntitiesMonth.LandingSite}, {((DateTime)samplingDate).ToString("MMM-dd-yyyy")}";
+                    break;
+                case "menuCalendarGearSpeciesMapping":
+                    foreach (int id in vesselUnloadIDs)
+                    {
+                        vus.Add(CrossTabGenerator.VesselUnloads.Find(t => t.PK == id));
+                    }
+                    layerName = $"{SpeciesName}  {GearName} {EntitiesMonth.LandingSite}, {((DateTime)EntitiesMonth.MonthSampled).ToString("MMM - yyyy")}";
+                    break;
+                case "menuCalendarSpeciesMapping":
+                    foreach (int id in vesselUnloadIDs)
+                    {
+                        vus.Add(CrossTabGenerator.VesselUnloads.Find(t => t.PK == id));
+                    }
+                    layerName = $"{SpeciesName} {EntitiesMonth.LandingSite}, {((DateTime)EntitiesMonth.MonthSampled).ToString("MMM - yyyy")}";
+                    break;
+                case "contextMenuMapMonth":
+                    vus = CrossTabGenerator.VesselUnloads.Where(t => t.FirstFishingGroundCoordinate != null).ToList();
+                    layerName = $"{EntitiesMonth.LandingSite}, {((DateTime)EntitiesMonth.MonthSampled).ToString("MMM - yyyy")}";
+                    break;
             }
             if (vus.Count > 0)
             {

@@ -9,6 +9,19 @@ using System.ComponentModel;
 
 namespace NSAP_ODK.Entities.Database
 {
+    public enum MaturityStageEnum
+    {
+        stageUnknown,
+        stagePremature,
+        stageImmature,
+        stageDeveloping,
+        stageMaturing,
+        stageMature,
+        stageRipening,
+        stageGravid,
+        stageSpawning,
+        stageSpent
+    }
     public class CatchMaturityEdited
     {
         public CatchMaturityEdited()
@@ -275,43 +288,115 @@ namespace NSAP_ODK.Entities.Database
                 return gutContent;
             }
         }
+        public static MaturityStageEnum GetStageFromCode(string stageCode)
+        {
+            MaturityStageFromCode(stageCode);
+            return MaturityStageEnum;    
 
+        }
+        public static MaturityStageEnum GetStageEnumFromName(string stageName)
+        {
+            CodeFromMaturityStage(stageName);
+            return MaturityStageEnum;
+        }
+        public static MaturityStageEnum MaturityStageEnum { get; set; }
         public static string CodeFromMaturityStage(string stage)
         {
 
 
             string code = "";
+            MaturityStageEnum = MaturityStageEnum.stageUnknown;
             switch (stage)
             {
                 case "Premature":
                     code = "pr";
+                    MaturityStageEnum = MaturityStageEnum.stagePremature;
                     break;
                 case "Immature":
                     code = "im";
+                    MaturityStageEnum = MaturityStageEnum.stageImmature;
                     break;
                 case "Developing":
                     code = "de";
+                    MaturityStageEnum = MaturityStageEnum.stageDeveloping;
                     break;
                 case "Maturing":
                     code = "ma";
+                    MaturityStageEnum = MaturityStageEnum.stageMaturing;
                     break;
                 case "Mature":
                     code = "mt";
+                    MaturityStageEnum = MaturityStageEnum.stageMature;
                     break;
                 case "Ripening":
                     code = "ri";
+                    MaturityStageEnum = MaturityStageEnum.stageRipening;
                     break;
                 case "Gravid":
                     code = "gr";
+                    MaturityStageEnum = MaturityStageEnum.stageGravid;
                     break; ;
                 case "Spawning":
                     code = "spw";
+                    MaturityStageEnum = MaturityStageEnum.stageSpawning;
                     break;
                 case "Spent":
                     code = "sp";
+                    MaturityStageEnum = MaturityStageEnum.stageSpent;
                     break;
             }
             return code;
+        }
+
+        public static string MaturityStageFromCode(string maturityCode)
+        {
+            string maturity = "";
+            switch (maturityCode)
+            {
+                case "pr":
+                    maturity = "Premature";
+                    MaturityStageEnum = MaturityStageEnum.stagePremature;
+                    break;
+                case "im":
+                    maturity = "Immature";
+                    MaturityStageEnum = MaturityStageEnum.stageImmature;
+                    break;
+                case "de":
+                    maturity = "Developing";
+                    MaturityStageEnum = MaturityStageEnum.stageDeveloping;
+                    break;
+                case "ma":
+                    maturity = "Maturing";
+                    MaturityStageEnum = MaturityStageEnum.stageMaturing;
+                    break;
+
+                case "mt":
+                    maturity = "Mature";
+                    MaturityStageEnum = MaturityStageEnum.stageMature;
+                    break;
+                case "ri":
+                    maturity = "Ripening";
+                    MaturityStageEnum = MaturityStageEnum.stageRipening;
+                    break;
+                case "gr":
+                    maturity = "Gravid";
+                    MaturityStageEnum = MaturityStageEnum.stageGravid;
+                    break; ;
+                case "spw":
+                    maturity = "Spawning";
+                    MaturityStageEnum = MaturityStageEnum.stageSpawning;
+                    break;
+                case "sp":
+                    maturity = "Spent";
+                    MaturityStageEnum = MaturityStageEnum.stageSpent;
+                    break;
+                default:
+                    maturity = "";
+                    MaturityStageEnum = MaturityStageEnum.stageUnknown;
+                    break;
+
+            }
+            return maturity;
         }
         public string Maturity
         {

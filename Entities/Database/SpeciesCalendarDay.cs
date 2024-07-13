@@ -140,6 +140,7 @@ namespace NSAP_ODK.Entities.Database
                 return maturity;
             }
         }
+        public MaturityStageEnum MaturityStageEnum { get; set; }
         public string MaturityStageCode { get; set; }
         public string Species { get; set; }
         public string TaxaCode { get; set; }

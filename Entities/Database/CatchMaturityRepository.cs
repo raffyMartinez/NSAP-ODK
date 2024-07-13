@@ -20,15 +20,17 @@ namespace NSAP_ODK.Entities.Database
         {
             CatchMaturities = getCatchMaturites(vc);
         }
-       
-        public static List<int>GetVesselUnloadIDsForFemaleCatchMaturityStage(TreeViewModelControl.AllSamplingEntitiesEventHandler e,
-            int day,
-            string gearCode,
-            string maturityCode,
-            int speciesID)
+
+
+        public static List<int> GetVesselUnloadIDs(TreeViewModelControl.AllSamplingEntitiesEventHandler e,
+            DateTime samplingDate,
+            Gear gear,
+            string sectorCode,
+            string maturityStage
+            )
         {
             List<int> vu_ids = new List<int>();
-            if(Global.Settings.UsemySQL)
+            if (Global.Settings.UsemySQL)
             {
 
             }
@@ -38,25 +40,290 @@ namespace NSAP_ODK.Entities.Database
                 {
                     using (var cmd = con.CreateCommand())
                     {
-                        cmd.Parameters.AddWithValue("@ls",e.LandingSite.LandingSiteID);
-                        cmd.Parameters.AddWithValue("@fg",e.FishingGround.Code);
-                        cmd.Parameters.AddWithValue("@fma",e.FMA.FMAID);
-                        cmd.Parameters.AddWithValue("@reg",e.NSAPRegion.Code);
-                        cmd.Parameters.AddWithValue("@day",((DateTime)e.MonthSampled).AddDays(day-1).ToString("M/d/yyyy"));
-                        cmd.Parameters.AddWithValue("@gear",gearCode);
-                        cmd.Parameters.AddWithValue("@species",speciesID);
-                        cmd.Parameters.AddWithValue("@sex","f");
-                        cmd.Parameters.AddWithValue("@stage",maturityCode);
+                        cmd.Parameters.AddWithValue("@sector", sectorCode);
+                        cmd.Parameters.AddWithValue("@reg", e.NSAPRegion.Code);
+                        cmd.Parameters.AddWithValue("@fg", e.FishingGround.Code);
+                        cmd.Parameters.AddWithValue("@fma", e.FMA.FMAID);
+                        cmd.Parameters.AddWithValue("@ls", e.LandingSite.LandingSiteID);
+                        cmd.Parameters.AddWithValue("@stage", maturityStage);
+                        cmd.Parameters.AddWithValue("@sex", "f");
+                        cmd.Parameters.AddWithValue("@gear", gear.Code);
+                        cmd.Parameters.AddWithValue("@start", samplingDate.ToString("M/d/yyyy"));
+                        cmd.Parameters.AddWithValue("@start", samplingDate.AddDays(1).ToString("M/d/yyyy"));
+                        cmd.Parameters.AddWithValue("@sector", sectorCode);
+                        cmd.CommandText = @"SELECT DISTINCT
+                                                dbo_vessel_unload.v_unload_id
+                                             FROM 
+                                                ((dbo_LC_FG_sample_day INNER JOIN 
+                                                (dbo_gear_unload INNER JOIN 
+                                                dbo_vessel_unload ON 
+                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                dbo_vessel_unload_1 ON 
+                                                dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id) INNER JOIN 
+                                                (dbo_vessel_catch INNER JOIN 
+                                                dbo_catch_maturity ON 
+                                                dbo_vessel_catch.catch_id = dbo_catch_maturity.catch_id) ON 
+                                                dbo_vessel_unload.v_unload_id = dbo_vessel_catch.v_unload_id
+                                             WHERE 
+                                                dbo_vessel_unload_1.sector_code=@sector AND 
+                                                dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                dbo_LC_FG_sample_day.fma=@fma AND
+                                                dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                dbo_catch_maturity.maturity=@stage AND 
+                                                dbo_catch_maturity.sex=@sex AND 
+                                                dbo_gear_unload.gr_id=@gear AND 
+                                                dbo_vessel_unload_1.SamplingDate>=@start AND 
+                                                dbo_vessel_unload_1.SamplingDate<@end AND
+                                                dbo_vessel_unload_1.sector_code= @sector
+
+                                             UNION
+                                             SELECT DISTINCT 
+                                                dbo_vesselunload_fishinggear.vessel_unload_id
+                                             FROM 
+                                                (dbo_LC_FG_sample_day INNER JOIN 
+                                                (dbo_gear_unload INNER JOIN 
+                                                (dbo_vessel_unload INNER JOIN 
+                                                (dbo_vesselunload_fishinggear INNER JOIN 
+                                                (dbo_vessel_catch INNER JOIN 
+                                                dbo_catch_maturity ON 
+                                                dbo_vessel_catch.catch_id = dbo_catch_maturity.catch_id) ON 
+                                                dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id) ON 
+                                                dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) ON 
+                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                dbo_vessel_unload_1 ON 
+                                                dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id
+                                             WHERE 
+                                                dbo_vessel_unload_1.sector_code=@sector AND 
+                                                dbo_LC_FG_sample_day.region_id=@reg AND 
+                                                dbo_LC_FG_sample_day.fma=@fma AND
+                                                dbo_LC_FG_sample_day.ground_id=@fg AND 
+                                                dbo_LC_FG_sample_day.land_ctr_id=@ls AND 
+                                                dbo_catch_maturity.maturity=@stage AND 
+                                                dbo_catch_maturity.sex=@sex AND 
+                                                dbo_gear_unload.gr_id=@gear AND 
+                                                dbo_vessel_unload_1.SamplingDate>=@start AND 
+                                                dbo_vessel_unload_1.SamplingDate<@end AND
+                                                dbo_vessel_unload_1.sector_code= @sector";
+                        con.Open();
+                        try
+                        {
+                            var dr = cmd.ExecuteReader();
+                            while (dr.Read())
+                            {
+                                vu_ids.Add((int)dr["vessel_unload_id"]);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return vu_ids;
+        }
+        public static List<FemaleMaturitySummary> GetSummaryOfFemaleMaturity(NSAPRegion reg)
+        {
+            List<FemaleMaturitySummary> fmss = new List<FemaleMaturitySummary>();
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@reg", reg.Code);
+                        cmd.Parameters.AddWithValue("@sex", "f");
+                        cmd.CommandText = @"SELECT
+                                                dbo_LC_FG_sample_day.region_id,
+                                                fma.FMAID,
+                                                fishingGround.FishingGroundCode,
+                                                landingSite.LandingSiteID,
+                                                dbo_gear_unload.gr_id,
+                                                Year([sdate]) AS sYear,
+                                                Month([sdate]) AS sMonth,
+                                                dbo_vessel_catch.taxa,
+                                                dbo_vessel_catch.species_id,
+                                                dbo_catch_maturity.sex,
+                                                dbo_catch_maturity.maturity,
+                                                Count(dbo_catch_maturity.maturity) AS n
+                                            FROM
+                                                (landingSite INNER JOIN
+                                                (fma INNER JOIN
+                                                (fishingGround INNER JOIN
+                                                ((dbo_LC_FG_sample_day INNER JOIN
+                                                (dbo_gear_unload INNER JOIN
+                                                dbo_vessel_unload ON
+                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN
+                                                (dbo_vessel_catch INNER JOIN
+                                                dbo_catch_maturity ON
+                                                dbo_vessel_catch.catch_id = dbo_catch_maturity.catch_id) ON
+                                                dbo_vessel_unload.v_unload_id = dbo_vessel_catch.v_unload_id) ON
+                                                fishingGround.FishingGroundCode = dbo_LC_FG_sample_day.ground_id) ON
+                                                fma.FMAID = dbo_LC_FG_sample_day.fma) ON
+                                                landingSite.LandingSiteID = dbo_LC_FG_sample_day.land_ctr_id) INNER JOIN
+                                                dbo_vessel_unload_1 ON
+                                                dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id
+                                            WHERE
+                                                dbo_vessel_unload_1.is_multigear=False
+                                            GROUP BY
+                                                dbo_LC_FG_sample_day.region_id,
+                                                fma.FMAID,
+                                                fishingGround.FishingGroundCode,
+                                                landingSite.LandingSiteID,
+                                                dbo_gear_unload.gr_id,
+                                                Year([sdate]),
+                                                Month([sdate]),
+                                                dbo_vessel_catch.taxa,
+                                                dbo_vessel_catch.species_id,
+                                                dbo_catch_maturity.sex,
+                                                dbo_catch_maturity.maturity
+                                            HAVING
+                                                dbo_LC_FG_sample_day.region_id=@reg AND
+                                                dbo_catch_maturity.sex=@sex AND
+                                                dbo_catch_maturity.maturity Is Not Null AND
+                                                dbo_vessel_catch.species_id IS NOT NULL
+
+
+                                            UNION
+
+                                            SELECT
+                                                dbo_LC_FG_sample_day.region_id,
+                                                fma.FMAID,
+                                                fishingGround.FishingGroundCode,
+                                                landingSite.LandingSiteID,
+                                                dbo_gear_unload.gr_id,
+                                                Year([sdate]) AS sYear,
+                                                Month([sdate]) AS sMonth,
+                                                dbo_vessel_catch.taxa,
+                                                dbo_vessel_catch.species_id,
+                                                dbo_catch_maturity.sex,
+                                                dbo_catch_maturity.maturity,
+                                                Count(dbo_catch_maturity.maturity) AS n
+                                            FROM
+                                                (((fma INNER JOIN
+                                                (fishingGround INNER JOIN
+                                                (landingSite INNER JOIN
+                                                ((dbo_LC_FG_sample_day INNER JOIN
+                                                dbo_gear_unload ON
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN
+                                                dbo_vessel_unload ON
+                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON
+                                                landingSite.LandingSiteID = dbo_LC_FG_sample_day.land_ctr_id) ON
+                                                fishingGround.FishingGroundCode = dbo_LC_FG_sample_day.ground_id) ON
+                                                fma.FMAID = dbo_LC_FG_sample_day.fma) INNER JOIN
+                                                dbo_vesselunload_fishinggear ON
+                                                dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) INNER JOIN
+                                                (dbo_vessel_catch INNER JOIN
+                                                dbo_catch_maturity ON
+                                                dbo_vessel_catch.catch_id = dbo_catch_maturity.catch_id) ON
+                                                dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id) INNER JOIN
+                                                dbo_vessel_unload_1 ON
+                                                dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id
+                                            WHERE
+                                                dbo_vessel_unload_1.is_multigear=True
+                                            GROUP BY
+                                                dbo_LC_FG_sample_day.region_id,
+                                                fma.FMAID,
+                                                fishingGround.FishingGroundCode,
+                                                landingSite.LandingSiteID,
+                                                dbo_gear_unload.gr_id,
+                                                Year([sdate]),
+                                                Month([sdate]),
+                                                dbo_vessel_catch.taxa,
+                                                dbo_vessel_catch.species_id,
+                                                dbo_catch_maturity.sex,
+                                                dbo_catch_maturity.maturity
+                                            HAVING
+                                                dbo_LC_FG_sample_day.region_id=@reg AND
+                                                dbo_catch_maturity.sex=@sex AND
+                                                dbo_catch_maturity.maturity Is Not Null AND
+                                                dbo_vessel_catch.species_id IS NOT NULL";
+
+                        string query = cmd.CommandText
+                            .Replace("@reg", $"'{reg.Code}'")
+                            .Replace("@sex", "'f'");
+
+                        con.Open();
+                        try
+                        {
+                            var dr = cmd.ExecuteReader();
+                            while (dr.Read())
+                            {
+                                FemaleMaturitySummary fms = new FemaleMaturitySummary(
+                                    dr["region_id"].ToString(),
+                                    (int)dr["FMAID"],
+                                    dr["FishingGroundCode"].ToString(),
+                                    (int)dr["LandingSiteID"],
+                                    dr["gr_id"].ToString(),
+                                    (int)(short)dr["sYear"],
+                                    (int)(short)dr["sMonth"],
+                                    dr["taxa"].ToString(),
+                                    (int)dr["species_id"],
+                                    dr["maturity"].ToString(),
+                                    (int)dr["n"]
+                                    );
+                                fmss.Add(fms);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return fmss;
+        }
+        public static List<int> GetVesselUnloadIDsForFemaleCatchMaturityStage(TreeViewModelControl.AllSamplingEntitiesEventHandler e,
+            int day,
+            string gearCode,
+            string sectorCode,
+            string maturityCode,
+            int speciesID)
+        {
+            List<int> vu_ids = new List<int>();
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@ls", e.LandingSite.LandingSiteID);
+                        cmd.Parameters.AddWithValue("@fg", e.FishingGround.Code);
+                        cmd.Parameters.AddWithValue("@fma", e.FMA.FMAID);
+                        cmd.Parameters.AddWithValue("@reg", e.NSAPRegion.Code);
+                        cmd.Parameters.AddWithValue("@day", ((DateTime)e.MonthSampled).AddDays(day - 1).ToString("M/d/yyyy"));
+                        cmd.Parameters.AddWithValue("@gear", gearCode);
+                        cmd.Parameters.AddWithValue("@species", speciesID);
+                        cmd.Parameters.AddWithValue("@sex", "f");
+                        cmd.Parameters.AddWithValue("@stage", maturityCode);
+                        cmd.Parameters.AddWithValue("@sector", sectorCode);
+
                         cmd.CommandText = @"SELECT DISTINCT 
                                                 dbo_vessel_unload.v_unload_id
                                             FROM
-                                                (((dbo_LC_FG_sample_day INNER JOIN 
-                                                dbo_gear_unload ON 
-                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                ((dbo_LC_FG_sample_day INNER JOIN 
+                                                (dbo_gear_unload INNER JOIN 
                                                 dbo_vessel_unload ON 
-                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) INNER JOIN 
-                                                dbo_vessel_catch ON dbo_vessel_unload.v_unload_id = dbo_vessel_catch.v_unload_id) INNER JOIN 
-                                                dbo_catch_maturity ON dbo_vessel_catch.catch_id = dbo_catch_maturity.catch_id
+                                                dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN 
+                                                (dbo_vessel_catch INNER JOIN 
+                                                dbo_catch_maturity ON 
+                                                dbo_vessel_catch.catch_id = dbo_catch_maturity.catch_id) 
+                                                ON dbo_vessel_unload.v_unload_id = dbo_vessel_catch.v_unload_id) INNER JOIN 
+                                                dbo_vessel_unload_1 ON dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id
                                             WHERE
                                                 dbo_LC_FG_sample_day.land_ctr_id = @ls AND
                                                 dbo_LC_FG_sample_day.ground_id = @fg AND
@@ -66,12 +333,14 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_gear_unload.gr_id=@gear AND 
                                                 dbo_vessel_catch.species_id=@species AND 
                                                 dbo_catch_maturity.sex=@sex AND 
-                                                dbo_catch_maturity.maturity=@stage
+                                                dbo_catch_maturity.maturity=@stage AND
+                                                dbo_vessel_unload_1.sector_code=@sector
+                                                
                                             UNION
                                             SELECT DISTINCT 
                                                 dbo_vessel_unload.v_unload_id
                                             FROM 
-                                                ((dbo_LC_FG_sample_day INNER JOIN 
+                                                (((dbo_LC_FG_sample_day INNER JOIN 
                                                 (dbo_gear_unload INNER JOIN 
                                                 dbo_vessel_unload ON 
                                                 dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
@@ -79,8 +348,11 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_vesselunload_fishinggear ON 
                                                 dbo_vessel_unload.v_unload_id = dbo_vesselunload_fishinggear.vessel_unload_id) INNER JOIN 
                                                 (dbo_vessel_catch INNER JOIN 
-                                                dbo_catch_maturity ON dbo_vessel_catch.catch_id = dbo_catch_maturity.catch_id) ON 
-                                                dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id
+                                                dbo_catch_maturity ON 
+                                                dbo_vessel_catch.catch_id = dbo_catch_maturity.catch_id) ON 
+                                                dbo_vesselunload_fishinggear.row_id = dbo_vessel_catch.vessel_unload_gear_id) INNER JOIN 
+                                                dbo_vessel_unload_1 ON 
+                                                dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id
                                             WHERE
                                                 dbo_LC_FG_sample_day.land_ctr_id = @ls AND
                                                 dbo_LC_FG_sample_day.ground_id = @fg AND
@@ -90,17 +362,18 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_gear_unload.gr_id=@gear AND 
                                                 dbo_vessel_catch.species_id=@species AND 
                                                 dbo_catch_maturity.sex=@sex AND 
-                                                dbo_catch_maturity.maturity=@stage;";
+                                                dbo_catch_maturity.maturity=@stage AND
+                                                dbo_vessel_unload_1.sector_code= @sector;";
                         con.Open();
                         try
                         {
                             var dr = cmd.ExecuteReader();
-                            while(dr.Read())
+                            while (dr.Read())
                             {
                                 vu_ids.Add((int)dr["v_unload_id"]);
                             }
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             Logger.Log(ex);
                         }

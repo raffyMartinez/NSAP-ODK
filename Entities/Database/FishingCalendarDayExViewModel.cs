@@ -143,7 +143,7 @@ namespace NSAP_ODK.Entities.Database
                         break;
                     case CalendarViewType.calendarViewTypeMaturityMeasurement:
                         string female_maturity = "";
-                        if(_getFemaleMaturity)
+                        if (_getFemaleMaturity)
                         {
                             female_maturity = "for females ";
                         }
@@ -232,7 +232,7 @@ namespace NSAP_ODK.Entities.Database
 
                     HashSet<SpeciesFishingGearAndSector> sfgss = new HashSet<SpeciesFishingGearAndSector>();
 
-                    foreach (var item in _speciesCalendarDays.Where(t=>t.Gear!=null))
+                    foreach (var item in _speciesCalendarDays.Where(t => t.Gear != null))
                     {
                         try
 
@@ -240,7 +240,7 @@ namespace NSAP_ODK.Entities.Database
                             FishingGearAndSector fgs = new FishingGearAndSector(g: item.Gear, sector_code: item.SectorCode);
                             sfgss.Add(new SpeciesFishingGearAndSector(fgs, item.SpeciesID, item.SpeciesName, item.TaxaCode));
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             Utilities.Logger.Log(ex);
                         }
@@ -261,11 +261,32 @@ namespace NSAP_ODK.Entities.Database
                         if (_getFemaleMaturity)
                         {
                             msfgs.MaturityStage = item.MaturityStage;
+                            msfgs.MaturityStageEnum = item.MaturityStageEnum;
                         }
                         //msfgss.Add(new SpeciesFishingGearAndSector(fgs, item.SpeciesID, item.SpeciesName, item.TaxaCode ));
                         msfgss.Add(msfgs);
                     }
-                    _measured_speciesFishingGearAndSectors = msfgss.ToList();
+                    if (_getFemaleMaturity)
+                    {
+                        try
+                        {
+                            _measured_speciesFishingGearAndSectors = msfgss
+                                .OrderBy(t => t.Taxa)
+                                .ThenBy(t => t.SpeciesName)
+                                .ThenBy(t => t.MaturityStageEnum)
+                                .ThenBy(t => t.FishingGearAndSector.Gear.GearName)
+                                .ThenBy(t => t.FishingGearAndSector.Sector)
+                                .ToList();
+                        }
+                        catch//(Exception ex)
+                        {
+                            //Utilities.Logger.Log(ex);
+                        }
+                    }
+                    else
+                    {
+                        _measured_speciesFishingGearAndSectors = msfgss.ToList();
+                    }
                 }
 
                 DataTable.Columns.Add("Taxa");
@@ -275,7 +296,7 @@ namespace NSAP_ODK.Entities.Database
                     DataTable.Columns.Add("Maturity stage");
                 }
             }
-            DataTable.Columns.Add("GearName");
+            DataTable.Columns.Add("Gear name");
             DataTable.Columns.Add("GearCode");
 
             //added oct 21 2022
@@ -306,7 +327,7 @@ namespace NSAP_ODK.Entities.Database
                         {
                             row["Maturity stage"] = msp_gr_sec.MaturityStage;
                         }
-                        row["GearName"] = msp_gr_sec.FishingGearAndSector.Gear.GearName;
+                        row["Gear name"] = msp_gr_sec.FishingGearAndSector.Gear.GearName;
                         row["GearCode"] = msp_gr_sec.FishingGearAndSector.Gear.Code;
                         row["Sector"] = msp_gr_sec.FishingGearAndSector.Sector;
                         row["Month"] = samplingMonthYear.ToString("MMM-yyyy");
@@ -401,7 +422,7 @@ namespace NSAP_ODK.Entities.Database
                         row = DataTable.NewRow();
                         row["Taxa"] = sp_gr_sec.Taxa;
                         row["Species"] = sp_gr_sec.SpeciesName;
-                        row["GearName"] = sp_gr_sec.FishingGearAndSector.Gear.GearName;
+                        row["Gear name"] = sp_gr_sec.FishingGearAndSector.Gear.GearName;
                         row["GearCode"] = sp_gr_sec.FishingGearAndSector.Gear.Code;
                         row["Sector"] = sp_gr_sec.FishingGearAndSector.Sector;
                         row["Month"] = samplingMonthYear.ToString("MMM-yyyy");
@@ -428,7 +449,7 @@ namespace NSAP_ODK.Entities.Database
                         row = DataTable.NewRow();
                         row["Taxa"] = sp_gr_sec.Taxa;
                         row["Species"] = sp_gr_sec.SpeciesName;
-                        row["GearName"] = sp_gr_sec.FishingGearAndSector.Gear.GearName;
+                        row["Gear name"] = sp_gr_sec.FishingGearAndSector.Gear.GearName;
                         row["GearCode"] = sp_gr_sec.FishingGearAndSector.Gear.Code;
                         row["Sector"] = sp_gr_sec.FishingGearAndSector.Sector;
                         row["Month"] = samplingMonthYear.ToString("MMM-yyyy");
@@ -454,7 +475,7 @@ namespace NSAP_ODK.Entities.Database
                     foreach (var gear_sector in _gearsAndSectors.Where(t => t.SectorCode == "c" || t.SectorCode == "m").OrderBy(t => t.Gear.GearName).ThenBy(t => t.SectorCode))
                     {
                         row = DataTable.NewRow();
-                        row["GearName"] = gear_sector.Gear.GearName;
+                        row["Gear name"] = gear_sector.Gear.GearName;
                         row["GearCode"] = gear_sector.Gear.Code;
                         row["Sector"] = gear_sector.Sector;
                         row["Month"] = samplingMonthYear.ToString("MMM-yyyy");
@@ -482,7 +503,7 @@ namespace NSAP_ODK.Entities.Database
                     foreach (var gear_sector in _gearsAndSectors.Where(t => t.SectorCode == "c" || t.SectorCode == "m").OrderBy(t => t.Gear.GearName).ThenBy(t => t.SectorCode))
                     {
                         row = DataTable.NewRow();
-                        row["GearName"] = gear_sector.Gear.GearName;
+                        row["Gear name"] = gear_sector.Gear.GearName;
                         row["GearCode"] = gear_sector.Gear.Code;
                         row["Sector"] = gear_sector.Sector;
                         row["Month"] = samplingMonthYear.ToString("MMM-yyyy");
@@ -524,10 +545,12 @@ namespace NSAP_ODK.Entities.Database
                     break;
                 case CalendarViewType.calendarViewTypeWeightAllLandingsByGear:
                     TotalLandedCatchWeight = null;
-                    foreach (var gear_sector in _gearsAndSectors.Where(t => t.SectorCode == "c" || t.SectorCode == "m").OrderBy(t => t.Gear.GearName).ThenBy(t => t.SectorCode))
+                    var list_gear_sector = _gearsAndSectors.Where(t => t.SectorCode == "c" || t.SectorCode == "m").OrderBy(t => t.Gear.GearName).ThenBy(t => t.SectorCode).ToList();
+                    foreach (var gear_sector in list_gear_sector)
+                    //foreach (var gear_sector in _gearsAndSectors.Where(t => t.SectorCode == "c" || t.SectorCode == "m").OrderBy(t => t.Gear.GearName).ThenBy(t => t.SectorCode))
                     {
                         row = DataTable.NewRow();
-                        row["GearName"] = gear_sector.Gear.GearName;
+                        row["Gear name"] = gear_sector.Gear.GearName;
                         row["GearCode"] = gear_sector.Gear.Code;
                         row["Sector"] = gear_sector.Sector;
                         row["Month"] = samplingMonthYear.ToString("MMM-yyyy");
@@ -543,7 +566,7 @@ namespace NSAP_ODK.Entities.Database
                                 double? landedWeight = null;
                                 if (day.TotalWeightCommercialLandings != null || day.TotalWeightMunicipalLandings != null)
                                 {
-                                    landedWeight = (day.TotalWeightCommercialLandings ?? 0) + day.TotalWeightMunicipalLandings ?? 0;
+                                    landedWeight = (day.TotalWeightCommercialLandings ?? 0) + (day.TotalWeightMunicipalLandings ?? 0);
                                 }
                                 else
                                 {
@@ -566,7 +589,7 @@ namespace NSAP_ODK.Entities.Database
                 case CalendarViewType.calendarViewTypeCountAllLandings:
                     TotalLandingCount = null;
                     row = DataTable.NewRow();
-                    row["GearName"] = "All gears";
+                    row["Gear name"] = "All gears";
                     row["GearCode"] = "All sectors";
                     row["Sector"] = "";
                     row["Month"] = samplingMonthYear.ToString("MMM-yyyy");
@@ -609,7 +632,7 @@ namespace NSAP_ODK.Entities.Database
                 case CalendarViewType.calendarViewTypeWeightAllLandings:
                     TotalWeightLanded = null;
                     row = DataTable.NewRow();
-                    row["GearName"] = "All gears";
+                    row["Gear name"] = "All gears";
                     row["GearCode"] = "All sectors";
                     row["Sector"] = "";
                     row["Month"] = samplingMonthYear.ToString("MMM-yyyy");
