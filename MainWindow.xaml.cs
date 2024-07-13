@@ -3209,7 +3209,7 @@ namespace NSAP_ODK
                             break;
                         case "menuCalendarGearSpeciesMapping":
                             vu_ids = VesselCatchRepository.GetVesselUnloadIDs(_treeItemData,
-                                (int)sp_id, context: mi.Tag == null ? "" : mi.Tag.ToString(), _gearCode, _sector_code
+                                sp_id, context: mi.Tag == null ? "" : mi.Tag.ToString(), _gearCode, _sector_code
                                 );
                             if (await Mapping.FishingGroundPointsFromCalendarMappingManager.MapFishingGroundPoint(vesselUnloadIDs: vu_ids) == false)
                             {
@@ -6288,6 +6288,7 @@ namespace NSAP_ODK
                                                     }
                                                     if (proceed)
                                                     {
+                                                        m = null;
                                                         string samplingDate = $"{((DateTime)_monthYear).ToString("MMMM")} {_calendarDay}, {((DateTime)_monthYear).ToString("yyyy")}";
                                                         if (_isWatchedSpeciesCalendar)
                                                         {
@@ -6309,10 +6310,10 @@ namespace NSAP_ODK
                                                             }
 
                                                         }
-                                                        //else
-                                                        //{
-                                                        //    m = new MenuItem { Header = $"Map fishing ground of {_gearName} ({_fish_sector}) on {samplingDate}", Name = "menuCalendarDaySpeciesGearMapping", Tag = "gear_day" };
-                                                        //}
+                                                        else
+                                                        {
+                                                            m = new MenuItem { Header = $"Map fishing ground of {_gearName} ({_fish_sector}) on {samplingDate}", Name = "menuCalendarDaySpeciesGearMapping", Tag = "gear_day" };
+                                                        }
                                                         if (m != null)
                                                         {
                                                             m.Click += OnMenuClicked;

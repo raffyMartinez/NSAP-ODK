@@ -53,7 +53,7 @@ namespace NSAP_ODK.Entities.Database
                         DateTime sampling_date = ((DateTime)e.MonthSampled).AddDays(calendarDay - 1);
                         cmd.Parameters.AddWithValue("@start", sampling_date.ToString("M/d/yyyy"));
                         cmd.Parameters.AddWithValue("@end", sampling_date.AddDays(1).ToString("M/d/yyyy"));
-                        cmd.Parameters.AddWithValue("@sp_id", (int)sp_id);
+                        cmd.Parameters.AddWithValue("@sp_id", sp_id);
                         cmd.Parameters.AddWithValue("@gear", gear_code);
                         cmd.Parameters.AddWithValue("@sector", sector_code);
                         var arr = context.Split(':');
@@ -581,6 +581,8 @@ namespace NSAP_ODK.Entities.Database
                                                             dbo_vessel_unload_1.sector_code=@sector";
                                 break;
                             case "gear_day":
+                                //RemoveUnusedParameter(cmd, "@gear");
+                                RemoveUnusedParameter(cmd, "@sp_id");
                                 cmd.CommandText = @"SELECT DISTINCT 
                                                         dbo_vessel_unload.v_unload_id
                                                       FROM 
@@ -621,6 +623,8 @@ namespace NSAP_ODK.Entities.Database
                                                         dbo_vessel_unload_1.SamplingDate<@end";
                                 break;
                             case "by_Sector":
+                                RemoveUnusedParameter(cmd, "@gear");
+                                RemoveUnusedParameter(cmd, "@sp_id");
                                 cmd.CommandText = @"SELECT DISTINCT 
                                                         dbo_vessel_unload.v_unload_id
                                                       FROM 
@@ -672,7 +676,7 @@ namespace NSAP_ODK.Entities.Database
             }
             return vu_ids;
         }
-        public static List<int> GetVesselUnloadIDs(TreeViewModelControl.AllSamplingEntitiesEventHandler e, int speciesID, string context = "", string gear_code = "", string sector_code = "")
+        public static List<int> GetVesselUnloadIDs(TreeViewModelControl.AllSamplingEntitiesEventHandler e, int? speciesID, string context = "", string gear_code = "", string sector_code = "")
         {
             List<int> vu_ids = new List<int>();
             if (Global.Settings.UsemySQL)
