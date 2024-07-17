@@ -24,6 +24,7 @@ namespace NSAP_ODK.TreeViewModelControl
     /// </summary>
     public partial class TreeControl : UserControl
     {
+        private AllSamplingEntitiesEventHandler _args;
         public event EventHandler<AllSamplingEntitiesEventHandler> TreeViewItemSelected;
         public event EventHandler<AllSamplingEntitiesEventHandler> TreeContextMenu;
         public TreeViewItemViewModel _selectedItem;
@@ -65,7 +66,7 @@ namespace NSAP_ODK.TreeViewModelControl
             {
                 ReadDatabase();
             }
-            
+
         }
 
 
@@ -121,12 +122,14 @@ namespace NSAP_ODK.TreeViewModelControl
                     args.CalendarView = CalendarView;
                     args.GUID = ((tv_MonthViewModel)tvi).GUID;
 
-                    
+
+
                     //tv_CurrentEntities.CurrentMonth = args.MonthSampled;
                     break;
 
             }
             TreeViewItemSelected?.Invoke(this, args);
+            _args = args;
         }
 
         private void OnContextMenuClick(object sender, RoutedEventArgs e)
@@ -179,31 +182,14 @@ namespace NSAP_ODK.TreeViewModelControl
                 case "contextMenuNSAPForm4":
                 case "contextMenuNSAPForm5":
                 case "contextMenuMapMonth":
+                case "contextMenuMeasurementCountsMonth":
                     args.LandingSite = ((tv_MonthViewModel)_selectedItem)._landingSite;
                     args.LandingSiteText = ((tv_MonthViewModel)_selectedItem)._landingSiteName;
                     args.FishingGround = ((tv_MonthViewModel)_selectedItem)._fishingGround;
                     args.FMA = ((tv_MonthViewModel)_selectedItem)._fma;
                     args.NSAPRegion = ((tv_MonthViewModel)_selectedItem)._nsapRegion;
                     args.MonthSampled = DateTime.Parse(((tv_MonthViewModel)_selectedItem).Name);
-
-                    //switch(menuName)
-                    //{
-                    //    case "contextMenuCrosstabMonth":
-                    //        args.ContextMenuTopic = "crosstabByMonth";
-                    //        break;
-                    //    case "contextMenuGearUnloadMonth":
-                    //        args.ContextMenuTopic = "editGearGearUnloadByMonth";
-                    //        break;
-                    //}
                     break;
-                    //case "contextMenuNSAPForm1":
-                    //case "contextMenuNSAPForm2":
-                    //case "contextMenuNSAPForm2a":
-                    //case "contextMenuNSAPForm2b":
-                    //case "contextMenuNSAPForm3":
-                    //case "contextMenuNSAPForm4":
-                    //case "contextMenuNSAPForm5":
-                    //    break;
             }
             args.ContextMenuTopic = menuName;
 
@@ -293,17 +279,26 @@ namespace NSAP_ODK.TreeViewModelControl
 
         private void OnContextMenuOpened(object sender, RoutedEventArgs e)
         {
-            if(!Utilities.Global.IsMapComponentRegistered)
+
+            foreach (MenuItem item in ((ContextMenu)sender).Items)
             {
-                 foreach(MenuItem item in ((ContextMenu)sender).Items)
+                if (item.Name == "contextMenuMapMonth")
                 {
-                    if(item.Name=="contextMenuMapMonth")
+                    if (!Utilities.Global.IsMapComponentRegistered)
                     {
                         item.Visibility = Visibility.Collapsed;
-                        break;
                     }
+                    else
+                    {
+                        DateTime monthSampled = (DateTime)_args.MonthSampled;
+                        int no_days = DateTime.DaysInMonth(monthSampled.Year, monthSampled.Month);
+                        DateTime endOfMonth = monthSampled.AddDays(no_days - 1);
+                        item.Header = $"Map fishing ground of landings at {_args.LandingSite} from {monthSampled.ToString("MMM dd, yyyy")} to {endOfMonth.ToString("MMM dd, yyyy")}";
+                    }
+                    break;
                 }
             }
+
         }
 
 

@@ -13,9 +13,18 @@ namespace NSAP_ODK.Mapping
 {
     public static class FishingGroundPointsFromCalendarMappingManager
     {
+        public static DateTime? _samplingDate;
         public static event EventHandler<CrossTabReportEventArg> FishingGroundMappingEvent;
         public static AllSamplingEntitiesEventHandler EntitiesMonth { get; set; }
         private static MapInterActionHandler _mapInterActionHandler;
+
+        public static void SetSamplingDate(int? calendarDay)
+        {
+            if(calendarDay!=null)
+            {
+                _samplingDate = ((DateTime)EntitiesMonth.MonthSampled).AddDays((int)calendarDay - 1);
+            }
+        }
 
         public static string SpeciesName { get; set; }
         public static string MaturityStage { get; set; }
@@ -179,8 +188,9 @@ namespace NSAP_ODK.Mapping
             sf.Key = "convex hull from fg points";
             _mapInterActionHandler.MapLayersHandler.AddLayer(sf, $"Convex hull of {fishingGroundPoints.Name}", layerKey: sf.Key);
         }
-
+        public static string MappingContext2 { get; set; }
         public static string MappingContext { get; set; }
+        public static string Description { get; set; }
         public static async Task<bool> MapFishingGroundPoint(string gearName = "", string sector = "", int? calendarDay = null, List<int> vesselUnloadIDs = null)
         {
             bool success = false;
@@ -204,6 +214,111 @@ namespace NSAP_ODK.Mapping
                         ((DateTime)EntitiesMonth.MonthSampled).Month,
                         (int)CalendarDay);
             }
+            string description = Description.Replace("Map fishing", "Fishing");
+            //if (!string.IsNullOrEmpty(MappingContext2))
+            //{
+            //    var arr = MappingContext2.Split(':');
+            //    if(MappingContext2.Contains("maturity"))
+            //    {
+            //        if (arr.Length == 3)
+            //        {
+            //            if (arr[2] == "by_day_species")
+            //            {
+            //                layerName = $"Fishing ground of {SpeciesName} with {arr[1].ToLower()} maturity stage at {EntitiesMonth.LandingSite} on {((DateTime)_samplingDate).ToString("MMM dd, yyyy")}";
+            //            }
+            //        }
+            //        else
+            //        {
+            //            layerName = $"Fishing ground of {SpeciesName} with {arr[1].ToLower()} maturity stage at {EntitiesMonth.LandingSite} on {((DateTime)EntitiesMonth.MonthSampled).ToString("MMM-yyyy")}";
+            //        }
+            //    }
+            //    else if(MappingContext2.Contains("measured"))
+            //    {
+            //        if(arr.Length==3)
+            //        {
+            //            if(arr[2]=="by_day_species")
+            //            {
+            //                layerName = $"Fishing ground of {SpeciesName} with {arr[1]} measurements at {EntitiesMonth.LandingSite} on {((DateTime)_samplingDate).ToString("MMM dd, yyyy")}";
+            //            }
+            //        }
+            //        else
+            //        {
+            //            layerName = $"Fishing ground of {SpeciesName} with {arr[1]} measurements at {EntitiesMonth.LandingSite} on {((DateTime)EntitiesMonth.MonthSampled).ToString("MMM-yyyy")}";
+            //        }
+            //    }
+            //     switch (MappingContext2)
+            //    {
+            //        case "sector_month_allspecies":
+            //            layerName = $"Fishing ground of {Sector.ToLower()} fishing gears at {EntitiesMonth.LandingSite} on {((DateTime)EntitiesMonth.MonthSampled).ToString("MMM-yyyy")}";
+            //            break;
+            //        //case "measured:length":
+            //        //    layerName = $"Fishing ground of {SpeciesName} with length measurements at {EntitiesMonth.LandingSite} on {((DateTime)EntitiesMonth.MonthSampled).ToString("MMM-yyyy")}";
+            //        //    break;
+            //        //case "measured:length:by_day_species":
+            //        //    break;
+            //        //case "measured:length-weight":
+            //        //    layerName = $"Fishing ground of {SpeciesName} with length-weight measurements at {EntitiesMonth.LandingSite} on {((DateTime)EntitiesMonth.MonthSampled).ToString("MMM-yyyy")}";
+            //        //    break;
+            //        //case "measured:length-weight:by_day_species":
+            //        //    break;
+            //        //case "measured:length frequency":
+            //        //    layerName = $"Fishing ground of {SpeciesName} with length frequency measurements at {EntitiesMonth.LandingSite} on {((DateTime)EntitiesMonth.MonthSampled).ToString("MMM-yyyy")}";
+            //        //    break;
+            //        //case "measured:length frequency:by_day_species":
+            //        //    break;
+            //        //case "measured:maturity":
+            //        //    layerName = $"Fishing ground of {SpeciesName} with maturity measurements at {EntitiesMonth.LandingSite} on {((DateTime)EntitiesMonth.MonthSampled).ToString("MMM-yyyy")}";
+            //        //    break;
+            //        //case "measured:maturity:by_day_species":
+            //        //    break;
+            //        case "occurence":
+            //            if (string.IsNullOrEmpty(GearName))
+            //            {
+            //                layerName = $"Fishing ground of {SpeciesName} caught using {GearName.ToLower()} at {EntitiesMonth.LandingSite} on {((DateTime)EntitiesMonth.MonthSampled).ToString("MMM-yyyy")}";
+            //            }
+            //            else
+            //            {
+            //                layerName = $"Fishing ground of {SpeciesName} at {EntitiesMonth.LandingSite} on {((DateTime)EntitiesMonth.MonthSampled).ToString("MMM-yyyy")}";
+            //            }
+            //            break;
+            //        //case "maturity:Premature":
+            //        //    break;
+            //        //case "maturity:Premature:by_day_species":
+            //        //    break;
+            //        //case "maturity:Immature":
+            //        //    break;
+            //        //case "maturity:Immature:by_day_species":
+            //        //    break;
+            //        //case "maturity:Developing":
+            //        //    break;
+            //        //case "maturity:Developing:by_day_species":
+            //        //    break;
+            //        //case "maturity:Maturing":
+            //        //    break;
+            //        //case "maturity:Maturing:by_day_species":
+            //        //    break;
+            //        //case "maturity:Mature":
+            //        //    break;
+            //        //case "maturity:Mature:by_day_species":
+            //        //    break;
+            //        //case "maturity:Ripening":
+            //        //    break;
+            //        //case "maturity:Ripening:by_day_species":
+            //        //    break;
+            //        //case "maturity:Gravid":
+            //        //    break;
+            //        //case "maturity:Gravid:by_day_species":
+            //        //    break;
+            //        //case "maturity:Spawning":
+            //        //    break;
+            //        //case "maturity:Spawning:by_day_species":
+            //        //    break;
+            //        //case "maturity:Spent":
+            //        //    break;
+            //        //case "maturity:Spent:by_day_species":
+            //        //    break;
+            //    }
+            //}
             switch (MappingContext)
             {
                 case "menuCalendarDaySpeciesGearMapping":
@@ -214,7 +329,7 @@ namespace NSAP_ODK.Mapping
                     break;
                 case "menuCalendarGearMapping":
                     vus = CrossTabGenerator.VesselUnloads.Where(t => t.FirstFishingGroundCoordinate != null && t.Parent.GearUsedName == gearName && t.Sector == sector).ToList();
-                    layerName = $"{gearName} ({sector}) {EntitiesMonth.LandingSite}, {((DateTime)EntitiesMonth.MonthSampled).ToString("MMM-yyyy")}";
+                    //layerName = $"{gearName} ({sector}) {EntitiesMonth.LandingSite}, {((DateTime)EntitiesMonth.MonthSampled).ToString("MMM-yyyy")}";
                     break;
                 case "menuCalendarDayGearMapping":
 
@@ -225,32 +340,38 @@ namespace NSAP_ODK.Mapping
                         t.SamplingDate.Date == samplingDate)
                      .ToList();
 
-                    layerName = $"{gearName} ({sector}) {EntitiesMonth.LandingSite}, {((DateTime)samplingDate).ToString("MMM-dd-yyyy")}";
+                    //if (string.IsNullOrEmpty(layerName))
+                    //{
+                    //    layerName = $"{gearName} ({sector}) {EntitiesMonth.LandingSite}, {((DateTime)samplingDate).ToString("MMM-dd-yyyy")}";
+                    //}
                     break;
                 case "menuCalendarDayFemaleMaturityMapping":
                     foreach (int id in vesselUnloadIDs)
                     {
                         vus.Add(CrossTabGenerator.VesselUnloads.Find(t => t.PK == id));
                     }
-                    layerName = $"{SpeciesName} ({MaturityStage}) {GearName} {EntitiesMonth.LandingSite}, {((DateTime)samplingDate).ToString("MMM-dd-yyyy")}";
+                    //layerName = $"{SpeciesName} ({MaturityStage}) {GearName} {EntitiesMonth.LandingSite}, {((DateTime)samplingDate).ToString("MMM-dd-yyyy")}";
                     break;
                 case "menuCalendarGearSpeciesMapping":
                     foreach (int id in vesselUnloadIDs)
                     {
                         vus.Add(CrossTabGenerator.VesselUnloads.Find(t => t.PK == id));
                     }
-                    layerName = $"{SpeciesName}  {GearName} {EntitiesMonth.LandingSite}, {((DateTime)EntitiesMonth.MonthSampled).ToString("MMM - yyyy")}";
+                    //if (string.IsNullOrEmpty(layerName))
+                    //{
+                    //    layerName = $"{SpeciesName}  {GearName} {EntitiesMonth.LandingSite}, {((DateTime)EntitiesMonth.MonthSampled).ToString("MMM - yyyy")}";
+                    //}
                     break;
                 case "menuCalendarSpeciesMapping":
                     foreach (int id in vesselUnloadIDs)
                     {
                         vus.Add(CrossTabGenerator.VesselUnloads.Find(t => t.PK == id));
                     }
-                    layerName = $"{SpeciesName} {EntitiesMonth.LandingSite}, {((DateTime)EntitiesMonth.MonthSampled).ToString("MMM - yyyy")}";
+                    //layerName = $"{SpeciesName} {EntitiesMonth.LandingSite}, {((DateTime)EntitiesMonth.MonthSampled).ToString("MMM - yyyy")}";
                     break;
                 case "contextMenuMapMonth":
                     vus = CrossTabGenerator.VesselUnloads.Where(t => t.FirstFishingGroundCoordinate != null).ToList();
-                    layerName = $"{EntitiesMonth.LandingSite}, {((DateTime)EntitiesMonth.MonthSampled).ToString("MMM - yyyy")}";
+                    //layerName = $"{EntitiesMonth.LandingSite}, {((DateTime)EntitiesMonth.MonthSampled).ToString("MMM - yyyy")}";
                     break;
             }
             if (vus.Count > 0)
@@ -260,7 +381,8 @@ namespace NSAP_ODK.Mapping
                 FishingGroundMappingEvent?.Invoke(null, new CrossTabReportEventArg { Context = "creating fishing ground point shapefile" });
                 var fishingGroundPointsSF = ShapefileFactory.FishingGroundPointsFromCalendarSampledMonth(vus, EntitiesMonth, out handles);
 
-                _mapInterActionHandler.MapLayersHandler.AddLayer(fishingGroundPointsSF, layerName, layerKey: fishingGroundPointsSF.Key);
+                //_mapInterActionHandler.MapLayersHandler.AddLayer(fishingGroundPointsSF, layerName, layerKey: fishingGroundPointsSF.Key);
+                _mapInterActionHandler.MapLayersHandler.AddLayer(fishingGroundPointsSF, description, layerKey: fishingGroundPointsSF.Key);
                 FishingGroundMappingEvent?.Invoke(null, new CrossTabReportEventArg { Context = "fishing ground point shapefile created" });
                 success = true;
             }

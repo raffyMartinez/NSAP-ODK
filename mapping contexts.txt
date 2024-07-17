@@ -1,0 +1,7 @@
+gear-day
+by-day
+by-Sector
+gear_day_species
+by_day_species
+by_day_sector
+measured:length:by_sector

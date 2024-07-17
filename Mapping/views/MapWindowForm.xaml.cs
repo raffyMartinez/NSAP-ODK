@@ -312,6 +312,7 @@ namespace NSAP_ODK.Mapping.views
         }
         private void OnMenuClick(object sender, RoutedEventArgs e)
         {
+            string feedfBack = "";
             switch (((WindowMenuItem)sender).Name)
             {
                 case "menuCleanExtractedtracks":
@@ -340,7 +341,7 @@ namespace NSAP_ODK.Mapping.views
 
                     break;
                 case "menuAddBSCBoundary":
-                    string feedfBack = "";
+
 
                     if (!MapWindowManager.SetBoundaryShapefile())
                     {
@@ -358,7 +359,7 @@ namespace NSAP_ODK.Mapping.views
                 case "menuEdit":
                     break;
                 case "menuAddLayerBoundaryLGU":
-                    feedfBack = "";
+
                     MapWindowManager.AddLGUBoundary(out feedfBack);
                     if (feedfBack.Length > 0)
                     {
@@ -385,6 +386,13 @@ namespace NSAP_ODK.Mapping.views
                     ShowAOIList();
                     break;
                 case "menuIslandLabels":
+                    break;
+                case "menuAddLayerBoundaryLGUPoblacion":
+                    MapWindowManager.AddLGUPoints(out feedfBack);
+                    if (feedfBack.Length > 0)
+                    {
+                        System.Windows.MessageBox.Show(feedfBack, Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
                     break;
             }
         }

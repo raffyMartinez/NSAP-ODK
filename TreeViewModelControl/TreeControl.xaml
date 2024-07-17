@@ -90,6 +90,7 @@
                         <StackPanel.ContextMenu>
                             <ContextMenu x:Name="contextMenuMonthView" Opened="OnContextMenuOpened">
                                 <MenuItem Header="Crosstab report" Click="OnContextMenuClick" x:Name="contextMenuCrosstabMonth"/>
+                                <MenuItem Header="Measurement counts" Click="OnContextMenuClick" x:Name="contextMenuMeasurementCountsMonth"/>
                                 <MenuItem Header="Map fishing grounds" Click="OnContextMenuClick" x:Name="contextMenuMapMonth"/>
                                 <MenuItem Header="NSAP reports">
                                     <MenuItem Header="NSAP Form 1" Click="OnContextMenuClick" x:Name="contextMenuNSAPForm1"/>

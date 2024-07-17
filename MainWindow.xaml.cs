@@ -2268,6 +2268,8 @@ namespace NSAP_ODK
 
                     break;
             }
+            labelRowCount.Visibility = Visibility.Visible;
+            MonthSubLabel.Visibility = Visibility.Visible;
             labelRowCount.Content = NSAPEntities.FishingCalendarDayExViewModel.SamplingCalendarTitle;
             MonthSubLabel.Content = NSAPEntities.FishingCalendarDayExViewModel.LocationLabel;
         }
@@ -3152,6 +3154,7 @@ namespace NSAP_ODK
                 case "menuCalendarSpeciesMapping":
                 case "menuCalendarDaySpeciesGearMapping":
                     string calendarDayFailMessage = "";
+                    
                     Mapping.MapWindowManager.OpenMapWindow(this);
                     Mapping.FishingGroundPointsFromCalendarMappingManager.MapInteractionHandler = Mapping.MapWindowManager.MapInterActionHandler;
                     Mapping.FishingGroundPointsFromCalendarMappingManager.EntitiesMonth = _allSamplingEntitiesEventHandler;
@@ -3161,6 +3164,12 @@ namespace NSAP_ODK
                     Mapping.FishingGroundPointsFromCalendarMappingManager.SpeciesName = _speciesName;
                     Mapping.FishingGroundPointsFromCalendarMappingManager.MaturityStage = _maturityStage;
                     Mapping.FishingGroundPointsFromCalendarMappingManager.MappingContext = itemName;
+                    Mapping.FishingGroundPointsFromCalendarMappingManager.Description = mi.Header.ToString();
+                    if (mi.Tag != null && !string.IsNullOrEmpty(mi.Tag.ToString()))
+                    {
+                        Mapping.FishingGroundPointsFromCalendarMappingManager.MappingContext2 = mi.Tag.ToString();
+                    }
+                    Mapping.FishingGroundPointsFromCalendarMappingManager.SetSamplingDate(_calendarDay);
                     int? sp_id = null;
 
                     if (_speciesTaxa != null)
@@ -4499,7 +4508,7 @@ namespace NSAP_ODK
                     }
                     break;
                 case "tv_MonthViewModel":
-
+                    
                     if (e.NSAPRegion.RegionWatchedSpeciesViewModel == null)
                     {
                         e.NSAPRegion.RegionWatchedSpeciesViewModel = new RegionWatchedSpeciesViewModel(e.NSAPRegion);
@@ -5011,6 +5020,12 @@ namespace NSAP_ODK
                     Mapping.FishingGroundPointsFromCalendarMappingManager.MapInteractionHandler = Mapping.MapWindowManager.MapInterActionHandler;
                     Mapping.FishingGroundPointsFromCalendarMappingManager.EntitiesMonth = _allSamplingEntitiesEventHandler;
                     Mapping.FishingGroundPointsFromCalendarMappingManager.MappingContext = e.ContextMenuTopic;
+
+                    DateTime monthSampled = (DateTime)e.MonthSampled;
+                    int no_days = DateTime.DaysInMonth(monthSampled.Year, monthSampled.Month);
+                    DateTime endOfMonth = monthSampled.AddDays(no_days - 1);
+
+                    Mapping.FishingGroundPointsFromCalendarMappingManager.Description = $"Map fishing grounds of landings at {e.LandingSite} from {monthSampled.ToString("MMM dd, yyyy")} to {endOfMonth.ToString("MMM dd, yyyy")}";
                     if (await Mapping.FishingGroundPointsFromCalendarMappingManager.MapFishingGroundPoint() == false)
                     {
                         MessageBox.Show("Sampled landings do not contain fishing ground data",
@@ -5019,6 +5034,10 @@ namespace NSAP_ODK
                             MessageBoxImage.Information
                             );
                     }
+                    break;
+                case "contextMenuMeasurementCountsMonth":
+                    VesselCatchRepository.GetSpeciesMeasurementCounts(e);
+                    SetUpSummaryGrid(SummaryLevelType.LandingSiteMonth, GridNSAPData, treeviewData:_allSamplingEntitiesEventHandler , summaryName: "landingSiteMonthMeasurementCounts");
                     break;
             }
         }
@@ -5744,6 +5763,28 @@ namespace NSAP_ODK
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Latest date of monitoring", Binding = new Binding("DBSummary.LastLandingFormattedDate") });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Latest date of downloaded e-forms ", Binding = new Binding("DBSummary.LatestDownloadFormattedDate") });
                     break;
+                case SummaryLevelType.LandingSiteMonth:
+                    if(!string.IsNullOrEmpty(summaryName))
+                    {
+                        if(summaryName=="landingSiteMonthMeasurementCounts")
+                        {
+                            targetGrid.SelectionMode = DataGridSelectionMode.Extended;
+                            targetGrid.DataContext = VesselCatchRepository.GetSpeciesMeasurementCounts(treeviewData);
+                            targetGrid.Columns.Add(new DataGridTextColumn { Header = "Taxa", Binding = new Binding("Taxa") });
+                            targetGrid.Columns.Add(new DataGridTextColumn { Header = "Species", Binding = new Binding("SpeciesName") });
+                            targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of length measurements", Binding = new Binding("CountLenMeasurements") });
+                            targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of length-weight measurements", Binding = new Binding("CountLWMeasurements") });
+                            targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of length frequency measurements", Binding = new Binding("CountLFMeasurements") });
+                            targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of maturity measurements", Binding = new Binding("CountMatMeasurements") });
+
+                            labelRowCount.Visibility = Visibility.Collapsed;
+                            MonthLabel.Content = "Summary for landing site";
+                            MonthSubLabel.Visibility = Visibility.Visible;
+                            MonthSubLabel.Content = $"Summary table of number of individuals that were measured from sampled landings in {treeviewData.LandingSite} on {((DateTime)treeviewData.MonthSampled).ToString("MMM, yyyy")}";
+                        }
+                    }
+                    break;
+
                 case SummaryLevelType.EnumeratorRegion:
                     targetGrid.DataContext = await NSAPEntities.SummaryItemViewModel.GetEnumeratorSummaryLatestUploadAsync(region);
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("DBSummary.EnumeratorName") });
@@ -6132,16 +6173,16 @@ namespace NSAP_ODK
                     {
                         if (_getFemaleMaturity)
                         {
-                            m = new MenuItem { Header = $"Map fishing ground of {catchName} with {_maturityStage.ToLower()} maturity stage measurements", Name = "menuCalendarSpeciesMapping", Tag = $"maturity:{_maturityStage}" };
+                            m = new MenuItem { Header = $"Map fishing ground of {catchName} with {_maturityStage.ToLower()} maturity stage measurements landed at {_allSamplingEntitiesEventHandler.LandingSite} on {((DateTime)_monthYear).ToString("MMM, yyyy")}", Name = "menuCalendarSpeciesMapping", Tag = $"maturity:{_maturityStage}" };
                         }
                         else
                         {
-                            m = new MenuItem { Header = $"Map fishing ground of {catchName} with {_species_measurement_type} measurements", Name = "menuCalendarSpeciesMapping", Tag = $"measured:{_species_measurement_type}" };
+                            m = new MenuItem { Header = $"Map fishing ground of {catchName} with {_species_measurement_type} measurements landed at {_allSamplingEntitiesEventHandler.LandingSite} on {((DateTime)_monthYear).ToString("MMM, yyyy")}", Name = "menuCalendarSpeciesMapping", Tag = $"measured:{_species_measurement_type}" };
                         }
                     }
                     else
                     {
-                        m = new MenuItem { Header = $"Map fishing ground of {catchName}", Name = "menuCalendarSpeciesMapping", Tag = "occurence" };
+                        m = new MenuItem { Header = $"Map fishing ground of {catchName} landed at {_allSamplingEntitiesEventHandler.LandingSite} on {((DateTime)_monthYear).ToString("MMM, yyyy")}", Name = "menuCalendarSpeciesMapping", Tag = "occurence" };
                     }
                 }
                 m.Click += OnMenuClicked;
@@ -6206,6 +6247,11 @@ namespace NSAP_ODK
                             case "tv_MonthViewModel":
                                 if (_monthYear != null)
                                 {
+
+                                    DateTime monthSampled = (DateTime)_monthYear;
+                                    int no_days = DateTime.DaysInMonth(monthSampled.Year, monthSampled.Month);
+                                    DateTime endOfMonth = monthSampled.AddDays(no_days - 1);
+
                                     m = new MenuItem { Header = "Weights and weight validation", Name = "menuWeights" };
                                     m.Click += OnMenuClicked;
                                     cm.Items.Add(m);
@@ -6224,14 +6270,14 @@ namespace NSAP_ODK
                                                     {
                                                         if (!_isMeasuredWatchedSpeciesCalendar)
                                                         {
-                                                            m = new MenuItem { Header = $"Map fishing ground of {_fish_sector.ToLower()} fishing operations catching {_speciesName}", Name = "menuCalendarGearSpeciesMapping", Tag = "sector_month" };
+                                                            m = new MenuItem { Header = $"Map fishing ground of {_fish_sector.ToLower()} fishing operations catching {_speciesName} landed at {_allSamplingEntitiesEventHandler.LandingSite} at {((DateTime)monthSampled).ToString("MMM, yyyy")}", Name = "menuCalendarGearSpeciesMapping", Tag = "sector_month" };
                                                             m.Click += OnMenuClicked;
                                                             cm.Items.Add(m);
                                                         }
                                                     }
                                                     else
                                                     {
-                                                        m = new MenuItem { Header = $"Map fishing ground of {_fish_sector.ToLower()} fishing operations", Name = "menuCalendarGearSpeciesMapping", Tag = "sector_month_allspecies" };
+                                                        m = new MenuItem { Header = $"Map fishing ground of {_fish_sector.ToLower()} fishing operations landed at {_allSamplingEntitiesEventHandler.LandingSite} on {((DateTime)_monthYear).ToString("MMM, yyyy")}", Name = "menuCalendarGearSpeciesMapping", Tag = "sector_month_allspecies" };
                                                         m.Click += OnMenuClicked;
                                                         cm.Items.Add(m);
                                                     }
@@ -6250,17 +6296,17 @@ namespace NSAP_ODK
                                                     if (_isWatchedSpeciesCalendar)
                                                     {
                                                         m.IsEnabled = true;
-                                                        m = new MenuItem { Header = $"Map fishing ground of {_gearName}  ({_fish_sector}) catching {_speciesName}", Name = "menuCalendarGearSpeciesMapping", Tag = "occurence" };
+                                                        m = new MenuItem { Header = $"Map fishing ground of {_gearName} ({_fish_sector}) catching {_speciesName} landed at {_allSamplingEntitiesEventHandler.LandingSite} on {((DateTime)monthSampled).ToString("MMMM, yyyy")}", Name = "menuCalendarGearSpeciesMapping", Tag = "occurence" };
 
                                                         if (_isMeasuredWatchedSpeciesCalendar)
                                                         {
                                                             if (_getFemaleMaturity)
                                                             {
-                                                                m = new MenuItem { Header = $"Map fishing ground of {_gearName} ({_fish_sector}) catching {_speciesName} with {_maturityStage.ToLower()} maturity stage", Name = "menuCalendarGearSpeciesMapping", Tag = $"maturity:{_maturityStage}" };
+                                                                m = new MenuItem { Header = $"Map fishing ground of {_gearName} ({_fish_sector}) catching {_speciesName} with {_maturityStage.ToLower()} maturity stage landed at {_allSamplingEntitiesEventHandler.LandingSite} on {((DateTime)_monthYear).ToString("MMM, yyyy")}", Name = "menuCalendarGearSpeciesMapping", Tag = $"maturity:{_maturityStage}" };
                                                             }
                                                             else
                                                             {
-                                                                m = new MenuItem { Header = $"Map fishing ground of {_gearName} ({_fish_sector}) catching {_speciesName} with {_species_measurement_type} measurement", Name = "menuCalendarGearSpeciesMapping", Tag = $"measured:{_species_measurement_type}" };
+                                                                m = new MenuItem { Header = $"Map fishing ground of {_gearName} ({_fish_sector}) catching {_speciesName} with {_species_measurement_type} measurement landed at {_allSamplingEntitiesEventHandler.LandingSite} on {((DateTime)monthSampled).ToString("MMM, yyyy")}", Name = "menuCalendarGearSpeciesMapping", Tag = $"measured:{_species_measurement_type}" };
                                                             }
                                                         }
                                                         m.Click += OnMenuClicked;
@@ -6272,7 +6318,7 @@ namespace NSAP_ODK
                                                         m.Header += $" for {_gearName} ({_fish_sector})";
 
 
-                                                        m = new MenuItem { Header = $"Map fishing ground of {_gearName}  ({_fish_sector})", Name = "menuCalendarGearMapping" };
+                                                        m = new MenuItem { Header = $"Map fishing ground of {_gearName} ({_fish_sector}) landed at {_allSamplingEntitiesEventHandler.LandingSite} on {((DateTime)_monthYear).ToString("MMM, yyyy")}", Name = "menuCalendarGearMapping" };
                                                         m.Click += OnMenuClicked;
                                                         cm.Items.Add(m);
                                                     }
@@ -6296,23 +6342,23 @@ namespace NSAP_ODK
                                                             {
                                                                 if (_getFemaleMaturity)
                                                                 {
-                                                                    m = new MenuItem { Header = $"Map fishing ground of {_gearName} ({_fish_sector}) catching {_speciesName} with {_maturityStage.ToLower()} maturity stage on {samplingDate}", Name = "menuCalendarDaySpeciesGearMapping", Tag = $"maturity:{_maturityStage}" };
+                                                                    m = new MenuItem { Header = $"Map fishing ground of {_gearName} ({_fish_sector}) catching {_speciesName} with {_maturityStage.ToLower()} maturity stage landed at {_allSamplingEntitiesEventHandler.LandingSite} on {samplingDate}", Name = "menuCalendarDaySpeciesGearMapping", Tag = $"maturity:{_maturityStage}:by_day_species" };
                                                                 }
                                                                 else
                                                                 {
-                                                                    m = new MenuItem { Header = $"Map fishing ground of {_gearName} ({_fish_sector}) catching {_speciesName} measured for {_species_measurement_type} on {samplingDate}", Name = "menuCalendarDaySpeciesGearMapping", Tag = $"measured:{ _species_measurement_type}" };
+                                                                    m = new MenuItem { Header = $"Map fishing ground of {_gearName} ({_fish_sector}) catching {_speciesName} measured for {_species_measurement_type} landed at {_allSamplingEntitiesEventHandler.LandingSite} on {samplingDate}", Name = "menuCalendarDaySpeciesGearMapping", Tag = $"measured:{ _species_measurement_type}:by_day_species" };
 
                                                                 }
                                                             }
                                                             else
                                                             {
-                                                                m = new MenuItem { Header = $"Map fishing ground of {_gearName} ({_fish_sector}) catching {_speciesName} on {samplingDate}", Name = "menuCalendarDaySpeciesGearMapping", Tag = "gear_day_species" };
+                                                                m = new MenuItem { Header = $"Map fishing ground of {_gearName} ({_fish_sector}) catching {_speciesName} landed at {_allSamplingEntitiesEventHandler.LandingSite} on {samplingDate}", Name = "menuCalendarDaySpeciesGearMapping", Tag = "gear_day_species" };
                                                             }
 
                                                         }
                                                         else
                                                         {
-                                                            m = new MenuItem { Header = $"Map fishing ground of {_gearName} ({_fish_sector}) on {samplingDate}", Name = "menuCalendarDaySpeciesGearMapping", Tag = "gear_day" };
+                                                            m = new MenuItem { Header = $"Map fishing ground of {_gearName} ({_fish_sector}) landed at {_allSamplingEntitiesEventHandler.LandingSite} on {samplingDate}", Name = "menuCalendarDaySpeciesGearMapping", Tag = "gear_day" };
                                                         }
                                                         if (m != null)
                                                         {
@@ -6329,21 +6375,21 @@ namespace NSAP_ODK
                                                             {
                                                                 if (_getFemaleMaturity)
                                                                 {
-                                                                    m = new MenuItem { Header = $"Map fishing ground of {_speciesName} with {_maturityStage.ToLower()} maturity stage on {samplingDate}", Name = "menuCalendarDaySpeciesGearMapping", Tag = $"maturity:{_maturityStage}:by_day_species" };
+                                                                    m = new MenuItem { Header = $"Map fishing ground of {_speciesName} with {_maturityStage.ToLower()} maturity stage landed at {_allSamplingEntitiesEventHandler.LandingSite} on {samplingDate}", Name = "menuCalendarDaySpeciesGearMapping", Tag = $"maturity:{_maturityStage}:by_day_species" };
                                                                 }
                                                                 else
                                                                 {
-                                                                    m = new MenuItem { Header = $"Map fishing ground of {_speciesName} measured for {_species_measurement_type} on {samplingDate}", Name = "menuCalendarDaySpeciesGearMapping", Tag = $"measured:{_species_measurement_type}:by_day_species" };
+                                                                    m = new MenuItem { Header = $"Map fishing ground of {_speciesName} measured for {_species_measurement_type} landed at {_allSamplingEntitiesEventHandler.LandingSite} on {samplingDate}", Name = "menuCalendarDaySpeciesGearMapping", Tag = $"measured:{_species_measurement_type}:by_day_species" };
                                                                 }
                                                             }
                                                             else
                                                             {
-                                                                m = new MenuItem { Header = $"Map fishing ground of {_speciesName} on {samplingDate}", Name = "menuCalendarDaySpeciesGearMapping", Tag = "by_day_species" };
+                                                                m = new MenuItem { Header = $"Map fishing ground of {_speciesName} landed at {_allSamplingEntitiesEventHandler.LandingSite} on {samplingDate}", Name = "menuCalendarDaySpeciesGearMapping", Tag = "by_day_species" };
                                                             }
                                                         }
                                                         else
                                                         {
-                                                            m = new MenuItem { Header = $"Map fishing ground of operations on {samplingDate}", Name = "menuCalendarDaySpeciesGearMapping", Tag = "by_day" };
+                                                            m = new MenuItem { Header = $"Map fishing ground of operations landing at {_allSamplingEntitiesEventHandler.LandingSite} on {samplingDate}", Name = "menuCalendarDaySpeciesGearMapping", Tag = "by_day" };
                                                         }
 
                                                         m.Click += OnMenuClicked;
@@ -6356,22 +6402,22 @@ namespace NSAP_ODK
                                                             {
                                                                 if (_getFemaleMaturity)
                                                                 {
-                                                                    m = new MenuItem { Header = $"Map fishing ground of {_fish_sector.ToLower()} fishing operations catching {_speciesName} with {_maturityStage.ToLower()} maturity stage on {samplingDate}", Name = "menuCalendarDaySpeciesGearMapping", Tag = $"maturity:{_maturityStage}:by_sector" };
+                                                                    m = new MenuItem { Header = $"Map fishing ground of {_fish_sector.ToLower()} fishing operations catching {_speciesName} with {_maturityStage.ToLower()} maturity stage landed at {_allSamplingEntitiesEventHandler.LandingSite} on {samplingDate}", Name = "menuCalendarDaySpeciesGearMapping", Tag = $"maturity:{_maturityStage}:by_sector" };
                                                                 }
                                                                 else
                                                                 {
-                                                                    m = new MenuItem { Header = $"Map fishing ground of {_fish_sector.ToLower()} fishing operations catching {_speciesName} measured for {_species_measurement_type}  on {samplingDate}", Name = "menuCalendarDaySpeciesGearMapping", Tag = $"measured:{_species_measurement_type}:by_sector" };
+                                                                    m = new MenuItem { Header = $"Map fishing ground of {_fish_sector.ToLower()} fishing operations catching {_speciesName} measured for {_species_measurement_type} landed at {_allSamplingEntitiesEventHandler.LandingSite} on {samplingDate}", Name = "menuCalendarDaySpeciesGearMapping", Tag = $"measured:{_species_measurement_type}:by_sector" };
                                                                 }
                                                             }
                                                             else
                                                             {
-                                                                m = new MenuItem { Header = $"Map fishing ground of {_fish_sector.ToLower()} fishing operations catching {_speciesName} on {samplingDate}", Name = "menuCalendarDaySpeciesGearMapping", Tag = "by_day_sector" };
+                                                                m = new MenuItem { Header = $"Map fishing ground of {_fish_sector.ToLower()} fishing operations catching {_speciesName} landed at {_allSamplingEntitiesEventHandler.LandingSite} on {samplingDate}", Name = "menuCalendarDaySpeciesGearMapping", Tag = "by_day_sector" };
 
                                                             }
                                                         }
                                                         else
                                                         {
-                                                            m = new MenuItem { Header = $"Map fishing ground of {_fish_sector.ToLower()} fishing operations on {samplingDate}", Name = "menuCalendarDaySpeciesGearMapping", Tag = "by_Sector" };
+                                                            m = new MenuItem { Header = $"Map fishing ground of {_fish_sector.ToLower()} fishing operations landing at {_allSamplingEntitiesEventHandler.LandingSite} on {samplingDate}", Name = "menuCalendarDaySpeciesGearMapping", Tag = "by_Sector" };
                                                         }
                                                         m.Click += OnMenuClicked;
                                                         cm.Items.Add(m);

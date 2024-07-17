@@ -19,14 +19,14 @@
             <MenuItem Header="File">
                 <MenuItem Header="Layers">
                     <MenuItem Header="Add ..." x:Name="menuAddLayer" Click="OnMenuClick"/>
-                    <MenuItem Header="Add LGU boundary ..." x:Name="menuAddLayerBoundaryLGU" Click="OnMenuClick"/>
+                    <MenuItem Header="Add LGU boundary ..." x:Name="menuAddLayerBoundaryLGU" Click="OnMenuClick" Visibility="Collapsed"/>
                     <MenuItem Header="Add LGU poblacion ..." x:Name="menuAddLayerBoundaryLGUPoblacion" Click="OnMenuClick"/>
-                    <MenuItem Header="Add barangay boundary ..." x:Name="menuAddLayerBoundaryBarangay" Click="OnMenuClick"/>
+                    <MenuItem Header="Add barangay boundary ..." x:Name="menuAddLayerBoundaryBarangay" Click="OnMenuClick" Visibility="Collapsed"/>
                     <MenuItem Header="Add island names ..." x:Name="menuAddLayerIslandNames" Click="OnMenuClick"/>
                     <MenuItem Header="Add reef area ..." x:Name="menuAddLayerReef" Click="OnMenuClick"/>
                     <MenuItem Header="Add mangrove area ..." x:Name="menuAddLayerMangrove" Click="OnMenuClick"/>
-                    <MenuItem Header="Add BSC boundary ..." x:Name="menuAddBSCBoundary" Click="OnMenuClick"/>
-                    <MenuItem Header="Add extracted tracks" x:Name="menuAddExtractedTracks" Click="OnMenuClick"/>
+                    <MenuItem Header="Add BSC boundary ..." x:Name="menuAddBSCBoundary" Click="OnMenuClick" Visibility="Collapsed"/>
+                    <MenuItem Header="Add extracted tracks" x:Name="menuAddExtractedTracks" Click="OnMenuClick" Visibility="Collapsed"/>
                 </MenuItem>
                 <MenuItem Header="Save map state" x:Name="menuSaveMapState" Click="OnMenuClick"/>
                 <MenuItem Header="Close" x:Name="menuClose" Click="OnMenuClick"/>
@@ -67,7 +67,7 @@
                 <Button x:Name="buttonAttributes" Click="OnToolbarButtonClick" ToolTip="Layer attributes">
                     <Image Source="table1.png" OpacityMask="White" />
                 </Button>
-                <Button x:Name="buttonGPS" Click="OnToolbarButtonClick" ToolTip="GPS">
+                <Button x:Name="buttonGPS" Click="OnToolbarButtonClick" ToolTip="GPS" Visibility="Collapsed">
                     <Image Source="gps2.png" OpacityMask="White" />
                 </Button>
                 <Button x:Name="buttonSelect" Click="OnToolbarButtonClick" ToolTip="Select">
@@ -78,21 +78,21 @@
                     <Image Source="../Resources/selectPolygon.png" OpacityMask="White" />
                 </Button>-->
 
-                <Button x:Name="buttonSelectNone" Click="OnToolbarButtonClick" ToolTip="Clear selectiong">
+                <Button x:Name="buttonSelectNone" Click="OnToolbarButtonClick" ToolTip="Clear selection">
                     <Image Source="select_none1.png" OpacityMask="White" />
                 </Button>
-                <ToggleButton x:Name="buttonTrack" Checked="OnToolbarButtonChecked" Unchecked="OnToolbarButtonChecked" ToolTip="Show or hide vertices" IsEnabled="False">
+                <ToggleButton x:Name="buttonTrack" Checked="OnToolbarButtonChecked" Unchecked="OnToolbarButtonChecked" ToolTip="Show or hide vertices" IsEnabled="False" Visibility="Collapsed">
                     <Image Source="track.png" OpacityMask="White" />
                 </ToggleButton>
                 <Button x:Name="buttonRuler" Click="OnToolbarButtonClick" ToolTip="Measure">
                     <Image Source="ruler.png" OpacityMask="White" />
                 </Button>
 
-                <Button x:Name="buttonDataScreen" Click="OnToolbarButtonClick" ToolTip="Hide map window">
+                <Button x:Name="buttonDataScreen" Click="OnToolbarButtonClick" ToolTip="Hide map window" Visibility="Collapsed">
                     <Image Source="map screen grey.png" OpacityMask="White" />
                 </Button>
 
-                <Button x:Name="buttonAOI" Click="OnToolbarButtonClick" ToolTip="AOI">
+                <Button x:Name="buttonAOI" Click="OnToolbarButtonClick" ToolTip="AOI" Visibility="Collapsed">
                     <Image Source="aoi.png" OpacityMask="White" />
                 </Button>
 

@@ -538,6 +538,24 @@ namespace NSAP_ODK.Mapping
             return false;
 
         }
+
+        public static bool AddLGUPoints(out string feedBack)
+        {
+           if (Directory.Exists($@"{LayersFolder}\LGUPoints"))
+            {
+                var files = Directory.GetFiles($@"{LayersFolder}\LGUPoints", "*.shp");
+                var result = MapLayersHandler.FileOpenHandler(files[0], "LGU poblacion", layerkey: "lgu_poblacion");
+                var sf = (Shapefile)MapLayersHandler.MapLayers[MapLayersHandler.NumLayers - 1].LayerObject;
+                sf.Labels.Visible = true;
+                sf.VisibilityExpression = $"[Coastal]=\"T\"";
+                sf.Labels.Expression = "[MUNICIPALI]";
+                sf.Labels.Generate(sf.Labels.Expression, tkLabelPositioning.lpCenter, true);
+                feedBack = result.errMsg;
+                return result.success;
+            }
+            feedBack = "Folder for LGU points not found";
+            return false;
+        }
         public static bool AddLGUBoundary(out string feedBack)
         {
 

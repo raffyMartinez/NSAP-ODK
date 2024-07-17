@@ -260,6 +260,7 @@
     <Compile Include="Entities\Database\ServerUploadsByMonth.cs" />
     <Compile Include="Entities\Database\SetFishingGroundOfUnloadEventArg.cs" />
     <Compile Include="Entities\Database\SpeciesCalendarDay.cs" />
+    <Compile Include="Entities\Database\SpeciesMeasurementCounts.cs" />
     <Compile Include="Entities\Database\SQLDumpParsed.cs" />
     <Compile Include="Entities\Database\SubmissionIdentifierPairing.cs" />
     <Compile Include="Entities\Database\SummaryItem.cs" />

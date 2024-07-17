@@ -21,6 +21,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_02368D8259C84E2FB7DD4C3D16281177"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_0652639A8CDD4306B4376E1AC0692B76"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -231,6 +237,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_39297FDE361449C4B105120EAFCEF3B9"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_3F8DCA4B32514740C5310E5CFBDDEC21"
         "OwnerKey" = "8:_46513E45CB7D09A38AEF3EFEEBA90D26"
         "MsmSig" = "8:_UNDEFINED"
@@ -309,6 +321,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_66F1AA4A200340908BF0841ED38049D3"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_6AA5307F7B644D3D86A6A0D7AFA593DE"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -351,8 +369,20 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_8DD1C55D57E74AE78DA29EC0D2934BD9"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_90E20AE761D8FEB70282726C52A46BB7"
         "OwnerKey" = "8:_ACC73E8B8C1448FD9D2E1455EAC974FA"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_9240C1D133E54FF380B3D33801A4990C"
+        "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -555,6 +585,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_E3BD5F7A1C574ED5B61291654F65F307"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_E699709CABCAF1495AE182F30413464C"
         "OwnerKey" = "8:_ACC73E8B8C1448FD9D2E1455EAC974FA"
         "MsmSig" = "8:_UNDEFINED"
@@ -597,6 +633,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_F4B79CC675474E89B902216FA6F2BA06"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_F521A33651AB4CF4A2D2E85EF9EAAD5C"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -629,24 +671,6 @@
         {
         "MsmKey" = "8:_FEDC588357D7FEA90A1DF73FDB5F82D3"
         "OwnerKey" = "8:_33AEA20D21107A47843D5E069ECDE650"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_90E20AE761D8FEB70282726C52A46BB7"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_D623B1C692EE2B3CCA106C270DBC900F"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_46513E45CB7D09A38AEF3EFEEBA90D26"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -850,6 +874,18 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_D623B1C692EE2B3CCA106C270DBC900F"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_46513E45CB7D09A38AEF3EFEEBA90D26"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_D921E38CEA2BDC97E5DCEB67DA0DD090"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -883,6 +919,12 @@
         "OwnerKey" = "8:_2765026149A45263C3A5E6D4BA83D74D"
         "MsmSig" = "8:_UNDEFINED"
         }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_90E20AE761D8FEB70282726C52A46BB7"
+        "MsmSig" = "8:_UNDEFINED"
+        }
     }
     "Configurations"
     {
@@ -901,6 +943,14 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+            }
         }
         "Release"
         {
@@ -917,6 +967,22 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.7.2"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.7.2 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.7.2"
+                    }
+                }
+            }
         }
     }
     "Deployable"
@@ -952,6 +1018,26 @@
             "TargetName" = "8:icons fish-02.ico"
             "Tag" = "8:"
             "Folder" = "8:_CD6FA8D1E962444DBEE06FB01646D4F1"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_02368D8259C84E2FB7DD4C3D16281177"
+            {
+            "SourcePath" = "8:..\\..\\bin\\Debug\\Layers\\LGUPoints\\phisment.shx"
+            "TargetName" = "8:phisment.shx"
+            "Tag" = "8:"
+            "Folder" = "8:_51CEA2A356884E1A871AE9CFD0B45B54"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -1487,6 +1573,26 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_39297FDE361449C4B105120EAFCEF3B9"
+            {
+            "SourcePath" = "8:..\\..\\bin\\Debug\\Layers\\LGUPoints\\phisment.shp.xml"
+            "TargetName" = "8:phisment.shp.xml"
+            "Tag" = "8:"
+            "Folder" = "8:_51CEA2A356884E1A871AE9CFD0B45B54"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_3F8DCA4B32514740C5310E5CFBDDEC21"
             {
             "AssemblyRegister" = "3:1"
@@ -1744,6 +1850,26 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_66F1AA4A200340908BF0841ED38049D3"
+            {
+            "SourcePath" = "8:..\\..\\bin\\Debug\\Layers\\LGUPoints\\phisment.lbl"
+            "TargetName" = "8:phisment.lbl"
+            "Tag" = "8:"
+            "Folder" = "8:_51CEA2A356884E1A871AE9CFD0B45B54"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_6AA5307F7B644D3D86A6A0D7AFA593DE"
             {
             "SourcePath" = "8:..\\..\\bin\\Release1\\fish_ph.mdb"
@@ -1886,6 +2012,26 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8DD1C55D57E74AE78DA29EC0D2934BD9"
+            {
+            "SourcePath" = "8:..\\..\\bin\\Debug\\Layers\\LGUPoints\\phisment.mwsr"
+            "TargetName" = "8:phisment.mwsr"
+            "Tag" = "8:"
+            "Folder" = "8:_51CEA2A356884E1A871AE9CFD0B45B54"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_90E20AE761D8FEB70282726C52A46BB7"
             {
             "AssemblyRegister" = "3:1"
@@ -1915,6 +2061,26 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_9240C1D133E54FF380B3D33801A4990C"
+            {
+            "SourcePath" = "8:..\\..\\bin\\Debug\\Layers\\LGUPoints\\phisment.shp"
+            "TargetName" = "8:phisment.shp"
+            "Tag" = "8:"
+            "Folder" = "8:_51CEA2A356884E1A871AE9CFD0B45B54"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_96AA2DF5588F066D87F36F1E8BD66BCB"
@@ -2451,6 +2617,26 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_E3BD5F7A1C574ED5B61291654F65F307"
+            {
+            "SourcePath" = "8:..\\..\\bin\\Debug\\Layers\\LGUPoints\\phisment.dbf"
+            "TargetName" = "8:phisment.dbf"
+            "Tag" = "8:"
+            "Folder" = "8:_51CEA2A356884E1A871AE9CFD0B45B54"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_E699709CABCAF1495AE182F30413464C"
             {
             "AssemblyRegister" = "3:1"
@@ -2604,6 +2790,26 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F4B79CC675474E89B902216FA6F2BA06"
+            {
+            "SourcePath" = "8:..\\..\\bin\\Debug\\Layers\\LGUPoints\\phisment.prj"
+            "TargetName" = "8:phisment.prj"
+            "Tag" = "8:"
+            "Folder" = "8:_51CEA2A356884E1A871AE9CFD0B45B54"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F521A33651AB4CF4A2D2E85EF9EAAD5C"
@@ -2766,6 +2972,17 @@
                     "Property" = "8:_16A4739F1D8E442399E5B343381F7118"
                         "Folders"
                         {
+                            "{9EF0B969-E518-4E46-987F-47570745A589}:_51CEA2A356884E1A871AE9CFD0B45B54"
+                            {
+                            "Name" = "8:LGUPoints"
+                            "AlwaysCreate" = "11:FALSE"
+                            "Condition" = "8:"
+                            "Transitive" = "11:FALSE"
+                            "Property" = "8:_A2E1C44BF98149D8BF240F0628B0662B"
+                                "Folders"
+                                {
+                                }
+                            }
                             "{9EF0B969-E518-4E46-987F-47570745A589}:_807CCA3AB73B43E4BB21138755E478EC"
                             {
                             "Name" = "8:Coastline"
@@ -2809,7 +3026,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:NSAP-ODK Database"
         "ProductCode" = "8:{69AFB818-CB5A-4657-8DE1-694632C1EB7F}"
-        "PackageCode" = "8:{E901B4BD-2B66-4BF7-A493-75A5A74C2F12}"
+        "PackageCode" = "8:{9878B596-183D-49EB-875E-18E18D09571F}"
         "UpgradeCode" = "8:{B8A65A3F-83DD-4B57-9683-4F5D89BCDEB5}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
