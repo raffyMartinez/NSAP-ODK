@@ -2257,13 +2257,10 @@ namespace NSAP_ODK
                     if (_getFemaleMaturity)
                     {
                         MonthLabel.Content = $"Calendar of number of maturity measurements for females (length, weight, sex, maturity stage) of watched species per day for {monthOfSampling}";
-
                     }
                     else
                     {
                         MonthLabel.Content = $"Calendar of number of maturity measurements (length, weight, sex, maturity stage) of watched species per day for {monthOfSampling}";
-
-
                     }
 
                     break;

@@ -542,6 +542,7 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                     catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("PK") });
                     catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Length", Binding = new Binding("Length") });
                     catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("Weight") });
+                    catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Unit", Binding = new Binding("Parent.WeighingUnit") });
 
                     catchDataGrid.DataContext = VesselCatch?.ListCatchLengthWeight;
                     break;
@@ -555,6 +556,7 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                     catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Identifier", Binding = new Binding("PK") });
                     catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Length", Binding = new Binding("Length") });
                     catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Weight", Binding = new Binding("Weight") });
+                    catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Unit", Binding = new Binding("Parent.WeighingUnit") });
                     catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Sex", Binding = new Binding("Sex") });
                     catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Maturity", Binding = new Binding("Maturity") });
                     catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Gonad weight", Binding = new Binding("GonadWeight") });
@@ -1353,6 +1355,11 @@ namespace NSAP_ODK.VesselUnloadEditorControl
             {
 
             }
+        }
+
+        private void OnDataGridLoadingRow(object sender, DataGridRowEventArgs e)
+        {
+            e.Row.Header = (e.Row.GetIndex() + 1).ToString();
         }
     }
 }
