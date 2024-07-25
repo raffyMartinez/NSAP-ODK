@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 using NSAP_ODK.Entities.Database;
+using System.Drawing;
 
 namespace NSAP_ODK.Mapping
 {
@@ -160,7 +161,10 @@ namespace NSAP_ODK.Mapping
 
                 sf.DefaultDrawingOptions.PointShape = tkPointShapeType.ptShapeCircle;
                 sf.DefaultDrawingOptions.PointSize = 10;
-                sf.DefaultDrawingOptions.FillColor = _mapWinGISUtils.ColorByName(tkMapColor.Red);
+                var random = new Random();
+                Color c = Color.FromArgb(255, Color.FromArgb(Convert.ToInt32(random.Next(0x1000000))));
+                sf.DefaultDrawingOptions.FillColor = globalMapping.ColorToUInt(c);
+                //sf.DefaultDrawingOptions.FillColor = _mapWinGISUtils.ColorByName()
                 return sf;
             }
             return null;

@@ -328,10 +328,6 @@ namespace NSAP_ODK.VesselUnloadEditorControl
             set
             {
                 _vesselCatch = value;
-                //if(_vesselCatch==null)
-                //{
-                //    Debugger.Break();
-                //}
             }
 
         }

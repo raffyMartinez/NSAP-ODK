@@ -4,7 +4,7 @@ using System;
 using System.Drawing;
 using System.Collections.Generic;
 using System.IO;
-
+using System.Windows.Media.Imaging;
 
 namespace NSAP_ODK.Mapping
 {/// <summary>
@@ -17,7 +17,9 @@ namespace NSAP_ODK.Mapping
             return $"{Name} ({LayerType})";
         }
 
-
+        //public BitmapImage LayerImageInLegend { get; set; }
+        public BitmapImage LayerImageInLegend { get; set; }
+        //public  System.Drawing.Image LayerImageInLegend { get; set; }
         public string LayerKey { get; set; }
         public string Name { get; set; }
         public bool Visible { get; set; }
@@ -229,7 +231,10 @@ namespace NSAP_ODK.Mapping
                 }
             }
         }
+        public MapLayer()
+        {
 
+        }
         public MapLayer(int handle, string name, bool visible, bool visibleInLayersUI, MapLayersHandler parent)
         {
             Handle = handle;

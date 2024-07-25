@@ -28,6 +28,7 @@ namespace NSAP_ODK.Mapping.views
     /// </summary>
     public partial class MapLayersWindow : Window
     {
+        private double? _gridRowHeight;
         private MapLayer _currentLayer;
         private bool _isDragDropDone;
         private bool _gridIsClicked;
@@ -55,7 +56,7 @@ namespace NSAP_ODK.Mapping.views
                 string firstItemKey = ((MapLayer)dataGridLayers.SelectedItems[0]).LayerKey.ToString();
                 for (int x = 1; x <= dataGridLayers.SelectedItems.Count; x++)
                 {
-                    if (firstItemKey != ((MapLayer)dataGridLayers.SelectedItems[x-1]).LayerKey.ToString())
+                    if (firstItemKey != ((MapLayer)dataGridLayers.SelectedItems[x - 1]).LayerKey.ToString())
                     {
                         sameLayers = false;
                         break;
@@ -141,8 +142,15 @@ namespace NSAP_ODK.Mapping.views
 
             ConfigureDataGrid();
 
-            RefreshLayerGrid();
+            List<MapLayer> dummyList = new List<MapLayer>();
+            dummyList.Add(new MapLayer { Visible = true, Name = "dummy" });
+
+            dataGridLayers.DataContext = dummyList;
+            dataGridLayers.Items.Refresh();
+
+            //RefreshLayerGrid();
             _gridIsClicked = false;
+
             //SelectCurrentLayerInGrid();
         }
 
@@ -260,19 +268,23 @@ namespace NSAP_ODK.Mapping.views
 
         private void ConfigureDataGrid()
         {
+
+
             dataGridLayers.Columns.Add(new DataGridCheckBoxColumn { Header = "Visible", Binding = new Binding("Visible") });
             dataGridLayers.Columns.Add(new DataGridTextColumn { Header = "Name", Binding = new Binding("Name") });
-            
+
 
             FrameworkElementFactory factory = new FrameworkElementFactory(typeof(System.Windows.Controls.Image));
-            Binding bind = new Binding("image");//please keep "image" name as you have set in your class data member name
+            //Binding bind = new Binding("image");//please keep "image" name as you have set in your class data member name
+            Binding bind = new Binding("LayerImageInLegend");//please keep "image" name as you have set in your class data member name
             factory.SetValue(System.Windows.Controls.Image.SourceProperty, bind);
             DataTemplate cellTemplate = new DataTemplate() { VisualTree = factory };
             DataGridTemplateColumn imgCol = new DataGridTemplateColumn()
             {
-                Header = "image", //this is upto you whatever you want to keep, this will be shown on column to represent the data for helping the user...
+                Header = "Legend", //this is upto you whatever you want to keep, this will be shown on column to represent the data for helping the user...
                 CellTemplate = cellTemplate
             };
+            imgCol.Width = new DataGridLength(50);
             dataGridLayers.Columns.Add(imgCol);
 
             dataGridLayers.AutoGenerateColumns = false;
@@ -291,6 +303,7 @@ namespace NSAP_ODK.Mapping.views
         private void MapLayersViewModel_LayerRead(MapLayersViewModel s, LayerEventArg e)
         {
             RefreshLayerGrid(s);
+
         }
 
         private void DataGridLayers_LayoutUpdated(object sender, EventArgs e)
@@ -298,16 +311,36 @@ namespace NSAP_ODK.Mapping.views
             if (_isDragDropDone)
             {
                 List<MapLayerSequence> layersSequence = new List<MapLayerSequence>();
+                List<MapLayer> layers = new List<MapLayer>();
                 int sequence = dataGridLayers.Items.Count - 1;
                 foreach (MapLayer ly in dataGridLayers.Items)
                 {
                     layersSequence.Add(new MapLayerSequence { MapLayer = ly, Sequence = sequence });
+                    layers.Add(ly);
                     sequence--;
                 }
                 MapLayersHandler.LayersSequence(layersSequence);
+                dataGridLayers.DataContext = layers;
                 _isDragDropDone = false;
+                
 
 
+            }
+            if (_gridRowHeight == null && dataGridLayers.Items.Count >= 1)
+            {
+
+                var r = dataGridLayers.ItemContainerGenerator.ContainerFromItem(dataGridLayers.Items[0]) as DataGridRow;
+
+                _gridRowHeight = r.ActualHeight;
+                MapLayersHandler.LegendSymbolHeight = globalMapping.PointsToPixels(r.ActualHeight, LengthDirection.Vertical);
+                //MapLayersHandler.LegendSymbolWidth = globalMapping.PointsToPixels(r.ActualHeight*8, LengthDirection.Horizontal);
+                MapLayersHandler.LegendSymbolWidth = globalMapping.PointsToPixels(dataGridLayers.Columns[2].Width.Value, LengthDirection.Horizontal);
+
+                if (((MapLayer)dataGridLayers.Items[0]).Name == "dummy")
+                {
+                    RefreshLayerGrid();
+                    //Title = $"row height:{((double)_gridRowHeight).ToString()} ";
+                }
             }
 
         }
@@ -445,8 +478,10 @@ namespace NSAP_ODK.Mapping.views
         {
             //dataGridLayers.DataContext = MapWindowManager.MapLayersViewModel.MapLayerCollection.Where(T => T.VisibleInLayersUI == true).ToList(); ;
             //dataGridLayers.DataContext = MapWindowManager.MapLayersViewModel.MapLayerCollection;
-            dataGridLayers.DataContext = MapWindowManager.MapLayersViewModel.GetLayerUIVisibleLayers();
+            dataGridLayers.DataContext = MapWindowManager.MapLayersViewModel.GetLayerUIVisibleLayers().ToList();
             dataGridLayers.Items.Refresh();
+            //dataGridLayers.ItemsSource = MapWindowManager.MapLayersViewModel.GetLayerUIVisibleLayers().ToList();
+
         }
 
 

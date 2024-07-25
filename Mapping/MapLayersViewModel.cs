@@ -9,7 +9,7 @@ using System.Collections.ObjectModel;
 
 namespace NSAP_ODK.Mapping
 {
-    public class MapLayersViewModel:IDropTarget
+    public class MapLayersViewModel : IDropTarget
     {
         public delegate void LayerReadHandler(MapLayersViewModel s, LayerEventArg e);                 //an event that is raised when a layer from the mapcontrol is retrieved
         public event LayerReadHandler LayerRead;
@@ -22,7 +22,7 @@ namespace NSAP_ODK.Mapping
 
 
 
-        public ObservableCollection<MapLayer> MapLayerCollection{ get; set; }
+        public ObservableCollection<MapLayer> MapLayerCollection { get; set; }
         void IDropTarget.DragOver(IDropInfo dropInfo)
         {
             //MapWindowManager.MapWindowForm.Title = "Draggin' over";
@@ -38,11 +38,16 @@ namespace NSAP_ODK.Mapping
             return MapLayerCollection[0];
         }
 
-        public ObservableCollection<MapLayer>GetLayerUIVisibleLayers()
+        public ObservableCollection<MapLayer> GetLayerUIVisibleLayers()
         {
             var obs = new ObservableCollection<MapLayer>();
-            foreach(var item in MapLayerCollection.Where(t=>t.VisibleInLayersUI))
+            foreach (var item in MapLayerCollection.Where(t => t.VisibleInLayersUI))
             {
+                if (item.LayerImageInLegend == null)
+                {
+                    var sf = (MapWinGIS.Shapefile)item.LayerObject;
+                    item.LayerImageInLegend = MaplayersHandler.LayerSymbol(item);
+                }
                 obs.Add(item);
             }
             return obs;
@@ -53,7 +58,7 @@ namespace NSAP_ODK.Mapping
         {
             if (MaplayersHandler != null)
             {
-                
+
                 foreach (MapLayer ly in MaplayersHandler.MapLayerDictionary.Values.OrderByDescending(t => t.LayerPosition))
                 {
                     MapLayerCollection.Add(ly);
@@ -66,7 +71,7 @@ namespace NSAP_ODK.Mapping
         }
 
 
-        public MapLayersHandler MaplayersHandler { get;  private set; }
+        public MapLayersHandler MaplayersHandler { get; private set; }
         public MapLayersViewModel(MapLayersHandler mapLayersHandler)
         {
             MaplayersHandler = mapLayersHandler;
@@ -85,13 +90,13 @@ namespace NSAP_ODK.Mapping
                 //fill up the event argument class with the layer item
                 LayerEventArg lp = new LayerEventArg(s.CurrentMapLayer.Handle, s.CurrentMapLayer.Name, s.CurrentMapLayer.Visible, s.CurrentMapLayer.VisibleInLayersUI, s.CurrentMapLayer.LayerType);
                 CurrentLayer(this, lp);
-                
+
             }
         }
 
         private void MapLayerCollection_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
-            
+
         }
 
         private void MaplayersHandler_LayerRemoved(MapLayersHandler s, LayerEventArg e)

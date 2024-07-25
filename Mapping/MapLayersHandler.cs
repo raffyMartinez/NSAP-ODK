@@ -10,6 +10,11 @@ using System.Reflection;
 using System.Xml;
 using System.Linq;
 using NSAP_ODK.Utilities;
+using System.Windows.Media;
+using System.Windows.Interop;
+using System.Windows;
+using System.Windows.Media.Imaging;
+using System.Runtime.InteropServices;
 
 namespace NSAP_ODK.Mapping
 
@@ -25,6 +30,7 @@ namespace NSAP_ODK.Mapping
     /// </summary>
     public class MapLayersHandler : IDisposable, IEnumerable<MapLayer>
     {
+
         private string _fileMapState;
         public bool _disposed;
         private AxMap _axmap;                                                                       //reference to tha map control in the mapping form
@@ -38,6 +44,19 @@ namespace NSAP_ODK.Mapping
 
         public ColorSchemes LayerColors;
 
+        [DllImport("gdi32.dll", EntryPoint = "DeleteObject")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool DeleteObject([In] IntPtr hObject);
+
+        public ImageSource ImageSourceFromBitmap(Bitmap bmp)
+        {
+            var handle = bmp.GetHbitmap();
+            try
+            {
+                return Imaging.CreateBitmapSourceFromHBitmap(handle, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+            }
+            finally { DeleteObject(handle); }
+        }
         private void SetLayerColorSchemes()
         {
 
@@ -199,9 +218,107 @@ namespace NSAP_ODK.Mapping
             get { return _sfSymbologyHandler; }
         }
 
+        public double? LegendSymbolHeight { get; set; }
+        public double? LegendSymbolWidth { get; set; }
+
         public AxMap MapControl
         {
             get { return _axmap; }
+        }
+
+        public BitmapImage LayerSymbol(MapLayer mapLayer)
+        {
+            return LayerSymbol(mapLayer.Handle, mapLayer.LayerType);
+        }
+        public BitmapImage LayerSymbol(int layerHandle, string layerType, ShapeDrawingOptions drawingOptions = null)
+        {
+            bool isCategory = drawingOptions != null;
+            int width = (int)(double)LegendSymbolWidth / 2;
+            int height = (int)(double)LegendSymbolHeight / 4 * 3;
+            //int w = (int)(double)LegendSymbolWidth / 2;
+            //int h = ((int)(double)LegendSymbolHeight / 4) * 3;
+
+            int w = (int)(double)LegendSymbolWidth;
+            int h = (int)(double)LegendSymbolHeight;
+
+
+            Bitmap bmp = new Bitmap(1, 1);//, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            bmp.SetPixel(0, 0, System.Drawing.Color.White);
+            bmp = new Bitmap(bmp, w, h);
+            Graphics g = Graphics.FromImage(bmp);
+            IntPtr ptr = g.GetHdc();
+
+            var ly = _axmap.get_GetObject(layerHandle);
+            switch (layerType)
+            {
+                case "ShapefileClass":
+                    ((Shapefile)ly).With(shp =>
+                    {
+                        ShapeDrawingOptions sdo = shp.DefaultDrawingOptions;
+                        if (drawingOptions != null)
+                        {
+                            sdo = drawingOptions;
+                        }
+                        switch (shp.ShapefileType)
+                        {
+                            case ShpfileType.SHP_POINT:
+
+                                if (isCategory)
+                                {
+                                    //sdo.DrawPoint((int)ptr, (w / 5) * 2, h / 4, 0, 0);
+                                    sdo.DrawPoint((int)ptr, ((int)(double)LegendSymbolWidth / 5) * 2, (int)(double)LegendSymbolHeight / 4, 0, 0);
+                                }
+                                else
+                                {
+                                    //sdo.DrawPoint((int)ptr, (w / 5) * 2, h / 2, 0, 0);
+                                    //sdo.DrawPoint((int)ptr, ((int)(double)LegendSymbolWidth / 5) * 2, (int)(double)LegendSymbolHeight / 2, 0, 0);
+                                    sdo.DrawPoint(hDC: (int)ptr,
+                                        x: ((int)(double)LegendSymbolWidth / 2),
+                                        y: 0);
+
+                                    //sdo.DrawPoint((int)ptr, 0, 0);
+                                }
+
+                                break;
+
+                            case ShpfileType.SHP_POLYGON:
+                                //sdo.DrawRectangle((int)ptr, w / 3, h / 4, w, h, shp.DefaultDrawingOptions.LineVisible, w, h);
+                                sdo.DrawRectangle((int)ptr, 0, 0, w, h, shp.DefaultDrawingOptions.LineVisible, (int)(double)LegendSymbolWidth, (int)(double)LegendSymbolHeight);
+                                break;
+
+                            case ShpfileType.SHP_POLYLINE:
+                                sdo.DrawLine((int)ptr, w / 3, h / 4, w, h, true, w, h);
+                                break;
+                        }
+
+                        g.ReleaseHdc(ptr);
+
+                    });
+
+                    break;
+
+                case "ImageClass":
+                    if (MapLayerDictionary[layerHandle].ImageThumbnail == null)
+                    {
+                        //string filename = _axmap.get_Image(layerHandle).Filename;
+                        //bmp = new Bitmap(w, h);
+                        //g = Graphics.FromImage(bmp);
+                        //g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                        //g.FillRectangle(System.Drawing.Brushes.White, (w / 5) * 1, h / 4, w, h);
+                        //try
+                        //{
+                        //    g.DrawImage(new Bitmap(filename), 0, 0, w, h);
+                        //    MapLayerDictionary[layerHandle].ImageThumbnail = bmp;
+                        //}
+                        //catch { }
+                    }
+                    else
+                    {
+                        bmp = MapLayerDictionary[layerHandle].ImageThumbnail;
+                    }
+                    break;
+            }
+            return globalMapping.BitmapToBitmapImage(bmp);
         }
 
         /// <summary>
@@ -272,7 +389,7 @@ namespace NSAP_ODK.Mapping
                         bmp = new Bitmap(w, h);
                         g = Graphics.FromImage(bmp);
                         g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                        g.FillRectangle(Brushes.White, (rect.Width / 5) * 1, rect.Height / 4, w, h);
+                        g.FillRectangle(System.Drawing.Brushes.White, (rect.Width / 5) * 1, rect.Height / 4, w, h);
                         try
                         {
                             g.DrawImage(new Bitmap(filename), 0, 0, w, h);
@@ -982,6 +1099,7 @@ namespace NSAP_ODK.Mapping
                 _currentMapLayer.LayerKey = layerKey;
                 _currentMapLayer.MappingMode = mappingMode;
                 _currentMapLayer.VisibleInLayersUI = showInLayersUI;
+                //_currentMapLayer.LayerImage
 
                 if (LayerRead != null)
                 {
