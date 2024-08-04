@@ -76,6 +76,15 @@ namespace NSAP_ODK.Mapping
             return null;
         }
 
+        public static uint GetRandomColorUint()
+        {
+            return ColorToUInt(GetRandomColor());
+        }
+        public static Color GetRandomColor()
+        {
+            var random = new Random();
+            return Color.FromArgb(255, Color.FromArgb(Convert.ToInt32(random.Next(0x1000000))));
+        }
         public static BitmapImage BitmapToBitmapImage(Bitmap bitmap)
         {
             using (MemoryStream memory = new MemoryStream())

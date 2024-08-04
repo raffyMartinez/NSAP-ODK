@@ -160,10 +160,11 @@ namespace NSAP_ODK.Mapping
                 }
 
                 sf.DefaultDrawingOptions.PointShape = tkPointShapeType.ptShapeCircle;
-                sf.DefaultDrawingOptions.PointSize = 10;
-                var random = new Random();
-                Color c = Color.FromArgb(255, Color.FromArgb(Convert.ToInt32(random.Next(0x1000000))));
-                sf.DefaultDrawingOptions.FillColor = globalMapping.ColorToUInt(c);
+                sf.DefaultDrawingOptions.PointSize = 8;
+                //var random = new Random();
+                //Color c = Color.FromArgb(255, Color.FromArgb(Convert.ToInt32(random.Next(0x1000000))));
+                //sf.DefaultDrawingOptions.FillColor = globalMapping.ColorToUInt(c);
+                sf.DefaultDrawingOptions.FillColor = globalMapping.GetRandomColorUint();
                 //sf.DefaultDrawingOptions.FillColor = _mapWinGISUtils.ColorByName()
                 return sf;
             }
@@ -1124,40 +1125,52 @@ namespace NSAP_ODK.Mapping
             }
             return sf;
         }
-        public static Shape PointsToPolyline(Shapefile pts )
+        public static Shape PointsToPolyline(Shapefile pts)
         {
             Shape sh = new Shape();
-            if(sh.Create(ShpfileType.SHP_POLYLINE))
+            if (sh.Create(ShpfileType.SHP_POLYLINE))
             {
-                for(int x=0;x<pts.NumShapes;x++)
+                for (int x = 0; x < pts.NumShapes; x++)
                 {
-                    sh.AddPoint(pts.Shape[x].Point[0].x,pts.Shape[x].Point[0].y);
+                    sh.AddPoint(pts.Shape[x].Point[0].x, pts.Shape[x].Point[0].y);
                 }
             }
             return sh;
         }
-        public static Shapefile ConvexHull(Shape shp, List<ShapefileFieldTypeValue> type_and_values)
+        public static Shapefile ConvexHull(Shape shp, List<ShapefileFieldTypeValue> type_and_values, uint? lineColor = null)
         {
             int shpIndex;
             Shapefile sf = new Shapefile();
             if (sf.CreateNewWithShapeID("", ShpfileType.SHP_POLYGON))
             {
-                foreach(var item in type_and_values)
+                foreach (var item in type_and_values)
                 {
-                    var f=sf.EditAddField(item.Name, item.FieldType, (int)item.Precision, (int)item.Width);
+                    var f = sf.EditAddField(item.Name, item.FieldType, (int)item.Precision, (int)item.Width);
                     sf.Field[f].Alias = item.Alias;
                 }
                 sf.GeoProjection = globalMapping.GeoProjection;
                 sf.Key = "convex_hull";
                 shpIndex = sf.EditAddShape(shp.ConvexHull());
-                if(shpIndex>=0)
+                if (shpIndex >= 0)
                 {
-                    foreach(var item in type_and_values)
+                    foreach (var item in type_and_values)
                     {
                         sf.EditCellValue(sf.FieldIndexByName[item.Name], shpIndex, item.Value);
                     }
                 }
-                sf.DefaultDrawingOptions.FillTransparency = 0.25F;
+                sf.DefaultDrawingOptions.FillVisible = false;
+                //sf.DefaultDrawingOptions.FillTransparency = 0.25F;
+                sf.DefaultDrawingOptions.LineWidth = 1.1f;
+                sf.DefaultDrawingOptions.LineVisible = true;
+                if (lineColor != null)
+                {
+                    sf.DefaultDrawingOptions.LineColor = (uint)lineColor;
+                }
+                else
+                {
+                    sf.DefaultDrawingOptions.LineColor = globalMapping.GetRandomColorUint();
+                }
+                //sf.DefaultDrawingOptions.LineColor = globalMapping.
             }
             return sf;
         }

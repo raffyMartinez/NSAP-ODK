@@ -184,7 +184,7 @@ namespace NSAP_ODK.Mapping
                     Value = sf_lo.get_CellValue(sf_lo.FieldIndexByName["TotCatch"], 0)
                 });
 
-            var sf = ShapefileFactory.ConvexHull(ShapefileFactory.PointsToPolyline((Shapefile)fishingGroundPoints.LayerObject), values);
+            var sf = ShapefileFactory.ConvexHull(ShapefileFactory.PointsToPolyline((Shapefile)fishingGroundPoints.LayerObject), values,lineColor:sf_lo.DefaultDrawingOptions.FillColor);
             sf.Key = "convex hull from fg points";
             _mapInterActionHandler.MapLayersHandler.AddLayer(sf, $"Convex hull of {fishingGroundPoints.Name}", layerKey: sf.Key);
         }

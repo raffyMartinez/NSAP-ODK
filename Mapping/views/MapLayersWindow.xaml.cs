@@ -161,6 +161,7 @@ namespace NSAP_ODK.Mapping.views
 
         private void DataGridLayers_MouseUp(object sender, MouseButtonEventArgs e)
         {
+            Console.WriteLine("DataGridLayers_MouseUp");
             DependencyObject dep = (DependencyObject)e.OriginalSource;
             while ((dep != null) && !(dep is DataGridCell) && !(dep is DataGridColumnHeader))
             {
@@ -193,7 +194,9 @@ namespace NSAP_ODK.Mapping.views
                 }
 
                 if (dep == null)
+                {
                     return;
+                }
 
                 DataGridRow row = dep as DataGridRow;
 
@@ -205,6 +208,7 @@ namespace NSAP_ODK.Mapping.views
                 //we clicked on visibility checkbox if column is zero
                 if (columnIndex == 0 && value != null)
                 {
+                    Console.WriteLine("visibility check cliked");
                     MapLayersHandler.EditLayer(CurrentLayer.Handle, CurrentLayer.Name, !(bool)value);
 
 
@@ -271,7 +275,14 @@ namespace NSAP_ODK.Mapping.views
 
 
             dataGridLayers.Columns.Add(new DataGridCheckBoxColumn { Header = "Visible", Binding = new Binding("Visible") });
-            dataGridLayers.Columns.Add(new DataGridTextColumn { Header = "Name", Binding = new Binding("Name") });
+
+
+            string xaml = "<Style xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" TargetType=\"TextBlock\"><Setter Property=\"TextWrapping\" Value=\"Wrap\"/></Style>";
+            Style style = System.Windows.Markup.XamlReader.Parse(xaml) as Style;
+            dataGridLayers.Columns.Add(new DataGridTextColumn { Header = "Name", Binding = new Binding("Name"), ElementStyle = style, Width = 400 });
+
+
+
 
 
             FrameworkElementFactory factory = new FrameworkElementFactory(typeof(System.Windows.Controls.Image));
@@ -322,7 +333,7 @@ namespace NSAP_ODK.Mapping.views
                 MapLayersHandler.LayersSequence(layersSequence);
                 dataGridLayers.DataContext = layers;
                 _isDragDropDone = false;
-                
+
 
 
             }
@@ -439,6 +450,7 @@ namespace NSAP_ODK.Mapping.views
         }
         private void DataGridLayers_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            Console.WriteLine("DataGridLayers_SelectionChanged");
             menuConvexHull.Visibility = Visibility.Collapsed;
             menuMerge.Visibility = Visibility.Collapsed;
             if (_gridIsClicked && dataGridLayers.SelectedItems.Count > 0)
@@ -463,6 +475,11 @@ namespace NSAP_ODK.Mapping.views
 
         private void RefreshLayerGrid(MapLayersViewModel mlvm)
         {
+            foreach (var ly in mlvm.MapLayerCollection.Where(t => t.LayerImageInLegend == null))
+            {
+                ly.LayerImageInLegend = MapLayersHandler.LayerSymbol(ly);
+            }
+
             dataGridLayers.DataContext = mlvm.MapLayerCollection;
             try
             {

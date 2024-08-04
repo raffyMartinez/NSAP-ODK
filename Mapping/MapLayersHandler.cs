@@ -33,9 +33,9 @@ namespace NSAP_ODK.Mapping
 
         private string _fileMapState;
         public bool _disposed;
-        private AxMap _axmap;                                                                       //reference to tha map control in the mapping form
+        private AxMap _axmap;
         public Dictionary<int, MapLayer> MapLayerDictionary { get; set; } = new Dictionary<int, MapLayer>();    //contains MapLayers with the layer handle as key
-        private MapLayer _currentMapLayer;                                                          //the current layer selected in the map layers form
+        private MapLayer _currentMapLayer;
         private ShapefileLabelHandler _sfLabelHandler;
         private PointLayerSymbologyHandler _sfSymbologyHandler;
 
@@ -232,93 +232,107 @@ namespace NSAP_ODK.Mapping
         }
         public BitmapImage LayerSymbol(int layerHandle, string layerType, ShapeDrawingOptions drawingOptions = null)
         {
-            bool isCategory = drawingOptions != null;
-            int width = (int)(double)LegendSymbolWidth / 2;
-            int height = (int)(double)LegendSymbolHeight / 4 * 3;
-            //int w = (int)(double)LegendSymbolWidth / 2;
-            //int h = ((int)(double)LegendSymbolHeight / 4) * 3;
-
-            int w = (int)(double)LegendSymbolWidth;
-            int h = (int)(double)LegendSymbolHeight;
-
-
-            Bitmap bmp = new Bitmap(1, 1);//, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-            bmp.SetPixel(0, 0, System.Drawing.Color.White);
-            bmp = new Bitmap(bmp, w, h);
-            Graphics g = Graphics.FromImage(bmp);
-            IntPtr ptr = g.GetHdc();
-
-            var ly = _axmap.get_GetObject(layerHandle);
-            switch (layerType)
+            if (LegendSymbolHeight != null)
             {
-                case "ShapefileClass":
-                    ((Shapefile)ly).With(shp =>
-                    {
-                        ShapeDrawingOptions sdo = shp.DefaultDrawingOptions;
-                        if (drawingOptions != null)
-                        {
-                            sdo = drawingOptions;
-                        }
-                        switch (shp.ShapefileType)
-                        {
-                            case ShpfileType.SHP_POINT:
+                bool isCategory = drawingOptions != null;
+                int width = (int)(double)LegendSymbolWidth / 2;
+                int height = (int)(double)LegendSymbolHeight / 4 * 3;
+                //int w = (int)(double)LegendSymbolWidth / 2;
+                //int h = ((int)(double)LegendSymbolHeight / 4) * 3;
 
-                                if (isCategory)
-                                {
-                                    //sdo.DrawPoint((int)ptr, (w / 5) * 2, h / 4, 0, 0);
-                                    sdo.DrawPoint((int)ptr, ((int)(double)LegendSymbolWidth / 5) * 2, (int)(double)LegendSymbolHeight / 4, 0, 0);
-                                }
-                                else
-                                {
-                                    //sdo.DrawPoint((int)ptr, (w / 5) * 2, h / 2, 0, 0);
-                                    //sdo.DrawPoint((int)ptr, ((int)(double)LegendSymbolWidth / 5) * 2, (int)(double)LegendSymbolHeight / 2, 0, 0);
-                                    sdo.DrawPoint(hDC: (int)ptr,
+                int w = (int)(double)LegendSymbolWidth;
+                int h = (int)(double)LegendSymbolHeight;
+                int start_x = w / 4;
+                int start_y = h / 4;
+
+                Bitmap bmp = new Bitmap(1, 1);//, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                bmp.SetPixel(0, 0, System.Drawing.Color.White);
+                bmp = new Bitmap(bmp, w, h);
+                //bmp.MakeTransparent(System.Drawing.Color.White);
+                Graphics g = Graphics.FromImage(bmp);
+                IntPtr ptr = g.GetHdc();
+
+                var ly = _axmap.get_GetObject(layerHandle);
+                switch (layerType)
+                {
+                    case "ShapefileClass":
+                        ((Shapefile)ly).With(shp =>
+                        {
+                            ShapeDrawingOptions sdo = shp.DefaultDrawingOptions;
+                            if (drawingOptions != null)
+                            {
+                                sdo = drawingOptions;
+                            }
+                            switch (shp.ShapefileType)
+                            {
+                                case ShpfileType.SHP_POINT:
+
+                                //if (isCategory)
+                                //{
+                                //    //sdo.DrawPoint((int)ptr, (w / 5) * 2, h / 4, 0, 0);
+                                //    sdo.DrawPoint((int)ptr, ((int)(double)LegendSymbolWidth / 5) * 2, (int)(double)LegendSymbolHeight / 4, 0, 0);
+                                //}
+                                //else
+                                //{
+                                //    //sdo.DrawPoint((int)ptr, (w / 5) * 2, h / 2, 0, 0);
+                                //    //sdo.DrawPoint((int)ptr, ((int)(double)LegendSymbolWidth / 5) * 2, (int)(double)LegendSymbolHeight / 2, 0, 0);
+                                sdo.DrawPoint(hDC: (int)ptr,
                                         x: ((int)(double)LegendSymbolWidth / 2),
-                                        y: 0);
+                                        y: 0,
+                                        clipWidth: 0,
+                                        clipHeight: 0);
 
-                                    //sdo.DrawPoint((int)ptr, 0, 0);
-                                }
+                                //    //sdo.DrawPoint((int)ptr, 0, 0);
+                                //}
 
                                 break;
 
-                            case ShpfileType.SHP_POLYGON:
+                                case ShpfileType.SHP_POLYGON:
+
+                                    sdo.DrawRectangle((int)ptr, start_x, start_y, w - start_x * 2, h - start_y * 2,shp.DefaultDrawingOptions.LineVisible,0,0);
                                 //sdo.DrawRectangle((int)ptr, w / 3, h / 4, w, h, shp.DefaultDrawingOptions.LineVisible, w, h);
-                                sdo.DrawRectangle((int)ptr, 0, 0, w, h, shp.DefaultDrawingOptions.LineVisible, (int)(double)LegendSymbolWidth, (int)(double)LegendSymbolHeight);
-                                break;
+                                //sdo.DrawRectangle((int)ptr, 0, 0, w, h, shp.DefaultDrawingOptions.LineVisible, (int)(double)LegendSymbolWidth, (int)(double)LegendSymbolHeight);
+                                    break;
 
-                            case ShpfileType.SHP_POLYLINE:
-                                sdo.DrawLine((int)ptr, w / 3, h / 4, w, h, true, w, h);
-                                break;
+                                case ShpfileType.SHP_POLYLINE:
+                                    sdo.DrawLine((int)ptr, start_x, h / 2, w - start_x * 2, h / 2, true, 0, 0);
+                                    //sdo.DrawLine((int)ptr, 0, 0, w, h, true, 0, 0);
+                                    break;
+                            }
+
+                            g.ReleaseHdc(ptr);
+
+                        });
+
+                        break;
+
+                    case "ImageClass":
+                        if (MapLayerDictionary[layerHandle].ImageThumbnail == null)
+                        {
+                            string filename = _axmap.get_Image(layerHandle).Filename;
+                            bmp = new Bitmap(w, h);
+                            g = Graphics.FromImage(bmp);
+                            g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                            g.FillRectangle(System.Drawing.Brushes.White, (w / 5) * 1, h / 4, w, h);
+                            try
+                            {
+                                g.DrawImage(new Bitmap(filename), 0, 0, w, h);
+                                MapLayerDictionary[layerHandle].ImageThumbnail = bmp;
+                            }
+                            catch { }
                         }
-
-                        g.ReleaseHdc(ptr);
-
-                    });
-
-                    break;
-
-                case "ImageClass":
-                    if (MapLayerDictionary[layerHandle].ImageThumbnail == null)
-                    {
-                        //string filename = _axmap.get_Image(layerHandle).Filename;
-                        //bmp = new Bitmap(w, h);
-                        //g = Graphics.FromImage(bmp);
-                        //g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                        //g.FillRectangle(System.Drawing.Brushes.White, (w / 5) * 1, h / 4, w, h);
-                        //try
-                        //{
-                        //    g.DrawImage(new Bitmap(filename), 0, 0, w, h);
-                        //    MapLayerDictionary[layerHandle].ImageThumbnail = bmp;
-                        //}
-                        //catch { }
-                    }
-                    else
-                    {
-                        bmp = MapLayerDictionary[layerHandle].ImageThumbnail;
-                    }
-                    break;
+                        else
+                        {
+                            bmp = MapLayerDictionary[layerHandle].ImageThumbnail;
+                        }
+                        break;
+                }
+                return globalMapping.BitmapToBitmapImage(bmp);
             }
-            return globalMapping.BitmapToBitmapImage(bmp);
+            else
+            {
+                return null;
+            }
         }
 
         /// <summary>
@@ -1099,6 +1113,7 @@ namespace NSAP_ODK.Mapping
                 _currentMapLayer.LayerKey = layerKey;
                 _currentMapLayer.MappingMode = mappingMode;
                 _currentMapLayer.VisibleInLayersUI = showInLayersUI;
+                _currentMapLayer.LayerImageInLegend = LayerSymbol(_currentMapLayer);
                 //_currentMapLayer.LayerImage
 
                 if (LayerRead != null)
@@ -1127,7 +1142,7 @@ namespace NSAP_ODK.Mapping
                         _currentMapLayer = SetMapLayer(h, layerName, isVisible, true, sf.GeoProjection, "ShapefileClass", sf.Filename);
                         _currentMapLayer.LayerKey = layerKey;
                         _currentMapLayer.MappingMode = mappingMode;
-
+                        _currentMapLayer.LayerImageInLegend = LayerSymbol(_currentMapLayer);
                         if (LayerRead != null)
                         {
                             LayerEventArg lp = new LayerEventArg(h, layerName, isVisible, showInLayersUI, _currentMapLayer.LayerType);
@@ -1158,7 +1173,7 @@ namespace NSAP_ODK.Mapping
                 _axmap.set_LayerName(h, layerName);
                 _currentMapLayer = SetMapLayer(h, layerName, isVisible, true, image.GeoProjection, "ImageClass", image.Filename);
                 _currentMapLayer.LayerKey = layerKey;
-
+                _currentMapLayer.LayerImageInLegend = LayerSymbol(_currentMapLayer);
                 if (LayerRead != null)
                 {
                     LayerEventArg lp = new LayerEventArg(h, layerName, true, true, _currentMapLayer.LayerType);
@@ -1214,7 +1229,7 @@ namespace NSAP_ODK.Mapping
             _currentMapLayer = SetMapLayer(h, layerName, visible, showInLayerUI, gp, layerType, fileName);
             _currentMapLayer.LayerKey = layerKey;
             _currentMapLayer.MappingMode = mappingMode;
-
+            _currentMapLayer.LayerImageInLegend = LayerSymbol(_currentMapLayer);
             if (LayerRead != null)
             {
                 LayerEventArg lp = new LayerEventArg(h, layerName, visible, showInLayerUI, _currentMapLayer.LayerType);
