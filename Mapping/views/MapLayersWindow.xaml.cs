@@ -161,7 +161,7 @@ namespace NSAP_ODK.Mapping.views
 
         private void DataGridLayers_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            Console.WriteLine("DataGridLayers_MouseUp");
+            //Console.WriteLine("DataGridLayers_MouseUp");
             DependencyObject dep = (DependencyObject)e.OriginalSource;
             while ((dep != null) && !(dep is DataGridCell) && !(dep is DataGridColumnHeader))
             {
@@ -208,7 +208,7 @@ namespace NSAP_ODK.Mapping.views
                 //we clicked on visibility checkbox if column is zero
                 if (columnIndex == 0 && value != null)
                 {
-                    Console.WriteLine("visibility check cliked");
+                    //Console.WriteLine("visibility check cliked");
                     MapLayersHandler.EditLayer(CurrentLayer.Handle, CurrentLayer.Name, !(bool)value);
 
 
@@ -450,7 +450,7 @@ namespace NSAP_ODK.Mapping.views
         }
         private void DataGridLayers_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            Console.WriteLine("DataGridLayers_SelectionChanged");
+            //Console.WriteLine("DataGridLayers_SelectionChanged");
             menuConvexHull.Visibility = Visibility.Collapsed;
             menuMerge.Visibility = Visibility.Collapsed;
             if (_gridIsClicked && dataGridLayers.SelectedItems.Count > 0)

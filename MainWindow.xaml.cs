@@ -1309,6 +1309,9 @@ namespace NSAP_ODK
                             summaryTreeNodeDatabases.Items.Add(nodeKoboServer);
                         }
                     }
+
+                    ShowTitleAndStatusRow();
+
                     break;
             }
         }
@@ -2384,6 +2387,7 @@ namespace NSAP_ODK
                     }
                     buttonExport.Visibility = Visibility.Collapsed;
                     menuCalendar.Visibility = Visibility.Collapsed;
+                    //textOfTitle = "Database summary";
                     break;
                 case "menuGPS":
                     _nsapEntity = NSAPEntity.GPS;
@@ -6290,34 +6294,37 @@ namespace NSAP_ODK
                                                     //cm.Items.Add(m);
                                                     break;
                                                 case "Gear name":
-                                                    if (_isWatchedSpeciesCalendar)
+                                                    if (_gearName != "All gears")
                                                     {
-                                                        m.IsEnabled = true;
-                                                        m = new MenuItem { Header = $"Map fishing ground of {_gearName} ({_fish_sector}) catching {_speciesName} landed at {_allSamplingEntitiesEventHandler.LandingSite} on {((DateTime)monthSampled).ToString("MMMM, yyyy")}", Name = "menuCalendarGearSpeciesMapping", Tag = "occurence" };
-
-                                                        if (_isMeasuredWatchedSpeciesCalendar)
+                                                        if (_isWatchedSpeciesCalendar)
                                                         {
-                                                            if (_getFemaleMaturity)
+                                                            m.IsEnabled = true;
+                                                            m = new MenuItem { Header = $"Map fishing ground of {_gearName} ({_fish_sector}) catching {_speciesName} landed at {_allSamplingEntitiesEventHandler.LandingSite} on {((DateTime)monthSampled).ToString("MMMM, yyyy")}", Name = "menuCalendarGearSpeciesMapping", Tag = "occurence" };
+
+                                                            if (_isMeasuredWatchedSpeciesCalendar)
                                                             {
-                                                                m = new MenuItem { Header = $"Map fishing ground of {_gearName} ({_fish_sector}) catching {_speciesName} with {_maturityStage.ToLower()} maturity stage landed at {_allSamplingEntitiesEventHandler.LandingSite} on {((DateTime)_monthYear).ToString("MMM, yyyy")}", Name = "menuCalendarGearSpeciesMapping", Tag = $"maturity:{_maturityStage}" };
+                                                                if (_getFemaleMaturity)
+                                                                {
+                                                                    m = new MenuItem { Header = $"Map fishing ground of {_gearName} ({_fish_sector}) catching {_speciesName} with {_maturityStage.ToLower()} maturity stage landed at {_allSamplingEntitiesEventHandler.LandingSite} on {((DateTime)_monthYear).ToString("MMM, yyyy")}", Name = "menuCalendarGearSpeciesMapping", Tag = $"maturity:{_maturityStage}" };
+                                                                }
+                                                                else
+                                                                {
+                                                                    m = new MenuItem { Header = $"Map fishing ground of {_gearName} ({_fish_sector}) catching {_speciesName} with {_species_measurement_type} measurement landed at {_allSamplingEntitiesEventHandler.LandingSite} on {((DateTime)monthSampled).ToString("MMM, yyyy")}", Name = "menuCalendarGearSpeciesMapping", Tag = $"measured:{_species_measurement_type}" };
+                                                                }
                                                             }
-                                                            else
-                                                            {
-                                                                m = new MenuItem { Header = $"Map fishing ground of {_gearName} ({_fish_sector}) catching {_speciesName} with {_species_measurement_type} measurement landed at {_allSamplingEntitiesEventHandler.LandingSite} on {((DateTime)monthSampled).ToString("MMM, yyyy")}", Name = "menuCalendarGearSpeciesMapping", Tag = $"measured:{_species_measurement_type}" };
-                                                            }
+                                                            m.Click += OnMenuClicked;
+                                                            cm.Items.Add(m);
                                                         }
-                                                        m.Click += OnMenuClicked;
-                                                        cm.Items.Add(m);
-                                                    }
-                                                    else
-                                                    {
-                                                        m.IsEnabled = true;
-                                                        m.Header += $" for {_gearName} ({_fish_sector})";
+                                                        else
+                                                        {
+                                                            m.IsEnabled = true;
+                                                            m.Header += $" for {_gearName} ({_fish_sector})";
 
 
-                                                        m = new MenuItem { Header = $"Map fishing ground of {_gearName} ({_fish_sector}) landed at {_allSamplingEntitiesEventHandler.LandingSite} on {((DateTime)_monthYear).ToString("MMM, yyyy")}", Name = "menuCalendarGearMapping" };
-                                                        m.Click += OnMenuClicked;
-                                                        cm.Items.Add(m);
+                                                            m = new MenuItem { Header = $"Map fishing ground of {_gearName} ({_fish_sector}) landed at {_allSamplingEntitiesEventHandler.LandingSite} on {((DateTime)_monthYear).ToString("MMM, yyyy")}", Name = "menuCalendarGearMapping" };
+                                                            m.Click += OnMenuClicked;
+                                                            cm.Items.Add(m);
+                                                        }
                                                     }
                                                     break;
                                                 default:
@@ -6329,7 +6336,7 @@ namespace NSAP_ODK
                                                             proceed = double.TryParse(_calendarDayValue, out double d);
                                                         }
                                                     }
-                                                    if (proceed)
+                                                    if (proceed && _gearName!="All gears")
                                                     {
                                                         m = null;
                                                         string samplingDate = $"{((DateTime)_monthYear).ToString("MMMM")} {_calendarDay}, {((DateTime)_monthYear).ToString("yyyy")}";

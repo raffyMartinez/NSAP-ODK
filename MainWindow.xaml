@@ -105,7 +105,7 @@
                 <MenuItem Header="Number of landings by gear calendar" x:Name="menuAllLandingsCalendar" IsCheckable="True" Checked="OnMenuItemChecked" />
                 <MenuItem Header="Weight of landed catch by gear calendar" x:Name="menuWeightLandingsCalendar" IsCheckable="True" Checked="OnMenuItemChecked" />
                 <MenuItem Header="Total number of landings by day calendar" x:Name="menuTotalLandingsCalendar" IsCheckable="True" Checked="OnMenuItemChecked" />
-                <MenuItem Header="Total weight of catch landings by day calendar" x:Name="menuTotalWeightsCalendar" IsCheckable="True" Checked="OnMenuItemChecked" />
+                <MenuItem Header="Total weight of catch landed by day calendar" x:Name="menuTotalWeightsCalendar" IsCheckable="True" Checked="OnMenuItemChecked" />
                 <Separator />
                 <MenuItem Header="Landings of watched species" x:Name="menuWatchedSpeciesLandingCalendar" IsCheckable="True" Checked="OnMenuItemChecked" />
                 <MenuItem Header="Landed weight of watched species" x:Name="menuWeightWatchedSpeciesLandingCalendar" IsCheckable="True" Checked="OnMenuItemChecked" />
@@ -211,7 +211,7 @@
 
 
         <!--label for selected entity -->
-        <Label Grid.ColumnSpan="2" Content="This is a label" x:Name="labelTitle" Grid.Row="2" Visibility="Collapsed" VerticalAlignment="Bottom" FontWeight="Bold" FontSize="13"/>
+        <Label Grid.ColumnSpan="2" Content="This is a label" x:Name="labelTitle" Grid.Row="2" Visibility="Visible" VerticalAlignment="Bottom" FontWeight="Bold" FontSize="13"/>
 
         <!--CBL row-->
         <Grid Grid.Row="3" Grid.ColumnSpan="2">
