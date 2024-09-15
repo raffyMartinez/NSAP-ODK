@@ -1,0 +1,28 @@
+﻿<Window x:Class="NSAP_ODK.Mapping.views.SaveMapForm"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NSAP_ODK.Mapping.views"
+        mc:Ignorable="d"
+        Title="Save map" Height="138" Width="305">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="150"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Label Content="Resolution (DPI)" HorizontalContentAlignment="Left" VerticalContentAlignment="Center"/>
+        <Label Content="Layout" Grid.Row="1" HorizontalContentAlignment="Left" VerticalContentAlignment="Center"/>
+        <TextBox x:Name="txtSave" Grid.Column="1" Height="25" Width="100" HorizontalAlignment="Left"/>
+        <CheckBox x:Name="chkLayout" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" />
+        <WrapPanel Grid.Row="2" Grid.ColumnSpan="2" HorizontalAlignment="Right" VerticalAlignment="Center">
+            <Button x:Name="btnCancel" Content="Cancel" Margin="0 0 10 0" Width="60" Height="25" Click="onButtonClick" />
+            <Button x:Name="btnOk" Content="Ok"  Width="60" Height="25" Click="onButtonClick"/>
+        </WrapPanel>
+    </Grid>
+</Window>

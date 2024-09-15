@@ -42,8 +42,17 @@ namespace NSAP_ODK.Views
 
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
+            cboCoordinateFormat.Items.Add(new KeyValuePair<Mapping.CoordinateDisplayFormat, string>(Mapping.CoordinateDisplayFormat.DegreeDecimal, "D (Degree decimal)"));
+            cboCoordinateFormat.Items.Add(new KeyValuePair<Mapping.CoordinateDisplayFormat, string>(Mapping.CoordinateDisplayFormat.DegreeDecimal, "DM (Degree-minutes"));
+            cboCoordinateFormat.Items.Add(new KeyValuePair<Mapping.CoordinateDisplayFormat, string>(Mapping.CoordinateDisplayFormat.DegreeMinuteSecond, "DMS (Degree-minute-seconds"));
+
+            cboCoordinateFormat.DisplayMemberPath = "Value";
+            cboCoordinateFormat.SelectedValuePath = "Key";
+            //cboCoordinateFormat.Items.Add(new KeyValuePair<Mapping.CoordinateDisplayFormat, string>(Mapping.CoordinateDisplayFormat.DegreeDecimal, "UTM Degree decimal"));
+
             if (Global.Settings != null)
             {
+                cboCoordinateFormat.SelectedIndex = (int)Global.Settings.CoordinateDisplayFormat;
                 if (Global.IsMapComponentRegistered)
                 {
                     textBingAPIKey.Text = Global.Settings.BingAPIKey;
@@ -58,7 +67,14 @@ namespace NSAP_ODK.Views
                 chkUsemySQL.IsChecked = Global.Settings.UsemySQL;
                 buttonLocateMySQlBackupFolder.IsEnabled = (bool)chkUsemySQL.IsChecked;
                 chkUsemySQL.Click += ChkUsemySQL_Click;
-
+                if (Global.Settings.SuggestedDPI == null)
+                {
+                    txtSuggestedDPI.Text = "150";
+                }
+                else
+                {
+                    txtSuggestedDPI.Text = Global.Settings.SuggestedDPI.ToString();
+                }
 
                 textJsonFolder.MouseDoubleClick += OnTextBoxDoubleClick;
                 textBackenDB.MouseDoubleClick += OnTextBoxDoubleClick;
@@ -114,10 +130,12 @@ namespace NSAP_ODK.Views
             }
             else
             {
+                cboCoordinateFormat.SelectedIndex = 0;
                 textDownloadSizeForBatchModeMultivessel.Text = "100";
                 textDownloadSizeForBatchMode.Text = "2000";
                 textCutoffWidth.Text = "11";
                 textAcceptableDiff.Text = "10";
+                txtSuggestedDPI.Text = "150";
                 if (Global.CommandArgs != null)
                 {
                     switch (Global.CommandArgs[0])
@@ -483,6 +501,7 @@ namespace NSAP_ODK.Views
                         Utilities.Global.Settings.MySQLBackupFolder = textmySQLBackupFolder.Text;
                         Utilities.Global.Settings.AcceptableWeightsDifferencePercent = int.Parse(textAcceptableDiff.Text);
                         Utilities.Global.Settings.DbFilter = textDBFilter.Text;
+                        Global.Settings.CoordinateDisplayFormat = ((KeyValuePair<Mapping.CoordinateDisplayFormat, string>)cboCoordinateFormat.SelectedItem).Key;
                         if (int.TryParse(textDownloadSizeForBatchMode.Text, out int v))
                         {
                             Utilities.Global.Settings.DownloadSizeForBatchMode = v;

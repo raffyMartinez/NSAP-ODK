@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NSAP_ODK.Views"
         mc:Ignorable="d"
-        Title="Settings window" Height="472.622" Width="853" WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+        Title="Settings window" Height="541.342" Width="853" WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="40"/>
@@ -55,7 +55,7 @@
             <!--<WrapPanel Margin="10 2">
                 <Label Content="Database server ID filter" Width="205" HorizontalContentAlignment="Right"/>
                 <TextBox x:Name="textServerFilter" Width="400" Margin="10 0" HorizontalContentAlignment="Right" IsEnabled="False"/>
-            </WrapPanel>-->            
+            </WrapPanel>-->
 
             <StackPanel>
                 <Label Content="NSAP-ODK Databse using MySQL" HorizontalAlignment="Center" Margin="0 10 0 0" FontWeight="Bold"/>
@@ -74,7 +74,16 @@
                 <WrapPanel Margin="10 2">
                     <Label Content="BingMaps API Key" Width="180" HorizontalContentAlignment="Right"/>
                     <TextBox x:Name="textBingAPIKey" Width="400" Margin="10 0" />
-                </WrapPanel>                
+                </WrapPanel>
+                <WrapPanel Margin="10 2">
+                    <Label Content="Coordinate format" Width="180" HorizontalContentAlignment="Right"/>
+                    <ComboBox x:Name="cboCoordinateFormat" Width="400" Margin="10 0" />
+                </WrapPanel>
+                <WrapPanel Margin="10 2">
+                    <Label Content="DPI of exported map" Width="180" HorizontalContentAlignment="Right"/>
+                    <TextBox x:Name="txtSuggestedDPI" Width="400" Margin="10 0" />
+                </WrapPanel>
+
             </StackPanel>
         </StackPanel>
 

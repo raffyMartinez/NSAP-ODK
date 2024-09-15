@@ -96,6 +96,15 @@
                     <Image Source="aoi.png" OpacityMask="White" />
                 </Button>
 
+                <Button x:Name="buttonGraticule" Click="OnToolbarButtonClick" ToolTip="Select">
+                    <Image Source="grid.png" OpacityMask="White" Height="24" VerticalAlignment="Bottom" />
+                </Button>
+                
+                
+                <Button x:Name="buttonSaveImage" Click="OnToolbarButtonClick" ToolTip="Select">
+                    <Image Source="map screen.png" OpacityMask="White" />
+                </Button>
+
 
                 <Button x:Name="buttonExit" Click="OnToolbarButtonClick" ToolTip="Close">
                     <Image Source="exit.png" OpacityMask="White" />

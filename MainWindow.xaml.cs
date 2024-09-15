@@ -169,6 +169,7 @@ namespace NSAP_ODK
 
             }
             _httpClient.Dispose();
+            Mapping.globalMapping.Cleanup();
             //if (_vesselUnloadEditWindow?.UnloadEditor != null)
             //{
             //    _vesselUnloadEditWindow.UnloadEditor.UnloadChangesSaved += OnUnloadEditor_UnloadChangesSaved;

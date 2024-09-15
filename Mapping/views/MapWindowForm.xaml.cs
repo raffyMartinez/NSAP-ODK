@@ -29,6 +29,7 @@ using System.Windows.Controls.Primitives;
 using NSAP_ODK.Mapping;
 using NSAP_ODK.Utilities;
 using System.Windows.Threading;
+using NSAP_ODK.Mapping.views;
 
 namespace NSAP_ODK.Mapping.views
 {
@@ -39,8 +40,11 @@ namespace NSAP_ODK.Mapping.views
 
     public partial class MapWindowForm : Window
     {
+        private Graticule _graticule;                                               
         private static MapWindowForm _instance;
-
+        private SaveMapImage _saveMapImage;
+        private float _suggestedDPI = 0;
+        private MapWinGIS.Image _savedMapImage;
         public void ResetTrackVertivesButton()
         {
             buttonTrack.IsChecked = false;
@@ -68,7 +72,83 @@ namespace NSAP_ODK.Mapping.views
             return _instance;
         }
 
+        public float SuggestedDPI
+        {
+            get { return _suggestedDPI; }
+            set { _suggestedDPI = value; }
+        }
+        private void OnPointSizeRenderError(object sender, EventArgs e)
+        {
+            System.Windows.MessageBox.Show("Error in rendering map being saved. A point size exceeded 100\r\n"
+                 + "Use lower resolution when saving map",
+                 "Map rendering error", MessageBoxButton.OK, MessageBoxImage.Information);
+            SuggestedDPI = _saveMapImage.SuggestedDPI;
+        }
+        public bool SaveMapToImage(AxMap axMap, double dpi, string fileName, bool preview = true, bool maintainOnePointLineWidth = false, bool saveToLayout = false)
+        {
+            var success = false;
+            _saveMapImage = new SaveMapImage(fileName, dpi, axMap);
+            _saveMapImage.DPI = dpi;
 
+            //if (scaleFactor != null)
+            //{
+            //    _saveMapImage.LogoScaleFactor = (double)scaleFactor;
+            //}
+
+
+            //if (global.MappingForm.Grid25MajorGrid != null)
+            //{
+            //    _saveMapImage.TitleDistanceFactor = global.MappingForm.Grid25MajorGrid.TitleDistanceFactor;
+            //}
+            //else
+            //{
+            //    _saveMapImage.TitleDistanceFactor = 1;
+            //}
+
+
+            //_saveMapImage = SaveMapImage.GetInstance(axMap, dpi);
+            //_saveMapImage = SaveMapImage.GetInstance();
+            //_saveMapImage.MapControl = axMap;
+            //_saveMapImage.FileName = fileName;
+            _saveMapImage.SaveToLayout = saveToLayout;
+            _saveMapImage.PreviewImage = preview;
+            _saveMapImage.MapLayersHandler = MapLayersHandler;
+            _saveMapImage.MaintainOnePointLineWidth = maintainOnePointLineWidth;
+            _saveMapImage.PointSizeExceed100Error += OnPointSizeRenderError;
+            success = _saveMapImage.Save();
+
+            _savedMapImage = null;
+            if (success)
+            {
+                _savedMapImage = _saveMapImage.SavedMapImage;
+                //if (_saveMapImage.MapToPreview.Length > 0 && File.Exists(_saveMapImage.MapToPreview))
+                //{
+                //    PreViewMapImageForm pvm = PreViewMapImageForm.GetInstance();
+                //    if (pvm.Visible)
+                //    {
+                //        pvm.BringToFront();
+                //    }
+                //    else
+                //    {
+                //        pvm.Show(this);
+                //    }
+                //    pvm.MapFileName = _saveMapImage.MapToPreview;
+                //}
+
+            }
+
+            try
+            {
+                _saveMapImage.Dispose();
+            }
+            catch(Exception ex)
+            {
+                Logger.Log(ex);
+            }
+
+
+            return success;
+        }
         private void OnWindowClosing(object sender, CancelEventArgs e)
         {
             NSAP_ODK.Entities.CrossTabBuilder.CrossTabGenerator.CrossTabEvent -= CrossTabGenerator_CrossTabEvent;
@@ -136,7 +216,7 @@ namespace NSAP_ODK.Mapping.views
 
         private void FishingGroundPointsFromCalendarMappingManager_FishingGroundMappingEvent(object sender, NSAP_ODK.Entities.Database.CrossTabReportEventArg e)
         {
-            switch(e.Context)
+            switch (e.Context)
             {
                 case "creating fishing ground point shapefile":
                     mappingProgressLabel.Dispatcher.BeginInvoke(
@@ -274,6 +354,7 @@ namespace NSAP_ODK.Mapping.views
         }
 
         public string CoastlineShapeFile_FileName { get; set; }
+
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
@@ -458,6 +539,39 @@ namespace NSAP_ODK.Mapping.views
         {
             System.Windows.MessageBox.Show($"The {usage} functionality is not yet implemented", "Placeholder and not yet working", MessageBoxButton.OK, MessageBoxImage.Information); ;
         }
+        public Graticule Graticule
+        {
+            get { return _graticule; }
+        }
+        public void ShowGraticuleForm()
+        {
+            _graticule = new Graticule(MapControl, MapLayersHandler);
+            var gf = GraticuleForm.GetInstance(this);
+            if (!gf.IsVisible)
+            {
+                gf.Show();
+                gf.Owner = this;
+            }
+            else
+            {
+                gf.BringIntoView();
+            }
+            //if (MapLegend != null)
+            //{
+            //    MapLegend.Graticule = _graticule;
+            //}
+            gf.GraticuleRemoved += OnGraticuleRemoved;
+        }
+
+        private void OnGraticuleRemoved(object sender, EventArgs e)
+        {
+            if (_graticule != null)
+            {
+                _graticule.Dispose();
+                _graticule = null;
+                //MapLegend.Graticule = null;
+            }
+        }
 
         private void OnToolbarButtonClick(object sender, RoutedEventArgs e)
         {
@@ -467,6 +581,9 @@ namespace NSAP_ODK.Mapping.views
 
             switch (((System.Windows.Controls.Button)sender).Name)
             {
+                case "buttonGraticule":
+                    ShowGraticuleForm();
+                    break;
                 case "buttonAOI":
                     ShowAOIList();
                     break;
@@ -582,6 +699,11 @@ namespace NSAP_ODK.Mapping.views
                                 MessageBoxButton.OK, MessageBoxImage.Information);
                         }
                     }
+                    break;
+                case "buttonSaveImage":
+                    var saveForm = new SaveMapForm(parent:this);
+                    saveForm.Owner = this;
+                    saveForm.ShowDialog();
                     break;
 
             }

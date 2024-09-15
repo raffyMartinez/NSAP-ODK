@@ -156,6 +156,16 @@ namespace NSAP_ODK.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        /// </summary>
+        internal static System.Drawing.Icon grid {
+            get {
+                object obj = ResourceManager.GetObject("grid", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
         internal static System.Drawing.Bitmap icons_fish_01 {
@@ -191,6 +201,16 @@ namespace NSAP_ODK.Properties {
         internal static System.Drawing.Bitmap layers_new {
             get {
                 object obj = ResourceManager.GetObject("layers_new", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap map_screen {
+            get {
+                object obj = ResourceManager.GetObject("map_screen", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

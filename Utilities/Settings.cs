@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using NSAP_ODK.Mapping;
 
 namespace NSAP_ODK.Utilities
 {
@@ -18,9 +19,12 @@ namespace NSAP_ODK.Utilities
 
         private static int? _acceptableWeightsDifferencePercent;
 
+        public CoordinateDisplayFormat CoordinateDisplayFormat { get; set; }
         public string MDBPath { get; set; }
-        public string JSONFolder { get; set; }
 
+        public string FolderToSaveMapImages { get; set; }
+        public string JSONFolder { get; set; }
+        public int? SuggestedDPI { get; set; }
         public string ServerFilter { get; set; }
         public string DbFilter { get; set; }
         public string FisheriesLandingSurveyNumericID { get; set; }
