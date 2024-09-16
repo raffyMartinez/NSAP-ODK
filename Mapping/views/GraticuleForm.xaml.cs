@@ -76,12 +76,14 @@ namespace NSAP_ODK.Mapping.views
         private void ShowGraticule()
         {
             SetAllLabelsPositionToAboveParent();
+            int widthGridlines = int.Parse(txtGridlineWidth.Text);
+            int numberGridlines = int.Parse(txtNumberOfGridlines.Text);
             Graticule.Configure(
                 name: txtName.Text,
                 sizeLabelFont: int.Parse(txtLabelSize.Text),
-                numberGridlines: int.Parse(txtNumberOfGridlines.Text),
+                numberGridlines: numberGridlines,
                 widthBorder: int.Parse(txtBordeWidth.Text),
-                widthGridlines: int.Parse(txtGridlineWidth.Text),
+                widthGridlines: widthGridlines,
                 gridVisible: (bool)chkShowGrid.IsChecked,
                 boldLabels: (bool)chkBold.IsChecked,
                 leftHasLabel: (bool)chkLeft.IsChecked,
@@ -92,13 +94,18 @@ namespace NSAP_ODK.Mapping.views
                 );
             Graticule.MapTitle = txtMapTitle.Text;
             Graticule.ShowGraticule();
+
+            Utilities.Global.Settings.NumberOfGridLines = numberGridlines;
+            Utilities.Global.Settings.MapGridLinesWidth = widthGridlines;
+
             SaveMapParameters.MapTitle = Graticule.MapTitle;
+            Utilities.Global.SaveGlobalSettings();
         }
 
         private void OnFormLoad(object sender, RoutedEventArgs e)
         {
-            
-            if(SaveMapParameters.MapTitle==null || SaveMapParameters.MapTitle.Length==0)
+
+            if (SaveMapParameters.MapTitle == null || SaveMapParameters.MapTitle.Length == 0)
             {
                 _maptitle = "New untitled map";
             }
@@ -111,8 +118,23 @@ namespace NSAP_ODK.Mapping.views
             txtName.Text = "Graticule";
             txtLabelSize.Text = "8";
             txtBordeWidth.Text = "2";
-            txtGridlineWidth.Text = "1";
-            txtNumberOfGridlines.Text = "5";
+            if (Utilities.Global.Settings.MapGridLinesWidth == null)
+            {
+                txtGridlineWidth.Text = "1";
+            }
+            else
+            {
+                txtGridlineWidth.Text = ((int)Utilities.Global.Settings.MapGridLinesWidth).ToString();
+            }
+            if (Utilities.Global.Settings.NumberOfGridLines == null)
+            {
+                txtNumberOfGridlines.Text = "5";
+            }
+            else
+            {
+                txtNumberOfGridlines.Text = ((int)Utilities.Global.Settings.NumberOfGridLines).ToString();
+            }
+            
 
 
             cboCoordFormat.Items.Add(new KeyValuePair<CoordinateDisplayFormat, string>(CoordinateDisplayFormat.DegreeDecimal, "Degrees"));

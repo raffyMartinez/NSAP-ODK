@@ -96,12 +96,12 @@
                     <Image Source="aoi.png" OpacityMask="White" />
                 </Button>
 
-                <Button x:Name="buttonGraticule" Click="OnToolbarButtonClick" ToolTip="Select">
+                <Button x:Name="buttonGraticule" Click="OnToolbarButtonClick" ToolTip="Graticule">
                     <Image Source="grid.png" OpacityMask="White" Height="24" VerticalAlignment="Bottom" />
                 </Button>
                 
                 
-                <Button x:Name="buttonSaveImage" Click="OnToolbarButtonClick" ToolTip="Select">
+                <Button x:Name="buttonSaveImage" Click="OnToolbarButtonClick" ToolTip="Save map to image file">
                     <Image Source="map screen.png" OpacityMask="White" />
                 </Button>
 

@@ -54,6 +54,9 @@ namespace NSAP_ODK.Utilities
         public string BingAPIKey { get; set; }
         public int? DownloadSizeForBatchMode { get; set; }
         public int? DownloadSizeForBatchModeMultiVessel { get; set; }
+        public int? MapGridLinesWidth { get; set; }
+
+        public int? NumberOfGridLines { get; set; }
 
 
         //public List<string> Setting2 { get; set; }
