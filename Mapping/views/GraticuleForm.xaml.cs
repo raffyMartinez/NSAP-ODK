@@ -35,6 +35,7 @@ namespace NSAP_ODK.Mapping.views
         {
             txtMapTitle.Text = title;
             ShowGraticule();
+            SaveMapParameters.MapTitle = title;
         }
         public Graticule Graticule { get; internal set; }
         public string MapTitle
@@ -59,6 +60,7 @@ namespace NSAP_ODK.Mapping.views
             //throw new NotImplementedException();
             _instance = null;
             _parent = null;
+            //SaveMapParameters.MapTitle = null;
         }
 
         private void SetAllLabelsPositionToAboveParent()
@@ -90,11 +92,21 @@ namespace NSAP_ODK.Mapping.views
                 );
             Graticule.MapTitle = txtMapTitle.Text;
             Graticule.ShowGraticule();
+            SaveMapParameters.MapTitle = Graticule.MapTitle;
         }
 
         private void OnFormLoad(object sender, RoutedEventArgs e)
         {
-            _maptitle = "New untitled map";
+            
+            if(SaveMapParameters.MapTitle==null || SaveMapParameters.MapTitle.Length==0)
+            {
+                _maptitle = "New untitled map";
+            }
+            else
+            {
+                _maptitle = SaveMapParameters.MapTitle;
+            }
+
             txtMapTitle.Text = _maptitle;
             txtName.Text = "Graticule";
             txtLabelSize.Text = "8";

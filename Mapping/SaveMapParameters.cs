@@ -16,6 +16,9 @@ namespace NSAP_ODK.Mapping
         public static bool LayoutMap { get; set; }
 
 
+        public static string MapTitle { get; set; }
+
+
         public static void SetParameters(int dpi, string filename)
         {
             DPI = dpi;

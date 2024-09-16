@@ -165,6 +165,7 @@ namespace NSAP_ODK.Mapping.views
             //ParentWindow.ResetDataGrids();
             MapWindowManager.CleanUp();
             ParentWindow.Focus();
+            SaveMapParameters.MapTitle = null;
         }
 
 
