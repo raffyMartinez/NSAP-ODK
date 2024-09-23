@@ -9,6 +9,14 @@ using Newtonsoft.Json;
 
 namespace NSAP_ODK.Entities.Database
 {
+    public class SubmissionIDPairV2
+    {
+        public int count { get; set; }
+        public string next { get; set; }
+        public string previous { get; set; }
+
+        public List<SubmissionIDPair> results { get; set; }
+    }
     public class SubmissionIDPair
     {
         public int _id { get; set; }
@@ -146,7 +154,9 @@ namespace NSAP_ODK.Entities.Database
             {
                 _unmatchedLandingsJSON = new List<string>();
                 UnmatchedPairs = new List<SubmissionIDPair>();
-                SubmissionIDPairs = JsonConvert.DeserializeObject<List<SubmissionIDPair>>(JSON);
+                SubmissionIDPairV2 submissionIDPairV2 = JsonConvert.DeserializeObject<SubmissionIDPairV2>(JSON);
+                //SubmissionIDPairs = JsonConvert.DeserializeObject<List<SubmissionIDPair>>(JSON);
+                SubmissionIDPairs = submissionIDPairV2.results;
             }
             catch (Exception ex)
             {

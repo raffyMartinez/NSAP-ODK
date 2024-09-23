@@ -864,7 +864,11 @@ namespace NSAP_ODK.Views
                                                     api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?format=json&query={{\"_id\":{{\"$eq\":\"{uuid}\"}}}}";
                                                     break;
                                                 case "download_all_submission_ids":
-                                                    api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?fields=[\"_id\",\"_uuid\"]&format=json";
+                                                    //API V1
+                                                    //api_call = $"https://kc.kobotoolbox.org/api/v1/data/{_formID}?fields=[\"_id\",\"_uuid\"]&format=json";
+
+                                                    //API V2
+                                                    api_call = $"https://kf.kobotoolbox.org/api/v2/assets/{_form_uid}/data/?format=json&fields=[\"_id\",\"_uuid\"]";
                                                     break;
                                             }
 
