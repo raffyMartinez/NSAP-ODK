@@ -96,6 +96,7 @@
                     <RowDefinition x:Name="rowJSONMetadata" Height="0"/>
                 </Grid.RowDefinitions>
                 <DataGrid  x:Name="gridJSONContent" LoadingRow="OnDataGridLoadingRow" AutoGenerateColumns="False" IsReadOnly="True" />
+                <Label x:Name="labelJSONNoLandingsMessage" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center" Content="Landing data was not downloaded" FontSize="14" FontWeight="Bold"/>
                 <xctk:PropertyGrid Grid.Row="1" x:Name="propertyGridMetadata" ShowSearchBox="False" ShowSortOptions="False" ShowSummary="False" ShowTitle="False" IsReadOnly="True" UpdateTextBoxSourceOnEnterKey="False" />
             </Grid >
 

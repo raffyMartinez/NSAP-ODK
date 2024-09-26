@@ -1,0 +1,33 @@
+﻿<Window x:Class="NSAP_ODK.Views.OptionsForDownloadingIDsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NSAP_ODK.Views"
+        mc:Ignorable="d"
+        Title="Options" Height="270" Width="494">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="35"/>
+            <RowDefinition/>
+            <RowDefinition Height="50"/>
+        </Grid.RowDefinitions>
+        <Label Content="Options for downloading identifiers from the server" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
+        <StackPanel Grid.Row="1" Margin="20">
+            <StackPanel>
+                <Label Content="Date range for downloading IDs"></Label>
+                <WrapPanel>
+                    <Label Content="Start"/>
+                    <DatePicker x:Name="dateStart" IsTodayHighlighted="True"/>
+                    <Label Content="End" Margin="20 0 0 0"/>
+                    <DatePicker x:Name="dateEnd"/>
+                </WrapPanel>
+            </StackPanel>
+        </StackPanel>
+        <WrapPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Right">
+            <Button Content="Cancel" Width="80" Height="30" Click="OnButtonClick" Margin="10 0" x:Name="buttonCancel"/>
+            <Button Content="Ok" Width="80" Height="30" Click="OnButtonClick" Margin="10 0" x:Name="buttonOk"/>
+
+        </WrapPanel>
+    </Grid>
+</Window>

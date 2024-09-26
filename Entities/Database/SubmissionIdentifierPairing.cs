@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 
 namespace NSAP_ODK.Entities.Database
 {
-    public class SubmissionIDPairV2
+    public class SubmissionIDPairsV2
     {
         public int count { get; set; }
         public string next { get; set; }
@@ -124,7 +124,7 @@ namespace NSAP_ODK.Entities.Database
                 }
                 catch (Exception ex)
                 {
-
+                    Utilities.Logger.Log(ex);
                 }
             }
             return the_response.ToString();
@@ -154,7 +154,7 @@ namespace NSAP_ODK.Entities.Database
             {
                 _unmatchedLandingsJSON = new List<string>();
                 UnmatchedPairs = new List<SubmissionIDPair>();
-                SubmissionIDPairV2 submissionIDPairV2 = JsonConvert.DeserializeObject<SubmissionIDPairV2>(JSON);
+                SubmissionIDPairsV2 submissionIDPairV2 = JsonConvert.DeserializeObject<SubmissionIDPairsV2>(JSON);
                 //SubmissionIDPairs = JsonConvert.DeserializeObject<List<SubmissionIDPair>>(JSON);
                 SubmissionIDPairs = submissionIDPairV2.results;
             }

@@ -70,7 +70,9 @@ namespace NSAP_ODK.Views
         private string _json;
         private bool _jsonFromServer = false;
         private bool _updateMissingSubmission = false;
-
+        public int CountJSONFilesForProcessingLandings { get; set; }
+        public int CountJSONWithoutLandingData { get; set; }
+        public bool JSONContainsLandingData { get; set; }
         public bool IsOptimizedMultiVessel { get; set; }
         public void JSONFromServer(string json, bool isMultivessel, bool is_optimized = false, bool updateMissingSubmission = false)
         {
@@ -988,12 +990,15 @@ namespace NSAP_ODK.Views
         private async Task<bool> ProcessJSONSNodes(bool updateXFormID = false, bool locateUnsavedFromServerDownload = false, bool updateLandingSites = false, bool locateMissingLSInfo = false)
         {
 
+
+
             int nodeProcessedCount = 0;
             bool firstLoopDone = false;
             _jsonDateDownloadnode.IsExpanded = true;
             VesselUnloadServerRepository.CancelUpload = false;
             NSAPEntities.ClearCSVData();
             bool success = true;
+            CountJSONWithoutLandingData = 0;
             foreach (TreeViewItem tvi in _jsonDateDownloadnode.Items)
             {
 
@@ -1001,6 +1006,7 @@ namespace NSAP_ODK.Views
                 //and loads it to the JSON parser and creates landings which are then processed individually
                 tvi.IsSelected = true;
 
+                
                 if (!VesselUnloadServerRepository.CancelUpload)
                 {
                     if (updateXFormID)
@@ -1022,65 +1028,75 @@ namespace NSAP_ODK.Views
                     else
                     {
                         FileInfoJSONMetadata jm = (FileInfoJSONMetadata)tvi.Tag;
-                        if (MultiVesselGear_UnloadServerRepository.JSON == null && VesselUnloadServerRepository.JSON == null && MultiVessel_Optimized_UnloadServerRepository.JSON == null)
+                        CountJSONFilesForProcessingLandings = jm.DownloadedJsonMetadata.NumberOfFilesDownloaded;
+                        if (JSONContainsLandingData)
                         {
-                            Logger.Log($"Possible error in JSON in file {jm.JSONFileInfo.FullName}. JSOS was not extracted");
-                        }
-                        else
-                        {
-                            if (!firstLoopDone)
+                            if (MultiVesselGear_UnloadServerRepository.JSON == null && VesselUnloadServerRepository.JSON == null && MultiVessel_Optimized_UnloadServerRepository.JSON == null)
                             {
-                                if (IsOptimizedMultiVessel)
-                                {
-                                    MultiVessel_Optimized_UnloadServerRepository.ResetGroupIDs();
-                                }
-                                else if (IsMultiVessel)
-                                {
-                                    MultiVesselGear_UnloadServerRepository.ResetGroupIDs();// VesselUnloadServerRepository.DelayedSave);
-                                }
-                                else
-                                {
-                                    VesselUnloadServerRepository.ResetGroupIDs();
-                                }
-
-                                //if (NSAPEntities.SummaryItemViewModel.Count == 0)
-                                //{
-                                //    VesselUnloadServerRepository.ResetGroupIDs();
-                                //}
-                                //else if (IsMultiVessel)
-                                //{
-                                //    MultiVesselGear_UnloadServerRepository.ResetGroupIDs();// VesselUnloadServerRepository.DelayedSave);
-                                //}
-
-                                firstLoopDone = true;
-                            }
-                            //FileInfoJSONMetadata jm = (FileInfoJSONMetadata)tvi.Tag;
-                            VesselUnloadServerRepository.DelayedSave = !Global.Settings.UsemySQL;
-                            _isJSONData = true;
-                            success = await Upload(verbose: !VesselUnloadServerRepository.DelayedSave, fromJSONBatchFiles: true, loopCount: nodeProcessedCount, jsonFullFileName: jm.JSONFileInfo.FullName); ;
-                            if (success)
-                            {
-                                success = await SaveUploadedJsonInLoop(isHistoryJson: false);
-                                try
-                                {
-                                    jm.JSONFile?.Dispose();
-                                }
-                                catch (Exception ex)
-                                {
-                                    Logger.Log(ex);
-                                }
-                                if (!success)
-                                {
-                                    break;
-                                }
+                                Logger.Log($"Possible error in JSON in file {jm.JSONFileInfo.FullName}. JSON was not extracted");
                             }
                             else
                             {
-                                //all data already saved 
+                                if (!firstLoopDone)
+                                {
+                                    if (IsOptimizedMultiVessel)
+                                    {
+                                        MultiVessel_Optimized_UnloadServerRepository.ResetGroupIDs();
+                                    }
+                                    else if (IsMultiVessel)
+                                    {
+                                        MultiVesselGear_UnloadServerRepository.ResetGroupIDs();// VesselUnloadServerRepository.DelayedSave);
+                                    }
+                                    else
+                                    {
+                                        VesselUnloadServerRepository.ResetGroupIDs();
+                                    }
+
+                                    //if (NSAPEntities.SummaryItemViewModel.Count == 0)
+                                    //{
+                                    //    VesselUnloadServerRepository.ResetGroupIDs();
+                                    //}
+                                    //else if (IsMultiVessel)
+                                    //{
+                                    //    MultiVesselGear_UnloadServerRepository.ResetGroupIDs();// VesselUnloadServerRepository.DelayedSave);
+                                    //}
+
+                                    firstLoopDone = true;
+                                }
+                                //FileInfoJSONMetadata jm = (FileInfoJSONMetadata)tvi.Tag;
+                                VesselUnloadServerRepository.DelayedSave = !Global.Settings.UsemySQL;
+                                _isJSONData = true;
+                                success = await Upload(verbose: !VesselUnloadServerRepository.DelayedSave, fromJSONBatchFiles: true, loopCount: nodeProcessedCount, jsonFullFileName: jm.JSONFileInfo.FullName); ;
+                                if (success)
+                                {
+                                    success = await SaveUploadedJsonInLoop(isHistoryJson: false);
+                                    try
+                                    {
+                                        jm.JSONFile?.Dispose();
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Logger.Log(ex);
+                                    }
+                                    if (!success)
+                                    {
+                                        break;
+                                    }
+                                }
+                                else
+                                {
+                                    //all data already saved 
+                                }
                             }
+                            nodeProcessedCount++;
                         }
+                        else
+                        {
+                            Logger.Log($"JSON file does not contain landing data \r\n{jm.JSONFileInfo.FullName} ");
+                            CountJSONWithoutLandingData++;
+                        }
+                        
                     }
-                    nodeProcessedCount++;
                 }
                 else
                 {
@@ -1513,6 +1529,7 @@ namespace NSAP_ODK.Views
 
                 //Tree context menu->upload ALL
                 //upload all files belonging to a batch of JSON files
+                //invoked after selecting context menu on xml header of batch json files
                 case "menuUploadAllJsonFiles":
                     #region menuUploadAllJsonFiles
                     //invoked when right clicking on xml file describing a set of downloaded json files
@@ -1528,6 +1545,16 @@ namespace NSAP_ODK.Views
                         if (await ProcessJSONSNodes())
                         {
                             await SaveUploadedJsonInLoop(closeWindow: true, verbose: true, isHistoryJson: false, allowDownloadAgain: true);
+                            if(CountJSONWithoutLandingData>0)
+                            {
+                                MessageBox.Show(
+                                    "Not all JSON data from the server was downloaded. Pls refer to error log for details",
+                                    Global.MessageBoxCaption,
+                                    MessageBoxButton.OK,
+                                    MessageBoxImage.Information
+                                    );
+                            }
+                            BatchUpload = false;
                         }
                     }
                     break;
@@ -3744,6 +3771,7 @@ namespace NSAP_ODK.Views
             //else
             //{
             JSON = "";
+            JSONContainsLandingData = true;
             //}
 
             StringBuilder sb = new StringBuilder();
@@ -3752,49 +3780,56 @@ namespace NSAP_ODK.Views
                 sb = new StringBuilder(File.ReadAllText(fm.JSONFileInfo.FullName));
                 JSON = sb.ToString();
 
-
-                if (JSON.Contains("repeat_landings_count"))
+                if (JSON.Contains("!DOCTYPE html"))
                 {
-                    IsMultiVessel = true;
-                    MultiVesselGear_UnloadServerRepository.JSON = JSON;
-                    MultiVesselGear_UnloadServerRepository.CreateLandingsFromJSON();
-                    NSAPEntities.NSAPRegionViewModel.GetNSAPRegionFromMultiVesselLanding(MultiVesselGear_UnloadServerRepository.MultiVesselLandings[0]);
+                    success = false;
+                    JSONContainsLandingData = false;
                 }
                 else
                 {
-                    VesselUnloadServerRepository.JSON = JSON;
-                    VesselUnloadServerRepository.CreateLandingsFromJSON();
-                    VesselUnloadServerRepository.ResetLists(includeJSON: includeJSONWhenReset);
-                    NSAPEntities.NSAPRegionViewModel.GetNSAPRegionFromSingleVesselLanding(VesselUnloadServerRepository.VesselLandings[0]);
-                }
-                _historyJSONFileForUploading = fm.JSONFileInfo.Name;
-
-
-                SetMenus();
-                gridJSONContent.Visibility = Visibility.Visible;
-
-                if (fm.DownloadedJsonMetadata != null)
-                {
-                    DownloadedJsonMetadata djmd = fm.DownloadedJsonMetadata;
-
-                    if (_jsonFileForUploadCount != null)
+                    if (JSON.Contains("repeat_landings_count"))
                     {
-                        labelJSONFile.Content = $"JSON file from {djmd.DBOwner} {djmd.FormName} {djmd.DateDownloaded} # {fm.ItemNumber} of {_jsonFileForUploadCount}";
+                        IsMultiVessel = true;
+                        MultiVesselGear_UnloadServerRepository.JSON = JSON;
+                        MultiVesselGear_UnloadServerRepository.CreateLandingsFromJSON();
+                        NSAPEntities.NSAPRegionViewModel.GetNSAPRegionFromMultiVesselLanding(MultiVesselGear_UnloadServerRepository.MultiVesselLandings[0]);
                     }
                     else
                     {
-                        labelJSONFile.Content = $"JSON file from {djmd.DBOwner} {djmd.FormName} {djmd.DateDownloaded}";
+                        VesselUnloadServerRepository.JSON = JSON;
+                        VesselUnloadServerRepository.CreateLandingsFromJSON();
+                        VesselUnloadServerRepository.ResetLists(includeJSON: includeJSONWhenReset);
+                        NSAPEntities.NSAPRegionViewModel.GetNSAPRegionFromSingleVesselLanding(VesselUnloadServerRepository.VesselLandings[0]);
                     }
-                }
-                else
-                {
-                    if (IsMultiVessel)
-                    {
+                    _historyJSONFileForUploading = fm.JSONFileInfo.Name;
 
+
+                    SetMenus();
+                    gridJSONContent.Visibility = Visibility.Visible;
+
+                    if (fm.DownloadedJsonMetadata != null)
+                    {
+                        DownloadedJsonMetadata djmd = fm.DownloadedJsonMetadata;
+
+                        if (_jsonFileForUploadCount != null)
+                        {
+                            labelJSONFile.Content = $"JSON file from {djmd.DBOwner} {djmd.FormName} {djmd.DateDownloaded} # {fm.ItemNumber} of {_jsonFileForUploadCount}";
+                        }
+                        else
+                        {
+                            labelJSONFile.Content = $"JSON file from {djmd.DBOwner} {djmd.FormName} {djmd.DateDownloaded}";
+                        }
                     }
                     else
                     {
-                        labelJSONFile.Content = $"({fm.ItemNumber} of {_jsonFileForUploadCount}) JSON file from {fm.JSONFileInfo.Name}: # of items - {VesselUnloadServerRepository.VesselLandings.Count} ";
+                        if (IsMultiVessel)
+                        {
+
+                        }
+                        else
+                        {
+                            labelJSONFile.Content = $"({fm.ItemNumber} of {_jsonFileForUploadCount}) JSON file from {fm.JSONFileInfo.Name}: # of items - {VesselUnloadServerRepository.VesselLandings.Count} ";
+                        }
                     }
                 }
             }
@@ -3821,6 +3856,7 @@ namespace NSAP_ODK.Views
 
         private void OnTreeviewItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
+            labelJSONNoLandingsMessage.Visibility = Visibility.Collapsed;
             rowJSONGrid.Height = new GridLength(0);
             rowJSONMetadata.Height = new GridLength(0);
 
@@ -3835,6 +3871,7 @@ namespace NSAP_ODK.Views
                 switch (itemTag)
                 {
                     case "NSAP_ODK.Entities.Database.FileInfoJSONMetadata":
+                        JSONContainsLandingData = true;
                         _selectedJSONMetaData = (FileInfoJSONMetadata)((TreeViewItem)e.NewValue).Tag;
                         JSONFileName = _selectedJSONMetaData.JSONFileInfo.FullName;
                         if (_downloadedJsonMetadata != null && _selectedJSONMetaData.Koboserver == null)
@@ -3844,7 +3881,12 @@ namespace NSAP_ODK.Views
                         }
                         if (!BatchUpload)
                         {
-                            ProcessJsonFileForDisplay(_selectedJSONMetaData);
+                            
+                            if(!ProcessJsonFileForDisplay(_selectedJSONMetaData))
+                            {
+                                //no landings from JSON
+                                labelJSONNoLandingsMessage.Visibility = Visibility.Visible;
+                            }
                         }
                         else
                         {
@@ -3853,7 +3895,15 @@ namespace NSAP_ODK.Views
                                 JSON = File.ReadAllText(JSONFileName);
                                 if (!string.IsNullOrEmpty(JSON))
                                 {
-                                    if (JSON.Contains("repeat_landings_count"))
+                                    if(JSON.Contains("!DOCTYPE html"))
+                                    {
+                                        if(JSON.Contains("500 Error"))
+                                        {
+                                            
+                                        }
+                                        JSONContainsLandingData = false;
+                                    }
+                                    else if (JSON.Contains("repeat_landings_count"))
                                     {
                                         IsMultiVessel = true;
                                         MultiVesselGear_UnloadServerRepository.JSON = JSON;

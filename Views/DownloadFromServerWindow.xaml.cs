@@ -438,6 +438,12 @@ namespace NSAP_ODK.Views
             string api_call = "";
             switch (((Button)sender).Name)
             {
+                case "buttonUpdateOptions":
+                    //opens a form to specify date range of IDs to download from server and other possible options
+                    OptionsForDownloadingIDsWindow optionsWindow = new OptionsForDownloadingIDsWindow();
+                    optionsWindow.Owner = this;
+                    optionsWindow.ShowDialog();
+                    break;
                 case "buttonUseSubmissionIDFile":
                     OpenFileDialog ofd = new OpenFileDialog();
                     ofd.Title = "Open JSON file of submission IDs";
