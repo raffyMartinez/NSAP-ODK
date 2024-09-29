@@ -110,6 +110,7 @@ namespace NSAP_ODK.Mapping
 
                 sf.Key = "points of fishing ground grid";
                 sf.GeoProjection = globalMapping.GeoProjection;
+                sf.CollisionMode = tkCollisionMode.AllowCollisions;
 
                 string level = "Month";
                 if (FishingGroundPointsFromCalendarMappingManager.GearName?.Length > 0)

@@ -25,8 +25,25 @@ namespace NSAP_ODK.Views
         }
         private bool Validated()
         {
-            return false;
+            bool isValidated = true;
+            if (dateStart.SelectedDate == null)
+            {
+                isValidated= false;
+            }
+            else
+            {
+                if (dateEnd.SelectedDate != null)
+                {
+                    isValidated=(DateTime)dateStart.SelectedDate < (DateTime)dateEnd.SelectedDate;
+                }
+            }
+            return isValidated;
         }
+
+        public DateTime? StartSubmissionDate { get; internal set; }
+        public DateTime? EndSubmissionDate { get; internal set; }
+
+        public bool IgnoreDate { get; set; }
         private void OnButtonClick(object sender, RoutedEventArgs e)
         {
             switch(((Button)sender).Name)
@@ -34,11 +51,36 @@ namespace NSAP_ODK.Views
                 case "buttonOk":
                     if(Validated())
                     {
+                        StartSubmissionDate = dateStart.SelectedDate;
+                        EndSubmissionDate = dateEnd.SelectedDate;
                         DialogResult = true;
                     }
+                    else
+                    {
+                        string msg = "";
+                        if(dateStart.SelectedDate==null)
+                        {
+                            msg = "Please provide a start date and optioanally an end date";
+                        }
+                        else
+                        {
+                            msg = "Start date must be before end date"; ;
+                        }
+                        MessageBox.Show(
+                            msg,
+                            Utilities.Global.MessageBoxCaption,
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information
+                            );
+                    }
+
                     break;
-                case "buttonCance":
+                case "buttonCancel":
                     DialogResult = false;
+                    break;
+                case "buttonIgnore":
+                    IgnoreDate = true;
+                    DialogResult = true;
                     break;
             }
         }

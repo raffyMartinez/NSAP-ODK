@@ -323,6 +323,8 @@ namespace NSAP_ODK.Views
             return replacedCount;
         }
 
+        public DateTime? StartDateSubmitted { get; set; }
+        public DateTime? EndDateSubmitted { get; set; }
         private async Task<HttpResponseMessage> UploadMediaToServer(FileInfo file)
         {
             HttpResponseMessage result = null;
@@ -432,6 +434,8 @@ namespace NSAP_ODK.Views
             pdw.ShowDialog();
 
         }
+
+
         private async void OnButtonClick(object sender, RoutedEventArgs e)
         {
             _downloadType = "";
@@ -442,7 +446,33 @@ namespace NSAP_ODK.Views
                     //opens a form to specify date range of IDs to download from server and other possible options
                     OptionsForDownloadingIDsWindow optionsWindow = new OptionsForDownloadingIDsWindow();
                     optionsWindow.Owner = this;
-                    optionsWindow.ShowDialog();
+
+                    if ((bool)optionsWindow.ShowDialog())
+                    {
+                        labelUpdateOptions.Visibility = Visibility.Visible;
+                        if (optionsWindow.IgnoreDate)
+                        {
+                            labelUpdateOptions.Content = string.Empty;
+                            labelUpdateOptions.Visibility = Visibility.Collapsed;
+                            
+                            StartDateSubmitted = null;
+                            EndDateSubmitted = null;
+                        }
+                        else
+                        {
+                            StartDateSubmitted = optionsWindow.StartSubmissionDate;
+                            EndDateSubmitted = optionsWindow.EndSubmissionDate;
+                            string start_date = ((DateTime)StartDateSubmitted).ToString("MMM. dd, yyyy");
+                            string end_date = EndDateSubmitted == null ? "" : ((DateTime)EndDateSubmitted).ToString("MMM. dd, yyyy");
+                            labelUpdateOptions.Content = $"Starting date is {start_date}";
+                            
+                            if (!string.IsNullOrEmpty(end_date))
+                            {
+                                labelUpdateOptions.Content += $" and ending date is {end_date}";
+                            
+                            }
+                        }
+                    }
                     break;
                 case "buttonUseSubmissionIDFile":
                     OpenFileDialog ofd = new OpenFileDialog();
@@ -875,6 +905,17 @@ namespace NSAP_ODK.Views
 
                                                     //API V2
                                                     api_call = $"https://kf.kobotoolbox.org/api/v2/assets/{_form_uid}/data/?format=json&fields=[\"_id\",\"_uuid\"]";
+                                                    if (StartDateSubmitted != null)
+                                                    {
+                                                        start_date = ((DateTime)StartDateSubmitted).ToString("yyyy-MM-dd");
+
+                                                        api_call = $"https://kf.kobotoolbox.org/api/v2/assets/{_form_uid}/data/?format=json&query={{\"_submission_time\":{{\"$gte\":\"{start_date}\"}}}}&fields=[\"_id\",\"_uuid\"]";
+                                                        if (EndDateSubmitted != null)
+                                                        {
+                                                            end_date = ((DateTime)EndDateSubmitted).ToString("yyyy-MM-dd");
+                                                            api_call = $"https://kf.kobotoolbox.org/api/v2/assets/{_form_uid}/data/?format=json&query={{\"_submission_time\":{{\"$gte\":\"{start_date}\",\"$lte\":\"{end_date}\"}}}}&fields=[\"_id\",\"_uuid\"]";
+                                                        }
+                                                    }
                                                     break;
                                             }
 

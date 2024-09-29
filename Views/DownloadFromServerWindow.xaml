@@ -143,10 +143,14 @@
                                 </WrapPanel>
 
                                 <WrapPanel Visibility="Visible" Margin="10 0" x:Name="panelGetSubmissions">
-                                    <RadioButton Content="Download all submission IDs and update database" x:Name="rbGetAllSubmissions" Checked="OnButtonChecked" Tag="download_all_submission_ids" Margin="0 5"/>
-                                    <Button Content="Use file" Width="50"  Height="25" x:Name="buttonUseSubmissionIDFile" Click="OnButtonClick" Visibility="Collapsed" Margin="10 0"/>
-                                    <Button Content="Options" Width="50"  Height="25" x:Name="buttonUpdateOptions" Click="OnButtonClick" Visibility="Visible" Margin="10 0"/>
-                                    <Label Content="Update options" x:Name="labelUpdateOptions" Margin="30 0 20 0" Visibility="Collapsed"/>
+                                    <StackPanel>
+                                        <WrapPanel>
+                                            <RadioButton Content="Download all submission IDs and update database" x:Name="rbGetAllSubmissions" Checked="OnButtonChecked" Tag="download_all_submission_ids" Margin="0 5"/>
+                                            <Button Content="Use file" Width="50"  Height="25" x:Name="buttonUseSubmissionIDFile" Click="OnButtonClick" Visibility="Collapsed" Margin="10 0"/>
+                                            <Button Content="Options" Width="50"  Height="25" x:Name="buttonUpdateOptions" Click="OnButtonClick" Visibility="Visible" Margin="10 0"/>
+                                        </WrapPanel>
+                                        <Label Content="Update options" x:Name="labelUpdateOptions" Margin="30 0 20 0" Visibility="Collapsed"/>
+                                    </StackPanel>
                                 </WrapPanel>
 
                                 <CheckBox Content="Filter by user name" x:Name="CheckFilterUser" Margin="10 10" Checked="OnCheckStateChange" Unchecked="OnCheckStateChange"/>

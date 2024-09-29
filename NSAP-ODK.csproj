@@ -571,8 +571,11 @@
     <Compile Include="Mapping\AOIRepository.cs" />
     <Compile Include="Mapping\AOIViewModel.cs" />
     <Compile Include="Mapping\Callback.cs" />
+    <Compile Include="Mapping\CategorizedFishingGroundPointLegendItem.cs" />
+    <Compile Include="Mapping\CategorizedPointShapefile.cs" />
     <Compile Include="Mapping\CategoryItem.cs" />
     <Compile Include="Mapping\ClassifiedItem.cs" />
+    <Compile Include="Mapping\ClusteredFishingGroundPoint.cs" />
     <Compile Include="Mapping\Colors.cs" />
     <Compile Include="Mapping\ColorSchemes.cs" />
     <Compile Include="Mapping\Entities.cs" />
@@ -613,6 +616,9 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Mapping\views\AOIWindow.xaml.cs" />
+    <Compile Include="Mapping\views\CategorizeFishingGroundLayerWindow.xaml.cs">
+      <DependentUpon>CategorizeFishingGroundLayerWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Mapping\views\FormatGridMapWindow.xaml.cs">
       <DependentUpon>FormatGridMapWindow.xaml</DependentUpon>
     </Compile>
@@ -881,6 +887,10 @@
     <Page Include="Mapping\views\AOIWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Mapping\views\CategorizeFishingGroundLayerWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Mapping\views\FormatGridMapWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

@@ -32,6 +32,7 @@ namespace NSAP_ODK.Mapping.views
         private MapLayer _currentLayer;
         private bool _isDragDropDone;
         private bool _gridIsClicked;
+        private string _selectedFishingGroundLocationCategory;
         public MapLayersHandler MapLayersHandler { get; set; }
 
         private static MapLayersWindow _instance;
@@ -48,6 +49,7 @@ namespace NSAP_ODK.Mapping.views
             if (_currentLayer.LayerType == "ShapefileClass" && ((Shapefile)_currentLayer.LayerObject).ShapefileType == ShpfileType.SHP_POINT)
             {
                 menuConvexHull.Visibility = Visibility.Visible;
+                menuCategorize.Visibility = Visibility.Visible;
             }
 
             bool sameLayers = true;
@@ -452,6 +454,7 @@ namespace NSAP_ODK.Mapping.views
         {
             //Console.WriteLine("DataGridLayers_SelectionChanged");
             menuConvexHull.Visibility = Visibility.Collapsed;
+            menuCategorize.Visibility = Visibility.Collapsed;
             menuMerge.Visibility = Visibility.Collapsed;
             if (_gridIsClicked && dataGridLayers.SelectedItems.Count > 0)
             {
@@ -549,6 +552,17 @@ namespace NSAP_ODK.Mapping.views
             var mnu = (MenuItem)sender;
             switch (mnu.Header)
             {
+                case "Categorize":
+                    CategorizeFishingGroundLayerWindow cfglw = new CategorizeFishingGroundLayerWindow();
+                    cfglw.Owner = this;
+                    cfglw.Shapefile = (Shapefile)CurrentLayer.LayerObject;
+                    _selectedFishingGroundLocationCategory = null;
+                    if((bool)cfglw.ShowDialog())
+                    {
+                        _selectedFishingGroundLocationCategory = cfglw.SelectedCategory;
+                        MapLayersHandler.AddLayer(cfglw.CategorizedShapefile.FishingGroundPointShapefile, "Categorized");
+                    }
+                    break;
                 case "Set visibility...":
                     ShapeFileVisibilityExpressionWindow vew = new ShapeFileVisibilityExpressionWindow();
                     vew.Owner = this;

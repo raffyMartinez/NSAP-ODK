@@ -62,6 +62,7 @@
                     <MenuItem Header="Export" Click="OnMenuClick"/>
                     <MenuItem Header="Set visibility..." Click="OnMenuClick"/>
                     <MenuItem Header="Convex hull" Click="OnMenuClick" x:Name="menuConvexHull" Visibility="Collapsed"/>
+                    <MenuItem Header="Categorize" Click="OnMenuClick" x:Name="menuCategorize" Visibility="Collapsed"/>
                     <MenuItem Header="Merge" Click="OnMenuClick" x:Name="menuMerge" Visibility="Collapsed"/>
                 </ContextMenu>
             </DataGrid.ContextMenu>    

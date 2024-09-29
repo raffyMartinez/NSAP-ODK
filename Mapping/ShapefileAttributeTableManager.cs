@@ -271,7 +271,14 @@ namespace NSAP_ODK.Mapping
                                     }
                                     else
                                     {
+                                        //try
+                                        //{
                                         row[z] = sf.CellValue[z, x];
+                                        //}
+                                        //catch
+                                        //{
+                                        //    //row[z] = "";
+                                        //}
                                     }
 
                                 }
