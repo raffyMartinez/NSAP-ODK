@@ -33,6 +33,7 @@ namespace NSAP_ODK.Mapping.views
         private bool _isDragDropDone;
         private bool _gridIsClicked;
         private string _selectedFishingGroundLocationCategory;
+        private string _pointShapefileKey;
         public MapLayersHandler MapLayersHandler { get; set; }
 
         private static MapLayersWindow _instance;
@@ -48,8 +49,10 @@ namespace NSAP_ODK.Mapping.views
         {
             if (_currentLayer.LayerType == "ShapefileClass" && ((Shapefile)_currentLayer.LayerObject).ShapefileType == ShpfileType.SHP_POINT)
             {
+                Shapefile pointShapefile = (Shapefile)_currentLayer.LayerObject;
                 menuConvexHull.Visibility = Visibility.Visible;
                 menuCategorize.Visibility = Visibility.Visible;
+                _pointShapefileKey = pointShapefile.Key;
             }
 
             bool sameLayers = true;
@@ -159,6 +162,7 @@ namespace NSAP_ODK.Mapping.views
         private void OnWindowClosed(object sender, EventArgs e)
         {
             _instance = null;
+            ParentForm.Focus();
         }
 
         private void DataGridLayers_MouseUp(object sender, MouseButtonEventArgs e)
@@ -452,6 +456,7 @@ namespace NSAP_ODK.Mapping.views
         }
         private void DataGridLayers_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            _pointShapefileKey = "";
             //Console.WriteLine("DataGridLayers_SelectionChanged");
             menuConvexHull.Visibility = Visibility.Collapsed;
             menuCategorize.Visibility = Visibility.Collapsed;
@@ -555,13 +560,31 @@ namespace NSAP_ODK.Mapping.views
                 case "Categorize":
                     CategorizeFishingGroundLayerWindow cfglw = new CategorizeFishingGroundLayerWindow();
                     cfglw.Owner = this;
+                    var layerKeys = _pointShapefileKey.Split('|');
+                    cfglw.ShowCategoryLegendOnly = layerKeys[0] == "classified fishing ground points";
+                    if(layerKeys.Length>1 && int.TryParse(layerKeys[1],out int point_size))
+                    {
+                        cfglw.MaxPointSizeOfCategorizedFishingGroundPoints = point_size;
+                    }
                     cfglw.Shapefile = (Shapefile)CurrentLayer.LayerObject;
                     _selectedFishingGroundLocationCategory = null;
-                    if((bool)cfglw.ShowDialog())
+
+
+
+                    if (!cfglw.ShowCategoryLegendOnly )
                     {
-                        _selectedFishingGroundLocationCategory = cfglw.SelectedCategory;
-                        MapLayersHandler.AddLayer(cfglw.CategorizedShapefile.FishingGroundPointShapefile, "Categorized");
+                        if ((bool)cfglw.ShowDialog())
+                        {
+                            _selectedFishingGroundLocationCategory = cfglw.SelectedCategory;
+                            MapLayersHandler.AddLayer(cfglw.CategorizedShapefile.FishingGroundPointShapefile, "Categorized");
+                        }
                     }
+                    else
+                    {
+                        cfglw.Owner = this;
+                        cfglw.Show();
+                    }
+
                     break;
                 case "Set visibility...":
                     ShapeFileVisibilityExpressionWindow vew = new ShapeFileVisibilityExpressionWindow();

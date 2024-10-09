@@ -15,9 +15,9 @@
         <Label Content="Categorize fishing grounds" HorizontalAlignment="Center" FontWeight="Bold" VerticalAlignment="Center"/>
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="250"/>
-                <ColumnDefinition/>
-                <ColumnDefinition Width="60"/>
+                <ColumnDefinition Width="250" x:Name="gridcolumnChoice"/>
+                <ColumnDefinition x:Name="gridcolumnLegend"/>
+                <ColumnDefinition Width="60" x:Name="gridcolumnButtons"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="5*"/>

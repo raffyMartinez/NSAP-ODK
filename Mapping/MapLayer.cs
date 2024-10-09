@@ -24,6 +24,8 @@ namespace NSAP_ODK.Mapping
         public string Name { get; set; }
         public bool Visible { get; set; }
         public bool VisibleInLayersUI { get; set; }
+
+
         public int Handle { get; set; }
         public string FileName { get; set; }
         public string GeoProjectionName { get; set; }

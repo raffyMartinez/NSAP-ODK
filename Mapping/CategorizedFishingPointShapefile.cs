@@ -8,25 +8,25 @@ using System.Windows.Media.Imaging;
 using System.Drawing;
 namespace NSAP_ODK.Mapping
 {
-    public class CategorizedPointShapefile
+    public class CategorizedFishingPointShapefile
     {
         private Shapefile _categorizedSF;
         public int NumberOfBreaks { get; set; }
         private List<ClusteredFishingGroundPoint> _clusteredFishingGroundPoints = new List<ClusteredFishingGroundPoint>();
 
-        private void PopulateLocationDictionary(Shapefile inSF)
+        private void PopulateLocationDictionary(Shapefile inputFishingGridPoints)
         {
-            int gridNameColumnIndex = inSF.Table.FieldIndexByName["GridPt"];
-            int weightColumnIndex = inSF.FieldIndexByName["WtCatch"];
-            for (int x = 0; x < inSF.NumShapes; x++)
+            int gridNameColumnIndex = inputFishingGridPoints.Table.FieldIndexByName["GridPt"];
+            int weightColumnIndex = inputFishingGridPoints.FieldIndexByName["WtCatch"];
+            for (int x = 0; x < inputFishingGridPoints.NumShapes; x++)
             {
-                string grid_name = (string)inSF.CellValue[gridNameColumnIndex, x];
-                double weight_catch = (double)inSF.CellValue[weightColumnIndex, x];
+                string grid_name = ((string)inputFishingGridPoints.CellValue[gridNameColumnIndex, x]).ToLower();
+                double weight_catch = (double)inputFishingGridPoints.CellValue[weightColumnIndex, x];
                 ClusteredFishingGroundPoint cfgp = new ClusteredFishingGroundPoint();
                 //cfgp = _clusteredFishingGroundPoints.Find(t => t.GridName == grid_name);
                 try
                 {
-                    cfgp = _clusteredFishingGroundPoints.Find(t => t.GridName == grid_name);
+                    cfgp = _clusteredFishingGroundPoints.Find(t => t.GridName.ToLower() == grid_name);
                 }
                 catch
                 {
@@ -34,7 +34,7 @@ namespace NSAP_ODK.Mapping
                 }
                 if (cfgp == null)
                 {
-                    var pt = inSF.Shape[x].Point[0];
+                    var pt = inputFishingGridPoints.Shape[x].Point[0];
                     ClusteredFishingGroundPoint fgp = new ClusteredFishingGroundPoint
                     {
                         GridName = grid_name,
@@ -77,6 +77,23 @@ namespace NSAP_ODK.Mapping
             g.ReleaseHdc(ptr);
             return globalMapping.BitmapToBitmapImage(bmp);
         }
+
+        public void GetCategoriesFromClusteredFishingGroundPoints()
+        {
+            CategorizedFishingGroundPointLegendItem legendItem;
+            CategorizedFishingGroundPointLegendItems = new List<CategorizedFishingGroundPointLegendItem>();
+            for (int x = 0; x < ClusteredFishingPointShapefile.Categories.Count-1; x++)
+            {
+                var category = ClusteredFishingPointShapefile.Categories.Item[x];
+                legendItem = new CategorizedFishingGroundPointLegendItem
+                {
+                    ShapefileCategory=category,
+                    ImageInLegend = CategorySymbol(category),
+                    Range=$"{category.MinValue} - {category.MaxValue}"
+                };
+                CategorizedFishingGroundPointLegendItems.Add(legendItem);
+            }
+        }
         public void CategorizeNumericPointLayer(Shapefile sf, int classificationField = 1,
                                                tkClassificationType Method = tkClassificationType.ctNaturalBreaks)
         {
@@ -109,14 +126,8 @@ namespace NSAP_ODK.Mapping
             cat0.DrawingOptions.PointSize = 0;
             cat0.DrawingOptions.FillVisible = false;
             cat0.DrawingOptions.LineVisible = false;
-            
-            //legendItem = new CategorizedFishingGroundPointLegendItem
-            //{
-            //    ShapefileCategory = cat0,
-            //    ImageInLegend = CategorySymbol(cat0)
-            //};
-            //CategorizedFishingGroundPointLegendItems.Add(legendItem);
 
+            sf.Key = $"{sf.Key}|{PointSizeOfMaxCategory}";
             sf.Categories.ApplyExpression(sf.Categories.CategoryIndex[cat0]);
         }
 
@@ -147,14 +158,19 @@ namespace NSAP_ODK.Mapping
             }
             Breaks = JenksFisher.CreateJenksFisherBreaksArray(source, NumberOfBreaks);
         }
-        public CategorizedPointShapefile(Shapefile inShapefile)
+        public Shapefile ClusteredFishingPointShapefile { get; set; }
+        public CategorizedFishingPointShapefile()
+        {
+
+        }
+        public CategorizedFishingPointShapefile(Shapefile inputFishingPointsFromGrid)
         {
             _categorizedSF = new Shapefile();
-            PopulateLocationDictionary(inShapefile);
+            PopulateLocationDictionary(inputFishingPointsFromGrid);
 
             if (_categorizedSF.CreateNewWithShapeID("", ShpfileType.SHP_POINT))
             {
-                _categorizedSF.Key = "points of fishing ground grid";
+                _categorizedSF.Key = "classified fishing ground points";
                 _categorizedSF.GeoProjection = globalMapping.GeoProjection;
 
                 int fldIndex = _categorizedSF.EditAddField("long", FieldType.DOUBLE_FIELD, 9, 12);

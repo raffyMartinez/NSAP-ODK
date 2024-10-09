@@ -45,6 +45,7 @@ namespace NSAP_ODK.Mapping.views
         private SaveMapImage _saveMapImage;
         private float _suggestedDPI = 0;
         private MapWinGIS.Image _savedMapImage;
+        private MapLegendManager _legendManager;
         public void ResetTrackVertivesButton()
         {
             buttonTrack.IsChecked = false;
@@ -176,12 +177,15 @@ namespace NSAP_ODK.Mapping.views
         {
             System.Windows.Forms.Integration.WindowsFormsHost host = new System.Windows.Forms.Integration.WindowsFormsHost();
 
-            MapControl = new AxMapWinGIS.AxMap();
+            MapControl = new AxMap();
             host.Child = MapControl;
             MapGrid.Children.Add(host);
             MapLayersHandler = new MapLayersHandler(MapControl);
             MapInterActionHandler = new MapInterActionHandler(MapControl, MapLayersHandler);
             MapControl.ZoomBehavior = tkZoomBehavior.zbDefault;
+
+            _legendManager = new MapLegendManager();
+            _legendManager.MapLayers = MapLayersHandler;
 
             if (MapWindowManager.MapStateFileExists)
             {
@@ -286,6 +290,8 @@ namespace NSAP_ODK.Mapping.views
 
         private void OnWindowClosed(object sender, EventArgs e)
         {
+            _legendManager.Dispose();
+            _legendManager = null;
             _instance = null;
         }
 

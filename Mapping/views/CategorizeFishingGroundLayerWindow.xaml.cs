@@ -21,9 +21,10 @@ namespace NSAP_ODK.Mapping.views
     {
         private RadioButton _selectedButton;
         private Shapefile _inputShapeFile;
-        private CategorizedPointShapefile _categorizedShapefile;
+        private CategorizedFishingPointShapefile _categorizedShapefile;
         private List<double> _breaks;
         private List<ShapefileCategory> _sfCategories;
+        DataGridTemplateColumn _imgCol;
 
         public CategorizeFishingGroundLayerWindow()
         {
@@ -34,12 +35,25 @@ namespace NSAP_ODK.Mapping.views
 
         private void CategorizeFishingGroundLayerWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            cboCategoryCount.SelectedIndex = 2;
-            //_categorizedShapefile.NumberOfBreaks = int.Parse(((ComboBoxItem)cboCategoryCount.SelectedItem).Content.ToString()) - 1;
-            _categorizedShapefile.NumberOfBreaks = int.Parse(((ComboBoxItem)cboCategoryCount.SelectedItem).Content.ToString());
-            _categorizedShapefile.PointSizeOfMaxCategory = int.Parse(txtSizeOfLargestCategory.Text);
-            rbFishingFreq.IsChecked = true;
-
+            gridcolumnChoice.Width = new GridLength(250);
+            gridcolumnButtons.Width = new GridLength(60);
+            gridcolumnChoice.Width = new GridLength(1, GridUnitType.Star);
+            if (ShowCategoryLegendOnly)
+            {
+                gridcolumnChoice.Width = new GridLength(0);
+                gridcolumnButtons.Width = new GridLength(0);
+                _categorizedShapefile = new CategorizedFishingPointShapefile();
+                _categorizedShapefile.ClusteredFishingPointShapefile = _inputShapeFile;
+                _categorizedShapefile.PointSizeOfMaxCategory = (int)MaxPointSizeOfCategorizedFishingGroundPoints;
+            }
+            else
+            {
+                cboCategoryCount.SelectedIndex = 2;
+                //_categorizedShapefile.NumberOfBreaks = int.Parse(((ComboBoxItem)cboCategoryCount.SelectedItem).Content.ToString()) - 1;
+                _categorizedShapefile.NumberOfBreaks = int.Parse(((ComboBoxItem)cboCategoryCount.SelectedItem).Content.ToString());
+                _categorizedShapefile.PointSizeOfMaxCategory = int.Parse(txtSizeOfLargestCategory.Text);
+                rbFishingFreq.IsChecked = true;
+            }
             dataGrid.AutoGenerateColumns = false;
             dataGrid.CanUserAddRows = false;
             dataGrid.IsReadOnly = true;
@@ -50,15 +64,20 @@ namespace NSAP_ODK.Mapping.views
             Binding bind = new Binding("ImageInLegend");//please keep "image" name as you have set in your class data member name
             factory.SetValue(System.Windows.Controls.Image.SourceProperty, bind);
             DataTemplate cellTemplate = new DataTemplate() { VisualTree = factory };
-            DataGridTemplateColumn imgCol = new DataGridTemplateColumn()
+            _imgCol = new DataGridTemplateColumn()
             {
                 Header = "", //this is upto you whatever you want to keep, this will be shown on column to represent the data for helping the user...
                 CellTemplate = cellTemplate,
                 CellStyle = AlignMiddleStyle
             };
-            imgCol.Width = new DataGridLength(CategorizedShapefile.PointSizeOfMaxCategory);
-            dataGrid.Columns.Add(imgCol);
-
+            _imgCol.Width = new DataGridLength(CategorizedShapefile.PointSizeOfMaxCategory);
+            dataGrid.Columns.Add(_imgCol);
+            if (ShowCategoryLegendOnly)
+            {
+                _categorizedShapefile.GetCategoriesFromClusteredFishingGroundPoints();
+                dataGrid.ItemsSource = _categorizedShapefile.CategorizedFishingGroundPointLegendItems;
+                Width = 200;
+            }
         }
         private Style AlignMiddleStyle
         {
@@ -76,15 +95,24 @@ namespace NSAP_ODK.Mapping.views
                 return alignMiddleStyle;
             }
         }
+        public int? MaxPointSizeOfCategorizedFishingGroundPoints { get; set; }
+        public CategorizedFishingPointShapefile CategorizedShapefile { get { return _categorizedShapefile; } }
 
-        public CategorizedPointShapefile CategorizedShapefile { get { return _categorizedShapefile; } }
+        public bool ShowCategoryLegendOnly { get; set; }
         public Shapefile Shapefile
         {
             get { return _inputShapeFile; }
             set
             {
                 _inputShapeFile = value;
-                _categorizedShapefile = new CategorizedPointShapefile(_inputShapeFile);
+                if (!ShowCategoryLegendOnly)
+                {
+                    _categorizedShapefile = new CategorizedFishingPointShapefile(_inputShapeFile);
+                }
+                else
+                {
+                    
+                }
 
             }
         }
@@ -118,6 +146,7 @@ namespace NSAP_ODK.Mapping.views
                                 _categorizedShapefile.PointSizeOfMaxCategory = int.Parse(txtSizeOfLargestCategory.Text);
                                 _categorizedShapefile.CategorizeNumericPointLayer(_categorizedShapefile.FishingGroundPointShapefile, int.Parse(_selectedButton.Tag.ToString()));
 
+                                _imgCol.Width = new DataGridLength(CategorizedShapefile.PointSizeOfMaxCategory);
                                 dataGrid.ItemsSource = _categorizedShapefile.CategorizedFishingGroundPointLegendItems;
                                 //_sfCategories = _categorizedShapefile.CategorizeField(SelectedCategory, classificationType: tkClassificationType.ctNaturalBreaks);
 

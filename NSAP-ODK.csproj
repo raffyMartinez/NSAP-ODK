@@ -572,7 +572,7 @@
     <Compile Include="Mapping\AOIViewModel.cs" />
     <Compile Include="Mapping\Callback.cs" />
     <Compile Include="Mapping\CategorizedFishingGroundPointLegendItem.cs" />
-    <Compile Include="Mapping\CategorizedPointShapefile.cs" />
+    <Compile Include="Mapping\CategorizedFishingPointShapefile.cs" />
     <Compile Include="Mapping\CategoryItem.cs" />
     <Compile Include="Mapping\ClassifiedItem.cs" />
     <Compile Include="Mapping\ClusteredFishingGroundPoint.cs" />
@@ -599,6 +599,7 @@
     <Compile Include="Mapping\MapLayersHandler.cs" />
     <Compile Include="Mapping\MapLayersViewModel.cs" />
     <Compile Include="Mapping\MapLayout.cs" />
+    <Compile Include="Mapping\MapLegendManager.cs" />
     <Compile Include="Mapping\MapTextGraticuleHelper.cs" />
     <Compile Include="Mapping\MapWindowManager.cs" />
     <Compile Include="Mapping\PointLayerSymbologyHandler.cs" />
