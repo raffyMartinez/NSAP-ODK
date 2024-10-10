@@ -24,5 +24,7 @@ namespace NSAP_ODK.Entities.Database
         public bool IsCancelled { get; set; }
 
         public bool IsTimeOut { get; set; }
+
+        public int CountWith500Error { get; set; }
     }
 }

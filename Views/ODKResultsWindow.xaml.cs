@@ -1571,14 +1571,18 @@ namespace NSAP_ODK.Views
                     jsonFolder = GetJSONFolder(savedHistory: false);
                     if (jsonFolder.Length > 0)
                     {
-                        _jsonfiles = Directory.GetFiles(jsonFolder).Select(s => new FileInfo(s)).ToList();
+                        _jsonfiles = Directory.GetFiles(jsonFolder).Select(s => new FileInfo(s)).OrderBy(t=>t.CreationTime).ThenBy(t=>t.Extension).ToList();
                         if (_jsonfiles.Any())
                         {
 
                             TreeViewItem root = new TreeViewItem { Header = "Downloaded e-form data" };
                             treeViewJSONNavigator.Items.Add(root);
                             counter = 0;
-                            foreach (var f in _jsonfiles.OrderByDescending(t => t.CreationTime))
+                            int count_500Error = 0;
+                            //string currentXMLMetadataFile = "";
+                            //DownloadedJsonMetadata djmd;
+                            //foreach (var f in _jsonfiles.OrderByDescending(t => t.CreationTime).ThenBy(t=>t.Extension))
+                            foreach(var f in _jsonfiles)
                             {
                                 if (f.Extension == ".xml")
                                 {
@@ -1589,9 +1593,15 @@ namespace NSAP_ODK.Views
                                         try
                                         {
                                             DownloadedJsonMetadata djmd = (DownloadedJsonMetadata)_xSer.Deserialize(fs);
+                                            //djmd = (DownloadedJsonMetadata)_xSer.Deserialize(fs);
                                             djmd.FileName = f.Name;
-
+                                            //if (f.Name == currentXMLMetadataFile)
+                                            //{
+                                                djmd.CountWith500Error = count_500Error;
+                                                count_500Error = 0;
+                                            //}
                                             AddMetadataToTreeView(djmd, root);
+                                            //count_500Error = 0;
                                             counter++;
                                         }
                                         catch (Exception ex)
@@ -1600,6 +1610,25 @@ namespace NSAP_ODK.Views
                                         }
                                     }
 
+                                }
+                                else if(f.Extension==".json")
+                                {
+                                    var arr = f.Name.Split('_');
+                                    //if (f.Name.Contains('_'))
+                                    //{
+                                    //    currentXMLMetadataFile = f.Name.Replace($"_{arr[arr.Length-1]}", "_info.xml");
+                                    //}
+                                    //else
+                                    //{
+                                    //    currentXMLMetadataFile = string.Empty;
+                                    //}
+                                    if((int)(f.Length/1024)<=6)
+                                    {
+                                        if(f.OpenText().ReadToEnd().Contains("<!DOCTYPE html>"))
+                                        {
+                                            count_500Error++;
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -3784,6 +3813,12 @@ namespace NSAP_ODK.Views
                 {
                     success = false;
                     JSONContainsLandingData = false;
+                    gridJSONContent.Visibility = Visibility.Collapsed;
+                    //MessageBox.Show(
+                    //    "Selected JSON do not contain fish landing data",
+                    //    Global.MessageBoxCaption,
+                    //    MessageBoxButton.OK,MessageBoxImage.Information
+                    //    );
                 }
                 else
                 {

@@ -11,13 +11,22 @@ namespace NSAP_ODK.Entities.Database
     {
         private static StringBuilder _csv = new StringBuilder();
         private bool _editSuccess = false;
+        private HashSet<string> _landingSiteSamplingSubmissionsUIDs;
         public LandingSiteSamplingSubmissionViewModel()
         {
-
+            //_landingSiteSamplingSubmissionsUIDs = LandingSiteSamplingSubmissionRepository.GetLSSSUbmissionUIDs();
             LandingSiteSamplingSubmissions = new LandingSiteSamplingSubmissionRepository();
+            
             LandingSiteSamplingSubmissionCollection = new ObservableCollection<LandingSiteSamplingSubmission>(LandingSiteSamplingSubmissions.LandingSiteSamplingSubmissions);
+            _landingSiteSamplingSubmissionsUIDs = LandingSiteSamplingSubmissions.SubmissionUIDs;
             LandingSiteSamplingSubmissionCollection.CollectionChanged += LandingSiteSamplingSubmissionCollection_CollectionChanged;
 
+        }
+
+        
+        public bool SubmissionIDExists(string submissionUID)
+        {
+            return _landingSiteSamplingSubmissionsUIDs.Contains(submissionUID);
         }
         public static void ClearCSV()
         {
@@ -36,8 +45,16 @@ namespace NSAP_ODK.Entities.Database
         {
             if (ls == null)
                 throw new ArgumentNullException("Error: The argument is Null");
-            LandingSiteSamplingSubmissionCollection.Add(ls);
-            return _editSuccess;
+            if (_landingSiteSamplingSubmissionsUIDs.Add(ls.SubmissionID))
+            {
+                LandingSiteSamplingSubmissionCollection.Add(ls);
+                return _editSuccess;
+            }
+            else
+            {
+                return false;
+            }
+            
         }
         public bool Update(LandingSiteSamplingSubmission ls)
         {

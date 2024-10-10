@@ -644,10 +644,17 @@ namespace NSAP_ODK.Entities.Database
         public LandingSiteSampling CreateInstance(int lss_id)
         {
             var lss = LandingSiteSamplings.Create(lss_id);
-            _addToCollectionOnly = true;
-            LandingSiteSamplingCollection.Add(lss);
-            _addToCollectionOnly = false;
-            return lss;
+            if (lss != null)
+            {
+                _addToCollectionOnly = true;
+                LandingSiteSamplingCollection.Add(lss);
+                _addToCollectionOnly = false;
+                return lss;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public LandingSiteSamplingFlattened GetFlattenedItem(int id)

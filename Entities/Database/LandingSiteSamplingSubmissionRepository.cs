@@ -16,10 +16,44 @@ namespace NSAP_ODK.Entities.Database
     {
         public LandingSiteSamplingSubmissionRepository()
         {
+            SubmissionUIDs = new HashSet<string>();
             LandingSiteSamplingSubmissions = getSubmissions();
         }
-        public List<LandingSiteSamplingSubmission> LandingSiteSamplingSubmissions { get; set; }
 
+        public HashSet<string> SubmissionUIDs { get; private set; }
+        public List<LandingSiteSamplingSubmission> LandingSiteSamplingSubmissions { get; set; }
+        public static HashSet<string> GetLSSSUbmissionUIDs()
+        {
+            HashSet<string> submisssionUIDs = new HashSet<string>();
+            if(Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = "Select submission_id from dbo_lss_submissionIDs";
+                        try
+                        {
+                            con.Open();
+                            var dr = cmd.ExecuteReader();
+                            while(dr.Read())
+                            {
+                                submisssionUIDs.Add(dr["submission_id"].ToString());
+                            }
+                        }
+                        catch(Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return submisssionUIDs;
+        }
         public static bool CheckForLSS_SubmissionIDTable()
         {
             bool tableExists = false;
@@ -222,7 +256,7 @@ namespace NSAP_ODK.Entities.Database
                                 LandingSiteSampling = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling((int)dr["landing_site_sampling_id"]),
                                 XFormIdentifier = dr["xFormIdentifier"].ToString()
                             };
-
+                            SubmissionUIDs.Add(landingSiteSamplingSubmission.SubmissionID);
                             this_list.Add(landingSiteSamplingSubmission);
                         }
                     }

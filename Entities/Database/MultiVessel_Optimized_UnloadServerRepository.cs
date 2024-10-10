@@ -271,7 +271,7 @@ namespace NSAP_ODK.Entities.Database
                             }
                             catch
                             {
-                                if(root.RegionEnumeratorText==null)
+                                if (root.RegionEnumeratorText == null)
 
                                 {
                                     lss.EnumeratorText = "";
@@ -334,16 +334,20 @@ namespace NSAP_ODK.Entities.Database
                         LandingSiteSamplingSubmission lsss = null;
                         if (proceed && !lss_is_hidden)
                         {
-                            lsss = new LandingSiteSamplingSubmission
+                            if (!NSAPEntities.LandingSiteSamplingSubmissionViewModel.SubmissionIDExists(root.SubmissionUUID))
                             {
-                                SubmissionID = root.SubmissionUUID,
-                                DateAdded = DateTime.Now,
-                                JSONFile = jsonFileName,
-                                LandingSiteSampling = lss,
-                                XFormIdentifier = root._xform_id_string,
-                                DelayedSave = true
-                            };
-                            proceed = NSAPEntities.LandingSiteSamplingSubmissionViewModel.Add(lsss);
+                                lsss = new LandingSiteSamplingSubmission
+                                {
+                                    SubmissionID = root.SubmissionUUID,
+                                    DateAdded = DateTime.Now,
+                                    JSONFile = jsonFileName,
+                                    LandingSiteSampling = lss,
+                                    XFormIdentifier = root._xform_id_string,
+                                    DelayedSave = true
+                                };
+                                proceed = NSAPEntities.LandingSiteSamplingSubmissionViewModel.Add(lsss);
+                                
+                            }
                         }
 
                         if (proceed)

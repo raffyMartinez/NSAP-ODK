@@ -355,9 +355,17 @@ namespace NSAP_ODK.Entities.Database
         }
         public LandingSiteSampling Create(int lss_id)
         {
-            var lss = getLandingSiteSamplings(lss_id).First();
+            var landingSiteSamplings = getLandingSiteSamplings(lss_id);
+            if (landingSiteSamplings.Count > 0)
+            {
+                var lss = getLandingSiteSamplings(lss_id).First();
 
-            return lss;
+                return lss;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public List<LandingSiteSampling> LandingSiteSamplings { get; set; }
