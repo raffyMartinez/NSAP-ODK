@@ -205,6 +205,7 @@ namespace NSAP_ODK.Entities.Database
         //public async void MakeCalendar(bool isWatchedSpeciesCalendar = false)
         public async Task<bool> MakeCalendar(bool isWatchedSpeciesCalendar = false, bool getFemaleMaturity = false)
         {
+            //Utilities.Logger.LogCalendar("start FishingCalendarDayExViewModel.MakeCalendar");
             _getFemaleMaturity = getFemaleMaturity;
             _isWatchedSpeciesCalendar = isWatchedSpeciesCalendar;
             CalendarEvent?.Invoke(null, new MakeCalendarEventArg { Context = "Preparing calendar data" });
@@ -675,6 +676,8 @@ namespace NSAP_ODK.Entities.Database
                     break;
             }
             CalendarEvent?.Invoke(null, new MakeCalendarEventArg { Context = "Calendar data created" });
+
+            //Utilities.Logger.LogCalendar("end FishingCalendarDayExViewModel.MakeCalendar");
             return true;
         }
 
@@ -775,18 +778,26 @@ namespace NSAP_ODK.Entities.Database
         }
         public async Task<List<FishingCalendarDayEx>> GetCalendarDaysForMonth(AllSamplingEntitiesEventHandler selectedMonth)
         {
+            //Utilities.Logger.LogCalendar("start FishingCalendarDayExViewModel.GetCalendarDaysForMonth");
             CalendarEvent?.Invoke(null, new MakeCalendarEventArg { Context = "Fetching landing data from database" });
             _selectedMonth = selectedMonth;
+
+            //Utilities.Logger.LogCalendar("start building CalendarDaysDictionary");
             if (CalendarDaysDictionary.Keys.Count == 0 || !CalendarDaysDictionary.Keys.Contains(selectedMonth.GUID))
             {
                 CalendarDaysDictionary.Add(selectedMonth.GUID, await Repository.GetCalendarDaysAsync(selectedMonth));
                 UniqueGearListDictionary.Add(selectedMonth.GUID, Repository.UniqueGearSectorList.ToList());
                 VesselUnloadIDsDictionary.Add(selectedMonth.GUID, Repository.GetVesselUnloadIDsOfCalendar(selectedMonth));
             }
+            //Utilities.Logger.LogCalendar($"end building CalendarDaysDictionary with {CalendarDaysDictionary.Count} items");
+
             _fishingCalendarDays = CalendarDaysDictionary[selectedMonth.GUID];
             _gearsAndSectors = UniqueGearListDictionary[selectedMonth.GUID];
             _vesselUnloads = VesselUnloadIDsDictionary[selectedMonth.GUID];
             CalendarEvent?.Invoke(null, new MakeCalendarEventArg { Context = "Fetched landing data from database" });
+
+            //Utilities.Logger.LogCalendar($"FishingCalendarDayExViewModel.GetCalendarDaysForMonth returning with {_fishingCalendarDays.Count} items");
+            //Utilities.Logger.LogCalendar("end FishingCalendarDayExViewModel.GetCalendarDaysForMonth");
             return _fishingCalendarDays;
         }
     }

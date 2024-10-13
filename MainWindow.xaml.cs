@@ -550,6 +550,11 @@ namespace NSAP_ODK
                         {
                             buttonCBL_calendar.Visibility = Visibility.Visible;
                         }
+
+                        //if(Global.OfficeIs64Bit())
+                        //{
+
+                        //}
                     }
                     else
                     {
@@ -4510,7 +4515,7 @@ namespace NSAP_ODK
                     }
                     break;
                 case "tv_MonthViewModel":
-                    
+                    //Logger.LogCalendar("start");
                     if (e.NSAPRegion.RegionWatchedSpeciesViewModel == null)
                     {
                         e.NSAPRegion.RegionWatchedSpeciesViewModel = new RegionWatchedSpeciesViewModel(e.NSAPRegion);

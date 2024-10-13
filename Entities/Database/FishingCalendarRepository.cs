@@ -566,6 +566,7 @@ namespace NSAP_ODK.Entities.Database
         }
         public List<FishingCalendarDayEx> GetCalendarDays(AllSamplingEntitiesEventHandler selectedMonth)
         {
+            //Logger.LogCalendar("start FishingCalendarRepository.GetCalendarDays");
             UniqueGearSectorList.Clear();
             List<FishingCalendarDayEx> days = new List<FishingCalendarDayEx>();
             if (Global.Settings.UsemySQL)
@@ -730,6 +731,8 @@ namespace NSAP_ODK.Entities.Database
                     }
                 }
             }
+            //Logger.LogCalendar($"Fishing calendar days created with {days.Count} in list");
+            //Logger.LogCalendar("end FishingCalendarRepository.GetCalendarDays");
             return days;
         }
     }

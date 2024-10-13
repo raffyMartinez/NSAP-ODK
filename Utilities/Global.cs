@@ -26,7 +26,7 @@ namespace NSAP_ODK.Utilities
     }
     public static class Global
     {
-        
+
         private static DateTime? _commandArgsFilterDate;
         public static event EventHandler<EntityLoadedEventArg> EntityLoading;
         public static event EventHandler<EntityLoadedEventArg> EntityLoaded;
@@ -122,6 +122,52 @@ namespace NSAP_ODK.Utilities
             ConnectionStringGrid25 = "Provider=Microsoft.JET.OLEDB.4.0;data source=" + Grid25MDBPath;
             //ConnectionString = "Provider=Microsoft.ACE.OLEDB.12.0;data source=" + Grid25MDBPath;
             return ConnectionStringGrid25;
+        }
+
+        public static bool OfficeIs64Bit()
+        {
+            bool isOfffice64 = false;
+            string excelPath = Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\excel.exe", "Path", "Key does not exist") + "EXCEL.EXE";
+            if (excelPath != "EXCEL.EXE")
+            {
+                using (BinaryReader br = new BinaryReader(File.Open(excelPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)))
+                {
+                    int fPos = 0;
+                    int fLen = (int)br.BaseStream.Length;
+                    while (fPos < fLen - 5)
+                    {
+                        //byte B1;
+                        //byte B2;
+                        //byte B3;
+                        //byte B4;
+                        //byte B5;
+                        //byte B6;
+                        byte B1 = br.ReadByte();
+                        byte B2 = br.ReadByte();
+                        byte B3 = br.ReadByte();
+                        byte B4 = br.ReadByte();
+                        byte B5 = br.ReadByte();
+                        byte B6 = br.ReadByte();
+                        string fileSig = B1.ToString() + B2.ToString() + B3.ToString() + B4.ToString() + B5.ToString() + B6.ToString();
+                        switch (fileSig)
+                        {
+                            case "806900761":
+                                //MessageBox.Show("File is 32 bit");
+                                isOfffice64 = false;
+                                fPos = fLen;
+                                break;
+                            case "806900100134":
+                                //MessageBox.Show("File is 64 bit");
+                                isOfffice64 = true;
+                                fPos = fLen;
+                                break;
+                        }
+                        fPos++;
+                        br.BaseStream.Seek(-5, SeekOrigin.Current);
+                    }
+                }
+            }
+            return isOfffice64;
         }
         private static void IsMapWinGISRegistered()
         {
@@ -459,7 +505,7 @@ namespace NSAP_ODK.Utilities
                 return string.Empty;
             }
         }
-        
+
         public static string Filter1DateString()
         {
             if (Filter1 != null)
@@ -523,6 +569,8 @@ namespace NSAP_ODK.Utilities
             CommandArgumentIsValidDate = isValid;
             return CommandArgumentIsValidDate;
         }
+
+        public static bool IsCalendarLogging { get; set; }
         public static void DoAppProceed()
         {
             AppProceed = Settings != null && File.Exists(Settings.MDBPath);
@@ -532,6 +580,9 @@ namespace NSAP_ODK.Utilities
                 {
                     switch (CommandArgs[0])
                     {
+                        case "calendar_logging":
+                            IsCalendarLogging = true;
+                            break;
                         case "filtered":
 
                             if (CommandArgs.Count() > 1)
@@ -567,6 +618,7 @@ namespace NSAP_ODK.Utilities
                                             }
                                         }
                                     }
+
                                     else
                                     {
                                         AppProceed = false;

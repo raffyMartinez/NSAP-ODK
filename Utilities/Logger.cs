@@ -19,13 +19,16 @@ namespace NSAP_ODK.Utilities
         FishingGroundCode_csv,
         MajorGrid_csv,
         InlandGridCells_csv,
-        FMAID_csv
+        FMAID_csv,
+        CalendarLog
+
     }
     public static class Logger
     {
         private static string _appVersion = $"Version: {Assembly.GetExecutingAssembly().GetName().Version.ToString()}";
         private static LogType _logType = LogType.Logfile;
         private static string _filepath = "";
+       // private static string _calendarLog = "";
 
         public static string LogTypeModifier { get; set; }
 
@@ -125,6 +128,18 @@ namespace NSAP_ODK.Utilities
             }
         }
 
+        public static void LogCalendar(string s)
+        {
+            if (Global.IsCalendarLogging)
+            {
+                using (StreamWriter writer = new StreamWriter(_filepath, true))
+                {
+                    writer.WriteLine($"Calendar event: {s}");
+                    writer.WriteLine(Environment.NewLine);
+
+                }
+            }
+        }
         public static void Log(string s, bool simpleLog = false, bool addNewLine = true)
         {
             using (StreamWriter writer = new StreamWriter(_filepath, true))

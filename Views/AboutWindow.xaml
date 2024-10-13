@@ -17,7 +17,10 @@
             <Label Content="NSAP-ODK Database" FontSize="18" FontWeight="Bold" HorizontalContentAlignment="Center" Margin="0 0 0 20"/>
             <Label Content="Written by: Rafael Martinez" HorizontalAlignment="Center"/>
             <Label Content="raffy.martinez@gmail.com" HorizontalAlignment="Center" Margin="0 0 0 20"/>
+            
             <Label Content="Application version:" HorizontalAlignment="Center" x:Name="labelVersion"/>
+            <Label Content=".NET version:" HorizontalAlignment="Center" x:Name="labelNetVersion"/>
+            <Label Content="Windows version:" HorizontalAlignment="Center" x:Name="labelWindowsVersion"/>
         </StackPanel>
         <Button Grid.Row="1" Content="Ok" Height="40" Width="40" Click="OnButtonClick"/>
     </Grid>
