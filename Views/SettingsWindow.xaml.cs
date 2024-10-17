@@ -65,6 +65,7 @@ namespace NSAP_ODK.Views
                 textJsonFolder.Text = Global.Settings.JSONFolder;
                 textmySQLBackupFolder.Text = Global.Settings.MySQLBackupFolder;
                 chkUsemySQL.IsChecked = Global.Settings.UsemySQL;
+                chkAlternateCalendar.IsChecked = Global.Settings.UseAlternateCalendar;
                 buttonLocateMySQlBackupFolder.IsEnabled = (bool)chkUsemySQL.IsChecked;
                 chkUsemySQL.Click += ChkUsemySQL_Click;
                 if (Global.Settings.SuggestedDPI == null)
@@ -494,25 +495,26 @@ namespace NSAP_ODK.Views
                     if (ValidateForm())
                     {
                         Global.Settings.BingAPIKey = textBingAPIKey.Text;
-                        Utilities.Global.Settings.MDBPath = textBackenDB.Text;
-                        Utilities.Global.Settings.JSONFolder = textJsonFolder.Text;
-                        Utilities.Global.Settings.CutOFFUndersizedCW = int.Parse(textCutoffWidth.Text);
-                        Utilities.Global.Settings.UsemySQL = (bool)chkUsemySQL.IsChecked;
-                        Utilities.Global.Settings.MySQLBackupFolder = textmySQLBackupFolder.Text;
-                        Utilities.Global.Settings.AcceptableWeightsDifferencePercent = int.Parse(textAcceptableDiff.Text);
-                        Utilities.Global.Settings.DbFilter = textDBFilter.Text;
+                        Global.Settings.MDBPath = textBackenDB.Text;
+                        Global.Settings.JSONFolder = textJsonFolder.Text;
+                        Global.Settings.CutOFFUndersizedCW = int.Parse(textCutoffWidth.Text);
+                        Global.Settings.UsemySQL = (bool)chkUsemySQL.IsChecked;
+                        Global.Settings.UseAlternateCalendar = (bool)chkAlternateCalendar.IsChecked;
+                        Global.Settings.MySQLBackupFolder = textmySQLBackupFolder.Text;
+                        Global.Settings.AcceptableWeightsDifferencePercent = int.Parse(textAcceptableDiff.Text);
+                        Global.Settings.DbFilter = textDBFilter.Text;
                         Global.Settings.CoordinateDisplayFormat = ((KeyValuePair<Mapping.CoordinateDisplayFormat, string>)cboCoordinateFormat.SelectedItem).Key;
                         if (int.TryParse(textDownloadSizeForBatchMode.Text, out int v))
                         {
-                            Utilities.Global.Settings.DownloadSizeForBatchMode = v;
+                            Global.Settings.DownloadSizeForBatchMode = v;
                             Utilities.Settings.DefaultDownloadSizeForBatchMode = v;
                         }
                         if (int.TryParse(textDownloadSizeForBatchModeMultivessel.Text, out v))
                         {
-                            Utilities.Global.Settings.DownloadSizeForBatchModeMultiVessel = v;
+                            Global.Settings.DownloadSizeForBatchModeMultiVessel = v;
                             Utilities.Settings.DefaultDownloadSizeForBatchModeMultiVessel = v;
                         }
-                        Utilities.Global.SaveGlobalSettings();
+                        Global.SaveGlobalSettings();
 
                         if (Global.Filter1 != null && !string.IsNullOrEmpty(_oldDateFilter) && _oldDateFilter != textDBFilter.Text)
                         {

@@ -205,7 +205,7 @@ namespace NSAP_ODK.Entities.Database
         //public async void MakeCalendar(bool isWatchedSpeciesCalendar = false)
         public async Task<bool> MakeCalendar(bool isWatchedSpeciesCalendar = false, bool getFemaleMaturity = false)
         {
-            //Utilities.Logger.LogCalendar("start FishingCalendarDayExViewModel.MakeCalendar");
+            Utilities.Logger.LogCalendar("start FishingCalendarDayExViewModel.MakeCalendar()");
             _getFemaleMaturity = getFemaleMaturity;
             _isWatchedSpeciesCalendar = isWatchedSpeciesCalendar;
             CalendarEvent?.Invoke(null, new MakeCalendarEventArg { Context = "Preparing calendar data" });
@@ -472,7 +472,7 @@ namespace NSAP_ODK.Entities.Database
                     }
                     break;
                 case CalendarViewType.calendarViewTypeSampledLandings:
-
+                    Utilities.Logger.LogCalendar("starting FishingCalendarDayExViewModel.MakeCalendar() switch case CalendarViewType.calendarViewTypeSampledLandings");
                     foreach (var gear_sector in _gearsAndSectors.Where(t => t.SectorCode == "c" || t.SectorCode == "m").OrderBy(t => t.Gear.GearName).ThenBy(t => t.SectorCode))
                     {
                         row = DataTable.NewRow();
@@ -497,6 +497,8 @@ namespace NSAP_ODK.Entities.Database
                         }
                         DataTable.Rows.Add(row);
                     }
+                    Utilities.Logger.LogCalendar($"finished adding rows to datatable with { DataTable.Rows.Count} rows added");
+                    Utilities.Logger.LogCalendar("ending FishingCalendarDayExViewModel.MakeCalendar() switch case CalendarViewType.calendarViewTypeSampledLandings");
                     break;
 
                 case CalendarViewType.calendarViewTypeCountAllLandingsByGear:
@@ -677,7 +679,7 @@ namespace NSAP_ODK.Entities.Database
             }
             CalendarEvent?.Invoke(null, new MakeCalendarEventArg { Context = "Calendar data created" });
 
-            //Utilities.Logger.LogCalendar("end FishingCalendarDayExViewModel.MakeCalendar");
+            Utilities.Logger.LogCalendar("end FishingCalendarDayExViewModel.MakeCalendar()");
             return true;
         }
 
@@ -778,26 +780,26 @@ namespace NSAP_ODK.Entities.Database
         }
         public async Task<List<FishingCalendarDayEx>> GetCalendarDaysForMonth(AllSamplingEntitiesEventHandler selectedMonth)
         {
-            //Utilities.Logger.LogCalendar("start FishingCalendarDayExViewModel.GetCalendarDaysForMonth");
+            Utilities.Logger.LogCalendar("start FishingCalendarDayExViewModel.GetCalendarDaysForMonth");
             CalendarEvent?.Invoke(null, new MakeCalendarEventArg { Context = "Fetching landing data from database" });
             _selectedMonth = selectedMonth;
 
-            //Utilities.Logger.LogCalendar("start building CalendarDaysDictionary");
+            Utilities.Logger.LogCalendar("start building CalendarDaysDictionary");
             if (CalendarDaysDictionary.Keys.Count == 0 || !CalendarDaysDictionary.Keys.Contains(selectedMonth.GUID))
             {
                 CalendarDaysDictionary.Add(selectedMonth.GUID, await Repository.GetCalendarDaysAsync(selectedMonth));
                 UniqueGearListDictionary.Add(selectedMonth.GUID, Repository.UniqueGearSectorList.ToList());
                 VesselUnloadIDsDictionary.Add(selectedMonth.GUID, Repository.GetVesselUnloadIDsOfCalendar(selectedMonth));
             }
-            //Utilities.Logger.LogCalendar($"end building CalendarDaysDictionary with {CalendarDaysDictionary.Count} items");
+            Utilities.Logger.LogCalendar($"end building CalendarDaysDictionary with {CalendarDaysDictionary.Count} items");
 
             _fishingCalendarDays = CalendarDaysDictionary[selectedMonth.GUID];
             _gearsAndSectors = UniqueGearListDictionary[selectedMonth.GUID];
             _vesselUnloads = VesselUnloadIDsDictionary[selectedMonth.GUID];
             CalendarEvent?.Invoke(null, new MakeCalendarEventArg { Context = "Fetched landing data from database" });
 
-            //Utilities.Logger.LogCalendar($"FishingCalendarDayExViewModel.GetCalendarDaysForMonth returning with {_fishingCalendarDays.Count} items");
-            //Utilities.Logger.LogCalendar("end FishingCalendarDayExViewModel.GetCalendarDaysForMonth");
+            Utilities.Logger.LogCalendar($"FishingCalendarDayExViewModel.GetCalendarDaysForMonth returning with {_fishingCalendarDays.Count} items");
+            Utilities.Logger.LogCalendar("end FishingCalendarDayExViewModel.GetCalendarDaysForMonth");
             return _fishingCalendarDays;
         }
     }

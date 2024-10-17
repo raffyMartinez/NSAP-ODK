@@ -104,10 +104,15 @@ namespace NSAP_ODK.Entities
         public static SamplingDaySubmissionViewModel SamplingDaySubmissionViewModel;
 
         public static FishingCalendarDayExViewModel FishingCalendarDayExViewModel;
+
+        public static CalendarMonthViewModel CalendarMonthViewModel;
+        public static CalendarGearSectorViewModel calendarGearSectorViewModel;
+        public static CalendarDayViewModel CalendarDayViewModel;
+
         //public static TotalWtSpViewModel TotalWtSpViewModel;
 
-
-        static NSAPEntities()
+        //public EntitiesToDataTables
+         static NSAPEntities()
         {
             FisheriesSector = FisheriesSector.Municipal;
             Regions = new List<string>();

@@ -829,8 +829,11 @@ namespace NSAP_ODK.Entities.Database
                                                 LEFT JOIN dbo_vessel_unload_weight_validation AS vu_wv ON vu.v_unload_id = vu_wv.v_unload_id
                                             WHERE SD.type_of_sampling = 'rs'";
 
+
+                            bool hasDateFilter = false;
                             if (Global.Filter1 != null)
                             {
+                                hasDateFilter = true;
                                 cmd.Parameters.AddWithValue("@d1", Global.Filter1DateString());
                                 if (Global.Filter2 != null)
                                 {
@@ -851,7 +854,16 @@ namespace NSAP_ODK.Entities.Database
                                 cmd.CommandText += " AND sd1.XFormIdentifier = @srv";
                             }
 
+
                             cmd.CommandText += " ORDER BY vu1.SamplingDate";
+
+                            if (hasDateFilter)
+                            {
+                                string replacedQuery = cmd.CommandText
+                                    .Replace("@d1", $"#{Global.Filter1DateString()}#")
+                                    .Replace("@d2", $"#{Global.Filter2DateString()}#");
+                            }
+
 
                             try
                             {

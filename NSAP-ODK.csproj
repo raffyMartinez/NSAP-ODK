@@ -9,7 +9,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>NSAP_ODK</RootNamespace>
     <AssemblyName>NSAP-ODK</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
@@ -17,6 +17,7 @@
     <Deterministic>true</Deterministic>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -211,8 +212,15 @@
     <Compile Include="Entities\Database\BoatLandingsFromServerRepository.cs" />
     <Compile Include="Entities\Database\BuildingCalendarEventArg.cs" />
     <Compile Include="Entities\Database\BuildSummaryReportEventArg.cs" />
+    <Compile Include="Entities\Database\CalendarDay.cs" />
     <Compile Include="Entities\Database\CalendarDayLineage.cs" />
+    <Compile Include="Entities\Database\CalendarDayViewModel.cs" />
+    <Compile Include="Entities\Database\CalendarGearSectorViewModel.cs" />
+    <Compile Include="Entities\Database\CalendarMonth.cs" />
+    <Compile Include="Entities\Database\CalendarMonthRepository.cs" />
+    <Compile Include="Entities\Database\CalendarMonthViewModel.cs" />
     <Compile Include="Entities\Database\FemaleMaturitySummary.cs" />
+    <Compile Include="Entities\Database\CalendarGearSector.cs" />
     <Compile Include="Entities\Database\MakeCalendarEventArg.cs" />
     <Compile Include="Entities\Database\CarrierBoatLanding_FishingGround.cs" />
     <Compile Include="Entities\Database\CarrierBoatLanding_FishingGroundRepository.cs" />

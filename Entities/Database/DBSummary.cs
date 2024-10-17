@@ -59,39 +59,51 @@ namespace NSAP_ODK.Entities.Database
 
             if (Global.CommandArgs?.Count() > 0)
             {
-                switch (Global.CommandArgs[0])
+                if(Global.Filter1!=null)
                 {
-                    case "filtered":
-                        FilterType = "Filter by date";
-                        if (!string.IsNullOrEmpty(Global.Settings.DbFilter))
-                        {
-                            Filter = Global.Settings.DbFilter;
-                        }
-                        else
-                        {
-                            Filter = Global.Filter1DateString();
-                        }
-                        break;
-                    case "server_id":
-                        FilterType = "Filter by server";
-                        Filter = Global.FilterServerID;
-                        break;
-                    default:
-                        if (Global.Filter1 != null)
-                        {
-                            FilterType = "Filter by date";
-                            if (Global.Filter2 != null)
-                            {
-
-                            }
-                            else
-                            {
-
-                                Filter = Global.Filter1DateString();
-                            }
-                        }
-                        break;
+                    FilterType = "Filter by date";
+                    if (!string.IsNullOrEmpty(Global.Settings.DbFilter))
+                    {
+                        Filter = Global.Settings.DbFilter;
+                    }
+                    else
+                    {
+                        Filter = Global.Filter1DateString();
+                    }
                 }
+                //switch (Global.CommandArgs[0])
+                //{
+                //    case "filtered":
+                //        FilterType = "Filter by date";
+                //        if (!string.IsNullOrEmpty(Global.Settings.DbFilter))
+                //        {
+                //            Filter = Global.Settings.DbFilter;
+                //        }
+                //        else
+                //        {
+                //            Filter = Global.Filter1DateString();
+                //        }
+                //        break;
+                //    case "server_id":
+                //        FilterType = "Filter by server";
+                //        Filter = Global.FilterServerID;
+                //        break;
+                //    default:
+                //        if (Global.Filter1 != null)
+                //        {
+                //            FilterType = "Filter by date";
+                //            if (Global.Filter2 != null)
+                //            {
+
+                //            }
+                //            else
+                //            {
+
+                //                Filter = Global.Filter1DateString();
+                //            }
+                //        }
+                //        break;
+                //}
 
                 CountAllLandings = VesselUnloadRepository.GetTotalSavedLandingsCount();
             }

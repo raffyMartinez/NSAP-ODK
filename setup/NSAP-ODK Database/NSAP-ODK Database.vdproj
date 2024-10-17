@@ -15,6 +15,12 @@
     {
         "Entry"
         {
+        "MsmKey" = "8:_000E0AD2A99EB27E18EBA6B90AB05A7A"
+        "OwnerKey" = "8:_ACC73E8B8C1448FD9D2E1455EAC974FA"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_006E50C512184AC7B1357D3FAA0BD976"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -267,8 +273,14 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_3A5230A2D8C644972501DD2251352050"
+        "OwnerKey" = "8:_ACC73E8B8C1448FD9D2E1455EAC974FA"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_3F8DCA4B32514740C5310E5CFBDDEC21"
-        "OwnerKey" = "8:_46513E45CB7D09A38AEF3EFEEBA90D26"
+        "OwnerKey" = "8:_3A5230A2D8C644972501DD2251352050"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -286,12 +298,6 @@
         "Entry"
         {
         "MsmKey" = "8:_45889CE2CD31B0959709D23B0AC5F6AA"
-        "OwnerKey" = "8:_ACC73E8B8C1448FD9D2E1455EAC974FA"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_46513E45CB7D09A38AEF3EFEEBA90D26"
         "OwnerKey" = "8:_ACC73E8B8C1448FD9D2E1455EAC974FA"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -442,7 +448,7 @@
         "Entry"
         {
         "MsmKey" = "8:_A74C27D0F3D1158A4E88862F2BD57771"
-        "OwnerKey" = "8:_46513E45CB7D09A38AEF3EFEEBA90D26"
+        "OwnerKey" = "8:_3A5230A2D8C644972501DD2251352050"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -543,14 +549,14 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_D623B1C692EE2B3CCA106C270DBC900F"
+        "MsmKey" = "8:_D821DD0DEF2BAE4CBF476759FB4E25C0"
         "OwnerKey" = "8:_ACC73E8B8C1448FD9D2E1455EAC974FA"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_D921E38CEA2BDC97E5DCEB67DA0DD090"
-        "OwnerKey" = "8:_46513E45CB7D09A38AEF3EFEEBA90D26"
+        "OwnerKey" = "8:_3A5230A2D8C644972501DD2251352050"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -724,18 +730,6 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_D623B1C692EE2B3CCA106C270DBC900F"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_46513E45CB7D09A38AEF3EFEEBA90D26"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_6197E85AD0D614A34222442FA6FE8233"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -761,6 +755,12 @@
         {
         "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_07FFAB36EEA90C5A069B4832347DB1D2"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_D821DD0DEF2BAE4CBF476759FB4E25C0"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -946,6 +946,18 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_000E0AD2A99EB27E18EBA6B90AB05A7A"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_3A5230A2D8C644972501DD2251352050"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_D921E38CEA2BDC97E5DCEB67DA0DD090"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -1080,6 +1092,37 @@
         }
         "File"
         {
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_000E0AD2A99EB27E18EBA6B90AB05A7A"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:Gavaghan.Geodesy, Version=1.1.1.0, Culture=neutral, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_000E0AD2A99EB27E18EBA6B90AB05A7A"
+                    {
+                    "Name" = "8:Gavaghan.Geodesy.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:Gavaghan.Geodesy.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_CD6FA8D1E962444DBEE06FB01646D4F1"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_006E50C512184AC7B1357D3FAA0BD976"
             {
             "SourcePath" = "8:..\\..\\bin\\Debug\\icons fish-02.ico"
@@ -1712,6 +1755,37 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_3A5230A2D8C644972501DD2251352050"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:ClosedXML, Version=0.93.1.0, Culture=neutral, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_3A5230A2D8C644972501DD2251352050"
+                    {
+                    "Name" = "8:ClosedXML.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:ClosedXML.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_CD6FA8D1E962444DBEE06FB01646D4F1"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_3F8DCA4B32514740C5310E5CFBDDEC21"
             {
             "AssemblyRegister" = "3:1"
@@ -1757,37 +1831,6 @@
                     }
                 }
             "SourcePath" = "8:K4os.Hash.xxHash.dll"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_CD6FA8D1E962444DBEE06FB01646D4F1"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_46513E45CB7D09A38AEF3EFEEBA90D26"
-            {
-            "AssemblyRegister" = "3:1"
-            "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:ClosedXML, Version=0.93.1.0, Culture=neutral, processorArchitecture=MSIL"
-                "ScatterAssemblies"
-                {
-                    "_46513E45CB7D09A38AEF3EFEEBA90D26"
-                    {
-                    "Name" = "8:ClosedXML.dll"
-                    "Attributes" = "3:512"
-                    }
-                }
-            "SourcePath" = "8:ClosedXML.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_CD6FA8D1E962444DBEE06FB01646D4F1"
@@ -2632,20 +2675,20 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_D623B1C692EE2B3CCA106C270DBC900F"
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_D821DD0DEF2BAE4CBF476759FB4E25C0"
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:Gavaghan.Geodesy, Version=1.1.1.0, Culture=neutral, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:OSVersionExt, Version=3.0.0.0, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_D623B1C692EE2B3CCA106C270DBC900F"
+                    "_D821DD0DEF2BAE4CBF476759FB4E25C0"
                     {
-                    "Name" = "8:Gavaghan.Geodesy.dll"
+                    "Name" = "8:OSVersionExt.dll"
                     "Attributes" = "3:512"
                     }
                 }
-            "SourcePath" = "8:Gavaghan.Geodesy.dll"
+            "SourcePath" = "8:OSVersionExt.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_CD6FA8D1E962444DBEE06FB01646D4F1"
@@ -3347,9 +3390,23 @@
         }
         "Shortcut"
         {
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_098841556C0B44C7A70C7261DF79C732"
+            {
+            "Name" = "8:NSAP-ODK Database (Alternate calendar)"
+            "Arguments" = "8:alt_calendar"
+            "Description" = "8:"
+            "ShowCmd" = "3:1"
+            "IconIndex" = "3:0"
+            "Transitive" = "11:FALSE"
+            "Target" = "8:_66AA25CF031146D1AEA0B3747EA0A58F"
+            "Folder" = "8:_66AA25CF031146D1AEA0B3747EA0A58F"
+            "WorkingFolder" = "8:_66AA25CF031146D1AEA0B3747EA0A58F"
+            "Icon" = "8:"
+            "Feature" = "8:"
+            }
             "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_44084ABEE6B849D49133B46D87F7C62A"
             {
-            "Name" = "8:NSAP-ODK Database"
+            "Name" = "8:NSA"
             "Arguments" = "8:"
             "Description" = "8:"
             "ShowCmd" = "3:1"
@@ -3776,7 +3833,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_ACC73E8B8C1448FD9D2E1455EAC974FA"
             {
-            "SourcePath" = "8:..\\..\\obj\\Release\\NSAP-ODK.exe"
+            "SourcePath" = "8:..\\..\\obj\\Debug\\NSAP-ODK.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_CD6FA8D1E962444DBEE06FB01646D4F1"

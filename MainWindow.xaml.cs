@@ -536,7 +536,7 @@ namespace NSAP_ODK
 
                         if (Global.CommandArgs != null)
                         {
-                            if (Global.CommandArgs.Count() >= 1 && Global.CommandArgs[0] == "filtered" || Global.CommandArgumentIsValidDate)
+                            if (Global.CommandArgs.Count() >= 1 && (Global.Filter1!=null || (bool)CommandArgs.Contains("server_id")))// || Global.CommandArgumentIsValidDate)
                             {
                                 Title += " (Filtered)";
                             }
@@ -4515,55 +4515,83 @@ namespace NSAP_ODK
                     }
                     break;
                 case "tv_MonthViewModel":
-                    //Logger.LogCalendar("start");
-                    if (e.NSAPRegion.RegionWatchedSpeciesViewModel == null)
+                    if (Global.Settings.UseAlternateCalendar)
                     {
-                        e.NSAPRegion.RegionWatchedSpeciesViewModel = new RegionWatchedSpeciesViewModel(e.NSAPRegion);
-                    }
-                    _allSamplingEntitiesEventHandler = e;
-
-                    //CrossTabGenerator.GetVesselUnloads(_allSamplingEntitiesEventHandler);
-                    GridNSAPData.SelectionUnit = DataGridSelectionUnit.Cell;
-                    menuCalendar.Visibility = Visibility.Visible;
-
-                    SetUpCalendarMenu();
-                    _calendarOption = e.CalendarView;
-                    NSAPEntities.FishingCalendarDayExViewModel.CalendarViewType = _calendarOption;
-
-                    NSAPEntities.FishingCalendarDayExViewModel.CalendarEvent += FishingCalendarDayExViewModel_CalendarEvent;
-                    ShowStatusRow();
-                    await NSAPEntities.FishingCalendarDayExViewModel.GetCalendarDaysForMonth(e);
-                    await NSAPEntities.FishingCalendarDayExViewModel.MakeCalendarTask();
-                    //NSAPEntities.FishingCalendarDayExViewModel.MakeCalendar();
-                    GridNSAPData.Columns.Clear();
-                    GridNSAPData.AutoGenerateColumns = true;
-                    GridNSAPData.DataContext = NSAPEntities.FishingCalendarDayExViewModel.DataTable;
-                    if (NSAPEntities.FishingCalendarDayExViewModel.CalendarHasValue)
-                    {
+                        NSAPEntities.CalendarMonthViewModel = new CalendarMonthViewModel(e);
+                        GridNSAPData.SelectionUnit = DataGridSelectionUnit.Cell;
+                        GridNSAPData.Columns.Clear();
+                        GridNSAPData.AutoGenerateColumns = true;
+                        GridNSAPData.DataContext = NSAPEntities.CalendarMonthViewModel.LandingsCountDataTable;
                         GridNSAPData.Visibility = Visibility.Visible;
-                    }
-                    else
-                    {
-                        GridNSAPData.Visibility = Visibility.Collapsed;
-                    }
 
-                    _hasNonSamplingDayColumns = false;
-                    foreach (DataGridColumn c in GridNSAPData.Columns)
-                    {
-                        if (int.TryParse(c.Header.ToString(), out int v))
+                        foreach (DataGridColumn c in GridNSAPData.Columns)
                         {
-                            if (NSAPEntities.FishingCalendarDayExViewModel.DayIsRestDay(v))
+                            if (int.TryParse(c.Header.ToString(), out int v))
                             {
-                                _hasNonSamplingDayColumns = true;
-                                c.CellStyle = new Style(typeof(DataGridCell));
-                                c.CellStyle.Setters.Add(new Setter(DataGridCell.BackgroundProperty, new SolidColorBrush(Colors.LightBlue)));
+                                if (NSAPEntities.CalendarMonthViewModel.DayIsRestDay(v))
+                                {
+                                    _hasNonSamplingDayColumns = true;
+                                    c.CellStyle = new Style(typeof(DataGridCell));
+                                    c.CellStyle.Setters.Add(new Setter(DataGridCell.BackgroundProperty, new SolidColorBrush(Colors.LightBlue)));
+                                }
                             }
                         }
                     }
-                    //SetupCalendar();
-                    SetupCalendarLabels();
-                    NSAPEntities.FishingCalendarDayExViewModel.CalendarEvent += FishingCalendarDayExViewModel_CalendarEvent;
-                    ShowStatusRow(isVisible: false);
+                    else
+                    {
+                        Logger.LogCalendar("start");
+                        if (e.NSAPRegion.RegionWatchedSpeciesViewModel == null)
+                        {
+                            e.NSAPRegion.RegionWatchedSpeciesViewModel = new RegionWatchedSpeciesViewModel(e.NSAPRegion);
+                        }
+                        _allSamplingEntitiesEventHandler = e;
+
+                        //CrossTabGenerator.GetVesselUnloads(_allSamplingEntitiesEventHandler);
+                        GridNSAPData.SelectionUnit = DataGridSelectionUnit.Cell;
+                        menuCalendar.Visibility = Visibility.Visible;
+
+                        SetUpCalendarMenu();
+                        _calendarOption = e.CalendarView;
+                        NSAPEntities.FishingCalendarDayExViewModel.CalendarViewType = _calendarOption;
+
+                        NSAPEntities.FishingCalendarDayExViewModel.CalendarEvent += FishingCalendarDayExViewModel_CalendarEvent;
+                        ShowStatusRow();
+                        await NSAPEntities.FishingCalendarDayExViewModel.GetCalendarDaysForMonth(e);
+                        await NSAPEntities.FishingCalendarDayExViewModel.MakeCalendarTask();
+                        //NSAPEntities.FishingCalendarDayExViewModel.MakeCalendar();
+                        GridNSAPData.Columns.Clear();
+                        GridNSAPData.AutoGenerateColumns = true;
+                        Logger.LogCalendar($"datatable from NSAPEntities.FishingCalendarDayExViewModel.DataTable created with {NSAPEntities.FishingCalendarDayExViewModel.DataTable.Rows.Count} rows");
+                        GridNSAPData.DataContext = NSAPEntities.FishingCalendarDayExViewModel.DataTable;
+                        Logger.LogCalendar($"NSAPEntities.FishingCalendarDayExViewModel.CalendarHasValue?: {NSAPEntities.FishingCalendarDayExViewModel.CalendarHasValue}");
+                        if (NSAPEntities.FishingCalendarDayExViewModel.CalendarHasValue)
+                        {
+                            GridNSAPData.Visibility = Visibility.Visible;
+                        }
+                        else
+                        {
+                            GridNSAPData.Visibility = Visibility.Collapsed;
+                        }
+
+                        _hasNonSamplingDayColumns = false;
+                        foreach (DataGridColumn c in GridNSAPData.Columns)
+                        {
+                            if (int.TryParse(c.Header.ToString(), out int v))
+                            {
+                                if (NSAPEntities.FishingCalendarDayExViewModel.DayIsRestDay(v))
+                                {
+                                    _hasNonSamplingDayColumns = true;
+                                    c.CellStyle = new Style(typeof(DataGridCell));
+                                    c.CellStyle.Setters.Add(new Setter(DataGridCell.BackgroundProperty, new SolidColorBrush(Colors.LightBlue)));
+                                }
+                            }
+                        }
+                        //SetupCalendar();
+                        SetupCalendarLabels();
+                        NSAPEntities.FishingCalendarDayExViewModel.CalendarEvent += FishingCalendarDayExViewModel_CalendarEvent;
+                        ShowStatusRow(isVisible: false);
+                        Logger.LogCalendar("end");
+                    }
                     break;
                 case "tv_MonthViewModelx":
                     _allSamplingEntitiesEventHandler = e;

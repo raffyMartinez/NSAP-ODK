@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NSAP_ODK.Views"
         mc:Ignorable="d"
-        Title="Settings window" Height="541.342" Width="853" WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+        Title="Settings window" Height="569.391" Width="853" WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="40"/>
@@ -51,6 +51,11 @@
             <WrapPanel Margin="10 2">
                 <Label Content="Database date filter" Width="205" HorizontalContentAlignment="Right"/>
                 <TextBox x:Name="textDBFilter" Width="400" Margin="10 0" HorizontalContentAlignment="Right"/>
+            </WrapPanel>
+
+            <WrapPanel Margin="10 2">
+                <Label Content="Use alternate calendar" Width="205" HorizontalContentAlignment="Right"/>
+                <CheckBox x:Name="chkAlternateCalendar" Width="60" Margin="10 0" HorizontalContentAlignment="Right" VerticalAlignment="Center"/>
             </WrapPanel>
             <!--<WrapPanel Margin="10 2">
                 <Label Content="Database server ID filter" Width="205" HorizontalContentAlignment="Right"/>

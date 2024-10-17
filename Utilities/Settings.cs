@@ -22,6 +22,7 @@ namespace NSAP_ODK.Utilities
         public CoordinateDisplayFormat CoordinateDisplayFormat { get; set; }
         public string MDBPath { get; set; }
 
+        public bool UseAlternateCalendar { get; set; }
         public string FolderToSaveMapImages { get; set; }
         public string JSONFolder { get; set; }
         public int? SuggestedDPI { get; set; }

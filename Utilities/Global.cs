@@ -460,6 +460,7 @@ namespace NSAP_ODK.Utilities
                     NSAPEntities.UnmatchedFieldsFromJSONFileViewModel = new UnmatchedFieldsFromJSONFileViewModel();
                     NSAPEntities.FishingCalendarDayExViewModel = new FishingCalendarDayExViewModel();
 
+
                     NSAPEntities.ResetEntititesCurrentIDs();
                     VesselUnloadServerRepository.ResetGroupIDState();
 
@@ -571,27 +572,28 @@ namespace NSAP_ODK.Utilities
         }
 
         public static bool IsCalendarLogging { get; set; }
-        public static void DoAppProceed()
+        private static void ProcessCommandArguments()
         {
-            AppProceed = Settings != null && File.Exists(Settings.MDBPath);
-            if (AppProceed)
+            if (CommandArgs != null && CommandArgs.Count() > 0)
             {
-                if (CommandArgs != null && CommandArgs.Count() > 0)// && CommandArgs[0] == "filtered")
+                int position = 1;
+                foreach (var item in CommandArgs)
                 {
-                    switch (CommandArgs[0])
+                    switch (item)
                     {
+
                         case "calendar_logging":
                             IsCalendarLogging = true;
                             break;
                         case "filtered":
-
-                            if (CommandArgs.Count() > 1)
+                            
+                            if (position<CommandArgs.Count())
                             {
-                                for (int x = 1; x < CommandArgs.Count(); x++)
+                                for (int x = position; x < CommandArgs.Count(); x++)
                                 {
                                     if (DateTime.TryParse(CommandArgs[x], out DateTime d))
                                     {
-                                        if (x == 1)
+                                        if (Filter1 == null)
                                         {
                                             Filter1 = d;
                                             Settings.DbFilter = d.ToString("MMM-dd-yyyy");
@@ -601,6 +603,7 @@ namespace NSAP_ODK.Utilities
                                             Filter2 = d;
                                             Settings.DbFilter += $" - {d.ToString("MMM-dd-yyyy")}";
                                         }
+
                                     }
                                     else if (int.TryParse(CommandArgs[x], out int i))
                                     {
@@ -627,7 +630,7 @@ namespace NSAP_ODK.Utilities
                                     }
                                 }
                             }
-                            else if (CommandArgs.Count() == 1)
+                            else 
                             {
                                 //if (Settings.DbFilter == null)
                                 if (string.IsNullOrEmpty(Settings.DbFilter))
@@ -684,26 +687,35 @@ namespace NSAP_ODK.Utilities
                             }
                             break;
                         case "server_id":
-                            //if (CommandArgs.Count() == 2)
-                            //{
-                            //    FilterServerID = CommandArgs[1];
-                            //}
-                            //else if (CommandArgs.Count() == 1)
-                            //{
-                            //    if (!string.IsNullOrEmpty(Settings.ServerFilter))
-                            //    {
-                            //        FilterServerID = Settings.ServerFilter;
-                            //    }
-                            //}
-                            //else
-                            //{
-                            //    AppProceed = false;
-                            //    FilterError = "Cannot understand filter for server ID";
-                            //}
+                            if (CommandArgs.Count() == 2)
+                            {
+                                FilterServerID = CommandArgs[1];
+                            }
+                            else if (CommandArgs.Count() == 1)
+                            {
+                                if (!string.IsNullOrEmpty(Settings.ServerFilter))
+                                {
+                                    FilterServerID = Settings.ServerFilter;
+                                }
+                            }
+                            else
+                            {
+                                AppProceed = false;
+                                FilterError = "Cannot understand filter for server ID";
+                            }
                             break;
                     }
+                    position++;
                 }
-
+                
+            }
+        }
+        public static void DoAppProceed()
+        {
+            AppProceed = Settings != null && File.Exists(Settings.MDBPath);
+            if (AppProceed)
+            {
+                ProcessCommandArguments();
                 if (Settings.UsemySQL)
                 {
                     RequestLogIn(null, EventArgs.Empty);
