@@ -58,7 +58,7 @@
         "Entry"
         {
         "MsmKey" = "8:_363AAF789793A5FF7196D5F24B4FCAB0"
-        "OwnerKey" = "8:_704F366297C3AA1940BF40C6243DA2FA"
+        "OwnerKey" = "8:_C35477DD576F39F9316A47A551DD7E80"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -226,7 +226,7 @@
         "Entry"
         {
         "MsmKey" = "8:_611F94A6EC9F4396B8B9351DB542B2AA"
-        "OwnerKey" = "8:_704F366297C3AA1940BF40C6243DA2FA"
+        "OwnerKey" = "8:_C35477DD576F39F9316A47A551DD7E80"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -273,12 +273,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_704F366297C3AA1940BF40C6243DA2FA"
-        "OwnerKey" = "8:_E040702B96AA4F70B38CC1F31A02E572"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_7132EF90CB5D8285C225A47F8CF8CEB4"
         "OwnerKey" = "8:_9BEF819D3D28C358D7FFD2F5A17E0FCC"
         "MsmSig" = "8:_UNDEFINED"
@@ -316,7 +310,7 @@
         "Entry"
         {
         "MsmKey" = "8:_75B09575F73483C1F9FA8A6F5A13A0B1"
-        "OwnerKey" = "8:_704F366297C3AA1940BF40C6243DA2FA"
+        "OwnerKey" = "8:_C35477DD576F39F9316A47A551DD7E80"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -334,6 +328,12 @@
         "Entry"
         {
         "MsmKey" = "8:_78CB8006C08C82EE7AE85E800E74C009"
+        "OwnerKey" = "8:_E040702B96AA4F70B38CC1F31A02E572"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_793F7D9CB440E9EE406307B726E88A37"
         "OwnerKey" = "8:_E040702B96AA4F70B38CC1F31A02E572"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -549,6 +549,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_C35477DD576F39F9316A47A551DD7E80"
+        "OwnerKey" = "8:_E040702B96AA4F70B38CC1F31A02E572"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_C75B4017725E5F04A3771FB2BE7C6701"
         "OwnerKey" = "8:_E040702B96AA4F70B38CC1F31A02E572"
         "MsmSig" = "8:_UNDEFINED"
@@ -617,12 +623,6 @@
         {
         "MsmKey" = "8:_D582048A79F44E1C9DE66ED8F52ECA6E"
         "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_D7DA4ABEAE6E46E7648895B96D9BBEB7"
-        "OwnerKey" = "8:_E040702B96AA4F70B38CC1F31A02E572"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -737,6 +737,18 @@
         {
         "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_E040702B96AA4F70B38CC1F31A02E572"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_793F7D9CB440E9EE406307B726E88A37"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_C35477DD576F39F9316A47A551DD7E80"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -953,18 +965,6 @@
         {
         "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_B910A55B7C88DBA064C5BF454070E849"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_D7DA4ABEAE6E46E7648895B96D9BBEB7"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_704F366297C3AA1940BF40C6243DA2FA"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -1920,37 +1920,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_704F366297C3AA1940BF40C6243DA2FA"
-            {
-            "AssemblyRegister" = "3:1"
-            "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:ClosedXML, Version=0.93.1.0, Culture=neutral, processorArchitecture=MSIL"
-                "ScatterAssemblies"
-                {
-                    "_704F366297C3AA1940BF40C6243DA2FA"
-                    {
-                    "Name" = "8:ClosedXML.dll"
-                    "Attributes" = "3:512"
-                    }
-                }
-            "SourcePath" = "8:ClosedXML.dll"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_3D26C9D796E3475A82C8F1BDADFB418C"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_7132EF90CB5D8285C225A47F8CF8CEB4"
             {
             "AssemblyRegister" = "3:1"
@@ -2047,6 +2016,37 @@
                     }
                 }
             "SourcePath" = "8:WPFTextBoxAutoComplete.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_3D26C9D796E3475A82C8F1BDADFB418C"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_793F7D9CB440E9EE406307B726E88A37"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:Gavaghan.Geodesy, Version=1.1.1.0, Culture=neutral, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_793F7D9CB440E9EE406307B726E88A37"
+                    {
+                    "Name" = "8:Gavaghan.Geodesy.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:Gavaghan.Geodesy.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_3D26C9D796E3475A82C8F1BDADFB418C"
@@ -2627,6 +2627,37 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_C35477DD576F39F9316A47A551DD7E80"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:ClosedXML, Version=0.93.1.0, Culture=neutral, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_C35477DD576F39F9316A47A551DD7E80"
+                    {
+                    "Name" = "8:ClosedXML.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:ClosedXML.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_3D26C9D796E3475A82C8F1BDADFB418C"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_C75B4017725E5F04A3771FB2BE7C6701"
             {
             "AssemblyRegister" = "3:1"
@@ -2840,37 +2871,6 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_D7DA4ABEAE6E46E7648895B96D9BBEB7"
-            {
-            "AssemblyRegister" = "3:1"
-            "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:Gavaghan.Geodesy, Version=1.1.1.0, Culture=neutral, processorArchitecture=MSIL"
-                "ScatterAssemblies"
-                {
-                    "_D7DA4ABEAE6E46E7648895B96D9BBEB7"
-                    {
-                    "Name" = "8:Gavaghan.Geodesy.dll"
-                    "Attributes" = "3:512"
-                    }
-                }
-            "SourcePath" = "8:Gavaghan.Geodesy.dll"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_3D26C9D796E3475A82C8F1BDADFB418C"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_DC72A5D96153412AA13762EDE176FBAE"
@@ -3344,7 +3344,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:NSAP-ODK Database"
         "ProductCode" = "8:{453E2746-2625-4BAF-A496-5ED1746FDF95}"
-        "PackageCode" = "8:{3DC7E748-FC8D-462A-BA5F-89A18CCCE998}"
+        "PackageCode" = "8:{336F5AA6-308D-4D92-800F-055E17047EFC}"
         "UpgradeCode" = "8:{2A7D18CB-7BFA-4E1C-8795-746D06E40CC6}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -3489,7 +3489,7 @@
             "Target" = "8:_E040702B96AA4F70B38CC1F31A02E572"
             "Folder" = "8:_72FD98691A0F4ACC8B92A242E07B4A74"
             "WorkingFolder" = "8:_3D26C9D796E3475A82C8F1BDADFB418C"
-            "Icon" = "8:"
+            "Icon" = "8:_2D54D5AC2FF8423A9AF81A3E60AE0CC1"
             "Feature" = "8:"
             }
         }
@@ -3893,7 +3893,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_E040702B96AA4F70B38CC1F31A02E572"
             {
-            "SourcePath" = "8:..\\..\\obj\\Debug\\NSAP-ODK.exe"
+            "SourcePath" = "8:..\\..\\obj\\Release\\NSAP-ODK.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_3D26C9D796E3475A82C8F1BDADFB418C"

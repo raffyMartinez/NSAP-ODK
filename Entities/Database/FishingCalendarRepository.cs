@@ -654,6 +654,8 @@ namespace NSAP_ODK.Entities.Database
                         {
                             con.Open();
                             var reader = cmd.ExecuteReader();
+                            Logger.LogCalendar($"The reader has rows in it: {reader.HasRows}");
+                            int countRowsRead = 0;
                             while (reader.Read())
                             {
                                 try
@@ -717,12 +719,14 @@ namespace NSAP_ODK.Entities.Database
                                         day.TotalWeightMunicipalLandings = null;
                                     }
                                     days.Add(day);
+                                    countRowsRead++;
                                 }
                                 catch (Exception ex)
                                 {
                                     Logger.Log(ex);
                                 }
                             }
+                            Logger.LogCalendar($"Count of rows read is: {countRowsRead}");
                         }
                         catch (Exception ex)
                         {

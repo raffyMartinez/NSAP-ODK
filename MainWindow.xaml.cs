@@ -536,13 +536,14 @@ namespace NSAP_ODK
 
                         if (Global.CommandArgs != null)
                         {
-                            if (Global.CommandArgs.Count() >= 1 && (Global.Filter1!=null || (bool)CommandArgs.Contains("server_id")))// || Global.CommandArgumentIsValidDate)
+                            if (Global.CommandArgs.Count() >= 1 && (Global.Filter1!=null || Global.CommandArgs.Contains("server_id")))
                             {
                                 Title += " (Filtered)";
                             }
-                            else
-                            {
 
+                            if(Global.CommandArgs.Contains("calendar_logging"))
+                            {
+                                Title += " (Calendar debugging mode)";
                             }
                         }
 
