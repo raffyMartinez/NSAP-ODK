@@ -1,6 +1,7 @@
 ﻿using NSAP_ODK.Entities;
 using NSAP_ODK.Entities.Database;
 using NSAP_ODK.Utilities;
+using System;
 using System.Windows;
 
 namespace NSAP_ODK
@@ -24,9 +25,19 @@ namespace NSAP_ODK
 
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            if (e.Args.Length >= 1)
+            AppDomain currentDomain = AppDomain.CurrentDomain;
+            currentDomain.UnhandledException += new UnhandledExceptionEventHandler(ExceptionHandler);
+
+            try
             {
-                Global.CommandArgs = e.Args;
+                if (e.Args.Length >= 1)
+                {
+                    Global.CommandArgs = e.Args;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Handled exception in Application_Startup", ex);
             }
             //MainWindow window = new MainWindow();   
             //if(e.Args.Length==1)
@@ -34,6 +45,11 @@ namespace NSAP_ODK
             //    window.CommandArgs = e.Args[0];
             //}
             //window.Show();
+        }
+        private void ExceptionHandler(object sender, UnhandledExceptionEventArgs args)
+        {
+            Exception ex = (Exception)args.ExceptionObject;
+            Logger.Log("Unhandled exception in Application_Startup", ex);
         }
     }
 }
