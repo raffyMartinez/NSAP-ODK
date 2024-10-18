@@ -124,12 +124,14 @@ namespace NSAP_ODK.Utilities
             return ConnectionStringGrid25;
         }
 
-        public static bool OfficeIs64Bit()
+        public static bool OfficeIs64Bit(bool write_to_log=true)
         {
+            bool officeIsInstalled=false;
             bool isOfffice64 = false;
             string excelPath = Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\excel.exe", "Path", "Key does not exist") + "EXCEL.EXE";
             if (excelPath != "EXCEL.EXE")
             {
+                officeIsInstalled = true;
                 using (BinaryReader br = new BinaryReader(File.Open(excelPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)))
                 {
                     int fPos = 0;
@@ -165,6 +167,24 @@ namespace NSAP_ODK.Utilities
                         fPos++;
                         br.BaseStream.Seek(-5, SeekOrigin.Current);
                     }
+                }
+            }
+            if(write_to_log)
+            {
+                if(officeIsInstalled)
+                {
+                    if(isOfffice64)
+                    {
+                        Logger.Log("Excel (MS OFfice) is 64bit");
+                    }
+                    else
+                    {
+                        Logger.Log("Excel (MS OFfice) is not 64bit");
+                    }
+                }
+                else
+                {
+                    Logger.Log("Excel (MS OFfice) is not installed");
                 }
             }
             return isOfffice64;

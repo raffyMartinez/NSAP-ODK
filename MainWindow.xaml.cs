@@ -483,120 +483,125 @@ namespace NSAP_ODK
 
         private async void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
-
-            Global.RequestLogIn += OnMysQLRequestLogin;
-
-            Global.DoAppProceed();
-            if (Global.AppProceed)
+            try
             {
-                _currentDisplayMode = DataDisplayMode.Dashboard;
-                SetDataDisplayMode();
+                Global.RequestLogIn += OnMysQLRequestLogin;
 
-                if (!Global.Settings.UsemySQL || !Global.MySQLLogInCancelled)
+                Global.DoAppProceed();
+                if (Global.AppProceed)
                 {
-                    //ShowSplash();
+                    _currentDisplayMode = DataDisplayMode.Dashboard;
+                    SetDataDisplayMode();
 
-                    //await ShowSplashAsync();
-                    ShowSplash();
-
-
-                    //CSVFIleManager.ReadCSVXML();
-                    if (
-                        NSAPEntities.NSAPRegionViewModel.Count > 0 &&
-                        NSAPEntities.FishSpeciesViewModel.Count > 0 &&
-                        NSAPEntities.NotFishSpeciesViewModel.Count > 0 &&
-                        NSAPEntities.FMAViewModel.Count > 0
-                        )
+                    if (!Global.Settings.UsemySQL || !Global.MySQLLogInCancelled)
                     {
+                        //ShowSplash();
 
-                        buttonDelete.IsEnabled = false;
-                        buttonEdit.IsEnabled = false;
-                        dbPathLabel.Content = Global.MDBPath;
+                        //await ShowSplashAsync();
+                        ShowSplash();
 
 
-                        //SetUpCalendarMenu();
-                        menuDatabaseSummary.IsChecked = true;
-
-                        CrossTabManager.CrossTabEvent += OnCrossTabEvent;
-                        _timer = new DispatcherTimer();
-                        _timer.Tick += OnTimerTick;
-                        if (NSAPEntities.SummaryItemViewModel != null)
+                        //CSVFIleManager.ReadCSVXML();
+                        if (
+                            NSAPEntities.NSAPRegionViewModel.Count > 0 &&
+                            NSAPEntities.FishSpeciesViewModel.Count > 0 &&
+                            NSAPEntities.NotFishSpeciesViewModel.Count > 0 &&
+                            NSAPEntities.FMAViewModel.Count > 0
+                            )
                         {
-                            NSAPEntities.SummaryItemViewModel.BuildingSummaryTable += SummaryItemViewModel_BuildingSummaryTable;
-                            NSAPEntities.SummaryItemViewModel.BuildingOrphanedEntity += SummaryItemViewModel_BuildingOrphanedEntity;
-                            DownloadFromServerWindow.RefreshDatabaseSummaryTable += DownloadFromServerWindow_RefreshDatabaseSummaryTable;
-                            NSAPEntities.FishingVesselViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
-                            NSAPEntities.SummaryItemViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
-                            GearUnloadRepository.ProcessingItemsEvent += OnProcessingItemsEvent;
-                            NSAPEntities.LandingSiteSamplingViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
-                            treeViewDownloadHistory.MouseRightButtonUp += OnMenuRightClick;
-                        }
-                        CreateTablesInAccess.GetMDBColumnInfo(Global.ConnectionString);
-                        _httpClient.Timeout = new TimeSpan(0, 10, 0);
 
-                        if (Global.CommandArgs != null)
-                        {
-                            if (Global.CommandArgs.Count() >= 1 && (Global.Filter1!=null || Global.CommandArgs.Contains("server_id")))
+                            buttonDelete.IsEnabled = false;
+                            buttonEdit.IsEnabled = false;
+                            dbPathLabel.Content = Global.MDBPath;
+
+
+                            //SetUpCalendarMenu();
+                            menuDatabaseSummary.IsChecked = true;
+
+                            CrossTabManager.CrossTabEvent += OnCrossTabEvent;
+                            _timer = new DispatcherTimer();
+                            _timer.Tick += OnTimerTick;
+                            if (NSAPEntities.SummaryItemViewModel != null)
                             {
-                                Title += " (Filtered)";
+                                NSAPEntities.SummaryItemViewModel.BuildingSummaryTable += SummaryItemViewModel_BuildingSummaryTable;
+                                NSAPEntities.SummaryItemViewModel.BuildingOrphanedEntity += SummaryItemViewModel_BuildingOrphanedEntity;
+                                DownloadFromServerWindow.RefreshDatabaseSummaryTable += DownloadFromServerWindow_RefreshDatabaseSummaryTable;
+                                NSAPEntities.FishingVesselViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
+                                NSAPEntities.SummaryItemViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
+                                GearUnloadRepository.ProcessingItemsEvent += OnProcessingItemsEvent;
+                                NSAPEntities.LandingSiteSamplingViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
+                                treeViewDownloadHistory.MouseRightButtonUp += OnMenuRightClick;
+                            }
+                            CreateTablesInAccess.GetMDBColumnInfo(Global.ConnectionString);
+                            _httpClient.Timeout = new TimeSpan(0, 10, 0);
+
+                            if (Global.CommandArgs != null)
+                            {
+                                if (Global.CommandArgs.Count() >= 1 && (Global.Filter1 != null || Global.CommandArgs.Contains("server_id")))
+                                {
+                                    Title += " (Filtered)";
+                                }
+
+                                if (Global.CommandArgs.Contains("calendar_logging"))
+                                {
+                                    Title += " (Calendar debugging mode)";
+                                }
                             }
 
-                            if(Global.CommandArgs.Contains("calendar_logging"))
+                            if (Global.HasCarrierBoatLandings)
                             {
-                                Title += " (Calendar debugging mode)";
+                                buttonCBL_calendar.Visibility = Visibility.Visible;
                             }
-                        }
 
-                        if (Global.HasCarrierBoatLandings)
+
+
+                            Global.OfficeIs64Bit(write_to_log: true);
+
+                        }
+                        else
                         {
-                            buttonCBL_calendar.Visibility = Visibility.Visible;
+                            ShowDatabaseNotFoundView();
                         }
+                        mainStatusLabel.Content = string.Empty;
 
-                        //if(Global.OfficeIs64Bit())
-                        //{
-
-                        //}
                     }
                     else
                     {
                         ShowDatabaseNotFoundView();
+                        mainStatusLabel.Content = "Application database not found";
                     }
-                    mainStatusLabel.Content = string.Empty;
+                    SetMenuAndOtherToolbarButtonsVisibility(Visibility.Visible);
 
                 }
-                else
+
+                if (Global.Settings != null)
                 {
-                    ShowDatabaseNotFoundView();
-                    mainStatusLabel.Content = "Application database not found";
+                    if (!File.Exists(Global.Settings.MDBPath))
+                    {
+                        ResetDisplay();
+                        ShowDatabaseNotFoundView();
+                    }
+                    else if (Global.Settings.UsemySQL)
+                    {
+                        Title += " - MySQL";
+                    }
                 }
-                SetMenuAndOtherToolbarButtonsVisibility(Visibility.Visible);
-
-            }
-
-            if (Global.Settings != null)
-            {
-                if (!File.Exists(Global.Settings.MDBPath))
+                else if (Global.Settings == null)
                 {
                     ResetDisplay();
                     ShowDatabaseNotFoundView();
                 }
-                else if (Global.Settings.UsemySQL)
+
+                if (!string.IsNullOrEmpty(Global.FilterError))
                 {
-                    Title += " - MySQL";
+                    ShowDatabaseNotFoundView(isFilterError: true);
+                    MessageBox.Show(Global.FilterError, Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
-            else if (Global.Settings == null)
+            catch (Exception ex)
             {
-                ResetDisplay();
-                ShowDatabaseNotFoundView();
+                Logger.Log("handler for things called in MainWindow.OnWindowLoaded", ex);
             }
-
-            if (!string.IsNullOrEmpty(Global.FilterError))
-            {
-                ShowDatabaseNotFoundView(isFilterError: true);
-                MessageBox.Show(Global.FilterError, Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-
 
         }
 
@@ -3162,7 +3167,7 @@ namespace NSAP_ODK
                 case "menuCalendarSpeciesMapping":
                 case "menuCalendarDaySpeciesGearMapping":
                     string calendarDayFailMessage = "";
-                    
+
                     Mapping.MapWindowManager.OpenMapWindow(this);
                     Mapping.FishingGroundPointsFromCalendarMappingManager.MapInteractionHandler = Mapping.MapWindowManager.MapInterActionHandler;
                     Mapping.FishingGroundPointsFromCalendarMappingManager.EntitiesMonth = _allSamplingEntitiesEventHandler;
@@ -3211,7 +3216,7 @@ namespace NSAP_ODK
                                     sp_id = NSAPEntities.NotFishSpeciesViewModel.GetSpecies(_speciesName).SpeciesID;
                                 }
                             }
-                            vu_ids = VesselCatchRepository.GetVesselUnloadIDs(_treeItemData, mi.Tag.ToString(), (int)_calendarDay, sp_id,  _gearCode, _sector_code);
+                            vu_ids = VesselCatchRepository.GetVesselUnloadIDs(_treeItemData, mi.Tag.ToString(), (int)_calendarDay, sp_id, _gearCode, _sector_code);
                             if (await Mapping.FishingGroundPointsFromCalendarMappingManager.MapFishingGroundPoint(vesselUnloadIDs: vu_ids) == false)
                             {
                                 calendarDayFailMessage = "Sampled landings do not contain fishing ground data";
@@ -5073,7 +5078,7 @@ namespace NSAP_ODK
                     break;
                 case "contextMenuMeasurementCountsMonth":
                     VesselCatchRepository.GetSpeciesMeasurementCounts(e);
-                    SetUpSummaryGrid(SummaryLevelType.LandingSiteMonth, GridNSAPData, treeviewData:_allSamplingEntitiesEventHandler , summaryName: "landingSiteMonthMeasurementCounts");
+                    SetUpSummaryGrid(SummaryLevelType.LandingSiteMonth, GridNSAPData, treeviewData: _allSamplingEntitiesEventHandler, summaryName: "landingSiteMonthMeasurementCounts");
                     break;
             }
         }
@@ -5800,9 +5805,9 @@ namespace NSAP_ODK
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Latest date of downloaded e-forms ", Binding = new Binding("DBSummary.LatestDownloadFormattedDate") });
                     break;
                 case SummaryLevelType.LandingSiteMonth:
-                    if(!string.IsNullOrEmpty(summaryName))
+                    if (!string.IsNullOrEmpty(summaryName))
                     {
-                        if(summaryName=="landingSiteMonthMeasurementCounts")
+                        if (summaryName == "landingSiteMonthMeasurementCounts")
                         {
                             targetGrid.SelectionMode = DataGridSelectionMode.Extended;
                             targetGrid.DataContext = VesselCatchRepository.GetSpeciesMeasurementCounts(treeviewData);
@@ -6302,7 +6307,7 @@ namespace NSAP_ODK
                                             switch (_calendarGridColumnName)
                                             {
                                                 case "Sector":
-                                                    if (_isWatchedSpeciesCalendar )
+                                                    if (_isWatchedSpeciesCalendar)
                                                     {
                                                         if (!_isMeasuredWatchedSpeciesCalendar)
                                                         {
@@ -6371,7 +6376,7 @@ namespace NSAP_ODK
                                                             proceed = double.TryParse(_calendarDayValue, out double d);
                                                         }
                                                     }
-                                                    if (proceed && _gearName!="All gears")
+                                                    if (proceed && _gearName != "All gears")
                                                     {
                                                         m = null;
                                                         string samplingDate = $"{((DateTime)_monthYear).ToString("MMMM")} {_calendarDay}, {((DateTime)_monthYear).ToString("yyyy")}";

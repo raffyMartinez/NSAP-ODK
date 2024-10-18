@@ -39,6 +39,9 @@ namespace NSAP_ODK
             {
                 Logger.Log("Handled exception in Application_Startup", ex);
             }
+
+            
+
             //MainWindow window = new MainWindow();   
             //if(e.Args.Length==1)
             //{

@@ -48,17 +48,20 @@ namespace NSAP_ODK.Mapping
         }
         public static void Cleanup()
         {
-            foreach (var item in _tempFiles)
+            if (_tempFiles != null && _tempFiles.Count > 0)
             {
-                if (File.Exists(item))
+                foreach (var item in _tempFiles)
                 {
-                    try
+                    if (File.Exists(item))
                     {
-                        File.Delete(item);
-                    }
-                    catch
-                    {
-                        //ignore
+                        try
+                        {
+                            File.Delete(item);
+                        }
+                        catch
+                        {
+                            //ignore
+                        }
                     }
                 }
             }
