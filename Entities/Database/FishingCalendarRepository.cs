@@ -564,8 +564,10 @@ namespace NSAP_ODK.Entities.Database
             }
             return speciesCalendarDays;
         }
+        public static string GetCalendarDaysQuery { get; private set; }
         public List<FishingCalendarDayEx> GetCalendarDays(AllSamplingEntitiesEventHandler selectedMonth)
         {
+            GetCalendarDaysQuery = string.Empty;
             Logger.LogCalendar("start FishingCalendarRepository.GetCalendarDays()");
             UniqueGearSectorList.Clear();
             List<FishingCalendarDayEx> days = new List<FishingCalendarDayEx>();
@@ -588,6 +590,61 @@ namespace NSAP_ODK.Entities.Database
                         cmd.Parameters.AddWithValue("@month_start", month_start.ToString("MM/dd/yyyy"));
                         cmd.Parameters.AddWithValue("@month_end", month_start.AddMonths(1).ToString("MM/dd/yyyy"));
 
+                        //cmd.CommandText = @"SELECT 
+                        //                        dbo_LC_FG_sample_day.sdate,
+                        //                        dbo_gear_unload.unload_gr_id, 
+                        //                        dbo_LC_FG_sample_day_1.number_gear_types_in_landingsite, 
+                        //                        dbo_LC_FG_sample_day_1.number_landings, 
+                        //                        dbo_LC_FG_sample_day_1.number_landings_sampled, 
+                        //                        dbo_gear_unload.gr_id, 
+                        //                        dbo_LC_FG_sample_day.sampleday, 
+                        //                        dbo_LC_FG_sample_day.has_fishing_operation, 
+                        //                        dbo_LC_FG_sample_day.remarks, 
+                        //                        dbo_vessel_unload_1.sector_code, 
+                        //                        Count(dbo_vessel_unload.v_unload_id) AS count_unloads, 
+                        //                        Sum(dbo_vessel_unload.catch_total) AS sum_catch_total, 
+                        //                        First(dbo_gear_unload.gear_count_municipal) AS count_municipal, 
+                        //                        First(dbo_gear_unload.gear_count_commercial) AS count_commercial, 
+                        //                        First(dbo_gear_unload.gear_catch_municipal) AS catch_municipal, 
+                        //                        First(dbo_gear_unload.gear_catch_commercial) AS catch_commercial
+                        //                    FROM ((
+                        //                        dbo_LC_FG_sample_day LEFT JOIN 
+                        //                        (dbo_gear_unload LEFT JOIN 
+                        //                        dbo_vessel_unload ON 
+                        //                        dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
+                        //                        dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN
+                        //                        dbo_LC_FG_sample_day_1 ON
+                        //                        dbo_LC_FG_sample_day.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id) LEFT JOIN
+                        //                        dbo_vessel_unload_1 ON dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id
+                        //                    GROUP BY 
+                        //                        dbo_LC_FG_sample_day.sdate,
+                        //                        dbo_gear_unload.unload_gr_id, 
+                        //                        dbo_LC_FG_sample_day_1.number_gear_types_in_landingsite, 
+                        //                        dbo_LC_FG_sample_day_1.number_landings, 
+                        //                        dbo_LC_FG_sample_day_1.number_landings_sampled, 
+                        //                        dbo_gear_unload.gr_id, 
+                        //                        dbo_LC_FG_sample_day.sampleday, 
+                        //                        dbo_LC_FG_sample_day.has_fishing_operation, 
+                        //                        dbo_LC_FG_sample_day.remarks, 
+                        //                        dbo_vessel_unload_1.sector_code, 
+                        //                        dbo_LC_FG_sample_day.region_id, 
+                        //                        dbo_LC_FG_sample_day.fma, 
+                        //                        dbo_LC_FG_sample_day.ground_id, 
+                        //                        dbo_LC_FG_sample_day.land_ctr_id, 
+                        //                        dbo_LC_FG_sample_day.type_of_sampling, 
+                        //                        dbo_LC_FG_sample_day.sdate
+                        //                    HAVING 
+                        //                        dbo_LC_FG_sample_day.region_id=@nsapRegion AND 
+                        //                        dbo_LC_FG_sample_day.fma=@fma AND 
+                        //                        dbo_LC_FG_sample_day.ground_id=@fishing_ground AND 
+                        //                        dbo_LC_FG_sample_day.land_ctr_id=@landing_site AND 
+                        //                        dbo_LC_FG_sample_day.type_of_sampling=@sampling_type AND 
+                        //                        dbo_LC_FG_sample_day.sdate>=@month_start AND 
+                        //                        dbo_LC_FG_sample_day.sdate<@month_end";
+
+
+                        /// changed dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) LEFT JOIN from INNER JOIN 
+                        /// could be the reason why this query doesnt return any rows in some instances of Windows 11
                         cmd.CommandText = @"SELECT 
                                                 dbo_LC_FG_sample_day.sdate,
                                                 dbo_gear_unload.unload_gr_id, 
@@ -610,7 +667,7 @@ namespace NSAP_ODK.Entities.Database
                                                 (dbo_gear_unload LEFT JOIN 
                                                 dbo_vessel_unload ON 
                                                 dbo_gear_unload.unload_gr_id = dbo_vessel_unload.unload_gr_id) ON 
-                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) INNER JOIN
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_gear_unload.unload_day_id) LEFT JOIN
                                                 dbo_LC_FG_sample_day_1 ON
                                                 dbo_LC_FG_sample_day.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id) LEFT JOIN
                                                 dbo_vessel_unload_1 ON dbo_vessel_unload.v_unload_id = dbo_vessel_unload_1.v_unload_id
@@ -641,7 +698,7 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_LC_FG_sample_day.sdate<@month_end";
                         //AND dbo_gear_unload.gr_id Is Not Null";
 
-                        string qry = cmd.CommandText
+                        GetCalendarDaysQuery = cmd.CommandText
                             .Replace("@nsapRegion", $"'{selectedMonth.NSAPRegion.Code}'")
                             .Replace("@fma", selectedMonth.FMA.FMAID.ToString())
                             .Replace("@fishing_ground", $"'{selectedMonth.FishingGround.Code}'")
@@ -649,6 +706,8 @@ namespace NSAP_ODK.Entities.Database
                             .Replace("@sampling_type", "'rs'")
                             .Replace("@month_start", $"#{month_start.ToString("MM/d/yyyy")}#")
                             .Replace("@month_end", $"#{month_start.AddMonths(1).ToString("MM/d/yyyy")}#");
+
+                        Logger.LogCalendar($"Query of calendar days:\r\n{GetCalendarDaysQuery}", includeEventLine: false);
 
                         try
                         {

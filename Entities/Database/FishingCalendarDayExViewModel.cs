@@ -787,7 +787,14 @@ namespace NSAP_ODK.Entities.Database
             Utilities.Logger.LogCalendar("start building CalendarDaysDictionary");
             if (CalendarDaysDictionary.Keys.Count == 0 || !CalendarDaysDictionary.Keys.Contains(selectedMonth.GUID))
             {
+                //var result = await Repository.GetCalendarDaysAsync(selectedMonth);
+                //if(result.Count==0)
+                //{
+                //    Utilities.Logger.LogCalendar("Getting calendar days direct method (not await-async)");
+                //    result = Repository.GetCalendarDays(selectedMonth);
+                //}
                 CalendarDaysDictionary.Add(selectedMonth.GUID, await Repository.GetCalendarDaysAsync(selectedMonth));
+                //CalendarDaysDictionary.Add(selectedMonth.GUID, result);
                 UniqueGearListDictionary.Add(selectedMonth.GUID, Repository.UniqueGearSectorList.ToList());
                 VesselUnloadIDsDictionary.Add(selectedMonth.GUID, Repository.GetVesselUnloadIDsOfCalendar(selectedMonth));
             }

@@ -28,7 +28,7 @@ namespace NSAP_ODK.Utilities
         private static string _appVersion = $"Version: {Assembly.GetExecutingAssembly().GetName().Version.ToString()}";
         private static LogType _logType = LogType.Logfile;
         private static string _filepath = "";
-       // private static string _calendarLog = "";
+        // private static string _calendarLog = "";
 
         public static string LogTypeModifier { get; set; }
 
@@ -128,15 +128,22 @@ namespace NSAP_ODK.Utilities
             }
         }
 
-        public static void LogCalendar(string s)
+        public static void LogCalendar(string s, bool includeEventLine = true)
         {
             if (Global.IsCalendarLogging)
             {
                 using (StreamWriter writer = new StreamWriter(_filepath, true))
                 {
-                    writer.WriteLine($"Calendar event: {s}");
+                    string dateLine = $"Date :{DateTime.Now.ToString()} Version:{_appVersion}";
+                    if (includeEventLine)
+                    {
+                        writer.WriteLine($"Calendar event: {s} {dateLine}");
+                    }
+                    else
+                    {
+                        writer.WriteLine($"{s}\r\n{dateLine}");
+                    }
                     writer.WriteLine(Environment.NewLine);
-
                 }
             }
         }
