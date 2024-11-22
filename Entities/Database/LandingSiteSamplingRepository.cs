@@ -353,7 +353,56 @@ namespace NSAP_ODK.Entities.Database
 
             // return proceed;
         }
-        public LandingSiteSampling Create(int lss_id)
+
+        public static List<DateTime> GetMonthsSampledInLandingSite(LandingSite ls, FishingGround fg, FMA fma, NSAPRegion reg)
+        {
+            HashSet<DateTime> dateTimes = new HashSet<DateTime>();
+            if(Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@region_id", reg.Code);
+                        cmd.Parameters.AddWithValue("@ls_id", ls.LandingSiteID);
+                        cmd.Parameters.AddWithValue("@fg_id", fg.Code);
+                        cmd.Parameters.AddWithValue("@fma_id", fma.FMAID);
+                        
+
+                        cmd.CommandText = @"SELECT sdate
+                                            FROM dbo_LC_FG_sample_day
+                                            WHERE 
+                                                dbo_LC_FG_sample_day.region_id=@region_id AND 
+                                                dbo_LC_FG_sample_day.land_ctr_id=@ls_id AND 
+                                                dbo_LC_FG_sample_day.ground_id=@fg_id AND 
+                                                dbo_LC_FG_sample_day.fma=@fma_id
+                                            ORDER BY sdate";
+                        try
+                        {
+                            con.Open();
+                            var dr = cmd.ExecuteReader();
+                            while (dr.Read())
+                            {
+                                var sDate = (DateTime)dr["sdate"];
+                                dateTimes.Add(new DateTime(sDate.Year, sDate.Month, 1));
+                            }
+                        }
+                        catch(Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+
+                    }
+                }
+            }
+            return dateTimes.ToList();
+        }
+
+        public LandingSiteSampling Create( int lss_id)
         {
             var landingSiteSamplings = getLandingSiteSamplings(lss_id);
             if (landingSiteSamplings.Count > 0)

@@ -1142,7 +1142,7 @@ namespace NSAP_ODK.Entities.Database
                                 GearUsedText = gu.GearUsedText,
                             };
                             loopCount++;
-                            Console.WriteLine($"loopCount: {loopCount}");
+                            //Console.WriteLine($"loopCount: {loopCount}");
                             //GetCountSampledLandingsOfGear(g_u, list_lss);
                             gus.Add(g_u);
                         }
@@ -1441,6 +1441,8 @@ namespace NSAP_ODK.Entities.Database
             }
             return results;
         }
+
+
         public List<DateTime> GetMonthsSampledInLandingSite(LandingSite ls, FishingGround fg)
         {
             List<DateTime> results = new List<DateTime>();
@@ -2141,6 +2143,28 @@ namespace NSAP_ODK.Entities.Database
             return gearUnloads;
         }
 
+        public GearUnload GetGearUnload(string gearCode, int day, AllSamplingEntitiesEventHandler month)
+        {
+            DateTime sDate = ((DateTime)month.MonthSampled).AddDays(day - 1);
+            GearUnload gu = null;
+            try
+            {
+                //var gus = SummaryItemCollection.Where(t => t.SamplingDayDate == sDate);
+
+                gu = SummaryItemCollection.FirstOrDefault(t =>
+                 t.RegionID == month.NSAPRegion.Code &&
+                 t.FMAId == month.FMA.FMAID &&
+                 t.FishingGroundID == month.FishingGround.Code &&
+                 t.LandingSiteID == month.LandingSite.LandingSiteID &&
+                 t.SamplingDayDate == sDate &&
+                 t.GearCode == gearCode).GearUnload;
+            }
+            catch(Exception ex)
+            {
+                Logger.Log(ex);
+            }
+            return gu;
+        }
         public GearUnload GetGearUnload(int gearUnloadID)
         {
             return SummaryItemCollection.FirstOrDefault(t => t.GearUnloadID == gearUnloadID)?.GearUnload;

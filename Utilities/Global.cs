@@ -61,6 +61,12 @@ namespace NSAP_ODK.Utilities
         //    return stream;
         //}
         //public static bool CancelOperation { get; set; }
+
+        public static string MaturityStageFromCode(string code)
+        {
+
+            return MaturityItemsSource.MaturityStageFromCode(code);
+        }
         public static bool IsMapComponentRegistered
         {
             get { return _isMapComponentRegistered; }
@@ -124,9 +130,9 @@ namespace NSAP_ODK.Utilities
             return ConnectionStringGrid25;
         }
 
-        public static bool OfficeIs64Bit(bool write_to_log=true)
+        public static bool OfficeIs64Bit(bool write_to_log = true)
         {
-            bool officeIsInstalled=false;
+            bool officeIsInstalled = false;
             bool isOfffice64 = false;
             string excelPath = Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\excel.exe", "Path", "Key does not exist") + "EXCEL.EXE";
             if (excelPath != "EXCEL.EXE")
@@ -169,11 +175,11 @@ namespace NSAP_ODK.Utilities
                     }
                 }
             }
-            if(write_to_log)
+            if (write_to_log)
             {
-                if(officeIsInstalled)
+                if (officeIsInstalled)
                 {
-                    if(isOfffice64)
+                    if (isOfffice64)
                     {
                         Logger.Log("Excel (MS OFfice) is 64bit");
                     }
@@ -201,8 +207,12 @@ namespace NSAP_ODK.Utilities
                 _isMapComponentRegistered = false;
             }
         }
+
+        public static Entities.ItemSources.MaturityItemsSource MaturityItemsSource { get; private set; }
         static Global()
         {
+            MaturityItemsSource = new Entities.ItemSources.MaturityItemsSource();
+            MaturityItemsSource.GetValues();
 
             // if default settings exist
             if (File.Exists(_UserSettingsPath))
@@ -604,10 +614,11 @@ namespace NSAP_ODK.Utilities
 
                         case "calendar_logging":
                             IsCalendarLogging = true;
+                            Logger.Log("Application opened in calendar debug mode");
                             break;
                         case "filtered":
-                            
-                            if (position<CommandArgs.Count())
+
+                            if (position < CommandArgs.Count())
                             {
                                 for (int x = position; x < CommandArgs.Count(); x++)
                                 {
@@ -650,7 +661,7 @@ namespace NSAP_ODK.Utilities
                                     }
                                 }
                             }
-                            else 
+                            else
                             {
                                 //if (Settings.DbFilter == null)
                                 if (string.IsNullOrEmpty(Settings.DbFilter))
@@ -727,7 +738,7 @@ namespace NSAP_ODK.Utilities
                     }
                     position++;
                 }
-                
+
             }
         }
         public static void DoAppProceed()

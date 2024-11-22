@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.34931.43
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NSAP-ODK", "NSAP-ODK.csproj", "{8054761F-F78F-4E3F-A177-85263E70FFF8}"
 EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "NSAP-ODK Database", "setupNF4.8\NSAP-ODK Database\NSAP-ODK Database.vdproj", "{CD5F96A6-C512-4527-8129-D194D983A048}"
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "NSAP-ODK Database", "NSAP-ODK Septup nov 11 2024\NSAP-ODK Database\NSAP-ODK Database.vdproj", "{A253947B-020F-4525-BFD1-2B36C9E2E47F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,16 +41,16 @@ Global
 		{8054761F-F78F-4E3F-A177-85263E70FFF8}.Release|x64.Build.0 = Release|Any CPU
 		{8054761F-F78F-4E3F-A177-85263E70FFF8}.Release|x86.ActiveCfg = Release|Any CPU
 		{8054761F-F78F-4E3F-A177-85263E70FFF8}.Release|x86.Build.0 = Release|Any CPU
-		{CD5F96A6-C512-4527-8129-D194D983A048}.Debug|Any CPU.ActiveCfg = Debug
-		{CD5F96A6-C512-4527-8129-D194D983A048}.Debug|ARM.ActiveCfg = Debug
-		{CD5F96A6-C512-4527-8129-D194D983A048}.Debug|ARM64.ActiveCfg = Debug
-		{CD5F96A6-C512-4527-8129-D194D983A048}.Debug|x64.ActiveCfg = Debug
-		{CD5F96A6-C512-4527-8129-D194D983A048}.Debug|x86.ActiveCfg = Debug
-		{CD5F96A6-C512-4527-8129-D194D983A048}.Release|Any CPU.ActiveCfg = Release
-		{CD5F96A6-C512-4527-8129-D194D983A048}.Release|ARM.ActiveCfg = Release
-		{CD5F96A6-C512-4527-8129-D194D983A048}.Release|ARM64.ActiveCfg = Release
-		{CD5F96A6-C512-4527-8129-D194D983A048}.Release|x64.ActiveCfg = Release
-		{CD5F96A6-C512-4527-8129-D194D983A048}.Release|x86.ActiveCfg = Release
+		{A253947B-020F-4525-BFD1-2B36C9E2E47F}.Debug|Any CPU.ActiveCfg = Debug
+		{A253947B-020F-4525-BFD1-2B36C9E2E47F}.Debug|ARM.ActiveCfg = Debug
+		{A253947B-020F-4525-BFD1-2B36C9E2E47F}.Debug|ARM64.ActiveCfg = Debug
+		{A253947B-020F-4525-BFD1-2B36C9E2E47F}.Debug|x64.ActiveCfg = Debug
+		{A253947B-020F-4525-BFD1-2B36C9E2E47F}.Debug|x86.ActiveCfg = Debug
+		{A253947B-020F-4525-BFD1-2B36C9E2E47F}.Release|Any CPU.ActiveCfg = Release
+		{A253947B-020F-4525-BFD1-2B36C9E2E47F}.Release|ARM.ActiveCfg = Release
+		{A253947B-020F-4525-BFD1-2B36C9E2E47F}.Release|ARM64.ActiveCfg = Release
+		{A253947B-020F-4525-BFD1-2B36C9E2E47F}.Release|x64.ActiveCfg = Release
+		{A253947B-020F-4525-BFD1-2B36C9E2E47F}.Release|x86.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

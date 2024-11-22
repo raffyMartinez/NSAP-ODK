@@ -170,7 +170,7 @@ namespace NSAP_ODK.Mapping
         {
             GlobalSettings gs = new GlobalSettings();
 
-            if (!string.IsNullOrEmpty( globalMapping.BingAPIKey))
+            if (!string.IsNullOrEmpty(globalMapping.BingAPIKey))
             {
                 gs.BingApiKey = globalMapping.BingAPIKey;
             }
@@ -179,7 +179,7 @@ namespace NSAP_ODK.Mapping
             TileProviders.Add(1, "OpenCycleMap");
             TileProviders.Add(2, "OpenTransportMap");
 
-            if (!string.IsNullOrEmpty( Global.Settings.BingAPIKey))
+            if (!string.IsNullOrEmpty(Global.Settings.BingAPIKey))
             {
                 TileProviders.Add(3, "BingMaps");
                 TileProviders.Add(4, "BingSatellite");
@@ -265,7 +265,7 @@ namespace NSAP_ODK.Mapping
 
         public static void RestoreMapState(MapWindowForm mwf)
         {
-
+            string feedBack = "";
             string path = $"{AppDomain.CurrentDomain.BaseDirectory}/mapstate.txt";
             if (File.Exists(path))
             {
@@ -273,8 +273,9 @@ namespace NSAP_ODK.Mapping
                 double extentsRight = 0;
                 double extentsTop = 0;
                 double extentsBottom = 0;
-                bool hasCoastline = false;
-                bool isCoastlineVisible = false;
+
+                bool hasBathymetry = false;
+                bool isBathymetryVisible = false;
 
                 if (MapControl == null || MapLayersHandler == null || MapInterActionHandler == null)
                 {
@@ -297,12 +298,15 @@ namespace NSAP_ODK.Mapping
                                     extentsRight = double.Parse(reader.GetAttribute("ExtentsRight"));
                                     extentsTop = double.Parse(reader.GetAttribute("ExtentsTop"));
                                     extentsBottom = double.Parse(reader.GetAttribute("ExtentsBottom"));
-                                    hasCoastline = reader.GetAttribute("HasCoastline") == "1";
 
-                                    if (hasCoastline)
+                                    string attrValue = reader.GetAttribute("BathymetryVisible");
+                                    if (!string.IsNullOrEmpty(attrValue))
                                     {
-                                        isCoastlineVisible = reader.GetAttribute("CoastlineVisible") == "1";
+                                        hasBathymetry = true;
+                                        isBathymetryVisible = attrValue == "1";
                                     }
+
+
                                     break;
                                 case "Layers":
                                     break;
@@ -323,14 +327,61 @@ namespace NSAP_ODK.Mapping
                                 case "Layer":
                                     switch (reader.GetAttribute("LayerKey"))
                                     {
-                                        case "coastline":
-                                            if (hasCoastline)
+                                        case "reef_area":
+                                            var reef_area_file = reader.GetAttribute("Filename");
+                                            if(File.Exists(reef_area_file))
                                             {
-                                                var coastlineFile = reader.GetAttribute("Filename");
-                                                if (File.Exists(coastlineFile))
-                                                {
-                                                    MapWindowManager.LoadCoastline(coastlineFile, isCoastlineVisible);
-                                                }
+                                                AddReefArea(out feedBack, isVisible: reader.GetAttribute("LayerVisible") == "1");
+                                            }
+                                            break;
+                                        case "island_names":
+                                            var island_names_file = reader.GetAttribute("Filename");
+                                            if (File.Exists(island_names_file))
+                                            {
+                                                AddIslandNamePoints(out feedBack, isVisible: reader.GetAttribute("LayerVisible") == "1");
+                                            }
+                                            break;
+                                        case "lgu_poblacion":
+                                            var lgu_points_file = reader.GetAttribute("Filename");
+                                            if (File.Exists(lgu_points_file))
+                                            {
+                                                AddLGUPoints(out feedBack, isVisible: reader.GetAttribute("LayerVisible") == "1");
+                                            }
+                                            break;
+                                        case "bathymetry":
+                                            //mapwingis cannot serialize into xml key of ImageClass layer so loading bathymetry from
+                                            //xml is done in MapState section
+                                            break;
+                                        case "lgu_boundary":
+
+                                            var boundaryfile = reader.GetAttribute("Filename");
+                                            if (File.Exists(boundaryfile))
+                                            {
+                                                AddLGUBoundary(
+                                                    out feedBack,
+                                                    isVisible: reader.GetAttribute("LayerVisible") == "1"
+                                                    );
+                                            }
+
+                                            break;
+                                        case "coastline":
+
+                                            var coastlineFile = reader.GetAttribute("Filename");
+                                            if (File.Exists(coastlineFile))
+                                            {
+                                                LoadCoastline(coastlineFile, visible: reader.GetAttribute("LayerVisible") == "1");
+                                            }
+
+                                            break;
+                                        case "municipal_waters":
+
+                                            var munwaterfile = reader.GetAttribute("Filename");
+                                            if (File.Exists(munwaterfile))
+                                            {
+                                                AddMunicipalWaterLines(
+                                                    out feedBack,
+                                                    isVisible: reader.GetAttribute("LayerVisible") == "1"
+                                                    );
                                             }
                                             break;
                                         case "aoi_boundary":
@@ -340,7 +391,7 @@ namespace NSAP_ODK.Mapping
                                                 var aoi = Entities.AOIViewModel.GetAOI(layerName);
                                                 if (aoi != null)
                                                 {
-                                                    aoi.MapLayerHandle = MapWindowManager.MapLayersHandler.AddLayer(aoi.ShapeFile, aoi.Name, uniqueLayer: true, layerKey: "aoi_boundary");
+                                                    aoi.MapLayerHandle = MapLayersHandler.AddLayer(aoi.ShapeFile, aoi.Name, uniqueLayer: true, layerKey: "aoi_boundary");
                                                     AOIManager.UpdateAOIName(aoi.MapLayerHandle, aoi.Name);
                                                 }
                                             }
@@ -357,6 +408,11 @@ namespace NSAP_ODK.Mapping
                 ext.SetBounds(extentsLeft, extentsBottom, 0, extentsRight, extentsTop, 0);
                 MapControl.Extents = ext;
 
+
+                if (hasBathymetry)
+                {
+                    AddBathymetry(isVisible: isBathymetryVisible);
+                }
                 // MapControl.Redraw();
             }
         }
@@ -538,25 +594,153 @@ namespace NSAP_ODK.Mapping
             return false;
 
         }
-
-        public static bool AddLGUPoints(out string feedBack)
+        /// <summary>
+        /// Add GEBCO bathymetry
+        /// www.gebco.net
+        /// </summary>
+        /// <param name="feedback"></param>
+        /// <returns></returns>
+        public static async Task<(bool success, string errMsg)> AddBathymetry(bool isVisible)
         {
-           if (Directory.Exists($@"{LayersFolder}\LGUPoints"))
+            (bool success, string errMsg) result = (false, "");
+            //bool success = false;
+            if (Directory.Exists($@"{LayersFolder}\bathymetry"))
+            {
+                var files = Directory.GetFiles($@"{LayersFolder}\bathymetry", "*.tif");
+                if (files.Count() > 0)
+                {
+                    result = await MapLayersHandler.GridFileOpenHandler(files[0], "Bathymetry", layerkey: "bathymetry", layerAtBottom: true, isVisible: isVisible);
+                }
+                else
+                {
+                    result = (false, "File not found");
+                }
+            }
+            else
+            {
+                result = (false, "Directory of bathymetry file does not exist");
+            }
+
+            return result;
+        }
+        public static bool AddReefArea(out string feedback, bool isVisible)
+        {
+            if(Directory.Exists($@"{LayersFolder}\reef area"))
+            {
+                var files = Directory.GetFiles($@"{LayersFolder}\reef area", "*.shp");
+                if (files.Length > 0)
+                {
+                    var result = MapLayersHandler.FileOpenHandler(files[0], "Reef area", layerkey: "reef_area", isVisible: isVisible);
+                    var sf = (Shapefile)MapLayersHandler.MapLayers[MapLayersHandler.NumLayers - 1].LayerObject;
+                    sf.DefaultDrawingOptions.FillColor = new Utils().ColorByName(tkMapColor.DodgerBlue);
+                    sf.DefaultDrawingOptions.LineVisible = false;
+                    feedback = result.errMsg;
+                    return result.success;
+                }
+                else
+                {
+                    feedback = "File not found";
+                    return false;
+                }
+            }
+            feedback = "Folder of reef area not found";
+            return false;
+        }
+        public static bool AddIslandNamePoints(out string feedBack, bool isVisible)
+        {
+            if (Directory.Exists($@"{LayersFolder}\island_names"))
+            {
+                var files = Directory.GetFiles($@"{LayersFolder}\island_names", "*.shp");
+                if (files.Length > 0)
+                {
+                    var result = MapLayersHandler.FileOpenHandler(files[0], "Island names", layerkey: "island_names", isVisible: isVisible);
+                    var sf = (Shapefile)MapLayersHandler.MapLayers[MapLayersHandler.NumLayers - 1].LayerObject;
+                    sf.Labels.FontSize = 7;
+                    sf.Labels.FontItalic = true;
+                    sf.Labels.HaloColor = new Utils().ColorByName(tkMapColor.White);
+                    sf.Labels.HaloVisible = true;
+                    sf.Labels.HaloSize = 1;
+                    sf.Labels.Alignment = tkLabelAlignment.laBottomRight;
+                    sf.Labels.Visible = true;
+                    sf.Labels.Expression = "[name]";
+                    sf.Labels.FrameVisible = false;
+                    sf.Labels.Generate(sf.Labels.Expression, tkLabelPositioning.lpCentroid, true);
+
+
+                    sf.DefaultDrawingOptions.PointShape = tkPointShapeType.ptShapeCircle;
+                    sf.DefaultDrawingOptions.PointSize = 0.1F;
+
+                    feedBack = result.errMsg;
+                    return result.success;
+                }
+                else
+                {
+                    feedBack = "File not found";
+                    return false;
+                }
+            }
+            feedBack = "Folder for island names not found";
+            return false;
+        }
+            public static bool AddLGUPoints(out string feedBack, bool isVisible)
+        {
+            if (Directory.Exists($@"{LayersFolder}\LGUPoints"))
             {
                 var files = Directory.GetFiles($@"{LayersFolder}\LGUPoints", "*.shp");
-                var result = MapLayersHandler.FileOpenHandler(files[0], "LGU poblacion", layerkey: "lgu_poblacion");
-                var sf = (Shapefile)MapLayersHandler.MapLayers[MapLayersHandler.NumLayers - 1].LayerObject;
-                sf.Labels.Visible = true;
-                sf.VisibilityExpression = $"[Coastal]=\"T\"";
-                sf.Labels.Expression = "[MUNICIPALI]";
-                sf.Labels.Generate(sf.Labels.Expression, tkLabelPositioning.lpCenter, true);
-                feedBack = result.errMsg;
-                return result.success;
+                if (files.Length > 0)
+                {
+                    var result = MapLayersHandler.FileOpenHandler(files[0], "LGU poblacion", layerkey: "lgu_poblacion", isVisible: isVisible);
+                    var sf = (Shapefile)MapLayersHandler.MapLayers[MapLayersHandler.NumLayers - 1].LayerObject;
+                    sf.Labels.FontSize = 7;
+                    sf.Labels.FontBold = true;
+                    sf.Labels.HaloColor = new Utils().ColorByName(tkMapColor.White);
+                    sf.Labels.HaloVisible = true;
+                    sf.Labels.HaloSize = 1;
+                    sf.Labels.Visible = true;
+                    sf.VisibilityExpression = $"[Coastal]=\"T\"";
+                    sf.Labels.Expression = "[MUNICIPALI]";
+                    sf.Labels.FrameVisible = false;
+                    sf.Labels.Generate(sf.Labels.Expression, tkLabelPositioning.lpCenter, true);
+
+
+                    sf.DefaultDrawingOptions.PointShape = tkPointShapeType.ptShapeCircle;
+                    sf.DefaultDrawingOptions.PointSize = 4;
+
+                    feedBack = result.errMsg;
+                    return result.success;
+                }
+                else
+                {
+                    feedBack = "File not found";
+                    return false;
+                }
             }
             feedBack = "Folder for LGU points not found";
             return false;
         }
-        public static bool AddLGUBoundary(out string feedBack)
+
+        public static bool AddMunicipalWaterLines(out string feedBack, bool isVisible)
+        {
+            if (Directory.Exists($@"{LayersFolder}\municipal waters lines"))
+            {
+                var files = Directory.GetFiles($@"{LayersFolder}\municipal waters lines", "*.shp");
+                {
+                    if (files.Length >= 0)
+                    {
+                        var result = MapLayersHandler.FileOpenHandler(files[0], "Municipal waters", layerkey: "municipal_waters", isVisible: isVisible);
+                        feedBack = result.errMsg;
+                        return result.success;
+                    }
+                    else
+                    {
+                        feedBack = "File not found";
+                    }
+                }
+            }
+            feedBack = "Folder for municipal waters not found";
+            return false;
+        }
+        public static bool AddLGUBoundary(out string feedBack, bool isVisible)
         {
 
             if (Directory.Exists($@"{LayersFolder}\LGUBoundary"))
@@ -564,9 +748,14 @@ namespace NSAP_ODK.Mapping
                 var files = Directory.GetFiles($@"{LayersFolder}\LGUBoundary", "*.shp");
                 if (files.Length >= 0)
                 {
-                    var result = MapLayersHandler.FileOpenHandler(files[0], "LGU boundary", layerkey: "lgu_boundary");
+                    var result = MapLayersHandler.FileOpenHandler(files[0], "LGU boundary", layerkey: "lgu_boundary", isVisible: isVisible);
                     feedBack = result.errMsg;
                     return result.success;
+                }
+                else
+                {
+                    feedBack = "File not found";
+                    return false;
                 }
             }
             feedBack = "Folder for LGU boundary not found";
@@ -630,7 +819,7 @@ namespace NSAP_ODK.Mapping
             doc.LoadXml(xml);
             var mapstate = doc.GetElementsByTagName("MapState").Item(0);
 
-            var coastlineLayer = MapLayersHandler.get_MapLayer("Coastline");
+            var coastlineLayer = MapLayersHandler.get_MapLayerByKey("coastline");
             XmlAttribute attr = doc.CreateAttribute("HasCoastline");
             attr.Value = coastlineLayer != null ? "1" : "0";
             mapstate.Attributes.SetNamedItem(attr);
@@ -641,6 +830,49 @@ namespace NSAP_ODK.Mapping
                 attr.Value = coastlineLayer.Visible ? "1" : "0";
                 mapstate.Attributes.SetNamedItem(attr);
             }
+
+            var mun_water_layer = MapLayersHandler.get_MapLayerByKey("municipal_waters");
+            attr = doc.CreateAttribute("HasMunicipalWaters");
+            attr.Value = mun_water_layer != null ? "1" : "0";
+            mapstate.Attributes.SetNamedItem(attr);
+
+
+            if (mun_water_layer != null)
+            {
+                attr = doc.CreateAttribute("MunicipalWatersVisible");
+                attr.Value = mun_water_layer.Visible ? "1" : "0";
+                mapstate.Attributes.SetNamedItem(attr);
+            }
+
+            var lgu_border_layer = MapLayersHandler.get_MapLayerByKey("lgu_boundary");
+            attr = doc.CreateAttribute("HasLGUBoundaries");
+            attr.Value = lgu_border_layer != null ? "1" : "0";
+            mapstate.Attributes.SetNamedItem(attr);
+
+            if (lgu_border_layer != null)
+            {
+                attr = doc.CreateAttribute("LGUBordersVisible");
+                attr.Value = lgu_border_layer.Visible ? "1" : "0";
+                mapstate.Attributes.SetNamedItem(attr);
+            }
+
+
+            var bathymetry_layer = MapLayersHandler.get_MapLayerByKey("bathymetry");
+            attr = doc.CreateAttribute("HasBathymetry");
+            attr.Value = bathymetry_layer != null ? "1" : "0";
+            mapstate.Attributes.SetNamedItem(attr);
+
+            if (bathymetry_layer != null)
+            {
+                attr = doc.CreateAttribute("BathymetryVisible");
+                attr.Value = bathymetry_layer.Visible ? "1" : "0";
+                mapstate.Attributes.SetNamedItem(attr);
+
+                attr = doc.CreateAttribute("BathmetryLayerKey");
+                attr.Value = bathymetry_layer.LayerKey;
+                mapstate.Attributes.SetNamedItem(attr);
+            }
+
             return doc.OuterXml;
 
         }

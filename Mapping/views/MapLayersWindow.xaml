@@ -8,7 +8,7 @@
         mc:Ignorable="d"
         Loaded="OnWindowLoaded"
         Title="Layers" Height="450" Width="366.822" ResizeMode="CanResizeWithGrip" WindowStyle="ToolWindow">
-<Grid>
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="25"/>
             <RowDefinition Height="38"/>
@@ -38,13 +38,13 @@
         <ToolBarTray Grid.Row="1" Height="34">
             <ToolBar Height="32" Width="Auto" >
                 <Button x:Name="buttonAdd" Click="OnToolbarButtonClick" ToolTip="Layers">
-                    <Image Source="layers new.png" />
+                    <Image Source="icons/layers new.png" />
                 </Button>
                 <Button x:Name="buttonRemove" Click="OnToolbarButtonClick" ToolTip="Layers">
-                    <Image Source="layer remove.png" />
+                    <Image Source="icons/layer remove.png" />
                 </Button>
                 <Button x:Name="buttonAttributes" Click="OnToolbarButtonClick" ToolTip="Layers">
-                    <Image Source="table1.png" />
+                    <Image Source="icons/table1.png" />
                 </Button>
             </ToolBar>
         </ToolBarTray>
@@ -64,8 +64,11 @@
                     <MenuItem Header="Convex hull" Click="OnMenuClick" x:Name="menuConvexHull" Visibility="Collapsed"/>
                     <MenuItem Header="Categorize" Click="OnMenuClick" x:Name="menuCategorize" Visibility="Collapsed"/>
                     <MenuItem Header="Merge" Click="OnMenuClick" x:Name="menuMerge" Visibility="Collapsed"/>
+                    <Separator/>
+                    <MenuItem Header="Get depth" x:Name="menuGetDepth" Visibility="Collapsed" IsCheckable="True" Checked="OnMenuCheckChange" Unchecked="OnMenuCheckChange"/>
+
                 </ContextMenu>
-            </DataGrid.ContextMenu>    
+            </DataGrid.ContextMenu>
         </DataGrid>
     </Grid>
 </Window>

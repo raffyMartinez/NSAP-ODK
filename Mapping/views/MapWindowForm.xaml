@@ -20,13 +20,15 @@
                 <MenuItem Header="Layers">
                     <MenuItem Header="Add ..." x:Name="menuAddLayer" Click="OnMenuClick"/>
                     <MenuItem Header="Add LGU boundary ..." x:Name="menuAddLayerBoundaryLGU" Click="OnMenuClick" Visibility="Collapsed"/>
-                    <MenuItem Header="Add LGU poblacion ..." x:Name="menuAddLayerBoundaryLGUPoblacion" Click="OnMenuClick"/>
-                    <MenuItem Header="Add barangay boundary ..." x:Name="menuAddLayerBoundaryBarangay" Click="OnMenuClick" Visibility="Collapsed"/>
+                    <MenuItem Header="Add LGU poblacion ..." x:Name="menuAddLayerLGUPoints" Click="OnMenuClick"/>
+                    <MenuItem Header="Add municipal waters ..." x:Name="menuAddLayerMunicipalWaters" Click="OnMenuClick"/>
+                    <!--<MenuItem Header="Add barangay boundary ..." x:Name="menuAddLayerBoundaryBarangay" Click="OnMenuClick" Visibility="Collapsed"/>-->
                     <MenuItem Header="Add island names ..." x:Name="menuAddLayerIslandNames" Click="OnMenuClick"/>
                     <MenuItem Header="Add reef area ..." x:Name="menuAddLayerReef" Click="OnMenuClick"/>
                     <MenuItem Header="Add mangrove area ..." x:Name="menuAddLayerMangrove" Click="OnMenuClick"/>
-                    <MenuItem Header="Add BSC boundary ..." x:Name="menuAddBSCBoundary" Click="OnMenuClick" Visibility="Collapsed"/>
-                    <MenuItem Header="Add extracted tracks" x:Name="menuAddExtractedTracks" Click="OnMenuClick" Visibility="Collapsed"/>
+                    <MenuItem Header="Add bathymetry ..." x:Name="menuAddLayerBathymetry" Click="OnMenuClick"/>
+                    <!--<MenuItem Header="Add BSC boundary ..." x:Name="menuAddBSCBoundary" Click="OnMenuClick" Visibility="Collapsed"/>-->
+                    <!--<MenuItem Header="Add extracted tracks" x:Name="menuAddExtractedTracks" Click="OnMenuClick" Visibility="Collapsed"/>-->
                 </MenuItem>
                 <MenuItem Header="Save map state" x:Name="menuSaveMapState" Click="OnMenuClick"/>
                 <MenuItem Header="Close" x:Name="menuClose" Click="OnMenuClick"/>
@@ -50,28 +52,28 @@
         <ToolBarTray Grid.Row="1" Height="34">
             <ToolBar Height="32" Width="Auto" >
                 <Button x:Name="buttonLayers" Click="OnToolbarButtonClick" ToolTip="Layers">
-                    <Image Source="layers.png" />
+                    <Image Source="icons/layers.png" />
                 </Button>
                 <Button x:Name="buttonAddLayer" Click="OnToolbarButtonClick" ToolTip="Add layer">
-                    <Image Source="layers new.png"  />
+                    <Image Source="icons/layers new.png"  />
                 </Button>
                 <Button x:Name="buttonZoomPlus" Click="OnToolbarButtonClick" ToolTip="Zoom in">
-                    <Image Source="zoom+.png" OpacityMask="White" />
+                    <Image Source="icons/zoom+.png" OpacityMask="White" />
                 </Button>
                 <Button x:Name="buttonZoomMinus" Click="OnToolbarButtonClick" ToolTip="Zoom out">
-                    <Image Source="zoom-.png" OpacityMask="White" />
+                    <Image Source="icons/zoom-.png" OpacityMask="White" />
                 </Button >
                 <Button x:Name="buttonPan" Click="OnToolbarButtonClick" ToolTip="Pan">
-                    <Image Source="move.png" OpacityMask="White" />
+                    <Image Source="icons/move.png" OpacityMask="White" />
                 </Button >
                 <Button x:Name="buttonAttributes" Click="OnToolbarButtonClick" ToolTip="Layer attributes">
-                    <Image Source="table1.png" OpacityMask="White" />
+                    <Image Source="icons/table1.png" OpacityMask="White" />
                 </Button>
                 <Button x:Name="buttonGPS" Click="OnToolbarButtonClick" ToolTip="GPS" Visibility="Collapsed">
-                    <Image Source="gps2.png" OpacityMask="White" />
+                    <Image Source="icons/gps2.png" OpacityMask="White" />
                 </Button>
                 <Button x:Name="buttonSelect" Click="OnToolbarButtonClick" ToolTip="Select">
-                    <Image Source="select1.png" OpacityMask="White" />
+                    <Image Source="icons/select1.png" OpacityMask="White" />
                 </Button>
 
                 <!--<Button x:Name="buttonSelectPolygon" Click="OnToolbarButtonClick" ToolTip="Select">
@@ -79,35 +81,37 @@
                 </Button>-->
 
                 <Button x:Name="buttonSelectNone" Click="OnToolbarButtonClick" ToolTip="Clear selection">
-                    <Image Source="select_none1.png" OpacityMask="White" />
+                    <Image Source="icons/select_none1.png" OpacityMask="White" />
                 </Button>
                 <ToggleButton x:Name="buttonTrack" Checked="OnToolbarButtonChecked" Unchecked="OnToolbarButtonChecked" ToolTip="Show or hide vertices" IsEnabled="False" Visibility="Collapsed">
-                    <Image Source="track.png" OpacityMask="White" />
+                    <Image Source="icons/track.png" OpacityMask="White" />
                 </ToggleButton>
                 <Button x:Name="buttonRuler" Click="OnToolbarButtonClick" ToolTip="Measure">
-                    <Image Source="ruler.png" OpacityMask="White" />
+                    <Image Source="icons/ruler.png" OpacityMask="White" />
                 </Button>
 
                 <Button x:Name="buttonDataScreen" Click="OnToolbarButtonClick" ToolTip="Hide map window" Visibility="Collapsed">
-                    <Image Source="map screen grey.png" OpacityMask="White" />
+                    <Image Source="icons/map screen grey.png" OpacityMask="White" />
                 </Button>
 
                 <Button x:Name="buttonAOI" Click="OnToolbarButtonClick" ToolTip="AOI" Visibility="Collapsed">
-                    <Image Source="aoi.png" OpacityMask="White" />
+                    <Image Source="icons/aoi.png" OpacityMask="White" />
                 </Button>
 
                 <Button x:Name="buttonGraticule" Click="OnToolbarButtonClick" ToolTip="Graticule">
-                    <Image Source="grid.png" OpacityMask="White" Height="24" VerticalAlignment="Bottom" />
+                    <Image Source="icons/grid.png" OpacityMask="White" Height="24" VerticalAlignment="Bottom" />
                 </Button>
                 
                 
                 <Button x:Name="buttonSaveImage" Click="OnToolbarButtonClick" ToolTip="Save map to image file">
-                    <Image Source="map screen.png" OpacityMask="White" />
+                    <Image Source="icons/map screen.png" OpacityMask="White" />
                 </Button>
+
+                <TextBox Width="80" BorderThickness="1" BorderBrush="#FFAEAEAE" x:Name="toolbarTextBox" Visibility="Collapsed"/>
 
 
                 <Button x:Name="buttonExit" Click="OnToolbarButtonClick" ToolTip="Close">
-                    <Image Source="exit.png" OpacityMask="White" />
+                    <Image Source="icons/exit.png" OpacityMask="White" />
                 </Button>
 
 

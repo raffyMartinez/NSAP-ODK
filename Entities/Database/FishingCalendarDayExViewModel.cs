@@ -23,6 +23,8 @@ namespace NSAP_ODK.Entities.Database
         private List<int> _vesselUnloads;
         private AllSamplingEntitiesEventHandler _selectedMonth;
         private bool _getFemaleMaturity;
+
+        public TreeViewModelControl.AllSamplingEntitiesEventHandler MonthSampled { get; set; }
         public CalendarViewType CalendarViewType { get; set; }
         public int TotalVesselUnloadCount { get; set; }
 
@@ -36,6 +38,8 @@ namespace NSAP_ODK.Entities.Database
         public Dictionary<string, List<SpeciesCalendarDay>> SpeciesCalendarDayDictionary { get; private set; } = new Dictionary<string, List<SpeciesCalendarDay>>();
         public Dictionary<string, List<FishingCalendarDayEx>> CalendarDaysDictionary { get; private set; } = new Dictionary<string, List<FishingCalendarDayEx>>();
         public Dictionary<string, List<FishingGearAndSector>> UniqueGearListDictionary { get; private set; } = new Dictionary<string, List<FishingGearAndSector>>();
+
+
         public Dictionary<string, List<int>> VesselUnloadIDsDictionary { get; private set; } = new Dictionary<string, List<int>>();
         public FishingCalendarDayExViewModel()
         {
@@ -710,7 +714,7 @@ namespace NSAP_ODK.Entities.Database
                 return _fishingCalendarDays != null && _fishingCalendarDays.Count > 0;
             }
         }
-        public GearUnload GetGearUnload(string gearName, string sector, int day, CalendarViewType calendarView)
+        public GearUnload GetGearUnload(string gearName, string sector, int day, CalendarViewType calendarView, bool isAlternateCalendar=false, string gearCode="")
         {
             GearUnload gu = null;
             if (calendarView == CalendarViewType.calendarViewTypeCountAllLandings)
@@ -721,7 +725,14 @@ namespace NSAP_ODK.Entities.Database
             {
                 try
                 {
-                    gu = _fishingCalendarDays.Where(t => t.Gear != null && t.Gear.GearName == gearName && t.Sector == sector && t.SamplingDate.Day == day).First().GearUnload;
+                    if (isAlternateCalendar)
+                    {
+                        gu = NSAPEntities.SummaryItemViewModel.GetGearUnload(gearCode, day, MonthSampled);
+                    }
+                    else
+                    {
+                        gu = _fishingCalendarDays.Where(t => t.Gear != null && t.Gear.GearName == gearName && t.Sector == sector && t.SamplingDate.Day == day).First().GearUnload;
+                    }
                 }
                 catch
                 {

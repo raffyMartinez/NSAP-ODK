@@ -15,6 +15,7 @@ using System.Windows.Interop;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace NSAP_ODK.Mapping
 
@@ -30,7 +31,8 @@ namespace NSAP_ODK.Mapping
     /// </summary>
     public class MapLayersHandler : IDisposable, IEnumerable<MapLayer>
     {
-
+        public event EventHandler RequestProxyImage;
+        private string _layerKey;
         private string _fileMapState;
         public bool _disposed;
         private AxMap _axmap;
@@ -267,31 +269,31 @@ namespace NSAP_ODK.Mapping
                             {
                                 case ShpfileType.SHP_POINT:
 
-                                //if (isCategory)
-                                //{
-                                //    //sdo.DrawPoint((int)ptr, (w / 5) * 2, h / 4, 0, 0);
-                                //    sdo.DrawPoint((int)ptr, ((int)(double)LegendSymbolWidth / 5) * 2, (int)(double)LegendSymbolHeight / 4, 0, 0);
-                                //}
-                                //else
-                                //{
-                                //    //sdo.DrawPoint((int)ptr, (w / 5) * 2, h / 2, 0, 0);
-                                //    //sdo.DrawPoint((int)ptr, ((int)(double)LegendSymbolWidth / 5) * 2, (int)(double)LegendSymbolHeight / 2, 0, 0);
-                                sdo.DrawPoint(hDC: (int)ptr,
-                                        x: ((int)(double)LegendSymbolWidth / 2),
-                                        y: 0,
-                                        clipWidth: 0,
-                                        clipHeight: 0);
+                                    //if (isCategory)
+                                    //{
+                                    //    //sdo.DrawPoint((int)ptr, (w / 5) * 2, h / 4, 0, 0);
+                                    //    sdo.DrawPoint((int)ptr, ((int)(double)LegendSymbolWidth / 5) * 2, (int)(double)LegendSymbolHeight / 4, 0, 0);
+                                    //}
+                                    //else
+                                    //{
+                                    //    //sdo.DrawPoint((int)ptr, (w / 5) * 2, h / 2, 0, 0);
+                                    //    //sdo.DrawPoint((int)ptr, ((int)(double)LegendSymbolWidth / 5) * 2, (int)(double)LegendSymbolHeight / 2, 0, 0);
+                                    sdo.DrawPoint(hDC: (int)ptr,
+                                            x: ((int)(double)LegendSymbolWidth / 2),
+                                            y: 0,
+                                            clipWidth: 0,
+                                            clipHeight: 0);
 
-                                //    //sdo.DrawPoint((int)ptr, 0, 0);
-                                //}
+                                    //    //sdo.DrawPoint((int)ptr, 0, 0);
+                                    //}
 
-                                break;
+                                    break;
 
                                 case ShpfileType.SHP_POLYGON:
 
-                                    sdo.DrawRectangle((int)ptr, start_x, start_y, w - start_x * 2, h - start_y * 2,shp.DefaultDrawingOptions.LineVisible,0,0);
-                                //sdo.DrawRectangle((int)ptr, w / 3, h / 4, w, h, shp.DefaultDrawingOptions.LineVisible, w, h);
-                                //sdo.DrawRectangle((int)ptr, 0, 0, w, h, shp.DefaultDrawingOptions.LineVisible, (int)(double)LegendSymbolWidth, (int)(double)LegendSymbolHeight);
+                                    sdo.DrawRectangle((int)ptr, start_x, start_y, w - start_x * 2, h - start_y * 2, shp.DefaultDrawingOptions.LineVisible, 0, 0);
+                                    //sdo.DrawRectangle((int)ptr, w / 3, h / 4, w, h, shp.DefaultDrawingOptions.LineVisible, w, h);
+                                    //sdo.DrawRectangle((int)ptr, 0, 0, w, h, shp.DefaultDrawingOptions.LineVisible, (int)(double)LegendSymbolWidth, (int)(double)LegendSymbolHeight);
                                     break;
 
                                 case ShpfileType.SHP_POLYLINE:
@@ -661,6 +663,8 @@ namespace NSAP_ODK.Mapping
             SetLayerColorSchemes();
         }
 
+        public MapInterActionHandler MapInterActionHandler { get; set; }
+
         /// <summary>
         /// reprojects a mismatched layer to the map's projection
         /// </summary>
@@ -904,13 +908,57 @@ namespace NSAP_ODK.Mapping
         }
         public GeoProjection GeoProjection { get; set; }
 
+
+        public async Task<(bool success, string errMsg)> GridFileOpenHandler(string fileName, string layerName = "", bool reproject = false, string layerkey = "", bool layerAtBottom = false, bool isVisible=true)
+        {
+            _layerKey = layerkey;
+            LayerFromFileOpenIsGrid = false;
+            var success = false;
+            var errMsg = "";
+            var fm = new FileManager();
+
+            fm.Open(fileName, tkFileOpenStrategy.fosAutoDetect, null);
+            if (!fm.get_IsSupported(fileName))
+            {
+                errMsg = "Datasource isn't supported by MapWinGIS";
+            }
+            else
+            {
+                if (fm.LastOpenStrategy == tkFileOpenStrategy.fosDirectGrid
+                          || fm.LastOpenStrategy == tkFileOpenStrategy.fosProxyForGrid)
+                {
+                    var grid = new MapWinGIS.Grid();
+                    success = grid.Open(fileName, GridDataType.DoubleDataType, false, GridFileType.UseExtension, null);
+                    if (success)
+                    {
+                        LayerFromFileOpenIsGrid = true;
+                        await AddLayer(
+                           grid,
+                           layerName: layerName == null ? Path.GetFileName(fileName) : layerName,
+                           visible: isVisible,
+                           showInLayerUI: true,
+                           layerKey: layerkey,
+                           layerAtBottom: layerAtBottom
+                           );
+                    }
+                    else
+                    {
+                        errMsg = "Failed to open datasource: " + fm.get_ErrorMsg(fm.LastErrorCode);
+                    }
+                }
+            }
+            return (success, errMsg);
+        }
+
         /// <summary>
         /// Handles the opening of map layer files from a file open dialog
         /// </summary>
         /// <param name="fileName"></param>
         /// <returns></returns>
-        public (bool success, string errMsg) FileOpenHandler(string fileName, string layerName = "", bool reproject = false, string layerkey = "")
+        public (bool success, string errMsg) FileOpenHandler(string fileName, string layerName = "", bool reproject = false, string layerkey = "", bool layerAtBottom = false, bool isVisible = true)
         {
+            _layerKey = layerkey;
+            LayerFromFileOpenIsGrid = false;
             var success = false;
             var errMsg = "";
             var fm = new FileManager();
@@ -946,8 +994,10 @@ namespace NSAP_ODK.Mapping
                                 {
                                     shapefile = sf;
                                 }
+
+                                
                             }
-                            if (AddLayer(shapefile, layerName, layerKey: layerkey) < 0)
+                            if (AddLayer(shapefile, layerName, layerKey: layerkey, isVisible: isVisible) < 0)
                             {
                                 success = false;
                                 errMsg = "Failed to add layer to map";
@@ -987,7 +1037,15 @@ namespace NSAP_ODK.Mapping
                         success = grid.Open(fileName, GridDataType.DoubleDataType, false, GridFileType.UseExtension, null);
                         if (success)
                         {
-                            AddLayer(grid, Path.GetFileName(fileName), true, true, layerKey: layerkey);
+                            LayerFromFileOpenIsGrid = true;
+                            AddLayer(
+                               grid,
+                               layerName: layerName == null ? Path.GetFileName(fileName) : layerName,
+                               visible: true,
+                               showInLayerUI: true,
+                               layerKey: layerkey,
+                               layerAtBottom: layerAtBottom
+                               );
                         }
                     }
                 }
@@ -1183,6 +1241,9 @@ namespace NSAP_ODK.Mapping
             return h;
         }
 
+        public MapWinGIS.Grid BathymetricGrid { get; set; }
+        public MapWinGIS.Image ProxyImage { get; set; }
+        public bool LayerFromFileOpenIsGrid { get; set; }
         /// <summary>
         /// handles  shapefiles added to the map
         /// </summary>
@@ -1192,8 +1253,8 @@ namespace NSAP_ODK.Mapping
         /// <param name="showInLayerUI"></param>
         /// <param name="layerHandle"></param>
         /// <returns></returns>
-        public int AddLayer(object layer, string layerName, bool visible, bool showInLayerUI, string fileName = "",
-            fad3MappingMode mappingMode = fad3MappingMode.defaultMode, string layerKey = "", bool rejectIfExisting = false)
+        public async Task<int> AddLayer(object layer, string layerName, bool visible, bool showInLayerUI, string fileName = "",
+            fad3MappingMode mappingMode = fad3MappingMode.defaultMode, string layerKey = "", bool rejectIfExisting = false, bool layerAtBottom = false)
         {
 
             if (rejectIfExisting && layerName.Length > 0 && Exists(layerName))
@@ -1205,6 +1266,13 @@ namespace NSAP_ODK.Mapping
             GeoProjection gp = new GeoProjection();
 
             var layerType = layer.GetType().Name;
+            if (layerType == "__ComObject" && LayerFromFileOpenIsGrid)
+            {
+                layerType = "GridClass";
+
+            }
+
+
 
             switch (layerType)
             {
@@ -1220,8 +1288,30 @@ namespace NSAP_ODK.Mapping
                     break;
 
                 case "GridClass":
-                    h = _axmap.AddLayer((Grid)layer, visible);
+                    var utils = new MapWinGIS.Utils();
+                    var grid = (Grid)layer;
+                    MapWinGIS.Image ProxyImage;
+                    if (!grid.HasValidImageProxy)
+                    {
+                        BathymetricGrid = grid;
+                        //RequestProxyImage?.Invoke(null, null);
+                        ProxyImage = await GridLayer.CreateProxyImageAsync(grid);
+
+                    }
+                    else
+                    {
+                        ProxyImage = new MapWinGIS.Image();
+                        string image_path = $@"{Path.GetDirectoryName(grid.Filename)}\{Path.GetFileNameWithoutExtension(grid.Filename)}_proxy.bmp";
+                        var success = ProxyImage.Open(image_path, ImageType.BITMAP_FILE);
+                    }
+                    ProxyImage.TransparencyPercent = 0.5;
+                    //h = _axmap.AddLayer((Grid)layer, visible);
+                    h = _axmap.AddLayer(ProxyImage, visible);
+                    _axmap.get_Image(h).Key = layerKey;
                     gp = _axmap.GeoProjection;
+                    break;
+                default:
+
                     break;
             }
 
@@ -1230,6 +1320,24 @@ namespace NSAP_ODK.Mapping
             _currentMapLayer.LayerKey = layerKey;
             _currentMapLayer.MappingMode = mappingMode;
             _currentMapLayer.LayerImageInLegend = LayerSymbol(_currentMapLayer);
+            _currentMapLayer.LayerAtBottom = layerAtBottom;
+
+
+            if (LayerFromFileOpenIsGrid)
+            {
+                _currentMapLayer.IsGridLayer = true;
+                _currentMapLayer.GridLayer = new GridLayer((Grid)layer, MapControl, this, h, MapInterActionHandler);
+                _currentMapLayer.GridLayer.GetMinMaxValuesWithinMapExtent = true;
+
+
+            }
+
+            if (layerAtBottom)
+            {
+                MoveLayerBottom(h);
+            }
+
+
             if (LayerRead != null)
             {
                 LayerEventArg lp = new LayerEventArg(h, layerName, visible, showInLayerUI, _currentMapLayer.LayerType);
@@ -1237,6 +1345,13 @@ namespace NSAP_ODK.Mapping
             }
 
             return h;
+        }
+
+
+
+        public bool LayerIsVisible(int layerHandle)
+        {
+            return MapLayerDictionary.FirstOrDefault(t => t.Key == layerHandle).Value.Visible;
         }
 
         /// <summary>

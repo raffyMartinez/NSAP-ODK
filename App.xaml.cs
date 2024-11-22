@@ -25,8 +25,8 @@ namespace NSAP_ODK
 
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            AppDomain currentDomain = AppDomain.CurrentDomain;
-            currentDomain.UnhandledException += new UnhandledExceptionEventHandler(ExceptionHandler);
+            //AppDomain currentDomain = AppDomain.CurrentDomain;
+            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(ExceptionHandler);
 
             try
             {

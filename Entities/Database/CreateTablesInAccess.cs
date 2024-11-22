@@ -714,7 +714,7 @@ namespace NSAP_ODK.Entities.Database
                 AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "parsing table", CurrentTableName = item.AccessTableName, CurrentRowCount = 0, CurrentTableCount = currentTableCount });
                 StringBuilder sb = new StringBuilder();
                 sb.AppendLine(string.Join(",", item.Columns));
-                Console.WriteLine(sb.ToString());
+                //Console.WriteLine(sb.ToString());
                 foreach (var line in item.DataLines)
                 {
                     foreach (string lineItem in line.Split(new[] { "),(" }, StringSplitOptions.None))
@@ -771,7 +771,7 @@ namespace NSAP_ODK.Entities.Database
                 }
 
                 System.IO.File.WriteAllText($@"{AppDomain.CurrentDomain.BaseDirectory}\temp.csv", sb.ToString());
-                Console.WriteLine(sb.ToString());
+                //Console.WriteLine(sb.ToString());
                 if (DoInsertQuery(item.AccessTableName))
                 {
 

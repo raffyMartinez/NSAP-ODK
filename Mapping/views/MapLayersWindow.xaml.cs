@@ -47,29 +47,36 @@ namespace NSAP_ODK.Mapping.views
 
         private void DataGridLayers_ContextMenuOpening(object sender, ContextMenuEventArgs e)
         {
-            if (_currentLayer.LayerType == "ShapefileClass" && ((Shapefile)_currentLayer.LayerObject).ShapefileType == ShpfileType.SHP_POINT)
+            if (_currentLayer.LayerObject != null)
             {
-                Shapefile pointShapefile = (Shapefile)_currentLayer.LayerObject;
-                menuConvexHull.Visibility = Visibility.Visible;
-                menuCategorize.Visibility = Visibility.Visible;
-                _pointShapefileKey = pointShapefile.Key;
-            }
-
-            bool sameLayers = true;
-            if (dataGridLayers.SelectedItems.Count > 1)
-            {
-                string firstItemKey = ((MapLayer)dataGridLayers.SelectedItems[0]).LayerKey.ToString();
-                for (int x = 1; x <= dataGridLayers.SelectedItems.Count; x++)
+                if (_currentLayer.LayerType == "ShapefileClass" && ((Shapefile)_currentLayer.LayerObject).ShapefileType == ShpfileType.SHP_POINT)
                 {
-                    if (firstItemKey != ((MapLayer)dataGridLayers.SelectedItems[x - 1]).LayerKey.ToString())
+                    Shapefile pointShapefile = (Shapefile)_currentLayer.LayerObject;
+                    menuConvexHull.Visibility = Visibility.Visible;
+                    menuCategorize.Visibility = Visibility.Visible;
+                    _pointShapefileKey = pointShapefile.Key;
+                }
+
+                bool sameLayers = true;
+                if (dataGridLayers.SelectedItems.Count > 1)
+                {
+                    string firstItemKey = ((MapLayer)dataGridLayers.SelectedItems[0]).LayerKey.ToString();
+                    for (int x = 1; x <= dataGridLayers.SelectedItems.Count; x++)
                     {
-                        sameLayers = false;
-                        break;
+                        if (firstItemKey != ((MapLayer)dataGridLayers.SelectedItems[x - 1]).LayerKey.ToString())
+                        {
+                            sameLayers = false;
+                            break;
+                        }
+                    }
+                    if (sameLayers)
+                    {
+                        menuMerge.Visibility = Visibility.Visible;
                     }
                 }
-                if (sameLayers)
+                if (_currentLayer.LayerKey == "bathymetry")
                 {
-                    menuMerge.Visibility = Visibility.Visible;
+                    menuGetDepth.Visibility = Visibility.Visible;
                 }
             }
         }
@@ -461,6 +468,7 @@ namespace NSAP_ODK.Mapping.views
             menuConvexHull.Visibility = Visibility.Collapsed;
             menuCategorize.Visibility = Visibility.Collapsed;
             menuMerge.Visibility = Visibility.Collapsed;
+            menuGetDepth.Visibility = Visibility.Collapsed;
             if (_gridIsClicked && dataGridLayers.SelectedItems.Count > 0)
             {
                 MapLayer ml = (MapLayer)dataGridLayers.SelectedItem;
@@ -471,6 +479,11 @@ namespace NSAP_ODK.Mapping.views
                 MapLayersHandler.set_MapLayer(ml.Handle);
                 SetRowsNormalFont();
                 SelectCurrentLayerInGrid();
+
+                if (((MapWindowForm)Owner).IsGetDepthMode)
+                {
+                    ((MapWindowForm)Owner).DepthModeEnabled(isEnabled: ml.LayerKey == "bathymetry");
+                }
             }
 
         }
@@ -562,7 +575,7 @@ namespace NSAP_ODK.Mapping.views
                     cfglw.Owner = this;
                     var layerKeys = _pointShapefileKey.Split('|');
                     cfglw.ShowCategoryLegendOnly = layerKeys[0] == "classified fishing ground points";
-                    if(layerKeys.Length>1 && int.TryParse(layerKeys[1],out int point_size))
+                    if (layerKeys.Length > 1 && int.TryParse(layerKeys[1], out int point_size))
                     {
                         cfglw.MaxPointSizeOfCategorizedFishingGroundPoints = point_size;
                     }
@@ -571,7 +584,7 @@ namespace NSAP_ODK.Mapping.views
 
 
 
-                    if (!cfglw.ShowCategoryLegendOnly )
+                    if (!cfglw.ShowCategoryLegendOnly)
                     {
                         if ((bool)cfglw.ShowDialog())
                         {
@@ -627,9 +640,18 @@ namespace NSAP_ODK.Mapping.views
                 case "Zoom to layer":
                     MapWindowManager.MapWindowForm.MapControl.ZoomToLayer(MapLayersHandler.CurrentMapLayer.Handle);
                     break;
+
             }
         }
 
-
+        private void OnMenuCheckChange(object sender, RoutedEventArgs e)
+        {
+            switch (((MenuItem)sender).Name)
+            {
+                case "menuGetDepth":
+                    ((MapWindowForm)Owner).GetDepthMode(isEnabled: ((MenuItem)sender).IsChecked);
+                    break;
+            }
+        }
     }
 }

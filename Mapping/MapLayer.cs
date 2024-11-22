@@ -18,6 +18,7 @@ namespace NSAP_ODK.Mapping
         }
 
         //public BitmapImage LayerImageInLegend { get; set; }
+
         public BitmapImage LayerImageInLegend { get; set; }
         //public  System.Drawing.Image LayerImageInLegend { get; set; }
         public string LayerKey { get; set; }
@@ -25,10 +26,12 @@ namespace NSAP_ODK.Mapping
         public bool Visible { get; set; }
         public bool VisibleInLayersUI { get; set; }
 
-
+        public GridLayer GridLayer { get; set; }
         public int Handle { get; set; }
         public string FileName { get; set; }
         public string GeoProjectionName { get; set; }
+
+        public bool LayerAtBottom { get; set; }
         public int LayerPosition { get; set; }
         public Bitmap ImageThumbnail { get; set; }
         public string LayerType { get; set; }
@@ -184,7 +187,7 @@ namespace NSAP_ODK.Mapping
             }
         }
 
-
+        public bool IsGridLayer { get; set; }
         public bool IsPointDatabaseLayer
         {
             get
@@ -292,6 +295,13 @@ namespace NSAP_ODK.Mapping
                 {
                     ImageThumbnail.Dispose();
                 }
+
+                if (IsGridLayer)
+                {
+                    GridLayer.Dispose();
+                    GridLayer = null;
+                }
+
                 ImageThumbnail = null;
                 LayerObject = null;
                 Labels = null;

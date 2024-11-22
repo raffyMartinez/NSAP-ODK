@@ -2270,7 +2270,6 @@ namespace NSAP_ODK
                     MonthLabel.Content = $"Calendar of number of length measurements of watched species per day for {monthOfSampling}";
                     break;
                 case CalendarViewType.calendarViewTypeLengthWeightMeasurement:
-
                     MonthLabel.Content = $"Calendar of number of length weight measurements of watched species per day for {monthOfSampling}";
                     break;
                 case CalendarViewType.calendarViewTypeMaturityMeasurement:
@@ -2282,13 +2281,21 @@ namespace NSAP_ODK
                     {
                         MonthLabel.Content = $"Calendar of number of maturity measurements (length, weight, sex, maturity stage) of watched species per day for {monthOfSampling}";
                     }
-
                     break;
             }
             labelRowCount.Visibility = Visibility.Visible;
             MonthSubLabel.Visibility = Visibility.Visible;
-            labelRowCount.Content = NSAPEntities.FishingCalendarDayExViewModel.SamplingCalendarTitle;
-            MonthSubLabel.Content = NSAPEntities.FishingCalendarDayExViewModel.LocationLabel;
+            if (Global.Settings.UseAlternateCalendar)
+            {
+                labelRowCount.Content = NSAPEntities.CalendarMonthViewModel.SamplingCalendarTitle;
+                MonthSubLabel.Content = NSAPEntities.CalendarMonthViewModel.LocationLabel;
+            }
+            else
+            {
+                labelRowCount.Content = NSAPEntities.FishingCalendarDayExViewModel.SamplingCalendarTitle;
+                MonthSubLabel.Content = NSAPEntities.FishingCalendarDayExViewModel.LocationLabel;
+            }
+
         }
         public async Task SetupCalendar()
         {
@@ -2377,6 +2384,17 @@ namespace NSAP_ODK
         {
             menuDummy.IsChecked = true;
             menuDatabaseSummary.IsChecked = true;
+        }
+
+        private void UnCheckCalendarMenuItems()
+        {
+            foreach (Control mi in menuCalendar.Items)
+            {
+                if (mi.GetType().Name == "MenuItem")
+                {
+                    ((MenuItem)mi).IsChecked = false;
+                }
+            }
         }
         private async void OnMenuItemChecked(object sender, RoutedEventArgs e)
         {
@@ -2494,7 +2512,7 @@ namespace NSAP_ODK
                 case "menuNumberLenFreqMeas":
                 case "menuNumberMaturityMeas":
                 case "menuNumberFemaleMaturityMeas":
-                    if (NSAPEntities.FishingCalendarDayExViewModel.CanCreateCalendar)
+                    if (NSAPEntities.FishingCalendarDayExViewModel.CanCreateCalendar || Global.Settings.UseAlternateCalendar)
                     {
                         foreach (Control mi in menuCalendar.Items)
                         {
@@ -2588,53 +2606,94 @@ namespace NSAP_ODK
                         if (proceed && !_cancelBuildCalendar)
                         {
 
-
-
-                            NSAPEntities.FishingCalendarDayExViewModel.CalendarViewType = _calendarOption;
-                            //NSAPEntities.FishingCalendarDayExViewModel.MakeCalendar(isWatchedSpeciesCalendar: watchedSpeciesCalendar);
-                            //await NSAPEntities.FishingCalendarDayExViewModel.MakeCalendarTask(isWatchedSpeciesCalendar: watchedSpeciesCalendar);
-                            if (await NSAPEntities.FishingCalendarDayExViewModel.MakeCalendar(isWatchedSpeciesCalendar: _isWatchedSpeciesCalendar, getFemaleMaturity: _getFemaleMaturity))
+                            if (Global.Settings.UseAlternateCalendar)
                             {
 
+                                NSAPEntities.CalendarMonthViewModel = new CalendarMonthViewModel(
+                                    e: _allSamplingEntitiesEventHandler,
+                                    viewOption: _calendarOption,
+                                    isWatchedSpeciesCalendar: _isWatchedSpeciesCalendar,
+                                    measurementType: _species_measurement_type,
+                                    isFemaleMaturity: _getFemaleMaturity
+                                    );
 
+                                GridNSAPData.SelectionUnit = DataGridSelectionUnit.Cell;
                                 GridNSAPData.Columns.Clear();
                                 GridNSAPData.AutoGenerateColumns = true;
-                                GridNSAPData.DataContext = NSAPEntities.FishingCalendarDayExViewModel.DataTable;
-                                if (!NSAPEntities.FishingCalendarDayExViewModel.CalendarHasValue)
-                                {
-                                    GridNSAPData.Visibility = Visibility.Collapsed;
-                                }
-                                else
-                                {
-                                    GridNSAPData.Visibility = Visibility.Visible;
-                                }
+                                GridNSAPData.DataContext = NSAPEntities.CalendarMonthViewModel.SamplingCalendarDataTable;
+                                SetupCalendarLabels();
 
-                                _hasNonSamplingDayColumns = false;
-                                foreach (DataGridColumn c in GridNSAPData.Columns)
+
+                                if (NSAPEntities.CalendarMonthViewModel.SamplingRestDays.Count > 0)
                                 {
-                                    if (int.TryParse(c.Header.ToString(), out int v))
+                                    foreach (DataGridColumn c in GridNSAPData.Columns)
                                     {
-                                        if (NSAPEntities.FishingCalendarDayExViewModel.DayIsRestDay(v))
+                                        if (int.TryParse(c.Header.ToString(), out int v))
                                         {
-                                            _hasNonSamplingDayColumns = true;
-                                            c.CellStyle = new Style(typeof(DataGridCell));
-                                            c.CellStyle.Setters.Add(new Setter(DataGridCell.BackgroundProperty, new SolidColorBrush(Colors.LightBlue)));
+                                            if (NSAPEntities.CalendarMonthViewModel.SamplingRestDays.Contains(v))
+                                            {
+                                                _hasNonSamplingDayColumns = true;
+                                                c.CellStyle = new Style(typeof(DataGridCell));
+                                                c.CellStyle.Setters.Add(new Setter(DataGridCell.BackgroundProperty, new SolidColorBrush(Colors.LightBlue)));
+                                            }
                                         }
                                     }
                                 }
-                                SetupCalendarLabels();
-                                if (!NSAPEntities.FishingCalendarDayExViewModel.CalendarHasValue)
+                                if (!NSAPEntities.CalendarMonthViewModel.CalendarHasData)
+                                {
+                                    TimedMessageBox.Show(
+                                        "There is no data for the calendar",
+                                        Global.MessageBoxCaption,
+                                        2500,
+                                        System.Windows.Forms.MessageBoxButtons.OK);
+                                }
+                            }
+                            else
+                            {
+                                NSAPEntities.FishingCalendarDayExViewModel.CalendarViewType = _calendarOption;
+                                if (await NSAPEntities.FishingCalendarDayExViewModel.MakeCalendar(isWatchedSpeciesCalendar: _isWatchedSpeciesCalendar, getFemaleMaturity: _getFemaleMaturity))
                                 {
 
-                                    TimedMessageBox.Show("No data for buidling calendar",
-                                        Global.MessageBoxCaption,
-                                        timeout: 1500,
-                                        System.Windows.Forms.MessageBoxButtons.OK
 
-                                        );
+                                    GridNSAPData.Columns.Clear();
+                                    GridNSAPData.AutoGenerateColumns = true;
+                                    GridNSAPData.DataContext = NSAPEntities.FishingCalendarDayExViewModel.DataTable;
+                                    if (!NSAPEntities.FishingCalendarDayExViewModel.CalendarHasValue)
+                                    {
+                                        GridNSAPData.Visibility = Visibility.Collapsed;
+                                    }
+                                    else
+                                    {
+                                        GridNSAPData.Visibility = Visibility.Visible;
+                                    }
+
+                                    _hasNonSamplingDayColumns = false;
+                                    foreach (DataGridColumn c in GridNSAPData.Columns)
+                                    {
+                                        if (int.TryParse(c.Header.ToString(), out int v))
+                                        {
+                                            if (NSAPEntities.FishingCalendarDayExViewModel.DayIsRestDay(v))
+                                            {
+                                                _hasNonSamplingDayColumns = true;
+                                                c.CellStyle = new Style(typeof(DataGridCell));
+                                                c.CellStyle.Setters.Add(new Setter(DataGridCell.BackgroundProperty, new SolidColorBrush(Colors.LightBlue)));
+                                            }
+                                        }
+                                    }
+                                    SetupCalendarLabels();
+                                    if (!NSAPEntities.FishingCalendarDayExViewModel.CalendarHasValue)
+                                    {
+
+                                        TimedMessageBox.Show("No data for buidling calendar",
+                                            Global.MessageBoxCaption,
+                                            timeout: 1500,
+                                            System.Windows.Forms.MessageBoxButtons.OK
+
+                                            );
+                                    }
                                 }
-
                             }
+
                         }
                         else if (!proceed)
                         {
@@ -4475,164 +4534,180 @@ namespace NSAP_ODK
         }
         private async void OnTreeViewItemSelected(object sender, TreeViewModelControl.AllSamplingEntitiesEventHandler e)
         {
-            _monthYear = null;
-            _cancelBuildCalendar = false;
-            menuCalendar.Visibility = Visibility.Collapsed;
-            buttonNote.Visibility = Visibility.Collapsed;
-            _fishingCalendarViewModel = null;
-            gridCalendarHeader.Visibility = Visibility.Visible;
-            _calendarTreeSelectedEntity = e.TreeViewEntity;
-            NSAPEntities.SummaryItemViewModel.TreeViewData = e;
-            string labelContent = "";
-            GridNSAPData.SelectionUnit = DataGridSelectionUnit.FullRow;
-
-            _treeItemData = e;
-            var tvi = ((TreeViewModelControl.TreeControl)sender)._selectedItem;
-
-            //switch (e.TreeViewEntity)
-            switch (_calendarTreeSelectedEntity)
+            try
             {
-                case "tv_NSAPRegionViewModel":
-                    labelContent = $"Summary of database content for {e.NSAPRegion.Name}";
-                    SetUpSummaryGrid(SummaryLevelType.Region, GridNSAPData, treeviewData: e);
-                    break;
-                case "tv_FMAViewModel":
-                    labelContent = $"Summary of database content for {e.FMA.Name}, {e.NSAPRegion.Name}";
-                    SetUpSummaryGrid(SummaryLevelType.FMA, GridNSAPData, treeviewData: e);
-                    break;
-                case "tv_FishingGroundViewModel":
-                    labelContent = $"Summary of database content for {e.FishingGround.Name}, {e.FMA.Name}, {e.NSAPRegion.Name}";
-                    SetUpSummaryGrid(SummaryLevelType.FishingGround, GridNSAPData, treeviewData: e);
-                    try
-                    {
-                        if (e.TreeViewItem.Children.Count != NSAPEntities.SummaryItemViewModel.GetLandingSitesSampledInFishingGround(e.FishingGround, e.FMA, e.NSAPRegion).Count())
-                        {
-                            ((TreeViewModelControl.tv_FishingGroundViewModel)e.TreeViewItem).Refresh();
-                        }
-                    }
-                    catch
-                    {
-                        //
-                    }
-                    break;
-                case "tv_LandingSiteViewModel":
-                    labelContent = $"Summary of database content for {e.LandingSiteText}, {e.FishingGround.Name}, {e.FMA.Name}, {e.NSAPRegion.Name}";
-                    SetUpSummaryGrid(SummaryLevelType.LandingSite, GridNSAPData, treeviewData: e);
-                    //var months_sampled = NSAPEntities.SummaryItemViewModel.GetMonthsSampledInLandingSite(e.LandingSite);
-                    //;if (e.TreeViewItem.Children.Count != months_sampled.Count)
-                    if (e.TreeViewItem.Children.Count != NSAPEntities.SummaryItemViewModel.GetMonthsSampledInLandingSite(e.LandingSite, e.FishingGround).Count())
-                    {
-                        ((TreeViewModelControl.tv_LandingSiteViewModel)e.TreeViewItem).Refresh();
-                    }
-                    break;
-                case "tv_MonthViewModel":
-                    if (Global.Settings.UseAlternateCalendar)
-                    {
-                        NSAPEntities.CalendarMonthViewModel = new CalendarMonthViewModel(e);
-                        GridNSAPData.SelectionUnit = DataGridSelectionUnit.Cell;
-                        GridNSAPData.Columns.Clear();
-                        GridNSAPData.AutoGenerateColumns = true;
-                        GridNSAPData.DataContext = NSAPEntities.CalendarMonthViewModel.LandingsCountDataTable;
-                        GridNSAPData.Visibility = Visibility.Visible;
+                _monthYear = null;
+                _cancelBuildCalendar = false;
+                menuCalendar.Visibility = Visibility.Collapsed;
+                buttonNote.Visibility = Visibility.Collapsed;
+                _fishingCalendarViewModel = null;
+                gridCalendarHeader.Visibility = Visibility.Visible;
+                _calendarTreeSelectedEntity = e.TreeViewEntity;
+                NSAPEntities.SummaryItemViewModel.TreeViewData = e;
+                string labelContent = "";
+                GridNSAPData.SelectionUnit = DataGridSelectionUnit.FullRow;
 
-                        foreach (DataGridColumn c in GridNSAPData.Columns)
+                _treeItemData = e;
+                var tvi = ((TreeViewModelControl.TreeControl)sender)._selectedItem;
+
+                //switch (e.TreeViewEntity)
+                switch (_calendarTreeSelectedEntity)
+                {
+                    case "tv_NSAPRegionViewModel":
+                        labelContent = $"Summary of database content for {e.NSAPRegion.Name}";
+                        SetUpSummaryGrid(SummaryLevelType.Region, GridNSAPData, treeviewData: e);
+                        break;
+                    case "tv_FMAViewModel":
+                        labelContent = $"Summary of database content for {e.FMA.Name}, {e.NSAPRegion.Name}";
+                        SetUpSummaryGrid(SummaryLevelType.FMA, GridNSAPData, treeviewData: e);
+                        break;
+                    case "tv_FishingGroundViewModel":
+                        labelContent = $"Summary of database content for {e.FishingGround.Name}, {e.FMA.Name}, {e.NSAPRegion.Name}";
+                        SetUpSummaryGrid(SummaryLevelType.FishingGround, GridNSAPData, treeviewData: e);
+                        try
                         {
-                            if (int.TryParse(c.Header.ToString(), out int v))
+                            if (e.TreeViewItem.Children.Count != NSAPEntities.SummaryItemViewModel.GetLandingSitesSampledInFishingGround(e.FishingGround, e.FMA, e.NSAPRegion).Count())
                             {
-                                if (NSAPEntities.CalendarMonthViewModel.DayIsRestDay(v))
+                                ((TreeViewModelControl.tv_FishingGroundViewModel)e.TreeViewItem).Refresh();
+                            }
+                        }
+                        catch
+                        {
+                            //
+                        }
+                        break;
+                    case "tv_LandingSiteViewModel":
+                        labelContent = $"Summary of database content for {e.LandingSiteText}, {e.FishingGround.Name}, {e.FMA.Name}, {e.NSAPRegion.Name}";
+                        SetUpSummaryGrid(SummaryLevelType.LandingSite, GridNSAPData, treeviewData: e);
+                        //var months_sampled = NSAPEntities.SummaryItemViewModel.GetMonthsSampledInLandingSite(e.LandingSite);
+                        //;if (e.TreeViewItem.Children.Count != months_sampled.Count)
+                        if (e.TreeViewItem.Children.Count != NSAPEntities.SummaryItemViewModel.GetMonthsSampledInLandingSite(e.LandingSite, e.FishingGround).Count())
+                        {
+                            ((TreeViewModelControl.tv_LandingSiteViewModel)e.TreeViewItem).Refresh();
+                        }
+
+
+                        //if (e.TreeViewItem.Children.Count != LandingSiteSamplingRepository.GetMonthsSampledInLandingSite(e.LandingSite, e.FishingGround,e.FMA,e.NSAPRegion).Count())
+                        //{
+                        //    ((TreeViewModelControl.tv_LandingSiteViewModel)e.TreeViewItem).Refresh();
+                        //}
+                        break;
+                    case "tv_MonthViewModel":
+                        UnCheckCalendarMenuItems();
+                        _allSamplingEntitiesEventHandler = e;
+                        menuCalendar.Visibility = Visibility.Visible;
+                        SetUpCalendarMenu();
+                        _calendarOption = e.CalendarView;
+
+                        if (Global.Settings.UseAlternateCalendar)
+                        {
+                            //NSAPEntities.CalendarMonthViewModel = new CalendarMonthViewModel(e);
+                            //GridNSAPData.SelectionUnit = DataGridSelectionUnit.Cell;
+                            //GridNSAPData.Columns.Clear();
+                            //GridNSAPData.AutoGenerateColumns = true;
+                            //GridNSAPData.DataContext = NSAPEntities.CalendarMonthViewModel.LandingsCountDataTable;
+                            GridNSAPData.Visibility = Visibility.Visible;
+
+                            foreach (DataGridColumn c in GridNSAPData.Columns)
+                            {
+                                if (int.TryParse(c.Header.ToString(), out int v))
                                 {
-                                    _hasNonSamplingDayColumns = true;
-                                    c.CellStyle = new Style(typeof(DataGridCell));
-                                    c.CellStyle.Setters.Add(new Setter(DataGridCell.BackgroundProperty, new SolidColorBrush(Colors.LightBlue)));
+                                    if (NSAPEntities.CalendarMonthViewModel.DayIsRestDay(v))
+                                    {
+                                        _hasNonSamplingDayColumns = true;
+                                        c.CellStyle = new Style(typeof(DataGridCell));
+                                        c.CellStyle.Setters.Add(new Setter(DataGridCell.BackgroundProperty, new SolidColorBrush(Colors.LightBlue)));
+                                    }
                                 }
                             }
                         }
-                    }
-                    else
-                    {
-                        Logger.LogCalendar("start");
-                        if (e.NSAPRegion.RegionWatchedSpeciesViewModel == null)
+                        else
                         {
-                            e.NSAPRegion.RegionWatchedSpeciesViewModel = new RegionWatchedSpeciesViewModel(e.NSAPRegion);
-                        }
-                        _allSamplingEntitiesEventHandler = e;
+                            Logger.LogCalendar("start");
+                            if (e.NSAPRegion.RegionWatchedSpeciesViewModel == null)
+                            {
+                                e.NSAPRegion.RegionWatchedSpeciesViewModel = new RegionWatchedSpeciesViewModel(e.NSAPRegion);
+                            }
 
-                        //CrossTabGenerator.GetVesselUnloads(_allSamplingEntitiesEventHandler);
+
+                            //CrossTabGenerator.GetVesselUnloads(_allSamplingEntitiesEventHandler);
+                            GridNSAPData.SelectionUnit = DataGridSelectionUnit.Cell;
+
+                            NSAPEntities.FishingCalendarDayExViewModel.CalendarViewType = _calendarOption;
+
+                            NSAPEntities.FishingCalendarDayExViewModel.CalendarEvent += FishingCalendarDayExViewModel_CalendarEvent;
+                            ShowStatusRow();
+                            await NSAPEntities.FishingCalendarDayExViewModel.GetCalendarDaysForMonth(e);
+                            await NSAPEntities.FishingCalendarDayExViewModel.MakeCalendarTask();
+                            //NSAPEntities.FishingCalendarDayExViewModel.MakeCalendar();
+                            GridNSAPData.Columns.Clear();
+                            GridNSAPData.AutoGenerateColumns = true;
+                            Logger.LogCalendar($"datatable from NSAPEntities.FishingCalendarDayExViewModel.DataTable created with {NSAPEntities.FishingCalendarDayExViewModel.DataTable.Rows.Count} rows");
+                            GridNSAPData.DataContext = NSAPEntities.FishingCalendarDayExViewModel.DataTable;
+                            Logger.LogCalendar($"NSAPEntities.FishingCalendarDayExViewModel.CalendarHasValue?: {NSAPEntities.FishingCalendarDayExViewModel.CalendarHasValue}");
+                            if (NSAPEntities.FishingCalendarDayExViewModel.CalendarHasValue)
+                            {
+                                GridNSAPData.Visibility = Visibility.Visible;
+                            }
+                            else
+                            {
+                                GridNSAPData.Visibility = Visibility.Collapsed;
+                            }
+
+                            _hasNonSamplingDayColumns = false;
+                            foreach (DataGridColumn c in GridNSAPData.Columns)
+                            {
+                                if (int.TryParse(c.Header.ToString(), out int v))
+                                {
+                                    if (NSAPEntities.FishingCalendarDayExViewModel.DayIsRestDay(v))
+                                    {
+                                        _hasNonSamplingDayColumns = true;
+                                        c.CellStyle = new Style(typeof(DataGridCell));
+                                        c.CellStyle.Setters.Add(new Setter(DataGridCell.BackgroundProperty, new SolidColorBrush(Colors.LightBlue)));
+                                    }
+                                }
+                            }
+                            //SetupCalendar();
+                            SetupCalendarLabels();
+                            NSAPEntities.FishingCalendarDayExViewModel.CalendarEvent += FishingCalendarDayExViewModel_CalendarEvent;
+                            ShowStatusRow(isVisible: false);
+                            Logger.LogCalendar("end");
+                        }
+                        break;
+                    case "tv_MonthViewModelx":
+                        _allSamplingEntitiesEventHandler = e;
                         GridNSAPData.SelectionUnit = DataGridSelectionUnit.Cell;
                         menuCalendar.Visibility = Visibility.Visible;
 
                         SetUpCalendarMenu();
                         _calendarOption = e.CalendarView;
-                        NSAPEntities.FishingCalendarDayExViewModel.CalendarViewType = _calendarOption;
+                        if (_calendarFirstInvokeDone)
+                        {
+                            //SetupCalendar(e.CalendarView);d
 
-                        NSAPEntities.FishingCalendarDayExViewModel.CalendarEvent += FishingCalendarDayExViewModel_CalendarEvent;
-                        ShowStatusRow();
-                        await NSAPEntities.FishingCalendarDayExViewModel.GetCalendarDaysForMonth(e);
-                        await NSAPEntities.FishingCalendarDayExViewModel.MakeCalendarTask();
-                        //NSAPEntities.FishingCalendarDayExViewModel.MakeCalendar();
-                        GridNSAPData.Columns.Clear();
-                        GridNSAPData.AutoGenerateColumns = true;
-                        Logger.LogCalendar($"datatable from NSAPEntities.FishingCalendarDayExViewModel.DataTable created with {NSAPEntities.FishingCalendarDayExViewModel.DataTable.Rows.Count} rows");
-                        GridNSAPData.DataContext = NSAPEntities.FishingCalendarDayExViewModel.DataTable;
-                        Logger.LogCalendar($"NSAPEntities.FishingCalendarDayExViewModel.CalendarHasValue?: {NSAPEntities.FishingCalendarDayExViewModel.CalendarHasValue}");
-                        if (NSAPEntities.FishingCalendarDayExViewModel.CalendarHasValue)
-                        {
-                            GridNSAPData.Visibility = Visibility.Visible;
-                        }
-                        else
-                        {
-                            GridNSAPData.Visibility = Visibility.Collapsed;
+                            await SetupCalendar();//_calendarViewType);
                         }
 
-                        _hasNonSamplingDayColumns = false;
-                        foreach (DataGridColumn c in GridNSAPData.Columns)
+                        if (!_calendarFirstInvokeDone)
                         {
-                            if (int.TryParse(c.Header.ToString(), out int v))
-                            {
-                                if (NSAPEntities.FishingCalendarDayExViewModel.DayIsRestDay(v))
-                                {
-                                    _hasNonSamplingDayColumns = true;
-                                    c.CellStyle = new Style(typeof(DataGridCell));
-                                    c.CellStyle.Setters.Add(new Setter(DataGridCell.BackgroundProperty, new SolidColorBrush(Colors.LightBlue)));
-                                }
-                            }
+                            _calendarFirstInvokeDone = true;
                         }
-                        //SetupCalendar();
-                        SetupCalendarLabels();
-                        NSAPEntities.FishingCalendarDayExViewModel.CalendarEvent += FishingCalendarDayExViewModel_CalendarEvent;
-                        ShowStatusRow(isVisible: false);
-                        Logger.LogCalendar("end");
-                    }
-                    break;
-                case "tv_MonthViewModelx":
-                    _allSamplingEntitiesEventHandler = e;
-                    GridNSAPData.SelectionUnit = DataGridSelectionUnit.Cell;
-                    menuCalendar.Visibility = Visibility.Visible;
+                        //SetupCalendarView(labelContent);
+                        if (e.CalendarView == CalendarViewType.calendarViewTypeCountAllLandings)
+                        {
+                            _cancelBuildCalendar = true;
+                            menuTotalLandingsCalendar.IsChecked = true;
+                            _cancelBuildCalendar = false;
+                        }
+                        break;
+                }
 
-                    SetUpCalendarMenu();
-                    _calendarOption = e.CalendarView;
-                    if (_calendarFirstInvokeDone)
-                    {
-                        //SetupCalendar(e.CalendarView);d
-
-                        await SetupCalendar();//_calendarViewType);
-                    }
-
-                    if (!_calendarFirstInvokeDone)
-                    {
-                        _calendarFirstInvokeDone = true;
-                    }
-                    //SetupCalendarView(labelContent);
-                    if (e.CalendarView == CalendarViewType.calendarViewTypeCountAllLandings)
-                    {
-                        _cancelBuildCalendar = true;
-                        menuTotalLandingsCalendar.IsChecked = true;
-                        _cancelBuildCalendar = false;
-                    }
-                    break;
+                SetupCalendarView(labelContent);
             }
-
-            SetupCalendarView(labelContent);
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
         }
 
         private void FishingCalendarDayExViewModel_CalendarEvent(object sender, MakeCalendarEventArg e)
@@ -4757,6 +4832,7 @@ namespace NSAP_ODK
                 //}
             }
         }
+
         private async void OnSelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {
             _calendarDay = null;
@@ -4808,27 +4884,55 @@ namespace NSAP_ODK
 
                             if (_isWatchedSpeciesCalendar)
                             {
-                                if (_getFemaleMaturity)
+                                if (Global.Settings.UseAlternateCalendar)
                                 {
-                                    _speciesTaxa = (string)item.Row.ItemArray[0];
-                                    _speciesName = (string)item.Row.ItemArray[1];
-                                    _maturityStage = (string)item.Row.ItemArray[2];
-                                    _gearName = (string)item.Row.ItemArray[3];
-                                    _gearCode = (string)item.Row.ItemArray[4];
-                                    _fish_sector = (string)item.Row.ItemArray[5];
-                                    _monthYear = DateTime.Parse(item.Row.ItemArray[6].ToString());
-                                    gridColumnForDay1 = 7;
+                                    if (_getFemaleMaturity)
+                                    {
+                                        _speciesTaxa = (string)item.Row.ItemArray[0];
+                                        _speciesName = (string)item.Row.ItemArray[1];
+                                        _maturityStage = (string)item.Row.ItemArray[3];
+                                        _gearName = (string)item.Row.ItemArray[4];
+                                        _gearCode = (string)item.Row.ItemArray[5];
+                                        _fish_sector = (string)item.Row.ItemArray[6];
+                                        _monthYear = DateTime.Parse(item.Row.ItemArray[7].ToString());
+                                        gridColumnForDay1 = 8;
 
+                                    }
+                                    else
+                                    {
+                                        _speciesTaxa = (string)item.Row.ItemArray[0];
+                                        _speciesName = (string)item.Row.ItemArray[1];
+                                        _gearName = (string)item.Row.ItemArray[3];
+                                        _gearCode = (string)item.Row.ItemArray[4];
+                                        _fish_sector = (string)item.Row.ItemArray[5];
+                                        _monthYear = DateTime.Parse(item.Row.ItemArray[6].ToString());
+                                        gridColumnForDay1 = 7;
+                                    }
                                 }
                                 else
                                 {
-                                    _speciesTaxa = (string)item.Row.ItemArray[0];
-                                    _speciesName = (string)item.Row.ItemArray[1];
-                                    _gearName = (string)item.Row.ItemArray[2];
-                                    _gearCode = (string)item.Row.ItemArray[3];
-                                    _fish_sector = (string)item.Row.ItemArray[4];
-                                    _monthYear = DateTime.Parse(item.Row.ItemArray[5].ToString());
-                                    gridColumnForDay1 = 6;
+                                    if (_getFemaleMaturity)
+                                    {
+                                        _speciesTaxa = (string)item.Row.ItemArray[0];
+                                        _speciesName = (string)item.Row.ItemArray[1];
+                                        _maturityStage = (string)item.Row.ItemArray[2];
+                                        _gearName = (string)item.Row.ItemArray[3];
+                                        _gearCode = (string)item.Row.ItemArray[4];
+                                        _fish_sector = (string)item.Row.ItemArray[5];
+                                        _monthYear = DateTime.Parse(item.Row.ItemArray[6].ToString());
+                                        gridColumnForDay1 = 7;
+
+                                    }
+                                    else
+                                    {
+                                        _speciesTaxa = (string)item.Row.ItemArray[0];
+                                        _speciesName = (string)item.Row.ItemArray[1];
+                                        _gearName = (string)item.Row.ItemArray[2];
+                                        _gearCode = (string)item.Row.ItemArray[3];
+                                        _fish_sector = (string)item.Row.ItemArray[4];
+                                        _monthYear = DateTime.Parse(item.Row.ItemArray[5].ToString());
+                                        gridColumnForDay1 = 6;
+                                    }
                                 }
                                 // _calendarDay = _gridCol - (gridColumnForDay1 - 1);
                             }
@@ -4899,8 +5003,8 @@ namespace NSAP_ODK
                             }
                             else if (_gridCol >= gridColumnForDay1)
                             {
-
-                                GearUnload gear_unload_from_day = NSAPEntities.FishingCalendarDayExViewModel.GetGearUnload(_gearName, _fish_sector, _gridCol - (gridColumnForDay1 - 1), _calendarOption);
+                                NSAPEntities.FishingCalendarDayExViewModel.MonthSampled = _allSamplingEntitiesEventHandler;
+                                GearUnload gear_unload_from_day = NSAPEntities.FishingCalendarDayExViewModel.GetGearUnload(_gearName, _fish_sector, _gridCol - (gridColumnForDay1 - 1), _calendarOption, isAlternateCalendar: Global.Settings.UseAlternateCalendar, gearCode: _gearCode);
                                 //GearUnload gear_unload_from_day = _fishingCalendarViewModel.FishingCalendarList.FirstOrDefault(t => t.GearName == _gearName && t.Sector == _fish_sector).GearUnloads[_gridCol - 4];
 
                                 //sectorCode = gear_unload_from_day.SectorCode;
@@ -6136,6 +6240,8 @@ namespace NSAP_ODK
                     ShowSettingsWindow();
                     break;
                 case "buttonExit":
+                    //MapColorsViewerWindow mcvw = new MapColorsViewerWindow();
+                    //mcvw.Show();
                     Close();
                     break;
                 case "buttonCalendar":

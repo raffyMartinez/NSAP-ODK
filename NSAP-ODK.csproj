@@ -212,8 +212,10 @@
     <Compile Include="Entities\Database\BoatLandingsFromServerRepository.cs" />
     <Compile Include="Entities\Database\BuildingCalendarEventArg.cs" />
     <Compile Include="Entities\Database\BuildSummaryReportEventArg.cs" />
+    <Compile Include="Entities\Database\CalendarDailySummary.cs" />
     <Compile Include="Entities\Database\CalendarDay.cs" />
     <Compile Include="Entities\Database\CalendarDayLineage.cs" />
+    <Compile Include="Entities\Database\CalendarDaySpecies.cs" />
     <Compile Include="Entities\Database\CalendarDayViewModel.cs" />
     <Compile Include="Entities\Database\CalendarGearSectorViewModel.cs" />
     <Compile Include="Entities\Database\CalendarMonth.cs" />
@@ -589,6 +591,7 @@
     <Compile Include="Mapping\ClusteredFishingGroundPoint.cs" />
     <Compile Include="Mapping\Colors.cs" />
     <Compile Include="Mapping\ColorSchemes.cs" />
+    <Compile Include="Mapping\CreateProxyImageEventArgs.cs" />
     <Compile Include="Mapping\Entities.cs" />
     <Compile Include="Mapping\EntityValidationMessage.cs" />
     <Compile Include="Mapping\EntityValidationResult.cs" />
@@ -598,12 +601,14 @@
     <Compile Include="Mapping\globalMapping.cs" />
     <Compile Include="Mapping\Graticule.cs" />
     <Compile Include="Mapping\Grid25.cs" />
+    <Compile Include="Mapping\GridLayer.cs" />
     <Compile Include="Mapping\GridMapping.cs" />
     <Compile Include="Mapping\IWaypoint.cs" />
     <Compile Include="Mapping\JenksFisher.cs" />
     <Compile Include="Mapping\LabelProperty.cs" />
     <Compile Include="Mapping\LatLonUTMConverter.cs" />
     <Compile Include="Mapping\LayerEventArg.cs" />
+    <Compile Include="Mapping\MapCursorLocationChangedEventArgs.cs" />
     <Compile Include="Mapping\MapInterActionHandler.cs" />
     <Compile Include="Mapping\MapLayer.cs" />
     <Compile Include="Mapping\MapLayerSequence.cs" />
@@ -627,7 +632,9 @@
     <Compile Include="Mapping\usercontrols\ImageCombo.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Mapping\views\AOIWindow.xaml.cs" />
+    <Compile Include="Mapping\views\AOIWindow.xaml.cs">
+      <DependentUpon>AOIWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Mapping\views\CategorizeFishingGroundLayerWindow.xaml.cs">
       <DependentUpon>CategorizeFishingGroundLayerWindow.xaml</DependentUpon>
     </Compile>
@@ -640,24 +647,37 @@
     <Compile Include="Mapping\views\GridMappingWindow.xaml.cs">
       <DependentUpon>GridMappingWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Mapping\views\MakeAOIGridWindow.xaml.cs" />
+    <Compile Include="Mapping\views\MakeAOIGridWindow.xaml.cs">
+      <DependentUpon>MakeAOIGridWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Mapping\views\MapColorsViewerWindow.xaml.cs">
+      <DependentUpon>MapColorsViewerWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Mapping\views\MapLayersWindow.xaml.cs">
       <DependentUpon>MapLayersWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Mapping\views\MapWindowForm.IconInfo.cs" />
-    <Compile Include="Mapping\views\MapWindowForm.xaml.cs" />
+    <Compile Include="Mapping\views\MapWindowForm.xaml.cs">
+      <DependentUpon>MapWindowForm.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Mapping\views\SaveMapForm.xaml.cs">
       <DependentUpon>SaveMapForm.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Mapping\views\SelectedGridRowsSummaryWindow.xaml.cs" />
-    <Compile Include="Mapping\views\SelectGridFileWindow.xaml.cs" />
+    <Compile Include="Mapping\views\SelectedGridRowsSummaryWindow.xaml.cs">
+      <DependentUpon>SelectedGridRowsSummaryWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Mapping\views\SelectGridFileWindow.xaml.cs">
+      <DependentUpon>SelectGridFileWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Mapping\views\SelectTileProviderWindow.xaml.cs">
       <DependentUpon>SelectTileProviderWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Mapping\views\ShapeFileAttributesWindow.xaml.cs">
       <DependentUpon>ShapeFileAttributesWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Mapping\views\ShapeFileVisibilityExpressionWindow.xaml.cs" />
+    <Compile Include="Mapping\views\ShapeFileVisibilityExpressionWindow.xaml.cs">
+      <DependentUpon>ShapeFileVisibilityExpressionWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Mapping\Waypoint.cs" />
     <Compile Include="NSAPMysql\CreateMySQLTables.cs" />
     <Compile Include="NSAPMysql\MigrateDataEventArg.cs" />
@@ -919,6 +939,10 @@
     <Page Include="Mapping\views\MakeAOIGridWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Mapping\views\MapColorsViewerWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Mapping\views\MapLayersWindow.xaml">
       <SubType>Designer</SubType>
@@ -1349,64 +1373,64 @@
     <None Include="Resources\zoom+.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Mapping\views\layers.png" />
+    <Resource Include="Mapping\views\icons\layers.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Mapping\views\layers new.png" />
+    <Resource Include="Mapping\views\icons\zoom+.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Mapping\views\zoom+.png" />
+    <Resource Include="Mapping\views\icons\zoom-.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Mapping\views\zoom-.png" />
+    <Resource Include="Mapping\views\icons\move.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Mapping\views\move.png" />
+    <Resource Include="Mapping\views\icons\gps2.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Mapping\views\table1.png" />
+    <Resource Include="Mapping\views\icons\select.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Mapping\views\gps2.png" />
+    <Resource Include="Mapping\views\icons\select1.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Mapping\views\select.png" />
+    <Resource Include="Mapping\views\icons\select_none1.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Mapping\views\select1.png" />
+    <Resource Include="Mapping\views\icons\track.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Mapping\views\select_none1.png" />
+    <Resource Include="Mapping\views\icons\ruler.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Mapping\views\track.png" />
+    <Resource Include="Mapping\views\icons\map screen grey.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Mapping\views\ruler.png" />
+    <Resource Include="Mapping\views\icons\aoi.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Mapping\views\map screen grey.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Mapping\views\aoi.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Mapping\views\exit.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Mapping\views\layer remove.png" />
+    <Resource Include="Mapping\views\icons\exit.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\map screen.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Mapping\views\map screen.png" />
+    <Resource Include="Mapping\views\icons\map screen.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\grid.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Mapping\views\grid.png" />
+    <Resource Include="Mapping\views\icons\grid.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Mapping\views\icons\layers new.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Mapping\views\icons\layer remove.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Mapping\views\icons\table1.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

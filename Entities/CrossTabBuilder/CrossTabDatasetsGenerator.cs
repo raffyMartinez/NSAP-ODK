@@ -223,7 +223,7 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 Logger.Log(ex);
             }
             foreach (VesselCatch vc in CrossTabGenerator.VesselCatches.OrderBy(t => t.Parent.SamplingDate.Date)
-                .ThenBy(t=>t.GearNameUsed)
+                .ThenBy(t => t.GearNameUsed)
                 .ThenBy(t => t.VesselUnloadID)
                 .ThenBy(t => t.CatchName)
                 )
@@ -924,7 +924,7 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
 
             foreach (var slf in CrossTabGenerator.CatchLengthFreqCrossTabs
                 .OrderBy(t => t.Parent.Parent.SamplingDate.Date)
-                .ThenBy(t=>t.Parent.Parent.GearUsed)
+                .ThenBy(t => t.Parent.Parent.GearUsed)
                 .ThenBy(t => t.Parent.Parent.PK)
                 .ThenBy(t => t.Parent.CatchName)
                 )
@@ -1357,7 +1357,7 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
 
             foreach (var vu in CrossTabGenerator.VesselUnloads
                 .OrderBy(t => t.SamplingDate.Date)
-                .ThenBy(t=>t.GearUsed)
+                .ThenBy(t => t.GearUsed)
                 )
             {
                 var row = EffortDataTable.NewRow();
@@ -1427,7 +1427,16 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 }
 
                 row["Catch composition count"] = vu.CountCatchCompositionItems;
-                row["Total weight of catch"] = vu.WeightOfCatch;
+                
+                if(vu.WeightOfCatch!=null)
+                {
+                    row["Total weight of catch"] = vu.WeightOfCatch;
+                }
+                else
+                {
+                    row["Total weight of catch"] = DBNull.Value;
+                }
+                
                 row["Is the catch sold"] = vu.IsCatchSold;
                 row["Notes"] = vu.Notes;
                 foreach (var vufg in vu.ListUnloadFishingGearsEx)

@@ -248,7 +248,7 @@ namespace NSAP_ODK.Views
                         _fishGenera.Clear();
                         FillGenusComboBox();
                     }
-                    Console.WriteLine(msg);
+                    //Console.WriteLine(msg);
                     break;
 
                 case "txtWeightKg":

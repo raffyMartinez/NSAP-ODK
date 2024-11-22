@@ -44,7 +44,27 @@ namespace NSAP_ODK.TreeViewModelControl
             base.Children.Add(month);
         }
 
-        protected override void LoadChildren()
+        //protected override void  LoadChildren()
+        //{
+        //    List<DateTime> listMonthYear = new List<DateTime>();
+        //    NSAPEntities.SummaryItemViewModel.TreeViewData = new AllSamplingEntitiesEventHandler
+        //    {
+        //        LandingSite = _landingSite,
+        //        FishingGround = _fishingGround,
+        //        FMA = _fma,
+        //        NSAPRegion = _region,
+        //        LandingSiteText = _landingSiteText,
+        //        TreeViewEntity = this.GetType().Name
+        //    };
+
+        //    listMonthYear = NSAP_ODK.Entities.Database.LandingSiteSamplingRepository.GetMonthsSampledInLandingSite(_landingSite, _fishingGround, _fma, _region);
+
+        //    foreach (var my in listMonthYear.OrderBy(t => t))
+        //    {
+        //        base.Children.Add(new tv_MonthViewModel(my.ToString("MMM-yyyy"), this));
+        //    }
+        //}
+        protected  override void LoadChildren()
         {
             //string lsName = _landingSite == null ? _landingSiteText : _landingSite.LandingSiteName;
             List<DateTime> listMonthYear = new List<DateTime>();

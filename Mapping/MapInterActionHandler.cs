@@ -37,6 +37,8 @@ namespace NSAP_ODK.Mapping
 
         public event EventHandler SelectionCleared;
 
+
+
         public tkCursorMode MapCursorMode
         {
             get { return _mapCursorMode; }
@@ -264,11 +266,20 @@ namespace NSAP_ODK.Mapping
             }
         }
 
+        public double Latitude { get; private set; }
+        public double Longitude { get; private set; }
         private void OnMapMouseMove(object sender, _DMapEvents_MouseMoveEvent e)
         {
             if (EnableMapInteraction)
             {
-                Console.WriteLine($"{_axMap.Longitude}, {_axMap.Latitude}");
+                double projX = 0.0;
+                double projY = 0.0;
+                _axMap.PixelToProj(e.x, e.y, ref projX, ref projY);
+
+
+                Latitude = projY;
+                Longitude= projX;
+                //Console.WriteLine($"lon: {Longitude} lat:{Latitude}");
             }
         }
 

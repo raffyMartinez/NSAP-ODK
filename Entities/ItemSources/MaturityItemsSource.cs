@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
 namespace NSAP_ODK.Entities.ItemSources
 {
-    class MaturityItemsSource:IItemsSource
+    public class MaturityItemsSource : IItemsSource
     {
         private ItemCollection _items = new ItemCollection();
         public ItemCollection GetValues()
@@ -20,6 +20,19 @@ namespace NSAP_ODK.Entities.ItemSources
             _items.Add("sp", "Spent(FV)");
 
             return _items;
+        }
+
+        public string MaturityStageFromCode(string code)
+        {
+
+            foreach (var item in _items)
+            {
+                if ((string)item.Value == code)
+                {
+                    return item.DisplayName;
+                }
+            }
+            return "";
         }
     }
 }

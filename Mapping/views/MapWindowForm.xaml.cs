@@ -40,7 +40,7 @@ namespace NSAP_ODK.Mapping.views
 
     public partial class MapWindowForm : Window
     {
-        private Graticule _graticule;                                               
+        private Graticule _graticule;
         private static MapWindowForm _instance;
         private SaveMapImage _saveMapImage;
         private float _suggestedDPI = 0;
@@ -57,8 +57,13 @@ namespace NSAP_ODK.Mapping.views
             InitializeComponent();
             Closing += OnWindowClosing;
             Closed += OnWindowClosed;
+            //SizeChanged += OnWindowSizeChanged;
         }
 
+        //private void OnWindowSizeChanged(object sender, SizeChangedEventArgs e)
+        //{
+        //    throw new NotImplementedException();
+        //}
 
         public System.Windows.Controls.Control LayerSelector { get; set; }
         public MapLayer CurrentLayer { get; set; }
@@ -142,7 +147,7 @@ namespace NSAP_ODK.Mapping.views
             {
                 _saveMapImage.Dispose();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Logger.Log(ex);
             }
@@ -182,6 +187,7 @@ namespace NSAP_ODK.Mapping.views
             MapGrid.Children.Add(host);
             MapLayersHandler = new MapLayersHandler(MapControl);
             MapInterActionHandler = new MapInterActionHandler(MapControl, MapLayersHandler);
+            MapLayersHandler.MapInterActionHandler = MapInterActionHandler;
             MapControl.ZoomBehavior = tkZoomBehavior.zbDefault;
 
             _legendManager = new MapLegendManager();
@@ -398,61 +404,18 @@ namespace NSAP_ODK.Mapping.views
             }
             return null;
         }
-        private void OnMenuClick(object sender, RoutedEventArgs e)
+        private async void OnMenuClick(object sender, RoutedEventArgs e)
         {
             string feedfBack = "";
             switch (((WindowMenuItem)sender).Name)
             {
-                case "menuCleanExtractedtracks":
-                    //if (MapWindowManager.ExtractedTracksShapefile != null && MapWindowManager.BSCBoundaryShapefile != null)
-                    //{
-                    //    var result = Entities.ExtractedFishingTrackViewModel.CleanupUsingBoundary(MapWindowManager.BSCBoundaryShapefile);
-
-                    //    string message = "No tracks were removed during the cleanup";
-                    //    if (result > 0)
-                    //    {
-                    //        message = $"Cleanup resulted in {result} tracks removed";
-                    //    }
-
-                    //    System.Windows.Forms.MessageBox.Show(message, "GPX Manager", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    //}
-                    //else
-                    //{
-                    //    System.Windows.MessageBox.Show("Extracted track and boundary must be loaded", "GPX Manager", MessageBoxButton.OK, MessageBoxImage.Information);
-                    //}
-                    break;
-                case "menuAddExtractedTracks":
-                    //if (!MapWindowManager.AddExtractedTracksLayer())
-                    //{
-                    //    System.Windows.MessageBox.Show("Extracted tracks not found", "GPX Manager", MessageBoxButton.OK, MessageBoxImage.Information);
-                    //}
-
-                    break;
-                case "menuAddBSCBoundary":
-
-
-                    if (!MapWindowManager.SetBoundaryShapefile())
-                    {
-                        if (MapWindowManager.BSCBoundaryShapefile == null)
-                        {
-                            MapWindowManager.AddBSCBoundaryLineShapefile(FileOpenDialogForShapefile(), out feedfBack);
-                        }
-                        if (feedfBack.Length > 0)
-                        {
-                            System.Windows.MessageBox.Show(feedfBack, "GPX Manager", MessageBoxButton.OK, MessageBoxImage.Information);
-                        }
-                    }
-
+                case "menuAddLayerMunicipalWaters":
+                    MapWindowManager.AddMunicipalWaterLines(out feedfBack, isVisible: true);
                     break;
                 case "menuEdit":
                     break;
                 case "menuAddLayerBoundaryLGU":
-
-                    MapWindowManager.AddLGUBoundary(out feedfBack);
-                    if (feedfBack.Length > 0)
-                    {
-                        System.Windows.MessageBox.Show(feedfBack, "GPX Manager", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
+                    MapWindowManager.AddLGUBoundary(out feedfBack, isVisible: true);
                     break;
                 case "menuMapTilesSelectProvider":
                     SelectTileProvider();
@@ -473,18 +436,70 @@ namespace NSAP_ODK.Mapping.views
                 case "menuAOIList":
                     ShowAOIList();
                     break;
-                case "menuIslandLabels":
+
+                case "menuAddLayerLGUPoints":
+                    MapWindowManager.AddLGUPoints(out feedfBack, isVisible: true);
                     break;
-                case "menuAddLayerBoundaryLGUPoblacion":
-                    MapWindowManager.AddLGUPoints(out feedfBack);
-                    if (feedfBack.Length > 0)
-                    {
-                        System.Windows.MessageBox.Show(feedfBack, Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
+                case "menuAddLayerIslandNames":
+                    MapWindowManager.AddIslandNamePoints(out feedfBack, isVisible: true);
                     break;
+                case "menuAddLayerBathymetry":
+
+                    GridLayer.CreatingProxyImageEvent += GridLayer_CreatingProxyImageEvent;
+                    var result = await MapWindowManager.AddBathymetry(isVisible: true);
+                    GridLayer.CreatingProxyImageEvent -= GridLayer_CreatingProxyImageEvent;
+                    feedfBack = result.errMsg;
+                    break;
+                case "menuAddLayerReef":
+                    MapWindowManager.AddReefArea(out feedfBack, isVisible: true);
+                    break;
+                case "menuAddLayerMangrove":
+                    break;
+            }
+
+            if (feedfBack.Length > 0)
+            {
+                System.Windows.MessageBox.Show(feedfBack, Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
+
+        private void GridLayer_CreatingProxyImageEvent(object sender, CreateProxyImageEventArgs e)
+        {
+            switch (e.Intent)
+            {
+                case "proxy image creating":
+                    gridRowStatus.Dispatcher.BeginInvoke(
+                        DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                            {
+                                gridRowStatus.Height = new GridLength(32);
+                                return null;
+                            }), null);
+
+                    mappingProgressLabel.Dispatcher.BeginInvoke(
+                        DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                            {
+                                mappingProgressLabel.Content = "Creating proxy image";
+                                return null;
+                            }), null);
+
+                    mappingProgressBar.Dispatcher.BeginInvoke(
+                        DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                            {
+                                mappingProgressBar.IsIndeterminate = true;
+                                return null;
+                            }), null);
+                    break;
+                case "proxy image created":
+                    gridRowStatus.Dispatcher.BeginInvoke(
+                        DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                            {
+                                gridRowStatus.Height = new GridLength(0);
+                                return null;
+                            }), null);
+                    break;
+            }
+        }
 
         private void ShowAOIList()
         {
@@ -576,10 +591,65 @@ namespace NSAP_ODK.Mapping.views
             {
                 _graticule.Dispose();
                 _graticule = null;
-                //MapLegend.Graticule = null;
             }
         }
 
+        public bool IsGetDepthMode { get; private set; }
+
+
+        private void SetGridMapCursorLocationTracking(bool trackingOn)
+        {
+            if (MapLayersHandler.CurrentMapLayer.IsGridLayer)
+            {
+                MapLayersHandler.CurrentMapLayer.GridLayer.MapInterActionHandler.MapControl.SendMouseMove = trackingOn;
+                if (trackingOn)
+                {
+                    MapLayersHandler.CurrentMapLayer.GridLayer.MapCursorLocationChangedEvent += GridLayer_MapCursorLocationChangedEvent;
+                }
+                else
+                {
+                    MapLayersHandler.CurrentMapLayer.GridLayer.MapCursorLocationChangedEvent -= GridLayer_MapCursorLocationChangedEvent;
+                }
+            }
+        }
+        public void DepthModeEnabled(bool isEnabled)
+        {
+            toolbarTextBox.IsEnabled = isEnabled;
+            if (!isEnabled)
+            {
+                toolbarTextBox.Text = "";
+            }
+            SetGridMapCursorLocationTracking(trackingOn: isEnabled);
+
+        }
+
+        private void GridLayer_MapCursorLocationChangedEvent(object sender, MapCursorLocationChangedEventArgs e)
+        {
+            if (toolbarTextBox.IsEnabled)
+            {
+                double depth = MapLayersHandler.CurrentMapLayer.GridLayer.GetGridValue();
+                if (depth > 0)
+                {
+                    depth = 0;
+                }
+                else
+                {
+                    depth = depth * -1;
+                }
+                toolbarTextBox.Text = depth.ToString();
+            }
+        }
+
+        public void GetDepthMode(bool isEnabled)
+        {
+            toolbarTextBox.Visibility = Visibility.Collapsed;
+            IsGetDepthMode = isEnabled;
+            if (isEnabled)
+            {
+                toolbarTextBox.Visibility = Visibility.Visible;
+            }
+            SetGridMapCursorLocationTracking(trackingOn: isEnabled);
+        }
         private void OnToolbarButtonClick(object sender, RoutedEventArgs e)
         {
             tkCursorMode cursorMode = tkCursorMode.cmNone;
@@ -708,7 +778,7 @@ namespace NSAP_ODK.Mapping.views
                     }
                     break;
                 case "buttonSaveImage":
-                    var saveForm = new SaveMapForm(parent:this);
+                    var saveForm = new SaveMapForm(parent: this);
                     saveForm.Owner = this;
                     saveForm.ShowDialog();
                     break;

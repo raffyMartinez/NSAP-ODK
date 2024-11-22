@@ -9,9 +9,15 @@ namespace NSAP_ODK.Entities.Database
     public class CalendarDay
     {
         public DateTime Day { get; set; }
+        public List<CalendarDaySpecies> CalendarDaySpecieses { get; set; }
+
+        public List<CalendarDaySpeciesMeasured> CalendarDaySpeciesesMeasured { get; set; }
+        public List<CalendarDaySpeciesMeasured> CalendarDaySpeciesesMeasuredFemale { get; set; }
+        public List<VesselUnload> VesselUnloads { get; set; }
+        public int CountNumberOfLandings { get; set; }
         public int CountOfFishingOperations { get; set; }
         public double TotalWeightOfCatch { get; set; }
-        public CalendarGearSector Parent { get; set; }
+        public CalendarGearSector CalendarGearSector_Parent { get; set; }
 
         public bool IsSamplingDay { get; set; }
         public bool HasFishingOperation { get; set; }
@@ -19,7 +25,7 @@ namespace NSAP_ODK.Entities.Database
         {
             if (IsSamplingDay && HasFishingOperation)
             {
-                return $"{Parent.Gear}({Parent.Sector}) - {Day.ToString("MMM-dd-yyyy")} n:{CountOfFishingOperations} wt:{TotalWeightOfCatch})";
+                return $"{CalendarGearSector_Parent.Gear}({CalendarGearSector_Parent.Sector}) - {Day.ToString("MMM-dd-yyyy")} n:{CountOfFishingOperations} wt:{TotalWeightOfCatch})";
             }
             else
             {

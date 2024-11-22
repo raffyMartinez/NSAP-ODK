@@ -43,10 +43,20 @@ namespace NSAP_ODK.Mapping
             var obs = new ObservableCollection<MapLayer>();
             foreach (var item in MapLayerCollection.Where(t => t.VisibleInLayersUI))
             {
-                if (item.LayerImageInLegend == null)
+                try
                 {
-                    var sf = (MapWinGIS.Shapefile)item.LayerObject;
-                    item.LayerImageInLegend = MaplayersHandler.LayerSymbol(item);
+                    if (item.LayerImageInLegend == null)
+                    {
+                        var sf = (MapWinGIS.Shapefile)item.LayerObject;
+                        item.LayerImageInLegend = MaplayersHandler.LayerSymbol(item);
+                    }
+                }
+                catch(Exception ex)
+                {
+                    if (!ex.Message.Contains("Unable to cast COM object of type 'System.__ComObject'"))
+                    {
+                        Utilities.Logger.Log(ex);
+                    }
                 }
                 obs.Add(item);
             }

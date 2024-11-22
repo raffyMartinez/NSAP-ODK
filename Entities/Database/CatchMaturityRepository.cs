@@ -1021,7 +1021,7 @@ namespace NSAP_ODK.Entities.Database
                             }
                             else
                             {
-                                Console.WriteLine(dbex.Message);
+                                //Console.WriteLine(dbex.Message);
                                 success = false;
                             }
                         }

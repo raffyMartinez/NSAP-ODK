@@ -183,7 +183,7 @@ namespace NSAP_ODK.Entities.Database
                 {
                     bool lss_is_hidden = false;
                     lss_loop_count++;
-                    Console.WriteLine($"lss_loop_count is {lss_loop_count}");
+                    //Console.WriteLine($"lss_loop_count is {lss_loop_count}");
                     LandingSiteSampling lss = NSAPEntities.LandingSiteSamplingSubmissionViewModel.GetLandingSiteSampling(root.SubmissionUUID);
                     if (lss == null)
                     {
