@@ -2396,6 +2396,7 @@ namespace NSAP_ODK
                 }
             }
         }
+
         private async void OnMenuItemChecked(object sender, RoutedEventArgs e)
         {
             _getFemaleMaturity = false;
@@ -2617,12 +2618,19 @@ namespace NSAP_ODK
                                     isFemaleMaturity: _getFemaleMaturity
                                     );
 
+                                ShowStatusRow();
+                                NSAPEntities.CalendarMonthViewModel.CalendarMonthRepository.GettingCalendar += CalendarMonthRepository_GettingCalendar;
+                                await NSAPEntities.CalendarMonthViewModel.GetCalendars();
+                                NSAPEntities.CalendarMonthViewModel.CalendarMonthRepository.GettingCalendar -= CalendarMonthRepository_GettingCalendar;
+                                
+
+
                                 GridNSAPData.SelectionUnit = DataGridSelectionUnit.Cell;
                                 GridNSAPData.Columns.Clear();
                                 GridNSAPData.AutoGenerateColumns = true;
                                 GridNSAPData.DataContext = NSAPEntities.CalendarMonthViewModel.SamplingCalendarDataTable;
                                 SetupCalendarLabels();
-
+                                
 
                                 if (NSAPEntities.CalendarMonthViewModel.SamplingRestDays.Count > 0)
                                 {
@@ -2639,6 +2647,7 @@ namespace NSAP_ODK
                                         }
                                     }
                                 }
+                                ShowStatusRow(isVisible:false);
                                 if (!NSAPEntities.CalendarMonthViewModel.CalendarHasData)
                                 {
                                     TimedMessageBox.Show(
@@ -2695,7 +2704,7 @@ namespace NSAP_ODK
                             }
 
                         }
-                        else if (!proceed)
+                        else if (_isWatchedSpeciesCalendar && !proceed)
                         {
                             MessageBox.Show("There are no watched species for the selected NSAP Region",
                                 Global.MessageBoxCaption,
@@ -2750,6 +2759,57 @@ namespace NSAP_ODK
             labelTitle.Content = textOfTitle;
             buttonDelete.IsEnabled = false;
             buttonEdit.IsEnabled = false;
+            
+        }
+
+        private void CalendarMonthRepository_GettingCalendar(object sender, GettingCalendarEventArgs e)
+        {
+            
+            switch (e.Context)
+            {
+                case "fetching":
+                    mainStatusBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              mainStatusBar.IsIndeterminate = true;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+                    mainStatusLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusLabel.Content = "Getting calendar data";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break; ;
+                case "fetching done":
+                    mainStatusBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              mainStatusBar.IsIndeterminate = false;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+                    mainStatusLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusLabel.Content = "Finished getting calendar data";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+            }
         }
 
         private void UncheckEditMenuItems(MenuItem source = null)
@@ -4897,6 +4957,16 @@ namespace NSAP_ODK
                                         _monthYear = DateTime.Parse(item.Row.ItemArray[7].ToString());
                                         gridColumnForDay1 = 8;
 
+                                    }
+                                    else if(!_isMeasuredWatchedSpeciesCalendar)
+                                    {
+                                        _speciesTaxa = (string)item.Row.ItemArray[0];
+                                        _speciesName = (string)item.Row.ItemArray[1];
+                                        _gearName = (string)item.Row.ItemArray[2];
+                                        _gearCode = (string)item.Row.ItemArray[3];
+                                        _fish_sector = (string)item.Row.ItemArray[4];
+                                        _monthYear = DateTime.Parse(item.Row.ItemArray[5].ToString());
+                                        gridColumnForDay1 = 6;
                                     }
                                     else
                                     {

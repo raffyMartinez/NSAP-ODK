@@ -63,7 +63,7 @@ namespace NSAP_ODK.Entities.Database
                         labelCountWeight = $"Total weight of catch of landings for all gears and sectors: {_calendarMonthRepository.TotalWeightLanded}";
                         break;
                     case CalendarViewType.calendarViewTypeWatchedSpeciesLandedWeight:
-                        labelCountWeight = $"Total weight of watched species of landings for all gears and sectors: {((double)TotalWeightLanded).ToString("N2")}";
+                        labelCountWeight = $"Total weight of watched species of landings for all gears and sectors: {_calendarMonthRepository.TotalLandedCatchWeight}";
                         break;
                     case CalendarViewType.calendarViewTypeWatchedSpeciesLandings:
                         //labelCountWeight = $"Total weight of watched species of landings for all gears and sectors: {TotalWeightLanded}";
@@ -128,10 +128,8 @@ namespace NSAP_ODK.Entities.Database
                 }
 
 
-                //var label = $"Rows: {_gearsAndSectors.Where(t => t.Sector != "Other").Count()}, {labelCountWeight} {restDayIndicator}";
                 if (_calendarMonthRepository.CalendarHasData)
                 {
-                    //return $"Rows: {_gearsAndSectors.Where(t => t.Sector != "Other").Count()}, {labelCountWeight} {restDayIndicator}";
                     return $"Rows: {rows}, {labelCountWeight} {restDayIndicator}";
                 }
                 else
@@ -551,6 +549,8 @@ namespace NSAP_ODK.Entities.Database
                 return GearSectors != null && GearSectors.Count > 0;
             }
         }
+
+        public CalendarMonthRepository CalendarMonthRepository { get; private set; }
         public CalendarMonthViewModel(
             AllSamplingEntitiesEventHandler e,
             CalendarViewType viewOption,
@@ -564,7 +564,50 @@ namespace NSAP_ODK.Entities.Database
             MeasurementType = measurementType;
             IsFemaleMaturity = isFemaleMaturity;
             _allSamplingEntitiesEventHandler = e;
-            _calendarMonthRepository = new CalendarMonthRepository(_allSamplingEntitiesEventHandler, CalendarOption, IsFemaleMaturity);
+            
+            //_calendarMonthRepository = new CalendarMonthRepository(_allSamplingEntitiesEventHandler, CalendarOption, IsFemaleMaturity);
+            _calendarMonthRepository = new CalendarMonthRepository();
+            CalendarMonthRepository = _calendarMonthRepository;
+
+
+            //switch (CalendarOption)
+            //{
+            //    case CalendarViewType.calendarViewTypeSampledLandings:
+            //    case CalendarViewType.calendarViewTypeWeightAllLandingsByGear:
+            //    case CalendarViewType.calendarViewTypeCountAllLandingsByGear:
+            //        GearSectors = _calendarMonthRepository.CalendarGearSectors;
+            //        break;
+            //    case CalendarViewType.calendarViewTypeWeightAllLandings:
+            //    case CalendarViewType.calendarViewTypeCountAllLandings:
+            //        CalendarDailySummary = _calendarMonthRepository.CalendarDailySummary;
+            //        break;
+
+            //    case CalendarViewType.calendarViewTypeWatchedSpeciesLandings:
+            //    case CalendarViewType.calendarViewTypeWatchedSpeciesLandedWeight:
+            //        GearSectors = _calendarMonthRepository.CalendarGearSectors;
+            //        break;
+            //    case CalendarViewType.calendarViewTypeLengthMeasurement:
+            //    case CalendarViewType.calendarViewTypeLengthFrequencyMeasurement:
+            //    case CalendarViewType.calendarViewTypeLengthWeightMeasurement:
+            //    case CalendarViewType.calendarViewTypeMaturityMeasurement:
+            //        GearSectors = _calendarMonthRepository.CalendarGearSectors;
+            //        break;
+            //}
+
+            //CalendarHasData = _calendarMonthRepository.CalendarHasData;
+            //SamplingRestDays = CalendarMonthRepository.SamplingRestDays;
+            //if (CalendarHasData)
+            //{
+            //    SetupDataTableColumns();
+            //}
+
+
+        }
+
+        
+        public async Task GetCalendars()
+        {
+            await _calendarMonthRepository.GetCalendarsAsync(_allSamplingEntitiesEventHandler, CalendarOption, IsFemaleMaturity);
 
             switch (CalendarOption)
             {
@@ -596,8 +639,6 @@ namespace NSAP_ODK.Entities.Database
             {
                 SetupDataTableColumns();
             }
-
-
         }
 
         public List<CalendarGearSector> GearSectors { get; private set; }

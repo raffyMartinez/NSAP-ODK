@@ -12,13 +12,20 @@ using NSAP_ODK.TreeViewModelControl;
 
 namespace NSAP_ODK.Entities.Database
 {
+    public class GettingCalendarEventArgs : EventArgs
+    {
+        public string Context { get; set; }
+    }
     public class CalendarMonthRepository
     {
+        public event EventHandler<GettingCalendarEventArgs> GettingCalendar;
+
         private static HashSet<string> _maturityMeasurementsFemale = new HashSet<string>();
         private static HashSet<string> _lenMeasurements = new HashSet<string>();
         private static HashSet<string> _lenWtMeasurements = new HashSet<string>();
         private static HashSet<string> _lenFreqMeasurements = new HashSet<string>();
         private static HashSet<string> _maturityMeasurements = new HashSet<string>();
+        private static HashSet<string> _watchedSpeciesWeights = new HashSet<string>();
         public static Dictionary<string, List<CalendarGearSector>> CalendarGearSectorDictionary { get; private set; } = new Dictionary<string, List<CalendarGearSector>>();
         public List<CalendarGearSector> CalendarGearSectors { get; private set; }
 
@@ -36,10 +43,11 @@ namespace NSAP_ODK.Entities.Database
         public CalendarViewType ViewOption { get; private set; }
 
         public bool CalendarHasData { get; private set; }
-        public CalendarMonthRepository(AllSamplingEntitiesEventHandler e, CalendarViewType viewOption, bool isFemaleMaturity = false)
+        //public CalendarMonthRepository(AllSamplingEntitiesEventHandler e, CalendarViewType viewOption, bool isFemaleMaturity = false)
+        public CalendarMonthRepository()
         {
             CalendarHasData = false;
-            ViewOption = viewOption;
+            //ViewOption = viewOption;
 
             TotalLandingsSampled = 0;
             TotalLandedCatchWeight = 0;
@@ -49,7 +57,161 @@ namespace NSAP_ODK.Entities.Database
             TotalWeightLanded = 0;
             TotalCountMeasurements = 0;
             RowCount = 0;
+
+            //switch (ViewOption)
+            //{
+            //    case CalendarViewType.calendarViewTypeSampledLandings:
+            //    case CalendarViewType.calendarViewTypeWeightAllLandingsByGear:
+            //        if (!CalendarGearSectorDictionary.Keys.Contains(e.GUID))
+            //        {
+            //            CalendarGearSectorDictionary.Add(e.GUID, GetCalendarGearSectors(e));
+            //        }
+            //        CalendarGearSectors = CalendarGearSectorDictionary[e.GUID];
+
+
+            //        foreach (var sector in CalendarGearSectors)
+            //        {
+            //            TotalLandingsSampled += sector.CalendarDays.Sum(t => t.CountOfFishingOperations);
+            //            TotalLandedCatchWeight += sector.CalendarDays.Sum(t => t.TotalWeightOfCatch);
+            //        }
+            //        CalendarHasData = TotalLandingsSampled > 0 || TotalLandedCatchWeight > 0;
+
+            //        if (ViewOption == CalendarViewType.calendarViewTypeSampledLandings)
+            //        {
+            //            SamplingRestDays = new List<int>();
+            //            if (CalendarHasData)
+            //            {
+            //                RowCount = CalendarGearSectors.Where(t => t.NoFishing == false).Count();
+
+
+            //                HashSet<int> restDays = new HashSet<int>();
+            //                SamplingRestDays.Clear();
+            //                try
+            //                {
+            //                    foreach (var gs in CalendarGearSectors)
+            //                    {
+            //                        foreach (var day in gs.CalendarDays)
+            //                        {
+            //                            if (!day.IsSamplingDay)
+            //                            {
+            //                                restDays.Add(day.Day.Day);
+            //                            }
+            //                        }
+            //                    }
+            //                }
+            //                catch
+            //                {
+            //                    //ignore
+            //                }
+            //                if (restDays.Count > 0)
+            //                {
+            //                    SamplingRestDays.AddRange(restDays.ToList());
+            //                }
+            //            }
+            //        }
+            //        break;
+            //    case CalendarViewType.calendarViewTypeCountAllLandings:
+            //    case CalendarViewType.calendarViewTypeWeightAllLandings:
+
+            //        CalendarDailySummary = GetCalendarDailySummary(e);
+
+            //        TotalLandingCount = CalendarDailySummary.CalendarDays.Sum(t => t.CountOfFishingOperations);
+            //        TotalWeightLanded = CalendarDailySummary.CalendarDays.Sum(t => t.TotalWeightOfCatch);
+            //        CalendarHasData = TotalLandingCount > 0 || TotalWeightLanded > 0;
+            //        if (CalendarHasData)
+            //        {
+            //            RowCount = 1;
+            //        }
+            //        break;
+            //    case CalendarViewType.calendarViewTypeCountAllLandingsByGear:
+            //        var cgs = CalendarGearSectorDictionary[e.GUID];
+            //        GetDailyTotalLandings(e, ref cgs);
+            //        CalendarGearSectors = cgs;
+            //        foreach (var sector in CalendarGearSectors)
+            //        {
+            //            TotalCountAllLandedGears += sector.CalendarDays.Sum(t => t.CountNumberOfLandings);
+            //        }
+            //        CalendarHasData = TotalCountAllLandedGears > 0;
+            //        if (CalendarHasData)
+            //        {
+            //            RowCount = CalendarGearSectors.Where(t => t.NoFishing == false).Count();
+            //        }
+            //        break;
+            //    case CalendarViewType.calendarViewTypeWatchedSpeciesLandings:
+            //    case CalendarViewType.calendarViewTypeWatchedSpeciesLandedWeight:
+            //        cgs = CalendarGearSectorDictionary[e.GUID];
+            //        GetDailyWatchedSpecies(e, ref cgs);
+            //        CalendarGearSectors = cgs;
+
+            //        species_gear_sector = new HashSet<string>();
+
+            //        foreach (var sector in CalendarGearSectors.Where(t => t.NoFishing == false))
+            //        {
+            //            foreach (var day in sector.CalendarDays.Where(t => t.CalendarDaySpecieses != null))
+            //            {
+            //                foreach (var item in day.CalendarDaySpecieses)
+            //                {
+            //                    species_gear_sector.Add($"{item.SpeciesName}-{sector.Gear}-{sector.SectorCode}");
+            //                }
+            //            }
+            //        }
+            //        RowCount = species_gear_sector.Count();
+            //        CalendarHasData = RowCount > 0;
+            //        break;
+            //    case CalendarViewType.calendarViewTypeLengthMeasurement:
+            //    case CalendarViewType.calendarViewTypeLengthFrequencyMeasurement:
+            //    case CalendarViewType.calendarViewTypeLengthWeightMeasurement:
+            //    case CalendarViewType.calendarViewTypeMaturityMeasurement:
+
+            //        var measurementType = GetMeasurementType(viewOption);
+
+            //        cgs = CalendarGearSectorDictionary[e.GUID];
+            //        GetMeasuredWatchedSpecies(e, ref cgs, isFemaleMaturity);
+            //        CalendarGearSectors = cgs;
+
+            //        species_gear_sector = new HashSet<string>();
+
+            //        foreach (var sector in CalendarGearSectors.Where(t => t.NoFishing == false))
+            //        {
+            //            if (isFemaleMaturity)
+            //            {
+            //                foreach (var day in sector.CalendarDays.Where(t => t.CalendarDaySpeciesesMeasuredFemale != null))
+            //                {
+            //                    foreach (var item in day.CalendarDaySpeciesesMeasuredFemale)
+            //                    {
+            //                        species_gear_sector.Add($"{item.SpeciesName}-{sector.Gear}-{sector.SectorCode}-{item.MaturityStage}");
+            //                        TotalCountMeasurements += item.CountMeasured;
+            //                    }
+            //                }
+            //            }
+            //            else
+            //            {
+            //                foreach (var day in sector.CalendarDays.Where(t => t.CalendarDaySpeciesesMeasured != null))
+            //                {
+            //                    foreach (var item in day.CalendarDaySpeciesesMeasured.Where(t => t.MeasurementType == measurementType))
+            //                    {
+            //                        species_gear_sector.Add($"{item.SpeciesName}-{sector.Gear}-{sector.SectorCode}");
+            //                        TotalCountMeasurements += item.CountMeasured;
+            //                    }
+            //                }
+            //            }
+            //        }
+            //        RowCount = species_gear_sector.Count();
+            //        CalendarHasData = RowCount > 0;
+            //        break;
+            //}
+
+        }
+
+        public async Task GetCalendarsAsync(AllSamplingEntitiesEventHandler e, CalendarViewType viewOption, bool isFemaleMaturity = false)
+        {
+            await Task.Run(() => GetCalendars(e, viewOption, isFemaleMaturity));
+        }
+        public void GetCalendars(AllSamplingEntitiesEventHandler e, CalendarViewType viewOption, bool isFemaleMaturity = false)
+        {
+            GettingCalendar?.Invoke(null, new GettingCalendarEventArgs { Context = "fetching" });
             HashSet<string> species_gear_sector;
+            ViewOption = viewOption;
 
             switch (ViewOption)
             {
@@ -76,16 +238,29 @@ namespace NSAP_ODK.Entities.Database
                         {
                             RowCount = CalendarGearSectors.Where(t => t.NoFishing == false).Count();
 
+
+                            HashSet<int> restDays = new HashSet<int>();
+                            SamplingRestDays.Clear();
                             try
                             {
-                                foreach (var day in CalendarGearSectors.Find(t => t.NoFishing).CalendarDays)
+                                foreach (var gs in CalendarGearSectors)
                                 {
-                                    SamplingRestDays.Add(day.Day.Day);
+                                    foreach (var day in gs.CalendarDays)
+                                    {
+                                        if (!day.IsSamplingDay)
+                                        {
+                                            restDays.Add(day.Day.Day);
+                                        }
+                                    }
                                 }
                             }
                             catch
                             {
                                 //ignore
+                            }
+                            if (restDays.Count > 0)
+                            {
+                                SamplingRestDays.AddRange(restDays.ToList());
                             }
                         }
                     }
@@ -132,6 +307,7 @@ namespace NSAP_ODK.Entities.Database
                             foreach (var item in day.CalendarDaySpecieses)
                             {
                                 species_gear_sector.Add($"{item.SpeciesName}-{sector.Gear}-{sector.SectorCode}");
+                                TotalLandedCatchWeight += item.WeightLanded;
                             }
                         }
                     }
@@ -147,7 +323,8 @@ namespace NSAP_ODK.Entities.Database
 
                     cgs = CalendarGearSectorDictionary[e.GUID];
                     GetMeasuredWatchedSpecies(e, ref cgs, isFemaleMaturity);
-                    CalendarGearSectors = cgs;
+                    //CalendarGearSectors = cgs;
+                    CalendarGearSectors = GetCalendarGearSectorsFilteredByMeasurement(cgs);
 
                     species_gear_sector = new HashSet<string>();
 
@@ -180,10 +357,10 @@ namespace NSAP_ODK.Entities.Database
                     CalendarHasData = RowCount > 0;
                     break;
             }
-
+            GettingCalendar?.Invoke(null, new GettingCalendarEventArgs { Context = "fetching done" });
         }
 
-        private string GetMeasurementType(CalendarViewType viewType)
+        public string GetMeasurementType(CalendarViewType viewType)
         {
             string m_type = "";
             switch (viewType)
@@ -204,10 +381,41 @@ namespace NSAP_ODK.Entities.Database
             return m_type;
         }
 
+        private List<CalendarGearSector> GetCalendarGearSectorsFilteredByMeasurement(List<CalendarGearSector> cgs)
+        {
+            List<CalendarGearSector> list = new List<CalendarGearSector>();
+            string m_type = GetMeasurementType(ViewOption);
+            bool break_loop = false;
+            foreach (CalendarGearSector item in cgs.Where(t => t.NoFishing == false))
+            {
+                foreach (CalendarDay day in item.CalendarDays.Where(t => t.CalendarDaySpeciesesMeasured != null))
+                {
+                    foreach (CalendarDaySpeciesMeasured spm in day.CalendarDaySpeciesesMeasured.Where(t => t.MeasurementType == m_type))
+                    {
+                        if (spm != null)
+                        {
+                            break_loop = true;
+                            break;
+                        }
+                    }
+                }
+                if (break_loop)
+                {
+                    break_loop = false;
+                    list.Add(item);
+
+
+                }
+            }
+            return list;
+        }
         private static void AddToMeasurement(AllSamplingEntitiesEventHandler e, CalendarViewType viewType, bool isFemaleMeasurement = false)
         {
             switch (viewType)
             {
+                case CalendarViewType.calendarViewTypeWatchedSpeciesLandedWeight:
+                    _watchedSpeciesWeights.Add(e.GUID);
+                    break;
                 case CalendarViewType.calendarViewTypeLengthMeasurement:
                     _lenMeasurements.Add(e.GUID);
                     break;
@@ -234,6 +442,9 @@ namespace NSAP_ODK.Entities.Database
             bool exist = false;
             switch (viewType)
             {
+                case CalendarViewType.calendarViewTypeWatchedSpeciesLandedWeight:
+                    exist = _watchedSpeciesWeights.Contains(e.GUID);
+                    break;
                 case CalendarViewType.calendarViewTypeLengthMeasurement:
                     exist = _lenMeasurements.Contains(e.GUID);
                     break;
@@ -679,20 +890,22 @@ namespace NSAP_ODK.Entities.Database
                                         day = cgs.CalendarDays.Find(t => t.Day == sampling_date);
                                         if (day != null)
                                         {
-
-                                            cds = new CalendarDaySpecies(day)
+                                            if (!MeasurementExist(e, ViewOption))
                                             {
-                                                FishSpecies = fishSpecies,
-                                                NotFishSpecies = notFishSpecies,
-                                                CountLandings = (int)dr["n"],
-                                                WeightLanded = (double)dr["wt_catch"],
-                                                Taxa_code = taxaCode
-                                            };
-                                            if (day.CalendarDaySpecieses == null)
-                                            {
-                                                day.CalendarDaySpecieses = new List<CalendarDaySpecies>();
+                                                cds = new CalendarDaySpecies(day)
+                                                {
+                                                    FishSpecies = fishSpecies,
+                                                    NotFishSpecies = notFishSpecies,
+                                                    CountLandings = (int)dr["n"],
+                                                    WeightLanded = (double)dr["wt_catch"],
+                                                    Taxa_code = taxaCode
+                                                };
+                                                if (day.CalendarDaySpecieses == null)
+                                                {
+                                                    day.CalendarDaySpecieses = new List<CalendarDaySpecies>();
+                                                }
+                                                day.CalendarDaySpecieses.Add(cds);
                                             }
-                                            day.CalendarDaySpecieses.Add(cds);
 
                                         }
                                     }
@@ -703,19 +916,22 @@ namespace NSAP_ODK.Entities.Database
                                         day = cgs.CalendarDays.Find(t => t.Day == sampling_date);
                                         if (day != null)
                                         {
-                                            cds = new CalendarDaySpecies(day)
+                                            if (!MeasurementExist(e, ViewOption))
                                             {
-                                                FishSpecies = fishSpecies,
-                                                NotFishSpecies = notFishSpecies,
-                                                CountLandings = (int)dr["n"],
-                                                WeightLanded = (double)dr["wt_catch"],
-                                                Taxa_code = taxaCode
-                                            };
-                                            if (day.CalendarDaySpecieses == null)
-                                            {
-                                                day.CalendarDaySpecieses = new List<CalendarDaySpecies>();
+                                                cds = new CalendarDaySpecies(day)
+                                                {
+                                                    FishSpecies = fishSpecies,
+                                                    NotFishSpecies = notFishSpecies,
+                                                    CountLandings = (int)dr["n"],
+                                                    WeightLanded = (double)dr["wt_catch"],
+                                                    Taxa_code = taxaCode
+                                                };
+                                                if (day.CalendarDaySpecieses == null)
+                                                {
+                                                    day.CalendarDaySpecieses = new List<CalendarDaySpecies>();
+                                                }
+                                                day.CalendarDaySpecieses.Add(cds);
                                             }
-                                            day.CalendarDaySpecieses.Add(cds);
 
                                         }
                                     }
@@ -733,6 +949,7 @@ namespace NSAP_ODK.Entities.Database
                     }
                 }
             }
+            AddToMeasurement(e, ViewOption);
         }
         private void GetDailyTotalLandings(AllSamplingEntitiesEventHandler e, ref List<CalendarGearSector> lcgs)
         {
