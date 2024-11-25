@@ -20,6 +20,7 @@ namespace NSAP_ODK.Entities.Database
         calendarViewTypeCarrierLandings,
         calendarViewTypeWatchedSpeciesLandings,
         calendarViewTypeWatchedSpeciesLandedWeight,
+        calendarViewTypeWatchedSpeciesCountAndLandedWeight,
         calendarViewTypeLengthMeasurement,
         calendarViewTypeLengthWeightMeasurement,
         calendarViewTypeLengthFrequencyMeasurement,

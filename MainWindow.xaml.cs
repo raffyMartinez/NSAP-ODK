@@ -2622,7 +2622,7 @@ namespace NSAP_ODK
                                 NSAPEntities.CalendarMonthViewModel.CalendarMonthRepository.GettingCalendar += CalendarMonthRepository_GettingCalendar;
                                 await NSAPEntities.CalendarMonthViewModel.GetCalendars();
                                 NSAPEntities.CalendarMonthViewModel.CalendarMonthRepository.GettingCalendar -= CalendarMonthRepository_GettingCalendar;
-                                
+
 
 
                                 GridNSAPData.SelectionUnit = DataGridSelectionUnit.Cell;
@@ -2630,7 +2630,7 @@ namespace NSAP_ODK
                                 GridNSAPData.AutoGenerateColumns = true;
                                 GridNSAPData.DataContext = NSAPEntities.CalendarMonthViewModel.SamplingCalendarDataTable;
                                 SetupCalendarLabels();
-                                
+
 
                                 if (NSAPEntities.CalendarMonthViewModel.SamplingRestDays.Count > 0)
                                 {
@@ -2647,7 +2647,7 @@ namespace NSAP_ODK
                                         }
                                     }
                                 }
-                                ShowStatusRow(isVisible:false);
+                                ShowStatusRow(isVisible: false);
                                 if (!NSAPEntities.CalendarMonthViewModel.CalendarHasData)
                                 {
                                     TimedMessageBox.Show(
@@ -2759,12 +2759,12 @@ namespace NSAP_ODK
             labelTitle.Content = textOfTitle;
             buttonDelete.IsEnabled = false;
             buttonEdit.IsEnabled = false;
-            
+
         }
 
         private void CalendarMonthRepository_GettingCalendar(object sender, GettingCalendarEventArgs e)
         {
-            
+
             switch (e.Context)
             {
                 case "fetching":
@@ -4958,7 +4958,7 @@ namespace NSAP_ODK
                                         gridColumnForDay1 = 8;
 
                                     }
-                                    else if(!_isMeasuredWatchedSpeciesCalendar)
+                                    else if (!_isMeasuredWatchedSpeciesCalendar)
                                     {
                                         _speciesTaxa = (string)item.Row.ItemArray[0];
                                         _speciesName = (string)item.Row.ItemArray[1];
@@ -5258,6 +5258,13 @@ namespace NSAP_ODK
                 case "contextMenuMeasurementCountsMonth":
                     VesselCatchRepository.GetSpeciesMeasurementCounts(e);
                     SetUpSummaryGrid(SummaryLevelType.LandingSiteMonth, GridNSAPData, treeviewData: _allSamplingEntitiesEventHandler, summaryName: "landingSiteMonthMeasurementCounts");
+                    break;
+                case "contextMenuMeasurementCountsLandingSite":
+
+                    SetUpSummaryGrid(SummaryLevelType.LandingSite, GridNSAPData, treeviewData: _allSamplingEntitiesEventHandler, summaryName: "landingSiteMeasurementCounts");
+                    break;
+                case "contextMenuFemaleMeasurementCountsLandingSite":
+                    SetUpSummaryGrid(SummaryLevelType.LandingSite, GridNSAPData, treeviewData: _allSamplingEntitiesEventHandler, summaryName: "landingSiteFemaleMeasurementCounts");
                     break;
             }
         }
@@ -5971,17 +5978,86 @@ namespace NSAP_ODK
 
                     break;
                 case SummaryLevelType.LandingSite:
+                    if (summaryName == "landingSiteFemaleMeasurementCounts")
+                    {
+                        List<LandingSiteMeasurementFemaleMaturity> lsmfms = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSitetFemaleMaturityStageCounts(treeviewData);
+                        targetGrid.DataContext = lsmfms;
 
-                    targetGrid.DataContext = NSAPEntities.SummaryItemViewModel.SummaryResults;
-                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Month of sampling", Binding = new Binding("DBSummary.MonthSampled") });
-                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of gear unload", Binding = new Binding("DBSummary.GearUnloadCount"), CellStyle = AlignRightStyle });
-                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of complete gear unload", Binding = new Binding("DBSummary.CountCompleteGearUnload"), CellStyle = AlignRightStyle });
-                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of vessel unload", Binding = new Binding("DBSummary.VesselUnloadCount"), CellStyle = AlignRightStyle });
-                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "# catch composition included", Binding = new Binding("DBSummary.CountLandingsWithCatchComposition"), CellStyle = AlignRightStyle });
-                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of tracked  operations", Binding = new Binding("DBSummary.TrackedOperationsCount"), CellStyle = AlignRightStyle });
-                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Earliest date of monitoring", Binding = new Binding("DBSummary.FirstLandingFormattedDate") });
-                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Latest date of monitoring", Binding = new Binding("DBSummary.LastLandingFormattedDate") });
-                    targetGrid.Columns.Add(new DataGridTextColumn { Header = "Latest date of downloaded e-forms ", Binding = new Binding("DBSummary.LatestDownloadFormattedDate") });
+                        var col = new DataGridTextColumn()
+                        {
+                            Binding = new Binding("MonthSampled"),
+                            Header = "Month-Year",
+                            CellStyle = AlignRightStyle
+                        };
+                        col.Binding.StringFormat = "MMM-yyyy";
+                        targetGrid.Columns.Add(col);
+
+                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "Taxa", Binding = new Binding("TaxaName") });
+                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "Species", Binding = new Binding("SpeciesName") });
+                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "# premature measured", Binding = new Binding("CountStagePremature") });
+                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "# immature measured", Binding = new Binding("CountStageImmature") });
+                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "# developing measured", Binding = new Binding("CountStageDeveloping") });
+                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "# ripening measured", Binding = new Binding("CountStageRipenening") });
+                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "# spawning measured", Binding = new Binding("CountStageSpawning") });
+                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "# spent measured", Binding = new Binding("CountStageSpent") });
+
+                        labelRowCount.Visibility = Visibility.Collapsed;
+                        MonthLabel.Content = "Summary for landing site";
+                        MonthSubLabel.Visibility = Visibility.Visible;
+                        MonthSubLabel.Content = $"Summary table of number of females that were measured for maturity stage from sampled landings in {treeviewData.LandingSite}";
+
+                        if(lsmfms.Count==0)
+                        {
+                            TimedMessageBox.Show("There is no data for the summary", Global.MessageBoxCaption, 2500, System.Windows.Forms.MessageBoxButtons.OK);
+                        }
+
+                    }
+                    else if (summaryName == "landingSiteMeasurementCounts")
+                    {
+                        List<LandingSiteMeasurements> lsms = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteMeasurements(treeviewData);
+                        targetGrid.DataContext = lsms;
+                        var col = new DataGridTextColumn()
+                        {
+                            Binding = new Binding("MonthSampled"),
+                            Header = "Month-Year",
+                            CellStyle = AlignRightStyle
+                        };
+                        col.Binding.StringFormat = "MMM-yyyy";
+                        targetGrid.Columns.Add(col);
+                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "Taxa", Binding = new Binding("TaxaName") });
+                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "Species", Binding = new Binding("Species") });
+                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of length measurements", Binding = new Binding("CountLength"), CellStyle = AlignRightStyle });
+                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of length-freq measurements", Binding = new Binding("CountLenFreq"), CellStyle = AlignRightStyle });
+                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of length-weight measurements", Binding = new Binding("CountLenWt"), CellStyle = AlignRightStyle });
+                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of maturity measurements", Binding = new Binding("CountMat"), CellStyle = AlignRightStyle });
+
+
+                        labelRowCount.Visibility = Visibility.Collapsed;
+                        MonthLabel.Content = "Summary for landing site";
+                        MonthSubLabel.Visibility = Visibility.Visible;
+                        MonthSubLabel.Content = $"Summary table of number of individuals that were measured from sampled landings in {treeviewData.LandingSite}";
+
+
+                        if (lsms.Count == 0)
+                        {
+                            TimedMessageBox.Show("There is no data for the summary", Global.MessageBoxCaption, 2500, System.Windows.Forms.MessageBoxButtons.OK);
+                        }
+
+                    }
+                    else
+                    {
+                        targetGrid.DataContext = NSAPEntities.SummaryItemViewModel.SummaryResults;
+                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "Month of sampling", Binding = new Binding("DBSummary.MonthSampled") });
+                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of gear unload", Binding = new Binding("DBSummary.GearUnloadCount"), CellStyle = AlignRightStyle });
+                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of complete gear unload", Binding = new Binding("DBSummary.CountCompleteGearUnload"), CellStyle = AlignRightStyle });
+                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of vessel unload", Binding = new Binding("DBSummary.VesselUnloadCount"), CellStyle = AlignRightStyle });
+                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "# catch composition included", Binding = new Binding("DBSummary.CountLandingsWithCatchComposition"), CellStyle = AlignRightStyle });
+                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of tracked  operations", Binding = new Binding("DBSummary.TrackedOperationsCount"), CellStyle = AlignRightStyle });
+                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "Earliest date of monitoring", Binding = new Binding("DBSummary.FirstLandingFormattedDate") });
+                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "Latest date of monitoring", Binding = new Binding("DBSummary.LastLandingFormattedDate") });
+                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "Latest date of downloaded e-forms ", Binding = new Binding("DBSummary.LatestDownloadFormattedDate") });
+
+                    }
                     break;
                 case SummaryLevelType.LandingSiteMonth:
                     if (!string.IsNullOrEmpty(summaryName))
@@ -5989,18 +6065,27 @@ namespace NSAP_ODK
                         if (summaryName == "landingSiteMonthMeasurementCounts")
                         {
                             targetGrid.SelectionMode = DataGridSelectionMode.Extended;
-                            targetGrid.DataContext = VesselCatchRepository.GetSpeciesMeasurementCounts(treeviewData);
+                            List<SpeciesMeasurementCounts> smcs = VesselCatchRepository.GetSpeciesMeasurementCounts(treeviewData);
+                            targetGrid.DataContext = smcs;
                             targetGrid.Columns.Add(new DataGridTextColumn { Header = "Taxa", Binding = new Binding("Taxa") });
                             targetGrid.Columns.Add(new DataGridTextColumn { Header = "Species", Binding = new Binding("SpeciesName") });
-                            targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of length measurements", Binding = new Binding("CountLenMeasurements") });
-                            targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of length-weight measurements", Binding = new Binding("CountLWMeasurements") });
-                            targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of length frequency measurements", Binding = new Binding("CountLFMeasurements") });
-                            targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of maturity measurements", Binding = new Binding("CountMatMeasurements") });
+                            targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of length measurements", Binding = new Binding("CountLenMeasurements"), CellStyle = AlignRightStyle });
+                            targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of length-weight measurements", Binding = new Binding("CountLWMeasurements"), CellStyle = AlignRightStyle });
+                            targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of length frequency measurements", Binding = new Binding("CountLFMeasurements"), CellStyle = AlignRightStyle });
+                            targetGrid.Columns.Add(new DataGridTextColumn { Header = "# of maturity measurements", Binding = new Binding("CountMatMeasurements"), CellStyle = AlignRightStyle });
 
                             labelRowCount.Visibility = Visibility.Collapsed;
                             MonthLabel.Content = "Summary for landing site";
                             MonthSubLabel.Visibility = Visibility.Visible;
                             MonthSubLabel.Content = $"Summary table of number of individuals that were measured from sampled landings in {treeviewData.LandingSite} on {((DateTime)treeviewData.MonthSampled).ToString("MMM, yyyy")}";
+
+
+
+                            if (smcs.Count == 0)
+                            {
+                                TimedMessageBox.Show("There is no data for the summary", Global.MessageBoxCaption, 2500, System.Windows.Forms.MessageBoxButtons.OK);
+                            }
+
                         }
                     }
                     break;

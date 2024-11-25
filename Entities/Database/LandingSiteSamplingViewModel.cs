@@ -720,14 +720,60 @@ namespace NSAP_ODK.Entities.Database
             }
             return thisList;
         }
-        //public List<LandingSiteSampling> getLandingSiteSamplings(LandingSite ls, FishingGround fg, DateTime samplingDate)
-        //{
-        //    return LandingSiteSamplingCollection
-        //        .Where(t => t.LandingSiteID == ls.LandingSiteID)
-        //        .Where(t => t.FishingGroundID == fg.Code)
-        //        .Where(t => t.SamplingDate == samplingDate).ToList();
-        //}
 
+        private string GetTaxaCode(List<LandingSiteMeasurementCount> lsmcs, string speciesName)
+        {
+            return lsmcs.Find(t => t.SpeciesName == speciesName).TaxaCode;
+        }
+        private int GetMeasurementCounts(DateTime month, List<LandingSiteMeasurementCount> lsmcs, string speciesname, string measurement)
+        {
+
+            return lsmcs.Where(t => t.SampledMonth == month && t.SpeciesName == speciesname && t.MeasurementType == measurement).Sum(t => t.CountMeasurement);
+        }
+
+        public List<LandingSiteMeasurementFemaleMaturity> GetLandingSitetFemaleMaturityStageCounts(TreeViewModelControl.AllSamplingEntitiesEventHandler e)
+        {
+            return VesselCatchRepository.GetFemaleMaturityCountsLandingSite(e);
+        }
+        public List<LandingSiteMeasurements> GetLandingSiteMeasurements(NSAP_ODK.TreeViewModelControl.AllSamplingEntitiesEventHandler e)
+        {
+            var items = VesselCatchRepository.GetLandingSiteSpeciesMeasurementCounts(e);
+            var item_groups = items.GroupBy(
+                i => i.SampledMonth,
+                i => i.SpeciesName,
+
+
+                (month, species)
+                    =>
+                    new { SampledMonth = month, SpeciesName = species }
+                );
+
+
+            List<LandingSiteMeasurements> lsms = new List<LandingSiteMeasurements>();
+            foreach (var ig in item_groups)
+            {
+                DateTime sdate = ig.SampledMonth;
+                List<string> sp = ig.SpeciesName.Distinct().ToList();
+
+                foreach (var sp_name in sp)
+                {
+                    LandingSiteMeasurements lsm = new LandingSiteMeasurements
+                    {
+                        MonthSampled = sdate,
+                        Species = sp_name
+                    };
+                    lsm.TaxaName = NSAPEntities.TaxaViewModel.GetTaxa(GetTaxaCode(items, sp_name)).Name;
+                    lsm.CountLengthMeasurements = GetMeasurementCounts(sdate, items, sp_name, "len");
+                    lsm.CountLengthFreqMeasurements = GetMeasurementCounts(sdate, items, sp_name, "len_freq");
+                    lsm.CountLengthWeightMeasurements = GetMeasurementCounts(sdate, items, sp_name, "len_wt");
+                    lsm.CountMaturityMeasurements = GetMeasurementCounts(sdate, items, sp_name, "mat");
+
+                    lsms.Add(lsm);
+                }
+            }
+
+            return lsms.OrderBy(t => t.MonthSampled).ThenBy(t => t.Species).ToList();
+        }
         public LandingSiteSampling GetLandingSiteSampling(VesselLanding landing)
         {
             if (landing.FishingGround == null)

@@ -223,6 +223,8 @@
     <Compile Include="Entities\Database\CalendarMonthViewModel.cs" />
     <Compile Include="Entities\Database\FemaleMaturitySummary.cs" />
     <Compile Include="Entities\Database\CalendarGearSector.cs" />
+    <Compile Include="Entities\Database\LandingSiteMeasurementCount.cs" />
+    <Compile Include="Entities\Database\LandingSiteMeasurementFemaleMaturity.cs" />
     <Compile Include="Entities\Database\MakeCalendarEventArg.cs" />
     <Compile Include="Entities\Database\CarrierBoatLanding_FishingGround.cs" />
     <Compile Include="Entities\Database\CarrierBoatLanding_FishingGroundRepository.cs" />

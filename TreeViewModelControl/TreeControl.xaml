@@ -75,6 +75,8 @@
                         <StackPanel.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="Crosstab report" Click="OnContextMenuClick" x:Name="contextMenuCrosstabLandingSite"/>
+                                <MenuItem Header="Measurement counts" Click="OnContextMenuClick" x:Name="contextMenuMeasurementCountsLandingSite"/>
+                                <MenuItem Header="Female maturity measurement counts" Click="OnContextMenuClick" x:Name="contextMenuFemaleMeasurementCountsLandingSite"/>
                                 <MenuItem Header="Edit gear unload" Click="OnContextMenuClick" x:Name="contextMenuGearUnloadLandingSite"/>
                             </ContextMenu>
                         </StackPanel.ContextMenu>

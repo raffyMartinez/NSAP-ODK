@@ -20,6 +20,7 @@ namespace NSAP_ODK.Entities.Database
     {
         public event EventHandler<GettingCalendarEventArgs> GettingCalendar;
 
+        private static int _counter = 0;
         private static HashSet<string> _maturityMeasurementsFemale = new HashSet<string>();
         private static HashSet<string> _lenMeasurements = new HashSet<string>();
         private static HashSet<string> _lenWtMeasurements = new HashSet<string>();
@@ -294,6 +295,8 @@ namespace NSAP_ODK.Entities.Database
                     break;
                 case CalendarViewType.calendarViewTypeWatchedSpeciesLandings:
                 case CalendarViewType.calendarViewTypeWatchedSpeciesLandedWeight:
+                    int count = 0;
+                    Console.WriteLine($"TotalLandedCatchWeight is 0:{TotalLandedCatchWeight}");
                     cgs = CalendarGearSectorDictionary[e.GUID];
                     GetDailyWatchedSpecies(e, ref cgs);
                     CalendarGearSectors = cgs;
@@ -307,12 +310,17 @@ namespace NSAP_ODK.Entities.Database
                             foreach (var item in day.CalendarDaySpecieses)
                             {
                                 species_gear_sector.Add($"{item.SpeciesName}-{sector.Gear}-{sector.SectorCode}");
-                                TotalLandedCatchWeight += item.WeightLanded;
+                                if (ViewOption == CalendarViewType.calendarViewTypeWatchedSpeciesLandedWeight)
+                                {
+                                    TotalLandedCatchWeight += item.WeightLanded;
+                                    count++;
+                                }
                             }
                         }
                     }
                     RowCount = species_gear_sector.Count();
                     CalendarHasData = RowCount > 0;
+                    Console.WriteLine($"count of items with weight is: {count}");
                     break;
                 case CalendarViewType.calendarViewTypeLengthMeasurement:
                 case CalendarViewType.calendarViewTypeLengthFrequencyMeasurement:
@@ -323,7 +331,6 @@ namespace NSAP_ODK.Entities.Database
 
                     cgs = CalendarGearSectorDictionary[e.GUID];
                     GetMeasuredWatchedSpecies(e, ref cgs, isFemaleMaturity);
-                    //CalendarGearSectors = cgs;
                     CalendarGearSectors = GetCalendarGearSectorsFilteredByMeasurement(cgs);
 
                     species_gear_sector = new HashSet<string>();
@@ -398,13 +405,15 @@ namespace NSAP_ODK.Entities.Database
                             break;
                         }
                     }
+                    if (break_loop)
+                    {
+                        break;
+                    }
                 }
                 if (break_loop)
                 {
                     break_loop = false;
                     list.Add(item);
-
-
                 }
             }
             return list;
@@ -413,6 +422,9 @@ namespace NSAP_ODK.Entities.Database
         {
             switch (viewType)
             {
+                case CalendarViewType.calendarViewTypeWatchedSpeciesCountAndLandedWeight:
+                    _watchedSpeciesWeights.Add(e.GUID);
+                    break;
                 case CalendarViewType.calendarViewTypeWatchedSpeciesLandedWeight:
                     _watchedSpeciesWeights.Add(e.GUID);
                     break;
@@ -442,6 +454,9 @@ namespace NSAP_ODK.Entities.Database
             bool exist = false;
             switch (viewType)
             {
+                case CalendarViewType.calendarViewTypeWatchedSpeciesCountAndLandedWeight:
+                    exist = _watchedSpeciesWeights.Contains(e.GUID);
+                    break;
                 case CalendarViewType.calendarViewTypeWatchedSpeciesLandedWeight:
                     exist = _watchedSpeciesWeights.Contains(e.GUID);
                     break;
@@ -789,6 +804,7 @@ namespace NSAP_ODK.Entities.Database
         }
         private void GetDailyWatchedSpecies(AllSamplingEntitiesEventHandler e, ref List<CalendarGearSector> lcgs)
         {
+            _counter = 0;
             if (Global.Settings.UsemySQL)
             {
 
@@ -890,7 +906,8 @@ namespace NSAP_ODK.Entities.Database
                                         day = cgs.CalendarDays.Find(t => t.Day == sampling_date);
                                         if (day != null)
                                         {
-                                            if (!MeasurementExist(e, ViewOption))
+                                            //if (!MeasurementExist(e, ViewOption))
+                                            if (!MeasurementExist(e, CalendarViewType.calendarViewTypeWatchedSpeciesCountAndLandedWeight))
                                             {
                                                 cds = new CalendarDaySpecies(day)
                                                 {
@@ -905,6 +922,7 @@ namespace NSAP_ODK.Entities.Database
                                                     day.CalendarDaySpecieses = new List<CalendarDaySpecies>();
                                                 }
                                                 day.CalendarDaySpecieses.Add(cds);
+                                                _counter++;
                                             }
 
                                         }
@@ -916,7 +934,7 @@ namespace NSAP_ODK.Entities.Database
                                         day = cgs.CalendarDays.Find(t => t.Day == sampling_date);
                                         if (day != null)
                                         {
-                                            if (!MeasurementExist(e, ViewOption))
+                                            if (!MeasurementExist(e, CalendarViewType.calendarViewTypeWatchedSpeciesCountAndLandedWeight))
                                             {
                                                 cds = new CalendarDaySpecies(day)
                                                 {
@@ -931,6 +949,7 @@ namespace NSAP_ODK.Entities.Database
                                                     day.CalendarDaySpecieses = new List<CalendarDaySpecies>();
                                                 }
                                                 day.CalendarDaySpecieses.Add(cds);
+                                                _counter++;
                                             }
 
                                         }
@@ -949,7 +968,8 @@ namespace NSAP_ODK.Entities.Database
                     }
                 }
             }
-            AddToMeasurement(e, ViewOption);
+            AddToMeasurement(e, CalendarViewType.calendarViewTypeWatchedSpeciesCountAndLandedWeight);
+            Console.WriteLine($"counter: {_counter}");
         }
         private void GetDailyTotalLandings(AllSamplingEntitiesEventHandler e, ref List<CalendarGearSector> lcgs)
         {

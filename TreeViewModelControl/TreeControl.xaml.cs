@@ -157,6 +157,9 @@ namespace NSAP_ODK.TreeViewModelControl
 
                 case "contextMenuCrosstabLandingSite":
                 case "contextMenuGearUnloadLandingSite":
+                case "contextMenuMeasurementCountsLandingSite":
+                case "contextMenuFemaleMeasurementCountsLandingSite":
+                    args.LandingSite = ((tv_LandingSiteViewModel)_selectedItem)._landingSite;
                     args.LandingSiteText = ((tv_LandingSiteViewModel)_selectedItem)._landingSiteText;
                     args.FishingGround = ((tv_LandingSiteViewModel)_selectedItem)._fishingGround;
                     args.FMA = ((tv_LandingSiteViewModel)_selectedItem)._fma;

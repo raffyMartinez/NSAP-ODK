@@ -109,6 +109,7 @@ namespace NSAP_ODK.Entities
         public static CalendarGearSectorViewModel calendarGearSectorViewModel;
         public static CalendarDayViewModel CalendarDayViewModel;
 
+
         //public static TotalWtSpViewModel TotalWtSpViewModel;
 
         //public EntitiesToDataTables
