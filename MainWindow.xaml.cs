@@ -4210,128 +4210,131 @@ namespace NSAP_ODK
                     }
                     else if (_currentDisplayMode == DataDisplayMode.ODKData)
                     {
-                        switch (_calendarOption)
+                        if (_calendarDayHasValue)
                         {
-                            case CalendarViewType.calendarViewTypeCountAllLandingsByGear:
-                            case CalendarViewType.calendarViewTypeWeightAllLandingsByGear:
-                            case CalendarViewType.calendarViewTypeSampledLandings:
-                            case CalendarViewType.calendarViewTypeWatchedSpeciesLandings:
-                            case CalendarViewType.calendarViewTypeWatchedSpeciesLandedWeight:
-                            case CalendarViewType.calendarViewTypeMaturityMeasurement:
-                            case CalendarViewType.calendarViewTypeLengthFrequencyMeasurement:
-                            case CalendarViewType.calendarViewTypeLengthMeasurement:
-                            case CalendarViewType.calendarViewTypeLengthWeightMeasurement:
-                                if (_gearUnloads != null && _gearUnloads.Count > 0 && _gearUnloadWindow == null)
-                                {
-                                    _gearUnloadWindow = new GearUnloadWindow(_gearUnloads, _treeItemData, this, _sector_code);
-                                    _gearUnloadWindow.CalendarViewType = _calendarOption;
-                                    if (_calendarOption == CalendarViewType.calendarViewTypeMaturityMeasurement && _getFemaleMaturity)
-                                    {
-                                        _gearUnloadWindow.SectorCode = _sector_code;
-                                        _gearUnloadWindow.MaturityCode = CatchMaturity.CodeFromMaturityStage(_maturityStage);
-                                        var taxa_code = NSAPEntities.TaxaViewModel.TaxaCodeFromName(_speciesTaxa);
-                                        _gearUnloadWindow.SpeciesID = VesselCatchViewModel.SpeciesIDFromSpeciesName(taxa_code, _speciesName);
-                                    }
-                                    else if (_calendarOption == CalendarViewType.calendarViewTypeLengthMeasurement ||
-                                        _calendarOption == CalendarViewType.calendarViewTypeLengthFrequencyMeasurement ||
-                                        _calendarOption == CalendarViewType.calendarViewTypeMaturityMeasurement ||
-                                        _calendarOption == CalendarViewType.calendarViewTypeLengthWeightMeasurement
-                                        )
-                                    {
-                                        var taxa_code = NSAPEntities.TaxaViewModel.TaxaCodeFromName(_speciesTaxa);
-                                        _gearUnloadWindow.SpeciesID = VesselCatchViewModel.SpeciesIDFromSpeciesName(taxa_code, _speciesName);
-                                    }
-                                    else
-                                    {
 
-                                        if (_isWatchedSpeciesCalendar)
+                            switch (_calendarOption)
+                            {
+                                case CalendarViewType.calendarViewTypeCountAllLandingsByGear:
+                                case CalendarViewType.calendarViewTypeWeightAllLandingsByGear:
+                                case CalendarViewType.calendarViewTypeSampledLandings:
+                                case CalendarViewType.calendarViewTypeWatchedSpeciesLandings:
+                                case CalendarViewType.calendarViewTypeWatchedSpeciesLandedWeight:
+                                case CalendarViewType.calendarViewTypeMaturityMeasurement:
+                                case CalendarViewType.calendarViewTypeLengthFrequencyMeasurement:
+                                case CalendarViewType.calendarViewTypeLengthMeasurement:
+                                case CalendarViewType.calendarViewTypeLengthWeightMeasurement:
+                                    if (_gearUnloads != null && _gearUnloads.Count > 0 && _gearUnloadWindow == null)
+                                    {
+                                        _gearUnloadWindow = new GearUnloadWindow(_gearUnloads, _treeItemData, this, _sector_code);
+                                        _gearUnloadWindow.CalendarViewType = _calendarOption;
+                                        if (_calendarOption == CalendarViewType.calendarViewTypeMaturityMeasurement && _getFemaleMaturity)
+                                        {
+                                            _gearUnloadWindow.SectorCode = _sector_code;
+                                            _gearUnloadWindow.MaturityCode = CatchMaturity.CodeFromMaturityStage(_maturityStage);
+                                            var taxa_code = NSAPEntities.TaxaViewModel.TaxaCodeFromName(_speciesTaxa);
+                                            _gearUnloadWindow.SpeciesID = VesselCatchViewModel.SpeciesIDFromSpeciesName(taxa_code, _speciesName);
+                                        }
+                                        else if (_calendarOption == CalendarViewType.calendarViewTypeLengthMeasurement ||
+                                            _calendarOption == CalendarViewType.calendarViewTypeLengthFrequencyMeasurement ||
+                                            _calendarOption == CalendarViewType.calendarViewTypeMaturityMeasurement ||
+                                            _calendarOption == CalendarViewType.calendarViewTypeLengthWeightMeasurement
+                                            )
                                         {
                                             var taxa_code = NSAPEntities.TaxaViewModel.TaxaCodeFromName(_speciesTaxa);
                                             _gearUnloadWindow.SpeciesID = VesselCatchViewModel.SpeciesIDFromSpeciesName(taxa_code, _speciesName);
-                                            _gearUnloadWindow.WatchedSpecies = _speciesName;
-                                        }
-                                    }
-                                    _gearUnloadWindow.Owner = this;
-
-                                    _gearUnloadWindow.Show();
-
-                                }
-                                else
-                                {
-                                    if (_gearUnloadWindow != null && !_gearUnloadWindow.IsLoaded)
-                                    {
-                                        _gearUnloadWindow.Close();
-                                        _gearUnloadWindow = null;
-                                    }
-                                }
-
-                                break;
-                            //case CalendarViewType.calendarViewTypeCountAllLandingsByGear:
-                            //case CalendarViewType.calendarViewTypeWeightAllLandingsByGear:
-                            //    var cellinfo = GridNSAPData.SelectedCells[0];
-                            //    if (int.TryParse(cellinfo.Column.Header.ToString(), out int v))
-                            //    {
-                            //        lss = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(fma: _allSamplingEntitiesEventHandler.FMA, fg: _allSamplingEntitiesEventHandler.FishingGround, ls: _allSamplingEntitiesEventHandler.LandingSite, samplingDate: ((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).AddDays(v - 1)).FirstOrDefault();
-
-
-                            //    }
-                            //    break;
-                            case CalendarViewType.calendarViewTypeCountAllLandings:
-                            case CalendarViewType.calendarViewTypeWeightAllLandings:
-                                if (GridNSAPData.SelectedCells.Count > 0)
-                                {
-                                    var cellinfo = GridNSAPData.SelectedCells[0];
-                                    if (int.TryParse(cellinfo.Column.Header.ToString(), out int v))
-                                    {
-                                        //string landingsite_date = $"{_allSamplingEntitiesEventHandler.LandingSite.LandingSiteName}, {((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).ToString("yyyy-MMM")}-{v}";
-                                        //string msg = "No data for this date";
-                                        if (_gearUnloads.Count > 0)
-                                        {
-                                            lss = _gearUnloads[0].Parent;
-                                            //if (lss.HasFishingOperation)
-                                            //{
-                                            //    msg = "There are fish landings on the selected date";
-                                            //}
-                                            //else if (!lss.HasFishingOperation)
-                                            //{
-                                            //    msg = $"There are no fish landings on the selected date\r\nReason: {lss.Remarks}";
-                                            //}
                                         }
                                         else
                                         {
 
-                                            lss = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(fma: _allSamplingEntitiesEventHandler.FMA, fg: _allSamplingEntitiesEventHandler.FishingGround, ls: _allSamplingEntitiesEventHandler.LandingSite, samplingDate: ((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).AddDays(v - 1)).FirstOrDefault();
-                                            //if (lss != null)
-                                            //{
-                                            //    if (lss?.GearUnloadViewModel.Count > 0 || lss?.GearsInLandingSite.Count > 0)
-                                            //    {
-                                            //        msg = "There are fish landings on the selected date";
-                                            //    }
-                                            //    else
-                                            //    {
-                                            //        msg = $"There are no fish landings on the selected date\r\nReason: {lss.Remarks}";
-                                            //    }
-                                            //}
-
+                                            if (_isWatchedSpeciesCalendar)
+                                            {
+                                                var taxa_code = NSAPEntities.TaxaViewModel.TaxaCodeFromName(_speciesTaxa);
+                                                _gearUnloadWindow.SpeciesID = VesselCatchViewModel.SpeciesIDFromSpeciesName(taxa_code, _speciesName);
+                                                _gearUnloadWindow.WatchedSpecies = _speciesName;
+                                            }
                                         }
-                                        //MessageBox.Show($"{landingsite_date}\r\n\r\n{msg}", Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
-                                        if (lss != null)// && LSSMessageBox.ShowAsDialog(landingsite_date, msg))
+                                        _gearUnloadWindow.Owner = this;
 
+                                        _gearUnloadWindow.Show();
+
+                                    }
+                                    else
+                                    {
+                                        if (_gearUnloadWindow != null && !_gearUnloadWindow.IsLoaded)
                                         {
-                                            LandingSiteSamplingWindow lssw = new LandingSiteSamplingWindow(lss);
-                                            lssw.Owner = this;
-                                            lssw.Show();
-                                        }
-                                        else
-                                        {
-                                            MessageBox.Show("No data for this date", Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
+                                            _gearUnloadWindow.Close();
+                                            _gearUnloadWindow = null;
                                         }
                                     }
-                                }
-                                break;
+
+                                    break;
+                                //case CalendarViewType.calendarViewTypeCountAllLandingsByGear:
+                                //case CalendarViewType.calendarViewTypeWeightAllLandingsByGear:
+                                //    var cellinfo = GridNSAPData.SelectedCells[0];
+                                //    if (int.TryParse(cellinfo.Column.Header.ToString(), out int v))
+                                //    {
+                                //        lss = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(fma: _allSamplingEntitiesEventHandler.FMA, fg: _allSamplingEntitiesEventHandler.FishingGround, ls: _allSamplingEntitiesEventHandler.LandingSite, samplingDate: ((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).AddDays(v - 1)).FirstOrDefault();
+
+
+                                //    }
+                                //    break;
+                                case CalendarViewType.calendarViewTypeCountAllLandings:
+                                case CalendarViewType.calendarViewTypeWeightAllLandings:
+                                    if (GridNSAPData.SelectedCells.Count > 0)
+                                    {
+                                        var cellinfo = GridNSAPData.SelectedCells[0];
+                                        if (int.TryParse(cellinfo.Column.Header.ToString(), out int v))
+                                        {
+                                            //string landingsite_date = $"{_allSamplingEntitiesEventHandler.LandingSite.LandingSiteName}, {((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).ToString("yyyy-MMM")}-{v}";
+                                            //string msg = "No data for this date";
+                                            if (_gearUnloads.Count > 0)
+                                            {
+                                                lss = _gearUnloads[0].Parent;
+                                                //if (lss.HasFishingOperation)
+                                                //{
+                                                //    msg = "There are fish landings on the selected date";
+                                                //}
+                                                //else if (!lss.HasFishingOperation)
+                                                //{
+                                                //    msg = $"There are no fish landings on the selected date\r\nReason: {lss.Remarks}";
+                                                //}
+                                            }
+                                            else
+                                            {
+
+                                                lss = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(fma: _allSamplingEntitiesEventHandler.FMA, fg: _allSamplingEntitiesEventHandler.FishingGround, ls: _allSamplingEntitiesEventHandler.LandingSite, samplingDate: ((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).AddDays(v - 1)).FirstOrDefault();
+                                                //if (lss != null)
+                                                //{
+                                                //    if (lss?.GearUnloadViewModel.Count > 0 || lss?.GearsInLandingSite.Count > 0)
+                                                //    {
+                                                //        msg = "There are fish landings on the selected date";
+                                                //    }
+                                                //    else
+                                                //    {
+                                                //        msg = $"There are no fish landings on the selected date\r\nReason: {lss.Remarks}";
+                                                //    }
+                                                //}
+
+                                            }
+                                            //MessageBox.Show($"{landingsite_date}\r\n\r\n{msg}", Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
+                                            if (lss != null)// && LSSMessageBox.ShowAsDialog(landingsite_date, msg))
+
+                                            {
+                                                LandingSiteSamplingWindow lssw = new LandingSiteSamplingWindow(lss);
+                                                lssw.Owner = this;
+                                                lssw.Show();
+                                            }
+                                            else
+                                            {
+                                                MessageBox.Show("No data for this date", Global.MessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Information);
+                                            }
+                                        }
+                                    }
+                                    break;
+                            }
+
                         }
-
-
                     }
                     else if (_currentDisplayMode == DataDisplayMode.DownloadHistory)
                     {
@@ -6006,7 +6009,7 @@ namespace NSAP_ODK
                         MonthSubLabel.Visibility = Visibility.Visible;
                         MonthSubLabel.Content = $"Summary table of number of females that were measured for maturity stage from sampled landings in {treeviewData.LandingSite}";
 
-                        if(lsmfms.Count==0)
+                        if (lsmfms.Count == 0)
                         {
                             TimedMessageBox.Show("There is no data for the summary", Global.MessageBoxCaption, 2500, System.Windows.Forms.MessageBoxButtons.OK);
                         }
