@@ -11,7 +11,7 @@ namespace NSAP_ODK.Entities.Database
     public class GearUnloadViewModel
     {
         private static int _deleted_vu_count = 0;
-        public event EventHandler<ProcessingItemsEventArg> ProcessingItemsEvent;
+        public static event EventHandler<ProcessingItemsEventArg> ProcessingItemsEvent;
         public static event EventHandler<DeleteVesselUnloadFromOrphanEventArg> DeleteVesselUnloadFromOrphanedItem;
         public bool EditSuccess;
         public ObservableCollection<GearUnload> GearUnloadCollection { get; set; }
@@ -35,6 +35,26 @@ namespace NSAP_ODK.Entities.Database
         public static void MarkVesselUnloadsWithWatchedSpecies(string watchedSpeciesName, List<GearUnload> gearUnloads)
         {
 
+        }
+
+        public static async Task<List<VesselUnload>> GetVesselUnloadsFromGearUnloadsAsync(List<GearUnload> gear_unloads)
+        {
+            return await Task.Run(() => GetVesselUnloadsFromGearUnloads(gear_unloads));
+        }
+        public static List<VesselUnload> GetVesselUnloadsFromGearUnloads(List<GearUnload> gear_unloads)
+        {
+            List<VesselUnload> vus = new List<VesselUnload>();
+            ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "start" });
+            foreach (GearUnload gu in gear_unloads)
+            {
+                if (gu.VesselUnloadViewModel == null)
+                {
+                    gu.VesselUnloadViewModel = new VesselUnloadViewModel(gu);
+                }
+                vus.AddRange(gu.VesselUnloadViewModel.VesselUnloadCollection.ToList());
+            }
+            ProcessingItemsEvent?.Invoke(null, new ProcessingItemsEventArg { Intent = "end" });
+            return vus;
         }
         public static int CurrentIDNumber { get; set; }
         public static async Task<bool> DeleteVesselUnloads(List<OrphanedFishingGear> ofg)

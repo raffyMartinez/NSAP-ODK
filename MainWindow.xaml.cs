@@ -46,6 +46,8 @@ namespace NSAP_ODK
     /// </summary>
     public partial class MainWindow : Window
     {
+
+
         //private CalendarViewType _calendarViewType;
         private string _calendarGridColumnName;
         private bool _calendarDayHasValue = false;
@@ -536,6 +538,8 @@ namespace NSAP_ODK
                                 GearUnloadRepository.ProcessingItemsEvent += OnProcessingItemsEvent;
                                 NSAPEntities.LandingSiteSamplingViewModel.ProcessingItemsEvent += OnProcessingItemsEvent;
                                 treeViewDownloadHistory.MouseRightButtonUp += OnMenuRightClick;
+
+
                             }
                             CreateTablesInAccess.GetMDBColumnInfo(Global.ConnectionString);
                             _httpClient.Timeout = new TimeSpan(0, 10, 0);
@@ -616,6 +620,39 @@ namespace NSAP_ODK
         {
             switch (e.Intent)
             {
+                case "start":
+                    mainStatusBar.Dispatcher.BeginInvoke
+                        (
+                            DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                            {
+
+                                mainStatusBar.IsIndeterminate = true;
+                                //do what you need to do on UI Thread
+                                return null;
+                            }), null);
+
+                    mainStatusLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusLabel.Content = "Getting results from database...";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+                case "end":
+                    mainStatusBar.Dispatcher.BeginInvoke
+                        (
+                            DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                            {
+
+                                mainStatusBar.IsIndeterminate = false;
+                                mainStatusBar.Value = 0;
+                                //do what you need to do on UI Thread
+                                return null;
+                            }), null);
+                    break;
                 case "start build calendar":
                     labelRowCount.Dispatcher.BeginInvoke
                         (
@@ -4112,7 +4149,7 @@ namespace NSAP_ODK
         {
             _gearUnloadWindow = null;
         }
-        private void OnGridDoubleClick(object sender, MouseButtonEventArgs e)
+        private async void OnGridDoubleClick(object sender, MouseButtonEventArgs e)
         {
             string summaryRegion;
             string summaryFishingGround;
@@ -4212,7 +4249,6 @@ namespace NSAP_ODK
                     {
                         if (_calendarDayHasValue)
                         {
-
                             switch (_calendarOption)
                             {
                                 case CalendarViewType.calendarViewTypeCountAllLandingsByGear:
@@ -4226,6 +4262,15 @@ namespace NSAP_ODK
                                 case CalendarViewType.calendarViewTypeLengthWeightMeasurement:
                                     if (_gearUnloads != null && _gearUnloads.Count > 0 && _gearUnloadWindow == null)
                                     {
+                                        ShowStatusRow();
+                                        GearUnloadViewModel.ProcessingItemsEvent += GearUnloadViewModel_ProcessingItemsEvent;
+                                        var v_unloads = await GearUnloadViewModel.GetVesselUnloadsFromGearUnloadsAsync(_gearUnloads);
+                                        GearUnloadViewModel.ProcessingItemsEvent += GearUnloadViewModel_ProcessingItemsEvent;
+                                        ShowStatusRow(isVisible: false);
+
+
+                                        
+
                                         _gearUnloadWindow = new GearUnloadWindow(_gearUnloads, _treeItemData, this, _sector_code);
                                         _gearUnloadWindow.CalendarViewType = _calendarOption;
                                         if (_calendarOption == CalendarViewType.calendarViewTypeMaturityMeasurement && _getFemaleMaturity)
@@ -4254,8 +4299,8 @@ namespace NSAP_ODK
                                                 _gearUnloadWindow.WatchedSpecies = _speciesName;
                                             }
                                         }
+                                        _gearUnloadWindow.VesselUnloads = v_unloads;
                                         _gearUnloadWindow.Owner = this;
-
                                         _gearUnloadWindow.Show();
 
                                     }
@@ -4269,16 +4314,7 @@ namespace NSAP_ODK
                                     }
 
                                     break;
-                                //case CalendarViewType.calendarViewTypeCountAllLandingsByGear:
-                                //case CalendarViewType.calendarViewTypeWeightAllLandingsByGear:
-                                //    var cellinfo = GridNSAPData.SelectedCells[0];
-                                //    if (int.TryParse(cellinfo.Column.Header.ToString(), out int v))
-                                //    {
-                                //        lss = NSAPEntities.LandingSiteSamplingViewModel.GetLandingSiteSampling(fma: _allSamplingEntitiesEventHandler.FMA, fg: _allSamplingEntitiesEventHandler.FishingGround, ls: _allSamplingEntitiesEventHandler.LandingSite, samplingDate: ((DateTime)_allSamplingEntitiesEventHandler.MonthSampled).AddDays(v - 1)).FirstOrDefault();
 
-
-                                //    }
-                                //    break;
                                 case CalendarViewType.calendarViewTypeCountAllLandings:
                                 case CalendarViewType.calendarViewTypeWeightAllLandings:
                                     if (GridNSAPData.SelectedCells.Count > 0)
@@ -4501,6 +4537,60 @@ namespace NSAP_ODK
             }
         }
 
+        private void GearUnloadViewModel_ProcessingItemsEvent(object sender, ProcessingItemsEventArg e)
+        {
+            switch (e.Intent)
+            {
+                case "start":
+                    mainStatusBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              mainStatusBar.IsIndeterminate = true;
+                              mainStatusBar.Value = 0;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+                    mainStatusLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusLabel.Content = "Getting landing data from the database...";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+
+                    break;
+                case "end":
+                    mainStatusBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              mainStatusBar.IsIndeterminate = false;
+                              mainStatusBar.Value = 0;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+                    mainStatusLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              mainStatusLabel.Content = "Finished getting landing data from the database";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+            }
+        }
+
+
+
         private async void OnUnloadEditor_UnloadChangesSaved(object sender, VesselUnloadEditorControl.UnloadEditorEventArgs e)
         {
             //throw new NotImplementedException();
@@ -4669,20 +4759,20 @@ namespace NSAP_ODK
                             //GridNSAPData.Columns.Clear();
                             //GridNSAPData.AutoGenerateColumns = true;
                             //GridNSAPData.DataContext = NSAPEntities.CalendarMonthViewModel.LandingsCountDataTable;
-                            GridNSAPData.Visibility = Visibility.Visible;
+                            //GridNSAPData.Visibility = Visibility.Visible;
 
-                            foreach (DataGridColumn c in GridNSAPData.Columns)
-                            {
-                                if (int.TryParse(c.Header.ToString(), out int v))
-                                {
-                                    if (NSAPEntities.CalendarMonthViewModel.DayIsRestDay(v))
-                                    {
-                                        _hasNonSamplingDayColumns = true;
-                                        c.CellStyle = new Style(typeof(DataGridCell));
-                                        c.CellStyle.Setters.Add(new Setter(DataGridCell.BackgroundProperty, new SolidColorBrush(Colors.LightBlue)));
-                                    }
-                                }
-                            }
+                            //foreach (DataGridColumn c in GridNSAPData.Columns)
+                            //{
+                            //    if (int.TryParse(c.Header.ToString(), out int v))
+                            //    {
+                            //        if (NSAPEntities.CalendarMonthViewModel.DayIsRestDay(v))
+                            //        {
+                            //            _hasNonSamplingDayColumns = true;
+                            //            c.CellStyle = new Style(typeof(DataGridCell));
+                            //            c.CellStyle.Setters.Add(new Setter(DataGridCell.BackgroundProperty, new SolidColorBrush(Colors.LightBlue)));
+                            //        }
+                            //    }
+                            //}
                         }
                         else
                         {
@@ -5199,20 +5289,7 @@ namespace NSAP_ODK
                     }
                     CrossTabDatasetsGenerator.CrossTabDatasetEvent -= CrossTabDatasetsGenerator_CrossTabDatasetEvent;
                     CrossTabGenerator.CrossTabEvent -= CrossTabGenerator_CrossTabEvent;
-                    //    }
-                    //    else
-                    //    {
-                    //        await GenerateCrossTabFirstVersion();
-                    //    }
-                    //}
-                    //else
-                    //{
-                    //    //var watch = System.Diagnostics.Stopwatch.StartNew();
-                    //    await GenerateCrossTabFirstVersion();
-                    //    //watch.Stop();
-                    //    //var elapsedMs = watch.ElapsedMilliseconds;
-                    //    //Title = $"Elapsed time ms:{elapsedMs}";
-                    //}
+
 
                     break;
                 case "contextMenuWeightValidation":
@@ -5848,6 +5925,7 @@ namespace NSAP_ODK
             targetGrid.Columns.Clear();
             targetGrid.DataContext = null;
             targetGrid.SelectionMode = DataGridSelectionMode.Single;
+            bool summaryWithSpeciesNoData = false;
 
             if (treeviewData != null)
             {
@@ -5997,12 +6075,12 @@ namespace NSAP_ODK
 
                         targetGrid.Columns.Add(new DataGridTextColumn { Header = "Taxa", Binding = new Binding("TaxaName") });
                         targetGrid.Columns.Add(new DataGridTextColumn { Header = "Species", Binding = new Binding("SpeciesName") });
-                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "# premature measured", Binding = new Binding("CountStagePremature") });
-                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "# immature measured", Binding = new Binding("CountStageImmature") });
-                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "# developing measured", Binding = new Binding("CountStageDeveloping") });
-                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "# ripening measured", Binding = new Binding("CountStageRipenening") });
-                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "# spawning measured", Binding = new Binding("CountStageSpawning") });
-                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "# spent measured", Binding = new Binding("CountStageSpent") });
+                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "# premature", Binding = new Binding("CountStagePremature") });
+                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "# immature", Binding = new Binding("CountStageImmature") });
+                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "# developing", Binding = new Binding("CountStageDeveloping") });
+                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "# ripening", Binding = new Binding("CountStageRipenening") });
+                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "# spawning", Binding = new Binding("CountStageSpawning") });
+                        targetGrid.Columns.Add(new DataGridTextColumn { Header = "# spent", Binding = new Binding("CountStageSpent") });
 
                         labelRowCount.Visibility = Visibility.Collapsed;
                         MonthLabel.Content = "Summary for landing site";
@@ -6011,7 +6089,8 @@ namespace NSAP_ODK
 
                         if (lsmfms.Count == 0)
                         {
-                            TimedMessageBox.Show("There is no data for the summary", Global.MessageBoxCaption, 2500, System.Windows.Forms.MessageBoxButtons.OK);
+                            summaryWithSpeciesNoData = true;
+                            //TimedMessageBox.Show("There is no data for the summary", Global.MessageBoxCaption, 2500, System.Windows.Forms.MessageBoxButtons.OK);
                         }
 
                     }
@@ -6043,7 +6122,8 @@ namespace NSAP_ODK
 
                         if (lsms.Count == 0)
                         {
-                            TimedMessageBox.Show("There is no data for the summary", Global.MessageBoxCaption, 2500, System.Windows.Forms.MessageBoxButtons.OK);
+                            summaryWithSpeciesNoData = true;
+                            //TimedMessageBox.Show("There is no data for the summary", Global.MessageBoxCaption, 2500, System.Windows.Forms.MessageBoxButtons.OK);
                         }
 
                     }
@@ -6086,7 +6166,8 @@ namespace NSAP_ODK
 
                             if (smcs.Count == 0)
                             {
-                                TimedMessageBox.Show("There is no data for the summary", Global.MessageBoxCaption, 2500, System.Windows.Forms.MessageBoxButtons.OK);
+                                summaryWithSpeciesNoData = true;
+                                //TimedMessageBox.Show("There is no data for the summary", Global.MessageBoxCaption, 2500, System.Windows.Forms.MessageBoxButtons.OK);
                             }
 
                         }
@@ -6153,6 +6234,15 @@ namespace NSAP_ODK
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Date first sampling", Binding = new Binding("DBSummary.FirstLandingFormattedDate") });
                     targetGrid.Columns.Add(new DataGridTextColumn { Header = "Date last sampling", Binding = new Binding("DBSummary.LastLandingFormattedDate") });
                     break;
+            }
+
+            if (summaryWithSpeciesNoData)
+            {
+                TimedMessageBox.Show(text: "There is no data for the summary\r\nCheck if NSAP Region has watched species list",
+                                    caption: Global.MessageBoxCaption,
+                                    timeout: 5000,
+                                    buttons: System.Windows.Forms.MessageBoxButtons.OK
+                                    );
             }
 
         }

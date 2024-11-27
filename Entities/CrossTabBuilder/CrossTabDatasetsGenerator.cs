@@ -193,6 +193,10 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 dc = new DataColumn { ColumnName = "Weight of species", DataType = typeof(double) };
                 EffortSpeciesDataTable.Columns.Add(dc);
 
+                dc = new DataColumn { ColumnName = "Sample weight of species (TWS)", DataType = typeof(double) };
+                EffortSpeciesDataTable.Columns.Add(dc);
+
+
                 dc = new DataColumn { ColumnName = "Notes", DataType = typeof(string) };
                 EffortSpeciesDataTable.Columns.Add(dc);
 
@@ -300,6 +304,14 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 row["Family"] = vc.Family;
                 row["Species"] = vc.CatchName;
                 row["Weight of species"] = ((double)vc.Catch_kg).ToString("N1");
+                if (vc.Sample_kg == null)
+                {
+                    row["Sample weight of species (TWS)"] = DBNull.Value;
+                }
+                else
+                {
+                    row["Sample weight of species (TWS)"] = ((double)vc.Sample_kg).ToString("N1");
+                }
                 foreach (var gs in vc.ParentFishingGear.ListOfSpecsForCrossTab)
                 {
                     string spec_name = "";
@@ -513,6 +525,9 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
             dc = new DataColumn { ColumnName = "Weight of species", DataType = typeof(double) };
             SpeciesLengthsDataTable.Columns.Add(dc);
 
+            dc = new DataColumn { ColumnName = "Sample weight of species (TWS)", DataType = typeof(double) };
+            SpeciesLengthsDataTable.Columns.Add(dc);
+
             dc = new DataColumn { ColumnName = "Length", DataType = typeof(double) };
             SpeciesLengthsDataTable.Columns.Add(dc);
 
@@ -598,6 +613,14 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 row["Family"] = sl.Parent.Family;
                 row["Species"] = sl.Parent.CatchName;
                 row["Weight of species"] = sl.Parent.Catch_kg;
+                if (sl.Parent.Sample_kg == null)
+                {
+                    row["Sample weight of species (TWS)"] = DBNull.Value;
+                }
+                else
+                {
+                    row["Sample weight of species (TWS)"] = ((double)sl.Parent.Sample_kg).ToString("N1");
+                }
                 row["Length"] = sl.Length;
                 row["Sex"] = sl.Sex;
 
@@ -711,6 +734,9 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
             dc = new DataColumn { ColumnName = "Weight of species", DataType = typeof(double) };
             SpeciesLengthWeightDataTable.Columns.Add(dc);
 
+            dc = new DataColumn { ColumnName = "Sample weight of species (TWS)", DataType = typeof(double) };
+            SpeciesLengthWeightDataTable.Columns.Add(dc);
+
             dc = new DataColumn { ColumnName = "Length", DataType = typeof(double) };
             SpeciesLengthWeightDataTable.Columns.Add(dc);
 
@@ -801,6 +827,14 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 row["Family"] = slw.Parent.Family;
                 row["Species"] = slw.Parent.CatchName;
                 row["Weight of species"] = slw.Parent.Catch_kg;
+                if (slw.Parent.Sample_kg == null)
+                {
+                    row["Sample weight of species (TWS)"] = DBNull.Value;
+                }
+                else
+                {
+                    row["Sample weight of species (TWS)"] = ((double)slw.Parent.Sample_kg).ToString("N1");
+                }
                 row["Length"] = slw.Length;
                 row["Weight"] = slw.Weight;
                 row["Unit of weight"] = slw.Parent.WeighingUnit;
@@ -913,6 +947,9 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
             dc = new DataColumn { ColumnName = "Weight of species", DataType = typeof(double) };
             SpeciesLengthFreqDataTable.Columns.Add(dc);
 
+            dc = new DataColumn { ColumnName = "Sample weight of species (TWS)", DataType = typeof(double) };
+            SpeciesLengthFreqDataTable.Columns.Add(dc);
+
             dc = new DataColumn { ColumnName = "Length", DataType = typeof(double) };
             SpeciesLengthFreqDataTable.Columns.Add(dc);
 
@@ -1000,6 +1037,14 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 row["Family"] = slf.Parent.Family;
                 row["Species"] = slf.Parent.CatchName;
                 row["Weight of species"] = slf.Parent.Catch_kg;
+                if (slf.Parent.Sample_kg == null)
+                {
+                    row["Sample weight of species (TWS)"] = DBNull.Value;
+                }
+                else
+                {
+                    row["Sample weight of species (TWS)"] = ((double)slf.Parent.Sample_kg).ToString("N1");
+                }
                 row["Length"] = slf.Length;
                 row["Frequency"] = slf.Frequency;
                 row["Sex"] = slf.Sex;
@@ -1111,6 +1156,9 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
             dc = new DataColumn { ColumnName = "Weight of species", DataType = typeof(double) };
             SpeciesMaturityDataTable.Columns.Add(dc);
 
+            dc = new DataColumn { ColumnName = "Sample weight of species (TWS)", DataType = typeof(double) };
+            SpeciesMaturityDataTable.Columns.Add(dc);
+
             dc = new DataColumn { ColumnName = "Length", DataType = typeof(double) };
             SpeciesMaturityDataTable.Columns.Add(dc);
 
@@ -1213,6 +1261,14 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 row["Family"] = scm.Parent.Family;
                 row["Species"] = scm.Parent.CatchName;
                 row["Weight of species"] = scm.Parent.Catch_kg;
+                if (scm.Parent.Sample_kg == null)
+                {
+                    row["Sample weight of species (TWS)"] = DBNull.Value;
+                }
+                else
+                {
+                    row["Sample weight of species (TWS)"] = ((double)scm.Parent.Sample_kg).ToString("N1");
+                }
                 if (scm.Length != null)
                 {
                     row["Length"] = scm.Length;
@@ -1394,6 +1450,7 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                     row["Date of haul"] = vu.GearHaulingFirst;
                 }
                 row["Weight of catch of gear"] = vu.ListUnloadFishingGearsEx.Sum(t => t.WeightOfCatch);
+                
                 row["Ref #"] = vu.RefNo;
                 row["Has catch composition"] = vu.HasCatchComposition;
                 row["Is a fishing boat used"] = vu.IsBoatUsed;
@@ -1427,8 +1484,8 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 }
 
                 row["Catch composition count"] = vu.CountCatchCompositionItems;
-                
-                if(vu.WeightOfCatch!=null)
+
+                if (vu.WeightOfCatch != null)
                 {
                     row["Total weight of catch"] = vu.WeightOfCatch;
                 }
@@ -1436,7 +1493,7 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 {
                     row["Total weight of catch"] = DBNull.Value;
                 }
-                
+
                 row["Is the catch sold"] = vu.IsCatchSold;
                 row["Notes"] = vu.Notes;
                 foreach (var vufg in vu.ListUnloadFishingGearsEx)

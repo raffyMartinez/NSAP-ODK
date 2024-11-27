@@ -78,7 +78,7 @@ namespace NSAP_ODK.Views
             rowMenu.Height = new GridLength(0);
 
         }
-
+        
         public GearUnloadWindow(List<GearUnload> gearUnloads, TreeViewModelControl.AllSamplingEntitiesEventHandler treeItemData, MainWindow parent, string sector_code)
         {
             InitializeComponent();
@@ -477,13 +477,17 @@ namespace NSAP_ODK.Views
         public CalendarViewType CalendarViewType { get; set; }
         private void SetVesselUnloadGridContext()
         {
+            //if(_vesselUnloads.Count>0)
+            //{
+
+            //}
             if (_gearUnloads.Count > 0)
             {
-                //_vesselUnloads = _gearUnloads[0].ListVesselUnload;
-                _vesselUnloads = new List<VesselUnload>();
+                //_vesselUnloads = new List<VesselUnload>();
                 bool isMeasurementCalendar = false;
                 foreach (GearUnload gu in _gearUnloads)
                 {
+
                     if (string.IsNullOrEmpty(MaturityCode))
                     {
                         if (CalendarViewType == CalendarViewType.calendarViewTypeLengthMeasurement ||
@@ -492,22 +496,22 @@ namespace NSAP_ODK.Views
                                 CalendarViewType == CalendarViewType.calendarViewTypeMaturityMeasurement)
                         {
                             isMeasurementCalendar = true;
-                            _vesselUnloads.AddRange(gu.ListVesselUnload);
+                            //_vesselUnloads.AddRange(gu.ListVesselUnload);
                         }
                         else if (!string.IsNullOrEmpty(_watchedSpecies))
                         {
-                            _vesselUnloads.AddRange(gu.ListVesselUnload);
+                            //_vesselUnloads.AddRange(gu.ListVesselUnload);
                         }
                         else
                         {
-                            foreach (VesselUnload vu in gu.ListVesselUnload)
-                            {
-                                if (vu.SectorCode == SectorCode)
-                                {
-                                    _vesselUnloads.Add(vu);
+                            //foreach (VesselUnload vu in gu.ListVesselUnload)
+                            //{
+                            //    if (vu.SectorCode == SectorCode)
+                            //    {
+                            //        _vesselUnloads.Add(vu);
 
-                                }
-                            }
+                            //    }
+                            //}
                             GridVesselUnload.DataContext = _vesselUnloads;
                         }
 
@@ -516,6 +520,8 @@ namespace NSAP_ODK.Views
                     {
                         _vesselUnloads.AddRange(gu.ListVesselUnload);
                     }
+
+
                 }
 
                 if (GridVesselUnload.DataContext == null)
@@ -566,9 +572,18 @@ namespace NSAP_ODK.Views
 
                 LabelTitle.Content = $"Vessel unloads from {_gearUnloads[0].Parent.LandingSite} using {_gearUnloads[0].GearUsedName} on {_gearUnloads[0].Parent.SamplingDate.ToString("MMM-dd-yyyy")}";
 
+
+
+
                 //((MainWindow)Owner).SetupCalendar();
             }
         }
+
+        private void Gu_GetVesselUnloadEvent(object sender, ProcessingItemsEventArg e)
+        {
+            throw new NotImplementedException();
+        }
+
         private void ShowVesselUnloadGrid()
         {
 
@@ -582,29 +597,7 @@ namespace NSAP_ODK.Views
                 switch (_listSource)
                 {
                     case GearUnloadWindowListSource.ListSourceGearUnload:
-                        //_vesselUnloads = VesselUnloadViewModel.GetVesselUnloads(_gearUnloads);
-                        //if (_gearUnloads.Count > 0)
-                        //{
-                        //    //_vesselUnloads = _gearUnloads[0].ListVesselUnload;
-                        //    _vesselUnloads = new List<VesselUnload>();
-                        //    foreach(GearUnload gu in _gearUnloads)
-                        //    {
-                        //        foreach(VesselUnload vu in gu.ListVesselUnload)
-                        //        {
-                        //            if(vu.SectorCode==SectorCode)
-                        //            {
-                        //                _vesselUnloads.Add(vu);
-                        //            }
-                        //        }
-
-                        //    }
-
-
-                        //    GridVesselUnload.DataContext = _vesselUnloads;
                         SetVesselUnloadGridContext();
-
-
-                        //}
                         break;
                     case GearUnloadWindowListSource.listSourceVesselUnload:
                         LabelTitle.Content = "Vessel unloads from summary";
