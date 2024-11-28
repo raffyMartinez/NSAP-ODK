@@ -4273,12 +4273,25 @@ namespace NSAP_ODK
 
                                         _gearUnloadWindow = new GearUnloadWindow(_gearUnloads, _treeItemData, this, _sector_code);
                                         _gearUnloadWindow.CalendarViewType = _calendarOption;
+
+
+                                        if (_isWatchedSpeciesCalendar)
+                                        {
+                                            var taxa_code = NSAPEntities.TaxaViewModel.TaxaCodeFromName(_speciesTaxa);
+                                            _gearUnloadWindow.SpeciesID = VesselCatchViewModel.SpeciesIDFromSpeciesName(taxa_code, _speciesName);
+                                            _gearUnloadWindow.WatchedSpecies = _speciesName;
+                                        }
+                                        else
+                                        {
+                                            _gearUnloadWindow.WatchedSpecies = null;
+                                        }
+
                                         if (_calendarOption == CalendarViewType.calendarViewTypeMaturityMeasurement && _getFemaleMaturity)
                                         {
                                             _gearUnloadWindow.SectorCode = _sector_code;
                                             _gearUnloadWindow.MaturityCode = CatchMaturity.CodeFromMaturityStage(_maturityStage);
-                                            var taxa_code = NSAPEntities.TaxaViewModel.TaxaCodeFromName(_speciesTaxa);
-                                            _gearUnloadWindow.SpeciesID = VesselCatchViewModel.SpeciesIDFromSpeciesName(taxa_code, _speciesName);
+                                            //var taxa_code = NSAPEntities.TaxaViewModel.TaxaCodeFromName(_speciesTaxa);
+                                            //_gearUnloadWindow.SpeciesID = VesselCatchViewModel.SpeciesIDFromSpeciesName(taxa_code, _speciesName);
                                         }
                                         else if (_calendarOption == CalendarViewType.calendarViewTypeLengthMeasurement ||
                                             _calendarOption == CalendarViewType.calendarViewTypeLengthFrequencyMeasurement ||
@@ -4286,19 +4299,23 @@ namespace NSAP_ODK
                                             _calendarOption == CalendarViewType.calendarViewTypeLengthWeightMeasurement
                                             )
                                         {
-                                            var taxa_code = NSAPEntities.TaxaViewModel.TaxaCodeFromName(_speciesTaxa);
-                                            _gearUnloadWindow.SpeciesID = VesselCatchViewModel.SpeciesIDFromSpeciesName(taxa_code, _speciesName);
+                                            //var taxa_code = NSAPEntities.TaxaViewModel.TaxaCodeFromName(_speciesTaxa);
+                                            //_gearUnloadWindow.SpeciesID = VesselCatchViewModel.SpeciesIDFromSpeciesName(taxa_code, _speciesName);
                                         }
                                         else
                                         {
 
-                                            if (_isWatchedSpeciesCalendar)
-                                            {
-                                                var taxa_code = NSAPEntities.TaxaViewModel.TaxaCodeFromName(_speciesTaxa);
-                                                _gearUnloadWindow.SpeciesID = VesselCatchViewModel.SpeciesIDFromSpeciesName(taxa_code, _speciesName);
-                                                _gearUnloadWindow.WatchedSpecies = _speciesName;
-                                            }
+                                            //if (_isWatchedSpeciesCalendar)
+                                            //{
+                                            //    var taxa_code = NSAPEntities.TaxaViewModel.TaxaCodeFromName(_speciesTaxa);
+                                            //    _gearUnloadWindow.SpeciesID = VesselCatchViewModel.SpeciesIDFromSpeciesName(taxa_code, _speciesName);
+                                            //    _gearUnloadWindow.WatchedSpecies = _speciesName;
+                                            //}
                                         }
+
+
+
+
                                         _gearUnloadWindow.VesselUnloads = v_unloads;
                                         _gearUnloadWindow.Owner = this;
                                         _gearUnloadWindow.Show();
@@ -4428,7 +4445,7 @@ namespace NSAP_ODK
                     if (fs != null)
                     {
                         //id = fs.RowNumber.ToString();
-                        id = ((int)fs.SpeciesCode).ToString(); 
+                        id = ((int)fs.SpeciesCode).ToString();
                     }
 
                     break;
@@ -5020,6 +5037,9 @@ namespace NSAP_ODK
                     catch { }
                     break;
                 case DataDisplayMode.ODKData:
+                    _maturityStage = null;
+                    _speciesTaxa = null;
+                    _speciesName = null;
                     _calendarDay = null;
                     _calendarDayHasValue = false;
                     if (GridNSAPData.SelectedCells.Count == 1 && _acceptDataGridCellClick)
@@ -5032,216 +5052,207 @@ namespace NSAP_ODK
                         var item = GridNSAPData.Items[_gridRow] as DataRowView;
                         _calendarDayHasValue = item.Row.ItemArray[_gridCol] != DBNull.Value;
                         _calendarDayValue = item.Row.ItemArray[_gridCol].ToString();
-                        if (item != null)
+                        if (_calendarDayHasValue)
                         {
-
-                            if (_isWatchedSpeciesCalendar)
+                            if (item != null)
                             {
-                                if (Global.Settings.UseAlternateCalendar)
-                                {
-                                    if (_getFemaleMaturity)
-                                    {
-                                        _speciesTaxa = (string)item.Row.ItemArray[0];
-                                        _speciesName = (string)item.Row.ItemArray[1];
-                                        _maturityStage = (string)item.Row.ItemArray[3];
-                                        _gearName = (string)item.Row.ItemArray[4];
-                                        _gearCode = (string)item.Row.ItemArray[5];
-                                        _fish_sector = (string)item.Row.ItemArray[6];
-                                        _monthYear = DateTime.Parse(item.Row.ItemArray[7].ToString());
-                                        gridColumnForDay1 = 8;
 
-                                    }
-                                    else if (!_isMeasuredWatchedSpeciesCalendar)
+                                if (_isWatchedSpeciesCalendar)
+                                {
+                                    if (Global.Settings.UseAlternateCalendar)
                                     {
-                                        _speciesTaxa = (string)item.Row.ItemArray[0];
-                                        _speciesName = (string)item.Row.ItemArray[1];
-                                        _gearName = (string)item.Row.ItemArray[2];
-                                        _gearCode = (string)item.Row.ItemArray[3];
-                                        _fish_sector = (string)item.Row.ItemArray[4];
-                                        _monthYear = DateTime.Parse(item.Row.ItemArray[5].ToString());
-                                        gridColumnForDay1 = 6;
+                                        if (_getFemaleMaturity)
+                                        {
+                                            _speciesTaxa = (string)item.Row.ItemArray[0];
+                                            _speciesName = (string)item.Row.ItemArray[1];
+                                            _maturityStage = (string)item.Row.ItemArray[3];
+                                            _gearName = (string)item.Row.ItemArray[4];
+                                            _gearCode = (string)item.Row.ItemArray[5];
+                                            _fish_sector = (string)item.Row.ItemArray[6];
+                                            _monthYear = DateTime.Parse(item.Row.ItemArray[7].ToString());
+                                            gridColumnForDay1 = 8;
+
+                                        }
+                                        else if (!_isMeasuredWatchedSpeciesCalendar)
+                                        {
+                                            _speciesTaxa = (string)item.Row.ItemArray[0];
+                                            _speciesName = (string)item.Row.ItemArray[1];
+                                            _gearName = (string)item.Row.ItemArray[2];
+                                            _gearCode = (string)item.Row.ItemArray[3];
+                                            _fish_sector = (string)item.Row.ItemArray[4];
+                                            _monthYear = DateTime.Parse(item.Row.ItemArray[5].ToString());
+                                            gridColumnForDay1 = 6;
+                                        }
+                                        else
+                                        {
+                                            _speciesTaxa = (string)item.Row.ItemArray[0];
+                                            _speciesName = (string)item.Row.ItemArray[1];
+                                            _gearName = (string)item.Row.ItemArray[3];
+                                            _gearCode = (string)item.Row.ItemArray[4];
+                                            _fish_sector = (string)item.Row.ItemArray[5];
+                                            _monthYear = DateTime.Parse(item.Row.ItemArray[6].ToString());
+                                            gridColumnForDay1 = 7;
+                                        }
                                     }
                                     else
                                     {
-                                        _speciesTaxa = (string)item.Row.ItemArray[0];
-                                        _speciesName = (string)item.Row.ItemArray[1];
-                                        _gearName = (string)item.Row.ItemArray[3];
-                                        _gearCode = (string)item.Row.ItemArray[4];
-                                        _fish_sector = (string)item.Row.ItemArray[5];
-                                        _monthYear = DateTime.Parse(item.Row.ItemArray[6].ToString());
-                                        gridColumnForDay1 = 7;
+                                        if (_getFemaleMaturity)
+                                        {
+                                            _speciesTaxa = (string)item.Row.ItemArray[0];
+                                            _speciesName = (string)item.Row.ItemArray[1];
+                                            _maturityStage = (string)item.Row.ItemArray[2];
+                                            _gearName = (string)item.Row.ItemArray[3];
+                                            _gearCode = (string)item.Row.ItemArray[4];
+                                            _fish_sector = (string)item.Row.ItemArray[5];
+                                            _monthYear = DateTime.Parse(item.Row.ItemArray[6].ToString());
+                                            gridColumnForDay1 = 7;
+
+                                        }
+                                        else
+                                        {
+                                            _speciesTaxa = (string)item.Row.ItemArray[0];
+                                            _speciesName = (string)item.Row.ItemArray[1];
+                                            _gearName = (string)item.Row.ItemArray[2];
+                                            _gearCode = (string)item.Row.ItemArray[3];
+                                            _fish_sector = (string)item.Row.ItemArray[4];
+                                            _monthYear = DateTime.Parse(item.Row.ItemArray[5].ToString());
+                                            gridColumnForDay1 = 6;
+                                        }
                                     }
+                                    // _calendarDay = _gridCol - (gridColumnForDay1 - 1);
                                 }
                                 else
                                 {
-                                    if (_getFemaleMaturity)
-                                    {
-                                        _speciesTaxa = (string)item.Row.ItemArray[0];
-                                        _speciesName = (string)item.Row.ItemArray[1];
-                                        _maturityStage = (string)item.Row.ItemArray[2];
-                                        _gearName = (string)item.Row.ItemArray[3];
-                                        _gearCode = (string)item.Row.ItemArray[4];
-                                        _fish_sector = (string)item.Row.ItemArray[5];
-                                        _monthYear = DateTime.Parse(item.Row.ItemArray[6].ToString());
-                                        gridColumnForDay1 = 7;
+                                    _gearName = (string)item.Row.ItemArray[0];
+                                    _gearCode = (string)item.Row.ItemArray[1];
+                                    _fish_sector = (string)item.Row.ItemArray[2];
+                                    _monthYear = DateTime.Parse(item.Row.ItemArray[3].ToString());
+                                    gridColumnForDay1 = 4;
+                                    //_calendarDay = _gridCol - (gridColumnForDay1 - 1);
 
+                                    if (_gridCol == 0)
+                                    {
+                                        ContextMenu contextMenu = new ContextMenu();
+                                        contextMenu.Items.Add(new MenuItem { Header = "Cross tab report", Name = "menuGearCrossTabReport", Tag = "samplingCalendar" });
+                                        ((MenuItem)contextMenu.Items[0]).Click += OnDataGridContextMenu;
+                                        GridNSAPData.ContextMenu = contextMenu;
+
+                                        if (CrossTabReportWindow.Instance != null)
+                                        {
+                                            _allSamplingEntitiesEventHandler.GearUsed = _gearName;
+                                            _allSamplingEntitiesEventHandler.ContextMenuTopic = "contextMenuCrosstabGear";
+                                            CrossTabManager.IsCarrierLandding = false;
+                                            await CrossTabManager.GearByMonthYearAsync(_allSamplingEntitiesEventHandler);
+                                            ShowCrossTabWIndow();
+                                        }
                                     }
                                     else
                                     {
-                                        _speciesTaxa = (string)item.Row.ItemArray[0];
-                                        _speciesName = (string)item.Row.ItemArray[1];
-                                        _gearName = (string)item.Row.ItemArray[2];
-                                        _gearCode = (string)item.Row.ItemArray[3];
-                                        _fish_sector = (string)item.Row.ItemArray[4];
-                                        _monthYear = DateTime.Parse(item.Row.ItemArray[5].ToString());
-                                        gridColumnForDay1 = 6;
+                                        GridNSAPData.ContextMenu = null;
+                                        //if (_gridCol > 3)
+                                        //{
+                                        //    _calendarDay = _gridCol - 3;
+                                        //}
                                     }
                                 }
-                                // _calendarDay = _gridCol - (gridColumnForDay1 - 1);
-                            }
-                            else
-                            {
-                                _gearName = (string)item.Row.ItemArray[0];
-                                _gearCode = (string)item.Row.ItemArray[1];
-                                _fish_sector = (string)item.Row.ItemArray[2];
-                                _monthYear = DateTime.Parse(item.Row.ItemArray[3].ToString());
-                                gridColumnForDay1 = 4;
-                                //_calendarDay = _gridCol - (gridColumnForDay1 - 1);
+                                _calendarGridColumnName = GridNSAPData.Columns[_gridCol].Header.ToString();
+                                if (int.TryParse(_calendarGridColumnName, out int v))
+                                {
+                                    _calendarDay = v;
+                                }
+
+                                if (NSAPEntities.SummaryItemViewModel.SummaryResults.Count > 0)
+                                {
+
+                                }
+
+                                if (!string.IsNullOrEmpty(_fish_sector))
+                                {
+                                    switch (_fish_sector)
+                                    {
+                                        case "Commercial":
+                                            _sector_code = "c";
+                                            break;
+                                        case "Municipal":
+                                            _sector_code = "m";
+                                            break;
+                                    }
+                                }
+                                _gearUnloads = new List<GearUnload>();
+
+
 
                                 if (_gridCol == 0)
                                 {
-                                    ContextMenu contextMenu = new ContextMenu();
-                                    contextMenu.Items.Add(new MenuItem { Header = "Cross tab report", Name = "menuGearCrossTabReport", Tag = "samplingCalendar" });
-                                    ((MenuItem)contextMenu.Items[0]).Click += OnDataGridContextMenu;
-                                    GridNSAPData.ContextMenu = contextMenu;
 
-                                    if (CrossTabReportWindow.Instance != null)
+                                }
+                                else if (_gridCol >= gridColumnForDay1)
+                                {
+                                    NSAPEntities.FishingCalendarDayExViewModel.MonthSampled = _allSamplingEntitiesEventHandler;
+                                    GearUnload gear_unload_from_day = NSAPEntities.FishingCalendarDayExViewModel.GetGearUnload(_gearName, _fish_sector, _gridCol - (gridColumnForDay1 - 1), _calendarOption, isAlternateCalendar: Global.Settings.UseAlternateCalendar, gearCode: _gearCode);
+                                    //GearUnload gear_unload_from_day = _fishingCalendarViewModel.FishingCalendarList.FirstOrDefault(t => t.GearName == _gearName && t.Sector == _fish_sector).GearUnloads[_gridCol - 4];
+
+                                    //sectorCode = gear_unload_from_day.SectorCode;
+
+                                    if (gear_unload_from_day != null)
                                     {
-                                        _allSamplingEntitiesEventHandler.GearUsed = _gearName;
-                                        _allSamplingEntitiesEventHandler.ContextMenuTopic = "contextMenuCrosstabGear";
-                                        CrossTabManager.IsCarrierLandding = false;
-                                        await CrossTabManager.GearByMonthYearAsync(_allSamplingEntitiesEventHandler);
-                                        ShowCrossTabWIndow();
+
+                                        var lss = gear_unload_from_day.Parent;
+                                        lss.GearUnloadViewModel = new GearUnloadViewModel(lss);
+                                        List<GearUnload> list_gu = lss.GearUnloadViewModel.GearUnloadCollection
+                                            .Where(t => t.GearID == gear_unload_from_day.GearID).ToList();
+
+                                        _gearUnloads = list_gu;
+
                                     }
+
+
                                 }
                                 else
                                 {
-                                    GridNSAPData.ContextMenu = null;
-                                    //if (_gridCol > 3)
-                                    //{
-                                    //    _calendarDay = _gridCol - 3;
-                                    //}
+
+                                    switch (_calendarGridColumnName)
+                                    {
+                                        case "Maturity stage":
+                                            break;
+                                        case "Species":
+                                            break;
+                                        case "GearName":
+                                            break;
+                                    }
                                 }
                             }
-                            _calendarGridColumnName = GridNSAPData.Columns[_gridCol].Header.ToString();
-                            if (int.TryParse(_calendarGridColumnName, out int v))
-                            {
-                                _calendarDay = v;
-                            }
-
-                            if (NSAPEntities.SummaryItemViewModel.SummaryResults.Count > 0)
-                            {
-
-                            }
-
-                            if (!string.IsNullOrEmpty(_fish_sector))
-                            {
-                                switch (_fish_sector)
-                                {
-                                    case "Commercial":
-                                        _sector_code = "c";
-                                        break;
-                                    case "Municipal":
-                                        _sector_code = "m";
-                                        break;
-                                }
-                            }
-                            _gearUnloads = new List<GearUnload>();
-
-
-
-                            if (_gridCol == 0)
-                            {
-
-                            }
-                            else if (_gridCol >= gridColumnForDay1)
-                            {
-                                NSAPEntities.FishingCalendarDayExViewModel.MonthSampled = _allSamplingEntitiesEventHandler;
-                                GearUnload gear_unload_from_day = NSAPEntities.FishingCalendarDayExViewModel.GetGearUnload(_gearName, _fish_sector, _gridCol - (gridColumnForDay1 - 1), _calendarOption, isAlternateCalendar: Global.Settings.UseAlternateCalendar, gearCode: _gearCode);
-                                //GearUnload gear_unload_from_day = _fishingCalendarViewModel.FishingCalendarList.FirstOrDefault(t => t.GearName == _gearName && t.Sector == _fish_sector).GearUnloads[_gridCol - 4];
-
-                                //sectorCode = gear_unload_from_day.SectorCode;
-
-                                if (gear_unload_from_day != null)
-                                {
-
-                                    var lss = gear_unload_from_day.Parent;
-                                    lss.GearUnloadViewModel = new GearUnloadViewModel(lss);
-                                    List<GearUnload> list_gu = lss.GearUnloadViewModel.GearUnloadCollection
-                                        .Where(t => t.GearID == gear_unload_from_day.GearID).ToList();
-
-                                    _gearUnloads = list_gu;
-
-                                }
-
-
-                            }
-                            else
-                            {
-
-                                switch (_calendarGridColumnName)
-                                {
-                                    case "Maturity stage":
-                                        break;
-                                    case "Species":
-                                        break;
-                                    case "GearName":
-                                        break;
-                                }
-                            }
+                        }
+                        else
+                        {
+                            _gearUnloads = null;
                         }
                         //_gearUnloads.Add(gear_unload_from_day);
 
                         //_gearUnloads = NSAPEntities.SummaryItemViewModel.GetGearUnloads(_gearName, _gridCol - 4, sector_code);
                     }
 
-                    if (_gearUnloadWindow != null && _gearUnloads != null)
+                    if ( _gearUnloadWindow != null  )
                     {
-                        //GearUnloadViewModel.ProcessingItemsEvent += GearUnloadViewModel_ProcessingItemsEvent;
-                        //ShowStatusRow();
-                        //var vunloads= await GearUnloadViewModel.GetVesselUnloadsFromGearUnloadsAsync(_gearUnloads);
-                        //ShowStatusRow(isVisible: false);
-                        //GearUnloadViewModel.ProcessingItemsEvent += GearUnloadViewModel_ProcessingItemsEvent;
-
-                        await _gearUnloadWindow.GetVesselUnloadsFromGearUnloadsTask(_gearUnloads);
-                        _gearUnloadWindow.TurnGridOff();
-                        _gearUnloadWindow.CalendarViewType = _calendarOption;
-                        if (_isWatchedSpeciesCalendar)
+                        if ( _gearUnloads != null && _gearUnloads.Count > 0)
                         {
-                            _gearUnloadWindow.WatchedSpecies = _speciesName;
-                        }
-                        if (_gearUnloads != null && _gearUnloads.Count > 0)
-                        {
-                            //_gearUnloadWindow.GearUnload = _gearUnload;
-                            _gearUnloadWindow.SectorCode = _sector_code;
-                            //_gearUnloadWindow.GearUnloads = _gearUnloads;
-                            _gearUnloadWindow.ShowVesselUnloads();
-
-                            try
-                            {
-                                _gearUnloadWindow.Visibility = Visibility.Visible;
-                            }
-                            catch { }
-
+                            await _gearUnloadWindow.GetVesselUnloadsFromGearUnloadsTask(
+                                treeviewData:_allSamplingEntitiesEventHandler,
+                                gus: _gearUnloads,
+                                viewType: _calendarOption,
+                                sector_code: _sector_code,
+                                taxa: _speciesTaxa,
+                                speciesName: _speciesName,
+                                isFemaleMaturity: _getFemaleMaturity,
+                                maturityStage: _maturityStage
+                                );
                         }
                         else
                         {
-                            //_gearUnloadWindow.Close();
-                            //_gearUnloadWindow = null;
-                            //_gearUnloadWindow.Visibility = Visibility.Collapsed;
                             _gearUnloadWindow.TurnGridOff();
                         }
                     }
+
                     break;
             }
         }
@@ -5282,12 +5293,6 @@ namespace NSAP_ODK
                     break;
                 case "contextMenuCrosstabLandingSite":
                 case "contextMenuCrosstabMonth":
-                    //if (Debugger.IsAttached)
-                    //{
-
-                    //    var r = MessageBox.Show("Do stable version of cross tab?", Global.MessageBoxCaption, MessageBoxButton.YesNo, MessageBoxImage.Question);
-                    //    if (r == MessageBoxResult.No)
-                    //    {
                     ShowStatusRow();
                     CrossTabGenerator.CrossTabEvent += CrossTabGenerator_CrossTabEvent;
                     CrossTabDatasetsGenerator.CrossTabDatasetEvent += CrossTabDatasetsGenerator_CrossTabDatasetEvent;
