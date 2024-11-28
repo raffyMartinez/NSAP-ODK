@@ -39,7 +39,7 @@
             <RowDefinition Height="25" x:Name="rowMenu"  />
             <RowDefinition Height="30"/>
             <RowDefinition/>
-            <RowDefinition Height="20"/>
+            <RowDefinition Height="32" x:Name="rowStatus"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
@@ -121,6 +121,10 @@
         <StackPanel Grid.Column="1" Grid.Row="2">
             <Button Content="Close" Margin="20 20 20 10 " Height="30" Click="OnButtonCLick" x:Name="ButtonClose"/>
         </StackPanel>
+        <StatusBar Grid.Row="3" VerticalAlignment="Top" Grid.ColumnSpan="2" Margin="0" >
+            <ProgressBar x:Name="progressBar" Height="15" Width="150"/>
+            <Label x:Name="progressLabel"  Width="auto" Content="progress bar label" Margin="0" />
+        </StatusBar>
 
     </Grid>
 </Window>

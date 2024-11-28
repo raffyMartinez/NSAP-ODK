@@ -15,6 +15,8 @@ using NSAP_ODK.Entities.Database;
 using NSAP_ODK.Entities;
 using NSAP_ODK.Utilities;
 using NSAP_ODK.Entities.Database;
+using System.Windows.Threading;
+
 namespace NSAP_ODK.Views
 {
     public enum GearUnloadWindowListSource
@@ -63,6 +65,7 @@ namespace NSAP_ODK.Views
         public GearUnloadWindow(List<VesselUnload> vesselUnloads)
         {
             InitializeComponent();
+            Loaded += OnWindowLoaded;
             _vesselUnloads = vesselUnloads;
             _listSource = GearUnloadWindowListSource.listSourceVesselUnload;
             tabItemPageBoatCount.Visibility = Visibility.Collapsed;
@@ -72,16 +75,18 @@ namespace NSAP_ODK.Views
         public GearUnloadWindow(List<GearUnload> gearUnloads)
         {
             InitializeComponent();
+            Loaded += OnWindowLoaded;
             _gearUnloads = gearUnloads;
             _listSource = GearUnloadWindowListSource.listSourceVesselUnload;
             tabItemPageBoatCount.Visibility = Visibility.Collapsed;
             rowMenu.Height = new GridLength(0);
 
         }
-        
+
         public GearUnloadWindow(List<GearUnload> gearUnloads, TreeViewModelControl.AllSamplingEntitiesEventHandler treeItemData, MainWindow parent, string sector_code)
         {
             InitializeComponent();
+            Loaded += OnWindowLoaded;
             rowMenu.Height = new GridLength(0);
             SectorCode = sector_code;
             _gearUnloads = gearUnloads;
@@ -124,6 +129,7 @@ namespace NSAP_ODK.Views
         public GearUnloadWindow(GearUnload gearUnload, TreeViewModelControl.AllSamplingEntitiesEventHandler treeItemData, MainWindow parent)
         {
             InitializeComponent();
+            Loaded += OnWindowLoaded;
             rowMenu.Height = new GridLength(0);
             _gearUnload = gearUnload;
             _treeItemData = treeItemData;
@@ -323,6 +329,86 @@ namespace NSAP_ODK.Views
 
         }
 
+        public async Task<bool> GetVesselUnloadsFromGearUnloadsTask(List<GearUnload> gus)
+        {
+            ShowStatusRow();
+            GearUnloadViewModel.ProcessingItemsEvent += GearUnloadViewModel_ProcessingItemsEvent;
+            _vesselUnloads = await GearUnloadViewModel.GetVesselUnloadsFromGearUnloadsAsync(gus);
+            GearUnloadViewModel.ProcessingItemsEvent -= GearUnloadViewModel_ProcessingItemsEvent;
+            ShowStatusRow(isVisible: false);
+            return _vesselUnloads != null & _vesselUnloads.Count > 0;
+        }
+
+        private void GearUnloadViewModel_ProcessingItemsEvent(object sender, ProcessingItemsEventArg e)
+        {
+            switch (e.Intent)
+            {
+                case "start":
+                    progressBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              progressBar.IsIndeterminate = true;
+                              progressBar.Value = 0;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+                    progressLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              progressLabel.Content = "Getting landing data from the database...";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+
+                    break;
+                case "end":
+                    progressBar.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+
+                              progressBar.IsIndeterminate = false;
+                              progressBar.Value = 0;
+                              //do what you need to do on UI Thread
+                              return null;
+                          }), null);
+
+                    progressLabel.Dispatcher.BeginInvoke
+                        (
+                          DispatcherPriority.Normal, new DispatcherOperationCallback(delegate
+                          {
+                              progressLabel.Content = "Finished getting landing data from the database";
+                              //do what you need to do on UI Thread
+                              return null;
+                          }
+                         ), null);
+                    break;
+            }
+        }
+
+        private void ShowStatusRow(bool isVisible = true, bool resetIndicators = true)
+        {
+            if (!isVisible)
+            {
+                rowStatus.Height = new GridLength(0);
+            }
+            else
+            {
+                rowStatus.Height = new GridLength(32, GridUnitType.Pixel);
+            }
+            if (resetIndicators)
+            {
+                progressBar.Value = 0;
+                progressLabel.Content = string.Empty;
+            }
+
+        }
+
         private void OnUnloadEditor_UnloadChangesSaved(object sender, VesselUnloadEditorControl.UnloadEditorEventArgs e)
         {
             //GridVesselUnload.DataContext = _vesselUnloads;
@@ -365,6 +451,33 @@ namespace NSAP_ODK.Views
             }
         }
         public string SectorCode { get; set; }
+
+        public void ShowVesselUnloads()
+        {
+            //TurnGridOff();
+            if (_vesselUnloads.Count > 0)
+            {
+                GridVesselUnload.Visibility = Visibility.Visible;
+                dataGridUnloadSummary.Visibility = Visibility.Visible;
+                gridGearUnloadNumbers.Visibility = Visibility.Visible;
+                ShowVesselUnloadGrid();
+
+                object item = GridVesselUnload.Items[0];
+                GridVesselUnload.SelectedItem = item;
+                try
+                {
+                    GridVesselUnload.ScrollIntoView(item);
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    //ignore
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(ex);
+                }
+            }
+        }
         public List<GearUnload> GearUnloads
         {
             set
@@ -651,6 +764,7 @@ namespace NSAP_ODK.Views
         {
             //ShowVesselUnloadGrid();
             //ShowUnloadSummaryGrid();
+            ShowStatusRow(isVisible: false);
             if (_summaryItems != null)
             {
                 tabItemWeights.IsSelected = true;

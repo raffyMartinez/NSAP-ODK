@@ -4269,7 +4269,7 @@ namespace NSAP_ODK
                                         ShowStatusRow(isVisible: false);
 
 
-                                        
+
 
                                         _gearUnloadWindow = new GearUnloadWindow(_gearUnloads, _treeItemData, this, _sector_code);
                                         _gearUnloadWindow.CalendarViewType = _calendarOption;
@@ -4428,7 +4428,7 @@ namespace NSAP_ODK
                     if (fs != null)
                     {
                         //id = fs.RowNumber.ToString();
-                        id = ((int)fs.SpeciesCode).ToString();
+                        id = ((int)fs.SpeciesCode).ToString(); 
                     }
 
                     break;
@@ -5207,6 +5207,13 @@ namespace NSAP_ODK
 
                     if (_gearUnloadWindow != null && _gearUnloads != null)
                     {
+                        //GearUnloadViewModel.ProcessingItemsEvent += GearUnloadViewModel_ProcessingItemsEvent;
+                        //ShowStatusRow();
+                        //var vunloads= await GearUnloadViewModel.GetVesselUnloadsFromGearUnloadsAsync(_gearUnloads);
+                        //ShowStatusRow(isVisible: false);
+                        //GearUnloadViewModel.ProcessingItemsEvent += GearUnloadViewModel_ProcessingItemsEvent;
+
+                        await _gearUnloadWindow.GetVesselUnloadsFromGearUnloadsTask(_gearUnloads);
                         _gearUnloadWindow.TurnGridOff();
                         _gearUnloadWindow.CalendarViewType = _calendarOption;
                         if (_isWatchedSpeciesCalendar)
@@ -5217,7 +5224,8 @@ namespace NSAP_ODK
                         {
                             //_gearUnloadWindow.GearUnload = _gearUnload;
                             _gearUnloadWindow.SectorCode = _sector_code;
-                            _gearUnloadWindow.GearUnloads = _gearUnloads;
+                            //_gearUnloadWindow.GearUnloads = _gearUnloads;
+                            _gearUnloadWindow.ShowVesselUnloads();
 
                             try
                             {
@@ -5230,7 +5238,8 @@ namespace NSAP_ODK
                         {
                             //_gearUnloadWindow.Close();
                             //_gearUnloadWindow = null;
-                            _gearUnloadWindow.Visibility = Visibility.Collapsed;
+                            //_gearUnloadWindow.Visibility = Visibility.Collapsed;
+                            _gearUnloadWindow.TurnGridOff();
                         }
                     }
                     break;
